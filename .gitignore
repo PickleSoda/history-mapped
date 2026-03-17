@@ -1,0 +1,34 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+api/.env
+web/.env
+
+# Dependencies
+node_modules/
+api/vendor/
+.pnpm-store/
+# Build output
+shared/dist/
+web/dist/
+api/public/build/
+
+# Laravel runtime
+api/bootstrap/cache/*.php
+api/storage/*.key
+api/storage/app/private/
+api/storage/framework/cache/*
+api/storage/framework/sessions/*
+api/storage/framework/testing/*
+api/storage/framework/views/*
+api/storage/logs/*
+
+# Keep framework directories
+!api/storage/framework/cache/.gitignore
+!api/storage/framework/sessions/.gitignore
+!api/storage/framework/testing/.gitignore
+!api/storage/framework/views/.gitignore
+!api/storage/logs/.gitignore
