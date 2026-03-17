@@ -52,6 +52,7 @@ High-level architectural guidance for Laravel applications.
 3. **Thin HTTP layer** - Controllers only handle HTTP concerns
 4. **Custom query builders** - Type-safe queries over scopes
 5. **Strict typing** - `declare(strict_types=1)` in every file
+6. **Commit style** - Use conventional commit prefixes such as `feat:`, `fix:`, or `refactor:` for any repository commits
 
 ## Quick Decision Tree
 

@@ -6,6 +6,10 @@ This document provides guidance for AI agents on how to effectively use the Lara
 
 This skill provides comprehensive patterns for building modern monolithic applications with Laravel backend, Inertia.js adapter, and React frontend. It covers 24 rules across 6 key categories.
 
+## Commit Convention
+
+When making git commits while using this skill, prefer conventional commit prefixes such as `feat:`, `fix:`, or `refactor:`.
+
 ## When to Apply This Skill
 
 Apply this skill when:
