@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "skills": {
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "computedHash": "063a0e6448123cd359ad0044cc46b0e490cc7964d45ef4bb9fd842bd2ffbca67"
+    },
+    "laravel-architecture": {
+      "source": "leeovery/claude-laravel",
+      "sourceType": "github",
+      "computedHash": "7fc262ad5fce956586f7a09313b6e981898b2f142c9e4db4dc4227952d42b782"
+    },
+    "laravel-inertia-react": {
+      "source": "asyrafhussin/agent-skills",
+      "sourceType": "github",
+      "computedHash": "b05144f7f9df5fd3cd03ce13cba822ac61970449fdf7c4c4208684258e8b1724"
+    },
+    "laravel-security-audit": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "397b854e1b71dfc8007d29e0174ee3bb89cc518700565a82c2f5cee7d1d20dfd"
+    },
+    "laravel-testing": {
+      "source": "leeovery/claude-laravel",
+      "sourceType": "github",
+      "computedHash": "3d7f5629789cc2743146d4430307da7b8207123a28865a69b3b854d158c0cca4"
+    },
+    "postgis-skill": {
+      "source": "postgis/postgis",
+      "sourceType": "github",
+      "computedHash": "e540ed351ae6724548e52a54c35b24bcfd15ddbba5bde05d258f86e0a4bae10f"
+    },
+    "vercel-react-best-practices": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "computedHash": "afeca00ac2f492d88fdd010e73d91719a5b57c564bb4a73325b0bd77e11323ab"
+    }
+  }
+}
