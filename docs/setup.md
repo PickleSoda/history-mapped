@@ -4,7 +4,7 @@
 
 WikiGlobe is a monorepo containing:
 
-- **`api/`** - Laravel 11 backend with Inertia.js (React) for the admin panel, and a REST API for the customer frontend.
+- **`api/`** - Laravel 13 backend with Inertia.js (React) for the admin panel, and a REST API for the customer frontend.
 - **`web/`** - React (Vite) customer-facing frontend.
 - **`shared/`** - Real TypeScript workspace package for generated API contracts, shared client utilities, and stable cross-app types.
 
@@ -28,7 +28,7 @@ Local dev environment: **fully dockerized with Docker Compose**.
 
 ```
 wikiglobe/
-|- api/                         # Laravel 11 application
+|- api/                         # Laravel 13 application
 |  |- app/
 |  |- bootstrap/
 |  |- config/
@@ -76,10 +76,15 @@ wikiglobe/
 |  |- api/
 |  |  |- Dockerfile            # PHP 8.3-FPM + Composer
 |  |  \- nginx.conf
+|  |- db/
+|  |  |- Dockerfile            # PostGIS + pgvector on Postgres 16
+|  |  \- init-extensions.sql   # Creates vector and postgis extensions
 |  |- web/
 |  |  \- Dockerfile            # Node 20 for Vite/web workspace commands
 |  |- admin/
 |  |  \- Dockerfile            # Node 20 for Inertia Vite server
+|  |- shared/
+|  |  \- Dockerfile            # Node 20 for shared package watch/build
 |  \- docker-compose.yml
 |
 |- pnpm-workspace.yaml
@@ -102,7 +107,7 @@ File: `docker/docker-compose.yml`
 | **web** | node:20-alpine | `5173:5173` | Customer Vite dev server |
 | **vite-admin** | node:20-alpine | `5174:5174` | Inertia admin Vite dev server |
 | **shared** | node:20-alpine | - | Watches and rebuilds `@wikiglobe/shared` into `dist/` |
-| **db** | postgres:16-alpine | `5432:5432` | Primary database |
+| **db** | postgis/postgis:16-3.5 + pgvector | `5432:5432` | Primary database with PostGIS and pgvector extensions |
 | **redis** | redis:7-alpine | `6379:6379` | Cache, sessions, queues |
 | **queue** | same as `app` | - | Runs `php artisan queue:work` |
 | **scheduler** | same as `app` | - | Runs Laravel scheduler loop |
@@ -115,7 +120,7 @@ File: `docker/docker-compose.yml`
 - **`web`** - Runs the customer Vite dev server only. It does not own API logic, background jobs, or Laravel assets.
 - **`vite-admin`** - Runs the Inertia admin Vite asset and HMR server only. It is not the admin application's browser URL.
 - **`shared`** - Runs `@wikiglobe/shared` watch and build tasks so generated contracts and `dist/` stay current.
-- **`db`** - PostgreSQL only. No app logic or migration orchestration should live here.
+- **`db`** - PostgreSQL with PostGIS and pgvector extensions. No app logic or migration orchestration should live here.
 - **`redis`** - Cache, session, and queue broker only.
 - **`queue`** - Runs asynchronous Laravel jobs only. No HTTP traffic, migrations, or scheduler duties.
 - **`scheduler`** - Runs scheduled Laravel tasks only.
@@ -152,7 +157,7 @@ File: `docker/docker-compose.yml`
 
 ## 3. Laravel Setup (`api/`)
 
-### 3.1 Install Laravel 11
+### 3.1 Install Laravel 13
 
 ```bash
 composer create-project laravel/laravel api
@@ -163,17 +168,20 @@ composer create-project laravel/laravel api
 ```bash
 cd api
 
-# API + Sanctum bootstrap
+# API routing bootstrap (Sanctum is built into Laravel 13)
 php artisan install:api
 
 # Inertia server-side
 composer require inertiajs/inertia-laravel
 
+# Code-first OpenAPI generation
+composer require dedoc/scramble
+
+# pgvector PHP helpers
+composer require pgvector/pgvector
+
 # Roles and permissions for admin access
 composer require spatie/laravel-permission
-
-# Code-first OpenAPI generation
-composer require --dev dedoc/scramble
 
 # Testing
 composer require --dev pestphp/pest pestphp/pest-plugin-laravel
@@ -329,7 +337,7 @@ CI rules:
 
 ### 3.7 Database
 
-- PostgreSQL 16.
+- PostgreSQL 16 with PostGIS and pgvector extensions enabled via `docker/db/init-extensions.sql`.
 - Migrations in `database/migrations/`.
 - Model factories and seeders for dev data.
 - Redis-backed queues, cache, and sessions.
