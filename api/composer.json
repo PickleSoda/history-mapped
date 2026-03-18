@@ -16,7 +16,8 @@
         "laravel/framework": "^13.0",
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.14",
-        "pgvector/pgvector": "^0.2.2"
+        "pgvector/pgvector": "^0.2.2",
+        "tpetry/laravel-postgresql-enhanced": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.24",
