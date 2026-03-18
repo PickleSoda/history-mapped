@@ -1,9 +1,14 @@
+name: wikiglobe
+
 services:
   app:
     build:
       context: ..
       dockerfile: docker/api/Dockerfile
     working_dir: /var/www/html
+    command: >-
+      sh -lc "composer install --no-interaction --prefer-dist --optimize-autoloader
+      && php-fpm"
     volumes:
       - ../api:/var/www/html
       - api_vendor:/var/www/html/vendor
@@ -31,10 +36,8 @@ services:
       dockerfile: docker/web/Dockerfile
     working_dir: /workspace
     command: >-
-      sh -lc "if [ -f web/package.json ]; then
-      pnpm install --no-frozen-lockfile &&
-      pnpm --filter web dev --host 0.0.0.0;
-      else tail -f /dev/null; fi"
+      sh -lc "pnpm install --no-frozen-lockfile &&
+      pnpm --filter @wikiglobe/web dev"
     ports:
       - '${FORWARD_WEB_PORT:-5173}:5173'
     volumes:
@@ -50,10 +53,8 @@ services:
       dockerfile: docker/admin/Dockerfile
     working_dir: /workspace
     command: >-
-      sh -lc "if [ -f api/package.json ]; then
-      pnpm install --no-frozen-lockfile &&
-      pnpm --filter api dev --host 0.0.0.0;
-      else tail -f /dev/null; fi"
+      sh -lc "pnpm install --no-frozen-lockfile &&
+      pnpm --filter @wikiglobe/api dev"
     ports:
       - '${FORWARD_ADMIN_PORT:-5174}:5174'
     volumes:
@@ -78,7 +79,9 @@ services:
       - pnpm_store:/pnpm/store
 
   db:
-    image: postgres:16-alpine
+    build:
+      context: .
+      dockerfile: db/Dockerfile
     ports:
       - '${FORWARD_DB_PORT:-5432}:5432'
     environment:
@@ -87,6 +90,7 @@ services:
       POSTGRES_PASSWORD: '${POSTGRES_PASSWORD:-secret}'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./db/init-extensions.sql:/docker-entrypoint-initdb.d/10-extensions.sql:ro
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-wikiglobe} -d ${POSTGRES_DB:-wikiglobe}']
       interval: 10s
@@ -106,8 +110,8 @@ services:
       dockerfile: docker/api/Dockerfile
     working_dir: /var/www/html
     command: >-
-      sh -lc "if [ -f artisan ]; then php artisan queue:work --verbose --tries=1 --timeout=90;
-      else tail -f /dev/null; fi"
+      sh -lc "composer install --no-interaction --prefer-dist --optimize-autoloader
+      && php artisan queue:work --verbose --tries=1 --timeout=90"
     volumes:
       - ../api:/var/www/html
       - api_vendor:/var/www/html/vendor
@@ -123,8 +127,8 @@ services:
       dockerfile: docker/api/Dockerfile
     working_dir: /var/www/html
     command: >-
-      sh -lc "if [ -f artisan ]; then while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done;
-      else tail -f /dev/null; fi"
+      sh -lc "composer install --no-interaction --prefer-dist --optimize-autoloader
+      && while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"
     volumes:
       - ../api:/var/www/html
       - api_vendor:/var/www/html/vendor

@@ -9,4 +9,4 @@ RUN corepack enable
 
 WORKDIR /workspace
 
-CMD ["sh", "-lc", "if [ -f api/package.json ]; then pnpm install --no-frozen-lockfile && pnpm --filter api dev --host 0.0.0.0; else tail -f /dev/null; fi"]
+CMD ["sh", "-lc", "pnpm install --no-frozen-lockfile && pnpm --filter @wikiglobe/api dev"]
