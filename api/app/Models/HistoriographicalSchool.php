@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Casts\PgIntArray;
+use App\Casts\PgTextArray;
 use Illuminate\Database\Eloquent\Model;
 
 class HistoriographicalSchool extends Model
@@ -24,13 +26,13 @@ class HistoriographicalSchool extends Model
     protected function casts(): array
     {
         return [
-            'alternative_names' => 'array',
-            'dominant_regions' => 'array',
-            'dominant_periods' => 'array',
-            'key_historians' => 'array',
-            'foundational_works' => 'array',
-            'influenced_by' => 'array',
-            'opposed_to' => 'array',
+            'alternative_names' => PgTextArray::class,
+            'dominant_regions' => PgTextArray::class,
+            'dominant_periods' => PgTextArray::class,
+            'key_historians' => PgTextArray::class,
+            'foundational_works' => PgTextArray::class,
+            'influenced_by' => PgIntArray::class,
+            'opposed_to' => PgIntArray::class,
         ];
     }
 }

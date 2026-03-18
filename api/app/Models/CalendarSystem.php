@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Casts\PgTextArray;
 use Illuminate\Database\Eloquent\Model;
 
 class CalendarSystem extends Model
@@ -24,8 +25,8 @@ class CalendarSystem extends Model
     protected function casts(): array
     {
         return [
-            'used_by_regions' => 'array',
-            'used_by_periods' => 'array',
+            'used_by_regions' => PgTextArray::class,
+            'used_by_periods' => PgTextArray::class,
             'month_names' => 'json',
             'still_in_use' => 'boolean',
         ];

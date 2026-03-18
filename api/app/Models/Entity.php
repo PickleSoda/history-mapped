@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Casts\GeoJson;
+use App\Casts\PgTextArray;
 use App\Enums\ConfidenceLevel;
 use App\Enums\DateResolutionMethod;
 use App\Enums\DurationType;
@@ -100,9 +101,9 @@ class Entity extends Model
             'media_refs' => 'json',
             'confidence_breakdown' => 'json',
             'relationship_summary' => 'json',
-            'tags' => 'array',
-            'alternative_names' => 'array',
-            'validation_flags' => 'array',
+            'tags' => PgTextArray::class,
+            'alternative_names' => PgTextArray::class,
+            'validation_flags' => PgTextArray::class,
             'review_date' => 'datetime',
         ];
     }

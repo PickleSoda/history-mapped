@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Casts\GeoJson;
+use App\Casts\PgTextArray;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -27,10 +28,10 @@ class GeographicRegion extends Model
     protected function casts(): array
     {
         return [
-            'alternative_names' => 'array',
-            'modern_countries' => 'array',
-            'historical_names' => 'array',
-            'typical_periods' => 'array',
+            'alternative_names' => PgTextArray::class,
+            'modern_countries' => PgTextArray::class,
+            'historical_names' => PgTextArray::class,
+            'typical_periods' => PgTextArray::class,
             'bounding_box' => GeoJson::class,
             'center_point' => GeoJson::class,
         ];

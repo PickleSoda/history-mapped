@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Casts\PgTextArray;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -25,7 +26,7 @@ class WritingSystem extends Model
     protected function casts(): array
     {
         return [
-            'languages_using' => 'array',
+            'languages_using' => PgTextArray::class,
             'still_in_use' => 'boolean',
         ];
     }
@@ -35,6 +36,6 @@ class WritingSystem extends Model
     /** @return BelongsTo<WritingSystem, $this> */
     public function derivedFrom(): BelongsTo
     {
-        return $this->belongsTo(WritingSystem::class, 'derived_from_id', 'system_id');
+        return $this->belongsTo(WritingSystem::class, 'derived_from', 'system_id');
     }
 }

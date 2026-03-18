@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Casts\PgTextArray;
 use Illuminate\Database\Eloquent\Model;
 
 class SourceTypeDefinition extends Model
@@ -24,7 +25,7 @@ class SourceTypeDefinition extends Model
     protected function casts(): array
     {
         return [
-            'examples' => 'array',
+            'examples' => PgTextArray::class,
             'requires_corroboration' => 'boolean',
             'weight_in_scoring' => 'decimal:2',
         ];
