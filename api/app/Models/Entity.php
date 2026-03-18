@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Builders\EntityBuilder;
 use App\Casts\GeoJson;
 use App\Casts\PgTextArray;
 use App\Enums\ConfidenceLevel;
@@ -15,7 +16,6 @@ use App\Enums\IconClass;
 use App\Enums\LocationResolutionMethod;
 use App\Enums\VerificationStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -152,42 +152,16 @@ class Entity extends Model
         return $this->hasMany(EntityRelationship::class, 'target_entity_id', 'entity_id');
     }
 
-    // ── Scopes ───────────────────────────────────────────────
+    // ── Custom Query Builder ─────────────────────────────────
 
-    /** @param Builder<Entity> $query */
-    public function scopeOfType(Builder $query, EntityType $type): void
+    /**
+     * Create a new Eloquent query builder for the model.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @return EntityBuilder<static>
+     */
+    public function newEloquentBuilder($query): EntityBuilder
     {
-        $query->where('entity_type', $type);
-    }
-
-    /** @param Builder<Entity> $query */
-    public function scopeOfGroup(Builder $query, EntityGroup $group): void
-    {
-        $query->where('entity_group', $group);
-    }
-
-    /** @param Builder<Entity> $query */
-    public function scopeVerified(Builder $query): void
-    {
-        $query->whereIn('verification_status', [
-            VerificationStatus::HumanVerified,
-            VerificationStatus::ExpertVerified,
-        ]);
-    }
-
-    /** @param Builder<Entity> $query */
-    public function scopeInBbox(Builder $query, float $minLng, float $minLat, float $maxLng, float $maxLat): void
-    {
-        $query->whereRaw(
-            'ST_Intersects(geom, ST_MakeEnvelope(?, ?, ?, ?, 4326))',
-            [$minLng, $minLat, $maxLng, $maxLat],
-        );
-    }
-
-    /** @param Builder<Entity> $query */
-    public function scopeInTimeRange(Builder $query, string $start, string $end): void
-    {
-        $query->where('temporal_start', '<=', $end)
-            ->where('temporal_end', '>=', $start);
+        return new EntityBuilder($query);
     }
 }
