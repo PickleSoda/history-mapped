@@ -5,12 +5,6 @@
   "scripts": {
     "dev": "docker compose -f docker/docker-compose.yml up --build",
     "dev:down": "docker compose -f docker/docker-compose.yml down --remove-orphans",
-    "shared:build": "docker compose -f docker/docker-compose.yml run --rm shared pnpm --filter @wikiglobe/shared build",
-    "shared:dev": "docker compose -f docker/docker-compose.yml up shared",
-    "contracts:export": "docker compose -f docker/docker-compose.yml exec app php artisan scramble:export --path=storage/app/openapi.json",
-    "contracts:generate": "docker compose -f docker/docker-compose.yml exec shared pnpm --filter @wikiglobe/shared generate:api",
-    "contracts:sync": "pnpm contracts:export && pnpm contracts:generate && docker compose -f docker/docker-compose.yml exec shared pnpm --filter @wikiglobe/shared build",
-    "contracts:check": "pnpm contracts:export && pnpm contracts:generate && git diff --exit-code -- api/storage/app/openapi.json shared/src/generated/api.ts",
     "typecheck": "docker compose -f docker/docker-compose.yml exec web pnpm -r typecheck",
     "api:routes": "docker compose -f docker/docker-compose.yml exec app php artisan route:list"
   }
