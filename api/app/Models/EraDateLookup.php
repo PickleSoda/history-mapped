@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Casts\PgTextArray;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -25,7 +26,7 @@ class EraDateLookup extends Model
     protected function casts(): array
     {
         return [
-            'search_variants' => 'array',
+            'search_variants' => PgTextArray::class,
         ];
     }
 
