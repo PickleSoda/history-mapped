@@ -1,20 +1,30 @@
 name: wikiglobe
 
 services:
-  app:
+  composer-install:
     build:
       context: ..
       dockerfile: docker/api/Dockerfile
     working_dir: /var/www/html
-    command: >-
-      sh -lc "composer install --no-interaction --prefer-dist --optimize-autoloader
-      && php-fpm"
+    command: composer install --no-interaction --prefer-dist --optimize-autoloader
     volumes:
       - ../api:/var/www/html
       - api_vendor:/var/www/html/vendor
     environment:
       COMPOSER_MEMORY_LIMIT: -1
+
+  app:
+    build:
+      context: ..
+      dockerfile: docker/api/Dockerfile
+    working_dir: /var/www/html
+    command: php-fpm
+    volumes:
+      - ../api:/var/www/html
+      - api_vendor:/var/www/html/vendor
     depends_on:
+      composer-install:
+        condition: service_completed_successfully
       db:
         condition: service_healthy
       redis:
@@ -63,7 +73,7 @@ services:
   vite-admin:
     build:
       context: ..
-      dockerfile: docker/admin/Dockerfile
+      dockerfile: docker/api/Dockerfile
     working_dir: /workspace
     command: pnpm --filter @wikiglobe/api dev
     ports:
@@ -72,8 +82,11 @@ services:
       - ..:/workspace
       - root_node_modules:/workspace/node_modules
       - api_node_modules:/workspace/api/node_modules
+      - api_vendor:/workspace/api/vendor
       - pnpm_store:/pnpm/store
     depends_on:
+      composer-install:
+        condition: service_completed_successfully
       pnpm-install:
         condition: service_completed_successfully
 
@@ -108,13 +121,13 @@ services:
       context: ..
       dockerfile: docker/api/Dockerfile
     working_dir: /var/www/html
-    command: >-
-      sh -lc "composer install --no-interaction --prefer-dist --optimize-autoloader
-      && php artisan queue:work --verbose --tries=1 --timeout=90"
+    command: php artisan queue:work --verbose --tries=1 --timeout=90
     volumes:
       - ../api:/var/www/html
       - api_vendor:/var/www/html/vendor
     depends_on:
+      composer-install:
+        condition: service_completed_successfully
       db:
         condition: service_healthy
       redis:
@@ -126,12 +139,13 @@ services:
       dockerfile: docker/api/Dockerfile
     working_dir: /var/www/html
     command: >-
-      sh -lc "composer install --no-interaction --prefer-dist --optimize-autoloader
-      && while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"
+      sh -c "while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"
     volumes:
       - ../api:/var/www/html
       - api_vendor:/var/www/html/vendor
     depends_on:
+      composer-install:
+        condition: service_completed_successfully
       db:
         condition: service_healthy
       redis:
