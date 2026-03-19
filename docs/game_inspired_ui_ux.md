@@ -1,4 +1,4 @@
-# Historical Atlas Project — Game-Inspired UI/UX Design Guide
+m# Historical Atlas Project — Game-Inspired UI/UX Design Guide
 
 > **Version:** 1.0 — March 2026
 > **Companion to:** Data Pipeline Architecture, Entity Specification v2.0, Reference Tables
