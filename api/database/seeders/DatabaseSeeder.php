@@ -14,11 +14,43 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // ── Roles must exist before users are assigned them ──────────
+
+        $this->call(RoleSeeder::class);
+
+        // ── Named users (one per role, known credentials for dev) ────
+
+        User::factory()->admin()->create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
         ]);
 
+        User::factory()->moderator()->create([
+            'name' => 'Moderator User',
+            'email' => 'moderator@example.com',
+        ]);
+
+        User::factory()->geoModerator()->create([
+            'name' => 'Geo Moderator',
+            'email' => 'geo@example.com',
+        ]);
+
+        User::factory()->historyModerator()->create([
+            'name' => 'History Moderator',
+            'email' => 'history@example.com',
+        ]);
+
+        User::factory()->create([
+            'name' => 'Regular User',
+            'email' => 'user@example.com',
+        ])->assignRole('user');
+
+        // ── Reference data ──────────────────────────────────────────
+
         $this->call(ReferenceTableSeeder::class);
+
+        // ── Entity seed data ────────────────────────────────────────
+
+        $this->call(EntitySeeder::class);
     }
 }
