@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use App\Models\User;
@@ -56,5 +58,39 @@ class UserFactory extends Factory
             'two_factor_recovery_codes' => encrypt(json_encode(['recovery-code-1'])),
             'two_factor_confirmed_at' => now(),
         ]);
+    }
+
+    // ── Role States ─────────────────────────────────────────
+
+    /**
+     * Set the user as an administrator.
+     */
+    public function admin(): static
+    {
+        return $this->afterCreating(fn (User $user) => $user->assignRole('admin'));
+    }
+
+    /**
+     * Set the user as a moderator (full data modification access).
+     */
+    public function moderator(): static
+    {
+        return $this->afterCreating(fn (User $user) => $user->assignRole('moderator'));
+    }
+
+    /**
+     * Set the user as a geodata moderator (geometry fields only).
+     */
+    public function geoModerator(): static
+    {
+        return $this->afterCreating(fn (User $user) => $user->assignRole('geo_moderator'));
+    }
+
+    /**
+     * Set the user as a history moderator (historical fields only).
+     */
+    public function historyModerator(): static
+    {
+        return $this->afterCreating(fn (User $user) => $user->assignRole('history_moderator'));
     }
 }
