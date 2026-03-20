@@ -45,6 +45,12 @@ class MapEntitiesRequest extends FormRequest
             'group' => ['sometimes', 'string', Rule::enum(EntityGroup::class)],
             'min_confidence' => ['sometimes', 'string', Rule::enum(ConfidenceLevel::class)],
 
+            // Zoom-level based impact threshold
+            // Either provide zoom_level (0–22) and the API derives the threshold,
+            // or supply min_impact directly to override it.
+            'zoom_level' => ['sometimes', 'integer', 'min:0', 'max:22'],
+            'min_impact' => ['sometimes', 'nullable', 'integer', 'min:0', 'max:100'],
+
             // Max features to return (prevent overload)
             'limit' => ['sometimes', 'integer', 'min:1', 'max:5000'],
         ];

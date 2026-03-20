@@ -69,9 +69,12 @@ export type EntitySummary = {
 
 export type EntityFilters = {
     search: string;
+    type: string;
     group: string;
     status: string;
     confidence: string;
+    date_from: string;
+    date_to: string;
     sort: string;
     per_page: number;
 };
@@ -82,6 +85,7 @@ export type FilterOption = {
 };
 
 export type EntityFilterOptions = {
+    types: FilterOption[];
     groups: FilterOption[];
     statuses: FilterOption[];
     confidences: FilterOption[];
