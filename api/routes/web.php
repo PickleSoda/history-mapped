@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\EntityController;
+use App\Http\Controllers\Admin\GeometrySnapshotController;
 use App\Http\Controllers\Admin\Reference\CalendarSystemController;
 use App\Http\Controllers\Admin\Reference\EraDateLookupController;
 use App\Http\Controllers\Admin\Reference\GeographicRegionController;
@@ -28,6 +29,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('entities/{entity}/edit', [EntityController::class, 'edit'])->name('entities.edit');
     Route::put('entities/{entity}', [EntityController::class, 'update'])->name('entities.update');
     Route::delete('entities/{entity}', [EntityController::class, 'destroy'])->name('entities.destroy');
+
+    // ── Geometry Snapshots (JSON, embedded in entity edit page) ──────────
+    Route::get('entities/{entity}/snapshots', [GeometrySnapshotController::class, 'index'])->name('entities.snapshots.index');
+    Route::post('entities/{entity}/snapshots', [GeometrySnapshotController::class, 'store'])->name('entities.snapshots.store');
+    Route::put('entities/{entity}/snapshots/{snapshot}', [GeometrySnapshotController::class, 'update'])->name('entities.snapshots.update');
+    Route::delete('entities/{entity}/snapshots/{snapshot}', [GeometrySnapshotController::class, 'destroy'])->name('entities.snapshots.destroy');
 
     // ── Reference Tables ─────────────────────────────────────────────
     Route::get('reference/geographic-regions', [GeographicRegionController::class, 'index'])->name('reference.geographic-regions.index');

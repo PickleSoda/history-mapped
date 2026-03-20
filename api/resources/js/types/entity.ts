@@ -161,3 +161,22 @@ export type PaginatedData<T> = {
     from: number | null;
     to: number | null;
 };
+
+/** A single geometry snapshot as returned by GeometrySnapshotController. */
+export type GeometrySnapshot = {
+    snapshot_id: string;
+    entity_id: string;
+    year_start: number;
+    year_end: number;
+    label: string | null;
+    confidence: ConfidenceLevel | null;
+    notes: string | null;
+    display_priority: number;
+    source_citations: Record<string, unknown>[] | null;
+    /** Point/LineString geometry */
+    geojson: Record<string, unknown> | null;
+    /** Polygon/MultiPolygon geometry */
+    territory_geojson: Record<string, unknown> | null;
+    created_at: string | null;
+    updated_at: string | null;
+};

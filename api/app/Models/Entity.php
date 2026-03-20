@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Models\GeometrySnapshot;
 use Pgvector\Laravel\HasNeighbors;
 
 #[Fillable([
@@ -152,6 +153,13 @@ class Entity extends Model
     public function reviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewer_id');
+    }
+
+    /** @return HasMany<GeometrySnapshot, $this> */
+    public function geometrySnapshots(): HasMany
+    {
+        return $this->hasMany(GeometrySnapshot::class, 'entity_id', 'entity_id')
+            ->orderBy('year_start');
     }
 
     /** @return HasMany<EntityRelationship, $this> */

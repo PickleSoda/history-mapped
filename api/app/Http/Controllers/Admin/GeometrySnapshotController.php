@@ -1,0 +1,137 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Admin;
+
+use App\Actions\GeometrySnapshot\CreateSnapshotAction;
+use App\Actions\GeometrySnapshot\DeleteSnapshotAction;
+use App\Actions\GeometrySnapshot\ListSnapshotsAction;
+use App\Actions\GeometrySnapshot\UpdateSnapshotAction;
+use App\DTOs\GeometrySnapshotData;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreGeometrySnapshotRequest;
+use App\Http\Requests\Admin\UpdateGeometrySnapshotRequest;
+use App\Models\Entity;
+use App\Models\GeometrySnapshot;
+use Illuminate\Http\JsonResponse;
+
+/**
+ * JSON controller for geometry snapshot CRUD.
+ *
+ * The snapshot builder UI is embedded in the entity edit Inertia page;
+ * it communicates with these endpoints via fetch/router calls rather than
+ * full Inertia page navigations.
+ */
+class GeometrySnapshotController extends Controller
+{
+    /**
+     * List all snapshots for an entity.
+     */
+    public function index(Entity $entity, ListSnapshotsAction $listSnapshots): JsonResponse
+    {
+        $snapshots = $listSnapshots($entity);
+
+        return response()->json([
+            'snapshots' => $snapshots->map(fn (GeometrySnapshot $s) => self::buildSnapshotData($s)),
+        ]);
+    }
+
+    /**
+     * Create a new snapshot for an entity.
+     */
+    public function store(
+        StoreGeometrySnapshotRequest $request,
+        Entity $entity,
+        CreateSnapshotAction $createSnapshot,
+    ): JsonResponse {
+        $validated = $request->validated();
+        $validated['entity_id'] = $entity->entity_id;
+
+        $data = GeometrySnapshotData::fromArray($validated);
+        $snapshot = $createSnapshot($data, (string) $request->user()->id);
+
+        return response()->json([
+            'snapshot' => self::buildSnapshotData($snapshot),
+        ], 201);
+    }
+
+    /**
+     * Update an existing snapshot.
+     */
+    public function update(
+        UpdateGeometrySnapshotRequest $request,
+        Entity $entity,
+        GeometrySnapshot $snapshot,
+        UpdateSnapshotAction $updateSnapshot,
+    ): JsonResponse {
+        $this->authorizeSnapshotBelongsToEntity($snapshot, $entity);
+
+        $validated = $request->validated();
+        // Merge current values for required DTO fields not in the update payload
+        $merged = array_merge([
+            'entity_id' => $snapshot->entity_id,
+            'year_start' => $snapshot->year_start,
+            'year_end' => $snapshot->year_end,
+            'display_priority' => $snapshot->display_priority,
+        ], $validated);
+
+        $data = GeometrySnapshotData::fromArray($merged);
+        $snapshot = $updateSnapshot($snapshot, $data);
+
+        return response()->json([
+            'snapshot' => self::buildSnapshotData($snapshot),
+        ]);
+    }
+
+    /**
+     * Delete a snapshot.
+     */
+    public function destroy(
+        Entity $entity,
+        GeometrySnapshot $snapshot,
+        DeleteSnapshotAction $deleteSnapshot,
+    ): JsonResponse {
+        $this->authorizeSnapshotBelongsToEntity($snapshot, $entity);
+
+        $deleteSnapshot($snapshot);
+
+        return response()->json(null, 204);
+    }
+
+    // ── Private helpers ──────────────────────────────────────────────────────
+
+    /**
+     * Build the serialisable snapshot array for JSON responses.
+     *
+     * @return array<string, mixed>
+     */
+    private static function buildSnapshotData(GeometrySnapshot $snapshot): array
+    {
+        return [
+            'snapshot_id' => $snapshot->snapshot_id,
+            'entity_id' => $snapshot->entity_id,
+            'year_start' => $snapshot->year_start,
+            'year_end' => $snapshot->year_end,
+            'label' => $snapshot->label,
+            'confidence' => $snapshot->confidence?->value,
+            'notes' => $snapshot->notes,
+            'display_priority' => $snapshot->display_priority,
+            'source_citations' => $snapshot->source_citations,
+            'geojson' => $snapshot->geom,
+            'territory_geojson' => $snapshot->territory_geom,
+            'created_at' => $snapshot->created_at?->toISOString(),
+            'updated_at' => $snapshot->updated_at?->toISOString(),
+        ];
+    }
+
+    /**
+     * Abort 404 if the snapshot does not belong to the given entity.
+     */
+    private function authorizeSnapshotBelongsToEntity(GeometrySnapshot $snapshot, Entity $entity): void
+    {
+        if ($snapshot->entity_id !== $entity->entity_id) {
+            abort(404);
+        }
+    }
+}

@@ -12,6 +12,7 @@ use App\Enums\EntityType;
 use App\Enums\IconClass;
 use App\Enums\LocationResolutionMethod;
 use App\Enums\VerificationStatus;
+use App\Http\Requests\Admin\Concerns\ValidatesEntityAttributes;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -22,6 +23,7 @@ use Illuminate\Validation\Rule;
  */
 class StoreEntityRequest extends FormRequest
 {
+    use ValidatesEntityAttributes;
     public function authorize(): bool
     {
         return $this->user() !== null;
@@ -83,6 +85,9 @@ class StoreEntityRequest extends FormRequest
 
             // Type-specific attributes (free-form JSONB)
             'attributes' => ['sometimes', 'nullable', 'array'],
+
+            // Per-type scalar attribute validation
+            ...$this->attributeRules(),
         ];
     }
 }
