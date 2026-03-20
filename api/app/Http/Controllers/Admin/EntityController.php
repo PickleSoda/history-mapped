@@ -4,14 +4,25 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Entity\CreateEntityAction;
+use App\Actions\Entity\DeleteEntityAction;
 use App\Actions\Entity\ListEntitiesAction;
+use App\Actions\Entity\UpdateEntityAction;
+use App\DTOs\EntityData;
 use App\DTOs\EntityFilterData;
 use App\Enums\ConfidenceLevel;
+use App\Enums\DateResolutionMethod;
+use App\Enums\DurationType;
 use App\Enums\EntityGroup;
 use App\Enums\EntityType;
+use App\Enums\IconClass;
+use App\Enums\LocationResolutionMethod;
 use App\Enums\VerificationStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreEntityRequest;
+use App\Http\Requests\Admin\UpdateEntityRequest;
 use App\Models\Entity;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -89,25 +100,182 @@ class EntityController extends Controller
     }
 
     /**
-     * Display a single entity (placeholder).
+     * Show the create entity form.
+     */
+    public function create(): Response
+    {
+        return Inertia::render('entities/create', [
+            'formOptions' => self::buildFormOptions(),
+        ]);
+    }
+
+    /**
+     * Store a newly created entity.
+     */
+    public function store(StoreEntityRequest $request, CreateEntityAction $createEntity): RedirectResponse
+    {
+        $validated = $request->validated();
+
+        $data = EntityData::fromArray(array_merge($validated, [
+            'attributes' => $validated['attributes'] ?? null,
+        ]));
+
+        $entity = $createEntity($data, (string) $request->user()->id);
+
+        return redirect()
+            ->route('entities.show', $entity->entity_id)
+            ->with('success', 'Entity created successfully.');
+    }
+
+    /**
+     * Display a single entity detail page.
      */
     public function show(Entity $entity): Response
     {
         return Inertia::render('entities/show', [
-            'entity' => [
-                'id' => $entity->entity_id,
+            'entity' => self::buildEntityDetail($entity),
+        ]);
+    }
+
+    /**
+     * Show the edit form for an existing entity.
+     */
+    public function edit(Entity $entity): Response
+    {
+        return Inertia::render('entities/edit', [
+            'entity' => self::buildEntityDetail($entity),
+            'formOptions' => self::buildFormOptions(),
+        ]);
+    }
+
+    /**
+     * Update an existing entity.
+     */
+    public function update(UpdateEntityRequest $request, Entity $entity, UpdateEntityAction $updateEntity): RedirectResponse
+    {
+        $validated = $request->validated();
+
+        $data = EntityData::fromArray(array_merge(
+            // Seed with current values so fromArray required fields are satisfied
+            [
                 'name' => $entity->name,
                 'entity_type' => $entity->entity_type?->value,
                 'entity_group' => $entity->entity_group?->value,
-                'summary' => $entity->summary,
-                'impact_score' => $entity->impact_score,
-                'temporal_display_range' => $entity->temporal_display_range
-                    ?? self::computeTemporalRange($entity->temporal_start, $entity->temporal_end),
-                'location_name' => $entity->location_name,
-                'verification_status' => $entity->verification_status?->value,
-                'confidence' => $entity->confidence?->value,
             ],
-        ]);
+            $validated,
+            ['attributes' => $validated['attributes'] ?? null],
+        ));
+
+        $updateEntity($entity, $data);
+
+        return redirect()
+            ->route('entities.show', $entity->entity_id)
+            ->with('success', 'Entity updated successfully.');
+    }
+
+    /**
+     * Delete an entity.
+     */
+    public function destroy(Entity $entity, DeleteEntityAction $deleteEntity): RedirectResponse
+    {
+        $deleteEntity($entity);
+
+        return redirect()
+            ->route('entities.index')
+            ->with('success', 'Entity deleted.');
+    }
+
+    // ── Private helpers ──────────────────────────────────────────────────────
+
+    /**
+     * Build the full entity detail array for show/edit pages.
+     *
+     * @return array<string, mixed>
+     */
+    private static function buildEntityDetail(Entity $entity): array
+    {
+        return [
+            'id' => $entity->entity_id,
+            'name' => $entity->name,
+            'entity_type' => $entity->entity_type?->value,
+            'entity_group' => $entity->entity_group?->value,
+            'summary' => $entity->summary,
+            'significance' => $entity->significance,
+            'impact_score' => $entity->impact_score,
+            'wikidata_id' => $entity->wikidata_id,
+            'temporal_start' => $entity->temporal_start,
+            'temporal_end' => $entity->temporal_end,
+            'date_raw' => $entity->date_raw,
+            'date_method' => $entity->date_method?->value,
+            'date_confidence' => $entity->date_confidence?->value,
+            'duration_type' => $entity->duration_type?->value,
+            'temporal_display_range' => $entity->temporal_display_range
+                ?? self::computeTemporalRange($entity->temporal_start, $entity->temporal_end),
+            'location_name' => $entity->location_name,
+            'location_confidence' => $entity->location_confidence?->value,
+            'location_method' => $entity->location_method?->value,
+            'parent_entity_id' => $entity->parent_entity_id,
+            'successor_entity_id' => $entity->successor_entity_id,
+            'verification_status' => $entity->verification_status?->value,
+            'confidence' => $entity->confidence?->value,
+            'confidence_notes' => $entity->confidence_notes,
+            'display_priority' => $entity->display_priority,
+            'icon_class' => $entity->icon_class?->value,
+            'entity_color' => $entity->entity_color,
+            'tags' => $entity->tags ?? [],
+            'alternative_names' => $entity->alternative_names ?? [],
+            'attributes' => $entity->attributes ?? [],
+            'era_label' => $entity->era_label,
+            'created_at' => $entity->created_at?->toISOString(),
+            'updated_at' => $entity->updated_at?->toISOString(),
+        ];
+    }
+
+    /**
+     * Build the enum option lists passed to create/edit form pages.
+     *
+     * @return array<string, list<array{value: string, label: string}>>
+     */
+    private static function buildFormOptions(): array
+    {
+        return [
+            'types' => array_map(
+                fn (EntityType $t) => [
+                    'value' => $t->value,
+                    'label' => self::formatEnumLabel($t->name),
+                    'group' => $t->group()->value,
+                ],
+                EntityType::cases(),
+            ),
+            'groups' => array_map(
+                fn (EntityGroup $g) => ['value' => $g->value, 'label' => $g->name],
+                EntityGroup::cases(),
+            ),
+            'statuses' => array_map(
+                fn (VerificationStatus $s) => ['value' => $s->value, 'label' => self::formatEnumLabel($s->name)],
+                VerificationStatus::cases(),
+            ),
+            'confidences' => array_map(
+                fn (ConfidenceLevel $c) => ['value' => $c->value, 'label' => ucfirst($c->value)],
+                ConfidenceLevel::cases(),
+            ),
+            'dateMethods' => array_map(
+                fn (DateResolutionMethod $m) => ['value' => $m->value, 'label' => self::formatEnumLabel($m->name)],
+                DateResolutionMethod::cases(),
+            ),
+            'durationTypes' => array_map(
+                fn (DurationType $d) => ['value' => $d->value, 'label' => self::formatEnumLabel($d->name)],
+                DurationType::cases(),
+            ),
+            'locationMethods' => array_map(
+                fn (LocationResolutionMethod $m) => ['value' => $m->value, 'label' => self::formatEnumLabel($m->name)],
+                LocationResolutionMethod::cases(),
+            ),
+            'iconClasses' => array_map(
+                fn (IconClass $i) => ['value' => $i->value, 'label' => self::formatEnumLabel($i->name)],
+                IconClass::cases(),
+            ),
+        ];
     }
 
     /**
@@ -129,21 +297,21 @@ class EntityController extends Controller
 
             $int = (int) $year;
 
-            return $int < 0 ? abs($int) . ' BCE' : $int . ' CE';
+            return $int < 0 ? abs($int).' BCE' : $int.' CE';
         };
 
         $startLabel = $formatYear($start);
         $endLabel = $formatYear($end);
 
         if ($startLabel !== null && $endLabel !== null) {
-            return $startLabel . ' – ' . $endLabel;
+            return $startLabel.' – '.$endLabel;
         }
 
         if ($startLabel !== null) {
-            return 'From ' . $startLabel;
+            return 'From '.$startLabel;
         }
 
-        return 'Until ' . $endLabel;
+        return 'Until '.$endLabel;
     }
 
     /**
