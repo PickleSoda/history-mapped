@@ -55,10 +55,10 @@ class ListEntitiesRequest extends FormRequest
             'near_lat' => ['sometimes', 'required_with:near_lng,near_radius', 'numeric', 'between:-90,90'],
             'near_radius' => ['sometimes', 'required_with:near_lng,near_lat', 'numeric', 'min:1', 'max:1000000'],
 
-            // Temporal
-            'temporal_start' => ['sometimes', 'string', 'max:50'],
-            'temporal_end' => ['sometimes', 'string', 'max:50'],
-            'exists_at' => ['sometimes', 'string', 'max:50'],
+            // Temporal (integer year, negative for BCE)
+            'temporal_start' => ['sometimes', 'integer'],
+            'temporal_end' => ['sometimes', 'integer'],
+            'exists_at' => ['sometimes', 'integer'],
 
             // Hierarchy
             'parent_id' => ['sometimes', 'uuid'],

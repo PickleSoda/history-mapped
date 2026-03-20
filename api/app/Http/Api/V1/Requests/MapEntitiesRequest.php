@@ -34,9 +34,9 @@ class MapEntitiesRequest extends FormRequest
             'bbox_max_lng' => ['required', 'numeric', 'between:-180,180'],
             'bbox_max_lat' => ['required', 'numeric', 'between:-90,90'],
 
-            // Temporal filter (optional but usually provided)
-            'temporal_start' => ['sometimes', 'string', 'max:50'],
-            'temporal_end' => ['sometimes', 'string', 'max:50'],
+            // Temporal filter (integer year, negative for BCE)
+            'temporal_start' => ['sometimes', 'integer'],
+            'temporal_end' => ['sometimes', 'integer'],
 
             // Optional type/group filter
             'type' => ['sometimes', 'string', Rule::enum(EntityType::class)],
