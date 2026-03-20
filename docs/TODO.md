@@ -41,10 +41,7 @@
 ### Low Priority
 
 - [ ] **Add per-type expression indexes on `attributes` JSONB**
-  `hasAttribute('government_type', 'monarchy')` does a full GIN scan. For high-cardinality keys used in filters, add PostgreSQL expression indexes scoped to each entity type:
-  ```sql
-  CREATE INDEX entities_government_type_idx
-  ON entities ((attributes->>'government_type'))
-  WHERE entity_type = 'political_entity';
-  ```
-  Identify the top 5–10 filtered attribute keys per entity group and add indexes in a new migration.
+  `hasAttribute('government_type', 'monarchy')` does a full GIN scan. For high-cardinality keys used in filters, add PostgreSQL expression indexes scoped to each entity type. 11 indexes planned — see `plans/attributes_and_geometry_snapshots.md` Section 5.
+
+- [ ] **Implement `geometry_snapshots` table for time-varying geometries**
+  Entities like empires, trade routes, and epidemics need PostGIS geometries that change over time. Full plan with schema, indexes, query patterns, API endpoints, and Laravel implementation checklist in `plans/attributes_and_geometry_snapshots.md`.
