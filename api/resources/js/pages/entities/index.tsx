@@ -92,14 +92,19 @@ function formatStatus(status: string | null): string {
 
 export default function EntitiesIndex({ entities, filters, filterOptions }: Props) {
     const [search, setSearch] = useState(filters.search);
+    const [dateFrom, setDateFrom] = useState(filters.date_from);
+    const [dateTo, setDateTo] = useState(filters.date_to);
 
     const navigate = useCallback(
         (params: Record<string, string | number>) => {
             const query: Record<string, string | number> = {
                 ...(filters.search && { search: filters.search }),
+                ...(filters.type && { type: filters.type }),
                 ...(filters.group && { group: filters.group }),
                 ...(filters.status && { status: filters.status }),
                 ...(filters.confidence && { confidence: filters.confidence }),
+                ...(filters.date_from && { date_from: filters.date_from }),
+                ...(filters.date_to && { date_to: filters.date_to }),
                 ...(filters.sort !== 'impact' && { sort: filters.sort }),
                 ...(filters.per_page !== 25 && { per_page: filters.per_page }),
                 ...params,
@@ -133,12 +138,29 @@ export default function EntitiesIndex({ entities, filters, filterOptions }: Prop
         [search, navigate],
     );
 
+    const handleDateFilter = useCallback(
+        (e: React.FormEvent) => {
+            e.preventDefault();
+            navigate({ date_from: dateFrom, date_to: dateTo });
+        },
+        [dateFrom, dateTo, navigate],
+    );
+
     const clearFilters = useCallback(() => {
         setSearch('');
+        setDateFrom('');
+        setDateTo('');
         router.get('/entities', {}, { preserveState: true, preserveScroll: true });
     }, []);
 
-    const hasActiveFilters = filters.search || filters.group || filters.status || filters.confidence;
+    const hasActiveFilters =
+        filters.search ||
+        filters.type ||
+        filters.group ||
+        filters.status ||
+        filters.confidence ||
+        filters.date_from ||
+        filters.date_to;
 
     const sortIcon = (field: string) => {
         if (filters.sort === field) return <ArrowDown className="ml-1 inline size-3" />;
@@ -169,7 +191,7 @@ export default function EntitiesIndex({ entities, filters, filterOptions }: Prop
                     </div>
                 </div>
 
-                {/* Filters */}
+                {/* Filters — row 1: search + type + group + status + confidence */}
                 <div className="flex flex-wrap items-end gap-3">
                     {/* Search */}
                     <form onSubmit={handleSearch} className="flex gap-2">
@@ -187,6 +209,24 @@ export default function EntitiesIndex({ entities, filters, filterOptions }: Prop
                             Search
                         </Button>
                     </form>
+
+                    {/* Entity Type filter */}
+                    <Select
+                        value={filters.type || '__all__'}
+                        onValueChange={(v) => navigate({ type: v === '__all__' ? '' : v })}
+                    >
+                        <SelectTrigger className="w-48">
+                            <SelectValue placeholder="All Types" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="__all__">All Types</SelectItem>
+                            {filterOptions.types.map((t) => (
+                                <SelectItem key={t.value} value={t.value}>
+                                    {t.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
 
                     {/* Group filter */}
                     <Select
@@ -241,12 +281,41 @@ export default function EntitiesIndex({ entities, filters, filterOptions }: Prop
                             ))}
                         </SelectContent>
                     </Select>
+                </div>
+
+                {/* Filters — row 2: date range + clear */}
+                <div className="flex flex-wrap items-end gap-3">
+                    <form onSubmit={handleDateFilter} className="flex items-end gap-2">
+                        <div className="flex flex-col gap-1">
+                            <label className="text-muted-foreground text-xs">From year</label>
+                            <Input
+                                type="number"
+                                placeholder="e.g. -500"
+                                value={dateFrom}
+                                onChange={(e) => setDateFrom(e.target.value)}
+                                className="w-32"
+                            />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-muted-foreground text-xs">To year</label>
+                            <Input
+                                type="number"
+                                placeholder="e.g. 1500"
+                                value={dateTo}
+                                onChange={(e) => setDateTo(e.target.value)}
+                                className="w-32"
+                            />
+                        </div>
+                        <Button type="submit" variant="outline" size="default">
+                            Apply
+                        </Button>
+                    </form>
 
                     {/* Clear filters */}
                     {hasActiveFilters && (
                         <Button variant="ghost" size="sm" onClick={clearFilters}>
                             <X className="mr-1 size-4" />
-                            Clear
+                            Clear filters
                         </Button>
                     )}
                 </div>
@@ -272,7 +341,12 @@ export default function EntitiesIndex({ entities, filters, filterOptions }: Prop
                                 >
                                     Impact {sortIcon('impact')}
                                 </TableHead>
-                                <TableHead>Period</TableHead>
+                                <TableHead
+                                    className="cursor-pointer select-none"
+                                    onClick={() => toggleSort('chronological')}
+                                >
+                                    Period {sortIcon('chronological')}
+                                </TableHead>
                                 <TableHead>Location</TableHead>
                             </TableRow>
                         </TableHeader>

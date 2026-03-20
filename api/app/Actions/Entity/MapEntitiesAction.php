@@ -8,13 +8,19 @@ use App\Enums\ConfidenceLevel;
 use App\Enums\EntityGroup;
 use App\Enums\EntityType;
 use App\Models\Entity;
+use App\Services\ZoomImpactThreshold;
 use Illuminate\Support\Collection;
 
 /**
  * Retrieve entities optimized for map rendering.
  *
  * Returns lightweight GeoJSON-compatible data using EntityBuilder::selectForMap().
- * Applies spatial (bbox), temporal, and type/group filters.
+ * Applies spatial (bbox), temporal, type/group, and zoom-level impact threshold filters.
+ *
+ * Impact threshold logic:
+ *   - If `min_impact` is provided it is used directly.
+ *   - If only `zoom_level` is provided, the threshold is derived via ZoomImpactThreshold.
+ *   - If neither is provided, no impact threshold is applied.
  */
 class MapEntitiesAction
 {
@@ -61,6 +67,14 @@ class MapEntitiesAction
             $query->withMinConfidence(ConfidenceLevel::from($filters['min_confidence']));
         }
 
+        // Zoom-level impact threshold:
+        // explicit min_impact takes precedence; otherwise derive from zoom_level.
+        $minImpact = $this->resolveMinImpact($filters);
+
+        if ($minImpact !== null) {
+            $query->where('impact_score', '>=', $minImpact);
+        }
+
         // Only show verified+ by default on map
         $query->verified();
 
@@ -70,5 +84,27 @@ class MapEntitiesAction
         $limit = (int) ($filters['limit'] ?? 2000);
 
         return $query->limit($limit)->get();
+    }
+
+    /**
+     * Resolve the minimum impact score from request filters.
+     *
+     * Returns null when no threshold should be applied.
+     *
+     * @param  array<string, mixed>  $filters
+     */
+    private function resolveMinImpact(array $filters): ?int
+    {
+        // Explicit override takes precedence
+        if (array_key_exists('min_impact', $filters) && $filters['min_impact'] !== null) {
+            return (int) $filters['min_impact'];
+        }
+
+        // Derive from zoom level
+        if (isset($filters['zoom_level'])) {
+            return ZoomImpactThreshold::forZoom((int) $filters['zoom_level']);
+        }
+
+        return null;
     }
 }
