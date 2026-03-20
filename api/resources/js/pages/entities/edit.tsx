@@ -1,12 +1,14 @@
 import { Head, router } from '@inertiajs/react';
 import { lazy, Suspense, useState } from 'react';
 import { update } from '@/routes/entities';
+import * as SnapshotRoutes from '@/actions/App/Http/Controllers/Admin/GeometrySnapshotController';
 import EntityForm, { defaultFormData, type EntityFormData } from '@/components/entity-form';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, EntityDetail, EntityFormOptions } from '@/types';
 
 const MapEditor = lazy(() => import('@/components/map-editor'));
+const SnapshotBuilder = lazy(() => import('@/components/snapshot-builder'));
 
 type GeoJsonGeometry = Record<string, unknown> | null;
 
@@ -77,6 +79,7 @@ export default function EntityEdit({ entity, formOptions }: Props) {
     const [geojson, setGeojson] = useState<GeoJsonGeometry>(entity.geojson ?? null);
     const [territoryGeojson, setTerritoryGeojson] = useState<GeoJsonGeometry>(entity.territory_geojson ?? null);
     const [mapOpen, setMapOpen] = useState(false);
+    const [snapshotOpen, setSnapshotOpen] = useState(false);
 
     function handleChange<K extends keyof EntityFormData>(field: K, value: EntityFormData[K]) {
         setData((prev) => ({ ...prev, [field]: value }));
@@ -94,7 +97,8 @@ export default function EntityEdit({ entity, formOptions }: Props) {
             }
         }
 
-        const payload: Record<string, unknown> = {};
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const payload: Record<string, any> = {};
         for (const [key, value] of Object.entries(data)) {
             if (!key.startsWith('attr_')) {
                 payload[key] = value;
@@ -194,6 +198,39 @@ export default function EntityEdit({ entity, formOptions }: Props) {
                                     Save with geometry
                                 </Button>
                             </div>
+                        </div>
+                    )}
+                </div>
+                {/* Snapshot builder — collapsible */}
+                <div className="mt-4 rounded-lg border">
+                    <button
+                        type="button"
+                        onClick={() => setSnapshotOpen((v) => !v)}
+                        className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium"
+                    >
+                        <span>Geometry Snapshots</span>
+                        <span className="text-muted-foreground text-xs">
+                            {snapshotOpen ? 'Collapse' : 'Expand'}
+                        </span>
+                    </button>
+
+                    {snapshotOpen && (
+                        <div className="border-t p-4">
+                            <Suspense
+                                fallback={
+                                    <div className="flex h-24 items-center justify-center text-sm text-muted-foreground">
+                                        Loading snapshot builder…
+                                    </div>
+                                }
+                            >
+                                <SnapshotBuilder
+                                    entityId={entity.id}
+                                    listUrl={SnapshotRoutes.index.url(entity.id)}
+                                    storeUrl={SnapshotRoutes.store.url(entity.id)}
+                                    updateUrlFn={(snapshotId) => SnapshotRoutes.update.url({ entity: entity.id, snapshot: snapshotId })}
+                                    deleteUrlFn={(snapshotId) => SnapshotRoutes.destroy.url({ entity: entity.id, snapshot: snapshotId })}
+                                />
+                            </Suspense>
                         </div>
                     )}
                 </div>
