@@ -1,0 +1,262 @@
+# The Entity Model — A Guide for Historians
+
+This document explains how historical knowledge is structured in this database. No technical background is needed. If you can write a footnote or a dictionary entry, you already think in the right way.
+
+---
+
+## The Core Idea: Everything is an Entity
+
+History is full of things that existed in time and space and that mattered. We call all of them **entities**. An entity can be:
+
+- A **state** — the Achaemenid Empire, the Venetian Republic, the Qing dynasty
+- A **person** — Cleopatra VII, Ibn Battuta, Tokugawa Ieyasu
+- A **city** — Carthage, Samarkand, Tenochtitlan
+- A **battle or war** — the Battle of Gaugamela, the Thirty Years' War
+- A **migration** — the Bantu expansion, the Great Migration of the 20th century
+- A **trade route** — the Silk Road, the trans-Saharan gold–salt route
+- A **religious movement** — the Protestant Reformation, Mahayana Buddhism
+- A **plague** — the Black Death, the Antonine Plague
+- A **legal code** — the Code of Hammurabi, Justinian's *Corpus Juris Civilis*
+- A **technology** — the stirrup, the printing press, iron-smelting
+
+If it has a name, existed in a place and time, and influenced something else, it belongs here.
+
+---
+
+## The Five Groups
+
+Every entity belongs to one of five broad groups. Think of them as the major departments of a historical encyclopaedia.
+
+### POLITY — Power and People
+Political entities, rulers, dynasties, armies, social classes, and formal agreements between powers.
+
+*Examples:* Macedonian Empire, Julius Caesar, the Janissaries, the aristocracy of Han China, the Treaty of Westphalia
+
+### PLACE — Where History Happened
+Cities, ports, fortresses, monuments, mines, universities — the physical stages of history.
+
+*Examples:* Alexandria, the Grand Canal of China, the Library of Nalanda, the salt mines of Wieliczka
+
+### EVENT — What Happened
+Wars, battles, treaties, rebellions, natural disasters, technological adoptions, legal reforms, migrations, epidemics.
+
+*Examples:* the Mongol invasion of Khwarezm, the Plague of Justinian, the Meiji Restoration, the expulsion of Jews from Spain in 1492
+
+### ECONOMY — How Wealth Moved
+Trade routes, natural resources, currencies, and monetary systems.
+
+*Examples:* the Silk Road, the silver mines of Potosí, Roman *denarius*, the cowrie-shell currency zone of sub-Saharan Africa
+
+### CULTURE — Ideas, Beliefs, and Works
+Intellectual movements, languages, religions, texts, legal codes, archaeological cultures, technologies.
+
+*Examples:* the Abbasid Translation Movement, Classical Arabic, the Quran, the Justinian Code, the invention of the compass
+
+---
+
+## Describing an Entity
+
+Each entity has a set of fields. Here are the ones historians care about most.
+
+### Identity
+
+**Name** — The primary name, usually in English or the most scholarly convention. *Carthage*, not *Qart-hadasht*, unless a case can be made.
+
+**Alternative names** — Other names the entity is known by, including transliterations, local names, and names in other languages. *Carthage / Qart-hadasht / Cartagena (Latin)*
+
+**Wikidata ID** — If this entity has a Wikidata page, its identifier (e.g. `Q6216`). This helps link the database to the wider web of knowledge without duplicating work.
+
+**Summary** — A short, neutral description of one to three sentences. Think of it as the opening sentence of a good encyclopaedia entry. It should state what the entity *is*, not what it *did* (that goes in significance).
+
+**Significance** — A longer passage explaining why this entity matters historically. This is where you can discuss causes, consequences, and interpretive debates.
+
+**Tags** — Free-form labels for thematic searching. *e.g. `iron_age`, `mediterranean`, `collapse`, `nomadic`*
+
+---
+
+### Time
+
+Dates are recorded as **years relative to the Common Era**, where negative numbers are BCE. This system avoids the ambiguities of different calendar systems.
+
+| Field | Meaning | Example |
+|---|---|---|
+| `temporal_start` | When the entity began | `-264` (264 BCE — start of the First Punic War) |
+| `temporal_end` | When the entity ended | `-241` (241 BCE — end of the First Punic War) |
+| `date_raw` | The date as it appears in your source | *"264 to 241 BC"* |
+| `temporal_display_range` | A human-readable version | *"264–241 BCE"* |
+| `era_label` | A shorthand era name | *"Late Republic"*, *"Tang Dynasty"* |
+| `duration_type` | Whether the entity is a point, a period, ongoing, or uncertain | `period` |
+
+**Confidence in dates** is separate from confidence in other facts. A date can be `high` confidence (attested in multiple primary sources with year-level precision), `medium` (known within a decade), `low` (within a century), or `unresolved` (we only know the approximate era).
+
+**How was the date determined?**  The `date_method` field records this — for instance, `source_database` (taken directly from a trusted dataset), `llm_reign_resolution` (inferred from a ruler's known reign), or `human_assigned` (a researcher made the call).
+
+---
+
+### Hierarchy and Succession
+
+Entities can have a **parent** and can have **children**. This is for strict part-of or sub-unit relationships:
+
+- The Battle of Cannae is a **child** of the Second Punic War
+- The Duchy of Burgundy is a **child** of the Kingdom of France (in a given period)
+- The Western Roman Empire and the Eastern Roman Empire are both **children** of the Roman Empire
+
+The **successor** field records the entity that directly replaced this one:
+- The successor of the Roman Republic is the Roman Principate
+- The successor of the Umayyad Caliphate is the Abbasid Caliphate
+
+---
+
+### Relationships Between Entities
+
+The richest part of the model is its **relationship system**. A relationship connects two entities with a named type and, optionally, a time window and a confidence level.
+
+**Directed relationships** — Every relationship has a *source* and a *target*. The direction matters:
+
+> *Julius Caesar* **[rules]** *Roman Republic*  (Caesar is the source; the Republic is the target)
+
+This is distinct from:
+
+> *Roman Republic* **[governed_by]** *Julius Caesar*  (the inverse — but both can be stored)
+
+See [relationships.md](./relationships.md) for all 76 types.
+
+---
+
+## Three Worked Historical Examples
+
+### Example 1 — The Rise and Fall of the Han Dynasty
+
+This example shows how a single historical arc produces a network of entities and relationships.
+
+**Entities:**
+
+| Name | Type | Group | Start | End |
+|---|---|---|---|---|
+| Han Dynasty | `political_entity` | POLITY | −206 | 220 |
+| Liu Bang (Emperor Gaozu) | `person` | POLITY | −256 | −195 |
+| Xiongnu Confederacy | `political_entity` | POLITY | −209 | 93 |
+| Battle of Baideng | `event_battle` | EVENT | −200 | −200 |
+| Silk Road | `trade_route` | ECONOMY | −130 | 1450 |
+| Chang'an | `city` | PLACE | −202 | 904 |
+| Confucianism (Han State Adoption) | `intellectual_movement` | CULTURE | −136 | 220 |
+| Yellow Turban Rebellion | `event_rebellion` | EVENT | 184 | 205 |
+
+**Relationships:**
+
+```
+Liu Bang        ──[founded]──────────►  Han Dynasty
+Liu Bang        ──[rules]────────────►  Han Dynasty         (−206 to −195)
+Han Dynasty     ──[at_war_with]──────►  Xiongnu Confederacy  (−200 to −133)
+Han Dynasty     ──[fought_at]────────►  Battle of Baideng
+Xiongnu         ──[victorious_at]────►  Battle of Baideng
+Han Dynasty     ──[controls]─────────►  Silk Road            (−130 to 220)
+Chang'an        ──[capital_of]───────►  Han Dynasty
+Han Dynasty     ──[adheres_to]───────►  Confucianism (Han)   (−136 to 220)
+Yellow Turban   ──[weakened]─────────►  Han Dynasty
+Han Dynasty     ──[succeeded_by]─────►  Three Kingdoms Period
+```
+
+---
+
+### Example 2 — The Mongol Conquests and the Il-Khanate
+
+This example shows how conquest, succession, and cultural transmission work.
+
+**Entities:**
+
+| Name | Type | Group | Start | End |
+|---|---|---|---|---|
+| Mongol Empire | `political_entity` | POLITY | 1206 | 1368 |
+| Genghis Khan | `person` | POLITY | 1162 | 1227 |
+| Abbasid Caliphate | `political_entity` | POLITY | 750 | 1258 |
+| Sack of Baghdad | `event_battle` | EVENT | 1258 | 1258 |
+| Il-Khanate | `political_entity` | POLITY | 1256 | 1335 |
+| Hulagu Khan | `person` | POLITY | 1217 | 1265 |
+| House of Wisdom | `educational_institution` | PLACE | 830 | 1258 |
+| Black Death | `epidemic_disease` | EVENT | 1346 | 1353 |
+
+**Relationships:**
+
+```
+Genghis Khan   ──[founded]──────────►  Mongol Empire
+Hulagu Khan    ──[member_of_dynasty]─►  Mongol Empire (Toluid line)
+Hulagu Khan    ──[commanded]─────────►  Mongol invasion of Abbasid Caliphate
+Mongol Empire  ──[caused]────────────►  Sack of Baghdad
+Sack of Baghdad ─[resulted_from]─────►  Mongol invasion of Abbasid Caliphate
+Sack of Baghdad ─[destroyed_by]──────►  House of Wisdom
+Abbasid Caliphate ─[succeeded_by]────►  Il-Khanate       (for Mesopotamia)
+Hulagu Khan    ──[rules]─────────────►  Il-Khanate        (1256 to 1265)
+Mongol Empire  ──[spread_to]─────────►  Black Death        (via trade routes)
+```
+
+---
+
+### Example 3 — The Protestant Reformation
+
+This example shows how a cultural movement interacts with political, military, and diplomatic entities.
+
+**Entities:**
+
+| Name | Type | Group | Start | End |
+|---|---|---|---|---|
+| Protestant Reformation | `religious_movement` | CULTURE | 1517 | 1648 |
+| Martin Luther | `person` | POLITY | 1483 | 1546 |
+| Ninety-Five Theses | `cultural_work` | CULTURE | 1517 | 1517 |
+| Holy Roman Empire | `political_entity` | POLITY | 962 | 1806 |
+| Thirty Years' War | `event_war` | EVENT | 1618 | 1648 |
+| Peace of Westphalia | `event_treaty` | EVENT | 1648 | 1648 |
+| Printing Press | `technology` | CULTURE | 1440 | — |
+| Lutheran Church | `religious_movement` | CULTURE | 1521 | — |
+
+**Relationships:**
+
+```
+Martin Luther   ──[authored]──────────►  Ninety-Five Theses
+Ninety-Five Theses ─[caused]───────────►  Protestant Reformation
+Printing Press  ──[enabled]───────────►  Protestant Reformation
+Protestant Reformation ─[caused]───────►  Thirty Years' War
+Holy Roman Empire ─[at_war_with]────────►  Protestant Princes     (in Thirty Years' War)
+Thirty Years' War ─[resulted_from]──────►  Protestant Reformation
+Peace of Westphalia ─[ended]─────────────►  Thirty Years' War
+Peace of Westphalia ─[signed_by]─────────►  Holy Roman Empire
+Martin Luther   ──[founded]───────────►  Lutheran Church
+Lutheran Church ──[schism_from]───────►  Catholic Church
+```
+
+---
+
+## Quality and Confidence
+
+The database is honest about uncertainty. Every entity carries:
+
+**Overall confidence** — `high`, `medium`, `low`, or `unresolved`. This reflects how well-attested the entity is across independent sources.
+
+**Confidence notes** — A free-text field where you can record *why* you have doubts, or which source you are relying on. *"Date of birth uncertain; sources range from 69 to 63 BCE."*
+
+**Verification status** — Reflects how far the record has been reviewed:
+
+| Status | Meaning |
+|---|---|
+| `pipeline_draft` | Auto-generated, not yet reviewed |
+| `needs_review` | Flagged for a human to check |
+| `in_review` | Currently being reviewed |
+| `human_verified` | A researcher has checked it |
+| `expert_verified` | A domain expert has signed off |
+| `flagged` | Something looks wrong — needs attention |
+| `rejected` | Determined to be incorrect or a duplicate |
+| `merged` | Combined with another record |
+
+The aim is that by the time a record reaches `expert_verified`, every date, location, and relationship carries a proper source citation.
+
+---
+
+## Source Citations
+
+Every entity and every relationship can carry **source citations** as structured data. A citation records:
+- The source type (primary source, scholarly monograph, database, etc.)
+- The title and author
+- The specific page or passage
+- A reliability tier
+
+This is the same logic as a footnote — it just lives in a machine-readable form alongside the fact it supports.
