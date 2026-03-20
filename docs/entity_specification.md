@@ -484,7 +484,7 @@ CREATE TYPE icon_class AS ENUM (
 
 ## 3. Shared Base Fields (All Entities)
 
-Every entity in PostgreSQL shares these columns. Type-specific fields are stored in a JSONB `attributes` column or in dedicated sub-tables depending on query needs.
+Every entity in PostgreSQL shares these columns. Type-specific fields are stored in the JSONB `attributes` column (see Section 4). Time-varying geometries use a dedicated `geometry_snapshots` sub-table (see `plans/attributes_and_geometry_snapshots.md`).
 
 | Field | Type | Storage | Source | Notes |
 |-------|------|---------|--------|-------|
@@ -542,51 +542,62 @@ Every entity in PostgreSQL shares these columns. Type-specific fields are stored
 
 ---
 
-## 4. Entity Specifications
+## 4. Entity Type–Specific Attributes
 
-Below, each entity lists only its **type-specific fields** stored in the `attributes` JSONB column or in dedicated sub-tables. All entities also carry every field from Section 3.
+> **Storage decision:** All type-specific fields are stored as keys in the JSONB `attributes` column on the `entities` table. They are **not** separate database columns or sub-tables. This section documents the expected JSONB schema per entity type for pipeline ingestion, validation, and admin panel form generation.
+>
+> **Rationale:** Type-specific attributes are never queried on the map hot path (which uses only base columns from Section 3). They are loaded only when displaying entity detail views — a single-row JSON decode. JSONB avoids 30 sub-tables, 30 models, and 30 migrations while allowing schema evolution without DDL changes. For the few attribute keys used in filters, PostgreSQL expression indexes provide indexed equality lookups (see `plans/attributes_and_geometry_snapshots.md` Section 5).
+>
+> **Cross-entity references in JSONB:** Fields like `"city_entity_id"` or `"person_id"` stored inside JSONB arrays are **soft references** (UUID strings), not foreign keys. Referential integrity for these is enforced at the application layer during pipeline validation (Stage 7) and admin panel saves. Hard FK references that need database-level enforcement are stored as base columns (`parent_entity_id`, `successor_entity_id`) or in the `relationships` table.
+>
+> **Time-varying geometries:** Entities whose PostGIS geometries change over time (empire borders, trade route shifts, migration paths) use the dedicated `geometry_snapshots` table — not JSONB — because PostGIS spatial queries require GIST-indexed `geometry` columns. See `plans/attributes_and_geometry_snapshots.md` Section 4.
+
+All entities carry every field from Section 3 in addition to the `attributes` keys listed below.
 
 ---
 
 ### 4.1 Political Entity
 
-**entity_type:** `political_entity`
-**entity_group:** `POLITY`
+**entity_type:** `political_entity` | **entity_group:** `POLITY`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `political_subtype` | enum (`political_entity_subtype`) | empire, kingdom, republic, etc. |
-| `government_type` | enum | Current/primary government form |
-| `government_history` | JSONB | `[{type, start, end}]` — government changes over time |
-| `capital_history` | JSONB | `[{city_entity_id, start, end}]` |
-| `population_estimates` | JSONB | `[{value, year, source, confidence}]` |
-| `territory_area_estimates` | JSONB | `[{km2, year, source}]` |
-| `official_languages` | JSONB | `[{language_entity_id, start, end}]` |
-| `official_religions` | JSONB | `[{religious_movement_id, start, end, status}]` |
-| `succession_type` | enum | How leadership transfers |
-| `administrative_divisions` | JSONB | `[{name, type, entity_id}]` — provinces, satrapies, etc. |
+```jsonc
+{
+  "political_subtype": "empire",                              // enum: political_entity_subtype
+  "government_type": "bureaucratic_centralized",              // enum: government_type
+  "succession_type": "primogeniture",                         // enum: succession_type
+  "government_history": [{"type": "str", "start": -753, "end": -509}],
+  "capital_history": [{"city_entity_id": "uuid", "start": -753, "end": -509}],
+  "population_estimates": [{"value": 55000000, "year": 117, "source": "str", "confidence": "str"}],
+  "territory_area_estimates": [{"km2": 5000000, "year": 117, "source": "str"}],
+  "official_languages": [{"language_entity_id": "uuid", "start": -200, "end": 476}],
+  "official_religions": [{"religious_movement_id": "uuid", "start": 380, "end": 476, "status": "str"}],
+  "administrative_divisions": [{"name": "Syria", "type": "province", "entity_id": "uuid"}]
+}
+```
 
 **Key relationships:** `rules/governed_by` (Person), `vassal_of/suzerain_of` (Political Entity), `capital_of` (City), `at_war_with` (Political Entity), `controls` (Trade Route, Resource)
+**Geometry snapshots:** Yes — territory borders change over time.
 
 ---
 
 ### 4.2 Person
 
-**entity_type:** `person`
-**entity_group:** `POLITY`
+**entity_type:** `person` | **entity_group:** `POLITY`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `gender` | enum | |
-| `birth_date` | text (EDTF) | May differ from entity temporal_start |
-| `death_date` | text (EDTF) | |
-| `birth_place_id` | UUID (FK) | Link to City entity |
-| `death_place_id` | UUID (FK) | Link to City entity |
-| `roles` | JSONB | `[{role: enum, political_entity_id, start, end, title}]` |
-| `dynasty_id` | UUID (FK) | Link to Dynasty entity |
-| `ethnicity` | text | |
-| `cause_of_death` | text | |
-| `burial_place_id` | UUID (FK) | Link to City or Monument entity |
+```jsonc
+{
+  "gender": "male",                                            // enum: gender
+  "birth_date": "-356",                                        // EDTF text
+  "death_date": "-323",                                        // EDTF text
+  "birth_place_id": "uuid",                                    // → City entity
+  "death_place_id": "uuid",                                    // → City entity
+  "burial_place_id": "uuid",                                   // → City or Monument entity
+  "dynasty_id": "uuid",                                        // → Dynasty entity
+  "ethnicity": "Macedonian",
+  "cause_of_death": "fever",
+  "roles": [{"role": "ruler", "political_entity_id": "uuid", "start": -336, "end": -323, "title": "King"}]
+}
+```
 
 **Key relationships:** `rules` (Political Entity), `commanded` (Military Unit), `authored` (Cultural Work), `founded` (Dynasty, City, Religious Movement), `parent_of/child_of/married_to` (Person)
 
@@ -594,17 +605,18 @@ Below, each entity lists only its **type-specific fields** stored in the `attrib
 
 ### 4.3 Dynasty / Ruling House
 
-**entity_type:** `dynasty`
-**entity_group:** `POLITY`
+**entity_type:** `dynasty` | **entity_group:** `POLITY`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `founding_event` | text | Description of dynasty origin |
-| `ethnic_origin` | text | |
-| `legitimacy_basis` | text | hereditary, divine right, mandate of heaven, etc. |
-| `succession_type` | enum | |
-| `cadet_branches` | JSONB | `[{name, entity_id, split_date}]` |
-| `political_entities_ruled` | JSONB | `[{entity_id, start, end}]` — may rule multiple states |
+```jsonc
+{
+  "founding_event": "str",
+  "ethnic_origin": "str",
+  "legitimacy_basis": "str",                                   // hereditary, divine right, etc.
+  "succession_type": "primogeniture",                          // enum: succession_type
+  "cadet_branches": [{"name": "str", "entity_id": "uuid", "split_date": 1200}],
+  "political_entities_ruled": [{"entity_id": "uuid", "start": 1200, "end": 1400}]
+}
+```
 
 **Key relationships:** `member_of_dynasty` (Person), `rules` (Political Entity), `preceded_by/succeeded_by` (Dynasty), `married_to` (Dynasty — alliance marriages)
 
@@ -612,18 +624,19 @@ Below, each entity lists only its **type-specific fields** stored in the `attrib
 
 ### 4.4 Military Unit / Army
 
-**entity_type:** `military_unit`
-**entity_group:** `POLITY`
+**entity_type:** `military_unit` | **entity_group:** `POLITY`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `unit_subtype` | enum (`military_unit_subtype`) | legion, fleet, warband, etc. |
-| `composition` | enum (`military_composition`) | professional, conscript, etc. |
-| `size_estimates` | JSONB | `[{count, year, source}]` |
-| `commanders` | JSONB | `[{person_id, start, end, rank}]` |
-| `equipment_technology` | JSONB | `[{technology_id, description}]` |
-| `stationed_locations` | JSONB | `[{city_id, start, end}]` |
-| `notable_actions` | JSONB | `[{event_id, role, outcome}]` |
+```jsonc
+{
+  "unit_subtype": "legion",                                    // enum: military_unit_subtype
+  "composition": "professional",                               // enum: military_composition
+  "size_estimates": [{"count": 5000, "year": 100, "source": "str"}],
+  "commanders": [{"person_id": "uuid", "start": 100, "end": 110, "rank": "str"}],
+  "equipment_technology": [{"technology_id": "uuid", "description": "str"}],
+  "stationed_locations": [{"city_id": "uuid", "start": 100, "end": 110}],
+  "notable_actions": [{"event_id": "uuid", "role": "str", "outcome": "str"}]
+}
+```
 
 **Key relationships:** `part_of` (Political Entity), `commanded_by` (Person), `fought_at` (Event Battle), `stationed_at` (City)
 
@@ -631,109 +644,114 @@ Below, each entity lists only its **type-specific fields** stored in the `attrib
 
 ### 4.5 City / Settlement
 
-**entity_type:** `city`
-**entity_group:** `PLACE`
+**entity_type:** `city` | **entity_group:** `PLACE`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `settlement_subtype` | enum | capital, port, fortress, etc. |
-| `population_estimates` | JSONB | `[{value, year, source, confidence}]` |
-| `political_control` | JSONB | `[{political_entity_id, start, end}]` |
-| `economic_roles` | JSONB | `[{role, start, end}]` — capital, trade hub, etc. |
-| `infrastructure` | JSONB | `[{monument_id, built_date}]` |
-| `founding_legend` | text | |
-| `elevation_m` | numeric | Useful for defensive/geographic context |
+```jsonc
+{
+  "settlement_subtype": "capital_city",                        // enum: settlement_subtype
+  "elevation_m": 15,
+  "founding_legend": "str",
+  "population_estimates": [{"value": 1000000, "year": 100, "source": "str", "confidence": "str"}],
+  "political_control": [{"political_entity_id": "uuid", "start": -753, "end": 476}],
+  "economic_roles": [{"role": "trade_hub", "start": -200, "end": 476}],
+  "infrastructure": [{"monument_id": "uuid", "built_date": -80}]
+}
+```
 
 **Key relationships:** `capital_of` (Political Entity), `connects` (Trade Route), `location_of` (Event), `birth/death place of` (Person), `contains` (Monument)
 
 ---
 
-### 4.6 Infrastructure / Monument *(NEW)*
+### 4.6 Infrastructure / Monument
 
-**entity_type:** `infrastructure_monument`
-**entity_group:** `PLACE`
+**entity_type:** `infrastructure_monument` | **entity_group:** `PLACE`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `monument_subtype` | enum (`monument_subtype`) | temple, fortification, aqueduct, etc. |
-| `construction_start` | text (EDTF) | |
-| `construction_end` | text (EDTF) | |
-| `commissioned_by` | UUID (FK) | Person or Political Entity |
-| `architect_builder` | UUID (FK) | Person entity if known |
-| `materials` | text[] | `['marble', 'limestone', 'concrete']` |
-| `dimensions` | JSONB | `{height_m, length_m, area_m2}` — as known |
-| `current_condition` | text | extant, ruins, destroyed, rebuilt, submerged |
-| `destruction_date` | text (EDTF) | |
-| `destruction_cause` | text | |
-| `unesco_status` | text | If applicable |
-| `city_id` | UUID (FK) | Parent city if applicable |
+```jsonc
+{
+  "monument_subtype": "temple",                                // enum: monument_subtype
+  "construction_start": "-447",                                // EDTF text
+  "construction_end": "-432",                                  // EDTF text
+  "commissioned_by": "uuid",                                   // → Person or Political Entity
+  "architect_builder": "uuid",                                 // → Person
+  "materials": ["marble", "limestone"],
+  "dimensions": {"height_m": 13.7, "length_m": 69.5, "area_m2": null},
+  "current_condition": "ruins",                                // extant, ruins, destroyed, rebuilt, submerged
+  "destruction_date": null,                                    // EDTF text
+  "destruction_cause": null,
+  "unesco_status": "World Heritage Site",
+  "city_id": "uuid"                                            // → City entity
+}
+```
 
 **Key relationships:** `built_by` (Person, Political Entity), `located_at` (City), `destroyed_by` (Event, Person), `restored_by` (Person, Political Entity), `required` (Technology, Natural Resource)
 
-**Design rationale:** Separating monuments from cities allows Civ-style "Wonder" display. The Colosseum, Great Wall, Hagia Sophia are some of the most visually compelling map features. They have precise coordinates, clear construction timelines, and rich relationship networks.
+**Design rationale:** Separating monuments from cities allows Civ-style "Wonder" display. The Colosseum, Great Wall, Hagia Sophia are some of the most visually compelling map features.
 
 ---
 
 ### 4.7 Religious / Ideological Movement
 
-**entity_type:** `religious_movement`
-**entity_group:** `CULTURE`
+**entity_type:** `religious_movement` | **entity_group:** `CULTURE`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `movement_subtype` | enum | monotheism, polytheism, sect, etc. |
-| `founder_id` | UUID (FK) | Person entity |
-| `core_doctrines` | text | |
-| `institutional_structure` | text | church, temple network, decentralized |
-| `sacred_texts` | JSONB | `[{religious_text_id, role}]` |
-| `spread_timeline` | JSONB | `[{region, date, method}]` — geographic expansion |
-| `schisms` | JSONB | `[{child_movement_id, date, cause}]` |
-| `persecution_periods` | JSONB | `[{political_entity_id, start, end, severity}]` |
+```jsonc
+{
+  "movement_subtype": "monotheism",                            // enum: religious_movement_subtype
+  "founder_id": "uuid",                                        // → Person
+  "core_doctrines": "str",
+  "institutional_structure": "str",                            // church, temple network, decentralized
+  "sacred_texts": [{"religious_text_id": "uuid", "role": "str"}],
+  "spread_timeline": [{"region": "str", "date": 50, "method": "str"}],
+  "schisms": [{"child_movement_id": "uuid", "date": 1054, "cause": "str"}],
+  "persecution_periods": [{"political_entity_id": "uuid", "start": 64, "end": 313, "severity": "str"}]
+}
+```
 
 **Key relationships:** `founded` (Person), `official_religion_of` (Political Entity), `schism_from` (Religious Movement), `persecuted_by` (Political Entity), `inspired` (Intellectual Movement)
+**Geometry snapshots:** Yes — spread extent changes over time.
 
 ---
 
 ### 4.8 Trade Route / Network
 
-**entity_type:** `trade_route`
-**entity_group:** `ECONOMY`
+**entity_type:** `trade_route` | **entity_group:** `ECONOMY`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `route_subtype` | enum | overland, maritime, riverine, mixed |
-| `waypoints` | JSONB | `[{city_id, order, role}]` — ordered stops |
-| `commodities` | JSONB | `[{resource_id, direction, volume_estimate}]` |
-| `controlling_entities` | JSONB | `[{political_entity_id, segment, start, end}]` |
-| `infrastructure` | JSONB | `[{type, description, segment}]` — roads, ports, caravanserais |
-| `transport_mode` | text[] | `['camel_caravan', 'sailing_vessel', 'cart']` |
-| `risk_factors` | text[] | `['piracy', 'banditry', 'seasonal_storms']` |
-| `customs_taxation` | JSONB | `[{location, rate, entity_id}]` |
+```jsonc
+{
+  "route_subtype": "overland",                                 // enum: trade_route_subtype
+  "transport_mode": ["camel_caravan", "sailing_vessel"],
+  "risk_factors": ["piracy", "banditry"],
+  "waypoints": [{"city_id": "uuid", "order": 1, "role": "str"}],
+  "commodities": [{"resource_id": "uuid", "direction": "eastbound", "volume_estimate": "str"}],
+  "controlling_entities": [{"political_entity_id": "uuid", "segment": "str", "start": -200, "end": 200}],
+  "infrastructure": [{"type": "caravanserai", "description": "str", "segment": "str"}],
+  "customs_taxation": [{"location": "str", "rate": "str", "entity_id": "uuid"}]
+}
+```
 
 **Key relationships:** `connects` (City), `transports` (Natural Resource), `controlled_by` (Political Entity), `threatened_by` (Event War, Epidemic), `enabled_by` (Technology)
+**Geometry snapshots:** Yes — route paths shift over centuries.
 
 ---
 
 ### 4.9 Natural Resource
 
-**entity_type:** `natural_resource`
-**entity_group:** `ECONOMY`
+**entity_type:** `natural_resource` | **entity_group:** `ECONOMY`
 
-> **v2.0 change:** Now includes former Economic/Trade Good entity. Trade-specific fields added below.
-
-| Field | Type | Notes |
-|-------|------|-------|
-| `resource_category` | enum | grain, metal_precious, spice, etc. |
-| `renewability` | enum | renewable, finite, cyclical |
-| `strategic_value_history` | JSONB | `[{value: enum, period, reason}]` — changes over time |
-| `substitutability` | text | What alternatives exist |
-| `transport_difficulty` | text | perishability, bulk, fragility |
-| `extraction_tech_required` | JSONB | `[{technology_id, description}]` |
-| `known_deposits` | JSONB | `[{location, quality, discovery_date}]` |
-| `is_tradeable` | boolean | Whether this resource enters trade networks |
-| `processed_forms` | JSONB | `[{raw, processed, technology_required}]` — tin ore → bronze |
-| `price_history` | JSONB | `[{period, value, unit, source}]` — when documented |
-| `cultural_value` | text | Prestige, religious significance |
+```jsonc
+{
+  "resource_category": "metal_precious",                       // enum: resource_category
+  "renewability": "finite",                                    // enum: resource_renewability
+  "is_tradeable": true,
+  "substitutability": "str",
+  "transport_difficulty": "str",
+  "cultural_value": "str",
+  "strategic_value_history": [{"value": "critical", "period": "str", "reason": "str"}],
+  "extraction_tech_required": [{"technology_id": "uuid", "description": "str"}],
+  "known_deposits": [{"location": "str", "quality": "str", "discovery_date": "str"}],
+  "processed_forms": [{"raw": "tin ore", "processed": "bronze", "technology_required": "str"}],
+  "price_history": [{"period": "str", "value": 100, "unit": "str", "source": "str"}]
+}
+```
 
 **Key relationships:** `extracted_by` (Extraction Infrastructure), `transported_via` (Trade Route), `controlled_by` (Political Entity), `required_by` (Technology), `caused` (Event War — resource wars)
 
@@ -741,18 +759,19 @@ Below, each entity lists only its **type-specific fields** stored in the `attrib
 
 ### 4.10 Extraction Infrastructure
 
-**entity_type:** `extraction_infra`
-**entity_group:** `PLACE`
+**entity_type:** `extraction_infra` | **entity_group:** `PLACE`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `infra_subtype` | enum | mine, quarry, farm, shipyard, etc. |
-| `resource_extracted` | JSONB | `[{resource_id, volume_estimate, unit}]` |
-| `scale` | text | small, medium, large, industrial |
-| `labor_force` | JSONB | `{size, type: enum, conditions}` |
-| `technology_used` | JSONB | `[{technology_id, description}]` |
-| `productivity_history` | JSONB | `[{period, output, unit}]` |
-| `controlling_entity` | JSONB | `[{political_entity_id, start, end}]` |
+```jsonc
+{
+  "infra_subtype": "mine",                                     // enum: extraction_infra_subtype
+  "scale": "large",                                            // small, medium, large, industrial
+  "resource_extracted": [{"resource_id": "uuid", "volume_estimate": "str", "unit": "str"}],
+  "labor_force": {"size": 500, "type": "slave_soldier", "conditions": "str"},
+  "technology_used": [{"technology_id": "uuid", "description": "str"}],
+  "productivity_history": [{"period": "str", "output": 100, "unit": "str"}],
+  "controlling_entity": [{"political_entity_id": "uuid", "start": -200, "end": 100}]
+}
+```
 
 **Key relationships:** `extracts` (Natural Resource), `controlled_by` (Political Entity), `near` (City), `targeted_in` (Event War), `uses` (Technology)
 
@@ -760,17 +779,18 @@ Below, each entity lists only its **type-specific fields** stored in the `attrib
 
 ### 4.11 Currency / Monetary System
 
-**entity_type:** `currency_monetary_system`
-**entity_group:** `ECONOMY`
+**entity_type:** `currency_monetary_system` | **entity_group:** `ECONOMY`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `currency_type` | enum | coin_metal, paper, commodity_money, etc. |
-| `denominations` | JSONB | `[{name, value, metal, weight_g}]` |
-| `issuing_authority` | UUID (FK) | Political Entity |
-| `metal_composition_history` | JSONB | `[{period, metal, purity_pct}]` — debasement tracking |
-| `exchange_rates` | JSONB | `[{against_currency_id, rate, period}]` |
-| `circulation_area` | JSONB | `[{region, period}]` |
+```jsonc
+{
+  "currency_type": "coin_metal",                               // enum: currency_type
+  "issuing_authority": "uuid",                                 // → Political Entity
+  "denominations": [{"name": "denarius", "value": 1, "metal": "silver", "weight_g": 3.9}],
+  "metal_composition_history": [{"period": "str", "metal": "silver", "purity_pct": 95}],
+  "exchange_rates": [{"against_currency_id": "uuid", "rate": 1.5, "period": "str"}],
+  "circulation_area": [{"region": "str", "period": "str"}]
+}
+```
 
 **Key relationships:** `minted_by` (Political Entity), `used_currency` (Political Entity, Trade Route), `required` (Natural Resource — metal)
 
@@ -778,18 +798,19 @@ Below, each entity lists only its **type-specific fields** stored in the `attrib
 
 ### 4.12 Technology / Innovation
 
-**entity_type:** `technology`
-**entity_group:** `CULTURE`
+**entity_type:** `technology` | **entity_group:** `CULTURE`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `tech_domain` | enum | military, agricultural, navigation, etc. |
-| `inventor_id` | UUID (FK) | Person if known |
-| `origin_location` | UUID (FK) | City where invented/first documented |
-| `prerequisites` | JSONB | `[{technology_id}]` — tech tree dependencies |
-| `adoption_timeline` | JSONB | `[{political_entity_id, date, method}]` |
-| `impact_description` | text | |
-| `replaced_by` | UUID (FK) | Successor technology |
+```jsonc
+{
+  "tech_domain": "military",                                   // enum: technology_domain
+  "inventor_id": "uuid",                                       // → Person
+  "origin_location": "uuid",                                   // → City
+  "replaced_by": "uuid",                                       // → Technology
+  "impact_description": "str",
+  "prerequisites": [{"technology_id": "uuid"}],
+  "adoption_timeline": [{"political_entity_id": "uuid", "date": 200, "method": "trade"}]
+}
+```
 
 **Key relationships:** `invented` (Person), `adopted` (Political Entity), `enabled` (Military Unit, Extraction Infrastructure), `replaced_by` (Technology), `required_by` (Infrastructure Monument)
 
@@ -797,18 +818,19 @@ Below, each entity lists only its **type-specific fields** stored in the `attrib
 
 ### 4.13 Educational / Knowledge Institution
 
-**entity_type:** `educational_institution`
-**entity_group:** `PLACE`
+**entity_type:** `educational_institution` | **entity_group:** `PLACE`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `institution_type` | text | academy, university, library, madrasa, monastery school |
-| `founded_by` | UUID (FK) | Person or Political Entity |
-| `city_id` | UUID (FK) | |
-| `subjects_taught` | text[] | |
-| `notable_scholars` | JSONB | `[{person_id, period, role}]` |
-| `library_holdings` | text | Description of collection if known |
-| `destruction_event` | UUID (FK) | If destroyed (Library of Alexandria) |
+```jsonc
+{
+  "institution_type": "library",                               // academy, university, library, madrasa, etc.
+  "founded_by": "uuid",                                        // → Person or Political Entity
+  "city_id": "uuid",                                           // → City
+  "destruction_event": "uuid",                                 // → Event (if destroyed)
+  "subjects_taught": ["philosophy", "mathematics"],
+  "library_holdings": "str",
+  "notable_scholars": [{"person_id": "uuid", "period": "str", "role": "str"}]
+}
+```
 
 **Key relationships:** `located_at` (City), `founded` (Person), `patron` (Political Entity), `taught_at` (Person), `influenced` (Intellectual Movement)
 
@@ -816,40 +838,42 @@ Below, each entity lists only its **type-specific fields** stored in the `attrib
 
 ### 4.14 Event — War / Conflict
 
-**entity_type:** `event_war`
-**entity_group:** `EVENT`
+**entity_type:** `event_war` | **entity_group:** `EVENT`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `war_subtype` | enum | interstate, civil, religious, colonial, etc. |
-| `belligerents` | JSONB | `{side_a: [{entity_id, role}], side_b: [{entity_id, role}]}` |
-| `key_commanders` | JSONB | `[{person_id, side, role}]` |
-| `major_battles` | JSONB | `[{event_battle_id}]` — links to child battle entities |
-| `casualties` | JSONB | `{side_a: {killed, wounded, captured}, side_b: {...}, civilian}` |
-| `territorial_changes` | text | |
-| `ending_treaty` | UUID (FK) | Link to Event Treaty entity |
-| `casus_belli` | text | Stated cause of war |
+```jsonc
+{
+  "war_subtype": "interstate_war",                             // enum: war_subtype
+  "casus_belli": "str",
+  "territorial_changes": "str",
+  "ending_treaty": "uuid",                                     // → Event Treaty
+  "belligerents": {"side_a": [{"entity_id": "uuid", "role": "str"}], "side_b": [{"entity_id": "uuid", "role": "str"}]},
+  "key_commanders": [{"person_id": "uuid", "side": "side_a", "role": "str"}],
+  "major_battles": [{"event_battle_id": "uuid"}],
+  "casualties": {"side_a": {"killed": 10000}, "side_b": {"killed": 15000}, "civilian": 5000}
+}
+```
 
-**Key relationships:** `between` (Political Entity), `commanded_by` (Person), `ended_by` (Event Treaty), `caused_by` (Event, Resource dispute), `resulted_in` (Territorial changes, Political Entity changes)
+**Key relationships:** `between` (Political Entity), `commanded_by` (Person), `ended_by` (Event Treaty), `caused_by` (Event, Resource dispute), `resulted_in` (Territorial changes)
 
 ---
 
 ### 4.15 Event — Battle / Siege
 
-**entity_type:** `event_battle`
-**entity_group:** `EVENT`
+**entity_type:** `event_battle` | **entity_group:** `EVENT`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `battle_subtype` | enum | pitched_battle, siege, naval, ambush, etc. |
-| `parent_war_id` | UUID (FK) | Link to Event War entity |
-| `belligerents` | JSONB | Same structure as war |
-| `commanders` | JSONB | `[{person_id, side, survived}]` |
-| `forces` | JSONB | `{side_a: {count, composition}, side_b: {...}}` |
-| `outcome` | enum (`battle_outcome`) | decisive_victory, pyrrhic, draw, etc. |
-| `victor_side` | text | 'side_a' or 'side_b' |
-| `casualties` | JSONB | Per-side breakdown |
-| `tactical_notes` | text | Notable tactics, terrain factors |
+```jsonc
+{
+  "battle_subtype": "siege",                                   // enum: battle_subtype
+  "parent_war_id": "uuid",                                     // → Event War
+  "outcome": "decisive_victory",                               // enum: battle_outcome
+  "victor_side": "side_a",
+  "tactical_notes": "str",
+  "belligerents": {"side_a": [{"entity_id": "uuid", "role": "str"}], "side_b": [{"entity_id": "uuid", "role": "str"}]},
+  "commanders": [{"person_id": "uuid", "side": "side_a", "survived": true}],
+  "forces": {"side_a": {"count": 80000, "composition": "str"}, "side_b": {"count": 7000, "composition": "str"}},
+  "casualties": {"side_a": {"killed": 5000}, "side_b": {"killed": 7000}}
+}
+```
 
 **Key relationships:** `part_of` (Event War), `fought_at` (City/location), `commanded_by` (Person), `participated_in` (Military Unit)
 
@@ -857,20 +881,21 @@ Below, each entity lists only its **type-specific fields** stored in the `attrib
 
 ### 4.16 Event — Treaty / Agreement
 
-**entity_type:** `event_treaty`
-**entity_group:** `EVENT`
+**entity_type:** `event_treaty` | **entity_group:** `EVENT`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `treaty_subtype` | enum | peace, alliance, trade, marriage, etc. |
-| `signatories` | JSONB | `[{political_entity_id, role}]` |
-| `negotiators` | JSONB | `[{person_id, representing}]` |
-| `key_provisions` | text | |
-| `territorial_terms` | JSONB | `[{region, from_entity, to_entity}]` |
-| `duration` | text | If temporary |
-| `compliance_history` | JSONB | `[{date, event, description}]` |
-| `termination_date` | text (EDTF) | |
-| `termination_reason` | text | |
+```jsonc
+{
+  "treaty_subtype": "peace_treaty",                            // enum: treaty_subtype
+  "key_provisions": "str",
+  "duration": "str",
+  "termination_date": null,                                    // EDTF text
+  "termination_reason": null,
+  "signatories": [{"political_entity_id": "uuid", "role": "str"}],
+  "negotiators": [{"person_id": "uuid", "representing": "uuid"}],
+  "territorial_terms": [{"region": "str", "from_entity": "uuid", "to_entity": "uuid"}],
+  "compliance_history": [{"date": 200, "event": "str", "description": "str"}]
+}
+```
 
 **Key relationships:** `signed_by` (Political Entity), `negotiated_by` (Person), `ended` (Event War), `violated_by` (Political Entity), `created` (Diplomatic Relationship)
 
@@ -878,21 +903,22 @@ Below, each entity lists only its **type-specific fields** stored in the `attrib
 
 ### 4.17 Event — Revolution / Rebellion / Coup
 
-**entity_type:** `event_rebellion`
-**entity_group:** `EVENT`
+**entity_type:** `event_rebellion` | **entity_group:** `EVENT`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `rebellion_subtype` | enum | revolution, coup, peasant uprising, etc. |
-| `target_government` | UUID (FK) | Political Entity being challenged |
-| `rebel_leaders` | JSONB | `[{person_id, role}]` |
-| `factions` | JSONB | `[{name, composition, social_class_id}]` |
-| `external_supporters` | JSONB | `[{political_entity_id, support_type}]` |
-| `causes` | text[] | Grievances and triggers |
-| `outcome` | text | success, failure, partial, ongoing |
-| `government_change` | text | New regime type if successful |
-| `casualties` | JSONB | |
-| `repression` | text | Post-event reprisals |
+```jsonc
+{
+  "rebellion_subtype": "revolution",                           // enum: rebellion_subtype
+  "target_government": "uuid",                                 // → Political Entity
+  "outcome": "success",                                        // success, failure, partial, ongoing
+  "government_change": "str",
+  "repression": "str",
+  "causes": ["famine", "taxation"],
+  "rebel_leaders": [{"person_id": "uuid", "role": "str"}],
+  "factions": [{"name": "str", "composition": "str", "social_class_id": "uuid"}],
+  "external_supporters": [{"political_entity_id": "uuid", "support_type": "str"}],
+  "casualties": {"killed": 10000}
+}
+```
 
 **Key relationships:** `within` (Political Entity), `led_by` (Person), `caused_by` (Famine, War, Reform failure), `resulted_in` (New Political Entity, Government change)
 
@@ -900,18 +926,19 @@ Below, each entity lists only its **type-specific fields** stored in the `attrib
 
 ### 4.18 Event — Natural Disaster
 
-**entity_type:** `event_natural_disaster`
-**entity_group:** `EVENT`
+**entity_type:** `event_natural_disaster` | **entity_group:** `EVENT`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `disaster_subtype` | enum | earthquake, volcanic, flood, drought, etc. |
-| `estimated_deaths` | JSONB | `{min, max, source}` |
-| `economic_damage` | text | |
-| `affected_entities` | JSONB | `[{political_entity_id, severity}]` |
-| `infrastructure_destroyed` | JSONB | `[{entity_id, damage_level}]` |
-| `societal_response` | text | |
-| `long_term_consequences` | text | |
+```jsonc
+{
+  "disaster_subtype": "earthquake",                            // enum: disaster_subtype
+  "economic_damage": "str",
+  "societal_response": "str",
+  "long_term_consequences": "str",
+  "estimated_deaths": {"min": 10000, "max": 30000, "source": "str"},
+  "affected_entities": [{"political_entity_id": "uuid", "severity": "str"}],
+  "infrastructure_destroyed": [{"entity_id": "uuid", "damage_level": "str"}]
+}
+```
 
 **Key relationships:** `affected` (Political Entity, City), `destroyed` (Infrastructure Monument), `caused` (Migration, Famine, Rebellion), `worsened_by` (pre-existing conditions)
 
@@ -919,240 +946,255 @@ Below, each entity lists only its **type-specific fields** stored in the `attrib
 
 ### 4.19 Event — Technology Adoption
 
-**entity_type:** `event_tech_adoption`
-**entity_group:** `EVENT`
+**entity_type:** `event_tech_adoption` | **entity_group:** `EVENT`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `technology_id` | UUID (FK) | Link to Technology entity |
-| `adopting_entity` | UUID (FK) | Political Entity |
-| `acquisition_method` | text | independent invention, trade, conquest, espionage |
-| `adaptation_notes` | text | Local modifications |
-| `impact` | text | Military, economic, social effects |
-| `diffusion_speed` | text | rapid, gradual, incomplete |
+```jsonc
+{
+  "technology_id": "uuid",                                     // → Technology
+  "adopting_entity": "uuid",                                   // → Political Entity
+  "acquisition_method": "trade",                               // independent invention, trade, conquest, espionage
+  "adaptation_notes": "str",
+  "impact": "str",
+  "diffusion_speed": "gradual"                                 // rapid, gradual, incomplete
+}
+```
 
 ---
 
 ### 4.20 Event — Legal / Institutional Reform
 
-**entity_type:** `event_legal_reform`
-**entity_group:** `EVENT`
+**entity_type:** `event_legal_reform` | **entity_group:** `EVENT`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `reform_subtype` | enum | legal_code, taxation, military, land, etc. |
-| `enacting_entity` | UUID (FK) | Political Entity |
-| `key_figures` | JSONB | `[{person_id, role}]` |
-| `provisions` | text | Content of reform |
-| `motivation` | text | Crisis response, ideology, external pressure |
-| `longevity` | text | How long it lasted |
-| `effects_intended` | text | |
-| `effects_unintended` | text | |
-| `reversal_date` | text (EDTF) | If later reversed |
+```jsonc
+{
+  "reform_subtype": "land_reform",                             // enum: reform_subtype
+  "enacting_entity": "uuid",                                   // → Political Entity
+  "provisions": "str",
+  "motivation": "str",
+  "longevity": "str",
+  "effects_intended": "str",
+  "effects_unintended": "str",
+  "reversal_date": null,                                       // EDTF text
+  "key_figures": [{"person_id": "uuid", "role": "str"}]
+}
+```
 
 ---
 
-### 4.21 Epidemic / Disease *(NEW)*
+### 4.21 Epidemic / Disease
 
-**entity_type:** `epidemic_disease`
-**entity_group:** `EVENT`
+**entity_type:** `epidemic_disease` | **entity_group:** `EVENT`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `epidemic_subtype` | enum | plague_bacterial, smallpox, cholera, etc. |
-| `severity` | enum | local, regional, pandemic |
-| `estimated_deaths` | JSONB | `{min, max, percentage_of_population, source}` |
-| `spread_timeline` | JSONB | `[{region, arrival_date, peak_date, end_date}]` — wavefront |
-| `spread_vector` | text | trade routes, military campaigns, fleas/rats, waterborne |
-| `origin_location` | UUID (FK) | City or region of first outbreak |
-| `affected_trade_routes` | JSONB | `[{route_id, disruption_level}]` |
-| `demographic_impact` | JSONB | `[{region, population_loss_pct, recovery_years}]` |
-| `societal_responses` | text | quarantine, scapegoating, religious interpretation |
-| `economic_consequences` | text | labor shortages, price changes, land redistribution |
-| `recurrence_pattern` | JSONB | `[{date, severity}]` — plague often returned in waves |
+```jsonc
+{
+  "epidemic_subtype": "plague_bacterial",                      // enum: epidemic_subtype
+  "severity": "pandemic",                                      // enum: epidemic_severity
+  "spread_vector": "fleas/rats",
+  "origin_location": "uuid",                                   // → City
+  "societal_responses": "str",
+  "economic_consequences": "str",
+  "estimated_deaths": {"min": 25000000, "max": 50000000, "percentage_of_population": 30, "source": "str"},
+  "spread_timeline": [{"region": "str", "arrival_date": 1347, "peak_date": 1349, "end_date": 1353}],
+  "affected_trade_routes": [{"route_id": "uuid", "disruption_level": "str"}],
+  "demographic_impact": [{"region": "str", "population_loss_pct": 30, "recovery_years": 150}],
+  "recurrence_pattern": [{"date": 1361, "severity": "regional"}]
+}
+```
 
 **Key relationships:** `spread_via` (Trade Route), `affected` (Political Entity, City), `caused` (Migration, Labor shortage → Reform), `worsened_by` (War, Famine)
+**Geometry snapshots:** Yes — spread wavefront changes over time.
 
-**Design rationale:** Epidemics differ fundamentally from natural disasters in that they spread geographically over time following trade and military networks. On the map, a natural disaster is a single marker; an epidemic is an animated wavefront. The Justinianic Plague, Black Death, and Columbian Exchange diseases are among the most historically consequential phenomena the atlas could visualize.
+**Design rationale:** Epidemics spread geographically over time following trade and military networks. On the map, a natural disaster is a single marker; an epidemic is an animated wavefront.
 
 ---
 
-### 4.22 Diplomatic Relationship / Alliance *(NEW)*
+### 4.22 Diplomatic Relationship / Alliance
 
-**entity_type:** `diplomatic_relationship`
-**entity_group:** `POLITY`
+**entity_type:** `diplomatic_relationship` | **entity_group:** `POLITY`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `diplomatic_status` | enum | alliance, vassalage, tributary, trade_agreement, etc. |
-| `party_a` | UUID (FK) | Political Entity |
-| `party_b` | UUID (FK) | Political Entity |
-| `terms` | text | Key provisions |
-| `originating_treaty` | UUID (FK) | Event Treaty that established this relationship |
-| `power_asymmetry` | text | Which party dominates, if any |
-| `tribute_details` | JSONB | `{direction, amount, commodity, frequency}` |
-| `military_obligations` | text | Mutual defense, troop contribution, etc. |
-| `violations` | JSONB | `[{date, violator, description, consequence}]` |
-| `termination_cause` | text | War, treaty revision, political collapse |
+```jsonc
+{
+  "diplomatic_status": "alliance",                             // enum: diplomatic_status
+  "party_a": "uuid",                                          // → Political Entity
+  "party_b": "uuid",                                          // → Political Entity
+  "originating_treaty": "uuid",                                // → Event Treaty
+  "terms": "str",
+  "power_asymmetry": "str",
+  "military_obligations": "str",
+  "termination_cause": "str",
+  "tribute_details": {"direction": "b_to_a", "amount": "str", "commodity": "str", "frequency": "annual"},
+  "violations": [{"date": 200, "violator": "uuid", "description": "str", "consequence": "str"}]
+}
+```
 
-**Key relationships:** `between` (Political Entity, Political Entity), `created_by` (Event Treaty), `violated_by` (Political Entity), `terminated_by` (Event War), `mediated_by` (Person, Political Entity)
+**Key relationships:** `between` (Political Entity), `created_by` (Event Treaty), `violated_by` (Political Entity), `terminated_by` (Event War), `mediated_by` (Person, Political Entity)
 
-**Design rationale:** Rome II's diplomacy panel tracks ongoing relationships (allied, at war, trade agreement, vassal) as persistent states, not just the treaty event that created them. This entity captures the *state* while Event Treaty captures the *moment of creation*. A user clicking on the Roman-Parthian relationship sees: formed by Treaty of X, terms included Y, violated in Z CE, dissolved when war broke out.
+**Design rationale:** Captures the ongoing *state* of a diplomatic relationship, while Event Treaty captures the *moment of creation*.
 
 ---
 
 ### 4.23 Migration / Population Movement
 
-**entity_type:** `migration`
-**entity_group:** `EVENT`
+**entity_type:** `migration` | **entity_group:** `EVENT`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `migration_subtype` | enum | invasion, colonization, refugee, economic, etc. |
-| `origin_regions` | JSONB | `[{location, entity_id}]` |
-| `destination_regions` | JSONB | `[{location, entity_id}]` |
-| `migrating_group` | text | Ethnic/tribal group, social class, etc. |
-| `population_estimate` | JSONB | `{min, max, source}` |
-| `route` | JSONB | `[{waypoint, date}]` — migration path |
-| `push_factors` | text[] | invasion, famine, persecution, etc. |
-| `pull_factors` | text[] | economic opportunity, empty land, invitation |
-| `voluntary` | boolean | |
-| `casualties_during` | text | Losses during migration |
-| `impact_origin` | text | Depopulation, power vacuum |
-| `impact_destination` | text | Displacement, cultural mixing, new polities |
+```jsonc
+{
+  "migration_subtype": "invasion",                             // enum: migration_subtype
+  "migrating_group": "str",
+  "voluntary": false,
+  "casualties_during": "str",
+  "impact_origin": "str",
+  "impact_destination": "str",
+  "push_factors": ["invasion", "famine"],
+  "pull_factors": ["empty land"],
+  "origin_regions": [{"location": "str", "entity_id": "uuid"}],
+  "destination_regions": [{"location": "str", "entity_id": "uuid"}],
+  "population_estimate": {"min": 50000, "max": 200000, "source": "str"},
+  "route": [{"waypoint": "str", "date": 375}]
+}
+```
+
+**Geometry snapshots:** Yes — migration paths and wavefronts change over time.
 
 ---
 
 ### 4.24 Social Class / Group
 
-**entity_type:** `social_class`
-**entity_group:** `POLITY`
+**entity_type:** `social_class` | **entity_group:** `POLITY`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `class_subtype` | enum | nobility, clergy, peasantry, slave, etc. |
-| `political_entity_id` | UUID (FK) | Which polity this class exists in |
-| `population_proportion` | JSONB | `[{percentage, year, source}]` |
-| `economic_role` | text | |
-| `legal_status` | text | Rights, restrictions |
-| `political_power` | text | Access to governance |
-| `social_mobility` | text | Can members rise/fall? |
-| `military_obligation` | text | Required, forbidden, optional |
-| `education_access` | text | |
+```jsonc
+{
+  "class_subtype": "nobility",                                 // enum: social_class_subtype
+  "political_entity_id": "uuid",                               // → Political Entity
+  "economic_role": "str",
+  "legal_status": "str",
+  "political_power": "str",
+  "social_mobility": "str",
+  "military_obligation": "str",
+  "education_access": "str",
+  "population_proportion": [{"percentage": 2, "year": 1400, "source": "str"}]
+}
+```
 
 ---
 
 ### 4.25 Cultural / Artistic Work
 
-**entity_type:** `cultural_work`
-**entity_group:** `CULTURE`
+**entity_type:** `cultural_work` | **entity_group:** `CULTURE`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `work_subtype` | enum | literary_text, building, sculpture, mosaic, etc. |
-| `creator_id` | UUID (FK) | Person |
-| `patron_id` | UUID (FK) | Person or Political Entity who commissioned it |
-| `language_id` | UUID (FK) | If textual |
-| `medium_materials` | text[] | |
-| `themes` | text[] | |
-| `style_genre` | text | |
-| `preservation_status` | text | extant, fragments, lost, reconstructed, copies_only |
-| `current_location` | text | Museum, archive, in situ |
-| `influence_description` | text | How it influenced later works |
+```jsonc
+{
+  "work_subtype": "literary_text",                             // enum: cultural_work_subtype
+  "creator_id": "uuid",                                        // → Person
+  "patron_id": "uuid",                                         // → Person or Political Entity
+  "language_id": "uuid",                                       // → Language
+  "style_genre": "str",
+  "preservation_status": "extant",                             // extant, fragments, lost, reconstructed, copies_only
+  "current_location": "str",
+  "influence_description": "str",
+  "medium_materials": ["papyrus", "ink"],
+  "themes": ["war", "honor"]
+}
+```
 
 ---
 
 ### 4.26 Intellectual / Artistic Movement
 
-**entity_type:** `intellectual_movement`
-**entity_group:** `CULTURE`
+**entity_type:** `intellectual_movement` | **entity_group:** `CULTURE`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `movement_subtype` | enum | philosophical, artistic, literary, scientific, etc. |
-| `founders` | JSONB | `[{person_id}]` |
-| `core_ideas` | text | |
-| `methodology` | text | If intellectual |
-| `style_characteristics` | text | If artistic |
-| `geographic_centers` | JSONB | `[{city_id, period}]` |
-| `major_works` | JSONB | `[{cultural_work_id}]` |
-| `opposition` | JSONB | `[{movement_id, nature}]` — competing movements |
+```jsonc
+{
+  "movement_subtype": "philosophical_school",                  // enum: intellectual_movement_subtype
+  "core_ideas": "str",
+  "methodology": "str",
+  "style_characteristics": "str",
+  "founders": [{"person_id": "uuid"}],
+  "geographic_centers": [{"city_id": "uuid", "period": "str"}],
+  "major_works": [{"cultural_work_id": "uuid"}],
+  "opposition": [{"movement_id": "uuid", "nature": "str"}]
+}
+```
 
 ---
 
 ### 4.27 Archaeological Culture
 
-**entity_type:** `archaeological_culture`
-**entity_group:** `CULTURE`
+**entity_type:** `archaeological_culture` | **entity_group:** `CULTURE`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `material_markers` | text[] | pottery styles, burial practices, building types |
-| `technology_level` | text | |
-| `economic_base` | text | |
-| `settlement_patterns` | text | |
-| `burial_practices` | text | |
-| `type_sites` | JSONB | `[{name, location, excavation_date}]` |
-| `hypothesized_ethnicity` | text | Often debated |
-| `hypothesized_language` | UUID (FK) | Often uncertain |
-| `evidence_quality` | text | |
+```jsonc
+{
+  "technology_level": "str",
+  "economic_base": "str",
+  "settlement_patterns": "str",
+  "burial_practices": "str",
+  "hypothesized_ethnicity": "str",
+  "hypothesized_language": "uuid",                             // → Language (often uncertain)
+  "evidence_quality": "str",
+  "material_markers": ["pottery style X", "burial type Y"],
+  "type_sites": [{"name": "str", "location": "str", "excavation_date": "str"}]
+}
+```
 
 ---
 
 ### 4.28 Language / Linguistic Group
 
-**entity_type:** `language`
-**entity_group:** `CULTURE`
+**entity_type:** `language` | **entity_group:** `CULTURE`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `language_family` | text | Indo-European, Semitic, Sino-Tibetan, etc. |
-| `language_status` | enum | living, extinct, liturgical_only, etc. |
-| `writing_system` | text | |
-| `speaker_estimates` | JSONB | `[{count, year, source}]` |
-| `roles` | JSONB | `[{role: enum, political_entity_id, period}]` — vernacular, admin, liturgical |
-| `descended_from` | UUID (FK) | Parent language |
-| `iso_639_code` | text | If standardized |
+```jsonc
+{
+  "language_family": "Indo-European",
+  "language_status": "extinct",                                // enum: language_status
+  "writing_system": "cuneiform",
+  "descended_from": "uuid",                                    // → Language
+  "iso_639_code": "lat",
+  "speaker_estimates": [{"count": 10000000, "year": 100, "source": "str"}],
+  "roles": [{"role": "administrative", "political_entity_id": "uuid", "period": "str"}]
+}
+```
 
 ---
 
 ### 4.29 Religious Text / Sacred Object
 
-**entity_type:** `religious_text`
-**entity_group:** `CULTURE`
+**entity_type:** `religious_text` | **entity_group:** `CULTURE`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `text_type` | text | scripture, commentary, relic, artifact |
-| `composition_date` | text (EDTF) | Often disputed |
-| `authors` | JSONB | `[{person_id, role}]` — if known |
-| `language_id` | UUID (FK) | |
-| `canonical_status` | JSONB | `[{religious_movement_id, status}]` — canonical, apocryphal, etc. |
-| `genre` | text | mythology, law, prophecy, wisdom, history |
-| `translation_history` | JSONB | `[{language_id, date, translator_id}]` |
-| `material` | text | If physical object |
-| `veneration_sites` | JSONB | `[{city_id, description}]` |
+```jsonc
+{
+  "text_type": "scripture",                                    // scripture, commentary, relic, artifact
+  "composition_date": "-600",                                  // EDTF, often disputed
+  "language_id": "uuid",                                       // → Language
+  "genre": "law",                                              // mythology, law, prophecy, wisdom, history
+  "material": "str",
+  "authors": [{"person_id": "uuid", "role": "str"}],
+  "canonical_status": [{"religious_movement_id": "uuid", "status": "canonical"}],
+  "translation_history": [{"language_id": "uuid", "date": 250, "translator_id": "uuid"}],
+  "veneration_sites": [{"city_id": "uuid", "description": "str"}]
+}
+```
 
 ---
 
 ### 4.30 Legal Code / Constitutional Document
 
-**entity_type:** `legal_code`
-**entity_group:** `CULTURE`
+**entity_type:** `legal_code` | **entity_group:** `CULTURE`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `promulgation_date` | text (EDTF) | |
-| `promulgator_id` | UUID (FK) | Person or Political Entity |
-| `governing_entity` | UUID (FK) | Political Entity it applied to |
-| `language_id` | UUID (FK) | |
-| `key_provisions` | text | property, criminal, family, constitutional |
-| `legal_philosophy` | text | |
-| `enforcement_duration` | text | |
-| `amendments` | JSONB | `[{date, description}]` |
-| `influenced_by` | JSONB | `[{legal_code_id, description}]` — legal reception |
-| `influenced` | JSONB | `[{legal_code_id, description}]` |
-| `modern_significance` | text | |
+```jsonc
+{
+  "promulgation_date": "-450",                                 // EDTF text
+  "promulgator_id": "uuid",                                    // → Person or Political Entity
+  "governing_entity": "uuid",                                  // → Political Entity
+  "language_id": "uuid",                                       // → Language
+  "key_provisions": "str",
+  "legal_philosophy": "str",
+  "enforcement_duration": "str",
+  "modern_significance": "str",
+  "amendments": [{"date": -300, "description": "str"}],
+  "influenced_by": [{"legal_code_id": "uuid", "description": "str"}],
+  "influenced": [{"legal_code_id": "uuid", "description": "str"}]
+}
+```
 
 ---
 
@@ -1222,6 +1264,7 @@ Relationships are **directional**: `(Rome, vassal_of, Parthia)` is different fro
 Everything that gets queried, joined, filtered, or indexed:
 
 - **Entity table** with all fields from Section 3 and type-specific JSONB attributes
+- **Geometry snapshots table** for time-varying PostGIS geometries (empire borders, trade route shifts) — see `plans/attributes_and_geometry_snapshots.md`
 - **Relationships table** (Section 6)
 - **Sources metadata table** (Section 5, minus raw files)
 - **PostGIS geometry columns** with GIST spatial indexes on `geom` and `territory_geom`
