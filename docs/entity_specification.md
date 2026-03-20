@@ -499,8 +499,8 @@ Every entity in PostgreSQL shares these columns. Type-specific fields are stored
 | `location_name` | text | PG | Geocoding cascade | Human-readable |
 | `location_confidence` | enum | PG | Geocoding confidence | high/medium/low/unresolved |
 | `location_method` | enum | PG | Which geocoder matched | |
-| `temporal_start` | text (EDTF) | PG (indexed) | NLP Stage 4 | |
-| `temporal_end` | text (EDTF) | PG (indexed) | NLP Stage 4 | |
+| `temporal_start` | text | PG (indexed) | NLP Stage 4 | Integer year as string; negative = BCE (e.g. `"-500"`, `"1453"`) |
+| `temporal_end` | text | PG (indexed) | NLP Stage 4 | Same format as `temporal_start` |
 | `date_raw` | text | PG | Original source text | |
 | `date_method` | enum | PG | Resolution method | |
 | `date_confidence` | enum | PG | Stage 4 assessment | |
@@ -509,7 +509,7 @@ Every entity in PostgreSQL shares these columns. Type-specific fields are stored
 | `significance` | text | PG | LLM assessment | |
 | `confidence_notes` | text | PG | LLM-identified uncertainties | |
 | `tags` | text[] | PG (GIN index) | LLM + human tagging | Freeform categorical tags |
-| `impact_score` | integer | PG (indexed) | LLM + editorial | 1–100 scale |
+| `impact_score` | integer | PG (B-tree index `DESC NULLS LAST`; composite index with `entity_type`) | LLM + editorial | 1–100 scale |
 | `parent_entity_id` | UUID (FK) | PG (indexed) | LLM / human | Nullable; hierarchical link |
 | `successor_entity_id` | UUID (FK) | PG (indexed) | LLM / human | Nullable; continuity link |
 | `verification_status` | enum | PG (indexed) | Pipeline tracking | |
@@ -535,7 +535,7 @@ Every entity in PostgreSQL shares these columns. Type-specific fields are stored
 | `confidence_breakdown` | JSONB | `{location: "high", date: "medium", sources: 3, verification: "human_verified"}` |
 | `relationship_summary` | JSONB | `{political: 4, military: 2, economic: 1, causal: 3}` |
 | `source_diversity_score` | integer | Count of unique source_types across source_citations |
-| `temporal_display_range` | text | Formatted from EDTF: "c. 260 CE", "3rd century BCE" |
+| `temporal_display_range` | text | Formatted display string: "500 BCE – 31 BCE", "From 27 CE", etc. Stored when pre-computed; otherwise computed from `temporal_start`/`temporal_end` at read time |
 | `nearby_entity_count` | integer | PostGIS + temporal proximity count (cached) |
 | `cluster_id` | integer | HDBSCAN cluster from periodic embedding analysis |
 | `era_label` | text | Mapped from temporal range via era reference table |
@@ -1196,8 +1196,8 @@ CREATE TABLE relationships (
   source_entity_id  UUID NOT NULL REFERENCES entities(entity_id),
   target_entity_id  UUID NOT NULL REFERENCES entities(entity_id),
   relationship_type relationship_type NOT NULL,   -- enum from 2.13
-  temporal_start    TEXT,                          -- EDTF
-  temporal_end      TEXT,                          -- EDTF
+  temporal_start    TEXT,                          -- Integer year string; negative = BCE
+  temporal_end      TEXT,                          -- Integer year string; negative = BCE
   description       TEXT,
   confidence        confidence_level,
   source_citations  JSONB,

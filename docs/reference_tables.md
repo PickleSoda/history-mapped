@@ -3,6 +3,7 @@
 > **Companion to:** Entity Specification v2.0, Data Pipeline Architecture
 > **Storage:** All reference tables live in PostgreSQL. They are manually curated, not pipeline-generated. They serve as lookup data for entity resolution, display formatting, and analytical grouping.
 > **Key principle:** Reference tables describe *how we organize and interpret* history, not history itself. They don't have embeddings, don't appear on the map as clickable entities, and don't flow through the 8-stage pipeline.
+> **Admin UI:** Read-only Inertia admin pages exist for all 10 reference tables at `/reference/{table-name}` (e.g. `/reference/historical-periods`, `/reference/geographic-regions`). See `routes/web.php` for the full list.
 
 ---
 
