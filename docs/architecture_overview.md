@@ -23,9 +23,8 @@ At a high level, the architecture blends two views of the system:
 
 | Workspace / Service | Port | Description |
 |---------------------|------|-------------|
-| **`api/`** | `8000` | Laravel 11 application that serves the REST API, authentication flows, admin routes, and the Inertia React admin panel |
-| **`web/`** | `5173` | Customer-facing React SPA for public browsing, map interaction, search, and first-party SPA authentication |
-| **`shared/`** | - | Buildable TypeScript workspace package for generated API contracts, shared client utilities, and stable cross-app types |
+| **`api/`** | `8000` | Laravel 13 application that serves the REST API, authentication flows, admin routes, and the Inertia React admin panel |
+| **`web/`** | `5173` | Customer-facing React SPA (stub — not yet connected to the API) |
 | **`vite-admin`** | `5174` | Dedicated Vite dev server for the Inertia admin frontend during local development |
 | **`db`** | `5432` | PostgreSQL 16 as the primary database, extended by the platform architecture with PostGIS and pgvector |
 | **`redis`** | `6379` | Cache, sessions, queues, and rate limiting |
@@ -52,10 +51,9 @@ graph TB
     end
 
     subgraph "Application Layer"
-        Laravel[Laravel 11<br/>Web Routes + API Routes + Auth]
+        Laravel[Laravel 13<br/>Web Routes + API Routes + Auth]
         Queue[Queue Worker]
         Scheduler[Scheduler]
-        Shared[shared/<br/>OpenAPI Contracts + Shared Types]
     end
 
     subgraph "Data Layer"
@@ -87,10 +85,6 @@ graph TB
     Web --> OHM
     Admin --> OHM
 
-    Laravel -. exports OpenAPI .-> Shared
-    Shared -. workspace package .-> Web
-    Shared -. workspace package .-> Admin
-
     style Laravel fill:#4A90E2
     style DB fill:#7ED321
     style Redis fill:#F5A623
@@ -103,9 +97,8 @@ graph TB
 
 | Area | Main Responsibility | Key Contents |
 |------|---------------------|--------------|
-| **`api/`** | Backend application and admin surface | Laravel app code, Inertia React admin, `routes/web.php`, `routes/api.php`, `routes/auth.php`, OpenAPI export at `api/storage/app/openapi.json` |
-| **`web/`** | Customer-facing application | React SPA pages, components, hooks, API consumption, map UI, auth flows via Sanctum cookies |
-| **`shared/`** | Contract and type distribution | Generated OpenAPI TypeScript output, shared HTTP utilities, stable cross-app types, package exports |
+| **`api/`** | Backend application and admin surface | Laravel app code, Inertia React admin, `routes/web.php`, `routes/api.php`, `routes/auth.php` |
+| **`web/`** | Customer-facing application (stub) | React SPA scaffold — not yet connected to the API |
 | **`docker/`** | Local container orchestration | Dockerfiles for API, web, admin Vite, plus `docker/docker-compose.yml` |
 | **Root workspace** | Tooling and orchestration | `pnpm-workspace.yaml`, root `package.json`, Docker helper scripts, root `.env.example` |
 
@@ -113,9 +106,9 @@ graph TB
 
 | Surface | Access Pattern | Notes |
 |---------|----------------|-------|
-| **Admin UI** | Laravel web routes under `/admin` | Inertia React app rendered inside Laravel, protected by session auth and role checks |
+| **Admin UI** | Laravel web routes (bare paths, no `/admin` prefix) | Inertia React app rendered inside Laravel, protected by `auth` and `verified` middleware |
 | **Public API** | Versioned Laravel API under `/api/v1` | Consumed by the customer SPA and future API-first consumers |
-| **Auth endpoints** | Shared Laravel auth routes plus Sanctum endpoints | Customer SPA uses cookie-based auth; admin uses Laravel session auth |
+| **Auth endpoints** | Shared Laravel auth routes via Fortify | Customer SPA uses cookie-based auth; admin uses Laravel session auth |
 
 ---
 
@@ -123,7 +116,7 @@ graph TB
 
 | Surface | Auth Strategy | Authorization Model |
 |---------|---------------|---------------------|
-| **Admin** | Laravel session auth with the `web` guard | `spatie/laravel-permission` roles and permissions, with admin routes protected by `auth`, `verified`, and `role:admin` |
+| **Admin** | Laravel session auth with the `web` guard (via Fortify) | `spatie/laravel-permission` roles and permissions; admin routes protected by `auth` and `verified` middleware |
 | **Customer SPA** | Laravel Sanctum SPA cookie auth | First-party browser auth using `withCredentials: true` and `/sanctum/csrf-cookie` before login |
 | **Future third-party or mobile clients** | Not part of v1 | The setup guide recommends adding a dedicated OAuth2/OIDC strategy later rather than overloading SPA auth |
 
@@ -214,36 +207,13 @@ flowchart LR
 
 ---
 
-## 6. API Contract and Shared Type Flow
-
-The implementation architecture treats Laravel as the contract source of truth.
-
-```mermaid
-graph LR
-    Source[Laravel Routes + Form Requests + API Resources] --> Scramble[dedoc/scramble]
-    Scramble --> OpenAPI[api/storage/app/openapi.json]
-    OpenAPI --> Generate[openapi-typescript]
-    Generate --> Shared[shared/src/generated/api.ts]
-    Shared --> Web[web/]
-    Shared --> APIClients[api/ shared TS consumers]
-```
-
-| Step | Description |
-|------|-------------|
-| **1. Laravel defines the contract** | Routes, validation, resources, enums, and DTOs are the source of truth |
-| **2. OpenAPI is exported** | `php artisan scramble:export --path=storage/app/openapi.json` generates a reviewable contract artifact |
-| **3. Shared types are generated** | `openapi-typescript` writes generated TypeScript into `shared/src/generated/api.ts` |
-| **4. Apps consume one package** | `web/` and `api/` use `@wikiglobe/shared` through `workspace:*`, not source aliases |
-
----
-
-## 7. Local Development Topology
+## 6. Local Development Topology
 
 File: `docker/docker-compose.yml`
 
 | Service | Port | Role | Notes |
 |---------|------|------|-------|
-| **`app`** | - | PHP 8.3-FPM Laravel runtime | Runs PHP, Composer, and Artisan tasks |
+| **`app`** | - | PHP 8.4-FPM Laravel runtime | Runs PHP, Composer, and Artisan tasks |
 | **`nginx`** | `8000` | Local HTTP entrypoint for Laravel | Public local backend URL |
 | **`web`** | `5173` | Customer Vite dev server | Customer SPA development |
 | **`vite-admin`** | `5174` | Inertia admin Vite dev server | Admin frontend HMR |
@@ -252,6 +222,8 @@ File: `docker/docker-compose.yml`
 | **`queue`** | - | Background worker | Runs `php artisan queue:work` |
 | **`scheduler`** | - | Scheduled job runner | Laravel scheduler loop |
 | **`mailpit`** | `8025` | Local mail UI | Email testing |
+| **`cloudbeaver`** | `8978` | Web DB admin UI | CloudBeaver for database inspection |
+| **`redisinsight`** | `5540` | Redis inspection UI | RedisInsight |
 
 ### Communication Patterns
 
@@ -262,7 +234,7 @@ File: `docker/docker-compose.yml`
 
 ---
 
-## 8. Deployment Model
+## 7. Deployment Model
 
 | Deployment Unit | Model |
 |-----------------|-------|
@@ -275,14 +247,13 @@ File: `docker/docker-compose.yml`
 
 ---
 
-## 9. Architecture Summary Table
+## 8. Architecture Summary Table
 
 | Area | Primary Choice | Why It Exists |
 |------|----------------|---------------|
-| **Backend framework** | Laravel 11 | Unifies admin delivery, auth, API routing, queues, and review workflows |
+| **Backend framework** | Laravel 13 | Unifies admin delivery, auth, API routing, queues, and review workflows |
 | **Admin UI** | Inertia.js + React inside Laravel | Keeps editorial and review tools close to server-rendered workflows |
 | **Customer UI** | React + Vite SPA | Supports rich interactive browsing, search, and map experiences |
-| **Shared contracts** | OpenAPI + `@wikiglobe/shared` | Prevents request and response drift across apps |
 | **Map stack** | MapLibre GL JS + OpenHistoricalMap | Enables time-aware historical map rendering without vendor lock-in |
 | **Primary data store** | PostgreSQL 16 + PostGIS + pgvector | Supports relational, spatial, temporal, and semantic queries in one system |
 | **Background processing** | Laravel queues + scheduler | Handles async work, imports, review support, and recurring jobs |
