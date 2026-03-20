@@ -102,6 +102,10 @@ export type EntityDetail = {
     alternative_names: string[];
     /** Type-specific JSONB attributes */
     attributes: Record<string, unknown>;
+    /** Point/line geometry as GeoJSON (maps to PostGIS geom column) */
+    geojson: Record<string, unknown> | null;
+    /** Territory/area geometry as GeoJSON (maps to PostGIS territory_geom column) */
+    territory_geojson: Record<string, unknown> | null;
     created_at: string | null;
     updated_at: string | null;
 };

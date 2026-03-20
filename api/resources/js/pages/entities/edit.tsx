@@ -1,8 +1,14 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
+import { lazy, Suspense, useState } from 'react';
 import { update } from '@/routes/entities';
 import EntityForm, { defaultFormData, type EntityFormData } from '@/components/entity-form';
+import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, EntityDetail, EntityFormOptions } from '@/types';
+
+const MapEditor = lazy(() => import('@/components/map-editor'));
+
+type GeoJsonGeometry = Record<string, unknown> | null;
 
 type Props = {
     entity: EntityDetail;
@@ -63,12 +69,17 @@ export default function EntityEdit({ entity, formOptions }: Props) {
         { title: 'Edit', href: `/entities/${entity.id}/edit` },
     ];
 
-    const { data, setData, put, processing, errors } = useForm<EntityFormData>(
-        entityToFormData(entity),
-    );
+    const [data, setData] = useState<EntityFormData>(entityToFormData(entity));
+    const [errors, setErrors] = useState<Partial<Record<keyof EntityFormData, string>>>({});
+    const [processing, setProcessing] = useState(false);
+
+    // Geometry state managed outside useForm (GeoJSON objects, not strings)
+    const [geojson, setGeojson] = useState<GeoJsonGeometry>(entity.geojson ?? null);
+    const [territoryGeojson, setTerritoryGeojson] = useState<GeoJsonGeometry>(entity.territory_geojson ?? null);
+    const [mapOpen, setMapOpen] = useState(false);
 
     function handleChange<K extends keyof EntityFormData>(field: K, value: EntityFormData[K]) {
-        setData(field, value);
+        setData((prev) => ({ ...prev, [field]: value }));
     }
 
     function handleSubmit(e: React.FormEvent) {
@@ -83,23 +94,26 @@ export default function EntityEdit({ entity, formOptions }: Props) {
             }
         }
 
-        const payload = {
-            ...data,
-            tags: data.tags ? data.tags.split(',').map((s) => s.trim()).filter(Boolean) : [],
-            alternative_names: data.alternative_names
-                ? data.alternative_names.split(',').map((s) => s.trim()).filter(Boolean)
-                : [],
-            attributes: Object.keys(attributes).length > 0 ? attributes : undefined,
-        };
-
-        // Strip attr_* keys — they are now in attributes
-        for (const key of Object.keys(payload)) {
-            if (key.startsWith('attr_')) {
-                delete (payload as Record<string, unknown>)[key];
+        const payload: Record<string, unknown> = {};
+        for (const [key, value] of Object.entries(data)) {
+            if (!key.startsWith('attr_')) {
+                payload[key] = value;
             }
         }
 
-        put(update(entity.id), { data: payload });
+        payload['tags'] = data.tags ? data.tags.split(',').map((s) => s.trim()).filter(Boolean) : [];
+        payload['alternative_names'] = data.alternative_names
+            ? data.alternative_names.split(',').map((s) => s.trim()).filter(Boolean)
+            : [];
+        payload['attributes'] = Object.keys(attributes).length > 0 ? attributes : undefined;
+        payload['geojson'] = geojson ?? undefined;
+        payload['territory_geojson'] = territoryGeojson ?? undefined;
+
+        setProcessing(true);
+        router.put(update(entity.id), payload, {
+            onError: (errs) => setErrors(errs as Partial<Record<keyof EntityFormData, string>>),
+            onFinish: () => setProcessing(false),
+        });
     }
 
     return (
@@ -122,6 +136,67 @@ export default function EntityEdit({ entity, formOptions }: Props) {
                     submitLabel="Save Changes"
                     onCancel={() => window.history.back()}
                 />
+
+                {/* Map editor — collapsible */}
+                <div className="mt-6 rounded-lg border">
+                    <button
+                        type="button"
+                        onClick={() => setMapOpen((v) => !v)}
+                        className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium"
+                    >
+                        <span>Map Editor</span>
+                        <span className="text-muted-foreground text-xs">
+                            {mapOpen ? 'Collapse' : 'Expand'}
+                            {(geojson || territoryGeojson) && (
+                                <span className="bg-primary/10 text-primary ml-2 rounded px-1.5 py-0.5 text-[10px] font-semibold">
+                                    Geometry set
+                                </span>
+                            )}
+                        </span>
+                    </button>
+
+                    {mapOpen && (
+                        <div className="border-t">
+                            <Suspense
+                                fallback={
+                                    <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
+                                        Loading map…
+                                    </div>
+                                }
+                            >
+                                <MapEditor
+                                    geojson={geojson}
+                                    territoryGeojson={territoryGeojson}
+                                    onChange={(geo, territory) => {
+                                        setGeojson(geo);
+                                        setTerritoryGeojson(territory);
+                                    }}
+                                />
+                            </Suspense>
+                            <div className="flex justify-end gap-2 border-t px-4 py-3">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                        setGeojson(null);
+                                        setTerritoryGeojson(null);
+                                    }}
+                                >
+                                    Clear geometry
+                                </Button>
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    onClick={handleSubmit as unknown as React.MouseEventHandler}
+                                    disabled={processing}
+                                >
+                                    Save with geometry
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </AppLayout>
     );
