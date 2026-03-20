@@ -1,0 +1,50 @@
+# TODO
+
+## Query Performance & Data Model
+
+### High Priority
+
+- [x] **Fix GeoJson cast N+1 on list endpoints**
+  Added `EntityBuilder::withGeoJson()` which selects `ST_AsGeoJSON(geom)::jsonb AS geom_geojson` and `territory_geom_geojson` inline. The `GeoJson` cast now checks for `{key}_geojson` pre-computed attributes before falling back to a DB round-trip. `ListEntitiesAction` applies `withGeoJson()` by default.
+
+- [x] **Hide `embedding` column by default**
+  Added `$hidden = ['embedding', 'embedding_version']` to the `Entity` model.
+
+- [x] **Fix temporal string sorting for BCE/CE ranges**
+  Added `temporal_start_year` / `temporal_end_year` integer columns via migration `2026_03_20_120000`. Updated `EntityBuilder` temporal methods, `EntityFilterData`, validation rules, and `EntityData::toModelArray()` to use integer year columns. Old text columns retained for raw display.
+
+### Medium Priority
+
+- [ ] **Add recursive ancestor/descendant queries (adjacency list)**
+  The `parent()` / `children()` Eloquent relations require manual chaining for multi-level trees and have no recursive eager-load. Install [`staudenmeir/laravel-adjacency-list`](https://github.com/staudenmeir/laravel-adjacency-list) to get `ancestors()`, `descendants()`, `breadthFirst()` via PostgreSQL `WITH RECURSIVE` CTEs. Required for empire → kingdom → city-state hierarchies.
+
+- [ ] **Document eager-load spec for relationship endpoints**
+  `outgoingRelationships` + `incomingRelationships` each trigger N×2 additional queries when `sourceEntity`/`targetEntity` are accessed. Define a standard eager-load pattern for the entity detail endpoint:
+  ```php
+  Entity::with([
+      'outgoingRelationships.targetEntity:entity_id,name,entity_type,entity_group',
+      'incomingRelationships.sourceEntity:entity_id,name,entity_type,entity_group',
+  ])->find($id);
+  ```
+
+- [ ] **Add composite indexes on `relationships` table for directional queries**
+  Currently, "all relationships for entity X" requires two separate queries (one per direction). Add composite indexes to support filtered lookups by both direction and type:
+  ```sql
+  CREATE INDEX relationships_source_type_idx ON relationships (source_entity_id, relationship_type);
+  CREATE INDEX relationships_target_type_idx ON relationships (target_entity_id, relationship_type);
+  ```
+  Also add an `allRelationshipsFor(string $entityId)` method to a `RelationshipBuilder` so controllers don't need to manually union both directions.
+
+- [ ] **Decide on inverse relationship storage strategy**
+  The model allows storing both `A [rules] B` and `B [governed_by] A`, but this is optional and inconsistently enforced. Decide: (a) always store both directions (requires a consistency mechanism on write), or (b) store one direction only and derive the inverse at query time. Option (b) is simpler but requires the `allRelationshipsFor` query above plus a `direction` field on API responses.
+
+### Low Priority
+
+- [ ] **Add per-type expression indexes on `attributes` JSONB**
+  `hasAttribute('government_type', 'monarchy')` does a full GIN scan. For high-cardinality keys used in filters, add PostgreSQL expression indexes scoped to each entity type:
+  ```sql
+  CREATE INDEX entities_government_type_idx
+  ON entities ((attributes->>'government_type'))
+  WHERE entity_type = 'political_entity';
+  ```
+  Identify the top 5–10 filtered attribute keys per entity group and add indexes in a new migration.

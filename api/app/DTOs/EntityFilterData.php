@@ -38,9 +38,9 @@ readonly class EntityFilterData
         public ?float $nearLat = null,
         public ?float $nearRadius = null,
         // Temporal
-        public ?string $temporalStart = null,
-        public ?string $temporalEnd = null,
-        public ?string $existsAt = null,
+        public ?int $temporalStart = null,
+        public ?int $temporalEnd = null,
+        public ?int $existsAt = null,
         // Hierarchy
         public ?string $parentId = null,
         // Sorting
@@ -77,9 +77,9 @@ readonly class EntityFilterData
             nearLng: isset($validated['near_lng']) ? (float) $validated['near_lng'] : null,
             nearLat: isset($validated['near_lat']) ? (float) $validated['near_lat'] : null,
             nearRadius: isset($validated['near_radius']) ? (float) $validated['near_radius'] : null,
-            temporalStart: $validated['temporal_start'] ?? null,
-            temporalEnd: $validated['temporal_end'] ?? null,
-            existsAt: $validated['exists_at'] ?? null,
+            temporalStart: isset($validated['temporal_start']) ? (int) $validated['temporal_start'] : null,
+            temporalEnd: isset($validated['temporal_end']) ? (int) $validated['temporal_end'] : null,
+            existsAt: isset($validated['exists_at']) ? (int) $validated['exists_at'] : null,
             parentId: $validated['parent_id'] ?? null,
             sort: $validated['sort'] ?? 'relevance',
             perPage: isset($validated['per_page']) ? (int) $validated['per_page'] : 25,

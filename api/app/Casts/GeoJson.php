@@ -19,6 +19,10 @@ class GeoJson implements CastsAttributes
     /**
      * Convert the raw PostGIS WKB hex value to a GeoJSON array.
      *
+     * If the query pre-computed the GeoJSON via addSelectRaw (e.g. using
+     * EntityBuilder::withGeoJson()), the value is already a decoded JSON
+     * object/array and no extra DB round-trip is needed.
+     *
      * @param  Model  $model
      * @param  string  $key
      * @param  mixed  $value
@@ -27,10 +31,26 @@ class GeoJson implements CastsAttributes
      */
     public function get(Model $model, string $key, mixed $value, array $attributes): ?array
     {
+        // Check for a pre-computed GeoJSON attribute (set by withGeoJson()).
+        // This avoids the N+1 query on list endpoints.
+        $precomputedKey = $key . '_geojson';
+        if (array_key_exists($precomputedKey, $attributes)) {
+            $precomputed = $attributes[$precomputedKey];
+
+            if ($precomputed === null) {
+                return null;
+            }
+
+            return is_string($precomputed)
+                ? json_decode($precomputed, true)
+                : (array) $precomputed;
+        }
+
         if ($value === null) {
             return null;
         }
 
+        // Fallback: single-row DB conversion (acceptable for detail endpoints).
         $result = DB::selectOne(
             'SELECT ST_AsGeoJSON(?) AS geojson',
             [$value],

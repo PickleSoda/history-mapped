@@ -156,6 +156,29 @@ readonly class EntityData
             }
         }
 
+        // Derive integer year columns from temporal text values for sorting/indexing.
+        if ($this->temporalStart !== null) {
+            $data['temporal_start_year'] = self::extractYear($this->temporalStart);
+        }
+        if ($this->temporalEnd !== null) {
+            $data['temporal_end_year'] = self::extractYear($this->temporalEnd);
+        }
+
         return $data;
+    }
+
+    /**
+     * Extract the leading signed integer (year) from a temporal text value.
+     *
+     * Handles plain years ('-0027', '1453') and partial/full ISO dates
+     * ('-0480-08', '1453-04-06').
+     */
+    private static function extractYear(string $temporal): ?int
+    {
+        if (preg_match('/^-?\d+/', $temporal, $matches)) {
+            return (int) $matches[0];
+        }
+
+        return null;
     }
 }

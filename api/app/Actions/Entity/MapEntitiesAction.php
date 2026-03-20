@@ -44,7 +44,7 @@ class MapEntitiesAction
 
         // Optional temporal filter
         if (isset($filters['temporal_start'], $filters['temporal_end'])) {
-            $query->inTimeRange($filters['temporal_start'], $filters['temporal_end']);
+            $query->inTimeRange((int) $filters['temporal_start'], (int) $filters['temporal_end']);
         }
 
         // Optional type/group filter

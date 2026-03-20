@@ -20,7 +20,7 @@ class ListEntitiesAction
      */
     public function __invoke(EntityFilterData $filters): LengthAwarePaginator
     {
-        $query = Entity::query();
+        $query = Entity::query()->withGeoJson();
 
         // ── Text search ──────────────────────────────────────
         if ($filters->search !== null && $filters->search !== '') {

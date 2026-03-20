@@ -130,6 +130,8 @@ class EntityFactory extends Factory
         return $this->state(fn () => [
             'temporal_start' => $start,
             'temporal_end' => $end,
+            'temporal_start_year' => (int) $start,
+            'temporal_end_year' => (int) $end,
             'duration_type' => DurationType::Period->value,
         ]);
     }
@@ -142,6 +144,8 @@ class EntityFactory extends Factory
         return $this->state(fn () => [
             'temporal_start' => $date,
             'temporal_end' => $date,
+            'temporal_start_year' => (int) $date,
+            'temporal_end_year' => (int) $date,
             'duration_type' => DurationType::Point->value,
         ]);
     }

@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Pgvector\Laravel\HasNeighbors;
 
 #[Fillable([
+    'entity_id',
     'name',
     'entity_type',
     'entity_group',
@@ -35,6 +36,8 @@ use Pgvector\Laravel\HasNeighbors;
     'wikidata_id',
     'temporal_start',
     'temporal_end',
+    'temporal_start_year',
+    'temporal_end_year',
     'date_raw',
     'location_name',
     'parent_entity_id',
@@ -74,6 +77,17 @@ class Entity extends Model
     public $incrementing = false;
 
     protected $keyType = 'string';
+
+    /**
+     * Columns hidden from serialization by default.
+     * The embedding vector is ~12 KB/row and only needed for similarity search.
+     *
+     * @var list<string>
+     */
+    protected $hidden = [
+        'embedding',
+        'embedding_version',
+    ];
 
     /**
      * Get the attributes that should be cast.

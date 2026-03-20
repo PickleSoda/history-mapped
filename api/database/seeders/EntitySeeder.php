@@ -56,6 +56,22 @@ class EntitySeeder extends Seeder
                 );
             }
         }
+
+        // Derive integer year columns from text temporal values
+        DB::statement("
+            UPDATE entities
+            SET temporal_start_year = CAST(SUBSTRING(temporal_start FROM '^-?\\d+') AS integer)
+            WHERE temporal_start IS NOT NULL
+              AND temporal_start ~ '^-?\\d+'
+              AND temporal_start_year IS NULL
+        ");
+        DB::statement("
+            UPDATE entities
+            SET temporal_end_year = CAST(SUBSTRING(temporal_end FROM '^-?\\d+') AS integer)
+            WHERE temporal_end IS NOT NULL
+              AND temporal_end ~ '^-?\\d+'
+              AND temporal_end_year IS NULL
+        ");
     }
 
     /**
