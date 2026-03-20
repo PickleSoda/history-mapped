@@ -7,6 +7,7 @@ namespace App\Actions\Entity;
 use App\DTOs\EntityData;
 use App\Models\Entity;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Create a new Entity with optional PostGIS geometry.
@@ -34,6 +35,9 @@ class CreateEntityAction
             $geojson = $data->geojson;
             $territoryGeojson = $data->territoryGeojson;
             unset($modelData['geojson'], $modelData['territory_geojson']);
+
+            // Generate UUID in PHP so Eloquent knows the primary key after insert
+            $modelData['entity_id'] = Str::uuid()->toString();
 
             $entity = Entity::create($modelData);
 

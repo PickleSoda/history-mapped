@@ -129,38 +129,38 @@ class EntityBuilder extends Builder
     // ── Temporal Queries ─────────────────────────────────────
 
     /**
-     * Entities that overlap a given time range.
-     * An entity overlaps if its temporal_start <= range end AND temporal_end >= range start.
+     * Entities that overlap a given time range (integer years).
+     * An entity overlaps if its start year <= range end AND end year >= range start.
      */
-    public function inTimeRange(string $start, string $end): self
+    public function inTimeRange(int $startYear, int $endYear): self
     {
-        return $this->where('temporal_start', '<=', $end)
-            ->where('temporal_end', '>=', $start);
+        return $this->where('temporal_start_year', '<=', $endYear)
+            ->where('temporal_end_year', '>=', $startYear);
     }
 
     /**
-     * Entities that existed at a specific point in time.
+     * Entities that existed at a specific year.
      */
-    public function existsAt(string $date): self
+    public function existsAt(int $year): self
     {
-        return $this->where('temporal_start', '<=', $date)
-            ->where('temporal_end', '>=', $date);
+        return $this->where('temporal_start_year', '<=', $year)
+            ->where('temporal_end_year', '>=', $year);
     }
 
     /**
-     * Entities starting after a given date.
+     * Entities starting after a given year.
      */
-    public function startingAfter(string $date): self
+    public function startingAfter(int $year): self
     {
-        return $this->where('temporal_start', '>=', $date);
+        return $this->where('temporal_start_year', '>=', $year);
     }
 
     /**
-     * Entities ending before a given date.
+     * Entities ending before a given year.
      */
-    public function endingBefore(string $date): self
+    public function endingBefore(int $year): self
     {
-        return $this->where('temporal_end', '<=', $date);
+        return $this->where('temporal_end_year', '<=', $year);
     }
 
     // ── Text Search ──────────────────────────────────────────
@@ -233,10 +233,24 @@ class EntityBuilder extends Builder
 
     public function orderByChronological(): self
     {
-        return $this->orderBy('temporal_start');
+        return $this->orderBy('temporal_start_year');
     }
 
     // ── Select Presets ───────────────────────────────────────
+
+    /**
+     * Pre-compute geometry columns as GeoJSON inline in the query.
+     *
+     * Adds `geom_geojson` and `territory_geom_geojson` virtual columns
+     * that the GeoJson cast picks up automatically, eliminating the
+     * per-row DB round-trip (N+1) on list endpoints.
+     */
+    public function withGeoJson(): self
+    {
+        return $this->select(['entities.*'])
+            ->selectRaw('ST_AsGeoJSON(geom)::jsonb AS geom_geojson')
+            ->selectRaw('ST_AsGeoJSON(territory_geom)::jsonb AS territory_geom_geojson');
+    }
 
     /**
      * Minimal columns for map rendering (GeoJSON FeatureCollection).
