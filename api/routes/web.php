@@ -4,8 +4,8 @@ use App\Http\Controllers\Admin\EntityController;
 use App\Http\Controllers\Admin\Reference\CalendarSystemController;
 use App\Http\Controllers\Admin\Reference\EraDateLookupController;
 use App\Http\Controllers\Admin\Reference\GeographicRegionController;
-use App\Http\Controllers\Admin\Reference\HistoriographicalSchoolController;
 use App\Http\Controllers\Admin\Reference\HistoricalPeriodController;
+use App\Http\Controllers\Admin\Reference\HistoriographicalSchoolController;
 use App\Http\Controllers\Admin\Reference\LanguageFamilyController;
 use App\Http\Controllers\Admin\Reference\MeasurementUnitController;
 use App\Http\Controllers\Admin\Reference\ReligiousTraditionController;
@@ -22,7 +22,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
 
     Route::get('entities', [EntityController::class, 'index'])->name('entities.index');
+    Route::get('entities/create', [EntityController::class, 'create'])->name('entities.create');
+    Route::post('entities', [EntityController::class, 'store'])->name('entities.store');
     Route::get('entities/{entity}', [EntityController::class, 'show'])->name('entities.show');
+    Route::get('entities/{entity}/edit', [EntityController::class, 'edit'])->name('entities.edit');
+    Route::put('entities/{entity}', [EntityController::class, 'update'])->name('entities.update');
+    Route::delete('entities/{entity}', [EntityController::class, 'destroy'])->name('entities.destroy');
 
     // ── Reference Tables ─────────────────────────────────────────────
     Route::get('reference/geographic-regions', [GeographicRegionController::class, 'index'])->name('reference.geographic-regions.index');

@@ -67,6 +67,54 @@ export type EntitySummary = {
     created_at: string | null;
 };
 
+/**
+ * Full entity detail shape — used by show, edit, and create pages.
+ */
+export type EntityDetail = {
+    id: string;
+    name: string;
+    entity_type: EntityType | null;
+    entity_group: EntityGroup | null;
+    summary: string | null;
+    significance: string | null;
+    impact_score: number | null;
+    wikidata_id: string | null;
+    temporal_start: string | null;
+    temporal_end: string | null;
+    date_raw: string | null;
+    date_method: string | null;
+    date_confidence: ConfidenceLevel | null;
+    duration_type: string | null;
+    temporal_display_range: string | null;
+    era_label: string | null;
+    location_name: string | null;
+    location_confidence: ConfidenceLevel | null;
+    location_method: string | null;
+    parent_entity_id: string | null;
+    successor_entity_id: string | null;
+    verification_status: VerificationStatus | null;
+    confidence: ConfidenceLevel | null;
+    confidence_notes: string | null;
+    display_priority: number | null;
+    icon_class: string | null;
+    entity_color: string | null;
+    tags: string[];
+    alternative_names: string[];
+    /** Type-specific JSONB attributes */
+    attributes: Record<string, unknown>;
+    created_at: string | null;
+    updated_at: string | null;
+};
+
+/** A generic value+label pair used in Select dropdowns. */
+export type FilterOption = {
+    value: string;
+    label: string;
+};
+
+/** EntityType option also carries the group for auto-deriving entity_group. */
+export type EntityTypeOption = FilterOption & { group: EntityGroup };
+
 export type EntityFilters = {
     search: string;
     type: string;
@@ -79,16 +127,25 @@ export type EntityFilters = {
     per_page: number;
 };
 
-export type FilterOption = {
-    value: string;
-    label: string;
-};
-
 export type EntityFilterOptions = {
     types: FilterOption[];
     groups: FilterOption[];
     statuses: FilterOption[];
     confidences: FilterOption[];
+};
+
+/**
+ * Enum option lists passed to create/edit form pages from the controller.
+ */
+export type EntityFormOptions = {
+    types: EntityTypeOption[];
+    groups: FilterOption[];
+    statuses: FilterOption[];
+    confidences: FilterOption[];
+    dateMethods: FilterOption[];
+    durationTypes: FilterOption[];
+    locationMethods: FilterOption[];
+    iconClasses: FilterOption[];
 };
 
 export type PaginatedData<T> = {

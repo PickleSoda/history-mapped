@@ -7,9 +7,11 @@ import {
     ChevronRight,
     ChevronsLeft,
     ChevronsRight,
+    Plus,
     Search,
     X,
 } from 'lucide-react';
+import { create } from '@/routes/entities';
 import { useCallback, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -189,6 +191,12 @@ export default function EntitiesIndex({ entities, filters, filterOptions }: Prop
                             {entities.total} {entities.total === 1 ? 'entity' : 'entities'} found
                         </p>
                     </div>
+                    <Link href={create()}>
+                        <Button size="sm">
+                            <Plus className="mr-1.5 size-4" />
+                            New Entity
+                        </Button>
+                    </Link>
                 </div>
 
                 {/* Filters — row 1: search + type + group + status + confidence */}
