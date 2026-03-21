@@ -1,0 +1,64 @@
+# CULTURE group — works, movements, languages, religions, technologies
+#
+# Reference SPARQL queries. See polity.sparql for usage notes.
+
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX schema: <http://schema.org/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+
+# ── Languages ────────────────────────────────────────────────────────────────
+
+SELECT DISTINCT ?item ?itemLabel ?itemDescription ?inception
+       ?wikipedia_title ?writingSystem ?writingSystemLabel
+       ?languageFamily ?languageFamilyLabel
+WHERE {
+  ?item wdt:P31/wdt:P279* ?class .
+  VALUES ?class { wd:Q34770 wd:Q33215 }  # language, dead language
+
+  OPTIONAL { ?item wdt:P571 ?inception . }
+  OPTIONAL { ?item wdt:P282 ?writingSystem . }
+  OPTIONAL { ?item wdt:P361 ?languageFamily . }   # part of (language family)
+
+  OPTIONAL {
+    ?wp schema:about ?item ;
+        schema:isPartOf <https://en.wikipedia.org/> ;
+        schema:name ?wikipedia_title .
+  }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
+}
+LIMIT 200
+
+
+# ── Religious Movements ──────────────────────────────────────────────────────
+
+# SELECT DISTINCT ?item ?itemLabel ?itemDescription ?inception
+#        ?wikipedia_title ?founder ?founderLabel
+# WHERE {
+#   ?item wdt:P31/wdt:P279* ?class .
+#   VALUES ?class { wd:Q9174 wd:Q13414953 }
+#   OPTIONAL { ?item wdt:P571 ?inception . }
+#   OPTIONAL { ?item wdt:P112 ?founder . }
+#   OPTIONAL {
+#     ?wp schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> ; schema:name ?wikipedia_title .
+#   }
+#   SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
+# }
+# LIMIT 200
+
+
+# ── Technologies ─────────────────────────────────────────────────────────────
+
+# SELECT DISTINCT ?item ?itemLabel ?itemDescription ?inception
+#        ?wikipedia_title ?inventor ?inventorLabel
+# WHERE {
+#   # Broad: items with an "inventor" property (P61) tend to be technologies
+#   ?item wdt:P61 ?inventor .
+#   OPTIONAL { ?item wdt:P571 ?inception . }
+#   OPTIONAL {
+#     ?wp schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> ; schema:name ?wikipedia_title .
+#   }
+#   SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
+# }
+# LIMIT 200

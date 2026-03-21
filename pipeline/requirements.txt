@@ -1,0 +1,28 @@
+# Core
+SPARQLWrapper>=2.0.0
+requests>=2.31.0
+python-dotenv>=1.0.0
+
+# Wikipedia parsing
+wptools>=0.4.17
+mwparserfromhell>=0.6.5
+
+# Data handling
+pydantic>=2.5.0
+orjson>=3.9.0
+
+# Fuzzy matching for dedup
+thefuzz[speedup]>=0.22.0
+
+# Embeddings (optional — can also run via Laravel)
+openai>=1.12.0
+
+# Database (optional — for direct dedup checks)
+psycopg[binary]>=3.1.0
+
+# CLI / progress
+rich>=13.7.0
+click>=8.1.0
+
+# Rate limiting
+ratelimit>=2.2.1
