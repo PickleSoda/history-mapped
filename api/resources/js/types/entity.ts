@@ -109,7 +109,6 @@ export type EntityDetail = {
     created_at: string | null;
     updated_at: string | null;
 };
-
 /** A generic value+label pair used in Select dropdowns. */
 export type FilterOption = {
     value: string;
@@ -171,6 +170,9 @@ export type GeometrySnapshot = {
     label: string | null;
     confidence: ConfidenceLevel | null;
     notes: string | null;
+    description: string | null;
+    relationship_id: string | null;
+    source_event_id: string | null;
     display_priority: number;
     source_citations: Record<string, unknown>[] | null;
     /** Point/LineString geometry */
@@ -179,4 +181,27 @@ export type GeometrySnapshot = {
     territory_geojson: Record<string, unknown> | null;
     created_at: string | null;
     updated_at: string | null;
+};
+
+/** Summary of a related entity as returned in relationship payloads. */
+export type RelatedEntitySummary = {
+    id: string;
+    name: string;
+    entity_type: EntityType | null;
+    entity_group: EntityGroup | null;
+};
+
+/** A relationship as returned by Admin\RelationshipController. */
+export type Relationship = {
+    relationship_id: string;
+    source_entity_id: string;
+    target_entity_id: string;
+    relationship_type: string;
+    temporal_start: string | null;
+    temporal_end: string | null;
+    description: string | null;
+    confidence: ConfidenceLevel | null;
+    direction: 'outgoing' | 'incoming';
+    related_entity: RelatedEntitySummary | null;
+    created_at: string | null;
 };

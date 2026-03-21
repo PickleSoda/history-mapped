@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\Reference\MeasurementUnitController;
 use App\Http\Controllers\Admin\Reference\ReligiousTraditionController;
 use App\Http\Controllers\Admin\Reference\SourceTypeDefinitionController;
 use App\Http\Controllers\Admin\Reference\WritingSystemController;
+use App\Http\Controllers\Admin\RelationshipController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -35,6 +36,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('entities/{entity}/snapshots', [GeometrySnapshotController::class, 'store'])->name('entities.snapshots.store');
     Route::put('entities/{entity}/snapshots/{snapshot}', [GeometrySnapshotController::class, 'update'])->name('entities.snapshots.update');
     Route::delete('entities/{entity}/snapshots/{snapshot}', [GeometrySnapshotController::class, 'destroy'])->name('entities.snapshots.destroy');
+
+    // ── Relationships (JSON, embedded in entity edit/show pages) ─────────
+    Route::get('entities/{entity}/relationships', [RelationshipController::class, 'index'])->name('entities.relationships.index');
+    Route::post('entities/{entity}/relationships', [RelationshipController::class, 'store'])->name('entities.relationships.store');
+    Route::delete('entities/{entity}/relationships/{relationship}', [RelationshipController::class, 'destroy'])->name('entities.relationships.destroy');
 
     // ── Reference Tables ─────────────────────────────────────────────
     Route::get('reference/geographic-regions', [GeographicRegionController::class, 'index'])->name('reference.geographic-regions.index');

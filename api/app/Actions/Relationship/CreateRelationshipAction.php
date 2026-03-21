@@ -9,9 +9,14 @@ use App\Models\EntityRelationship;
 
 /**
  * Create a new relationship between two entities.
+ *
+ * After creation, attempts to auto-generate a presence snapshot if the
+ * relationship type is one of the 11 auto-snapshot types.
  */
 class CreateRelationshipAction
 {
+    public function __construct(private readonly CreateAutoSnapshotAction $autoSnapshot) {}
+
     public function __invoke(RelationshipData $data, ?string $createdBy = null): EntityRelationship
     {
         $modelData = $data->toModelArray();
@@ -20,6 +25,13 @@ class CreateRelationshipAction
             $modelData['created_by'] = $createdBy;
         }
 
-        return EntityRelationship::create($modelData);
+        $relationship = EntityRelationship::create($modelData);
+
+        // Eager-load related entities for the auto-snapshot check
+        $relationship->load(['sourceEntity', 'targetEntity']);
+
+        ($this->autoSnapshot)($relationship);
+
+        return $relationship;
     }
 }

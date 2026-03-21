@@ -113,6 +113,26 @@ erDiagram
         timestamp updated_at
     }
 
+    geometry_snapshots {
+        uuid snapshot_id PK
+        uuid entity_id FK "NOT NULL — cascade delete"
+        integer year_start "NOT NULL"
+        integer year_end "NOT NULL"
+        geometry geom "PostGIS — point or linestring"
+        geometry territory_geom "PostGIS — polygon"
+        text label "short display title"
+        text description "why this geometry exists"
+        confidence_level_enum confidence
+        jsonb source_citations
+        text notes "editorial"
+        integer display_priority
+        uuid source_event_id FK "optional — event that changed territory"
+        uuid relationship_id FK "optional — relationship that placed entity here (CASCADE)"
+        text created_by
+        timestamp created_at
+        timestamp updated_at
+    }
+
     roles {
         bigint id PK
         text name
@@ -130,6 +150,9 @@ erDiagram
     users ||--o{ entities : "reviewer_id (reviews)"
     entities ||--o{ relationships : "source_entity_id"
     entities ||--o{ relationships : "target_entity_id"
+    entities ||--o{ geometry_snapshots : "entity_id (temporal geometries)"
+    entities ||--o{ geometry_snapshots : "source_event_id (territory change cause)"
+    relationships ||--o{ geometry_snapshots : "relationship_id (presence cause — CASCADE)"
     users }o--o{ roles : "model_has_roles"
     users }o--o{ permissions : "model_has_permissions"
     roles }o--o{ permissions : "role_has_permissions"
@@ -141,6 +164,7 @@ erDiagram
 - **`relationships`** is a many-to-many junction between entities with a typed edge (`relationship_type` — 76 values)
 - **`sources`** is referenced from `entities.source_citations` (JSONB array of `{ source_id, page, quote }`)
 - **Self-referencing FKs** on `entities`: `parent_entity_id` (tree hierarchy) and `successor_entity_id` (temporal succession chain)
+- **`geometry_snapshots`** stores time-varying geometries per entity (empire borders, person presence at events). The `description` field explains *why* the geometry exists. Two optional provenance FKs: `relationship_id` (CASCADE — for presence snapshots derived from a specific relationship like `signed_by`) and `source_event_id` (SET NULL — for territory changes caused by events)
 - **PostGIS columns**: `geom` (point/polygon/linestring), `territory_geom` (nullable polygon extent)
 - **pgvector column**: `embedding` (1536-dim, HNSW indexed) for semantic search
 

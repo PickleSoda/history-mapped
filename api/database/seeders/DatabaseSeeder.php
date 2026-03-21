@@ -52,5 +52,9 @@ class DatabaseSeeder extends Seeder
         // ── Entity seed data ────────────────────────────────────────
 
         $this->call(EntitySeeder::class);
+
+        // ── Relationships between entities ──────────────────────────
+
+        $this->call(RelationshipSeeder::class);
     }
 }

@@ -37,13 +37,15 @@ class CreateSnapshotAction
                 INSERT INTO geometry_snapshots
                     (snapshot_id, entity_id, year_start, year_end,
                      geom, territory_geom,
-                     label, confidence, source_citations, notes, display_priority,
-                     created_by, created_at, updated_at)
+                     label, confidence, source_citations, notes, description,
+                     relationship_id, source_event_id,
+                     display_priority, created_by, created_at, updated_at)
                 VALUES
                     (?, ?, ?, ?,
                      {$geomExpr}, {$territoryGeomExpr},
                      ?, ?, ?::jsonb, ?, ?,
-                     ?, ?, ?)
+                     ?, ?,
+                     ?, ?, ?, ?)
                 SQL;
 
             $modelData = $data->toModelArray();
@@ -63,6 +65,9 @@ class CreateSnapshotAction
                 $modelData['confidence'] ?? null,
                 isset($modelData['source_citations']) ? json_encode($modelData['source_citations']) : null,
                 $modelData['notes'] ?? null,
+                $modelData['description'] ?? null,
+                $modelData['relationship_id'] ?? null,
+                $modelData['source_event_id'] ?? null,
                 $modelData['display_priority'],
                 $createdBy,
                 $now,

@@ -267,8 +267,9 @@ class EntityBuilder extends Builder
             'temporal_end',
             'display_priority',
             'icon_class',
-            'entity_color',
             'impact_score',
-        ])->selectRaw('ST_AsGeoJSON(geom)::jsonb AS geojson');
+        ])
+            ->selectRaw("attributes->>'entity_color' AS entity_color")
+            ->selectRaw('ST_AsGeoJSON(geom)::jsonb AS geojson');
     }
 }

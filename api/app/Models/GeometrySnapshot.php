@@ -21,6 +21,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'confidence',
     'source_citations',
     'notes',
+    'description',
+    'relationship_id',
+    'source_event_id',
     'display_priority',
     'created_by',
 ])]
@@ -60,6 +63,12 @@ class GeometrySnapshot extends Model
     public function entity(): BelongsTo
     {
         return $this->belongsTo(Entity::class, 'entity_id', 'entity_id');
+    }
+
+    /** @return BelongsTo<EntityRelationship, $this> */
+    public function relationship(): BelongsTo
+    {
+        return $this->belongsTo(EntityRelationship::class, 'relationship_id', 'relationship_id');
     }
 
     // ── Custom Query Builder ─────────────────────────────────

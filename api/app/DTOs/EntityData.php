@@ -28,7 +28,6 @@ readonly class EntityData
      * @param  array<string, mixed>|null  $geojson       GeoJSON geometry object for point location
      * @param  array<string, mixed>|null  $territoryGeojson  GeoJSON geometry for territory/area
      * @param  list<array<string, mixed>>|null  $sourceCitations
-     * @param  list<array<string, mixed>>|null  $mediaRefs
      */
     public function __construct(
         public string $name,
@@ -43,7 +42,6 @@ readonly class EntityData
         public ?string $wikidataId = null,
         public ?string $temporalStart = null,
         public ?string $temporalEnd = null,
-        public ?string $dateRaw = null,
         public ?DateResolutionMethod $dateMethod = null,
         public ?ConfidenceLevel $dateConfidence = null,
         public ?DurationType $durationType = null,
@@ -56,12 +54,9 @@ readonly class EntityData
         public ?string $successorEntityId = null,
         public ?VerificationStatus $verificationStatus = null,
         public ?ConfidenceLevel $confidence = null,
-        public ?string $confidenceNotes = null,
         public ?int $displayPriority = null,
         public ?IconClass $iconClass = null,
-        public ?string $entityColor = null,
         public ?array $sourceCitations = null,
-        public ?array $mediaRefs = null,
     ) {}
 
     /**
@@ -71,20 +66,29 @@ readonly class EntityData
      */
     public static function fromArray(array $validated): self
     {
+        // Merge moved fields into the attributes bag
+        $attributes = $validated['attributes'] ?? [];
+
+        $movedKeys = ['date_raw', 'confidence_notes', 'entity_color', 'media_refs', 'validation_flags', 'temporal_display_range', 'era_label'];
+        foreach ($movedKeys as $key) {
+            if (isset($validated[$key])) {
+                $attributes[$key] = $validated[$key];
+            }
+        }
+
         return new self(
             name: $validated['name'],
             entityType: EntityType::from($validated['entity_type']),
             entityGroup: EntityGroup::from($validated['entity_group']),
             summary: $validated['summary'] ?? null,
             significance: $validated['significance'] ?? null,
-            attributes: $validated['attributes'] ?? null,
+            attributes: $attributes ?: null,
             tags: $validated['tags'] ?? null,
             alternativeNames: $validated['alternative_names'] ?? null,
             impactScore: isset($validated['impact_score']) ? (float) $validated['impact_score'] : null,
             wikidataId: $validated['wikidata_id'] ?? null,
             temporalStart: $validated['temporal_start'] ?? null,
             temporalEnd: $validated['temporal_end'] ?? null,
-            dateRaw: $validated['date_raw'] ?? null,
             dateMethod: isset($validated['date_method']) ? DateResolutionMethod::from($validated['date_method']) : null,
             dateConfidence: isset($validated['date_confidence']) ? ConfidenceLevel::from($validated['date_confidence']) : null,
             durationType: isset($validated['duration_type']) ? DurationType::from($validated['duration_type']) : null,
@@ -97,12 +101,9 @@ readonly class EntityData
             successorEntityId: $validated['successor_entity_id'] ?? null,
             verificationStatus: isset($validated['verification_status']) ? VerificationStatus::from($validated['verification_status']) : null,
             confidence: isset($validated['confidence']) ? ConfidenceLevel::from($validated['confidence']) : null,
-            confidenceNotes: $validated['confidence_notes'] ?? null,
             displayPriority: isset($validated['display_priority']) ? (int) $validated['display_priority'] : null,
             iconClass: isset($validated['icon_class']) ? IconClass::from($validated['icon_class']) : null,
-            entityColor: $validated['entity_color'] ?? null,
             sourceCitations: $validated['source_citations'] ?? null,
-            mediaRefs: $validated['media_refs'] ?? null,
         );
     }
 
@@ -131,7 +132,6 @@ readonly class EntityData
             'wikidata_id' => $this->wikidataId,
             'temporal_start' => $this->temporalStart,
             'temporal_end' => $this->temporalEnd,
-            'date_raw' => $this->dateRaw,
             'date_method' => $this->dateMethod?->value,
             'date_confidence' => $this->dateConfidence?->value,
             'duration_type' => $this->durationType?->value,
@@ -142,12 +142,9 @@ readonly class EntityData
             'successor_entity_id' => $this->successorEntityId,
             'verification_status' => $this->verificationStatus?->value,
             'confidence' => $this->confidence?->value,
-            'confidence_notes' => $this->confidenceNotes,
             'display_priority' => $this->displayPriority,
             'icon_class' => $this->iconClass?->value,
-            'entity_color' => $this->entityColor,
             'source_citations' => $this->sourceCitations,
-            'media_refs' => $this->mediaRefs,
         ];
 
         foreach ($optionals as $key => $value) {

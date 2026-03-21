@@ -22,6 +22,8 @@ class EntitySummaryResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $attrs = $this->attributes ?? [];
+
         return [
             'id' => $this->entity_id,
             'name' => $this->name,
@@ -34,8 +36,8 @@ class EntitySummaryResource extends JsonResource
             // Temporal (compact)
             'temporal_start' => $this->temporal_start,
             'temporal_end' => $this->temporal_end,
-            'temporal_display_range' => $this->temporal_display_range,
-            'era_label' => $this->era_label,
+            'temporal_display_range' => $attrs['temporal_display_range'] ?? null,
+            'era_label' => $attrs['era_label'] ?? null,
 
             // Spatial (point only)
             'location_name' => $this->location_name,
@@ -48,7 +50,7 @@ class EntitySummaryResource extends JsonResource
             // Display
             'display_priority' => $this->display_priority,
             'icon_class' => $this->icon_class?->value,
-            'entity_color' => $this->entity_color,
+            'entity_color' => $attrs['entity_color'] ?? null,
 
             'created_at' => $this->created_at?->toISOString(),
         ];
