@@ -43,7 +43,7 @@ class EntitySeeder extends Seeder
             if (isset($this->geometries[$id])) {
                 $coords = $this->geometries[$id];
                 DB::statement(
-                    "UPDATE entities SET geom = ST_SetSRID(ST_MakePoint(?, ?), 4326) WHERE entity_id = ?",
+                    'UPDATE entities SET geom = ST_SetSRID(ST_MakePoint(?, ?), 4326) WHERE entity_id = ?',
                     [$coords['lon'], $coords['lat'], $id],
                 );
             }
@@ -51,7 +51,7 @@ class EntitySeeder extends Seeder
             // Add territory polygon if defined
             if (isset($this->territories[$id])) {
                 DB::statement(
-                    "UPDATE entities SET territory_geom = ST_SetSRID(ST_GeomFromGeoJSON(?), 4326) WHERE entity_id = ?",
+                    'UPDATE entities SET territory_geom = ST_SetSRID(ST_GeomFromGeoJSON(?), 4326) WHERE entity_id = ?',
                     [$this->territories[$id], $id],
                 );
             }
@@ -72,6 +72,8 @@ class EntitySeeder extends Seeder
               AND temporal_end ~ '^-?\\d+'
               AND temporal_end_year IS NULL
         ");
+
+        $this->snapshotEntities();
     }
 
     /**
@@ -111,7 +113,7 @@ class EntitySeeder extends Seeder
         $this->geometries[$romanId] = ['lat' => 41.9028, 'lon' => 12.4964];
         $this->territories[$romanId] = json_encode([
             'type' => 'Polygon',
-            'coordinates' => [[[- 9.5, 36.0], [35.0, 36.0], [35.0, 55.0], [-9.5, 55.0], [-9.5, 36.0]]],
+            'coordinates' => [[[-9.5, 36.0], [35.0, 36.0], [35.0, 55.0], [-9.5, 55.0], [-9.5, 36.0]]],
         ]);
 
         // Ottoman Empire
@@ -125,6 +127,10 @@ class EntitySeeder extends Seeder
         // Ptolemaic Dynasty
         $ptolemyId = '10000000-0000-0000-0000-000000000003';
         $this->geometries[$ptolemyId] = ['lat' => 31.2001, 'lon' => 29.9187];
+        $this->territories[$ptolemyId] = json_encode([
+            'type' => 'Polygon',
+            'coordinates' => [[[24.7, 22.0], [37.0, 22.0], [37.0, 32.0], [24.7, 32.0], [24.7, 22.0]]],
+        ]);
 
         // Julius Caesar
         $caesarId = '10000000-0000-0000-0000-000000000004';
@@ -137,6 +143,22 @@ class EntitySeeder extends Seeder
         // Praetorian Guard
         $praetorianId = '10000000-0000-0000-0000-000000000006';
         $this->geometries[$praetorianId] = ['lat' => 41.9028, 'lon' => 12.4964];
+
+        // Mongol Empire
+        $mongolId = '10000000-0000-0000-0000-000000000007';
+        $this->geometries[$mongolId] = ['lat' => 47.9185, 'lon' => 106.9177];
+        $this->territories[$mongolId] = json_encode([
+            'type' => 'Polygon',
+            'coordinates' => [[[40.0, 30.0], [135.0, 30.0], [135.0, 60.0], [40.0, 60.0], [40.0, 30.0]]],
+        ]);
+
+        // Byzantine Empire
+        $byzantineId = '10000000-0000-0000-0000-000000000008';
+        $this->geometries[$byzantineId] = ['lat' => 41.0082, 'lon' => 28.9784];
+        $this->territories[$byzantineId] = json_encode([
+            'type' => 'Polygon',
+            'coordinates' => [[[26.0, 36.0], [40.0, 36.0], [40.0, 43.0], [26.0, 43.0], [26.0, 36.0]]],
+        ]);
 
         return [
             [
@@ -164,7 +186,11 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#8B0000',
                 'tags' => $this->textArray(['empire', 'rome', 'ancient', 'mediterranean', 'latin']),
                 'alternative_names' => $this->textArray(['Imperium Romanum', 'SPQR']),
-                'attributes' => json_encode(['capital' => 'Rome', 'government_type' => 'autocracy', 'peak_population' => '70 million']),
+                'attributes' => json_encode([
+                    'political_subtype' => 'empire',
+                    'government_type' => 'bureaucratic_centralized',
+                    'succession_type' => 'military_acclamation',
+                ]),
                 'source_citations' => json_encode([['source' => 'Gibbon, Decline and Fall', 'year' => 1776]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
@@ -195,7 +221,11 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#006400',
                 'tags' => $this->textArray(['empire', 'ottoman', 'islamic', 'anatolia', 'balkans']),
                 'alternative_names' => $this->textArray(['Devlet-i ʿAliyye-i ʿOsmâniyye', 'Sublime Ottoman State']),
-                'attributes' => json_encode(['capital' => 'Constantinople', 'government_type' => 'absolute monarchy', 'peak_population' => '35 million']),
+                'attributes' => json_encode([
+                    'political_subtype' => 'sultanate',
+                    'government_type' => 'absolute_monarchy',
+                    'succession_type' => 'agnatic',
+                ]),
                 'source_citations' => json_encode([['source' => 'Finkel, Osman\'s Dream', 'year' => 2005]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
@@ -226,7 +256,13 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#DAA520',
                 'tags' => $this->textArray(['dynasty', 'hellenistic', 'egypt', 'ptolemy', 'macedonian']),
                 'alternative_names' => $this->textArray(['Ptolemies', 'Lagid dynasty']),
-                'attributes' => json_encode(['founder' => 'Ptolemy I Soter', 'last_ruler' => 'Cleopatra VII']),
+                'attributes' => json_encode([
+                    'government_type' => 'absolute_monarchy',
+                    'succession_type' => 'primogeniture',
+                    'founding_event' => 'Ptolemy I proclaimed king following the Wars of the Diadochi',
+                    'ethnic_origin' => 'Macedonian Greek',
+                    'legitimacy_basis' => 'Conquest and divine kingship fused with Egyptian pharaonic tradition',
+                ]),
                 'source_citations' => json_encode([['source' => 'Hölbl, A History of the Ptolemaic Empire', 'year' => 2001]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
@@ -257,7 +293,13 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#800020',
                 'tags' => $this->textArray(['roman', 'dictator', 'general', 'politician', 'assassination']),
                 'alternative_names' => $this->textArray(['Caesar', 'Divus Iulius']),
-                'attributes' => json_encode(['birth_place' => 'Rome', 'cause_of_death' => 'assassination', 'offices' => ['consul', 'dictator perpetuo']]),
+                'attributes' => json_encode([
+                    'gender' => 'male',
+                    'birth_date' => '100 BCE',
+                    'death_date' => '44 BCE',
+                    'ethnicity' => 'Roman (patrician)',
+                    'cause_of_death' => 'Assassinated on the Ides of March by a senatorial conspiracy led by Brutus and Cassius',
+                ]),
                 'source_citations' => json_encode([['source' => 'Suetonius, The Twelve Caesars', 'year' => 121]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
@@ -288,7 +330,13 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#4B3621',
                 'tags' => $this->textArray(['mongol', 'khan', 'conqueror', 'steppe', 'empire']),
                 'alternative_names' => $this->textArray(['Temüjin', 'Chinggis Khaan']),
-                'attributes' => json_encode(['birth_name' => 'Temüjin', 'title' => 'Khagan']),
+                'attributes' => json_encode([
+                    'gender' => 'male',
+                    'birth_date' => 'c. 1162 CE',
+                    'death_date' => '1227 CE',
+                    'ethnicity' => 'Mongol (Borjigin clan)',
+                    'cause_of_death' => 'Uncertain; possibly injuries from a fall from his horse during the Xi Xia campaign',
+                ]),
                 'source_citations' => json_encode([['source' => 'The Secret History of the Mongols', 'year' => 1240]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
@@ -319,8 +367,81 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#B22222',
                 'tags' => $this->textArray(['roman', 'military', 'guard', 'praetorian', 'elite']),
                 'alternative_names' => $this->textArray(['Cohortes Praetoriae']),
-                'attributes' => json_encode(['max_strength' => 10000, 'disbanded_by' => 'Constantine I']),
+                'attributes' => json_encode([
+                    'unit_subtype' => 'guard',
+                    'composition' => 'professional',
+                ]),
                 'source_citations' => json_encode([['source' => 'Bingham, The Praetorian Guard', 'year' => 2013]]),
+                'created_by' => 'seeder',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'entity_id' => $mongolId,
+                'name' => 'Mongol Empire',
+                'entity_type' => 'political_entity',
+                'entity_group' => 'POLITY',
+                'summary' => 'The largest contiguous land empire in history, founded by Genghis Khan in 1206 and expanding across Eurasia through a combination of military conquest and diplomatic alliance.',
+                'significance' => 'Connected East and West through the Pax Mongolica, enabling unprecedented trade and cultural exchange along the Silk Road while also causing massive destruction and demographic collapse.',
+                'impact_score' => 97,
+                'temporal_start' => '1206',
+                'temporal_end' => '1368',
+                'date_raw' => '1206 – 1368 CE',
+                'location_name' => 'Karakorum, Mongolia',
+                'wikidata_id' => 'Q12557',
+                'verification_status' => 'expert_verified',
+                'confidence' => 'high',
+                'date_method' => 'source_database',
+                'date_confidence' => 'high',
+                'duration_type' => 'period',
+                'location_confidence' => 'medium',
+                'location_method' => 'wikidata',
+                'display_priority' => 10,
+                'icon_class' => 'crown',
+                'entity_color' => '#8B6914',
+                'tags' => $this->textArray(['mongol', 'empire', 'steppe', 'conquest', 'eurasia']),
+                'alternative_names' => $this->textArray(['Yeke Mongghol Ulus', 'Great Mongol Nation']),
+                'attributes' => json_encode([
+                    'political_subtype' => 'khanate',
+                    'government_type' => 'tribal_chieftainship',
+                    'succession_type' => 'elective',
+                ]),
+                'source_citations' => json_encode([['source' => 'Morgan, The Mongols', 'year' => 1986]]),
+                'created_by' => 'seeder',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'entity_id' => $byzantineId,
+                'name' => 'Byzantine Empire',
+                'entity_type' => 'political_entity',
+                'entity_group' => 'POLITY',
+                'summary' => 'The continuation of the Roman Empire in its eastern provinces during Late Antiquity and the Middle Ages, centered on Constantinople and surviving for over a millennium after the fall of the Western Roman Empire.',
+                'significance' => 'Preserved Greco-Roman knowledge and Orthodox Christianity, transmitted classical learning to the Islamic world and Renaissance Europe, and maintained a sophisticated administrative and legal tradition.',
+                'impact_score' => 91,
+                'temporal_start' => '0330',
+                'temporal_end' => '1453',
+                'date_raw' => '330 CE – 1453 CE',
+                'location_name' => 'Constantinople (Istanbul)',
+                'wikidata_id' => 'Q12544',
+                'verification_status' => 'expert_verified',
+                'confidence' => 'high',
+                'date_method' => 'source_database',
+                'date_confidence' => 'high',
+                'duration_type' => 'period',
+                'location_confidence' => 'high',
+                'location_method' => 'wikidata',
+                'display_priority' => 9,
+                'icon_class' => 'crown',
+                'entity_color' => '#4B0082',
+                'tags' => $this->textArray(['byzantine', 'roman', 'orthodox', 'medieval', 'constantinople']),
+                'alternative_names' => $this->textArray(['Eastern Roman Empire', 'Romania', 'Basileia Rhomaion']),
+                'attributes' => json_encode([
+                    'political_subtype' => 'empire',
+                    'government_type' => 'bureaucratic_centralized',
+                    'succession_type' => 'military_acclamation',
+                ]),
+                'source_citations' => json_encode([['source' => 'Ostrogorsky, History of the Byzantine State', 'year' => 1969]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -353,6 +474,10 @@ class EntitySeeder extends Seeder
         $angkorId = '20000000-0000-0000-0000-000000000005';
         $this->geometries[$angkorId] = ['lat' => 13.4125, 'lon' => 103.8670];
 
+        // Alexandria
+        $alexandriaId = '20000000-0000-0000-0000-000000000006';
+        $this->geometries[$alexandriaId] = ['lat' => 31.2001, 'lon' => 29.9187];
+
         return [
             [
                 'entity_id' => $constantinopleId,
@@ -379,7 +504,11 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#4B0082',
                 'tags' => $this->textArray(['byzantine', 'city', 'capital', 'trade', 'orthodox']),
                 'alternative_names' => $this->textArray(['Byzantium', 'Istanbul', 'Nova Roma', 'Tsargrad']),
-                'attributes' => json_encode(['peak_population' => '500,000', 'notable_structures' => ['Hagia Sophia', 'Hippodrome', 'Theodosian Walls']]),
+                'attributes' => json_encode([
+                    'settlement_subtype' => 'capital_city',
+                    'elevation_m' => 45,
+                    'founding_legend' => 'Constantine I chose the site after divine vision, refounding the Greek colony of Byzantium as Nova Roma in 330 CE',
+                ]),
                 'source_citations' => json_encode([['source' => 'Norwich, Byzantium: The Early Centuries', 'year' => 1988]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
@@ -390,7 +519,7 @@ class EntitySeeder extends Seeder
                 'name' => 'Great Wall of China',
                 'entity_type' => 'infrastructure_monument',
                 'entity_group' => 'PLACE',
-                'summary' => 'A series of fortifications made of stone, brick, tamped earth, and other materials, built along the northern borders of China to protect against various nomadic groups.',
+                'summary' => 'A series of fortifications made of stone, brick, tamped earth, and other materials, built along the northern borders of China to protect against various nomadic groups of the Eurasian Steppe.',
                 'significance' => 'The most extensive construction project in human history, representing centuries of Chinese defensive strategy and labor mobilization.',
                 'impact_score' => 90,
                 'temporal_start' => '-0700',
@@ -410,7 +539,13 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#808080',
                 'tags' => $this->textArray(['china', 'wall', 'fortification', 'defense', 'monument']),
                 'alternative_names' => $this->textArray(['Wànlǐ Chángchéng', 'Long Wall']),
-                'attributes' => json_encode(['total_length_km' => 21196, 'unesco' => true]),
+                'attributes' => json_encode([
+                    'monument_subtype' => 'wall',
+                    'construction_start' => '7th century BCE',
+                    'construction_end' => '1644 CE',
+                    'current_condition' => 'ruins',
+                    'unesco_status' => 'UNESCO World Heritage Site (1987)',
+                ]),
                 'source_citations' => json_encode([['source' => 'Waldron, The Great Wall of China', 'year' => 1990]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
@@ -441,7 +576,10 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#C0C0C0',
                 'tags' => $this->textArray(['mining', 'silver', 'athens', 'economy', 'ancient_greece']),
                 'alternative_names' => $this->textArray(['Lavrion', 'Laurium']),
-                'attributes' => json_encode(['mineral' => 'silver-lead', 'workforce' => 'enslaved labor']),
+                'attributes' => json_encode([
+                    'infra_subtype' => 'mine',
+                    'scale' => 'large',
+                ]),
                 'source_citations' => json_encode([['source' => 'Conophagos, Le Laurium antique', 'year' => 1980]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
@@ -472,7 +610,10 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#8B4513',
                 'tags' => $this->textArray(['university', 'education', 'medieval', 'law', 'italy']),
                 'alternative_names' => $this->textArray(['Alma Mater Studiorum', 'Universitas Bononiensis']),
-                'attributes' => json_encode(['specialization' => 'Roman law', 'notable_alumni' => ['Petrarch', 'Copernicus', 'Dante']]),
+                'attributes' => json_encode([
+                    'institution_type' => 'university',
+                    'library_holdings' => 'Extensive collection of Roman law texts; archive holds over 1 million volumes',
+                ]),
                 'source_citations' => json_encode([['source' => 'Rashdall, The Universities of Europe in the Middle Ages', 'year' => 1895]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
@@ -503,8 +644,49 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#DAA520',
                 'tags' => $this->textArray(['khmer', 'temple', 'cambodia', 'hindu', 'buddhist']),
                 'alternative_names' => $this->textArray(['Nokor Wat', 'City Temple']),
-                'attributes' => json_encode(['commissioned_by' => 'Suryavarman II', 'area_hectares' => 162, 'unesco' => true]),
+                'attributes' => json_encode([
+                    'monument_subtype' => 'temple',
+                    'construction_start' => '1113 CE',
+                    'construction_end' => '1150 CE',
+                    'current_condition' => 'extant',
+                    'unesco_status' => 'UNESCO World Heritage Site (1992, part of Angkor)',
+                ]),
                 'source_citations' => json_encode([['source' => 'Higham, The Civilization of Angkor', 'year' => 2001]]),
+                'created_by' => 'seeder',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'entity_id' => $alexandriaId,
+                'name' => 'Alexandria',
+                'entity_type' => 'city',
+                'entity_group' => 'PLACE',
+                'summary' => 'A Hellenistic city founded by Alexander the Great in 331 BCE on the Egyptian Mediterranean coast, which became the intellectual capital of the ancient world under Ptolemaic rule.',
+                'significance' => 'Home to the Great Library and Mouseion, it was the foremost center of learning in antiquity, attracting scholars from across the Mediterranean and producing advances in mathematics, astronomy, and medicine.',
+                'impact_score' => 92,
+                'temporal_start' => '-0331',
+                'temporal_end' => null,
+                'date_raw' => '331 BCE – present (as modern Alexandria)',
+                'location_name' => 'Alexandria, Egypt',
+                'wikidata_id' => 'Q87',
+                'verification_status' => 'expert_verified',
+                'confidence' => 'high',
+                'date_method' => 'source_database',
+                'date_confidence' => 'high',
+                'duration_type' => 'ongoing',
+                'location_confidence' => 'high',
+                'location_method' => 'wikidata',
+                'display_priority' => 9,
+                'icon_class' => 'city',
+                'entity_color' => '#B8860B',
+                'tags' => $this->textArray(['hellenistic', 'egypt', 'library', 'learning', 'alexander']),
+                'alternative_names' => $this->textArray(['Alexandreia', 'Al-Iskandariyya']),
+                'attributes' => json_encode([
+                    'settlement_subtype' => 'major_city',
+                    'elevation_m' => 5,
+                    'founding_legend' => 'Founded by Alexander the Great in 331 BCE; site chosen for its natural harbor between Lake Mareotis and the Mediterranean',
+                ]),
+                'source_citations' => json_encode([['source' => 'Fraser, Ptolemaic Alexandria', 'year' => 1972]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -575,7 +757,12 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#DC143C',
                 'tags' => $this->textArray(['byzantine', 'ottoman', 'siege', 'constantinople', '1453']),
                 'alternative_names' => $this->textArray(['Siege of Constantinople', 'Conquest of Constantinople']),
-                'attributes' => json_encode(['attacker' => 'Ottoman Empire', 'defender' => 'Byzantine Empire', 'commander_attack' => 'Mehmed II', 'commander_defense' => 'Constantine XI']),
+                'attributes' => json_encode([
+                    'battle_subtype' => 'siege',
+                    'outcome' => 'decisive_victory',
+                    'victor_side' => 'Ottoman',
+                    'tactical_notes' => 'Mehmed II deployed large cannon including the Basilica to breach the Theodosian Walls; Genoese and Venetian defenders unable to hold the sea walls against the Ottoman fleet dragged overland into the Golden Horn',
+                ]),
                 'source_citations' => json_encode([['source' => 'Runciman, The Fall of Constantinople 1453', 'year' => 1965]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
@@ -586,7 +773,7 @@ class EntitySeeder extends Seeder
                 'name' => 'Hundred Years\' War',
                 'entity_type' => 'event_war',
                 'entity_group' => 'EVENT',
-                'summary' => 'A series of armed conflicts between the kingdoms of England and France from 1337 to 1453, rooted in disputes over the French crown.',
+                'summary' => 'A series of armed conflicts between the kingdoms of England and France from 1337 to 1453, rooted in disputes over the French crown and English territorial claims in France.',
                 'significance' => 'Transformed medieval warfare, fostered national identities in both England and France, and saw the emergence of standing armies and gunpowder weapons in Europe.',
                 'impact_score' => 86,
                 'temporal_start' => '1337',
@@ -606,7 +793,11 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#4169E1',
                 'tags' => $this->textArray(['war', 'medieval', 'england', 'france', 'chivalry']),
                 'alternative_names' => $this->textArray(['Guerre de Cent Ans']),
-                'attributes' => json_encode(['belligerents' => ['England', 'France'], 'key_battles' => ['Crécy', 'Poitiers', 'Agincourt', 'Orléans']]),
+                'attributes' => json_encode([
+                    'war_subtype' => 'succession_war',
+                    'casus_belli' => 'Edward III of England claimed the French throne through his mother Isabella, daughter of Philip IV of France',
+                    'territorial_changes' => 'England lost virtually all French territories except Calais; French monarchy consolidated control over the realm',
+                ]),
                 'source_citations' => json_encode([['source' => 'Sumption, The Hundred Years War', 'year' => 1990]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
@@ -637,7 +828,12 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#8B0000',
                 'tags' => $this->textArray(['sparta', 'persia', 'battle', 'greco-persian_wars', 'leonidas']),
                 'alternative_names' => $this->textArray(['Thermopylai', 'Hot Gates']),
-                'attributes' => json_encode(['greek_commander' => 'Leonidas I', 'persian_commander' => 'Xerxes I', 'greek_forces' => '7,000', 'persian_forces' => '100,000–300,000']),
+                'attributes' => json_encode([
+                    'battle_subtype' => 'last_stand',
+                    'outcome' => 'tactical_defeat',
+                    'victor_side' => 'Persian',
+                    'tactical_notes' => 'Leonidas held the pass for three days using the narrow terrain to neutralize Persian numerical advantage; betrayed by Ephialtes who revealed a mountain path allowing Persian flanking',
+                ]),
                 'source_citations' => json_encode([['source' => 'Herodotus, Histories, Book VII', 'year' => -440]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
@@ -668,7 +864,11 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#556B2F',
                 'tags' => $this->textArray(['treaty', 'sovereignty', 'westphalia', 'thirty_years_war', 'international_law']),
                 'alternative_names' => $this->textArray(['Westfälischer Friede', 'Pax Westphalica']),
-                'attributes' => json_encode(['treaties' => ['Treaty of Münster', 'Treaty of Osnabrück'], 'wars_ended' => ['Thirty Years\' War', 'Eighty Years\' War']]),
+                'attributes' => json_encode([
+                    'treaty_subtype' => 'peace_treaty',
+                    'key_provisions' => 'Recognized sovereignty of German princes over their territories; confirmed Dutch and Swiss independence; established religious toleration for Catholics, Lutherans, and Calvinists within the Empire',
+                    'duration' => 'Permanent',
+                ]),
                 'source_citations' => json_encode([['source' => 'Croxton, Westphalia: The Last Christian Peace', 'year' => 2013]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
@@ -699,7 +899,13 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#2F4F4F',
                 'tags' => $this->textArray(['plague', 'pandemic', 'medieval', 'death', 'yersinia_pestis']),
                 'alternative_names' => $this->textArray(['Great Pestilence', 'Great Mortality', 'Pestilencia']),
-                'attributes' => json_encode(['pathogen' => 'Yersinia pestis', 'estimated_deaths' => '75–200 million', 'mortality_rate_europe' => '30–60%']),
+                'attributes' => json_encode([
+                    'epidemic_subtype' => 'plague_bacterial',
+                    'severity' => 'pandemic',
+                    'spread_vector' => 'Flea bites (Xenopsylla cheopis on rats); secondary pneumonic transmission via respiratory droplets',
+                    'societal_responses' => 'Quarantine protocols in Italian city-states; flagellant movements; persecution of Jewish communities; collapse of Church authority',
+                    'economic_consequences' => 'Acute labor shortage drove up wages; collapse of long-distance trade networks; abandonment of marginal agricultural land',
+                ]),
                 'source_citations' => json_encode([['source' => 'Benedictow, The Black Death 1346-1353', 'year' => 2004]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
@@ -730,7 +936,12 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#696969',
                 'tags' => $this->textArray(['printing', 'gutenberg', 'technology', 'renaissance', 'books']),
                 'alternative_names' => $this->textArray(['Movable Type Press', 'Gutenberg Press']),
-                'attributes' => json_encode(['inventor' => 'Johannes Gutenberg', 'first_major_work' => 'Gutenberg Bible (B42)', 'copies_printed' => 180]),
+                'attributes' => json_encode([
+                    'acquisition_method' => 'independent_invention',
+                    'diffusion_speed' => 'rapid',
+                    'impact' => 'Within 50 years of Gutenberg\'s press, over 20 million books printed across Europe; enabled standardization of vernacular languages and undermined the Church\'s monopoly on textual authority',
+                    'adaptation_notes' => 'Gutenberg combined existing screw-press technology with oil-based inks and alloy type; first major product was the 42-line Bible (B42) c. 1455',
+                ]),
                 'source_citations' => json_encode([['source' => 'Eisenstein, The Printing Press as an Agent of Change', 'year' => 1979]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
@@ -761,7 +972,14 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#BDB76B',
                 'tags' => $this->textArray(['law', 'charter', 'england', 'rights', 'constitutional']),
                 'alternative_names' => $this->textArray(['Great Charter', 'Magna Carta Libertatum']),
-                'attributes' => json_encode(['signatories' => ['King John', 'English barons'], 'clauses' => 63, 'surviving_copies' => 4]),
+                'attributes' => json_encode([
+                    'reform_subtype' => 'constitutional_change',
+                    'provisions' => '63 clauses covering habeas corpus, trial by jury of peers, limits on royal taxation, and freedom of the Church; clause 39 established no free man shall be imprisoned without lawful judgment',
+                    'motivation' => 'Baronial revolt against King John\'s arbitrary rule, heavy taxation, and military failures in France',
+                    'longevity' => 'Reissued multiple times; three clauses remain statute law in England to this day',
+                    'effects_intended' => 'Constrain arbitrary royal power and protect barons\' feudal rights',
+                    'effects_unintended' => 'Became the cornerstone of English constitutionalism and individual liberty far beyond its original baronial context',
+                ]),
                 'source_citations' => json_encode([['source' => 'Holt, Magna Carta', 'year' => 1992]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
@@ -772,7 +990,7 @@ class EntitySeeder extends Seeder
                 'name' => 'Migration Period',
                 'entity_type' => 'migration',
                 'entity_group' => 'EVENT',
-                'summary' => 'The large-scale movements of Germanic, Slavic, Hunnic, and other peoples into and across Europe from roughly 375 to 568 CE, triggered partly by the Hunnic invasions.',
+                'summary' => 'The large-scale movements of Germanic, Slavic, Hunnic, and other peoples into and across Europe from roughly 375 to 568 CE, triggered partly by the Hunnic invasions from Central Asia.',
                 'significance' => 'Reshaped the ethnic, linguistic, and political map of Europe, leading to the fall of the Western Roman Empire and the formation of medieval kingdoms.',
                 'impact_score' => 88,
                 'temporal_start' => '0375',
@@ -792,7 +1010,13 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#8FBC8F',
                 'tags' => $this->textArray(['migration', 'germanic', 'barbarian', 'late_antiquity', 'roman_fall']),
                 'alternative_names' => $this->textArray(['Völkerwanderung', 'Barbarian Invasions']),
-                'attributes' => json_encode(['major_groups' => ['Goths', 'Vandals', 'Huns', 'Franks', 'Lombards', 'Angles', 'Saxons']]),
+                'attributes' => json_encode([
+                    'migration_subtype' => 'invasion',
+                    'migrating_group' => 'Germanic peoples (Goths, Vandals, Franks, Lombards), Huns, Slavs, and Avars',
+                    'voluntary' => false,
+                    'impact_origin' => 'Collapse of Hunnic pressure triggered chain displacement of steppe peoples westward',
+                    'impact_destination' => 'Dissolution of Western Roman administration; formation of Visigothic, Frankish, Vandal, and Lombard kingdoms across former Roman territory',
+                ]),
                 'source_citations' => json_encode([['source' => 'Heather, Empires and Barbarians', 'year' => 2009]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
@@ -817,6 +1041,10 @@ class EntitySeeder extends Seeder
         // Roman Denarius
         $denariusId = '40000000-0000-0000-0000-000000000003';
         $this->geometries[$denariusId] = ['lat' => 41.9028, 'lon' => 12.4964];
+
+        // Indian Ocean Trade Network
+        $indianOceanId = '40000000-0000-0000-0000-000000000004';
+        $this->geometries[$indianOceanId] = ['lat' => 12.0, 'lon' => 65.0];
 
         return [
             [
@@ -844,7 +1072,9 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#B8860B',
                 'tags' => $this->textArray(['trade', 'silk', 'eurasia', 'caravan', 'exchange']),
                 'alternative_names' => $this->textArray(['Seidenstraße', 'Silk Route']),
-                'attributes' => json_encode(['length_km' => 6400, 'key_goods' => ['silk', 'spices', 'precious metals', 'paper', 'gunpowder']]),
+                'attributes' => json_encode([
+                    'route_subtype' => 'mixed',
+                ]),
                 'source_citations' => json_encode([['source' => 'Hansen, The Silk Road: A New History', 'year' => 2012]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
@@ -875,7 +1105,14 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#708090',
                 'tags' => $this->textArray(['tin', 'bronze_age', 'mining', 'cornwall', 'trade']),
                 'alternative_names' => $this->textArray(['Cassiterides tin', 'Tin Islands']),
-                'attributes' => json_encode(['mineral' => 'cassiterite', 'use' => 'bronze alloy production']),
+                'attributes' => json_encode([
+                    'resource_category' => 'metal_strategic',
+                    'renewability' => 'finite',
+                    'is_tradeable' => true,
+                    'substitutability' => 'No direct substitute for tin in bronze alloy; critical strategic bottleneck for Bronze Age polities',
+                    'transport_difficulty' => 'High; required long-distance overland and maritime routes from Britain to Mediterranean',
+                    'cultural_value' => 'Associated with wealth and military power through bronze weaponry and prestige goods',
+                ]),
                 'source_citations' => json_encode([['source' => 'Penhallurick, Tin in Antiquity', 'year' => 1986]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
@@ -906,8 +1143,43 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#C0C0C0',
                 'tags' => $this->textArray(['currency', 'roman', 'silver', 'coin', 'money']),
                 'alternative_names' => $this->textArray(['Denarii']),
-                'attributes' => json_encode(['metal' => 'silver', 'initial_weight_grams' => 4.5, 'initial_purity_percent' => 95]),
+                'attributes' => json_encode([
+                    'currency_type' => 'coin_metal',
+                ]),
                 'source_citations' => json_encode([['source' => 'Crawford, Roman Republican Coinage', 'year' => 1974]]),
+                'created_by' => 'seeder',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'entity_id' => $indianOceanId,
+                'name' => 'Indian Ocean Trade Network',
+                'entity_type' => 'trade_route',
+                'entity_group' => 'ECONOMY',
+                'summary' => 'A maritime trade system spanning the Indian Ocean, connecting East Africa, Arabia, Persia, India, and Southeast Asia through monsoon-driven sea routes from at least the 1st century BCE.',
+                'significance' => 'Predated and outlasted the Silk Road as a channel for spices, textiles, ivory, and gold, shaping the spread of Islam, Hinduism, and Buddhism across the Indian Ocean rim.',
+                'impact_score' => 88,
+                'temporal_start' => '-0100',
+                'temporal_end' => '1500',
+                'date_raw' => 'c. 100 BCE – 1500 CE',
+                'location_name' => 'Indian Ocean (Africa–Arabia–India–Southeast Asia)',
+                'wikidata_id' => 'Q1061967',
+                'verification_status' => 'human_verified',
+                'confidence' => 'high',
+                'date_method' => 'nlp_approximate',
+                'date_confidence' => 'medium',
+                'duration_type' => 'period',
+                'location_confidence' => 'medium',
+                'location_method' => 'source_database',
+                'display_priority' => 8,
+                'icon_class' => 'trade_ship',
+                'entity_color' => '#1E90FF',
+                'tags' => $this->textArray(['trade', 'maritime', 'indian_ocean', 'monsoon', 'spice']),
+                'alternative_names' => $this->textArray(['Maritime Silk Road', 'Spice Route']),
+                'attributes' => json_encode([
+                    'route_subtype' => 'maritime',
+                ]),
+                'source_citations' => json_encode([['source' => 'Sheriff, Dhow Cultures of the Indian Ocean', 'year' => 2010]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -948,6 +1220,10 @@ class EntitySeeder extends Seeder
         $compassId = '50000000-0000-0000-0000-000000000007';
         $this->geometries[$compassId] = ['lat' => 34.2658, 'lon' => 108.9541];
 
+        // Histories of Herodotus
+        $herodotusId = '50000000-0000-0000-0000-000000000008';
+        $this->geometries[$herodotusId] = ['lat' => 37.0382, 'lon' => 27.4241];
+
         return [
             [
                 'entity_id' => $iliadId,
@@ -974,7 +1250,13 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#8B4513',
                 'tags' => $this->textArray(['epic', 'homer', 'trojan_war', 'greek', 'literature']),
                 'alternative_names' => $this->textArray(['Ἰλιάς', 'Ilias']),
-                'attributes' => json_encode(['author' => 'Homer (attributed)', 'lines' => 15693, 'books' => 24, 'language' => 'Ancient Greek']),
+                'attributes' => json_encode([
+                    'work_subtype' => 'literary_text',
+                    'style_genre' => 'Epic poetry in dactylic hexameter; oral tradition crystallised into written form',
+                    'preservation_status' => 'extant',
+                    'current_location' => 'Preserved in manuscripts; oldest near-complete MSS from 10th century CE (Venetus A, Venice)',
+                    'influence_description' => 'Canonical educational text throughout antiquity; model for Virgil\'s Aeneid; continues to shape Western literature, film, and philosophy',
+                ]),
                 'source_citations' => json_encode([['source' => 'Kirk, The Iliad: A Commentary', 'year' => 1985]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
@@ -1005,7 +1287,12 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#FFD700',
                 'tags' => $this->textArray(['renaissance', 'humanism', 'art', 'italy', 'rebirth']),
                 'alternative_names' => $this->textArray(['Rinascimento']),
-                'attributes' => json_encode(['key_figures' => ['Leonardo da Vinci', 'Michelangelo', 'Petrarch', 'Machiavelli'], 'origin_city' => 'Florence']),
+                'attributes' => json_encode([
+                    'intellectual_movement_subtype' => 'artistic_style',
+                    'core_ideas' => 'Revival of Greco-Roman classical learning; humanism placing mankind at the centre of inquiry; naturalism in art and empirical observation',
+                    'methodology' => 'Direct study of ancient texts and artefacts; perspective and proportion in visual arts; vernacular literature alongside Latin scholarship',
+                    'style_characteristics' => 'Linear perspective, chiaroscuro, anatomical realism in painting and sculpture; Petrarchan sonnet in literature; Ciceronian Latin in prose',
+                ]),
                 'source_citations' => json_encode([['source' => 'Burckhardt, The Civilization of the Renaissance in Italy', 'year' => 1860]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
@@ -1036,7 +1323,12 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#D2691E',
                 'tags' => $this->textArray(['script', 'mycenaean', 'greek', 'bronze_age', 'decipherment']),
                 'alternative_names' => $this->textArray(['Mycenaean script']),
-                'attributes' => json_encode(['type' => 'syllabary', 'signs' => 87, 'deciphered_by' => 'Michael Ventris', 'decipherment_year' => 1952]),
+                'attributes' => json_encode([
+                    'language_family' => 'Indo-European, Hellenic',
+                    'language_status' => 'extinct',
+                    'writing_system' => 'Syllabic script (87 signs); adapted from Minoan Linear A which remains undeciphered',
+                    'iso_639_code' => null,
+                ]),
                 'source_citations' => json_encode([['source' => 'Chadwick, The Decipherment of Linear B', 'year' => 1958]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
@@ -1067,7 +1359,12 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#006400',
                 'tags' => $this->textArray(['islam', 'quran', 'scripture', 'arabic', 'revelation']),
                 'alternative_names' => $this->textArray(['القرآن', 'Al-Quran', 'Koran']),
-                'attributes' => json_encode(['chapters' => 114, 'verses' => 6236, 'language' => 'Classical Arabic']),
+                'attributes' => json_encode([
+                    'text_type' => 'scripture',
+                    'composition_date' => '609–632 CE; standardised under Caliph Uthman c. 650 CE',
+                    'genre' => 'prophecy',
+                    'material' => 'Oral recitation; early written on parchment, bone, and palm leaves; codified in written mushaf form',
+                ]),
                 'source_citations' => json_encode([['source' => 'Neuwirth, The Quran in Context', 'year' => 2010]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
@@ -1098,7 +1395,12 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#D2B48C',
                 'tags' => $this->textArray(['law', 'babylon', 'mesopotamia', 'hammurabi', 'ancient']),
                 'alternative_names' => $this->textArray(['Codex Hammurabi']),
-                'attributes' => json_encode(['laws' => 282, 'medium' => 'basalt stele', 'current_location' => 'Louvre Museum, Paris']),
+                'attributes' => json_encode([
+                    'promulgation_date' => 'c. 1754 BCE under Hammurabi, sixth king of the First Babylonian dynasty',
+                    'legal_philosophy' => 'Lex talionis (proportional retribution); hierarchical penalties based on social class; commercial and family law provisions',
+                    'enforcement_duration' => 'Remained authoritative reference throughout the Old Babylonian period; copied as scribal exercise for over a millennium',
+                    'modern_significance' => 'Earliest near-complete law code; foundational example of written codification; displayed in the Louvre, Paris',
+                ]),
                 'source_citations' => json_encode([['source' => 'Roth, Law Collections from Mesopotamia and Asia Minor', 'year' => 1997]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
@@ -1129,7 +1431,11 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#A0522D',
                 'tags' => $this->textArray(['reformation', 'protestant', 'luther', 'religion', 'christianity']),
                 'alternative_names' => $this->textArray(['Reformation', 'Lutheran Reformation']),
-                'attributes' => json_encode(['initiator' => 'Martin Luther', 'key_figures' => ['John Calvin', 'Huldrych Zwingli', 'Henry VIII'], 'trigger_document' => 'Ninety-five Theses']),
+                'attributes' => json_encode([
+                    'movement_subtype' => 'reform_movement',
+                    'core_doctrines' => 'Sola scriptura (Scripture alone), sola fide (faith alone), sola gratia (grace alone); rejection of papal infallibility and indulgences; priesthood of all believers',
+                    'institutional_structure' => 'Decentralised; Lutheran state churches in Germany and Scandinavia; Calvinist presbyteries in Switzerland, France, Scotland; Anglican church under royal supremacy in England',
+                ]),
                 'source_citations' => json_encode([['source' => 'MacCulloch, The Reformation', 'year' => 2003]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
@@ -1160,12 +1466,212 @@ class EntitySeeder extends Seeder
                 'entity_color' => '#CD853F',
                 'tags' => $this->textArray(['navigation', 'compass', 'china', 'technology', 'invention']),
                 'alternative_names' => $this->textArray(['South-pointing needle', 'Sīnán']),
-                'attributes' => json_encode(['origin' => 'Han Dynasty China', 'principle' => 'magnetic polarity', 'first_maritime_use' => 'Song Dynasty (c. 1040 CE)']),
+                'attributes' => json_encode([
+                    'tech_domain' => 'navigation',
+                    'impact_description' => 'Enabled reliable open-ocean sailing independent of stars and coastlines; adopted in Europe via Arab intermediaries c. 12th century CE; directly enabled Portuguese and Iberian Age of Discovery',
+                ]),
                 'source_citations' => json_encode([['source' => 'Needham, Science and Civilisation in China, Vol. 4', 'year' => 1962]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
+            [
+                'entity_id' => $herodotusId,
+                'name' => 'Histories of Herodotus',
+                'entity_type' => 'cultural_work',
+                'entity_group' => 'CULTURE',
+                'summary' => 'A prose narrative composed by Herodotus of Halicarnassus around 440 BCE, recounting the origins and course of the Greco-Persian Wars alongside ethnographic descriptions of the known world.',
+                'significance' => 'Widely regarded as the founding text of Western historiography; introduced systematic inquiry (historia) as a method for understanding past events and foreign cultures.',
+                'impact_score' => 90,
+                'temporal_start' => '-0450',
+                'temporal_end' => '-0420',
+                'date_raw' => 'c. 450–420 BCE (composition)',
+                'location_name' => 'Halicarnassus (Bodrum, Turkey)',
+                'wikidata_id' => 'Q165800',
+                'verification_status' => 'expert_verified',
+                'confidence' => 'medium',
+                'date_method' => 'nlp_approximate',
+                'date_confidence' => 'medium',
+                'duration_type' => 'uncertain',
+                'location_confidence' => 'medium',
+                'location_method' => 'pleiades',
+                'display_priority' => 8,
+                'icon_class' => 'scroll',
+                'entity_color' => '#8B7355',
+                'tags' => $this->textArray(['history', 'herodotus', 'greek', 'historiography', 'persian_wars']),
+                'alternative_names' => $this->textArray(['Ἱστορίαι', 'The Histories']),
+                'attributes' => json_encode([
+                    'work_subtype' => 'historical_text',
+                    'style_genre' => 'Prose narrative history in Ionic Greek; combines political, military, ethnographic, and geographic inquiry',
+                    'preservation_status' => 'extant',
+                    'current_location' => 'Preserved in medieval manuscripts; critical edition by Hude (Oxford Classical Texts)',
+                    'influence_description' => 'Founded the Western historical tradition; influenced Thucydides and all subsequent historians; primary source for the Greco-Persian Wars',
+                ]),
+                'source_citations' => json_encode([['source' => 'Herodotus, Histories (trans. Godley, Loeb Classical Library)', 'year' => -440]]),
+                'created_by' => 'seeder',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
         ];
+    }
+
+    /**
+     * Seed geometry snapshots for selected key entities using raw SQL to satisfy
+     * the gs_has_geometry CHECK constraint (PostgreSQL CHECK cannot be deferred).
+     *
+     * Each DB::statement follows the exact column order used in GeometrySnapshotFactory::createOne().
+     */
+    private function snapshotEntities(): void
+    {
+        $now = now();
+
+        $snapshots = [
+            // ── Roman Empire – three territorial snapshots ──────────────────
+            [
+                'snapshot_id' => 'a0000000-0000-0000-0000-000000000001',
+                'entity_id' => '10000000-0000-0000-0000-000000000001',
+                'year_start' => -27,
+                'year_end' => 14,
+                'geojson' => json_encode([
+                    'type' => 'Polygon',
+                    'coordinates' => [[[-9.5, 36.0], [25.0, 36.0], [25.0, 52.0], [-9.5, 52.0], [-9.5, 36.0]]],
+                ]),
+                'label' => 'Roman Empire under Augustus (27 BCE – 14 CE)',
+                'confidence' => 'medium',
+                'notes' => 'Approximate extent at accession of Augustus; excludes later Trajanic conquests',
+                'display_priority' => 8,
+            ],
+            [
+                'snapshot_id' => 'a0000000-0000-0000-0000-000000000002',
+                'entity_id' => '10000000-0000-0000-0000-000000000001',
+                'year_start' => 117,
+                'year_end' => 117,
+                'geojson' => json_encode([
+                    'type' => 'Polygon',
+                    'coordinates' => [[[-9.5, 30.0], [40.0, 30.0], [40.0, 55.0], [-9.5, 55.0], [-9.5, 30.0]]],
+                ]),
+                'label' => 'Roman Empire at maximum extent under Trajan (117 CE)',
+                'confidence' => 'medium',
+                'notes' => 'Greatest territorial extent including Dacia, Mesopotamia, and Armenia',
+                'display_priority' => 10,
+            ],
+            [
+                'snapshot_id' => 'a0000000-0000-0000-0000-000000000003',
+                'entity_id' => '10000000-0000-0000-0000-000000000001',
+                'year_start' => 395,
+                'year_end' => 476,
+                'geojson' => json_encode([
+                    'type' => 'Polygon',
+                    'coordinates' => [[[-9.5, 36.0], [15.0, 36.0], [15.0, 50.0], [-9.5, 50.0], [-9.5, 36.0]]],
+                ]),
+                'label' => 'Western Roman Empire (395–476 CE)',
+                'confidence' => 'medium',
+                'notes' => 'After the permanent division of 395 CE; territory progressively lost to Germanic kingdoms',
+                'display_priority' => 6,
+            ],
+
+            // ── Ottoman Empire – two territorial snapshots ───────────────────
+            [
+                'snapshot_id' => 'a0000000-0000-0000-0000-000000000004',
+                'entity_id' => '10000000-0000-0000-0000-000000000002',
+                'year_start' => 1453,
+                'year_end' => 1481,
+                'geojson' => json_encode([
+                    'type' => 'Polygon',
+                    'coordinates' => [[[22.0, 36.0], [42.0, 36.0], [42.0, 43.0], [22.0, 43.0], [22.0, 36.0]]],
+                ]),
+                'label' => 'Ottoman Empire after fall of Constantinople (1453–1481)',
+                'confidence' => 'medium',
+                'notes' => 'Territory under Mehmed II following conquest of Constantinople and consolidation of Anatolia and Balkans',
+                'display_priority' => 8,
+            ],
+            [
+                'snapshot_id' => 'a0000000-0000-0000-0000-000000000005',
+                'entity_id' => '10000000-0000-0000-0000-000000000002',
+                'year_start' => 1566,
+                'year_end' => 1566,
+                'geojson' => json_encode([
+                    'type' => 'Polygon',
+                    'coordinates' => [[[-5.0, 22.0], [50.0, 22.0], [50.0, 48.0], [-5.0, 48.0], [-5.0, 22.0]]],
+                ]),
+                'label' => 'Ottoman Empire at maximum extent under Suleiman the Magnificent (1566)',
+                'confidence' => 'medium',
+                'notes' => 'Peak territorial control spanning North Africa, Middle East, Anatolia, and southeastern Europe',
+                'display_priority' => 10,
+            ],
+
+            // ── Byzantine Empire – two territorial snapshots ─────────────────
+            [
+                'snapshot_id' => 'a0000000-0000-0000-0000-000000000006',
+                'entity_id' => '10000000-0000-0000-0000-000000000008',
+                'year_start' => 555,
+                'year_end' => 565,
+                'geojson' => json_encode([
+                    'type' => 'Polygon',
+                    'coordinates' => [[[-5.0, 30.0], [40.0, 30.0], [40.0, 45.0], [-5.0, 45.0], [-5.0, 30.0]]],
+                ]),
+                'label' => 'Byzantine Empire at maximum extent under Justinian I (555–565 CE)',
+                'confidence' => 'medium',
+                'notes' => 'Includes reconquered North Africa, Italy, and southern Spain under Justinian\'s campaigns',
+                'display_priority' => 10,
+            ],
+            [
+                'snapshot_id' => 'a0000000-0000-0000-0000-000000000007',
+                'entity_id' => '10000000-0000-0000-0000-000000000008',
+                'year_start' => 1400,
+                'year_end' => 1453,
+                'geojson' => json_encode([
+                    'type' => 'Polygon',
+                    'coordinates' => [[[27.5, 40.5], [29.5, 40.5], [29.5, 41.5], [27.5, 41.5], [27.5, 40.5]]],
+                ]),
+                'label' => 'Byzantine Empire in final decades (1400–1453)',
+                'confidence' => 'high',
+                'notes' => 'By 1400 the empire was reduced essentially to Constantinople and its immediate hinterland',
+                'display_priority' => 7,
+            ],
+
+            // ── Black Death – single spread snapshot ─────────────────────────
+            [
+                'snapshot_id' => 'a0000000-0000-0000-0000-000000000008',
+                'entity_id' => '30000000-0000-0000-0000-000000000005',
+                'year_start' => 1347,
+                'year_end' => 1353,
+                'geojson' => json_encode([
+                    'type' => 'Polygon',
+                    'coordinates' => [[[-10.0, 35.0], [50.0, 35.0], [50.0, 60.0], [-10.0, 60.0], [-10.0, 35.0]]],
+                ]),
+                'label' => 'Black Death spread across Europe and Near East (1347–1353)',
+                'confidence' => 'medium',
+                'notes' => 'Approximate geographic envelope of confirmed plague mortality; entered Europe via Crimea c. 1347',
+                'display_priority' => 9,
+            ],
+        ];
+
+        foreach ($snapshots as $s) {
+            DB::statement(
+                <<<'SQL'
+                    INSERT INTO geometry_snapshots
+                        (snapshot_id, entity_id, year_start, year_end,
+                         geom,
+                         label, confidence, notes, display_priority,
+                         created_by, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ST_GeomFromGeoJSON(?), ?, ?::confidence_level, ?, ?, ?, ?, ?)
+                    SQL,
+                [
+                    $s['snapshot_id'],
+                    $s['entity_id'],
+                    $s['year_start'],
+                    $s['year_end'],
+                    $s['geojson'],
+                    $s['label'] ?? null,
+                    $s['confidence'] ?? 'medium',
+                    $s['notes'] ?? null,
+                    $s['display_priority'] ?? 5,
+                    'seeder',
+                    $now,
+                    $now,
+                ],
+            );
+        }
     }
 }
