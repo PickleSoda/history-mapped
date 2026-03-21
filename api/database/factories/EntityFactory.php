@@ -49,8 +49,9 @@ class EntityFactory extends Factory
             'location_method' => fake()->randomElement(LocationResolutionMethod::cases())->value,
             'display_priority' => fake()->numberBetween(1, 10),
             'icon_class' => fake()->randomElement(IconClass::cases())->value,
-            'entity_color' => fake()->hexColor(),
-            'attributes' => json_encode([]),
+            'attributes' => json_encode([
+                'entity_color' => fake()->hexColor(),
+            ]),
             'created_by' => 'factory',
         ];
     }

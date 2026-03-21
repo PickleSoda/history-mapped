@@ -1,6 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,8 +12,11 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import AppLayout from '@/layouts/app-layout';
+import * as RelationshipRoutes from '@/actions/App/Http/Controllers/Admin/RelationshipController';
 import { destroy, edit } from '@/routes/entities';
 import type { BreadcrumbItem, EntityDetail } from '@/types';
+
+const RelationshipPanel = lazy(() => import('@/components/relationship-panel'));
 
 type Props = {
     entity: EntityDetail;
@@ -22,6 +25,7 @@ type Props = {
 export default function EntityShow({ entity }: Props) {
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const [relationshipOpen, setRelationshipOpen] = useState(false);
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
@@ -117,6 +121,42 @@ export default function EntityShow({ entity }: Props) {
                         </div>
                     </div>
                 )}
+
+                {/* Relationships — collapsible, read-only */}
+                <div className="rounded-lg border">
+                    <button
+                        type="button"
+                        onClick={() => setRelationshipOpen((v) => !v)}
+                        className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium"
+                    >
+                        <span>Relationships</span>
+                        <span className="text-muted-foreground text-xs">
+                            {relationshipOpen ? 'Collapse' : 'Expand'}
+                        </span>
+                    </button>
+
+                    {relationshipOpen && (
+                        <div className="border-t p-4">
+                            <Suspense
+                                fallback={
+                                    <div className="flex h-24 items-center justify-center text-sm text-muted-foreground">
+                                        Loading relationships…
+                                    </div>
+                                }
+                            >
+                                <RelationshipPanel
+                                    entityId={entity.id}
+                                    listUrl={RelationshipRoutes.index.url(entity.id)}
+                                    storeUrl={RelationshipRoutes.store.url(entity.id)}
+                                    deleteUrlFn={(relationshipId) =>
+                                        RelationshipRoutes.destroy.url({ entity: entity.id, relationship: relationshipId })
+                                    }
+                                    readonly
+                                />
+                            </Suspense>
+                        </div>
+                    )}
+                </div>
 
                 {/* Delete confirmation dialog */}
                 <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>

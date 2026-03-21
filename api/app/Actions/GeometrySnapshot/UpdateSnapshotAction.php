@@ -34,6 +34,9 @@ class UpdateSnapshotAction
                 'label' => 'label',
                 'confidence' => 'confidence',
                 'notes' => 'notes',
+                'description' => 'description',
+                'relationship_id' => 'relationship_id',
+                'source_event_id' => 'source_event_id',
                 'display_priority' => 'display_priority',
             ];
 

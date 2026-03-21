@@ -22,6 +22,8 @@ class EntityResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $attrs = $this->attributes ?? [];
+
         return [
             'id' => $this->entity_id,
             'name' => $this->name,
@@ -35,17 +37,17 @@ class EntityResource extends JsonResource
             'significance' => $this->significance,
             'tags' => $this->tags,
             'impact_score' => $this->impact_score,
-            'attributes' => $this->attributes,
+            'attributes' => $attrs,
 
             // Temporal
             'temporal_start' => $this->temporal_start,
             'temporal_end' => $this->temporal_end,
-            'date_raw' => $this->date_raw,
+            'date_raw' => $attrs['date_raw'] ?? null,
             'date_method' => $this->date_method?->value,
             'date_confidence' => $this->date_confidence?->value,
             'duration_type' => $this->duration_type?->value,
-            'temporal_display_range' => $this->temporal_display_range,
-            'era_label' => $this->era_label,
+            'temporal_display_range' => $attrs['temporal_display_range'] ?? null,
+            'era_label' => $attrs['era_label'] ?? null,
 
             // Spatial
             'location_name' => $this->location_name,
@@ -64,24 +66,17 @@ class EntityResource extends JsonResource
             // Verification
             'verification_status' => $this->verification_status?->value,
             'confidence' => $this->confidence?->value,
-            'confidence_notes' => $this->confidence_notes,
-            'validation_flags' => $this->validation_flags,
-            'confidence_breakdown' => $this->confidence_breakdown,
+            'confidence_notes' => $attrs['confidence_notes'] ?? null,
+            'validation_flags' => $attrs['validation_flags'] ?? null,
 
             // Display
             'display_priority' => $this->display_priority,
             'icon_class' => $this->icon_class?->value,
-            'entity_color' => $this->entity_color,
+            'entity_color' => $attrs['entity_color'] ?? null,
 
             // Sources / Media
             'source_citations' => $this->source_citations,
-            'media_refs' => $this->media_refs,
-            'source_diversity_score' => $this->source_diversity_score,
-
-            // Computed
-            'relationship_summary' => $this->relationship_summary,
-            'nearby_entity_count' => $this->nearby_entity_count,
-            'cluster_id' => $this->cluster_id,
+            'media_refs' => $attrs['media_refs'] ?? null,
 
             // Relationships (conditionally loaded)
             'relationships' => $this->when(

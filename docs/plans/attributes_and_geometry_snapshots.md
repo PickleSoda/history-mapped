@@ -129,10 +129,15 @@ CREATE TABLE geometry_snapshots (
 
     -- Metadata
     label             TEXT,                     -- e.g. "Roman Empire at greatest extent"
+    description       TEXT,                     -- Why this geometry exists (see §4.1)
     confidence        confidence_level,         -- high/medium/low/unresolved
     source_citations  JSONB,                    -- [{source_id, page, quote}]
     notes             TEXT,                     -- Editorial notes about this snapshot
     display_priority  INTEGER DEFAULT 0,        -- For overlapping periods
+
+    -- Provenance: what caused this snapshot (see §4.2)
+    source_event_id   UUID REFERENCES entities(entity_id) ON DELETE SET NULL,        -- Event that triggered a territory change
+    relationship_id   UUID REFERENCES relationships(relationship_id) ON DELETE CASCADE, -- Relationship that placed entity here
 
     created_at        TIMESTAMP DEFAULT now(),
     updated_at        TIMESTAMP DEFAULT now(),
@@ -141,6 +146,8 @@ CREATE TABLE geometry_snapshots (
 
 -- Indexes
 CREATE INDEX gs_entity_id_idx ON geometry_snapshots (entity_id);
+CREATE INDEX gs_relationship_id_idx ON geometry_snapshots (relationship_id) WHERE relationship_id IS NOT NULL;
+CREATE INDEX gs_source_event_id_idx ON geometry_snapshots (source_event_id) WHERE source_event_id IS NOT NULL;
 CREATE INDEX gs_year_range_idx ON geometry_snapshots (year_start, year_end);
 CREATE INDEX gs_entity_year_idx ON geometry_snapshots (entity_id, year_start, year_end);
 CREATE INDEX gs_geom_gist_idx ON geometry_snapshots USING GIST (geom);
@@ -176,7 +183,104 @@ geometry_snapshots:
   snapshot 6: year_start=395,  year_end=476,  territory_geom=<Western empire only>
 ```
 
-### Handling Overlapping Periods
+### 4.1 The `description` Field
+
+Every snapshot should explain **why** the entity was at that geometry during that time window. This is distinct from `label` (short display title) and `notes` (editorial housekeeping).
+
+| Field | Purpose | Example |
+|-------|---------|--------|
+| `label` | Short display title for the map/timeline UI | "Augustan borders" |
+| `description` | Contextual explanation of why this geometry exists | "Territory after annexation of Egypt following the Battle of Actium (31 BCE)" |
+| `notes` | Internal editorial notes (not user-facing) | "Polygon traced from Barrington Atlas plate 102" |
+
+For **person** snapshots, `description` answers "why were they here?":
+- "Present in Münster as signatory of the Treaty of Westphalia"
+- "Commanded the besieging forces during the Siege of Jerusalem"
+- "Exiled to Corsica by order of Claudius"
+
+For **territory** snapshots, `description` answers "what caused this border change?":
+- "Expansion following the conquest of Gaul (58–50 BCE)"
+- "Western and Eastern halves after the division under Theodosius I"
+
+### 4.2 Provenance: `relationship_id` vs `source_event_id`
+
+Snapshots can be caused by two different things. Two optional FK columns capture this:
+
+| Column | FK target | ON DELETE | Use case |
+|--------|-----------|-----------|----------|
+| `relationship_id` | `relationships` | **CASCADE** | A relationship *placed* this entity here — delete the relationship, delete the snapshot |
+| `source_event_id` | `entities` | SET NULL | An event *changed territory* — delete the event, snapshot survives as standalone |
+
+At most one should be set (both NULL is valid for manually created snapshots).
+
+#### Why `relationship_id` is the right anchor for presence snapshots
+
+A relationship already encodes *both* entities, *the type of involvement*, and *a temporal window*. Linking the snapshot to the relationship rather than just the event gives us:
+
+- **Precision** — The snapshot for Cardinal Mazarin knows it came from the specific `signed_by` relationship, not just "something about the Treaty of Westphalia"
+- **Clean lifecycle** — Delete the `signed_by` relationship → the presence snapshot cascades away. No orphaned snapshots.
+- **UI affordance** — The entity detail view can show: "At Münster — via [signed_by] Treaty of Westphalia"
+- **Auto-generation trigger** — Creating a relationship of certain types automatically produces a snapshot (see patterns below)
+
+#### `source_event_id` is for territory-change snapshots
+
+When an event changes an entity's *borders* (not presence), there's no single relationship to link to. The Battle of Actium changed the Roman Empire's territory, but the snapshot is on the polity, not derived from a relationship row:
+
+```
+Entity:  Roman Empire
+  snapshot: year_start=-31, territory_geom=<post-Actium borders>
+           description: "Territory after annexation of Egypt following the Battle of Actium"
+           source_event_id: battle-of-actium-uuid
+           relationship_id: NULL
+```
+
+#### Treaty → Person snapshots (relationship-linked)
+
+When a `signed_by` relationship is created between a treaty and a person, the system auto-creates a presence snapshot:
+
+```
+Relationship:  Treaty of Westphalia ──[signed_by]──► Cardinal Mazarin
+               relationship_id: rel-123
+               temporal_start: 1648, temporal_end: 1648
+
+Auto-generated snapshot on Cardinal Mazarin:
+  geom: POINT(7.6261 51.9607)     -- copied from Treaty's geom
+  year_start: 1648, year_end: 1648 -- copied from relationship temporal window
+  label: "At Münster"
+  description: "Present as French representative for the signing of the Treaty of Westphalia"
+  relationship_id: rel-123          -- ← links to the specific relationship
+  source_event_id: NULL
+```
+
+If the `signed_by` relationship is later deleted (e.g., correction — Mazarin wasn't actually there), the snapshot cascades away automatically.
+
+#### Relationship types that trigger auto-snapshots
+
+| Relationship Type | Source Entity → Target Entity | Snapshot Created On | Geometry Copied From |
+|-------------------|-------------------------------|--------------------|-----------------------|
+| `signed_by` | Treaty → Person | Person | Treaty's geom |
+| `commanded` | Person → Military Unit | Person | Battle/event geom (via unit's `fought_at`) |
+| `fought_at` | Entity → Battle | Entity (if person) | Battle's geom |
+| `victorious_at` / `defeated_at` | Entity → Battle | Entity (if person) | Battle's geom |
+| `founded` | Person → City/Institution | Person | City/Institution's geom |
+| `born_in` / `died_in` | Person → City | Person | City's geom |
+| `resided_in` | Person → City | Person | City's geom |
+| `mediated_by` | Treaty → Person | Person | Treaty's geom |
+| `guaranteed_by` | Treaty → Entity | Entity (if person) | Treaty's geom |
+
+Not every relationship should auto-create a snapshot — only those where the relationship implies **physical presence** at a location. Abstract relationships like `influenced_by`, `caused`, or `allied_with` do not.
+
+#### Other patterns using `source_event_id` (territory changes)
+
+| Event Type | Snapshot On | What Changes |
+|------------|-------------|--------------|
+| **Battle** | Winning polity | Territory expansion/contraction polygon |
+| **Treaty** | Signatory polities | New agreed borders |
+| **Rebellion** | Polity | Territory lost or fragmented |
+| **Migration** | Migrating group | Moving geometry from origin to destination |
+| **Tech adoption** | Technology | Spread snapshot at adoption location |
+
+### 4.3 Handling Overlapping Periods
 
 Snapshots may overlap when sources disagree. The `display_priority` column determines which is shown on the map. In the detail panel, all overlapping snapshots can be presented with their `confidence` and `source_citations` for scholarly comparison.
 
@@ -287,7 +391,8 @@ ORDER BY e.impact_score DESC NULLS LAST, gs.display_priority DESC;
 ### 6.2 Entity Detail — Load All Snapshots
 
 ```sql
-SELECT snapshot_id, year_start, year_end, label, confidence, notes,
+SELECT snapshot_id, year_start, year_end, label, description, confidence, notes,
+       source_event_id,
        ST_AsGeoJSON(geom)::jsonb AS geom_geojson,
        ST_AsGeoJSON(territory_geom)::jsonb AS territory_geojson,
        source_citations
@@ -351,7 +456,8 @@ The entity detail response (`GET /api/v1/entities/{entityId}`) includes a `geome
   - UUID primary key, entity_id FK with CASCADE delete
   - `year_start` / `year_end` integer columns
   - PostGIS `geom` and `territory_geom` columns
-  - Metadata columns: `label`, `confidence`, `source_citations`, `notes`, `display_priority`
+  - Metadata columns: `label`, `description`, `confidence`, `source_citations`, `notes`, `display_priority`
+  - Provenance FKs: `source_event_id` (→entities, SET NULL), `relationship_id` (→relationships, CASCADE)
   - Timestamps and `created_by`
   - All indexes from Section 4
   - CHECK constraints (has geometry, valid year range)
@@ -389,11 +495,12 @@ The entity detail response (`GET /api/v1/entities/{entityId}`) includes a `geome
 - [ ] Create `App\Actions\GeometrySnapshot\CreateSnapshotAction`
 - [ ] Create `App\Actions\GeometrySnapshot\UpdateSnapshotAction`
 - [ ] Create `App\Actions\GeometrySnapshot\DeleteSnapshotAction`
+- [ ] Create `App\Actions\GeometrySnapshot\CreateLinkedSnapshotsAction` — auto-generates presence snapshots when a relationship of a snapshot-triggering type is created (e.g., `signed_by`, `fought_at`, `founded`, `born_in`)
 
 ### DTOs
 
 - [ ] Create `App\DTOs\GeometrySnapshotData`
-  - Properties: `entityId`, `yearStart`, `yearEnd`, `geom`, `territoryGeom`, `label`, `confidence`, `sourceCitations`, `notes`, `displayPriority`
+  - Properties: `entityId`, `yearStart`, `yearEnd`, `geom`, `territoryGeom`, `label`, `description`, `confidence`, `sourceCitations`, `notes`, `displayPriority`, `sourceEventId`, `relationshipId`
 
 ### HTTP Layer
 

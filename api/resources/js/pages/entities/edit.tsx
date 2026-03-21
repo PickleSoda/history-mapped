@@ -2,6 +2,7 @@ import { Head, router } from '@inertiajs/react';
 import { lazy, Suspense, useState } from 'react';
 import { update } from '@/routes/entities';
 import * as SnapshotRoutes from '@/actions/App/Http/Controllers/Admin/GeometrySnapshotController';
+import * as RelationshipRoutes from '@/actions/App/Http/Controllers/Admin/RelationshipController';
 import EntityForm, { defaultFormData, type EntityFormData } from '@/components/entity-form';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
@@ -9,6 +10,7 @@ import type { BreadcrumbItem, EntityDetail, EntityFormOptions } from '@/types';
 
 const MapEditor = lazy(() => import('@/components/map-editor'));
 const SnapshotBuilder = lazy(() => import('@/components/snapshot-builder'));
+const RelationshipPanel = lazy(() => import('@/components/relationship-panel'));
 
 type GeoJsonGeometry = Record<string, unknown> | null;
 
@@ -80,6 +82,7 @@ export default function EntityEdit({ entity, formOptions }: Props) {
     const [territoryGeojson, setTerritoryGeojson] = useState<GeoJsonGeometry>(entity.territory_geojson ?? null);
     const [mapOpen, setMapOpen] = useState(false);
     const [snapshotOpen, setSnapshotOpen] = useState(false);
+    const [relationshipOpen, setRelationshipOpen] = useState(false);
 
     function handleChange<K extends keyof EntityFormData>(field: K, value: EntityFormData[K]) {
         setData((prev) => ({ ...prev, [field]: value }));
@@ -229,6 +232,40 @@ export default function EntityEdit({ entity, formOptions }: Props) {
                                     storeUrl={SnapshotRoutes.store.url(entity.id)}
                                     updateUrlFn={(snapshotId) => SnapshotRoutes.update.url({ entity: entity.id, snapshot: snapshotId })}
                                     deleteUrlFn={(snapshotId) => SnapshotRoutes.destroy.url({ entity: entity.id, snapshot: snapshotId })}
+                                />
+                            </Suspense>
+                        </div>
+                    )}
+                </div>
+                {/* Relationship panel — collapsible */}
+                <div className="mt-4 rounded-lg border">
+                    <button
+                        type="button"
+                        onClick={() => setRelationshipOpen((v) => !v)}
+                        className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium"
+                    >
+                        <span>Relationships</span>
+                        <span className="text-muted-foreground text-xs">
+                            {relationshipOpen ? 'Collapse' : 'Expand'}
+                        </span>
+                    </button>
+
+                    {relationshipOpen && (
+                        <div className="border-t p-4">
+                            <Suspense
+                                fallback={
+                                    <div className="flex h-24 items-center justify-center text-sm text-muted-foreground">
+                                        Loading relationships…
+                                    </div>
+                                }
+                            >
+                                <RelationshipPanel
+                                    entityId={entity.id}
+                                    listUrl={RelationshipRoutes.index.url(entity.id)}
+                                    storeUrl={RelationshipRoutes.store.url(entity.id)}
+                                    deleteUrlFn={(relationshipId) =>
+                                        RelationshipRoutes.destroy.url({ entity: entity.id, relationship: relationshipId })
+                                    }
                                 />
                             </Suspense>
                         </div>

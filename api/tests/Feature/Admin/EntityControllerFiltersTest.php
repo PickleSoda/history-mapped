@@ -74,7 +74,7 @@ class EntityControllerFiltersTest extends TestCase
     {
         Entity::factory()
             ->withTemporalRange('-500', '-100')
-            ->create(['name' => 'Rome', 'temporal_display_range' => null]);
+            ->create(['name' => 'Rome']);
 
         $response = $this->actingAs($this->user)
             ->get(route('entities.index'));

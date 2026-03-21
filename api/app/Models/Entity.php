@@ -39,7 +39,6 @@ use Pgvector\Laravel\HasNeighbors;
     'temporal_end',
     'temporal_start_year',
     'temporal_end_year',
-    'date_raw',
     'location_name',
     'parent_entity_id',
     'successor_entity_id',
@@ -47,25 +46,13 @@ use Pgvector\Laravel\HasNeighbors;
     'confidence',
     'display_priority',
     'icon_class',
-    'entity_color',
     'created_by',
-    'embedding_version',
-    'confidence_notes',
     'date_method',
     'date_confidence',
     'duration_type',
     'location_confidence',
     'location_method',
-    'validation_flags',
     'source_citations',
-    'media_refs',
-    'confidence_breakdown',
-    'relationship_summary',
-    'source_diversity_score',
-    'temporal_display_range',
-    'nearby_entity_count',
-    'cluster_id',
-    'era_label',
 ])]
 class Entity extends Model
 {
@@ -87,7 +74,6 @@ class Entity extends Model
      */
     protected $hidden = [
         'embedding',
-        'embedding_version',
     ];
 
     /**
@@ -113,12 +99,8 @@ class Entity extends Model
             'embedding' => \Pgvector\Laravel\Vector::class,
             'attributes' => 'json',
             'source_citations' => 'json',
-            'media_refs' => 'json',
-            'confidence_breakdown' => 'json',
-            'relationship_summary' => 'json',
             'tags' => PgTextArray::class,
             'alternative_names' => PgTextArray::class,
-            'validation_flags' => PgTextArray::class,
             'review_date' => 'datetime',
         ];
     }

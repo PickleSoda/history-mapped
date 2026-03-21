@@ -30,6 +30,9 @@ readonly class GeometrySnapshotData
         public ?array $sourceCitations = null,
         public ?string $notes = null,
         public int $displayPriority = 0,
+        public ?string $description = null,
+        public ?string $relationshipId = null,
+        public ?string $sourceEventId = null,
     ) {}
 
     /**
@@ -50,6 +53,9 @@ readonly class GeometrySnapshotData
             sourceCitations: $validated['source_citations'] ?? null,
             notes: $validated['notes'] ?? null,
             displayPriority: isset($validated['display_priority']) ? (int) $validated['display_priority'] : 0,
+            description: $validated['description'] ?? null,
+            relationshipId: $validated['relationship_id'] ?? null,
+            sourceEventId: $validated['source_event_id'] ?? null,
         );
     }
 
@@ -73,6 +79,9 @@ readonly class GeometrySnapshotData
             'confidence' => $this->confidence?->value,
             'source_citations' => $this->sourceCitations,
             'notes' => $this->notes,
+            'description' => $this->description,
+            'relationship_id' => $this->relationshipId,
+            'source_event_id' => $this->sourceEventId,
         ];
 
         foreach ($optionals as $key => $value) {
