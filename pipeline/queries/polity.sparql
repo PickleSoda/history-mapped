@@ -1,0 +1,81 @@
+# POLITY group — political entities, dynasties, persons, military units
+#
+# This file contains reference SPARQL queries for the POLITY entity group.
+# The actual queries are built dynamically in wikidata.py using type_configs.py,
+# but these serve as documentation and can be used for manual testing at
+# https://query.wikidata.org/
+
+# ── Political Entities (Empires, Kingdoms, Republics, City-States) ──────────
+
+# Fetch historical sovereign states and empires with coordinates and dates
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX schema: <http://schema.org/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+
+SELECT DISTINCT ?item ?itemLabel ?itemDescription ?coord ?inception ?dissolution
+       ?wikipedia_title ?governmentForm ?governmentFormLabel ?capital ?capitalLabel
+WHERE {
+  # Instance of: sovereign state, empire, city-state, historical country
+  ?item wdt:P31/wdt:P279* ?class .
+  VALUES ?class { wd:Q3624078 wd:Q123480 wd:Q133311 wd:Q3024240 }
+
+  OPTIONAL { ?item wdt:P625 ?coord . }
+  OPTIONAL { ?item wdt:P571 ?inception . }
+  OPTIONAL { ?item wdt:P576 ?dissolution . }
+  OPTIONAL { ?item wdt:P122 ?governmentForm . }
+  OPTIONAL { ?item wdt:P36 ?capital . }
+
+  # Only historical (dissolved before 1900) — remove this filter for all
+  # FILTER(BOUND(?dissolution) && YEAR(?dissolution) < 1900)
+
+  OPTIONAL {
+    ?wikipedia_article schema:about ?item ;
+                       schema:isPartOf <https://en.wikipedia.org/> ;
+                       schema:name ?wikipedia_title .
+  }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
+}
+LIMIT 200
+
+
+# ── Dynasties ────────────────────────────────────────────────────────────────
+
+# SELECT DISTINCT ?item ?itemLabel ?itemDescription ?coord ?inception ?dissolution
+#        ?wikipedia_title ?founder ?founderLabel ?country ?countryLabel
+# WHERE {
+#   ?item wdt:P31/wdt:P279* wd:Q164950 .  # dynasty
+#   OPTIONAL { ?item wdt:P625 ?coord . }
+#   OPTIONAL { ?item wdt:P571 ?inception . }
+#   OPTIONAL { ?item wdt:P576 ?dissolution . }
+#   OPTIONAL { ?item wdt:P112 ?founder . }
+#   OPTIONAL { ?item wdt:P17 ?country . }
+#   OPTIONAL {
+#     ?wp schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> ; schema:name ?wikipedia_title .
+#   }
+#   SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
+# }
+# LIMIT 200
+
+
+# ── Historical Persons (rulers, generals, diplomats) ─────────────────────────
+
+# SELECT DISTINCT ?item ?itemLabel ?itemDescription ?birthDate ?deathDate
+#        ?birthPlace ?birthPlaceLabel ?deathPlace ?deathPlaceLabel
+#        ?wikipedia_title
+# WHERE {
+#   ?item wdt:P31 wd:Q5 .  # instance of: human
+#   ?item wdt:P39 ?position .  # has a position held (rulers, generals)
+#   ?item wdt:P569 ?birthDate .
+#   FILTER(YEAR(?birthDate) < 1800)  # historical persons
+#
+#   OPTIONAL { ?item wdt:P570 ?deathDate . }
+#   OPTIONAL { ?item wdt:P19 ?birthPlace . }
+#   OPTIONAL { ?item wdt:P20 ?deathPlace . }
+#   OPTIONAL {
+#     ?wp schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> ; schema:name ?wikipedia_title .
+#   }
+#   SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
+# }
+# LIMIT 200
