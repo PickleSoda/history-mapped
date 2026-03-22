@@ -144,7 +144,7 @@ class ImportEntitiesCommand extends Command
         if (! $this->option('skip-relationships')) {
             $this->info('Dispatching relationship resolution job…');
             if ($sync) {
-                (new ResolveRelationshipsJob($batchId))->handle();
+                app()->call([new ResolveRelationshipsJob($batchId), 'handle']);
             } else {
                 ResolveRelationshipsJob::dispatch($batchId);
             }

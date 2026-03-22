@@ -46,6 +46,16 @@ class GeometrySnapshotBuilder extends Builder
     }
 
     /**
+     * Alias for territory bounding-box filtering.
+     *
+     * Kept to match the implementation plan naming.
+     */
+    public function inBbox(float $minLng, float $minLat, float $maxLng, float $maxLat): self
+    {
+        return $this->territoryInBbox($minLng, $minLat, $maxLng, $maxLat);
+    }
+
+    /**
      * Order chronologically by year_start ascending.
      */
     public function orderChronologically(): self

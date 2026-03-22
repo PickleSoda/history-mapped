@@ -73,6 +73,37 @@ class GeometrySnapshotFactory extends Factory
     }
 
     /**
+     * Set an explicit point/line GeoJSON geometry.
+     *
+     * @param  array<string, mixed>  $geojson
+     */
+    public function withPointGeometry(array $geojson): static
+    {
+        return $this->state(fn () => [
+            '_geojson' => json_encode($geojson),
+            '_territory_geojson' => null,
+        ]);
+    }
+
+    /**
+     * Set an explicit polygon/multipolygon territory geometry.
+     *
+     * @param  array<string, mixed>|null  $geojson
+     */
+    public function withTerritoryGeometry(?array $geojson = null): static
+    {
+        $territory = $geojson ?? [
+            'type' => 'Polygon',
+            'coordinates' => [[[12.0, 41.0], [13.0, 41.0], [13.0, 42.0], [12.0, 42.0], [12.0, 41.0]]],
+        ];
+
+        return $this->state(fn () => [
+            '_geojson' => null,
+            '_territory_geojson' => json_encode($territory),
+        ]);
+    }
+
+    /**
      * Override createOne() to use a raw INSERT that satisfies the gs_has_geometry
      * CHECK constraint by writing the geometry column in the same statement.
      *
@@ -92,35 +123,51 @@ class GeometrySnapshotFactory extends Factory
         }
 
         $geojson = $raw['_geojson'] ?? json_encode(['type' => 'Point', 'coordinates' => [0.0, 0.0]]);
+        $territoryGeojson = $raw['_territory_geojson'] ?? null;
         unset($raw['_geojson']);
+        unset($raw['_territory_geojson']);
 
         $now = now();
         $snapshotId = $raw['snapshot_id'] ?? Str::uuid()->toString();
 
-        DB::statement(
-            <<<'SQL'
-                INSERT INTO geometry_snapshots
-                    (snapshot_id, entity_id, year_start, year_end,
-                     geom,
-                     label, confidence, notes, display_priority,
-                     created_by, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ST_GeomFromGeoJSON(?), ?, ?::confidence_level, ?, ?, ?, ?, ?)
-                SQL,
-            [
-                $snapshotId,
-                $raw['entity_id'],
-                $raw['year_start'],
-                $raw['year_end'],
-                $geojson,
-                $raw['label'] ?? null,
-                $raw['confidence'] ?? null,
-                $raw['notes'] ?? null,
-                $raw['display_priority'] ?? 0,
-                $raw['created_by'] ?? 'factory',
-                $now,
-                $now,
-            ],
-        );
+        $geomExpr = $geojson !== null ? 'ST_GeomFromGeoJSON(?)' : 'NULL';
+        $territoryExpr = $territoryGeojson !== null ? 'ST_GeomFromGeoJSON(?)' : 'NULL';
+
+        $sql = <<<SQL
+            INSERT INTO geometry_snapshots
+                (snapshot_id, entity_id, year_start, year_end,
+                 geom, territory_geom,
+                 label, confidence, notes, display_priority,
+                 created_by, created_at, updated_at)
+            VALUES (?, ?, ?, ?, {$geomExpr}, {$territoryExpr}, ?, ?::confidence_level, ?, ?, ?, ?, ?)
+            SQL;
+
+        $bindings = [
+            $snapshotId,
+            $raw['entity_id'],
+            $raw['year_start'],
+            $raw['year_end'],
+        ];
+
+        if ($geojson !== null) {
+            $bindings[] = $geojson;
+        }
+
+        if ($territoryGeojson !== null) {
+            $bindings[] = $territoryGeojson;
+        }
+
+        $bindings = array_merge($bindings, [
+            $raw['label'] ?? null,
+            $raw['confidence'] ?? null,
+            $raw['notes'] ?? null,
+            $raw['display_priority'] ?? 0,
+            $raw['created_by'] ?? 'factory',
+            $now,
+            $now,
+        ]);
+
+        DB::statement($sql, $bindings);
 
         return GeometrySnapshot::findOrFail($snapshotId);
     }

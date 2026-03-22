@@ -144,6 +144,16 @@ class Entity extends Model
             ->orderBy('year_start');
     }
 
+    public function geometrySnapshotAt(int $year): ?GeometrySnapshot
+    {
+        return $this->geometrySnapshots()
+            ->where('year_start', '<=', $year)
+            ->where('year_end', '>=', $year)
+            ->orderByDesc('display_priority')
+            ->orderBy('year_start')
+            ->first();
+    }
+
     /** @return HasMany<EntityRelationship, $this> */
     public function outgoingRelationships(): HasMany
     {

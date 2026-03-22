@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Api\V1\Controllers\EntityController;
+use App\Http\Api\V1\Controllers\GeometrySnapshotController;
 use App\Http\Api\V1\Controllers\EntityRelationshipController;
 use App\Http\Api\V1\Controllers\ReferenceController;
 use App\Http\Api\V1\Controllers\SourceController;
@@ -27,6 +28,13 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/entities/{entity}', [EntityController::class, 'show'])
         ->name('api.v1.entities.show');
+
+    // Entity Geometry Snapshots
+    Route::get('/entities/{entity}/geometry-snapshots', [GeometrySnapshotController::class, 'index'])
+        ->name('api.v1.entities.geometry-snapshots.index');
+
+    Route::get('/entities/{entity}/geometry-snapshots/at/{year}', [GeometrySnapshotController::class, 'atYear'])
+        ->name('api.v1.entities.geometry-snapshots.at-year');
 
     // Entity Relationships
     Route::get('/entities/{entity}/relationships', [EntityRelationshipController::class, 'index'])
@@ -61,6 +69,16 @@ Route::prefix('v1')->group(function () {
 
         Route::delete('/entities/{entity}', [EntityController::class, 'destroy'])
             ->name('api.v1.entities.destroy');
+
+        // Geometry Snapshots (write)
+        Route::post('/entities/{entity}/geometry-snapshots', [GeometrySnapshotController::class, 'store'])
+            ->name('api.v1.entities.geometry-snapshots.store');
+
+        Route::put('/entities/{entity}/geometry-snapshots/{snapshot}', [GeometrySnapshotController::class, 'update'])
+            ->name('api.v1.entities.geometry-snapshots.update');
+
+        Route::delete('/entities/{entity}/geometry-snapshots/{snapshot}', [GeometrySnapshotController::class, 'destroy'])
+            ->name('api.v1.entities.geometry-snapshots.destroy');
 
         // Entity Relationships (write)
         Route::post('/entities/{entity}/relationships', [EntityRelationshipController::class, 'store'])
