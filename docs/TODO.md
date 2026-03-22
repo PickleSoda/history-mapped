@@ -19,7 +19,7 @@
 
 ### Progress Tracker
 
-- [ ] **Phase 0** — Stabilize Geometry Rendering Pipeline
+- [ ] **Phase 0** — Stabilize Geometry Rendering Pipeline _(in progress)_
 - [ ] **Phase 1** — OHM Basemap + Timeframe Filtering
 - [ ] **Phase 2** — Timeline-to-Map Interaction (Snapshots + Relationships)
 - [ ] **Phase 3** — Reference Existing OHM Objects
@@ -30,7 +30,8 @@
 
 - Program design complete.
 - Detailed per-phase plans documented.
-- Execution not started yet.
+- Phase 0 execution started (shared viewer + normalization extraction underway).
+- Phase 0 style/config alignment completed for viewer + editor map initialization path.
 
 ## Query Performance & Data Model
 

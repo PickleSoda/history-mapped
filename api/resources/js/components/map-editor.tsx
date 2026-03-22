@@ -14,6 +14,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Map } from 'maplibre-gl';
+import { loadHistoricalBasemapStyle } from '@/lib/map-config';
+import { normalizeToFeatureCollection } from '@/lib/geojson';
 import 'maplibre-gl/dist/maplibre-gl.css';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore — mapbox-gl-draw types reference mapbox-gl but the lib is maplibre-compatible
@@ -34,8 +36,6 @@ export type MapEditorProps = {
 };
 
 type ActiveTab = 'location' | 'territory';
-
-const OPENFREE_MAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty';
 
 const DRAW_CONTROLS_LOCATION = {
     point: true,
@@ -253,8 +253,34 @@ function MapPanel({ mapId, visible, initialGeometry, controls, onGeometryChange 
     const drawRef = useRef<MapboxDraw | null>(null);
     const initialGeometryRef = useRef(initialGeometry);
     const onChangeRef = useRef(onGeometryChange);
+    const applyingExternalGeometryRef = useRef(false);
+    const lastAppliedGeometryJsonRef = useRef<string>('');
 
     useEffect(() => { onChangeRef.current = onGeometryChange; }, [onGeometryChange]);
+    useEffect(() => { initialGeometryRef.current = initialGeometry; }, [initialGeometry]);
+
+    const applyGeometryToDraw = (geometry: GeoJsonGeometry) => {
+        const draw = drawRef.current;
+        if (!draw) {
+            return;
+        }
+
+        const featureCollection = normalizeToFeatureCollection([geometry]);
+        const nextJson = JSON.stringify(featureCollection.features);
+        if (nextJson === lastAppliedGeometryJsonRef.current) {
+            return;
+        }
+
+        applyingExternalGeometryRef.current = true;
+        draw.deleteAll();
+
+        if (featureCollection.features.length > 0) {
+            draw.set(featureCollection);
+        }
+
+        lastAppliedGeometryJsonRef.current = nextJson;
+        applyingExternalGeometryRef.current = false;
+    };
 
     // Initialise the map once on mount
     useEffect(() => {
@@ -264,23 +290,15 @@ function MapPanel({ mapId, visible, initialGeometry, controls, onGeometryChange 
 
         let cancelled = false;
 
-        // Fetch the style ourselves so we can inject `projection` before MapLibre v5
-        // processes it — MapLibre v5 crashes if `style.projection` is undefined.
-        fetch(OPENFREE_MAP_STYLE)
-            .then((res) => res.json())
+        loadHistoricalBasemapStyle()
             .then((style: Record<string, unknown>) => {
                 if (cancelled || !containerRef.current) {
                     return;
                 }
 
-                const patchedStyle = {
-                    ...style,
-                    projection: style.projection ?? { type: 'mercator' },
-                };
-
                 const map = new Map({
                     container: containerRef.current,
-                    style: patchedStyle as Parameters<typeof Map.prototype.setStyle>[0],
+                    style: style as Parameters<typeof Map.prototype.setStyle>[0],
                     center: [20, 30], // Default: roughly centred on the ancient world
                     zoom: 2,
                 });
@@ -288,7 +306,7 @@ function MapPanel({ mapId, visible, initialGeometry, controls, onGeometryChange 
                 const draw = new MapboxDraw({
                     displayControlsDefault: false,
                     controls,
-                    styles: DRAW_STYLES as unknown as MapboxDraw.DrawCustomLayerOption[],
+                    styles: DRAW_STYLES as unknown as object[],
                 });
 
                 // MapboxDraw expects a mapbox-gl Map but works with maplibre-gl at runtime
@@ -303,31 +321,17 @@ function MapPanel({ mapId, visible, initialGeometry, controls, onGeometryChange 
                     .forEach((el) => el.classList.add('maplibregl-ctrl'));
 
                 map.on('load', () => {
-                    // Load existing geometry if present
-                    const geom = initialGeometryRef.current;
-                    if (geom && typeof geom === 'object' && geom.type) {
-                        try {
-                            if (geom.type === 'FeatureCollection') {
-                                draw.set(geom as unknown as GeoJSON.FeatureCollection);
-                            } else if (geom.type === 'Feature') {
-                                draw.add(geom as unknown as GeoJSON.Feature);
-                            } else {
-                                // Raw geometry — wrap in a Feature
-                                draw.add({
-                                    type: 'Feature',
-                                    geometry: geom as unknown as GeoJSON.Geometry,
-                                    properties: {},
-                                });
-                            }
-                        } catch {
-                            // Silently ignore parse errors on initial load
-                        }
-                    }
+                    applyGeometryToDraw(initialGeometryRef.current);
                 });
 
                 // Emit changes on create/update/delete
                 const emitChange = () => {
+                    if (applyingExternalGeometryRef.current) {
+                        return;
+                    }
+
                     const fc = draw.getAll();
+                    lastAppliedGeometryJsonRef.current = JSON.stringify(fc.features);
                     if (fc.features.length === 0) {
                         onChangeRef.current(null);
                         return;
@@ -368,6 +372,16 @@ function MapPanel({ mapId, visible, initialGeometry, controls, onGeometryChange 
             setTimeout(() => mapRef.current?.resize(), 0);
         }
     }, [visible]);
+
+    useEffect(() => {
+        const draw = drawRef.current;
+        const map = mapRef.current;
+        if (!draw || !map || !map.isStyleLoaded()) {
+            return;
+        }
+
+        applyGeometryToDraw(initialGeometry);
+    }, [initialGeometry]);
 
     return (
         <div className={visible ? 'block' : 'hidden'}>

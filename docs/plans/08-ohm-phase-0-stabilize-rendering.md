@@ -80,4 +80,9 @@ Ensure geometry and territory data reliably render immediately after load/save i
 - No regressions in existing geometry snapshot feature tests.
 
 ## Status
-- Planned
+- In progress
+
+## Progress Notes
+- Shared read-only viewer extraction completed.
+- GeoJSON normalization utility extracted and reused.
+- Shared map style/config loading introduced for editor + viewer alignment.

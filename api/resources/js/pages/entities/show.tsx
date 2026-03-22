@@ -12,11 +12,11 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import AppLayout from '@/layouts/app-layout';
-import * as RelationshipRoutes from '@/actions/App/Http/Controllers/Admin/RelationshipController';
 import { destroy, edit } from '@/routes/entities';
 import type { BreadcrumbItem, EntityDetail } from '@/types';
 
 const RelationshipPanel = lazy(() => import('@/components/relationship-panel'));
+const EntityHistoryPanel = lazy(() => import('@/components/entity-history-panel'));
 
 type Props = {
     entity: EntityDetail;
@@ -26,7 +26,6 @@ export default function EntityShow({ entity }: Props) {
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [relationshipOpen, setRelationshipOpen] = useState(false);
-
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Entities', href: '/entities' },
@@ -39,6 +38,9 @@ export default function EntityShow({ entity }: Props) {
             onFinish: () => setDeleting(false),
         });
     }
+
+    const snapshotsUrl = `/entities/${entity.id}/snapshots`;
+    const relationshipsUrl = `/entities/${entity.id}/relationships`;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -122,6 +124,24 @@ export default function EntityShow({ entity }: Props) {
                     </div>
                 )}
 
+                {/* Geometry map + timeline */}
+                <div className="rounded-lg border p-4">
+                    <Suspense
+                        fallback={
+                            <div className="flex h-24 items-center justify-center text-sm text-muted-foreground">
+                                Loading map and timeline…
+                            </div>
+                        }
+                    >
+                        <EntityHistoryPanel
+                            entityGeojson={entity.geojson}
+                            entityTerritoryGeojson={entity.territory_geojson}
+                            snapshotsUrl={snapshotsUrl}
+                            relationshipsUrl={relationshipsUrl}
+                        />
+                    </Suspense>
+                </div>
+
                 {/* Relationships — collapsible, read-only */}
                 <div className="rounded-lg border">
                     <button
@@ -146,10 +166,10 @@ export default function EntityShow({ entity }: Props) {
                             >
                                 <RelationshipPanel
                                     entityId={entity.id}
-                                    listUrl={RelationshipRoutes.index.url(entity.id)}
-                                    storeUrl={RelationshipRoutes.store.url(entity.id)}
+                                    listUrl={relationshipsUrl}
+                                    storeUrl={relationshipsUrl}
                                     deleteUrlFn={(relationshipId) =>
-                                        RelationshipRoutes.destroy.url({ entity: entity.id, relationship: relationshipId })
+                                        `/entities/${entity.id}/relationships/${relationshipId}`
                                     }
                                     readonly
                                 />

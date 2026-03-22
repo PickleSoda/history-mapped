@@ -8,16 +8,18 @@
  */
 
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import HistoricalMapViewer from '@/components/historical-map-viewer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import type { GeoJsonLike } from '@/lib/geojson';
 import type { ConfidenceLevel, GeometrySnapshot } from '@/types/entity';
 
 const MapEditor = lazy(() => import('@/components/map-editor'));
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type GeoJsonGeometry = Record<string, unknown> | null;
+type GeoJsonGeometry = GeoJsonLike;
 
 type SnapshotFormData = {
     year_start: string;
@@ -420,7 +422,7 @@ function SnapshotForm({ form, errors, saving, isEditing, onChange, onSave, onCan
                 <Label htmlFor="snap-notes" className="text-xs">Notes (optional)</Label>
                 <textarea
                     id="snap-notes"
-                    className="border-input bg-background min-h-[80px] w-full rounded-md border px-3 py-2 text-sm"
+                    className="border-input bg-background min-h-20 w-full rounded-md border px-3 py-2 text-sm"
                     value={form.notes}
                     onChange={(e) => onChange('notes', e.target.value)}
                     placeholder="Editorial notes about this snapshot…"
@@ -452,6 +454,20 @@ function SnapshotForm({ form, errors, saving, isEditing, onChange, onSave, onCan
 
                 {mapOpen && (
                     <div className="border-t">
+                        <div className="border-b">
+                            <div className="px-3 py-2">
+                                <p className="text-xs font-medium">Snapshot Preview</p>
+                                <p className="text-muted-foreground text-[11px] mt-0.5">
+                                    Rendered using the shared historical map viewer.
+                                </p>
+                            </div>
+                            <HistoricalMapViewer
+                                baseGeometries={[]}
+                                overlayGeometries={[form.geojson, form.territory_geojson]}
+                                fitBounds
+                            />
+                        </div>
+
                         <Suspense
                             fallback={
                                 <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
