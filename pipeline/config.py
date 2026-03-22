@@ -36,6 +36,22 @@ class Settings:
         return os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
 
     @property
+    def openai_summary_model(self) -> str:
+        return os.getenv("OPENAI_SUMMARY_MODEL", "gpt-4o-mini")
+
+    @property
+    def summary_max_chars(self) -> int:
+        return int(os.getenv("SUMMARY_MAX_CHARS", "420"))
+
+    @property
+    def summary_use_llm(self) -> bool:
+        return os.getenv("SUMMARY_USE_LLM", "false").lower() in {"1", "true", "yes", "on"}
+
+    @property
+    def wikipedia_extract_max_chars(self) -> int:
+        return int(os.getenv("WIKIPEDIA_EXTRACT_MAX_CHARS", "8000"))
+
+    @property
     def output_dir(self) -> str:
         return os.getenv("OUTPUT_DIR", str(Path(__file__).parent / "output"))
 
@@ -50,6 +66,10 @@ class Settings:
     @property
     def wikipedia_rpm(self) -> int:
         return int(os.getenv("WIKIPEDIA_REQUESTS_PER_MINUTE", "60"))
+
+    @property
+    def commons_rpm(self) -> int:
+        return int(os.getenv("COMMONS_REQUESTS_PER_MINUTE", "30"))
 
     @property
     def database_url(self) -> str | None:

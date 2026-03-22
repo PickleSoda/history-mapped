@@ -85,9 +85,9 @@ class WikipediaEnricher:
             "action": "query",
             "titles": "|".join(titles),
             "prop": "extracts|redirects",
-            "exintro": "1",          # First section only for summary
             "explaintext": "1",      # Plain text, no HTML
             "redirects": "1",
+            "exchars": str(settings.wikipedia_extract_max_chars),
         }
 
         data = self._api_call(params)
@@ -102,8 +102,9 @@ class WikipediaEnricher:
                 # Handle redirects — Wikipedia may have resolved the title
                 if title == matched_title or title.replace(" ", "_") == matched_title.replace(" ", "_"):
                     for idx in indices:
-                        items[idx]["summary"] = self._truncate(extract, 2000)
-                        items[idx]["full_extract"] = self._truncate(extract, 5000)
+                        summary_source = self._first_paragraph(extract)
+                        items[idx]["summary"] = self._truncate(summary_source, 900)
+                        items[idx]["full_extract"] = self._truncate(extract, settings.wikipedia_extract_max_chars)
 
             # Collect redirect aliases
             redirects = page.get("redirects", [])
@@ -153,3 +154,12 @@ class WikipediaEnricher:
         if last_period > max_len * 0.5:
             return truncated[: last_period + 1]
         return truncated + "…"
+
+    @staticmethod
+    def _first_paragraph(text: str) -> str:
+        """Extract the first non-empty paragraph from Wikipedia text."""
+        for paragraph in text.split("\n"):
+            cleaned = paragraph.strip()
+            if cleaned:
+                return cleaned
+        return text
