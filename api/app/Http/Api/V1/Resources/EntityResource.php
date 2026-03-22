@@ -91,6 +91,7 @@ class EntityResource extends JsonResource
                 $this->relationLoaded('children'),
                 fn () => EntitySummaryResource::collection($this->children),
             ),
+            'geometry_snapshots_count' => $this->geometry_snapshots_count,
 
             // Timestamps
             'created_by' => $this->created_by,

@@ -19,6 +19,7 @@ use App\Http\Api\V1\Requests\UpdateEntityRequest;
 use App\Http\Api\V1\Resources\EntityMapResource;
 use App\Http\Api\V1\Resources\EntityResource;
 use App\Http\Api\V1\Resources\EntitySummaryResource;
+use App\Http\Api\V1\Resources\GeometrySnapshotMapResource;
 use App\Http\Controllers\Controller;
 use App\Models\Entity;
 use Illuminate\Http\JsonResponse;
@@ -50,11 +51,15 @@ class EntityController extends Controller
         MapEntitiesRequest $request,
         MapEntitiesAction $action,
     ): JsonResponse {
-        $entities = $action($request->validated());
+        $result = $action($request->validated());
+        $entities = $result['entities'];
+        $territories = $result['territories'];
 
         return response()->json([
             'type' => 'FeatureCollection',
             'features' => EntityMapResource::collection($entities),
+            'entities' => EntityMapResource::collection($entities),
+            'territories' => GeometrySnapshotMapResource::collection($territories),
         ]);
     }
 

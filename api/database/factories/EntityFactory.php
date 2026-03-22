@@ -13,6 +13,7 @@ use App\Enums\IconClass;
 use App\Enums\LocationResolutionMethod;
 use App\Enums\VerificationStatus;
 use App\Models\Entity;
+use App\Models\GeometrySnapshot;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -161,5 +162,20 @@ class EntityFactory extends Factory
         return $this->state(fn () => [
             'location_name' => $name,
         ]);
+    }
+
+    /**
+     * Create one or more geometry snapshots after the entity is persisted.
+     *
+     * @param  array<string, mixed>  $snapshotAttributes
+     */
+    public function withGeometrySnapshots(int $count = 1, array $snapshotAttributes = []): static
+    {
+        return $this->afterCreating(function (Entity $entity) use ($count, $snapshotAttributes): void {
+            GeometrySnapshot::factory()
+                ->count($count)
+                ->forEntity($entity)
+                ->create($snapshotAttributes);
+        });
     }
 }

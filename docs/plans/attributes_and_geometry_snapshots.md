@@ -1,7 +1,7 @@
 # Attributes Storage & Geometry Snapshots — Implementation Plan
 
 **Version 1.0 — March 2026**
-**Status:** Planned
+**Status:** Partially Implemented
 **Companion to:** Entity Specification v2.1, Web Implementation Architecture
 
 ---
@@ -440,7 +440,7 @@ ORDER BY year_start;
 
 ### 7.2 Map Endpoint Extension
 
-The existing `/api/v1/map/entities` endpoint gains an optional `include_territories=true` query parameter. When set, the response includes a `territories` array alongside the existing `entities` array, sourced from `geometry_snapshots`.
+The existing `/api/v1/map/entities` endpoint gains an optional `include_territories=true` query parameter. When set, the response includes a `territories` array alongside the existing `entities` array, sourced from `geometry_snapshots`. For backward compatibility, the endpoint still returns the legacy GeoJSON `FeatureCollection` shape via `type` + `features`.
 
 ### 7.3 Entity Detail Extension
 
@@ -450,9 +450,18 @@ The entity detail response (`GET /api/v1/entities/{entityId}`) includes a `geome
 
 ## 8. Laravel Implementation Checklist
 
+### Current Status Snapshot (March 22, 2026)
+
+- Core schema, indexes, model, DTO, builder, and CRUD actions are implemented.
+- Public API v1 geometry snapshot endpoints are implemented.
+- Map `include_territories` support is implemented.
+- Entity detail `geometry_snapshots_count` is implemented.
+- Auto-generated linked snapshots are implemented via `App\Actions\Relationship\CreateAutoSnapshotAction` (functional equivalent of the planned linked-snapshots action).
+- Remaining work is primarily test/developer-experience cleanup and broader UI/data-population follow-through.
+
 ### Migration
 
-- [ ] Create `2026_XX_XX_create_geometry_snapshots_table.php`
+- [x] Create `2026_XX_XX_create_geometry_snapshots_table.php`
   - UUID primary key, entity_id FK with CASCADE delete
   - `year_start` / `year_end` integer columns
   - PostGIS `geom` and `territory_geom` columns
@@ -462,65 +471,65 @@ The entity detail response (`GET /api/v1/entities/{entityId}`) includes a `geome
   - All indexes from Section 4
   - CHECK constraints (has geometry, valid year range)
 
-- [ ] Create `2026_XX_XX_add_jsonb_expression_indexes_to_entities.php`
+- [x] Create `2026_XX_XX_add_jsonb_expression_indexes_to_entities.php`
   - All 11 expression indexes from Section 5
 
 ### Models
 
-- [ ] Create `App\Models\GeometrySnapshot`
+- [x] Create `App\Models\GeometrySnapshot`
   - UUID primary key, `geometry_snapshots` table
   - Casts: `geom` → `GeoJson`, `territory_geom` → `GeoJson`, `confidence` → `ConfidenceLevel`, `source_citations` → `json`
   - BelongsTo: `entity()`
 
-- [ ] Update `App\Models\Entity`
+- [x] Update `App\Models\Entity`
   - Add `HasMany` relationship: `geometrySnapshots()`
   - Add `geometrySnapshotAt(int $year)` convenience method
 
 ### Builder
 
-- [ ] Create `App\Builders\GeometrySnapshotBuilder`
+- [x] Create `App\Builders\GeometrySnapshotBuilder`
   - `forEntity(string $entityId)` — filter by entity
   - `atYear(int $year)` — `WHERE year_start <= ? AND year_end >= ?`
   - `inBbox(...)` — spatial bounding box filter on `territory_geom`
   - `withGeoJson()` — select with `ST_AsGeoJSON` conversion
   - `orderChronologically()` — order by `year_start`
 
-- [ ] Update `App\Builders\EntityBuilder`
+- [x] Update `App\Builders\EntityBuilder`
   - Add `withSnapshotAt(int $year)` — eager-load the matching snapshot
   - Add `withAllSnapshots()` — eager-load all snapshots (for detail view)
 
 ### Actions
 
-- [ ] Create `App\Actions\GeometrySnapshot\ListSnapshotsAction`
-- [ ] Create `App\Actions\GeometrySnapshot\CreateSnapshotAction`
-- [ ] Create `App\Actions\GeometrySnapshot\UpdateSnapshotAction`
-- [ ] Create `App\Actions\GeometrySnapshot\DeleteSnapshotAction`
-- [ ] Create `App\Actions\GeometrySnapshot\CreateLinkedSnapshotsAction` — auto-generates presence snapshots when a relationship of a snapshot-triggering type is created (e.g., `signed_by`, `fought_at`, `founded`, `born_in`)
+- [x] Create `App\Actions\GeometrySnapshot\ListSnapshotsAction`
+- [x] Create `App\Actions\GeometrySnapshot\CreateSnapshotAction`
+- [x] Create `App\Actions\GeometrySnapshot\UpdateSnapshotAction`
+- [x] Create `App\Actions\GeometrySnapshot\DeleteSnapshotAction`
+- [x] Create `App\Actions\GeometrySnapshot\CreateLinkedSnapshotsAction` — implemented equivalently via `App\Actions\Relationship\CreateAutoSnapshotAction`
 
 ### DTOs
 
-- [ ] Create `App\DTOs\GeometrySnapshotData`
+- [x] Create `App\DTOs\GeometrySnapshotData`
   - Properties: `entityId`, `yearStart`, `yearEnd`, `geom`, `territoryGeom`, `label`, `description`, `confidence`, `sourceCitations`, `notes`, `displayPriority`, `sourceEventId`, `relationshipId`
 
 ### HTTP Layer
 
-- [ ] Create `App\Http\Api\V1\Requests\StoreGeometrySnapshotRequest`
-- [ ] Create `App\Http\Api\V1\Requests\UpdateGeometrySnapshotRequest`
-- [ ] Create `App\Http\Api\V1\Resources\GeometrySnapshotResource`
-- [ ] Create `App\Http\Api\V1\Controllers\GeometrySnapshotController`
-- [ ] Register routes in `routes/api.php`
+- [x] Create `App\Http\Api\V1\Requests\StoreGeometrySnapshotRequest`
+- [x] Create `App\Http\Api\V1\Requests\UpdateGeometrySnapshotRequest`
+- [x] Create `App\Http\Api\V1\Resources\GeometrySnapshotResource`
+- [x] Create `App\Http\Api\V1\Controllers\GeometrySnapshotController`
+- [x] Register routes in `routes/api.php`
 
 ### Map Endpoint
 
-- [ ] Update `App\Actions\Entity\MapEntitiesAction` to optionally query `geometry_snapshots` when `include_territories` is requested
-- [ ] Update `App\Http\Api\V1\Requests\MapEntitiesRequest` to accept `include_territories` boolean
+- [x] Update `App\Actions\Entity\MapEntitiesAction` to optionally query `geometry_snapshots` when `include_territories` is requested
+- [x] Update `App\Http\Api\V1\Requests\MapEntitiesRequest` to accept `include_territories` boolean
 
 ### Tests
 
-- [ ] `tests/Feature/GeometrySnapshotControllerTest.php` — CRUD operations
-- [ ] `tests/Unit/GeometrySnapshotBuilderTest.php` — builder query methods
-- [ ] `tests/Feature/MapEntitiesWithTerritoriesTest.php` — map endpoint with snapshots
-- [ ] Update `EntityFactory` with `withGeometrySnapshots()` state
+- [x] `tests/Feature/GeometrySnapshotControllerTest.php` — CRUD operations
+- [x] `tests/Unit/GeometrySnapshotBuilderTest.php` — builder query methods
+- [x] `tests/Feature/MapEntitiesWithTerritoriesTest.php` — covered in API map feature tests
+- [x] Update `EntityFactory` with `withGeometrySnapshots()` state
 
 ---
 
