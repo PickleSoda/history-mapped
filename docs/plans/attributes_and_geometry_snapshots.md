@@ -446,6 +446,11 @@ The existing `/api/v1/map/entities` endpoint gains an optional `include_territor
 
 The entity detail response (`GET /api/v1/entities/{entityId}`) includes a `geometry_snapshots_count` field. The full snapshots are lazy-loaded via the dedicated sub-resource endpoint.
 
+The admin entity detail UI now includes:
+
+- A geometry map rendering base entity geometry (`geom` / `territory_geom`) and selected snapshot geometry
+- A combined timeline view showing both geometry snapshots and entity relationships in chronological order
+
 ---
 
 ## 8. Laravel Implementation Checklist

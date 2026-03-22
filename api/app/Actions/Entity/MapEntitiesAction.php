@@ -28,7 +28,7 @@ class MapEntitiesAction
 {
     /**
      * @param  array<string, mixed>  $filters
-    * @return array{entities: Collection<int, Entity>, territories: Collection<int, object>}
+     * @return array{entities: Collection<int, Entity>, territories: Collection<int, object>}
      */
     public function __invoke(array $filters): array
     {
@@ -87,7 +87,7 @@ class MapEntitiesAction
 
         $territories = collect();
 
-        if (($filters['include_territories'] ?? false) === true) {
+        if (filter_var($filters['include_territories'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
             $territories = $this->fetchTerritories($filters, $minImpact, $limit);
         }
 

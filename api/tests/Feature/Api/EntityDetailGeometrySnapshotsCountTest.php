@@ -23,6 +23,6 @@ class EntityDetailGeometrySnapshotsCountTest extends TestCase
         $response = $this->getJson(route('api.v1.entities.show', $entity));
 
         $response->assertOk()
-            ->assertJsonPath('geometry_snapshots_count', 2);
+            ->assertJsonPath('data.geometry_snapshots_count', 2);
     }
 }

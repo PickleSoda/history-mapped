@@ -22,7 +22,7 @@ class GeometrySnapshotApiTest extends TestCase
         $response = $this->getJson(route('api.v1.entities.geometry-snapshots.index', $entity));
 
         $response->assertOk();
-        $this->assertCount(2, $response->json());
+        $this->assertCount(2, $response->json('data'));
     }
 
     public function test_at_year_returns_matching_snapshot(): void
@@ -44,7 +44,7 @@ class GeometrySnapshotApiTest extends TestCase
         ]));
 
         $response->assertOk()
-            ->assertJsonPath('snapshot_id', $expected->snapshot_id)
-            ->assertJsonPath('label', 'Preferred overlap');
+            ->assertJsonPath('data.snapshot_id', $expected->snapshot_id)
+            ->assertJsonPath('data.label', 'Preferred overlap');
     }
 }

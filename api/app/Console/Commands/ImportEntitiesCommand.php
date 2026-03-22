@@ -177,7 +177,9 @@ class ImportEntitiesCommand extends Command
      */
     private function resolveFiles(string $path, bool $all): array
     {
-        $fullPath = base_path($path);
+        $fullPath = str_starts_with($path, '/') || (strlen($path) > 1 && $path[1] === ':')
+            ? $path
+            : base_path($path);
 
         if (is_file($fullPath) && str_ends_with($fullPath, '.jsonl')) {
             return [$fullPath];

@@ -19,7 +19,9 @@ class GeometrySnapshotMapResource extends JsonResource
             'entity_id' => $this->entity_id,
             'year_start' => $this->year_start,
             'year_end' => $this->year_end,
-            'geometry' => $this->territory_geojson,
+            'geometry' => is_string($this->territory_geojson)
+                ? json_decode($this->territory_geojson, true)
+                : $this->territory_geojson,
             'properties' => [
                 'name' => $this->name,
                 'entity_type' => $this->entity_type,
