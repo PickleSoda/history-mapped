@@ -41,14 +41,14 @@ export default function HistoricalMapViewer({
         }
 
         loadHistoricalBasemapStyle()
-            .then((style: Record<string, unknown>) => {
+            .then((style) => {
                 if (cancelled || !mapContainerRef.current) {
                     return;
                 }
 
                 const map = new Map({
                     container: mapContainerRef.current,
-                    style: style as Parameters<typeof Map.prototype.setStyle>[0],
+                    style,
                     center: [20, 30],
                     zoom: 2,
                 });

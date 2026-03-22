@@ -32,6 +32,8 @@
 - Detailed per-phase plans documented.
 - Phase 0 execution started (shared viewer + normalization extraction underway).
 - Phase 0 style/config alignment completed for viewer + editor map initialization path.
+- Phase 0 preview initial-load rendering fixed (shared viewer source-readiness + idle fallback).
+- Focused geometry snapshot backend tests passing after latest rendering hardening.
 
 ## Query Performance & Data Model
 

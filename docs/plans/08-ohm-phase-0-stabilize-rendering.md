@@ -86,3 +86,11 @@ Ensure geometry and territory data reliably render immediately after load/save i
 - Shared read-only viewer extraction completed.
 - GeoJSON normalization utility extracted and reused.
 - Shared map style/config loading introduced for editor + viewer alignment.
+- Preview initial-load rendering race fixed in shared viewer:
+  - Removed brittle `isStyleLoaded()` gate from data-application path.
+  - Added source-readiness application with `idle` fallback retry.
+  - Added resize hardening to reduce first-paint blank states.
+- Validation updates:
+  - User confirmed preview now renders on initial load.
+  - `GeometrySnapshotControllerTest` focused suite passes (25 tests).
+  - Type diagnostics for map viewer/editor/edit/snapshot files are clean.
