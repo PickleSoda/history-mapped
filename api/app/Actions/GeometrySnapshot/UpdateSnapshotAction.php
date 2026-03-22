@@ -6,6 +6,7 @@ namespace App\Actions\GeometrySnapshot;
 
 use App\DTOs\GeometrySnapshotData;
 use App\Models\GeometrySnapshot;
+use App\Support\Geometry\NormalizeGeoJsonForPostgis;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -21,6 +22,8 @@ class UpdateSnapshotAction
     {
         return DB::transaction(function () use ($snapshot, $data): GeometrySnapshot {
             $modelData = $data->toModelArray();
+            $geojson = NormalizeGeoJsonForPostgis::normalize($data->geojson);
+            $territoryGeojson = NormalizeGeoJsonForPostgis::normalize($data->territoryGeojson);
             unset($modelData['entity_id']); // entity_id is immutable after creation
 
             // Build SET clause items, collecting bindings in order
@@ -53,14 +56,14 @@ class UpdateSnapshotAction
             }
 
             // Geometry columns — only update if provided in the DTO
-            if ($data->geojson !== null) {
+            if ($geojson !== null) {
                 $setClauses[] = 'geom = ST_GeomFromGeoJSON(?)';
-                $bindings[] = json_encode($data->geojson);
+                $bindings[] = json_encode($geojson);
             }
 
-            if ($data->territoryGeojson !== null) {
+            if ($territoryGeojson !== null) {
                 $setClauses[] = 'territory_geom = ST_GeomFromGeoJSON(?)';
-                $bindings[] = json_encode($data->territoryGeojson);
+                $bindings[] = json_encode($territoryGeojson);
             }
 
             $setClauses[] = 'updated_at = ?';

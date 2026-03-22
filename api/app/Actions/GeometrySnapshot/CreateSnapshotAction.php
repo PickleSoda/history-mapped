@@ -6,6 +6,7 @@ namespace App\Actions\GeometrySnapshot;
 
 use App\DTOs\GeometrySnapshotData;
 use App\Models\GeometrySnapshot;
+use App\Support\Geometry\NormalizeGeoJsonForPostgis;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -23,13 +24,15 @@ class CreateSnapshotAction
         return DB::transaction(function () use ($data, $createdBy): GeometrySnapshot {
             $snapshotId = Str::uuid()->toString();
             $now = now();
+            $geojson = NormalizeGeoJsonForPostgis::normalize($data->geojson);
+            $territoryGeojson = NormalizeGeoJsonForPostgis::normalize($data->territoryGeojson);
 
             // Build the geometry expressions for the INSERT
-            $geomExpr = $data->geojson !== null
+            $geomExpr = $geojson !== null
                 ? 'ST_GeomFromGeoJSON(?)'
                 : 'NULL';
 
-            $territoryGeomExpr = $data->territoryGeojson !== null
+            $territoryGeomExpr = $territoryGeojson !== null
                 ? 'ST_GeomFromGeoJSON(?)'
                 : 'NULL';
 
@@ -52,12 +55,12 @@ class CreateSnapshotAction
 
             $bindings = [$snapshotId, $modelData['entity_id'], $modelData['year_start'], $modelData['year_end']];
 
-            if ($data->geojson !== null) {
-                $bindings[] = json_encode($data->geojson);
+            if ($geojson !== null) {
+                $bindings[] = json_encode($geojson);
             }
 
-            if ($data->territoryGeojson !== null) {
-                $bindings[] = json_encode($data->territoryGeojson);
+            if ($territoryGeojson !== null) {
+                $bindings[] = json_encode($territoryGeojson);
             }
 
             $bindings = array_merge($bindings, [

@@ -21,6 +21,29 @@ class GeometrySnapshotControllerTest extends TestCase
     /** Minimal valid GeoJSON point geometry payload */
     private const POINT_GEOJSON = ['type' => 'Point', 'coordinates' => [12.4924, 41.8902]];
 
+    /** FeatureCollection payload as produced by the map editor */
+    private const POINTS_FEATURE_COLLECTION = [
+        'type' => 'FeatureCollection',
+        'features' => [
+            [
+                'type' => 'Feature',
+                'properties' => [],
+                'geometry' => [
+                    'type' => 'Point',
+                    'coordinates' => [10.0, 42.0],
+                ],
+            ],
+            [
+                'type' => 'Feature',
+                'properties' => [],
+                'geometry' => [
+                    'type' => 'Point',
+                    'coordinates' => [11.0, 43.0],
+                ],
+            ],
+        ],
+    ];
+
     /** Minimal valid GeoJSON polygon payload */
     private const POLYGON_GEOJSON = [
         'type' => 'Polygon',
@@ -109,6 +132,37 @@ class GeometrySnapshotControllerTest extends TestCase
             'entity_id' => $this->entity->entity_id,
             'year_start' => 100,
             'year_end' => 200,
+        ]);
+    }
+
+    public function test_store_accepts_feature_collection_payloads(): void
+    {
+        $response = $this->actingAs($this->user)
+            ->postJson(route('entities.snapshots.store', $this->entity), [
+                'year_start' => -13,
+                'year_end' => -9,
+                'label' => 'chilling',
+                'geojson' => self::POINTS_FEATURE_COLLECTION,
+                'territory_geojson' => [
+                    'type' => 'FeatureCollection',
+                    'features' => [
+                        [
+                            'type' => 'Feature',
+                            'properties' => [],
+                            'geometry' => self::POLYGON_GEOJSON,
+                        ],
+                    ],
+                ],
+            ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('snapshot.label', 'chilling');
+
+        $this->assertDatabaseHas('geometry_snapshots', [
+            'entity_id' => $this->entity->entity_id,
+            'year_start' => -13,
+            'year_end' => -9,
+            'label' => 'chilling',
         ]);
     }
 

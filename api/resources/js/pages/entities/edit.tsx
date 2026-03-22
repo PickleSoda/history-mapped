@@ -4,15 +4,15 @@ import { update } from '@/routes/entities';
 import * as SnapshotRoutes from '@/actions/App/Http/Controllers/Admin/GeometrySnapshotController';
 import * as RelationshipRoutes from '@/actions/App/Http/Controllers/Admin/RelationshipController';
 import EntityForm, { defaultFormData, type EntityFormData } from '@/components/entity-form';
+import HistoricalMapViewer from '@/components/historical-map-viewer';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
+import type { GeoJsonLike } from '@/lib/geojson';
 import type { BreadcrumbItem, EntityDetail, EntityFormOptions } from '@/types';
 
 const MapEditor = lazy(() => import('@/components/map-editor'));
 const SnapshotBuilder = lazy(() => import('@/components/snapshot-builder'));
 const RelationshipPanel = lazy(() => import('@/components/relationship-panel'));
-
-type GeoJsonGeometry = Record<string, unknown> | null;
 
 type Props = {
     entity: EntityDetail;
@@ -78,8 +78,8 @@ export default function EntityEdit({ entity, formOptions }: Props) {
     const [processing, setProcessing] = useState(false);
 
     // Geometry state managed outside useForm (GeoJSON objects, not strings)
-    const [geojson, setGeojson] = useState<GeoJsonGeometry>(entity.geojson ?? null);
-    const [territoryGeojson, setTerritoryGeojson] = useState<GeoJsonGeometry>(entity.territory_geojson ?? null);
+    const [geojson, setGeojson] = useState<GeoJsonLike>(entity.geojson ?? null);
+    const [territoryGeojson, setTerritoryGeojson] = useState<GeoJsonLike>(entity.territory_geojson ?? null);
     const [mapOpen, setMapOpen] = useState(false);
     const [snapshotOpen, setSnapshotOpen] = useState(false);
     const [relationshipOpen, setRelationshipOpen] = useState(false);
@@ -164,6 +164,16 @@ export default function EntityEdit({ entity, formOptions }: Props) {
 
                     {mapOpen && (
                         <div className="border-t">
+                            <div className="border-b">
+                                <div className="px-4 py-2">
+                                    <p className="text-xs font-medium">Live Preview</p>
+                                    <p className="text-muted-foreground text-[11px] mt-0.5">
+                                        Uses the same viewer pipeline as the entity detail map.
+                                    </p>
+                                </div>
+                                <HistoricalMapViewer baseGeometries={[geojson, territoryGeojson]} fitBounds />
+                            </div>
+
                             <Suspense
                                 fallback={
                                     <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
