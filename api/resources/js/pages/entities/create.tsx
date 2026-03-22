@@ -1,4 +1,5 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
+import type { FormDataConvertible } from '@inertiajs/core';
 import { store } from '@/routes/entities';
 import EntityForm, { defaultFormData, type EntityFormData } from '@/components/entity-form';
 import AppLayout from '@/layouts/app-layout';
@@ -15,10 +16,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function EntityCreate({ formOptions }: Props) {
-    const { data, setData, post, processing, errors } = useForm<EntityFormData>(defaultFormData());
+    const { data, setData, processing, errors } = useForm<EntityFormData>(defaultFormData());
 
     function handleChange<K extends keyof EntityFormData>(field: K, value: EntityFormData[K]) {
-        setData(field, value);
+        setData((previous) => ({
+            ...previous,
+            [field]: value,
+        }));
     }
 
     function handleSubmit(e: React.FormEvent) {
@@ -49,7 +53,7 @@ export default function EntityCreate({ formOptions }: Props) {
             }
         }
 
-        post(store(), { data: payload });
+        router.post(store.url(), payload as unknown as Record<string, FormDataConvertible>);
     }
 
     return (

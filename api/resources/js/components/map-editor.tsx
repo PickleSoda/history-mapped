@@ -291,14 +291,14 @@ function MapPanel({ mapId, visible, initialGeometry, controls, onGeometryChange 
         let cancelled = false;
 
         loadHistoricalBasemapStyle()
-            .then((style: Record<string, unknown>) => {
+            .then((style) => {
                 if (cancelled || !containerRef.current) {
                     return;
                 }
 
                 const map = new Map({
                     container: containerRef.current,
-                    style: style as Parameters<typeof Map.prototype.setStyle>[0],
+                    style,
                     center: [20, 30], // Default: roughly centred on the ancient world
                     zoom: 2,
                 });
