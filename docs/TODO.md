@@ -1,5 +1,37 @@
 # TODO
 
+## OHM Integration Program
+
+### Queue (Execution Order)
+
+1. **Phase 0 — Stabilize Geometry Rendering Pipeline**  
+  Plan: `docs/plans/08-ohm-phase-0-stabilize-rendering.md`
+2. **Phase 1 — OHM Basemap + Timeframe Filtering**  
+  Plan: `docs/plans/09-ohm-phase-1-ohm-basemap-and-timeframe.md`
+3. **Phase 2 — Timeline-to-Map Interaction (Snapshots + Relationships)**  
+  Plan: `docs/plans/10-ohm-phase-2-timeline-map-interaction.md`
+4. **Phase 3 — Reference Existing OHM Objects**  
+  Plan: `docs/plans/11-ohm-phase-3-reference-existing-ohm-objects.md`
+5. **Phase 4 — OHM iD Editor Integration**  
+  Plan: `docs/plans/12-ohm-phase-4-ohm-id-editor-integration.md`
+6. **Phase 5 — Change Requests + Contribution Pipeline**  
+  Plan: `docs/plans/13-ohm-phase-5-change-requests-and-contribution-pipeline.md`
+
+### Progress Tracker
+
+- [ ] **Phase 0** — Stabilize Geometry Rendering Pipeline
+- [ ] **Phase 1** — OHM Basemap + Timeframe Filtering
+- [ ] **Phase 2** — Timeline-to-Map Interaction (Snapshots + Relationships)
+- [ ] **Phase 3** — Reference Existing OHM Objects
+- [ ] **Phase 4** — OHM iD Editor Integration
+- [ ] **Phase 5** — Change Requests + Contribution Pipeline
+
+### Current Status
+
+- Program design complete.
+- Detailed per-phase plans documented.
+- Execution not started yet.
+
 ## Query Performance & Data Model
 
 ### High Priority
