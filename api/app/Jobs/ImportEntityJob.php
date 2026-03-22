@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Actions\Entity\CreateEntityAction;
+use App\Actions\Entity\UpdateEntityAction;
 use App\DTOs\EntityData;
+use App\Models\Entity;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -31,10 +33,12 @@ class ImportEntityJob implements ShouldQueue
     /**
      * @param  array<string, mixed>  $record  — Decoded JSONL entity record.
      * @param  string  $batchId  — Pipeline batch identifier.
+     * @param  bool  $force  — Overwrite existing entity if one is found.
      */
     public function __construct(
         public readonly array $record,
         public readonly string $batchId,
+        public readonly bool $force = false,
     ) {}
 
     public function handle(): void
@@ -43,23 +47,15 @@ class ImportEntityJob implements ShouldQueue
         $name = $record['name'] ?? 'unknown';
 
         try {
-            // ── Pre-flight dedup (belt-and-suspenders) ──────────────────
-            if ($this->alreadyExists($record)) {
-                Log::info("[Pipeline] Skipped duplicate: {$name} ({$record['wikidata_id'] ?? 'no QID'})");
-
-                return;
-            }
-
             // ── Validate minimum required fields ────────────────────────
             if (! isset($record['name'], $record['entity_type'], $record['entity_group'])) {
-                Log::warning("[Pipeline] Skipped record missing required fields: ".json_encode(array_keys($record)));
+                Log::warning('[Pipeline] Skipped record missing required fields: '.json_encode(array_keys($record)));
 
                 return;
             }
 
             // ── Strip pipeline-only fields before creating EntityData ───
             $relationshipHints = $record['_relationship_hints'] ?? [];
-            $rawInfobox = $record['attributes']['_infobox'] ?? null;
 
             $entityRecord = $record;
             unset($entityRecord['_relationship_hints']);
@@ -74,15 +70,39 @@ class ImportEntityJob implements ShouldQueue
             // ── Build EntityData DTO ────────────────────────────────────
             $entityData = EntityData::fromArray($entityRecord);
 
-            // ── Create entity ───────────────────────────────────────────
-            $action = app(CreateEntityAction::class);
-            $entity = $action($entityData, "pipeline:{$this->batchId}");
+            // ── Create or overwrite ─────────────────────────────────────
+            $existingEntity = $this->findExisting($record);
 
-            Log::info("[Pipeline] Imported: {$name} → {$entity->entity_id}");
+            if ($existingEntity !== null) {
+                if (! $this->force) {
+                    $wikidataId = $record['wikidata_id'] ?? 'no QID';
+                    Log::info("[Pipeline] Skipped duplicate: {$name} ({$wikidataId})");
 
-            // ── Stage relationship hints for later resolution ───────────
-            if (! empty($relationshipHints)) {
-                $this->stageRelationshipHints($entity->entity_id, $relationshipHints);
+                    return;
+                }
+
+                $action = app(UpdateEntityAction::class);
+                $entity = $action($existingEntity, $entityData);
+
+                Log::info("[Pipeline] Replaced: {$name} → {$entity->entity_id}");
+
+                // Re-stage relationship hints, clearing stale ones first
+                if (! empty($relationshipHints)) {
+                    DB::table('pipeline_relationship_hints')
+                        ->where('source_entity_id', $entity->entity_id)
+                        ->delete();
+
+                    $this->stageRelationshipHints($entity->entity_id, $relationshipHints);
+                }
+            } else {
+                $action = app(CreateEntityAction::class);
+                $entity = $action($entityData, "pipeline:{$this->batchId}");
+
+                Log::info("[Pipeline] Imported: {$name} → {$entity->entity_id}");
+
+                if (! empty($relationshipHints)) {
+                    $this->stageRelationshipHints($entity->entity_id, $relationshipHints);
+                }
             }
 
         } catch (\Throwable $e) {
@@ -96,15 +116,27 @@ class ImportEntityJob implements ShouldQueue
     }
 
     /**
-     * Check if the entity already exists by wikidata_id.
+     * Find an existing entity by wikidata_id, or by exact name + type as fallback.
      */
-    private function alreadyExists(array $record): bool
+    private function findExisting(array $record): ?Entity
     {
         $wikidataId = $record['wikidata_id'] ?? null;
 
-        return $wikidataId && DB::table('entities')
-            ->where('wikidata_id', $wikidataId)
-            ->exists();
+        if ($wikidataId) {
+            return Entity::query()->where('wikidata_id', $wikidataId)->first();
+        }
+
+        $name = $record['name'] ?? null;
+        $type = $record['entity_type'] ?? null;
+
+        if ($name && $type) {
+            return Entity::query()
+                ->where('name', $name)
+                ->where('entity_type', $type)
+                ->first();
+        }
+
+        return null;
     }
 
     /**

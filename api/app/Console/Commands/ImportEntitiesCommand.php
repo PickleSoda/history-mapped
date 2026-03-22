@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Actions\Entity\CreateEntityAction;
-use App\DTOs\EntityData;
 use App\Jobs\ImportEntityJob;
 use App\Jobs\ResolveRelationshipsJob;
 use Illuminate\Console\Command;
@@ -31,12 +29,27 @@ class ImportEntitiesCommand extends Command
         {path : Path to a JSONL file or directory}
         {--all : Import all .jsonl files in the directory}
         {--sync : Process synchronously instead of dispatching jobs}
+        {--force : Overwrite existing entities instead of skipping duplicates}
         {--skip-dedup : Skip database deduplication check}
         {--skip-relationships : Skip relationship resolution after import}
         {--batch-id= : Custom batch identifier (default: auto-generated)}
         {--chunk=100 : Number of records per job dispatch}';
 
     protected $description = 'Import entities from pipeline JSONL files into the database';
+
+    /**
+     * Reference table type markers set by the pipeline.
+     * Records tagged with any of these are silently skipped — they belong
+     * in curated reference tables, not the entities table.
+     */
+    private const REF_TYPES = [
+        'ref_historical_period',
+        'ref_geographic_region',
+        'ref_body_of_water',
+        'ref_calendar_system',
+        'ref_writing_system',
+        'ref_measurement_unit',
+    ];
 
     public function handle(): int
     {
@@ -56,9 +69,13 @@ class ImportEntitiesCommand extends Command
         $chunkSize = (int) $this->option('chunk');
         $sync = (bool) $this->option('sync');
         $skipDedup = (bool) $this->option('skip-dedup');
+        $force = (bool) $this->option('force');
 
         $this->info("Batch: {$batchId}");
         $this->info('Files: '.count($files));
+        if ($force) {
+            $this->warn('Force mode: existing entities will be overwritten.');
+        }
         $this->newLine();
 
         $totalImported = 0;
@@ -71,7 +88,7 @@ class ImportEntitiesCommand extends Command
             $lineCount = count($lines);
 
             if ($lineCount === 0) {
-                $this->warn("  Empty file, skipping.");
+                $this->warn('  Empty file, skipping.');
 
                 continue;
             }
@@ -82,8 +99,16 @@ class ImportEntitiesCommand extends Command
 
             foreach (array_chunk($lines, $chunkSize) as $chunk) {
                 foreach ($chunk as $record) {
+                    // Skip reference-table items (eras, regions, bodies of water, etc.)
+                    if ($this->isRefTableItem($record)) {
+                        $skipped++;
+                        $bar->advance();
+
+                        continue;
+                    }
+
                     // Pre-import dedup: check wikidata_id
-                    if (! $skipDedup && $this->isDuplicate($record)) {
+                    if (! $force && ! $skipDedup && $this->isDuplicate($record)) {
                         $skipped++;
                         $bar->advance();
 
@@ -91,9 +116,9 @@ class ImportEntitiesCommand extends Command
                     }
 
                     if ($sync) {
-                        $this->importSync($record, $batchId);
+                        $this->importSync($record, $batchId, $force);
                     } else {
-                        ImportEntityJob::dispatch($record, $batchId);
+                        ImportEntityJob::dispatch($record, $batchId, $force);
                     }
 
                     $imported++;
@@ -129,7 +154,24 @@ class ImportEntitiesCommand extends Command
     }
 
     /**
+     * Check if a record is a reference-table item that should not be imported
+     * as a regular entity.
+     */
+    private function isRefTableItem(array $record): bool
+    {
+        // Explicit ref_type marker from the pipeline
+        if (isset($record['_ref_type']) && in_array($record['_ref_type'], self::REF_TYPES, true)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Resolve the input path to a list of JSONL files.
+     *
+     * Skips `*_ref.jsonl` and `*_untyped.jsonl` files (reference-table items
+     * and unclassified items are not regular entities).
      *
      * @return list<string>
      */
@@ -142,11 +184,21 @@ class ImportEntitiesCommand extends Command
         }
 
         if (is_dir($fullPath) && $all) {
-            return glob($fullPath.'/*.jsonl') ?: [];
+            $files = glob($fullPath.'/*.jsonl') ?: [];
+
+            // Exclude ref and untyped files from batch imports
+            $files = array_filter($files, function (string $file) {
+                $basename = basename($file);
+
+                return ! str_ends_with($basename, '_ref.jsonl')
+                    && ! str_ends_with($basename, '_untyped.jsonl');
+            });
+
+            return array_values($files);
         }
 
         if (is_dir($fullPath)) {
-            $this->warn("Directory given but --all not set. Use --all to import all files.");
+            $this->warn('Directory given but --all not set. Use --all to import all files.');
 
             return [];
         }
@@ -225,10 +277,10 @@ class ImportEntitiesCommand extends Command
     /**
      * Import a single record synchronously (for --sync mode).
      */
-    private function importSync(array $record, string $batchId): void
+    private function importSync(array $record, string $batchId, bool $force = false): void
     {
         try {
-            $job = new ImportEntityJob($record, $batchId);
+            $job = new ImportEntityJob($record, $batchId, $force);
             $job->handle();
         } catch (\Throwable $e) {
             $this->error("  Failed to import {$record['name']}: {$e->getMessage()}");

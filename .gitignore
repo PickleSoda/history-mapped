@@ -33,3 +33,7 @@ api/storage/logs/*
 !api/storage/framework/testing/.gitignore
 !api/storage/framework/views/.gitignore
 !api/storage/logs/.gitignore
+
+
+.venv/
+__pycache__/

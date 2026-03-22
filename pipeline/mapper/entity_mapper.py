@@ -31,7 +31,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from pipeline.config import TYPE_TO_GROUP
+from pipeline.config import TYPE_TO_GROUP, settings
 from pipeline.mapper.type_configs import WIKIDATA_TYPE_CONFIGS
 
 logger = logging.getLogger(__name__)
@@ -39,6 +39,9 @@ logger = logging.getLogger(__name__)
 
 class EntityMapper:
     """Map raw Wikidata/Wikipedia data to our entity schema."""
+
+    def __init__(self) -> None:
+        self._summary_cache: dict[str, str] = {}
 
     def map(self, raw: dict[str, Any], entity_type: str) -> dict[str, Any] | None:
         """Convert a raw scraped item to the WikiGlobe entity format.
@@ -61,7 +64,7 @@ class EntityMapper:
             "entity_type": entity_type,
             "entity_group": entity_group,
             "wikidata_id": raw.get("qid"),
-            "summary": raw.get("summary") or raw.get("description") or None,
+            "summary": self._build_summary(raw),
             "significance": None,  # Filled by LLM enrichment in v2
             "alternative_names": self._build_alternative_names(raw),
             "verification_status": "pipeline_draft",
@@ -71,24 +74,24 @@ class EntityMapper:
 
         # ── Temporal fields ──────────────────────────────────────────────────
 
-        inception = raw.get("inception")
-        dissolution = raw.get("dissolution")
+        temporal_start, temporal_end, duration_type = self._extract_temporal_bounds(raw)
 
-        if inception or dissolution:
-            entity["temporal_start"] = inception
-            entity["temporal_end"] = dissolution
+        if temporal_start or temporal_end:
+            entity["temporal_start"] = temporal_start
+            entity["temporal_end"] = temporal_end
             entity["date_method"] = "source_database"
             entity["date_confidence"] = "medium"
-            if inception and not dissolution:
-                entity["duration_type"] = "ongoing"
-            elif inception and dissolution:
-                entity["duration_type"] = "period"
-            else:
-                entity["duration_type"] = "uncertain"
+            entity["duration_type"] = duration_type
 
         # ── Spatial fields ───────────────────────────────────────────────────
 
-        coords = raw.get("coords")
+        location_name = raw.get("location_name") or self._derive_location_name(raw)
+        if location_name:
+            entity["location_name"] = location_name
+            entity["location_method"] = "wikidata"
+            entity["location_confidence"] = "medium"
+
+        coords = self._derive_coords(raw)
         if coords:
             entity["geojson"] = {
                 "type": "Point",
@@ -96,6 +99,10 @@ class EntityMapper:
             }
             entity["location_method"] = "wikidata"
             entity["location_confidence"] = "medium"
+
+        territory_geojson = raw.get("territory_geojson")
+        if territory_geojson:
+            entity["territory_geojson"] = territory_geojson
 
         # ── Type-specific attributes ─────────────────────────────────────────
 
@@ -106,6 +113,14 @@ class EntityMapper:
         infobox = raw.get("infobox", {})
         if infobox:
             attributes["_infobox"] = infobox  # Raw infobox preserved for review
+
+        full_extract = raw.get("full_extract")
+        if full_extract:
+            attributes["_wikipedia_extract"] = full_extract[: settings.wikipedia_extract_max_chars]
+
+        geoshape = raw.get("geoshape")
+        if geoshape:
+            attributes["geoshape"] = geoshape
 
         if attributes:
             entity["attributes"] = attributes
@@ -126,6 +141,125 @@ class EntityMapper:
             )
 
         return entity
+
+    def _build_summary(self, raw: dict[str, Any]) -> str | None:
+        """Build a concise summary using rule-based truncation with optional LLM fallback."""
+        qid = raw.get("qid")
+        cached = self._summary_cache.get(qid) if qid else None
+        if cached:
+            return cached
+
+        summary_source = (
+            raw.get("summary")
+            or raw.get("description")
+            or raw.get("full_extract")
+            or ""
+        ).strip()
+        if not summary_source:
+            return None
+
+        summary = self._truncate_sentence(summary_source, settings.summary_max_chars)
+
+        long_text = raw.get("full_extract") or summary_source
+        if (
+            settings.summary_use_llm
+            and settings.openai_api_key
+            and len(long_text) > settings.summary_max_chars * 2
+        ):
+            llm_summary = self._llm_shorten_summary(long_text)
+            if llm_summary:
+                summary = self._truncate_sentence(llm_summary, settings.summary_max_chars)
+
+        if qid and summary:
+            self._summary_cache[qid] = summary
+
+        return summary or None
+
+    @staticmethod
+    def _truncate_sentence(text: str, max_len: int) -> str:
+        """Truncate text to max length, preferring sentence boundaries."""
+        if len(text) <= max_len:
+            return text.strip()
+
+        trimmed = text[:max_len].strip()
+        cut_at = max(trimmed.rfind(". "), trimmed.rfind("; "), trimmed.rfind(": "))
+        if cut_at >= int(max_len * 0.55):
+            return trimmed[: cut_at + 1].strip()
+
+        return f"{trimmed}…"
+
+    def _llm_shorten_summary(self, text: str) -> str | None:
+        """Optionally shorten text via OpenAI; returns None on any failure."""
+        try:
+            from openai import OpenAI
+
+            client = OpenAI(api_key=settings.openai_api_key)
+            prompt = (
+                "Rewrite the following historical description as a concise, factual summary. "
+                f"Keep it under {settings.summary_max_chars} characters, neutral tone, no bullet points."
+            )
+            response = client.chat.completions.create(
+                model=settings.openai_summary_model,
+                temperature=0.2,
+                messages=[
+                    {"role": "system", "content": "You summarize historical entities for a structured data pipeline."},
+                    {"role": "user", "content": f"{prompt}\n\n{text[:8000]}"},
+                ],
+            )
+            content = response.choices[0].message.content if response.choices else None
+            return content.strip() if content else None
+        except Exception as exc:
+            logger.debug(f"LLM summary shortening failed: {exc}")
+            return None
+
+    def _extract_temporal_bounds(self, raw: dict[str, Any]) -> tuple[str | None, str | None, str]:
+        """Normalize temporal fields from multiple Wikidata date properties."""
+        start = raw.get("inception") or raw.get("start_time")
+        end = raw.get("dissolution") or raw.get("end_time")
+        point = raw.get("point_in_time")
+
+        if not start and point:
+            start = point
+        if not end and point and not raw.get("dissolution") and not raw.get("end_time"):
+            end = point
+
+        if start and end and start == end:
+            duration_type = "point"
+        elif start and end:
+            duration_type = "period"
+        elif start and not end:
+            duration_type = "ongoing"
+        else:
+            duration_type = "uncertain"
+
+        return start, end, duration_type
+
+    def _derive_location_name(self, raw: dict[str, Any]) -> str | None:
+        """Derive a location name from linked location-like properties."""
+        properties = raw.get("properties", {})
+        for prop in ("P276", "P131", "P17"):
+            values = properties.get(prop, [])
+            for value in values:
+                label = (value.get("label") or "").strip()
+                if label:
+                    return label
+        return None
+
+    def _derive_coords(self, raw: dict[str, Any]) -> dict[str, float] | None:
+        """Derive coordinates from entity coords or linked location coords."""
+        coords = raw.get("coords")
+        if coords and "lon" in coords and "lat" in coords:
+            return {"lon": float(coords["lon"]), "lat": float(coords["lat"])}
+
+        properties = raw.get("properties", {})
+        for prop in ("P276", "P131", "P17"):
+            values = properties.get(prop, [])
+            for value in values:
+                vcoords = value.get("coords")
+                if isinstance(vcoords, dict) and "lon" in vcoords and "lat" in vcoords:
+                    return {"lon": float(vcoords["lon"]), "lat": float(vcoords["lat"])}
+
+        return None
 
     def _build_alternative_names(self, raw: dict) -> list[str]:
         """Collect alternative names from aliases and Wikipedia redirects."""
@@ -281,6 +415,7 @@ class EntityMapper:
             "P155":  "preceded_by",       # follows
             "P156":  "succeeded_by",      # followed by
             "P361":  "part_of",           # part of
+            "P527":  "contains",          # has part / has parts
 
             # Person
             "P19":   "born_in",           # place of birth
@@ -290,6 +425,7 @@ class EntityMapper:
             "P26":   "married_to",        # spouse
             "P40":   "parent_of",         # child
             "P607":  "participated_in",   # conflict
+            "P1344": "participated_in",   # participant of
 
             # Economic
             "P37":   "official_religion_of",  # official language (remapped in context)
@@ -303,6 +439,7 @@ class EntityMapper:
             # Causal
             "P828":  "resulted_from",     # has cause
             "P1542": "caused",            # has effect
+            "P1478": "resulted_from",     # has immediate cause
 
             # Military
             "P710":  "participated_in",   # participant

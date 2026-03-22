@@ -3,13 +3,14 @@
 import click
 from rich.console import Console
 
-from pipeline.config import settings, ENTITY_GROUPS
+from pipeline.config import settings, ENTITY_GROUPS, TYPE_TO_GROUP
 from pipeline.scraper.wikidata import WikidataScraper
 from pipeline.scraper.wikipedia import WikipediaEnricher
+from pipeline.scraper.topic import TopicScraper
 from pipeline.mapper.entity_mapper import EntityMapper
 from pipeline.dedup.deduplicator import Deduplicator
 
-console = Console()
+console = Console(legacy_windows=False)
 
 
 @click.group()
@@ -110,6 +111,189 @@ def dedup(jsonl_file, check_db):
             f.write(orjson.dumps(entity) + b"\n")
 
     console.print(f"Dedup: {before} → {after} ({before - after} removed)")
+
+
+@cli.command()
+@click.argument("query")
+@click.option("--depth", type=int, default=2, help="Max BFS depth from the seed entity (default: 2)")
+@click.option("--limit", type=int, default=200, help="Max entities to collect (default: 200)")
+@click.option("--co-seed", "co_seeds", multiple=True, metavar="QID",
+              help="Additional Wikidata QIDs to start the BFS from alongside the primary seed. "
+                   "Useful when the primary seed has sparse Wikidata links. "
+                   "Can be specified multiple times: --co-seed Q193850 --co-seed Q181264")
+@click.option("--skip-wikipedia", is_flag=True, help="Skip Wikipedia enrichment")
+@click.option("--skip-untyped", is_flag=True, help="Skip entities that can't be classified into the 30 types")
+@click.option("--output-dir", default=None, help="Override output directory")
+def topic(query, depth, limit, co_seeds, skip_wikipedia, skip_untyped, output_dir):
+    """Scrape a topic and all its related entities via graph walk.
+
+    QUERY can be a Wikidata QID (e.g. Q484954) or a free-text search term
+    (e.g. "Late Bronze Age Collapse"). The scraper will resolve the search
+    term to a QID, then walk linked properties up to --depth levels deep,
+    collecting up to --limit entities.
+
+    Examples:
+
+        python -m pipeline topic "Late Bronze Age Collapse"
+
+        python -m pipeline topic Q484954 --depth 3 --limit 500
+
+        python -m pipeline topic "Roman Empire" --depth 1 --limit 100
+
+        python -m pipeline topic "Silk Road" --skip-wikipedia
+
+        python -m pipeline topic "Late Bronze Age Collapse" --co-seed Q4496560 --co-seed Q193850
+    """
+    import orjson
+    from pathlib import Path
+
+    out = Path(output_dir or settings.output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+
+    # ── Step 1: Resolve query → QID ─────────────────────────────────────────
+
+    ts = TopicScraper(max_depth=depth, max_entities=limit)
+
+    if query.startswith("Q") and query[1:].isdigit():
+        seed_qid = query
+        console.print(f"Using QID: [bold]{seed_qid}[/bold]")
+    else:
+        console.print(f"Searching Wikidata for: [bold]{query}[/bold]")
+        seed_qid = ts.resolve_search(query)
+        if not seed_qid:
+            console.print("[red]Could not resolve search term to a Wikidata QID.[/red]")
+            console.print("Try searching manually at https://www.wikidata.org and pass the QID directly.")
+            raise SystemExit(1)
+        console.print(f"Resolved to: [bold]{seed_qid}[/bold]")
+
+    # ── Step 2: Graph walk ───────────────────────────────────────────────────
+
+    console.rule("[bold blue]Graph Walk")
+    if co_seeds:
+        console.print(f"  Depth: {depth}, Limit: {limit}, Co-seeds: {', '.join(co_seeds)}")
+    else:
+        console.print(f"  Depth: {depth}, Limit: {limit}")
+
+    raw_items = ts.walk(seed_qid, co_seed_qids=list(co_seeds))
+    console.print(f"  → {len(raw_items)} raw entities discovered")
+
+    if not raw_items:
+        console.print("[yellow]No entities found. Try a broader depth or different seed.[/yellow]")
+        raise SystemExit(0)
+
+    # ── Step 3: Classify and separate typed vs ref-table vs untyped ────────
+
+    typed_items: dict[str, list[dict]] = {}   # entity_type → [raw_items]
+    ref_items: dict[str, list[dict]] = {}     # ref_type → [raw_items]
+    untyped_items: list[dict] = []
+
+    for item in raw_items:
+        etype = item.pop("_entity_type", None)
+        rtype = item.pop("_ref_type", None)
+        if etype:
+            typed_items.setdefault(etype, []).append(item)
+        elif rtype:
+            ref_items.setdefault(rtype, []).append(item)
+        else:
+            untyped_items.append(item)
+
+    console.print(f"\n  Classified: {sum(len(v) for v in typed_items.values())} entities across {len(typed_items)} types")
+    if ref_items:
+        ref_total = sum(len(v) for v in ref_items.values())
+        console.print(f"  [cyan]Reference table items: {ref_total} across {len(ref_items)} categories[/cyan]")
+        for rtype, items in sorted(ref_items.items()):
+            console.print(f"    {rtype}: {len(items)}")
+    if untyped_items:
+        console.print(f"  [yellow]Unclassifiable: {len(untyped_items)} entities[/yellow]")
+
+    for etype, items in sorted(typed_items.items()):
+        console.print(f"    {etype}: {len(items)}")
+
+    # ── Step 4: Enrich from Wikipedia ────────────────────────────────────────
+
+    wp = WikipediaEnricher() if not skip_wikipedia else None
+    mapper = EntityMapper()
+    dedup = Deduplicator()
+
+    all_entities: list[dict] = []
+
+    for etype, items in typed_items.items():
+        console.rule(f"[blue]{etype} ({len(items)})")
+
+        if wp:
+            console.print("  Enriching from Wikipedia…")
+            items = wp.enrich_batch(items)
+
+        console.print("  Mapping to entity schema…")
+        entities = [mapper.map(item, etype) for item in items]
+        entities = [e for e in entities if e is not None]
+
+        all_entities.extend(entities)
+
+    # ── Step 5: Write reference-table items (separate from entities) ────────
+
+    if ref_items:
+        console.rule("[cyan]Reference table items")
+        slug = _slugify(query)
+        ref_file = out / f"topic_{slug}_ref.jsonl"
+        ref_count = 0
+        with open(ref_file, "wb") as f:
+            for rtype, items in ref_items.items():
+                for item in items:
+                    # Tag with ref_type so Laravel knows which ref table it belongs to
+                    item["_ref_type"] = rtype
+                    f.write(orjson.dumps(item) + b"\n")
+                    ref_count += 1
+        console.print(f"  ✓ {ref_count} ref items written to {ref_file}")
+
+    # ── Step 6: Also write untyped entities for manual review ────────────────
+
+    if not skip_untyped and untyped_items:
+        console.rule("[yellow]Untyped entities")
+        console.print(f"  Saving {len(untyped_items)} untyped entities for manual classification")
+
+        slug = _slugify(query)
+        untyped_file = out / f"topic_{slug}_untyped.jsonl"
+        with open(untyped_file, "wb") as f:
+            for item in untyped_items:
+                f.write(orjson.dumps(item) + b"\n")
+        console.print(f"  ✓ Written to {untyped_file}")
+
+    # ── Step 7: Deduplicate across all types ─────────────────────────────────
+
+    console.rule("[bold blue]Deduplication")
+    before = len(all_entities)
+    all_entities = dedup.deduplicate(all_entities)
+    console.print(f"  {before} → {len(all_entities)} ({before - len(all_entities)} duplicates removed)")
+
+    # ── Step 8: Write output ─────────────────────────────────────────────────
+
+    slug = _slugify(query)
+    outfile = out / f"topic_{slug}.jsonl"
+    with open(outfile, "wb") as f:
+        for entity in all_entities:
+            f.write(orjson.dumps(entity) + b"\n")
+
+    console.print(f"\n[bold green]✓ {len(all_entities)} entities written to {outfile}[/bold green]")
+
+    # Summary by type
+    type_counts: dict[str, int] = {}
+    for e in all_entities:
+        t = e.get("entity_type", "unknown")
+        type_counts[t] = type_counts.get(t, 0) + 1
+    console.print("\n[bold]Breakdown by type:[/bold]")
+    for t, c in sorted(type_counts.items(), key=lambda x: -x[1]):
+        group = TYPE_TO_GROUP.get(t, "?")
+        console.print(f"  {group:8s}  {t:35s}  {c}")
+
+
+def _slugify(text: str) -> str:
+    """Convert a string to a safe filename slug."""
+    import re
+    slug = text.lower().strip()
+    slug = re.sub(r"[^a-z0-9]+", "_", slug)
+    slug = slug.strip("_")
+    return slug[:80]
 
 
 if __name__ == "__main__":
