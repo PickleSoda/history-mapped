@@ -74,8 +74,8 @@ services:
     build:
       context: ..
       dockerfile: docker/api/Dockerfile
-    working_dir: /workspace
-    command: pnpm --filter @wikiglobe/api dev
+    working_dir: /workspace/api
+    command: pnpm dev
     ports:
       - '${FORWARD_ADMIN_PORT:-5174}:5174'
     volumes:

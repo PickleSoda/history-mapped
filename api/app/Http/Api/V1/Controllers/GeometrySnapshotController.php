@@ -36,6 +36,7 @@ class GeometrySnapshotController extends Controller
         $snapshot = $entity->geometrySnapshots()
             ->where('year_start', '<=', $year)
             ->where('year_end', '>=', $year)
+            ->reorder()
             ->orderByDesc('display_priority')
             ->orderBy('year_start')
             ->firstOrFail();
@@ -96,7 +97,7 @@ class GeometrySnapshotController extends Controller
         Entity $entity,
         string $snapshot,
         DeleteSnapshotAction $deleteSnapshot,
-    ): \Illuminate\Http\JsonResponse {
+    ): JsonResponse {
         $model = GeometrySnapshot::query()
             ->where('snapshot_id', $snapshot)
             ->where('entity_id', $entity->entity_id)

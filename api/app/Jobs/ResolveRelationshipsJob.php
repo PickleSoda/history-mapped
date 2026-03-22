@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Actions\Relationship\CreateRelationshipAction;
+use App\DTOs\RelationshipData;
+use App\Enums\ConfidenceLevel;
+use App\Enums\RelationshipType;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -11,7 +15,6 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 /**
  * Resolve pipeline relationship hints into actual relationship records.
@@ -19,6 +22,10 @@ use Illuminate\Support\Str;
  * After entities are imported, this job reads the pipeline_relationship_hints
  * staging table and creates relationship records by matching target_wikidata_id
  * to existing entities.
+ *
+ * Each hint is resolved through CreateRelationshipAction so that auto-snapshot
+ * logic fires correctly for applicable relationship types (e.g. born_in,
+ * fought_at, signed_by).
  *
  * Dedup strategy for relationships:
  * - Unique on (source_entity_id, target_entity_id, relationship_type)
@@ -34,19 +41,32 @@ class ResolveRelationshipsJob implements ShouldQueue
 
     public int $timeout = 600;
 
+    /**
+     * Relationship types that are symmetric — i.e. A→B and B→A represent the
+     * same real-world fact. Dedup checks both directions for these.
+     *
+     * @var list<string>
+     */
+    private const SYMMETRIC_TYPES = [
+        'married_to',
+        'allied_with',
+        'sibling_of',
+        'trades_with',
+        'at_war_with',
+    ];
+
     public function __construct(
         public readonly string $batchId,
     ) {}
 
-    public function handle(): void
+    public function handle(CreateRelationshipAction $createRelationship): void
     {
         Log::info("[Pipeline] Resolving relationships for batch: {$this->batchId}");
 
-        // First try the staging table approach
         if ($this->hasStagingTable()) {
-            $this->resolveFromStagingTable();
+            $this->resolveFromStagingTable($createRelationship);
         } else {
-            $this->resolveFromEntityAttributes();
+            $this->resolveFromEntityAttributes($createRelationship);
         }
     }
 
@@ -64,8 +84,12 @@ class ResolveRelationshipsJob implements ShouldQueue
 
     /**
      * Resolve from the dedicated staging table.
+     *
+     * Iterates all unresolved hints for this batch, looks up the target entity
+     * by wikidata_id, validates the relationship type against the enum, and
+     * delegates creation to CreateRelationshipAction (which handles auto-snapshots).
      */
-    private function resolveFromStagingTable(): void
+    private function resolveFromStagingTable(CreateRelationshipAction $createRelationship): void
     {
         $hints = DB::table('pipeline_relationship_hints')
             ->where('batch_id', $this->batchId)
@@ -79,87 +103,83 @@ class ResolveRelationshipsJob implements ShouldQueue
         $unresolvable = 0;
 
         foreach ($hints as $hint) {
-            // Look up target entity by wikidata_id
-            $targetEntity = DB::table('entities')
-                ->where('wikidata_id', $hint->target_wikidata_id)
-                ->select('entity_id')
-                ->first();
+            // Validate the relationship type before touching the DB
+            $type = RelationshipType::tryFrom($hint->relationship_type);
 
-            if (! $targetEntity) {
-                $unresolvable++;
-                DB::table('pipeline_relationship_hints')
-                    ->where('source_entity_id', $hint->source_entity_id)
-                    ->where('target_wikidata_id', $hint->target_wikidata_id)
-                    ->where('relationship_type', $hint->relationship_type)
-                    ->update(['resolved' => true, 'resolution_note' => 'target_not_found']);
+            if ($type === null) {
+                Log::debug("[Pipeline] Unknown relationship type '{$hint->relationship_type}', skipping hint {$hint->id}");
+                $this->markHint($hint->id, 'unknown_type');
+                $skipped++;
 
                 continue;
             }
 
-            // Dedup: check if this relationship already exists
-            if ($this->relationshipExists(
-                $hint->source_entity_id,
-                $targetEntity->entity_id,
-                $hint->relationship_type
-            )) {
-                $skipped++;
-                DB::table('pipeline_relationship_hints')
-                    ->where('source_entity_id', $hint->source_entity_id)
-                    ->where('target_wikidata_id', $hint->target_wikidata_id)
-                    ->where('relationship_type', $hint->relationship_type)
-                    ->update(['resolved' => true, 'resolution_note' => 'already_exists']);
+            // Look up target entity by wikidata_id
+            $targetEntity = DB::table('entities')
+                ->where('wikidata_id', $hint->target_wikidata_id)
+                ->value('entity_id');
+
+            if ($targetEntity === null) {
+                $this->markHint($hint->id, 'target_not_found');
+                $unresolvable++;
 
                 continue;
             }
 
             // Self-reference guard
-            if ($hint->source_entity_id === $targetEntity->entity_id) {
+            if ($hint->source_entity_id === $targetEntity) {
+                $this->markHint($hint->id, 'self_reference');
                 $skipped++;
 
                 continue;
             }
 
-            // Create the relationship
-            try {
-                DB::table('relationships')->insert([
-                    'relationship_id' => Str::uuid()->toString(),
-                    'source_entity_id' => $hint->source_entity_id,
-                    'target_entity_id' => $targetEntity->entity_id,
-                    'relationship_type' => $hint->relationship_type,
-                    'confidence' => $hint->confidence ?? 'medium',
-                    'source_citations' => json_encode([[
-                        'source_type' => 'reference',
-                        'title' => "Wikidata property: {$hint->wikidata_property}",
-                        'reliability' => 'reference',
-                    ]]),
-                    'created_by' => "pipeline:{$this->batchId}",
-                    'created_at' => now(),
-                ]);
+            // Dedup: skip if this relationship already exists
+            if ($this->relationshipExists($hint->source_entity_id, $targetEntity, $hint->relationship_type)) {
+                $this->markHint($hint->id, 'already_exists');
+                $skipped++;
 
+                continue;
+            }
+
+            try {
+                $citations = $this->buildCitations($hint->wikidata_property ?? null);
+
+                $data = new RelationshipData(
+                    sourceEntityId: $hint->source_entity_id,
+                    targetEntityId: $targetEntity,
+                    relationshipType: $type,
+                    confidence: ConfidenceLevel::tryFrom($hint->confidence ?? '') ?? ConfidenceLevel::Medium,
+                    sourceCitations: $citations,
+                );
+
+                $createRelationship($data, "pipeline:{$this->batchId}");
+
+                $this->markHint($hint->id, 'created');
                 $created++;
 
-                DB::table('pipeline_relationship_hints')
-                    ->where('source_entity_id', $hint->source_entity_id)
-                    ->where('target_wikidata_id', $hint->target_wikidata_id)
-                    ->where('relationship_type', $hint->relationship_type)
-                    ->update(['resolved' => true, 'resolution_note' => 'created']);
-
             } catch (\Throwable $e) {
-                Log::warning("[Pipeline] Failed to create relationship: {$e->getMessage()}", [
+                Log::warning("[Pipeline] Failed to create relationship for hint {$hint->id}: {$e->getMessage()}", [
                     'source' => $hint->source_entity_id,
-                    'target' => $targetEntity->entity_id,
+                    'target' => $targetEntity,
                     'type' => $hint->relationship_type,
                 ]);
             }
         }
 
-        Log::info("[Pipeline] Relationships resolved: {$created} created, {$skipped} skipped (dedup), {$unresolvable} unresolvable (target not in DB)");
+        Log::info(
+            "[Pipeline] Relationships resolved: {$created} created, "
+            ."{$skipped} skipped (dedup/invalid), {$unresolvable} unresolvable (target not in DB)"
+        );
     }
 
     /**
-     * Fallback: resolve hints stored in entity attributes JSONB.
+     * Fallback path: resolve hints stored in entity attributes JSONB.
+     *
+     * Used when the pipeline_relationship_hints staging table is unavailable
+     * (e.g. a migration has not been run in a non-standard environment).
      */
-    private function resolveFromEntityAttributes(): void
+    private function resolveFromEntityAttributes(CreateRelationshipAction $createRelationship): void
     {
         $entities = DB::table('entities')
             ->where('created_by', 'like', "pipeline:{$this->batchId}%")
@@ -176,40 +196,41 @@ class ResolveRelationshipsJob implements ShouldQueue
             $hints = $attributes['_relationship_hints'] ?? [];
 
             foreach ($hints as $hint) {
-                $targetEntity = DB::table('entities')
-                    ->where('wikidata_id', $hint['target_wikidata_id'] ?? null)
-                    ->select('entity_id')
-                    ->first();
+                $type = RelationshipType::tryFrom($hint['relationship_type'] ?? '');
 
-                if (! $targetEntity || $entity->entity_id === $targetEntity->entity_id) {
+                if ($type === null) {
                     continue;
                 }
 
-                if ($this->relationshipExists(
-                    $entity->entity_id,
-                    $targetEntity->entity_id,
-                    $hint['relationship_type']
-                )) {
+                $targetId = DB::table('entities')
+                    ->where('wikidata_id', $hint['target_wikidata_id'] ?? null)
+                    ->value('entity_id');
+
+                if ($targetId === null || $entity->entity_id === $targetId) {
+                    continue;
+                }
+
+                if ($this->relationshipExists($entity->entity_id, $targetId, $hint['relationship_type'])) {
                     continue;
                 }
 
                 try {
-                    DB::table('relationships')->insert([
-                        'relationship_id' => Str::uuid()->toString(),
-                        'source_entity_id' => $entity->entity_id,
-                        'target_entity_id' => $targetEntity->entity_id,
-                        'relationship_type' => $hint['relationship_type'],
-                        'confidence' => $hint['confidence'] ?? 'medium',
-                        'created_by' => "pipeline:{$this->batchId}",
-                        'created_at' => now(),
-                    ]);
+                    $data = new RelationshipData(
+                        sourceEntityId: $entity->entity_id,
+                        targetEntityId: $targetId,
+                        relationshipType: $type,
+                        confidence: ConfidenceLevel::tryFrom($hint['confidence'] ?? '') ?? ConfidenceLevel::Medium,
+                    );
+
+                    $createRelationship($data, "pipeline:{$this->batchId}");
                     $created++;
+
                 } catch (\Throwable) {
-                    // Skip failed relationships silently
+                    // Skip failed relationships silently in the fallback path
                 }
             }
 
-            // Clean up hints from attributes
+            // Clean up hints from attributes after processing
             DB::table('entities')
                 ->where('entity_id', $entity->entity_id)
                 ->update([
@@ -218,6 +239,16 @@ class ResolveRelationshipsJob implements ShouldQueue
         }
 
         Log::info("[Pipeline] Created {$created} relationships from embedded hints");
+    }
+
+    /**
+     * Mark a single hint row as resolved with the given note.
+     */
+    private function markHint(int $hintId, string $note): void
+    {
+        DB::table('pipeline_relationship_hints')
+            ->where('id', $hintId)
+            ->update(['resolved' => true, 'resolution_note' => $note]);
     }
 
     /**
@@ -235,13 +266,7 @@ class ResolveRelationshipsJob implements ShouldQueue
             return true;
         }
 
-        // Check reverse direction for symmetric types
-        $symmetricTypes = [
-            'married_to', 'allied_with', 'sibling_of',
-            'trades_with', 'at_war_with',
-        ];
-
-        if (in_array($type, $symmetricTypes, true)) {
+        if (in_array($type, self::SYMMETRIC_TYPES, true)) {
             return DB::table('relationships')
                 ->where('source_entity_id', $targetId)
                 ->where('target_entity_id', $sourceId)
@@ -250,5 +275,26 @@ class ResolveRelationshipsJob implements ShouldQueue
         }
 
         return false;
+    }
+
+    /**
+     * Build a source_citations array from a Wikidata property ID.
+     *
+     * Returns null (no citations) when no property is available, rather than
+     * storing a meaningless placeholder.
+     *
+     * @return list<array<string, string>>|null
+     */
+    private function buildCitations(?string $wikidataProperty): ?array
+    {
+        if ($wikidataProperty === null || $wikidataProperty === '') {
+            return null;
+        }
+
+        return [[
+            'source_type' => 'reference',
+            'title' => "Wikidata property: {$wikidataProperty}",
+            'reliability' => 'reference',
+        ]];
     }
 }
