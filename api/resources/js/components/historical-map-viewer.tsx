@@ -1,13 +1,26 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
 import { LngLatBounds, Map } from 'maplibre-gl';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+    computeBoundsFromFeatures,
+    normalizeToFeatureCollection,
+} from '@/lib/geojson';
+import type { GeoJsonLike } from '@/lib/geojson';
 import { loadHistoricalBasemapStyle } from '@/lib/map-config';
+import { normalizeOhmDate } from '@/lib/ohm-date';
+import { applyOhmLayerDateFilter } from '@/lib/ohm-layer-date-filter';
 import { cn } from '@/lib/utils';
-import { computeBoundsFromFeatures, normalizeToFeatureCollection, type GeoJsonLike } from '@/lib/geojson';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 type Props = {
     baseGeometries: GeoJsonLike[];
     overlayGeometries?: GeoJsonLike[];
+    /**
+     * OHM-compatible date string (`YYYY`, `YYYY-MM`, or `YYYY-MM-DD`, negative years for BCE).
+     * When set, OHM base layers are filtered to features visible on that date.
+     */
+    timeframeDate?: string | null;
+    timeframeStartDate?: string | null;
+    timeframeEndDate?: string | null;
     className?: string;
     fitBounds?: boolean;
     onRenderStateChange?: (state: {
@@ -17,21 +30,43 @@ type Props = {
     }) => void;
 };
 
-const IS_DEV_HOST = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
-
 export default function HistoricalMapViewer({
     baseGeometries,
     overlayGeometries = [],
     className,
     fitBounds = true,
     onRenderStateChange,
+    timeframeDate,
+    timeframeStartDate,
+    timeframeEndDate,
 }: Props) {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<Map | null>(null);
     const [mapReady, setMapReady] = useState(false);
 
-    const baseData = useMemo(() => normalizeToFeatureCollection(baseGeometries), [baseGeometries]);
-    const overlayData = useMemo(() => normalizeToFeatureCollection(overlayGeometries), [overlayGeometries]);
+    const baseData = useMemo(
+        () => normalizeToFeatureCollection(baseGeometries),
+        [baseGeometries],
+    );
+    const overlayData = useMemo(
+        () => normalizeToFeatureCollection(overlayGeometries),
+        [overlayGeometries],
+    );
+
+    // Stable ref so the map-init closure always reads the latest timeframeDate
+    // without being re-run on date changes.
+    const timeframeDateRef = useRef(timeframeDate);
+    const timeframeStartDateRef = useRef(timeframeStartDate);
+    const timeframeEndDateRef = useRef(timeframeEndDate);
+    useEffect(() => {
+        timeframeDateRef.current = timeframeDate;
+    }, [timeframeDate]);
+    useEffect(() => {
+        timeframeStartDateRef.current = timeframeStartDate;
+    }, [timeframeStartDate]);
+    useEffect(() => {
+        timeframeEndDateRef.current = timeframeEndDate;
+    }, [timeframeEndDate]);
 
     useEffect(() => {
         let cancelled = false;
@@ -134,6 +169,25 @@ export default function HistoricalMapViewer({
 
                     setMapReady(true);
                     setTimeout(() => map.resize(), 0);
+
+                    // Apply initial OHM date filter from the latest timeframe.
+                    applyTimeFilter(
+                        map,
+                        timeframeDateRef.current ?? null,
+                        timeframeStartDateRef.current ?? null,
+                        timeframeEndDateRef.current ?? null,
+                    );
+                });
+
+                // Re-apply the OHM date filter whenever style data changes.
+                // This matches the plugin docs and keeps filters in sync after style updates.
+                map.on('styledata', () => {
+                    applyTimeFilter(
+                        map,
+                        timeframeDateRef.current ?? null,
+                        timeframeStartDateRef.current ?? null,
+                        timeframeEndDateRef.current ?? null,
+                    );
                 });
 
                 mapRef.current = map;
@@ -144,6 +198,7 @@ export default function HistoricalMapViewer({
 
         return () => {
             cancelled = true;
+
             if (mapRef.current) {
                 mapRef.current.remove();
                 mapRef.current = null;
@@ -151,8 +206,25 @@ export default function HistoricalMapViewer({
         };
     }, []);
 
+    // Re-apply the OHM date filter whenever the timeframe changes after mount.
     useEffect(() => {
         const map = mapRef.current;
+
+        if (!map || !mapReady) {
+            return;
+        }
+
+        applyTimeFilter(
+            map,
+            timeframeDate ?? null,
+            timeframeStartDate ?? null,
+            timeframeEndDate ?? null,
+        );
+    }, [timeframeDate, timeframeStartDate, timeframeEndDate, mapReady]);
+
+    useEffect(() => {
+        const map = mapRef.current;
+
         if (!map || !mapReady) {
             onRenderStateChange?.({
                 mapReady,
@@ -164,8 +236,12 @@ export default function HistoricalMapViewer({
         }
 
         const applyData = () => {
-            const baseSource = map.getSource('base-geometry') as { setData: (data: GeoJSON.FeatureCollection) => void } | undefined;
-            const overlaySource = map.getSource('overlay-geometry') as { setData: (data: GeoJSON.FeatureCollection) => void } | undefined;
+            const baseSource = map.getSource('base-geometry') as
+                | { setData: (data: GeoJSON.FeatureCollection) => void }
+                | undefined;
+            const overlaySource = map.getSource('overlay-geometry') as
+                | { setData: (data: GeoJSON.FeatureCollection) => void }
+                | undefined;
 
             if (!baseSource || !overlaySource) {
                 return false;
@@ -175,23 +251,25 @@ export default function HistoricalMapViewer({
             overlaySource.setData(overlayData);
 
             if (fitBounds) {
-                const combinedFeatures = [...baseData.features, ...overlayData.features];
+                const combinedFeatures = [
+                    ...baseData.features,
+                    ...overlayData.features,
+                ];
                 const bounds = computeBoundsFromFeatures(combinedFeatures);
-                if (bounds) {
-                    map.fitBounds(new LngLatBounds([bounds[0], bounds[1]], [bounds[2], bounds[3]]), {
-                        padding: 40,
-                        maxZoom: 7,
-                        duration: 0,
-                    });
-                }
-            }
 
-            if (IS_DEV_HOST) {
-                console.debug('[HistoricalMapViewer] render state', {
-                    mapReady,
-                    baseFeatureCount: baseData.features.length,
-                    overlayFeatureCount: overlayData.features.length,
-                });
+                if (bounds) {
+                    map.fitBounds(
+                        new LngLatBounds(
+                            [bounds[0], bounds[1]],
+                            [bounds[2], bounds[3]],
+                        ),
+                        {
+                            padding: 40,
+                            maxZoom: 7,
+                            duration: 0,
+                        },
+                    );
+                }
             }
 
             onRenderStateChange?.({
@@ -235,5 +313,33 @@ export default function HistoricalMapViewer({
         };
     }, []);
 
-    return <div ref={mapContainerRef} className={cn('h-105 w-full', className)} />;
+    return (
+        <div ref={mapContainerRef} className={cn('h-105 w-full', className)} />
+    );
+}
+
+function applyTimeFilter(
+    map: Map,
+    timeframeDate: string | null,
+    timeframeStartDate: string | null,
+    timeframeEndDate: string | null,
+): void {
+    try {
+        const normalizedDate = normalizeOhmDate(timeframeDate);
+        const normalizedStartDate = normalizeOhmDate(timeframeStartDate);
+        const normalizedEndDate = normalizeOhmDate(timeframeEndDate);
+
+        applyOhmLayerDateFilter(
+            map,
+            normalizedStartDate || normalizedEndDate
+                ? { start: normalizedStartDate, end: normalizedEndDate }
+                : normalizedDate,
+            { includeUndated: true },
+        );
+    } catch (error) {
+        console.warn('[HistoricalMapViewer] Failed to apply OHM date filter', {
+            timeframeDate,
+            error,
+        });
+    }
 }

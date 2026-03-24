@@ -1,4 +1,6 @@
 import { Head } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
+import { RefTableLayout } from '@/components/ref-table-layout';
 import { Badge } from '@/components/ui/badge';
 import {
     Select,
@@ -15,9 +17,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { RefTableLayout } from '@/components/ref-table-layout';
 import AppLayout from '@/layouts/app-layout';
-import { router } from '@inertiajs/react';
 import { index } from '@/routes/reference/measurement-units';
 import type { BreadcrumbItem, PaginatedData } from '@/types';
 import type { MeasurementUnit } from '@/types/reference';
@@ -36,7 +36,11 @@ type Props = {
     types: string[];
 };
 
-export default function MeasurementUnitsIndex({ units, filters, types }: Props) {
+export default function MeasurementUnitsIndex({
+    units,
+    filters,
+    types,
+}: Props) {
     const handleTypeChange = (value: string) => {
         router.get(
             index.url(),
@@ -49,7 +53,10 @@ export default function MeasurementUnitsIndex({ units, filters, types }: Props) 
     };
 
     const typeFilter = (
-        <Select value={filters.type ?? '__all__'} onValueChange={handleTypeChange}>
+        <Select
+            value={filters.type ?? '__all__'}
+            onValueChange={handleTypeChange}
+        >
             <SelectTrigger className="w-48">
                 <SelectValue placeholder="All Types" />
             </SelectTrigger>
@@ -93,30 +100,37 @@ export default function MeasurementUnitsIndex({ units, filters, types }: Props) 
                         <TableBody>
                             {units.data.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={8} className="h-24 text-center">
-                                        <div className="text-muted-foreground">No records found.</div>
+                                    <TableCell
+                                        colSpan={8}
+                                        className="h-24 text-center"
+                                    >
+                                        <div className="text-muted-foreground">
+                                            No records found.
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ) : (
                                 units.data.map((unit) => (
                                     <TableRow key={unit.unit_id}>
-                                        <TableCell className="font-medium">{unit.name}</TableCell>
+                                        <TableCell className="font-medium">
+                                            {unit.name}
+                                        </TableCell>
                                         <TableCell className="font-mono text-sm">
                                             {unit.symbol ?? '—'}
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground text-sm">
+                                        <TableCell className="text-sm text-muted-foreground">
                                             {unit.measurement_type}
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground tabular-nums text-sm">
+                                        <TableCell className="text-sm text-muted-foreground tabular-nums">
                                             {unit.si_equivalent ?? '—'}
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground text-sm">
+                                        <TableCell className="text-sm text-muted-foreground">
                                             {unit.si_unit ?? '—'}
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground text-sm">
+                                        <TableCell className="text-sm text-muted-foreground">
                                             {unit.used_by_region ?? '—'}
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground text-sm">
+                                        <TableCell className="text-sm text-muted-foreground">
                                             {unit.used_by_period ?? '—'}
                                         </TableCell>
                                         <TableCell>
@@ -128,7 +142,9 @@ export default function MeasurementUnitsIndex({ units, filters, types }: Props) 
                                                     Yes
                                                 </Badge>
                                             ) : (
-                                                <span className="text-muted-foreground text-sm">No</span>
+                                                <span className="text-sm text-muted-foreground">
+                                                    No
+                                                </span>
                                             )}
                                         </TableCell>
                                     </TableRow>

@@ -91,6 +91,7 @@ services:
         condition: service_completed_successfully
 
   db:
+    image: '${WG_DB_IMAGE:-wikiglobe-db:16-pgvector-v0.8.2}'
     build:
       context: .
       dockerfile: db/Dockerfile

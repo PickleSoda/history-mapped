@@ -16,7 +16,11 @@ type Props<T> = {
     title: string;
     description?: string;
     basePath: string;
-    filters: { search: string; per_page: number; [key: string]: string | number };
+    filters: {
+        search: string;
+        per_page: number;
+        [key: string]: string | number;
+    };
     paginated: PaginatedData<T>;
     extra?: React.ReactNode;
     children: React.ReactNode;
@@ -51,7 +55,10 @@ export function RefTableLayout<T>({
                 delete query.page;
             }
 
-            router.get(basePath, query, { preserveState: true, preserveScroll: true });
+            router.get(basePath, query, {
+                preserveState: true,
+                preserveScroll: true,
+            });
         },
         [filters, basePath],
     );
@@ -74,12 +81,17 @@ export function RefTableLayout<T>({
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">
+                        {title}
+                    </h1>
                     {description && (
-                        <p className="text-muted-foreground text-sm">{description}</p>
+                        <p className="text-sm text-muted-foreground">
+                            {description}
+                        </p>
                     )}
-                    <p className="text-muted-foreground text-sm">
-                        {paginated.total} {paginated.total === 1 ? 'record' : 'records'}
+                    <p className="text-sm text-muted-foreground">
+                        {paginated.total}{' '}
+                        {paginated.total === 1 ? 'record' : 'records'}
                     </p>
                 </div>
             </div>
@@ -88,7 +100,7 @@ export function RefTableLayout<T>({
             <div className="flex flex-wrap items-end gap-3">
                 <form onSubmit={handleSearch} className="flex gap-2">
                     <div className="relative">
-                        <Search className="text-muted-foreground pointer-events-none absolute left-2.5 top-2.5 size-4" />
+                        <Search className="pointer-events-none absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
                         <Input
                             type="search"
                             placeholder={`Search ${title.toLowerCase()}…`}
@@ -118,8 +130,9 @@ export function RefTableLayout<T>({
             {/* Pagination */}
             {paginated.last_page > 1 && (
                 <div className="flex items-center justify-between">
-                    <p className="text-muted-foreground text-sm">
-                        Showing {paginated.from} to {paginated.to} of {paginated.total}
+                    <p className="text-sm text-muted-foreground">
+                        Showing {paginated.from} to {paginated.to} of{' '}
+                        {paginated.total}
                     </p>
                     <div className="flex items-center gap-1">
                         <Button
@@ -136,19 +149,26 @@ export function RefTableLayout<T>({
                             size="icon"
                             className="size-8"
                             disabled={paginated.current_page <= 1}
-                            onClick={() => navigate({ page: paginated.current_page - 1 })}
+                            onClick={() =>
+                                navigate({ page: paginated.current_page - 1 })
+                            }
                         >
                             <ChevronLeft className="size-4" />
                         </Button>
-                        <span className="text-muted-foreground px-3 text-sm tabular-nums">
-                            Page {paginated.current_page} of {paginated.last_page}
+                        <span className="px-3 text-sm text-muted-foreground tabular-nums">
+                            Page {paginated.current_page} of{' '}
+                            {paginated.last_page}
                         </span>
                         <Button
                             variant="outline"
                             size="icon"
                             className="size-8"
-                            disabled={paginated.current_page >= paginated.last_page}
-                            onClick={() => navigate({ page: paginated.current_page + 1 })}
+                            disabled={
+                                paginated.current_page >= paginated.last_page
+                            }
+                            onClick={() =>
+                                navigate({ page: paginated.current_page + 1 })
+                            }
                         >
                             <ChevronRight className="size-4" />
                         </Button>
@@ -156,8 +176,12 @@ export function RefTableLayout<T>({
                             variant="outline"
                             size="icon"
                             className="size-8"
-                            disabled={paginated.current_page >= paginated.last_page}
-                            onClick={() => navigate({ page: paginated.last_page })}
+                            disabled={
+                                paginated.current_page >= paginated.last_page
+                            }
+                            onClick={() =>
+                                navigate({ page: paginated.last_page })
+                            }
                         >
                             <ChevronsRight className="size-4" />
                         </Button>

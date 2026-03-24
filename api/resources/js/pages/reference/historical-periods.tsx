@@ -1,4 +1,5 @@
 import { Head } from '@inertiajs/react';
+import { RefTableLayout } from '@/components/ref-table-layout';
 import {
     Table,
     TableBody,
@@ -7,7 +8,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { RefTableLayout } from '@/components/ref-table-layout';
 import AppLayout from '@/layouts/app-layout';
 import { index } from '@/routes/reference/historical-periods';
 import type { BreadcrumbItem, PaginatedData } from '@/types';
@@ -48,14 +48,21 @@ export default function HistoricalPeriodsIndex({ periods, filters }: Props) {
                                 <TableHead>End</TableHead>
                                 <TableHead>Region</TableHead>
                                 <TableHead>Colour</TableHead>
-                                <TableHead className="text-right">Sort</TableHead>
+                                <TableHead className="text-right">
+                                    Sort
+                                </TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {periods.data.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={7} className="h-24 text-center">
-                                        <div className="text-muted-foreground">No records found.</div>
+                                    <TableCell
+                                        colSpan={7}
+                                        className="h-24 text-center"
+                                    >
+                                        <div className="text-muted-foreground">
+                                            No records found.
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ) : (
@@ -63,24 +70,28 @@ export default function HistoricalPeriodsIndex({ periods, filters }: Props) {
                                     <TableRow key={period.period_id}>
                                         <TableCell className="font-medium">
                                             <span
-                                                style={{ paddingLeft: `${period.depth_level * 1.25}rem` }}
+                                                style={{
+                                                    paddingLeft: `${period.depth_level * 1.25}rem`,
+                                                }}
                                             >
                                                 {period.depth_level > 0 && (
-                                                    <span className="text-muted-foreground mr-1">↳</span>
+                                                    <span className="mr-1 text-muted-foreground">
+                                                        ↳
+                                                    </span>
                                                 )}
                                                 {period.name}
                                             </span>
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground text-sm">
+                                        <TableCell className="text-sm text-muted-foreground">
                                             {period.parent_name ?? '—'}
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground tabular-nums text-sm">
+                                        <TableCell className="text-sm text-muted-foreground tabular-nums">
                                             {period.start_date}
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground tabular-nums text-sm">
+                                        <TableCell className="text-sm text-muted-foreground tabular-nums">
                                             {period.end_date}
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground text-sm">
+                                        <TableCell className="text-sm text-muted-foreground">
                                             {period.region_name ?? '—'}
                                         </TableCell>
                                         <TableCell>
@@ -88,9 +99,12 @@ export default function HistoricalPeriodsIndex({ periods, filters }: Props) {
                                                 <span className="inline-flex items-center gap-1.5">
                                                     <span
                                                         className="inline-block size-4 rounded-sm border"
-                                                        style={{ backgroundColor: period.color_hex }}
+                                                        style={{
+                                                            backgroundColor:
+                                                                period.color_hex,
+                                                        }}
                                                     />
-                                                    <span className="text-muted-foreground text-xs tabular-nums">
+                                                    <span className="text-xs text-muted-foreground tabular-nums">
                                                         {period.color_hex}
                                                     </span>
                                                 </span>

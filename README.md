@@ -40,16 +40,22 @@ git clone https://github.com/PickleSoda/WG.git && cd WG
 # 2. Copy env file
 cp api/.env.example api/.env
 
-# 3. Start all services (builds images, installs deps, starts containers)
+# 3. Start all services
 pnpm dev
 ```
 
-This runs `docker compose -f docker/docker-compose.yml up --build`, which:
+This runs `docker compose -f docker/docker-compose.yml up`, which:
 - Installs Composer and pnpm dependencies (one-shot init containers)
 - Starts PostgreSQL 16 with PostGIS + pgvector extensions
 - Starts the Laravel app (PHP-FPM + Nginx), queue worker, and scheduler
 - Starts Vite dev servers for the admin panel and web frontend
 - Starts Redis, Mailpit, CloudBeaver, and RedisInsight
+
+If you need to force image rebuilds (including local DB extension compilation), run:
+
+```bash
+pnpm dev:build
+```
 
 ### Service URLs
 
@@ -117,6 +123,7 @@ Docker Compose defaults are defined in `docker/docker-compose.yml`. Override via
 | `FORWARD_MAILPIT_PORT` | `8025` | Mailpit UI port |
 | `FORWARD_CLOUDBEAVER_PORT` | `8978` | CloudBeaver port |
 | `FORWARD_REDISINSIGHT_PORT` | `5540` | RedisInsight port |
+| `WG_DB_IMAGE` | `wikiglobe-db:16-pgvector-v0.8.2` | Optional prebuilt DB image tag (set to a registry image to skip local pgvector compilation) |
 | `POSTGRES_DB` | `wikiglobe` | Database name |
 | `POSTGRES_USER` | `wikiglobe` | Database user |
 | `POSTGRES_PASSWORD` | `secret` | Database password |

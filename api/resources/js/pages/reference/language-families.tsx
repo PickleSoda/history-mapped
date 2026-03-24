@@ -1,4 +1,5 @@
 import { Head } from '@inertiajs/react';
+import { RefTableLayout } from '@/components/ref-table-layout';
 import {
     Table,
     TableBody,
@@ -7,7 +8,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { RefTableLayout } from '@/components/ref-table-layout';
 import AppLayout from '@/layouts/app-layout';
 import { index } from '@/routes/reference/language-families';
 import type { BreadcrumbItem, PaginatedData } from '@/types';
@@ -55,8 +55,13 @@ export default function LanguageFamiliesIndex({ families, filters }: Props) {
                         <TableBody>
                             {families.data.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={8} className="h-24 text-center">
-                                        <div className="text-muted-foreground">No records found.</div>
+                                    <TableCell
+                                        colSpan={8}
+                                        className="h-24 text-center"
+                                    >
+                                        <div className="text-muted-foreground">
+                                            No records found.
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ) : (
@@ -69,28 +74,32 @@ export default function LanguageFamiliesIndex({ families, filters }: Props) {
                                                 }}
                                             >
                                                 {family.depth_level > 0 && (
-                                                    <span className="text-muted-foreground mr-1">↳</span>
+                                                    <span className="mr-1 text-muted-foreground">
+                                                        ↳
+                                                    </span>
                                                 )}
                                                 {family.name}
                                             </span>
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground text-sm">
+                                        <TableCell className="text-sm text-muted-foreground">
                                             {family.parent_name ?? '—'}
                                         </TableCell>
-                                        <TableCell className="tabular-nums">{family.depth_level}</TableCell>
-                                        <TableCell className="text-muted-foreground text-sm">
+                                        <TableCell className="tabular-nums">
+                                            {family.depth_level}
+                                        </TableCell>
+                                        <TableCell className="text-sm text-muted-foreground">
                                             {family.proto_language ?? '—'}
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground tabular-nums text-sm">
+                                        <TableCell className="text-sm text-muted-foreground tabular-nums">
                                             {family.estimated_origin ?? '—'}
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground text-sm">
+                                        <TableCell className="text-sm text-muted-foreground">
                                             {family.estimated_homeland ?? '—'}
                                         </TableCell>
                                         <TableCell className="tabular-nums">
                                             {family.living_languages ?? '—'}
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground text-sm">
+                                        <TableCell className="text-sm text-muted-foreground">
                                             {family.status ?? '—'}
                                         </TableCell>
                                     </TableRow>

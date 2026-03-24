@@ -1,13 +1,15 @@
 import { Head, router } from '@inertiajs/react';
 import { lazy, Suspense, useState } from 'react';
-import { update } from '@/routes/entities';
 import * as SnapshotRoutes from '@/actions/App/Http/Controllers/Admin/GeometrySnapshotController';
 import * as RelationshipRoutes from '@/actions/App/Http/Controllers/Admin/RelationshipController';
-import EntityForm, { defaultFormData, type EntityFormData } from '@/components/entity-form';
+import EntityForm, { defaultFormData } from '@/components/entity-form';
+import type { EntityFormData } from '@/components/entity-form';
 import HistoricalMapViewer from '@/components/historical-map-viewer';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import type { GeoJsonLike } from '@/lib/geojson';
+import { yearToOhmDate } from '@/lib/ohm-date';
+import { update } from '@/routes/entities';
 import type { BreadcrumbItem, EntityDetail, EntityFormOptions } from '@/types';
 
 const MapEditor = lazy(() => import('@/components/map-editor'));
@@ -25,6 +27,7 @@ function entityToFormData(entity: EntityDetail): EntityFormData {
 
     // Unpack attributes JSONB back into attr_* flat fields
     const attrFields: Record<string, string> = {};
+
     if (entity.attributes && typeof entity.attributes === 'object') {
         for (const [key, value] of Object.entries(entity.attributes)) {
             if (value !== null && value !== undefined) {
@@ -49,14 +52,20 @@ function entityToFormData(entity: EntityDetail): EntityFormData {
         location_name: entity.location_name ?? '',
         location_confidence: entity.location_confidence ?? '',
         location_method: entity.location_method ?? '',
-        impact_score: entity.impact_score != null ? String(entity.impact_score) : '',
+        impact_score:
+            entity.impact_score != null ? String(entity.impact_score) : '',
         wikidata_id: entity.wikidata_id ?? '',
         tags: Array.isArray(entity.tags) ? entity.tags.join(', ') : '',
-        alternative_names: Array.isArray(entity.alternative_names) ? entity.alternative_names.join(', ') : '',
+        alternative_names: Array.isArray(entity.alternative_names)
+            ? entity.alternative_names.join(', ')
+            : '',
         verification_status: entity.verification_status ?? 'pipeline_draft',
         confidence: entity.confidence ?? '',
         confidence_notes: entity.confidence_notes ?? '',
-        display_priority: entity.display_priority != null ? String(entity.display_priority) : '',
+        display_priority:
+            entity.display_priority != null
+                ? String(entity.display_priority)
+                : '',
         icon_class: entity.icon_class ?? '',
         entity_color: entity.entity_color ?? '',
         parent_entity_id: entity.parent_entity_id ?? '',
@@ -74,17 +83,28 @@ export default function EntityEdit({ entity, formOptions }: Props) {
     ];
 
     const [data, setData] = useState<EntityFormData>(entityToFormData(entity));
-    const [errors, setErrors] = useState<Partial<Record<keyof EntityFormData, string>>>({});
+    const [errors, setErrors] = useState<
+        Partial<Record<keyof EntityFormData, string>>
+    >({});
     const [processing, setProcessing] = useState(false);
 
     // Geometry state managed outside useForm (GeoJSON objects, not strings)
     const [geojson, setGeojson] = useState<GeoJsonLike>(entity.geojson ?? null);
-    const [territoryGeojson, setTerritoryGeojson] = useState<GeoJsonLike>(entity.territory_geojson ?? null);
+    const [territoryGeojson, setTerritoryGeojson] = useState<GeoJsonLike>(
+        entity.territory_geojson ?? null,
+    );
     const [mapOpen, setMapOpen] = useState(false);
     const [snapshotOpen, setSnapshotOpen] = useState(false);
     const [relationshipOpen, setRelationshipOpen] = useState(false);
+    const entityStartYear = Number(entity.temporal_start);
+    const timeframeDate = Number.isFinite(entityStartYear)
+        ? yearToOhmDate(entityStartYear)
+        : null;
 
-    function handleChange<K extends keyof EntityFormData>(field: K, value: EntityFormData[K]) {
+    function handleChange<K extends keyof EntityFormData>(
+        field: K,
+        value: EntityFormData[K],
+    ) {
         setData((prev) => ({ ...prev, [field]: value }));
     }
 
@@ -92,33 +112,48 @@ export default function EntityEdit({ entity, formOptions }: Props) {
         e.preventDefault();
 
         // Collect attr_* keys into attributes object
-        const attrEntries = Object.entries(data).filter(([key]) => key.startsWith('attr_'));
+        const attrEntries = Object.entries(data).filter(([key]) =>
+            key.startsWith('attr_'),
+        );
         const attributes: Record<string, unknown> = {};
+
         for (const [key, value] of attrEntries) {
             if (typeof value === 'string' && value.trim() !== '') {
                 attributes[key.replace(/^attr_/, '')] = value;
             }
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const payload: Record<string, any> = {};
+
         for (const [key, value] of Object.entries(data)) {
             if (!key.startsWith('attr_')) {
                 payload[key] = value;
             }
         }
 
-        payload['tags'] = data.tags ? data.tags.split(',').map((s) => s.trim()).filter(Boolean) : [];
-        payload['alternative_names'] = data.alternative_names
-            ? data.alternative_names.split(',').map((s) => s.trim()).filter(Boolean)
+        payload['tags'] = data.tags
+            ? data.tags
+                  .split(',')
+                  .map((s) => s.trim())
+                  .filter(Boolean)
             : [];
-        payload['attributes'] = Object.keys(attributes).length > 0 ? attributes : undefined;
+        payload['alternative_names'] = data.alternative_names
+            ? data.alternative_names
+                  .split(',')
+                  .map((s) => s.trim())
+                  .filter(Boolean)
+            : [];
+        payload['attributes'] =
+            Object.keys(attributes).length > 0 ? attributes : undefined;
         payload['geojson'] = geojson ?? undefined;
         payload['territory_geojson'] = territoryGeojson ?? undefined;
 
         setProcessing(true);
         router.put(update(entity.id), payload, {
-            onError: (errs) => setErrors(errs as Partial<Record<keyof EntityFormData, string>>),
+            onError: (errs) =>
+                setErrors(
+                    errs as Partial<Record<keyof EntityFormData, string>>,
+                ),
             onFinish: () => setProcessing(false),
         });
     }
@@ -129,8 +164,12 @@ export default function EntityEdit({ entity, formOptions }: Props) {
 
             <div className="mx-auto max-w-3xl p-4">
                 <div className="mb-6">
-                    <h1 className="text-2xl font-bold tracking-tight">Edit Entity</h1>
-                    <p className="text-muted-foreground mt-1 text-sm">{entity.name}</p>
+                    <h1 className="text-2xl font-bold tracking-tight">
+                        Edit Entity
+                    </h1>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        {entity.name}
+                    </p>
                 </div>
 
                 <EntityForm
@@ -152,10 +191,10 @@ export default function EntityEdit({ entity, formOptions }: Props) {
                         className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium"
                     >
                         <span>Map Editor</span>
-                        <span className="text-muted-foreground text-xs">
+                        <span className="text-xs text-muted-foreground">
                             {mapOpen ? 'Collapse' : 'Expand'}
                             {(geojson || territoryGeojson) && (
-                                <span className="bg-primary/10 text-primary ml-2 rounded px-1.5 py-0.5 text-[10px] font-semibold">
+                                <span className="ml-2 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
                                     Geometry set
                                 </span>
                             )}
@@ -166,12 +205,19 @@ export default function EntityEdit({ entity, formOptions }: Props) {
                         <div className="border-t">
                             <div className="border-b">
                                 <div className="px-4 py-2">
-                                    <p className="text-xs font-medium">Live Preview</p>
-                                    <p className="text-muted-foreground text-[11px] mt-0.5">
-                                        Uses the same viewer pipeline as the entity detail map.
+                                    <p className="text-xs font-medium">
+                                        Live Preview
+                                    </p>
+                                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                                        Uses the same viewer pipeline as the
+                                        entity detail map.
                                     </p>
                                 </div>
-                                <HistoricalMapViewer baseGeometries={[geojson, territoryGeojson]} fitBounds />
+                                <HistoricalMapViewer
+                                    baseGeometries={[geojson, territoryGeojson]}
+                                    timeframeDate={timeframeDate}
+                                    fitBounds
+                                />
                             </div>
 
                             <Suspense
@@ -184,6 +230,7 @@ export default function EntityEdit({ entity, formOptions }: Props) {
                                 <MapEditor
                                     geojson={geojson}
                                     territoryGeojson={territoryGeojson}
+                                    timeframeDate={timeframeDate}
                                     onChange={(geo, territory) => {
                                         setGeojson(geo);
                                         setTerritoryGeojson(territory);
@@ -205,7 +252,9 @@ export default function EntityEdit({ entity, formOptions }: Props) {
                                 <Button
                                     type="button"
                                     size="sm"
-                                    onClick={handleSubmit as unknown as React.MouseEventHandler}
+                                    onClick={
+                                        handleSubmit as unknown as React.MouseEventHandler
+                                    }
                                     disabled={processing}
                                 >
                                     Save with geometry
@@ -222,7 +271,7 @@ export default function EntityEdit({ entity, formOptions }: Props) {
                         className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium"
                     >
                         <span>Geometry Snapshots</span>
-                        <span className="text-muted-foreground text-xs">
+                        <span className="text-xs text-muted-foreground">
                             {snapshotOpen ? 'Collapse' : 'Expand'}
                         </span>
                     </button>
@@ -238,10 +287,24 @@ export default function EntityEdit({ entity, formOptions }: Props) {
                             >
                                 <SnapshotBuilder
                                     entityId={entity.id}
-                                    listUrl={SnapshotRoutes.index.url(entity.id)}
-                                    storeUrl={SnapshotRoutes.store.url(entity.id)}
-                                    updateUrlFn={(snapshotId) => SnapshotRoutes.update.url({ entity: entity.id, snapshot: snapshotId })}
-                                    deleteUrlFn={(snapshotId) => SnapshotRoutes.destroy.url({ entity: entity.id, snapshot: snapshotId })}
+                                    listUrl={SnapshotRoutes.index.url(
+                                        entity.id,
+                                    )}
+                                    storeUrl={SnapshotRoutes.store.url(
+                                        entity.id,
+                                    )}
+                                    updateUrlFn={(snapshotId) =>
+                                        SnapshotRoutes.update.url({
+                                            entity: entity.id,
+                                            snapshot: snapshotId,
+                                        })
+                                    }
+                                    deleteUrlFn={(snapshotId) =>
+                                        SnapshotRoutes.destroy.url({
+                                            entity: entity.id,
+                                            snapshot: snapshotId,
+                                        })
+                                    }
                                 />
                             </Suspense>
                         </div>
@@ -255,7 +318,7 @@ export default function EntityEdit({ entity, formOptions }: Props) {
                         className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium"
                     >
                         <span>Relationships</span>
-                        <span className="text-muted-foreground text-xs">
+                        <span className="text-xs text-muted-foreground">
                             {relationshipOpen ? 'Collapse' : 'Expand'}
                         </span>
                     </button>
@@ -271,10 +334,17 @@ export default function EntityEdit({ entity, formOptions }: Props) {
                             >
                                 <RelationshipPanel
                                     entityId={entity.id}
-                                    listUrl={RelationshipRoutes.index.url(entity.id)}
-                                    storeUrl={RelationshipRoutes.store.url(entity.id)}
+                                    listUrl={RelationshipRoutes.index.url(
+                                        entity.id,
+                                    )}
+                                    storeUrl={RelationshipRoutes.store.url(
+                                        entity.id,
+                                    )}
                                     deleteUrlFn={(relationshipId) =>
-                                        RelationshipRoutes.destroy.url({ entity: entity.id, relationship: relationshipId })
+                                        RelationshipRoutes.destroy.url({
+                                            entity: entity.id,
+                                            relationship: relationshipId,
+                                        })
                                     }
                                 />
                             </Suspense>

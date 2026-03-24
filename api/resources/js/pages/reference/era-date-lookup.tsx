@@ -1,4 +1,5 @@
 import { Head } from '@inertiajs/react';
+import { RefTableLayout } from '@/components/ref-table-layout';
 import { Badge } from '@/components/ui/badge';
 import {
     Table,
@@ -8,7 +9,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { RefTableLayout } from '@/components/ref-table-layout';
 import AppLayout from '@/layouts/app-layout';
 import { index } from '@/routes/reference/era-date-lookup';
 import type { BreadcrumbItem, PaginatedData } from '@/types';
@@ -60,32 +60,43 @@ export default function EraDateLookupIndex({ lookups, filters }: Props) {
                         <TableBody>
                             {lookups.data.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="h-24 text-center">
-                                        <div className="text-muted-foreground">No records found.</div>
+                                    <TableCell
+                                        colSpan={6}
+                                        className="h-24 text-center"
+                                    >
+                                        <div className="text-muted-foreground">
+                                            No records found.
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ) : (
                                 lookups.data.map((lookup) => (
                                     <TableRow key={lookup.lookup_id}>
-                                        <TableCell className="font-medium">{lookup.search_term}</TableCell>
-                                        <TableCell className="text-muted-foreground tabular-nums text-sm">
+                                        <TableCell className="font-medium">
+                                            {lookup.search_term}
+                                        </TableCell>
+                                        <TableCell className="text-sm text-muted-foreground tabular-nums">
                                             {lookup.resolved_start}
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground tabular-nums text-sm">
+                                        <TableCell className="text-sm text-muted-foreground tabular-nums">
                                             {lookup.resolved_end}
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground text-sm">
+                                        <TableCell className="text-sm text-muted-foreground">
                                             {lookup.geographic_scope ?? '—'}
                                         </TableCell>
                                         <TableCell>
                                             <Badge
                                                 variant="outline"
-                                                className={confidenceColors[lookup.confidence] ?? ''}
+                                                className={
+                                                    confidenceColors[
+                                                        lookup.confidence
+                                                    ] ?? ''
+                                                }
                                             >
                                                 {lookup.confidence}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground text-sm">
+                                        <TableCell className="text-sm text-muted-foreground">
                                             {lookup.period_name ?? '—'}
                                         </TableCell>
                                     </TableRow>

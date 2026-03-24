@@ -144,6 +144,8 @@ CREATE TYPE duration_type AS ENUM (
 ```sql
 CREATE TYPE location_resolution_method AS ENUM (
   'ohm_nominatim',         -- OpenHistoricalMap geocoder
+  'ohm_overpass',          -- OpenHistoricalMap Overpass element/relation query
+  'ohm_rest_api',          -- OpenHistoricalMap REST API lookup by element ID
   'wikidata',              -- Wikidata SPARQL coordinates
   'geonames',              -- GeoNames database
   'pleiades',              -- Pleiades ancient places gazetteer
@@ -494,11 +496,13 @@ Every entity in PostgreSQL shares these columns. Type-specific fields are stored
 | `name` | text | PG (indexed, tsvector) | NLP + LLM canonical form | Full-text searchable |
 | `alternative_names` | text[] | PG | NLP extraction from all sources | |
 | `wikidata_id` | text | PG (indexed) | Geocoding cascade | Nullable; stable cross-reference |
+| `primary_geo_ref_id` | UUID (FK) | PG (indexed) | Stage 3 georesolution | Active row in `entity_geo_refs`; nullable |
 | `geom` | geometry | PG + PostGIS (GIST index) | Geocoding at Stage 3 | Point, Polygon, LineString, etc. |
 | `territory_geom` | geometry | PG + PostGIS | Manual / LLM / import | Nullable; polygon extent for polities |
 | `location_name` | text | PG | Geocoding cascade | Human-readable |
 | `location_confidence` | enum | PG | Geocoding confidence | high/medium/low/unresolved |
 | `location_method` | enum | PG | Which geocoder matched | |
+| `geo_resolution_status` | text | PG | Stage 3 georesolution | `matched_ohm`, `matched_fallback`, `empty_geom` |
 | `temporal_start` | text | PG (indexed) | NLP Stage 4 | Integer year as string; negative = BCE (e.g. `"-500"`, `"1453"`) |
 | `temporal_end` | text | PG (indexed) | NLP Stage 4 | Same format as `temporal_start` |
 | `date_raw` | text | PG | Original source text | |
@@ -539,6 +543,109 @@ Every entity in PostgreSQL shares these columns. Type-specific fields are stored
 | `nearby_entity_count` | integer | PostGIS + temporal proximity count (cached) |
 | `cluster_id` | integer | HDBSCAN cluster from periodic embedding analysis |
 | `era_label` | text | Mapped from temporal range via era reference table |
+
+### 3.1 External Geospatial References (`entity_geo_refs`)
+
+To link entities to OpenHistoricalMap (and additional border datasets), use a dedicated sub-table:
+
+```sql
+CREATE TABLE entity_geo_refs (
+  geo_ref_id         UUID PRIMARY KEY,
+  entity_id          UUID NOT NULL REFERENCES entities(entity_id) ON DELETE CASCADE,
+  provider           TEXT NOT NULL,      -- ohm | wikidata | geonames | pleiades | custom
+  external_type      TEXT NOT NULL,      -- node | way | relation | feature | qid
+  external_id        TEXT NOT NULL,      -- e.g. relation/2744968, way/198568124, Q16553
+  match_role         TEXT NOT NULL,      -- primary | candidate | fallback | rejected
+  retrieval_method   TEXT NOT NULL,      -- overpass | nominatim | rest | manual
+  temporal_start     TEXT,
+  temporal_end       TEXT,
+  temporal_start_year INTEGER,
+  temporal_end_year   INTEGER,
+  external_tags      JSONB,
+  source_meta        JSONB,              -- endpoint, query, attribution, license
+  match_score        NUMERIC,
+  is_active          BOOLEAN DEFAULT true,
+  last_verified_at   TIMESTAMP,
+  created_at         TIMESTAMP DEFAULT now(),
+  updated_at         TIMESTAMP DEFAULT now()
+);
+
+CREATE INDEX idx_geo_refs_entity ON entity_geo_refs(entity_id);
+CREATE INDEX idx_geo_refs_provider_extid ON entity_geo_refs(provider, external_type, external_id);
+CREATE INDEX idx_geo_refs_active_lookup ON entity_geo_refs(provider, external_type, external_id, is_active);
+CREATE INDEX idx_geo_refs_temporal_year ON entity_geo_refs(entity_id, temporal_start_year, temporal_end_year);
+
+-- Allow composite FK from entities(entity_id, primary_geo_ref_id)
+CREATE UNIQUE INDEX uq_geo_refs_entity_pair ON entity_geo_refs(entity_id, geo_ref_id);
+
+-- Optional: one active primary georef row per entity in refs table
+CREATE UNIQUE INDEX uq_geo_refs_primary_role_per_entity
+  ON entity_geo_refs(entity_id)
+  WHERE is_active = true AND match_role = 'primary';
+
+-- Ensure entities.primary_geo_ref_id belongs to the same entity (soundness guard)
+ALTER TABLE entities
+  ADD CONSTRAINT fk_entities_primary_geo_ref_owned
+  FOREIGN KEY (entity_id, primary_geo_ref_id)
+  REFERENCES entity_geo_refs(entity_id, geo_ref_id)
+  DEFERRABLE INITIALLY DEFERRED;
+```
+
+`geometry_snapshots` should optionally reference `geo_ref_id` so every generated geometry is traceable to a specific OHM element or fallback source.
+
+### 3.1.1 Reverse Lookup Query (OHM Click -> Entity -> Date-Scoped Geometry)
+
+```sql
+-- Inputs:
+--   :provider        (e.g. 'ohm')
+--   :external_type   ('node' | 'way' | 'relation')
+--   :external_id     (e.g. '2704719')
+--   :target_year     (integer year in app canonical format)
+
+WITH ref_match AS (
+  SELECT r.entity_id, r.geo_ref_id
+  FROM entity_geo_refs r
+  WHERE r.provider = :provider
+    AND r.external_type = :external_type
+    AND r.external_id = :external_id
+    AND r.is_active = true
+    AND (r.temporal_start_year IS NULL OR r.temporal_start_year <= :target_year)
+    AND (r.temporal_end_year   IS NULL OR r.temporal_end_year   >= :target_year)
+  ORDER BY CASE WHEN r.match_role = 'primary' THEN 0 ELSE 1 END, r.match_score DESC NULLS LAST
+  LIMIT 1
+),
+snap AS (
+  SELECT s.*
+  FROM geometry_snapshots s
+  JOIN ref_match rm ON rm.entity_id = s.entity_id
+  WHERE s.year_start <= :target_year
+    AND s.year_end   >= :target_year
+  ORDER BY s.display_priority DESC NULLS LAST, s.updated_at DESC
+  LIMIT 1
+)
+SELECT
+  e.entity_id,
+  e.name,
+  e.entity_type,
+  e.entity_group,
+  COALESCE(s.geom, e.geom) AS resolved_geom,
+  COALESCE(s.territory_geom, e.territory_geom) AS resolved_territory_geom,
+  rm.geo_ref_id AS matched_geo_ref_id
+FROM ref_match rm
+JOIN entities e ON e.entity_id = rm.entity_id
+LEFT JOIN snap s ON true;
+```
+
+### 3.2 Stage 3 Georesolution Decision Flow
+
+Pipeline logic for `geom`/`territory_geom` assignment:
+
+1. **Wikidata seed:** Start from QID and any available coordinates or place hints.
+2. **OHM lookup:** Query OHM (`nominatim`, then `overpass`/REST for `node|way|relation`, preferring `type=chronology` relations where applicable).
+3. **If OHM match found:** write `entity_geo_refs` row (`provider='ohm'`, `match_role='primary'`), hydrate `geom`/`territory_geom`, set `location_method` to `ohm_nominatim` or `ohm_overpass` or `ohm_rest_api`, and set `geo_resolution_status='matched_ohm'`.
+4. **Else fallback:** try non-OHM border/geometry sources and manual digitization inputs.
+5. **If fallback found:** write `entity_geo_refs` row (`match_role='fallback'`), hydrate geometry fields, set `location_method` to `source_database` or `human_assigned`, and set `geo_resolution_status='matched_fallback'`.
+6. **Else unresolved:** leave geometry fields null and set `geo_resolution_status='empty_geom'` with `location_confidence='unresolved'`.
 
 ---
 

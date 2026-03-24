@@ -28,16 +28,16 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { index as calendarSystemsIndex } from '@/routes/reference/calendar-systems';
+import { index as eraDateLookupIndex } from '@/routes/reference/era-date-lookup';
 import { index as geographicRegionsIndex } from '@/routes/reference/geographic-regions';
 import { index as historicalPeriodsIndex } from '@/routes/reference/historical-periods';
 import { index as historiographicalSchoolsIndex } from '@/routes/reference/historiographical-schools';
-import { index as calendarSystemsIndex } from '@/routes/reference/calendar-systems';
-import { index as eraDateLookupIndex } from '@/routes/reference/era-date-lookup';
-import { index as writingSystemsIndex } from '@/routes/reference/writing-systems';
-import { index as religiousTraditionsIndex } from '@/routes/reference/religious-traditions';
-import { index as measurementUnitsIndex } from '@/routes/reference/measurement-units';
 import { index as languageFamiliesIndex } from '@/routes/reference/language-families';
+import { index as measurementUnitsIndex } from '@/routes/reference/measurement-units';
+import { index as religiousTraditionsIndex } from '@/routes/reference/religious-traditions';
 import { index as sourceTypeDefinitionsIndex } from '@/routes/reference/source-type-definitions';
+import { index as writingSystemsIndex } from '@/routes/reference/writing-systems';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [

@@ -7,12 +7,20 @@
  * Communicates with GeometrySnapshotController via JSON fetch (not Inertia navigation).
  */
 
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import {
+    lazy,
+    Suspense,
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+} from 'react';
 import HistoricalMapViewer from '@/components/historical-map-viewer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { GeoJsonLike } from '@/lib/geojson';
+import { yearToOhmDate } from '@/lib/ohm-date';
 import type { ConfidenceLevel, GeometrySnapshot } from '@/types/entity';
 
 const MapEditor = lazy(() => import('@/components/map-editor'));
@@ -64,6 +72,7 @@ function emptyForm(): SnapshotFormData {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function SnapshotBuilder({
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     entityId,
     listUrl,
     storeUrl,
@@ -85,7 +94,9 @@ export default function SnapshotBuilder({
     // Keep a stable ref for the entity CSRF token
     const csrfRef = useRef<string>('');
     useEffect(() => {
-        const meta = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]');
+        const meta = document.querySelector<HTMLMetaElement>(
+            'meta[name="csrf-token"]',
+        );
         csrfRef.current = meta?.content ?? '';
     }, []);
 
@@ -93,14 +104,22 @@ export default function SnapshotBuilder({
     const reload = useCallback(async () => {
         setLoading(true);
         setLoadError(null);
+
         try {
             const res = await fetch(listUrl, {
-                headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrfRef.current },
+                headers: {
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': csrfRef.current,
+                },
             });
+
             if (!res.ok) {
                 throw new Error(`HTTP ${res.status}`);
             }
-            const json = (await res.json()) as { snapshots: GeometrySnapshot[] };
+
+            const json = (await res.json()) as {
+                snapshots: GeometrySnapshot[];
+            };
             setSnapshots(json.snapshots);
         } catch (err) {
             setLoadError('Failed to load snapshots.');
@@ -110,7 +129,9 @@ export default function SnapshotBuilder({
         }
     }, [listUrl]);
 
-    useEffect(() => { void reload(); }, [reload]);
+    useEffect(() => {
+        void reload();
+    }, [reload]);
 
     // Open the form for creating
     function openCreate() {
@@ -142,7 +163,10 @@ export default function SnapshotBuilder({
         setEditingId(null);
     }
 
-    function handleFormChange<K extends keyof SnapshotFormData>(field: K, value: SnapshotFormData[K]) {
+    function handleFormChange<K extends keyof SnapshotFormData>(
+        field: K,
+        value: SnapshotFormData[K],
+    ) {
         setForm((prev) => ({ ...prev, [field]: value }));
     }
 
@@ -151,12 +175,16 @@ export default function SnapshotBuilder({
         setFormErrors({});
 
         const payload: Record<string, unknown> = {
-            year_start: form.year_start !== '' ? Number(form.year_start) : undefined,
+            year_start:
+                form.year_start !== '' ? Number(form.year_start) : undefined,
             year_end: form.year_end !== '' ? Number(form.year_end) : undefined,
             label: form.label || undefined,
             confidence: form.confidence || undefined,
             notes: form.notes || undefined,
-            display_priority: form.display_priority !== '' ? Number(form.display_priority) : 0,
+            display_priority:
+                form.display_priority !== ''
+                    ? Number(form.display_priority)
+                    : 0,
             geojson: form.geojson ?? undefined,
             territory_geojson: form.territory_geojson ?? undefined,
         };
@@ -177,12 +205,17 @@ export default function SnapshotBuilder({
             });
 
             if (res.status === 422) {
-                const json = (await res.json()) as { errors?: Record<string, string[]> };
+                const json = (await res.json()) as {
+                    errors?: Record<string, string[]>;
+                };
                 const flat: Record<string, string> = {};
+
                 for (const [key, msgs] of Object.entries(json.errors ?? {})) {
                     flat[key] = msgs[0] ?? '';
                 }
+
                 setFormErrors(flat);
+
                 return;
             }
 
@@ -204,15 +237,22 @@ export default function SnapshotBuilder({
         if (!confirm('Delete this snapshot? This cannot be undone.')) {
             return;
         }
+
         setDeletingId(snapshotId);
+
         try {
             const res = await fetch(deleteUrlFn(snapshotId), {
                 method: 'DELETE',
-                headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrfRef.current },
+                headers: {
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': csrfRef.current,
+                },
             });
+
             if (!res.ok && res.status !== 204) {
                 throw new Error(`HTTP ${res.status}`);
             }
+
             await reload();
         } catch (err) {
             alert('Delete failed. Please try again.');
@@ -229,12 +269,20 @@ export default function SnapshotBuilder({
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h3 className="text-sm font-semibold">Geometry Snapshots</h3>
-                    <p className="text-muted-foreground text-xs mt-0.5">
-                        Time-varying geometries for this entity (e.g. territorial changes over centuries)
+                    <h3 className="text-sm font-semibold">
+                        Geometry Snapshots
+                    </h3>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                        Time-varying geometries for this entity (e.g.
+                        territorial changes over centuries)
                     </p>
                 </div>
-                <Button type="button" size="sm" onClick={openCreate} disabled={formOpen}>
+                <Button
+                    type="button"
+                    size="sm"
+                    onClick={openCreate}
+                    disabled={formOpen}
+                >
                     Add Snapshot
                 </Button>
             </div>
@@ -246,9 +294,11 @@ export default function SnapshotBuilder({
 
             {/* Snapshot list */}
             {loading ? (
-                <div className="text-muted-foreground py-4 text-center text-sm">Loading snapshots…</div>
+                <div className="py-4 text-center text-sm text-muted-foreground">
+                    Loading snapshots…
+                </div>
             ) : snapshots.length === 0 ? (
-                <div className="text-muted-foreground rounded-lg border border-dashed py-6 text-center text-sm">
+                <div className="rounded-lg border border-dashed py-6 text-center text-sm text-muted-foreground">
                     No snapshots yet. Add one to record time-varying geometry.
                 </div>
             ) : (
@@ -302,17 +352,21 @@ function SnapshotRow({
         <div className="flex items-center justify-between px-4 py-3">
             <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium tabular-nums">{yearRange}</span>
+                    <span className="text-sm font-medium tabular-nums">
+                        {yearRange}
+                    </span>
                     {snapshot.label && (
-                        <span className="text-muted-foreground text-sm truncate">{snapshot.label}</span>
+                        <span className="truncate text-sm text-muted-foreground">
+                            {snapshot.label}
+                        </span>
                     )}
                     {snapshot.confidence && (
-                        <span className="bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-[10px] font-medium uppercase">
+                        <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground uppercase">
                             {snapshot.confidence}
                         </span>
                     )}
                 </div>
-                <div className="text-muted-foreground mt-0.5 flex gap-2 text-xs">
+                <div className="mt-0.5 flex gap-2 text-xs text-muted-foreground">
                     {hasGeom && <span>Point/line</span>}
                     {hasTerritoryGeom && <span>Territory polygon</span>}
                     {!hasGeom && !hasTerritoryGeom && (
@@ -321,7 +375,12 @@ function SnapshotRow({
                 </div>
             </div>
             <div className="ml-4 flex shrink-0 gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={onEdit}>
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={onEdit}
+                >
                     Edit
                 </Button>
                 <Button
@@ -345,17 +404,34 @@ type SnapshotFormProps = {
     errors: Record<string, string>;
     saving: boolean;
     isEditing: boolean;
-    onChange: <K extends keyof SnapshotFormData>(field: K, value: SnapshotFormData[K]) => void;
+    onChange: <K extends keyof SnapshotFormData>(
+        field: K,
+        value: SnapshotFormData[K],
+    ) => void;
     onSave: () => void;
     onCancel: () => void;
 };
 
-function SnapshotForm({ form, errors, saving, isEditing, onChange, onSave, onCancel }: SnapshotFormProps) {
+function SnapshotForm({
+    form,
+    errors,
+    saving,
+    isEditing,
+    onChange,
+    onSave,
+    onCancel,
+}: SnapshotFormProps) {
     const [mapOpen, setMapOpen] = useState(false);
+    const snapshotStartYear = Number(form.year_start);
+    const timeframeDate = Number.isFinite(snapshotStartYear)
+        ? yearToOhmDate(snapshotStartYear)
+        : null;
 
     return (
-        <div className="rounded-lg border bg-card p-4 space-y-4">
-            <h4 className="text-sm font-semibold">{isEditing ? 'Edit Snapshot' : 'New Snapshot'}</h4>
+        <div className="space-y-4 rounded-lg border bg-card p-4">
+            <h4 className="text-sm font-semibold">
+                {isEditing ? 'Edit Snapshot' : 'New Snapshot'}
+            </h4>
 
             {errors['_'] && (
                 <p className="text-sm text-destructive">{errors['_']}</p>
@@ -365,7 +441,10 @@ function SnapshotForm({ form, errors, saving, isEditing, onChange, onSave, onCan
             <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                     <Label htmlFor="snap-year-start" className="text-xs">
-                        Year Start <span className="text-muted-foreground">(negative = BCE)</span>
+                        Year Start{' '}
+                        <span className="text-muted-foreground">
+                            (negative = BCE)
+                        </span>
                     </Label>
                     <Input
                         id="snap-year-start"
@@ -374,10 +453,16 @@ function SnapshotForm({ form, errors, saving, isEditing, onChange, onSave, onCan
                         onChange={(e) => onChange('year_start', e.target.value)}
                         placeholder="-27"
                     />
-                    {errors['year_start'] && <p className="text-xs text-destructive">{errors['year_start']}</p>}
+                    {errors['year_start'] && (
+                        <p className="text-xs text-destructive">
+                            {errors['year_start']}
+                        </p>
+                    )}
                 </div>
                 <div className="space-y-1">
-                    <Label htmlFor="snap-year-end" className="text-xs">Year End</Label>
+                    <Label htmlFor="snap-year-end" className="text-xs">
+                        Year End
+                    </Label>
                     <Input
                         id="snap-year-end"
                         type="number"
@@ -385,14 +470,20 @@ function SnapshotForm({ form, errors, saving, isEditing, onChange, onSave, onCan
                         onChange={(e) => onChange('year_end', e.target.value)}
                         placeholder="476"
                     />
-                    {errors['year_end'] && <p className="text-xs text-destructive">{errors['year_end']}</p>}
+                    {errors['year_end'] && (
+                        <p className="text-xs text-destructive">
+                            {errors['year_end']}
+                        </p>
+                    )}
                 </div>
             </div>
 
             {/* Label + confidence */}
             <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                    <Label htmlFor="snap-label" className="text-xs">Label (optional)</Label>
+                    <Label htmlFor="snap-label" className="text-xs">
+                        Label (optional)
+                    </Label>
                     <Input
                         id="snap-label"
                         value={form.label}
@@ -402,16 +493,25 @@ function SnapshotForm({ form, errors, saving, isEditing, onChange, onSave, onCan
                     />
                 </div>
                 <div className="space-y-1">
-                    <Label htmlFor="snap-confidence" className="text-xs">Confidence</Label>
+                    <Label htmlFor="snap-confidence" className="text-xs">
+                        Confidence
+                    </Label>
                     <select
                         id="snap-confidence"
-                        className="border-input bg-background h-9 w-full rounded-md border px-3 py-1 text-sm"
+                        className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
                         value={form.confidence}
-                        onChange={(e) => onChange('confidence', e.target.value as ConfidenceLevel | '')}
+                        onChange={(e) =>
+                            onChange(
+                                'confidence',
+                                e.target.value as ConfidenceLevel | '',
+                            )
+                        }
                     >
                         <option value="">— select —</option>
                         {CONFIDENCE_OPTIONS.map((o) => (
-                            <option key={o.value} value={o.value}>{o.label}</option>
+                            <option key={o.value} value={o.value}>
+                                {o.label}
+                            </option>
                         ))}
                     </select>
                 </div>
@@ -419,10 +519,12 @@ function SnapshotForm({ form, errors, saving, isEditing, onChange, onSave, onCan
 
             {/* Notes */}
             <div className="space-y-1">
-                <Label htmlFor="snap-notes" className="text-xs">Notes (optional)</Label>
+                <Label htmlFor="snap-notes" className="text-xs">
+                    Notes (optional)
+                </Label>
                 <textarea
                     id="snap-notes"
-                    className="border-input bg-background min-h-20 w-full rounded-md border px-3 py-2 text-sm"
+                    className="min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                     value={form.notes}
                     onChange={(e) => onChange('notes', e.target.value)}
                     placeholder="Editorial notes about this snapshot…"
@@ -441,7 +543,7 @@ function SnapshotForm({ form, errors, saving, isEditing, onChange, onSave, onCan
                     <span className="text-muted-foreground">
                         {mapOpen ? 'Collapse' : 'Expand'}
                         {(form.geojson || form.territory_geojson) && (
-                            <span className="bg-primary/10 text-primary ml-2 rounded px-1.5 py-0.5 text-[10px] font-semibold">
+                            <span className="ml-2 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
                                 Set
                             </span>
                         )}
@@ -449,21 +551,30 @@ function SnapshotForm({ form, errors, saving, isEditing, onChange, onSave, onCan
                 </button>
 
                 {errors['geojson'] && (
-                    <p className="px-3 pb-2 text-xs text-destructive">{errors['geojson']}</p>
+                    <p className="px-3 pb-2 text-xs text-destructive">
+                        {errors['geojson']}
+                    </p>
                 )}
 
                 {mapOpen && (
                     <div className="border-t">
                         <div className="border-b">
                             <div className="px-3 py-2">
-                                <p className="text-xs font-medium">Snapshot Preview</p>
-                                <p className="text-muted-foreground text-[11px] mt-0.5">
-                                    Rendered using the shared historical map viewer.
+                                <p className="text-xs font-medium">
+                                    Snapshot Preview
+                                </p>
+                                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                                    Rendered using the shared historical map
+                                    viewer.
                                 </p>
                             </div>
                             <HistoricalMapViewer
                                 baseGeometries={[]}
-                                overlayGeometries={[form.geojson, form.territory_geojson]}
+                                overlayGeometries={[
+                                    form.geojson,
+                                    form.territory_geojson,
+                                ]}
+                                timeframeDate={timeframeDate}
                                 fitBounds
                             />
                         </div>
@@ -478,6 +589,7 @@ function SnapshotForm({ form, errors, saving, isEditing, onChange, onSave, onCan
                             <MapEditor
                                 geojson={form.geojson}
                                 territoryGeojson={form.territory_geojson}
+                                timeframeDate={timeframeDate}
                                 onChange={(geo, territory) => {
                                     onChange('geojson', geo);
                                     onChange('territory_geojson', territory);
@@ -490,11 +602,26 @@ function SnapshotForm({ form, errors, saving, isEditing, onChange, onSave, onCan
 
             {/* Actions */}
             <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={onCancel} disabled={saving}>
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={onCancel}
+                    disabled={saving}
+                >
                     Cancel
                 </Button>
-                <Button type="button" size="sm" onClick={onSave} disabled={saving}>
-                    {saving ? 'Saving…' : isEditing ? 'Save Changes' : 'Create Snapshot'}
+                <Button
+                    type="button"
+                    size="sm"
+                    onClick={onSave}
+                    disabled={saving}
+                >
+                    {saving
+                        ? 'Saving…'
+                        : isEditing
+                          ? 'Save Changes'
+                          : 'Create Snapshot'}
                 </Button>
             </div>
         </div>
@@ -507,6 +634,7 @@ function formatYear(year: number): string {
     if (year < 0) {
         return `${Math.abs(year)} BCE`;
     }
+
     return `${year} CE`;
 }
 
@@ -514,5 +642,6 @@ function formatYearRange(start: number, end: number): string {
     if (start === end) {
         return formatYear(start);
     }
+
     return `${formatYear(start)} – ${formatYear(end)}`;
 }

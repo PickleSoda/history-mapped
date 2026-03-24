@@ -16,7 +16,9 @@ import { destroy, edit } from '@/routes/entities';
 import type { BreadcrumbItem, EntityDetail } from '@/types';
 
 const RelationshipPanel = lazy(() => import('@/components/relationship-panel'));
-const EntityHistoryPanel = lazy(() => import('@/components/entity-history-panel'));
+const EntityHistoryPanel = lazy(
+    () => import('@/components/entity-history-panel'),
+);
 
 type Props = {
     entity: EntityDetail;
@@ -49,19 +51,31 @@ export default function EntityShow({ entity }: Props) {
             <div className="flex flex-col gap-6 p-4">
                 <div className="flex items-center gap-4">
                     <Link href="/entities">
-                        <Button variant="outline" size="icon" className="size-8">
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="size-8"
+                        >
                             <ArrowLeft className="size-4" />
                         </Button>
                     </Link>
                     <div className="flex-1">
-                        <h1 className="text-2xl font-bold tracking-tight">{entity.name}</h1>
-                        <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                        <h1 className="text-2xl font-bold tracking-tight">
+                            {entity.name}
+                        </h1>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             {entity.entity_group && (
-                                <Badge variant="outline">{entity.entity_group}</Badge>
+                                <Badge variant="outline">
+                                    {entity.entity_group}
+                                </Badge>
                             )}
                             {entity.entity_type && (
                                 <span>
-                                    {entity.entity_type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+                                    {entity.entity_type
+                                        .replace(/_/g, ' ')
+                                        .replace(/\b\w/g, (c) =>
+                                            c.toUpperCase(),
+                                        )}
                                 </span>
                             )}
                         </div>
@@ -85,38 +99,62 @@ export default function EntityShow({ entity }: Props) {
                 </div>
 
                 {/* Summary card with the data we do have */}
-                {(entity.summary || entity.temporal_display_range || entity.location_name) && (
+                {(entity.summary ||
+                    entity.temporal_display_range ||
+                    entity.location_name) && (
                     <div className="grid gap-4 md:grid-cols-3">
                         {entity.summary && (
                             <div className="rounded-lg border p-4 md:col-span-2">
-                                <h2 className="mb-2 text-sm font-medium">Summary</h2>
-                                <p className="text-muted-foreground text-sm">{entity.summary}</p>
+                                <h2 className="mb-2 text-sm font-medium">
+                                    Summary
+                                </h2>
+                                <p className="text-sm text-muted-foreground">
+                                    {entity.summary}
+                                </p>
                             </div>
                         )}
                         <div className="space-y-3 rounded-lg border p-4">
                             {entity.temporal_display_range && (
                                 <div>
-                                    <h3 className="text-muted-foreground text-xs font-medium uppercase tracking-wide">Period</h3>
-                                    <p className="text-sm">{entity.temporal_display_range}</p>
+                                    <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                                        Period
+                                    </h3>
+                                    <p className="text-sm">
+                                        {entity.temporal_display_range}
+                                    </p>
                                 </div>
                             )}
                             {entity.location_name && (
                                 <div>
-                                    <h3 className="text-muted-foreground text-xs font-medium uppercase tracking-wide">Location</h3>
-                                    <p className="text-sm">{entity.location_name}</p>
+                                    <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                                        Location
+                                    </h3>
+                                    <p className="text-sm">
+                                        {entity.location_name}
+                                    </p>
                                 </div>
                             )}
                             {entity.impact_score != null && (
                                 <div>
-                                    <h3 className="text-muted-foreground text-xs font-medium uppercase tracking-wide">Impact Score</h3>
-                                    <p className="text-sm tabular-nums">{entity.impact_score}</p>
+                                    <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                                        Impact Score
+                                    </h3>
+                                    <p className="text-sm tabular-nums">
+                                        {entity.impact_score}
+                                    </p>
                                 </div>
                             )}
                             {entity.verification_status && (
                                 <div>
-                                    <h3 className="text-muted-foreground text-xs font-medium uppercase tracking-wide">Status</h3>
+                                    <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                                        Status
+                                    </h3>
                                     <p className="text-sm">
-                                        {entity.verification_status.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+                                        {entity.verification_status
+                                            .replace(/_/g, ' ')
+                                            .replace(/\b\w/g, (c) =>
+                                                c.toUpperCase(),
+                                            )}
                                     </p>
                                 </div>
                             )}
@@ -136,6 +174,8 @@ export default function EntityShow({ entity }: Props) {
                         <EntityHistoryPanel
                             entityGeojson={entity.geojson}
                             entityTerritoryGeojson={entity.territory_geojson}
+                            entityTemporalStart={entity.temporal_start}
+                            entityTemporalEnd={entity.temporal_end}
                             snapshotsUrl={snapshotsUrl}
                             relationshipsUrl={relationshipsUrl}
                         />
@@ -150,7 +190,7 @@ export default function EntityShow({ entity }: Props) {
                         className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium"
                     >
                         <span>Relationships</span>
-                        <span className="text-muted-foreground text-xs">
+                        <span className="text-xs text-muted-foreground">
                             {relationshipOpen ? 'Collapse' : 'Expand'}
                         </span>
                     </button>
@@ -184,14 +224,23 @@ export default function EntityShow({ entity }: Props) {
                         <DialogHeader>
                             <DialogTitle>Delete entity?</DialogTitle>
                             <DialogDescription>
-                                This will permanently delete <strong>{entity.name}</strong>. This action cannot be undone.
+                                This will permanently delete{' '}
+                                <strong>{entity.name}</strong>. This action
+                                cannot be undone.
                             </DialogDescription>
                         </DialogHeader>
                         <DialogFooter>
-                            <Button variant="outline" onClick={() => setConfirmDelete(false)}>
+                            <Button
+                                variant="outline"
+                                onClick={() => setConfirmDelete(false)}
+                            >
                                 Cancel
                             </Button>
-                            <Button variant="destructive" disabled={deleting} onClick={handleDelete}>
+                            <Button
+                                variant="destructive"
+                                disabled={deleting}
+                                onClick={handleDelete}
+                            >
                                 {deleting ? 'Deleting…' : 'Delete'}
                             </Button>
                         </DialogFooter>

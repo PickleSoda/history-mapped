@@ -11,7 +11,6 @@ import {
     Search,
     X,
 } from 'lucide-react';
-import { create } from '@/routes/entities';
 import { useCallback, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -32,6 +31,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
+import { create } from '@/routes/entities';
 import type {
     BreadcrumbItem,
     EntityFilterOptions,
@@ -55,8 +55,10 @@ const groupColors: Record<string, string> = {
     POLITY: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
     PLACE: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
     EVENT: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-    ECONOMY: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
-    CULTURE: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+    ECONOMY:
+        'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
+    CULTURE:
+        'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
 };
 
 const confidenceColors: Record<string, string> = {
@@ -67,32 +69,42 @@ const confidenceColors: Record<string, string> = {
 };
 
 const statusColors: Record<string, string> = {
-    pipeline_draft: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+    pipeline_draft:
+        'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
     auto_validated: 'bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200',
-    needs_review: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+    needs_review:
+        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
     in_review: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    human_verified: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-    expert_verified: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200',
+    human_verified:
+        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    expert_verified:
+        'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200',
     flagged: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
     rejected: 'bg-red-200 text-red-900 dark:bg-red-950 dark:text-red-200',
     merged: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
 };
 
 function formatEntityType(type: string | null): string {
-    if (!type) return '-';
-    return type
-        .replace(/_/g, ' ')
-        .replace(/\b\w/g, (c) => c.toUpperCase());
+    if (!type) {
+        return '-';
+    }
+
+    return type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function formatStatus(status: string | null): string {
-    if (!status) return '-';
-    return status
-        .replace(/_/g, ' ')
-        .replace(/\b\w/g, (c) => c.toUpperCase());
+    if (!status) {
+        return '-';
+    }
+
+    return status.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-export default function EntitiesIndex({ entities, filters, filterOptions }: Props) {
+export default function EntitiesIndex({
+    entities,
+    filters,
+    filterOptions,
+}: Props) {
     const [search, setSearch] = useState(filters.search);
     const [dateFrom, setDateFrom] = useState(filters.date_from);
     const [dateTo, setDateTo] = useState(filters.date_to);
@@ -152,7 +164,11 @@ export default function EntitiesIndex({ entities, filters, filterOptions }: Prop
         setSearch('');
         setDateFrom('');
         setDateTo('');
-        router.get('/entities', {}, { preserveState: true, preserveScroll: true });
+        router.get(
+            '/entities',
+            {},
+            { preserveState: true, preserveScroll: true },
+        );
     }, []);
 
     const hasActiveFilters =
@@ -165,8 +181,14 @@ export default function EntitiesIndex({ entities, filters, filterOptions }: Prop
         filters.date_to;
 
     const sortIcon = (field: string) => {
-        if (filters.sort === field) return <ArrowDown className="ml-1 inline size-3" />;
-        if (filters.sort === `-${field}`) return <ArrowUp className="ml-1 inline size-3" />;
+        if (filters.sort === field) {
+            return <ArrowDown className="ml-1 inline size-3" />;
+        }
+
+        if (filters.sort === `-${field}`) {
+            return <ArrowUp className="ml-1 inline size-3" />;
+        }
+
         return <ArrowUpDown className="ml-1 inline size-3 opacity-30" />;
     };
 
@@ -186,9 +208,12 @@ export default function EntitiesIndex({ entities, filters, filterOptions }: Prop
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold tracking-tight">Entities</h1>
-                        <p className="text-muted-foreground text-sm">
-                            {entities.total} {entities.total === 1 ? 'entity' : 'entities'} found
+                        <h1 className="text-2xl font-bold tracking-tight">
+                            Entities
+                        </h1>
+                        <p className="text-sm text-muted-foreground">
+                            {entities.total}{' '}
+                            {entities.total === 1 ? 'entity' : 'entities'} found
                         </p>
                     </div>
                     <Link href={create()}>
@@ -204,7 +229,7 @@ export default function EntitiesIndex({ entities, filters, filterOptions }: Prop
                     {/* Search */}
                     <form onSubmit={handleSearch} className="flex gap-2">
                         <div className="relative">
-                            <Search className="text-muted-foreground pointer-events-none absolute left-2.5 top-2.5 size-4" />
+                            <Search className="pointer-events-none absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
                             <Input
                                 type="search"
                                 placeholder="Search entities..."
@@ -221,7 +246,9 @@ export default function EntitiesIndex({ entities, filters, filterOptions }: Prop
                     {/* Entity Type filter */}
                     <Select
                         value={filters.type || '__all__'}
-                        onValueChange={(v) => navigate({ type: v === '__all__' ? '' : v })}
+                        onValueChange={(v) =>
+                            navigate({ type: v === '__all__' ? '' : v })
+                        }
                     >
                         <SelectTrigger className="w-48">
                             <SelectValue placeholder="All Types" />
@@ -239,7 +266,9 @@ export default function EntitiesIndex({ entities, filters, filterOptions }: Prop
                     {/* Group filter */}
                     <Select
                         value={filters.group || '__all__'}
-                        onValueChange={(v) => navigate({ group: v === '__all__' ? '' : v })}
+                        onValueChange={(v) =>
+                            navigate({ group: v === '__all__' ? '' : v })
+                        }
                     >
                         <SelectTrigger className="w-36">
                             <SelectValue placeholder="All Groups" />
@@ -257,13 +286,17 @@ export default function EntitiesIndex({ entities, filters, filterOptions }: Prop
                     {/* Status filter */}
                     <Select
                         value={filters.status || '__all__'}
-                        onValueChange={(v) => navigate({ status: v === '__all__' ? '' : v })}
+                        onValueChange={(v) =>
+                            navigate({ status: v === '__all__' ? '' : v })
+                        }
                     >
                         <SelectTrigger className="w-44">
                             <SelectValue placeholder="All Statuses" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="__all__">All Statuses</SelectItem>
+                            <SelectItem value="__all__">
+                                All Statuses
+                            </SelectItem>
                             {filterOptions.statuses.map((s) => (
                                 <SelectItem key={s.value} value={s.value}>
                                     {s.label}
@@ -275,13 +308,17 @@ export default function EntitiesIndex({ entities, filters, filterOptions }: Prop
                     {/* Confidence filter */}
                     <Select
                         value={filters.confidence || '__all__'}
-                        onValueChange={(v) => navigate({ confidence: v === '__all__' ? '' : v })}
+                        onValueChange={(v) =>
+                            navigate({ confidence: v === '__all__' ? '' : v })
+                        }
                     >
                         <SelectTrigger className="w-40">
                             <SelectValue placeholder="All Confidence" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="__all__">All Confidence</SelectItem>
+                            <SelectItem value="__all__">
+                                All Confidence
+                            </SelectItem>
                             {filterOptions.confidences.map((c) => (
                                 <SelectItem key={c.value} value={c.value}>
                                     {c.label}
@@ -293,9 +330,14 @@ export default function EntitiesIndex({ entities, filters, filterOptions }: Prop
 
                 {/* Filters — row 2: date range + clear */}
                 <div className="flex flex-wrap items-end gap-3">
-                    <form onSubmit={handleDateFilter} className="flex items-end gap-2">
+                    <form
+                        onSubmit={handleDateFilter}
+                        className="flex items-end gap-2"
+                    >
                         <div className="flex flex-col gap-1">
-                            <label className="text-muted-foreground text-xs">From year</label>
+                            <label className="text-xs text-muted-foreground">
+                                From year
+                            </label>
                             <Input
                                 type="number"
                                 placeholder="e.g. -500"
@@ -305,7 +347,9 @@ export default function EntitiesIndex({ entities, filters, filterOptions }: Prop
                             />
                         </div>
                         <div className="flex flex-col gap-1">
-                            <label className="text-muted-foreground text-xs">To year</label>
+                            <label className="text-xs text-muted-foreground">
+                                To year
+                            </label>
                             <Input
                                 type="number"
                                 placeholder="e.g. 1500"
@@ -321,7 +365,11 @@ export default function EntitiesIndex({ entities, filters, filterOptions }: Prop
 
                     {/* Clear filters */}
                     {hasActiveFilters && (
-                        <Button variant="ghost" size="sm" onClick={clearFilters}>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={clearFilters}
+                        >
                             <X className="mr-1 size-4" />
                             Clear filters
                         </Button>
@@ -361,7 +409,10 @@ export default function EntitiesIndex({ entities, filters, filterOptions }: Prop
                         <TableBody>
                             {entities.data.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={8} className="h-24 text-center">
+                                    <TableCell
+                                        colSpan={8}
+                                        className="h-24 text-center"
+                                    >
                                         <div className="text-muted-foreground">
                                             {hasActiveFilters
                                                 ? 'No entities match the current filters.'
@@ -380,19 +431,25 @@ export default function EntitiesIndex({ entities, filters, filterOptions }: Prop
                                                 {entity.name}
                                             </Link>
                                             {entity.summary && (
-                                                <p className="text-muted-foreground mt-0.5 truncate text-xs">
+                                                <p className="mt-0.5 truncate text-xs text-muted-foreground">
                                                     {entity.summary}
                                                 </p>
                                             )}
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground text-xs">
-                                            {formatEntityType(entity.entity_type)}
+                                        <TableCell className="text-xs text-muted-foreground">
+                                            {formatEntityType(
+                                                entity.entity_type,
+                                            )}
                                         </TableCell>
                                         <TableCell>
                                             {entity.entity_group ? (
                                                 <Badge
                                                     variant="outline"
-                                                    className={groupColors[entity.entity_group] ?? ''}
+                                                    className={
+                                                        groupColors[
+                                                            entity.entity_group
+                                                        ] ?? ''
+                                                    }
                                                 >
                                                     {entity.entity_group}
                                                 </Badge>
@@ -404,9 +461,16 @@ export default function EntitiesIndex({ entities, filters, filterOptions }: Prop
                                             {entity.verification_status ? (
                                                 <Badge
                                                     variant="outline"
-                                                    className={statusColors[entity.verification_status] ?? ''}
+                                                    className={
+                                                        statusColors[
+                                                            entity
+                                                                .verification_status
+                                                        ] ?? ''
+                                                    }
                                                 >
-                                                    {formatStatus(entity.verification_status)}
+                                                    {formatStatus(
+                                                        entity.verification_status,
+                                                    )}
                                                 </Badge>
                                             ) : (
                                                 '-'
@@ -416,7 +480,11 @@ export default function EntitiesIndex({ entities, filters, filterOptions }: Prop
                                             {entity.confidence ? (
                                                 <Badge
                                                     variant="outline"
-                                                    className={confidenceColors[entity.confidence] ?? ''}
+                                                    className={
+                                                        confidenceColors[
+                                                            entity.confidence
+                                                        ] ?? ''
+                                                    }
                                                 >
                                                     {entity.confidence}
                                                 </Badge>
@@ -427,10 +495,12 @@ export default function EntitiesIndex({ entities, filters, filterOptions }: Prop
                                         <TableCell className="tabular-nums">
                                             {entity.impact_score ?? '-'}
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground text-xs">
-                                            {entity.temporal_display_range ?? entity.era_label ?? '-'}
+                                        <TableCell className="text-xs text-muted-foreground">
+                                            {entity.temporal_display_range ??
+                                                entity.era_label ??
+                                                '-'}
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground max-w-[150px] truncate text-xs">
+                                        <TableCell className="max-w-[150px] truncate text-xs text-muted-foreground">
                                             {entity.location_name ?? '-'}
                                         </TableCell>
                                     </TableRow>
@@ -443,8 +513,9 @@ export default function EntitiesIndex({ entities, filters, filterOptions }: Prop
                 {/* Pagination */}
                 {entities.last_page > 1 && (
                     <div className="flex items-center justify-between">
-                        <p className="text-muted-foreground text-sm">
-                            Showing {entities.from} to {entities.to} of {entities.total}
+                        <p className="text-sm text-muted-foreground">
+                            Showing {entities.from} to {entities.to} of{' '}
+                            {entities.total}
                         </p>
                         <div className="flex items-center gap-1">
                             <Button
@@ -461,21 +532,32 @@ export default function EntitiesIndex({ entities, filters, filterOptions }: Prop
                                 size="icon"
                                 className="size-8"
                                 disabled={entities.current_page <= 1}
-                                onClick={() => navigate({ page: entities.current_page - 1 })}
+                                onClick={() =>
+                                    navigate({
+                                        page: entities.current_page - 1,
+                                    })
+                                }
                             >
                                 <ChevronLeft className="size-4" />
                             </Button>
 
-                            <span className="text-muted-foreground px-3 text-sm tabular-nums">
-                                Page {entities.current_page} of {entities.last_page}
+                            <span className="px-3 text-sm text-muted-foreground tabular-nums">
+                                Page {entities.current_page} of{' '}
+                                {entities.last_page}
                             </span>
 
                             <Button
                                 variant="outline"
                                 size="icon"
                                 className="size-8"
-                                disabled={entities.current_page >= entities.last_page}
-                                onClick={() => navigate({ page: entities.current_page + 1 })}
+                                disabled={
+                                    entities.current_page >= entities.last_page
+                                }
+                                onClick={() =>
+                                    navigate({
+                                        page: entities.current_page + 1,
+                                    })
+                                }
                             >
                                 <ChevronRight className="size-4" />
                             </Button>
@@ -483,8 +565,12 @@ export default function EntitiesIndex({ entities, filters, filterOptions }: Prop
                                 variant="outline"
                                 size="icon"
                                 className="size-8"
-                                disabled={entities.current_page >= entities.last_page}
-                                onClick={() => navigate({ page: entities.last_page })}
+                                disabled={
+                                    entities.current_page >= entities.last_page
+                                }
+                                onClick={() =>
+                                    navigate({ page: entities.last_page })
+                                }
                             >
                                 <ChevronsRight className="size-4" />
                             </Button>

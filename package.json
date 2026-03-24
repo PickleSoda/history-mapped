@@ -3,7 +3,8 @@
   "private": true,
   "packageManager": "pnpm@10.6.3",
   "scripts": {
-    "dev": "docker compose -f docker/docker-compose.yml up --build",
+    "dev": "docker compose -f docker/docker-compose.yml up",
+    "dev:build": "docker compose -f docker/docker-compose.yml up --build",
     "dev:down": "docker compose -f docker/docker-compose.yml down --remove-orphans",
     "typecheck": "docker compose -f docker/docker-compose.yml exec web pnpm -r typecheck",
     "api:routes": "docker compose -f docker/docker-compose.yml exec app php artisan route:list"
