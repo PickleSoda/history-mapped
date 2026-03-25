@@ -111,6 +111,19 @@ class RelationshipControllerTest extends TestCase
             ->assertJsonPath('outgoing.0.related_entity.name', $this->target->name);
     }
 
+    public function test_index_includes_related_entity_geometry_payload(): void
+    {
+        $this->giveEntityPointGeom($this->target, 12.48, 41.89);
+        $this->createRelationship();
+
+        $this->actingAs($this->user)
+            ->getJson(route('entities.relationships.index', $this->source))
+            ->assertOk()
+            ->assertJsonPath('outgoing.0.related_entity.id', $this->target->entity_id)
+            ->assertJsonPath('outgoing.0.related_entity.geojson.type', 'Point')
+            ->assertJsonPath('outgoing.0.related_entity.territory_geojson', null);
+    }
+
     public function test_index_requires_authentication(): void
     {
         $this->getJson(route('entities.relationships.index', $this->source))

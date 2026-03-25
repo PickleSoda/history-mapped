@@ -189,6 +189,8 @@ export type RelatedEntitySummary = {
     name: string;
     entity_type: EntityType | null;
     entity_group: EntityGroup | null;
+    geojson?: Record<string, unknown> | null;
+    territory_geojson?: Record<string, unknown> | null;
 };
 
 /** A relationship as returned by Admin\RelationshipController. */

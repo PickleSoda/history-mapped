@@ -73,4 +73,28 @@ Implement the target UX: map on the left, timeline on the right; clicking snapsh
 - Applied state is visible and reversible.
 
 ## Status
-- Planned
+- In progress
+
+## Progress (2026-03-25)
+
+### Completed
+- [x] **2.2 Selection state machine (core)**
+  - Unified selected timeline item state (`snapshot | relationship | none`) implemented in `EntityHistoryPanel`.
+  - Clicking a snapshot applies snapshot geometry overlays.
+  - Clicking a relationship applies related-entity geometry overlays.
+  - Clicking an already-selected item clears selection (reversible applied state).
+- [x] **2.3 Backend/API extension for relationship mapping (lightweight embedded mode)**
+  - `RelationshipController` now includes `related_entity.geojson` and `related_entity.territory_geojson` in list/store payloads.
+  - Frontend relationship type updated to consume optional geometry payload fields.
+- [x] **2.5 Validation (backend slice)**
+  - Added feature coverage: relationship index returns related entity geometry payload.
+  - `tests/Feature/Admin/RelationshipControllerTest.php` passing.
+
+### In Progress
+- [ ] **2.1 Refactor UI composition**
+  - Existing layout already renders map left / timeline right; extraction into a dedicated timeline subcomponent is still pending.
+- [ ] **2.4 Map overlay semantics**
+  - Base + selected overlay behavior is active.
+  - Source/target visual distinction for relationship mode still pending.
+- [ ] **2.5 Validation (frontend slice)**
+  - Frontend interaction tests for click-to-apply behavior still pending.
