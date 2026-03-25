@@ -87,7 +87,7 @@
 ### High Priority
 
 - [x] **Scaffold Python pipeline (`pipeline/`)**
-  Created scraper, mapper, dedup, and embeddings modules. CLI entry point via `python -m pipeline scrape`. See `docs/data_pipeline_architecture.md` for full documentation.
+  Created scraper, mapper, dedup, and embeddings modules. CLI entry point via `python -m pipeline scrape`. See `docs/implementation-docs/data_pipeline_architecture.md` for full documentation.
 
 - [x] **Create Laravel import command and jobs**
   `pipeline:import` command reads JSONL files, dispatches `ImportEntityJob` per entity, and `ResolveRelationshipsJob` after batch completes. Relationship hints staged in `pipeline_relationship_hints` table.
@@ -102,7 +102,7 @@
   Added `services.openai.api_key` and `services.openai.embedding_model` entries.
 
 - [x] **Write v1 pipeline architecture docs**
-  Created `docs/data_pipeline_architecture.md` covering: system design, Python pipeline, JSONL schema, Laravel import layer, dedup strategy, relationship resolution, embedding generation, verification workflow, operational runbook, and v2+ roadmap.
+  Created `docs/implementation-docs/data_pipeline_architecture.md` covering: system design, Python pipeline, JSONL schema, Laravel import layer, dedup strategy, relationship resolution, embedding generation, verification workflow, operational runbook, and v2+ roadmap.
 
 ### Medium Priority
 

@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useCallback, useMemo, useState } from 'react';
+import type { TimelineItem, SelectedTimelineItem } from '@/components/entity-history-timeline';
+import EntityHistoryTimeline from '@/components/entity-history-timeline';
 import HistoricalMapViewer from '@/components/historical-map-viewer';
 import TimeframeRangeSelector from '@/components/timeframe-range-selector';
-import { Badge } from '@/components/ui/badge';
 import { normalizeToFeatureCollection } from '@/lib/geojson';
 import type { GeoJsonLike } from '@/lib/geojson';
 import { yearToOhmDate } from '@/lib/ohm-date';
@@ -16,21 +18,6 @@ type Props = {
     relationshipsUrl: string;
 };
 
-type TimelineItem = {
-    id: string;
-    kind: 'snapshot' | 'relationship';
-    startYear: number | null;
-    endYear: number | null;
-    title: string;
-    subtitle?: string;
-    snapshot?: GeometrySnapshot;
-    relationship?: Relationship;
-};
-
-type SelectedTimelineItem =
-    | { kind: 'snapshot'; id: string }
-    | { kind: 'relationship'; id: string }
-    | null;
 
 export default function EntityHistoryPanel({
     entityGeojson,
@@ -40,76 +27,65 @@ export default function EntityHistoryPanel({
     snapshotsUrl,
     relationshipsUrl,
 }: Props) {
-    const [snapshots, setSnapshots] = useState<GeometrySnapshot[]>([]);
-    const [relationships, setRelationships] = useState<Relationship[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [loadError, setLoadError] = useState<string | null>(null);
     const [selectedItem, setSelectedItem] = useState<SelectedTimelineItem>(
         null,
     );
-    const [selectedStartYear, setSelectedStartYear] = useState<number | null>(
-        null,
-    );
-    const [selectedEndYear, setSelectedEndYear] = useState<number | null>(null);
+    const [hoveredItem, setHoveredItem] = useState<SelectedTimelineItem>(null);
+    const [selectedRange, setSelectedRange] = useState<{
+        startYear: number | null;
+        endYear: number | null;
+    } | null>(null);
 
-    useEffect(() => {
-        let cancelled = false;
+    const snapshotsQuery = useQuery({
+        queryKey: ['entity-history', 'snapshots', snapshotsUrl],
+        enabled: Boolean(snapshotsUrl),
+        queryFn: async () => {
+            const response = await fetch(snapshotsUrl, {
+                headers: { Accept: 'application/json' },
+            });
 
-        async function loadData() {
-            setLoading(true);
-            setLoadError(null);
-
-            try {
-                const [snapshotsRes, relationshipsRes] = await Promise.all([
-                    fetch(snapshotsUrl, {
-                        headers: { Accept: 'application/json' },
-                    }),
-                    fetch(relationshipsUrl, {
-                        headers: { Accept: 'application/json' },
-                    }),
-                ]);
-
-                if (!snapshotsRes.ok || !relationshipsRes.ok) {
-                    throw new Error(
-                        `HTTP ${snapshotsRes.status}/${relationshipsRes.status}`,
-                    );
-                }
-
-                const snapshotsJson = (await snapshotsRes.json()) as {
-                    snapshots: GeometrySnapshot[];
-                };
-                const relationshipsJson = (await relationshipsRes.json()) as {
-                    outgoing: Relationship[];
-                    incoming: Relationship[];
-                };
-
-                if (cancelled) {
-                    return;
-                }
-
-                setSnapshots(snapshotsJson.snapshots ?? []);
-                setRelationships([
-                    ...(relationshipsJson.outgoing ?? []),
-                    ...(relationshipsJson.incoming ?? []),
-                ]);
-            } catch (error) {
-                if (!cancelled) {
-                    setLoadError('Failed to load timeline data.');
-                    console.error(error);
-                }
-            } finally {
-                if (!cancelled) {
-                    setLoading(false);
-                }
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
             }
-        }
 
-        void loadData();
+            return (await response.json()) as { snapshots: GeometrySnapshot[] };
+        },
+    });
 
-        return () => {
-            cancelled = true;
-        };
-    }, [relationshipsUrl, snapshotsUrl]);
+    const relationshipsQuery = useQuery({
+        queryKey: ['entity-history', 'relationships', relationshipsUrl],
+        enabled: Boolean(relationshipsUrl),
+        queryFn: async () => {
+            const response = await fetch(relationshipsUrl, {
+                headers: { Accept: 'application/json' },
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            return (await response.json()) as {
+                outgoing: Relationship[];
+                incoming: Relationship[];
+            };
+        },
+    });
+
+    const snapshots = useMemo(
+        () => snapshotsQuery.data?.snapshots ?? [],
+        [snapshotsQuery.data?.snapshots],
+    );
+    const relationships = useMemo(
+        () => [
+            ...(relationshipsQuery.data?.outgoing ?? []),
+            ...(relationshipsQuery.data?.incoming ?? []),
+        ],
+        [relationshipsQuery.data?.incoming, relationshipsQuery.data?.outgoing],
+    );
+    const loading = snapshotsQuery.isLoading || relationshipsQuery.isLoading;
+    const loadError = snapshotsQuery.isError || relationshipsQuery.isError
+        ? 'Failed to load timeline data.'
+        : null;
 
     const activeSnapshot = useMemo(
         () => {
@@ -137,6 +113,18 @@ export default function EntityHistoryPanel({
             ) ?? null
         );
     }, [relationships, selectedItem]);
+
+    const hoveredRelationship = useMemo(() => {
+        if (hoveredItem?.kind !== 'relationship') {
+            return null;
+        }
+
+        return (
+            relationships.find(
+                (relationship) => relationship.relationship_id === hoveredItem.id,
+            ) ?? null
+        );
+    }, [hoveredItem, relationships]);
 
     const timelineItems = useMemo<TimelineItem[]>(() => {
         const snapshotItems: TimelineItem[] = snapshots.map((snapshot) => ({
@@ -192,85 +180,157 @@ export default function EntityHistoryPanel({
         [entityGeojson, entityTerritoryGeojson],
     );
 
-    const overlayGeometries = useMemo(
-        () => {
-            if (activeSnapshot) {
-                return [
-                    activeSnapshot.geojson ?? null,
-                    activeSnapshot.territory_geojson ?? null,
-                ];
+    const relationshipToOverlayGeometries = useCallback(
+        (
+            relationship: Relationship,
+            extraProperties: Record<string, unknown> = {},
+        ): GeoJsonLike[] => {
+            const related = relationship.related_entity;
+
+            if (!related) {
+                return [];
             }
 
-            if (activeRelationship?.related_entity) {
-                return [
-                    activeRelationship.related_entity.geojson ?? null,
-                    activeRelationship.related_entity.territory_geojson ?? null,
-                ];
-            }
+            const commonProperties = {
+                relationship_id: relationship.relationship_id,
+                relationship_type: relationship.relationship_type,
+                direction: relationship.direction,
+                name: related.name,
+                entity_type: related.entity_type,
+                entity_group: related.entity_group,
+                summary: relationship.description,
+                year_start: parseYear(relationship.temporal_start),
+                year_end: parseYear(relationship.temporal_end),
+                ...extraProperties,
+            };
 
-            return [null, null];
+            return [
+                enrichGeoJson(related.geojson ?? null, commonProperties),
+                enrichGeoJson(related.territory_geojson ?? null, commonProperties),
+            ].filter((value): value is GeoJsonLike => value != null);
         },
-        [activeRelationship, activeSnapshot],
+        [],
     );
 
-    // Derive OHM date bounds from snapshot/entity temporal ranges.
-    // Prefer active snapshot bounds; fall back to entity temporal bounds.
-    const timeframeStartDate = useMemo<string | null>(() => {
-        const snapshotStartYear = activeSnapshot?.year_start ?? null;
-        const relationshipStartYear = parseYear(
-            activeRelationship?.temporal_start ?? null,
+    const overlayGeometries = useMemo<GeoJsonLike[]>(() => {
+        // If a snapshot is selected, show only that snapshot's geometry
+        if (activeSnapshot) {
+            return [
+                enrichGeoJson(activeSnapshot.geojson ?? null, {
+                    snapshot_id: activeSnapshot.snapshot_id,
+                    label: activeSnapshot.label,
+                    summary: activeSnapshot.description,
+                    year_start: activeSnapshot.year_start,
+                    year_end: activeSnapshot.year_end,
+                }),
+                enrichGeoJson(activeSnapshot.territory_geojson ?? null, {
+                    snapshot_id: activeSnapshot.snapshot_id,
+                    label: activeSnapshot.label,
+                    summary: activeSnapshot.description,
+                    year_start: activeSnapshot.year_start,
+                    year_end: activeSnapshot.year_end,
+                }),
+            ];
+        }
+
+        // If a relationship is selected, show selected geometry and optional hovered preview geometry.
+        if (activeRelationship?.related_entity) {
+            const selectedGeometries = relationshipToOverlayGeometries(
+                activeRelationship,
+                {
+                    hover_preview: false,
+                    selected_relationship: true,
+                },
+            );
+
+            if (
+                hoveredRelationship &&
+                hoveredRelationship.relationship_id !==
+                    activeRelationship.relationship_id
+            ) {
+                const previewGeometries = relationshipToOverlayGeometries(
+                    hoveredRelationship,
+                    {
+                        hover_preview: true,
+                        selected_relationship: false,
+                    },
+                );
+
+                return [...selectedGeometries, ...previewGeometries];
+            }
+
+            return selectedGeometries;
+        }
+
+        // Otherwise, show all related entities (all direct relationships)
+        const allRelated = relationships.flatMap((relationship) =>
+            relationshipToOverlayGeometries(relationship, {
+                hover_preview: false,
+                selected_relationship: false,
+            }),
         );
+
+        return allRelated.length > 0 ? allRelated : [null, null];
+    }, [
+        activeRelationship,
+        activeSnapshot,
+        hoveredRelationship,
+        relationshipToOverlayGeometries,
+        relationships,
+    ]);
+
+    // Derive OHM date bounds from snapshot/entity temporal ranges.
+    // Combine active selection bounds with entity temporal bounds for comparison.
+    const timeframeStartDate = useMemo<string | null>(() => {
+        const activeStartYear = activeSnapshot?.year_start
+            ?? parseYear(activeRelationship?.temporal_start ?? null)
+            ?? null;
         const entityStartYear = parseYear(entityTemporalStart ?? null);
-        const startYear = snapshotStartYear ?? relationshipStartYear ?? entityStartYear;
+        const startYear = minYear(activeStartYear, entityStartYear);
 
         return startYear != null ? yearToOhmDate(startYear) : null;
     }, [activeRelationship, activeSnapshot, entityTemporalStart]);
 
     const timeframeEndDate = useMemo<string | null>(() => {
-        const snapshotEndYear = activeSnapshot?.year_end ?? null;
-        const relationshipEndYear = parseYear(
-            activeRelationship?.temporal_end ?? null,
-        );
+        const activeEndYear = activeSnapshot?.year_end
+            ?? parseYear(activeRelationship?.temporal_end ?? null)
+            ?? null;
         const entityEndYear = parseYear(entityTemporalEnd ?? null);
-        const endYear = snapshotEndYear ?? relationshipEndYear ?? entityEndYear;
+        const endYear = maxYear(activeEndYear, entityEndYear);
 
         return endYear != null ? yearToOhmDate(endYear) : null;
     }, [activeRelationship, activeSnapshot, entityTemporalEnd]);
 
     const derivedStartYear = useMemo(() => {
-        const snapshotStartYear = activeSnapshot?.year_start ?? null;
-        const relationshipStartYear = parseYear(
-            activeRelationship?.temporal_start ?? null,
-        );
+        const activeStartYear = activeSnapshot?.year_start
+            ?? parseYear(activeRelationship?.temporal_start ?? null)
+            ?? null;
         const entityStartYear = parseYear(entityTemporalStart ?? null);
 
-        return snapshotStartYear ?? relationshipStartYear ?? entityStartYear;
+        return minYear(activeStartYear, entityStartYear);
     }, [activeRelationship, activeSnapshot, entityTemporalStart]);
 
     const derivedEndYear = useMemo(() => {
-        const snapshotEndYear = activeSnapshot?.year_end ?? null;
-        const relationshipEndYear = parseYear(
-            activeRelationship?.temporal_end ?? null,
-        );
+        const activeEndYear = activeSnapshot?.year_end
+            ?? parseYear(activeRelationship?.temporal_end ?? null)
+            ?? null;
         const entityEndYear = parseYear(entityTemporalEnd ?? null);
 
-        return snapshotEndYear ?? relationshipEndYear ?? entityEndYear;
+        return maxYear(activeEndYear, entityEndYear);
     }, [activeRelationship, activeSnapshot, entityTemporalEnd]);
 
-    useEffect(() => {
-        setSelectedStartYear(derivedStartYear);
-        setSelectedEndYear(derivedEndYear);
-    }, [derivedEndYear, derivedStartYear]);
+    const effectiveStartYear = selectedRange?.startYear ?? derivedStartYear;
+    const effectiveEndYear = selectedRange?.endYear ?? derivedEndYear;
 
     const selectedStartDate = useMemo(
         () =>
-            selectedStartYear != null ? yearToOhmDate(selectedStartYear) : null,
-        [selectedStartYear],
+            effectiveStartYear != null ? yearToOhmDate(effectiveStartYear) : null,
+        [effectiveStartYear],
     );
 
     const selectedEndDate = useMemo(
-        () => (selectedEndYear != null ? yearToOhmDate(selectedEndYear) : null),
-        [selectedEndYear],
+        () => (effectiveEndYear != null ? yearToOhmDate(effectiveEndYear) : null),
+        [effectiveEndYear],
     );
 
     // Backward-compatible single-date fallback: start bound first, then end bound.
@@ -287,9 +347,35 @@ export default function EntityHistoryPanel({
         return base + overlay > 0;
     }, [baseGeometries, overlayGeometries]);
 
+    const noop = useCallback(() => {
+        return;
+    }, []);
+
+    const handleFeatureClick = useCallback((feature: any) => {
+        const relId = feature?.properties?.relationship_id;
+        const snapId = feature?.properties?.snapshot_id;
+
+        if (relId) {
+            setSelectedRange(null);
+            setSelectedItem({ kind: 'relationship', id: String(relId) });
+
+            return;
+        }
+
+        if (snapId) {
+            setSelectedRange(null);
+            setSelectedItem({ kind: 'snapshot', id: String(snapId) });
+        }
+    }, []);
+
+    const hoveredRelationshipId =
+        hoveredItem?.kind === 'relationship' ? hoveredItem.id : null;
+    const hoveredSnapshotId =
+        hoveredItem?.kind === 'snapshot' ? hoveredItem.id : null;
+
     return (
-        <div className="grid gap-4 lg:grid-cols-[2fr,1fr]">
-            <div className="rounded-lg border">
+        <div className="flex flex-col gap-4 lg:flex-row">
+            <div className="rounded-lg border flex flex-col flex-1 min-w-0 h-[820px] overflow-hidden">
                 <div className="border-b px-4 py-3">
                     <h3 className="text-sm font-semibold">Geometry Map</h3>
                     <p className="mt-0.5 text-xs text-muted-foreground">
@@ -298,19 +384,24 @@ export default function EntityHistoryPanel({
                     </p>
                 </div>
                 <HistoricalMapViewer
+                    className="h-[670px] rounded-b-lg"
                     baseGeometries={baseGeometries}
                     overlayGeometries={overlayGeometries}
+                    overlayRelationship={activeRelationship}
+                    hoveredRelationshipId={hoveredRelationshipId}
+                    hoveredSnapshotId={hoveredSnapshotId}
                     timeframeDate={timeframeDate}
                     timeframeStartDate={selectedStartDate}
                     timeframeEndDate={selectedEndDate}
+                    onFeatureHover={noop}
+                    onFeatureClick={handleFeatureClick}
                 />
                 <TimeframeRangeSelector
                     key={`${derivedStartYear ?? 'none'}:${derivedEndYear ?? 'none'}`}
                     defaultStartYear={derivedStartYear}
                     defaultEndYear={derivedEndYear}
                     onApply={({ startYear, endYear }) => {
-                        setSelectedStartYear(startYear);
-                        setSelectedEndYear(endYear);
+                        setSelectedRange({ startYear, endYear });
                     }}
                 />
                 {!loading && !hasAnyRenderableGeometry && (
@@ -321,110 +412,26 @@ export default function EntityHistoryPanel({
                 )}
             </div>
 
-            <div className="rounded-lg border">
+            <div className="rounded-lg border flex flex-col flex-1 min-w-0 h-[820px] overflow-hidden">
                 <div className="border-b px-4 py-3">
                     <h3 className="text-sm font-semibold">Timeline</h3>
                     <p className="mt-0.5 text-xs text-muted-foreground">
                         Snapshots and relationships sorted chronologically.
                     </p>
                 </div>
-                <div className="max-h-105 space-y-2 overflow-y-auto p-3">
-                    {loading && (
-                        <p className="text-sm text-muted-foreground">
-                            Loading timeline…
-                        </p>
-                    )}
-                    {!loading && loadError && (
-                        <p className="text-sm text-destructive">{loadError}</p>
-                    )}
-                    {!loading && !loadError && timelineItems.length === 0 && (
-                        <p className="text-sm text-muted-foreground">
-                            No snapshots or relationships with timeline data.
-                        </p>
-                    )}
-
-                    {!loading &&
-                        !loadError &&
-                        timelineItems.map((item) => {
-                            const selected =
-                                selectedItem?.kind === item.kind &&
-                                ((item.kind === 'snapshot' &&
-                                    item.snapshot?.snapshot_id ===
-                                        selectedItem.id) ||
-                                    (item.kind === 'relationship' &&
-                                        item.relationship?.relationship_id ===
-                                            selectedItem.id));
-
-                            return (
-                                <button
-                                    key={item.id}
-                                    type="button"
-                                    onClick={() => {
-                                        const nextSelection =
-                                            item.kind === 'snapshot'
-                                                ? item.snapshot?.snapshot_id
-                                                    ? {
-                                                          kind: 'snapshot' as const,
-                                                          id: item.snapshot.snapshot_id,
-                                                      }
-                                                    : null
-                                                : item.relationship?.relationship_id
-                                                  ? {
-                                                        kind: 'relationship' as const,
-                                                        id: item.relationship.relationship_id,
-                                                    }
-                                                  : null;
-
-                                        if (!nextSelection) {
-                                            return;
-                                        }
-
-                                        setSelectedItem((current) => {
-                                            if (
-                                                current?.kind === nextSelection.kind &&
-                                                current.id === nextSelection.id
-                                            ) {
-                                                return null;
-                                            }
-
-                                            return nextSelection;
-                                        });
-                                    }}
-                                    className={[
-                                        'w-full rounded-md border px-3 py-2 text-left',
-                                        selected
-                                            ? 'border-amber-500 bg-amber-500/5'
-                                            : 'hover:bg-muted/50',
-                                    ].join(' ')}
-                                >
-                                    <div className="mb-1 flex items-center justify-between gap-2">
-                                        <Badge
-                                            variant={
-                                                item.kind === 'snapshot'
-                                                    ? 'secondary'
-                                                    : 'outline'
-                                            }
-                                        >
-                                            {item.kind}
-                                        </Badge>
-                                        <span className="text-xs text-muted-foreground tabular-nums">
-                                            {formatYearRange(
-                                                item.startYear,
-                                                item.endYear,
-                                            )}
-                                        </span>
-                                    </div>
-                                    <p className="text-sm leading-tight font-medium">
-                                        {item.title}
-                                    </p>
-                                    {item.subtitle && (
-                                        <p className="mt-1 text-xs leading-snug text-muted-foreground">
-                                            {item.subtitle}
-                                        </p>
-                                    )}
-                                </button>
-                            );
-                        })}
+                <div className="flex-1 min-h-0">
+                    <EntityHistoryTimeline
+                        items={timelineItems}
+                        loading={loading}
+                        loadError={loadError}
+                        selectedItem={selectedItem}
+                        onHover={setHoveredItem}
+                        onSelect={(item) => {
+                            setHoveredItem(null);
+                            setSelectedRange(null);
+                            setSelectedItem(item);
+                        }}
+                    />
                 </div>
             </div>
         </div>
@@ -454,26 +461,79 @@ function parseYear(value: string | null | undefined): number | null {
     return Number.isFinite(parsed) ? parsed : null;
 }
 
-function formatYear(year: number | null): string {
-    if (year == null) {
-        return 'Unknown';
+function minYear(a: number | null, b: number | null): number | null {
+    if (a == null) {
+        return b;
     }
 
-    return year < 0 ? `${Math.abs(year)} BCE` : `${year} CE`;
+    if (b == null) {
+        return a;
+    }
+
+    return Math.min(a, b);
 }
 
-function formatYearRange(start: number | null, end: number | null): string {
-    if (start == null && end == null) {
-        return 'Undated';
+function maxYear(a: number | null, b: number | null): number | null {
+    if (a == null) {
+        return b;
     }
 
-    if (start != null && end != null) {
-        return `${formatYear(start)} – ${formatYear(end)}`;
+    if (b == null) {
+        return a;
     }
 
-    if (start != null) {
-        return `From ${formatYear(start)}`;
+    return Math.max(a, b);
+}
+
+function enrichGeoJson(
+    value: GeoJsonLike,
+    properties: Record<string, unknown>,
+): GeoJsonLike {
+    if (!value || typeof value !== 'object') {
+        return null;
     }
 
-    return `Until ${formatYear(end)}`;
+    const candidate = value as {
+        type?: string;
+        geometry?: unknown;
+        properties?: Record<string, unknown>;
+        features?: Array<{
+            type: 'Feature';
+            geometry: unknown;
+            properties?: Record<string, unknown>;
+        }>;
+    };
+
+    if (candidate.type === 'FeatureCollection' && Array.isArray(candidate.features)) {
+        return {
+            ...candidate,
+            features: candidate.features.map((feature) => ({
+                ...feature,
+                properties: {
+                    ...(feature.properties ?? {}),
+                    ...properties,
+                },
+            })),
+        };
+    }
+
+    if (candidate.type === 'Feature' && candidate.geometry) {
+        return {
+            ...candidate,
+            properties: {
+                ...(candidate.properties ?? {}),
+                ...properties,
+            },
+        };
+    }
+
+    if (candidate.type) {
+        return {
+            type: 'Feature',
+            geometry: value,
+            properties,
+        };
+    }
+
+    return null;
 }

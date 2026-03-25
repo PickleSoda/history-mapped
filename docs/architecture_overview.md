@@ -266,7 +266,7 @@ File: `docker/docker-compose.yml`
 | Document | Description |
 |----------|-------------|
 | `README.md` | Foundational architecture for the Historical Atlas platform, including the three-layer map model and AI-to-human review lifecycle |
-| `docs/setup.md` | Monorepo setup, workspace structure, Docker services, auth model, and contract generation flow |
-| `docs/entity_specification.md` | Entity types, enums, and field-level data model details |
-| `docs/reference_tables.md` | Historical periods, regions, and supporting reference data |
-| `docs/game_inspired_ui_ux.md` | UI direction for the historical atlas frontend |
+| `docs/implementation-docs/setup.md` | Monorepo setup, workspace structure, Docker services, auth model, and contract generation flow |
+| `docs/implementation-docs/entity_specification.md` | Entity types, enums, and field-level data model details |
+| `docs/implementation-docs/reference_tables.md` | Historical periods, regions, and supporting reference data |
+| `docs/implementation-docs/game_inspired_ui_ux.md` | UI direction for the historical atlas frontend |
