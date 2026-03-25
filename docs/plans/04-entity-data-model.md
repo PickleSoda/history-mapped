@@ -62,7 +62,7 @@ Implement the full entity data model in PostgreSQL with PostGIS spatial support,
 
 ## Deferred
 
-- Seeding reference tables with data from `docs/reference_tables.md`.
+- Seeding reference tables with data from `docs/implementation-docs/reference_tables.md`.
 - Entity API (CRUD actions, DTOs, controllers, routes).
 - Scramble OpenAPI auto-documentation wiring.
 - Entity factory definitions for testing.

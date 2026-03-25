@@ -26,9 +26,9 @@ The output of this pipeline is **not canonical territory data**. It is an inferr
 5. Quantitative promotion / stop criteria for future rollout decisions.
 
 ## Dependencies
-- OHM boundary access and date filtering already documented in [docs/ohm_integraton_guide.md](docs/ohm_integraton_guide.md).
-- Existing geometry snapshot concepts in [docs/plans/attributes_and_geometry_snapshots.md](docs/plans/attributes_and_geometry_snapshots.md).
-- Existing pipeline architecture in [docs/data_pipeline_architecture.md](docs/data_pipeline_architecture.md).
+- OHM boundary access and date filtering already documented in [../implementation-docs/ohm_integraton_guide.md](../implementation-docs/ohm_integraton_guide.md).
+- Existing geometry snapshot concepts in [../implementation-docs/attributes_and_geometry_snapshots.md](../implementation-docs/attributes_and_geometry_snapshots.md).
+- Existing pipeline architecture in [../implementation-docs/data_pipeline_architecture.md](../implementation-docs/data_pipeline_architecture.md).
 
 ## Why This Exists
 OHM is the preferred reference layer, but historical border coverage is uneven across time and region. In some periods we know a polity existed, but no usable territory polygon is present.
@@ -552,8 +552,8 @@ Laravel/API side:
 - inferred-layer API resources
 
 Docs:
-- `docs/data_pipeline_architecture.md`
-- `docs/entity_specification.md`
+- `docs/implementation-docs/data_pipeline_architecture.md`
+- `docs/implementation-docs/entity_specification.md`
 - this experimental plan
 
 ## Exit Criteria for the Entire Experiment
