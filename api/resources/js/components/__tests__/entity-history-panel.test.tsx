@@ -1,10 +1,13 @@
+// @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, it, beforeAll, afterAll, afterEach, vi, expect } from 'vitest';
 import EntityHistoryPanel from '../entity-history-panel';
+import '@testing-library/jest-dom/vitest';
 
-// @vitest-environment jsdom
-import '@testing-library/jest-dom';
+vi.mock('../historical-map-viewer', () => ({
+    default: () => <div data-testid="mock-map-viewer" />,
+}));
 
 let fetchMock: ReturnType<typeof vi.fn>;
 
@@ -12,6 +15,11 @@ let fetchMock: ReturnType<typeof vi.fn>;
 beforeAll(() => {
     fetchMock = vi.fn();
     global.fetch = fetchMock as unknown as typeof fetch;
+
+    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+        configurable: true,
+        value: vi.fn(),
+    });
 });
 
 afterAll(() => {

@@ -2,7 +2,6 @@ import { Transition } from '@headlessui/react';
 import { Form, Head } from '@inertiajs/react';
 import { ShieldCheck } from 'lucide-react';
 import { useRef, useState } from 'react';
-import SecurityController from '@/actions/App/Http/Controllers/Settings/SecurityController';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
@@ -15,6 +14,7 @@ import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { edit } from '@/routes/security';
 import { disable, enable } from '@/routes/two-factor';
+import { update as updatePassword } from '@/routes/user-password';
 import type { BreadcrumbItem } from '@/types';
 
 type Props = {
@@ -65,7 +65,7 @@ export default function Security({
                     />
 
                     <Form
-                        {...SecurityController.update.form()}
+                        {...updatePassword.form()}
                         options={{
                             preserveScroll: true,
                         }}
