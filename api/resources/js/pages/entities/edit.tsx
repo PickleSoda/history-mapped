@@ -1,7 +1,5 @@
 import { Head, router } from '@inertiajs/react';
 import { lazy, Suspense, useState } from 'react';
-import * as SnapshotRoutes from '@/actions/App/Http/Controllers/Admin/GeometrySnapshotController';
-import * as RelationshipRoutes from '@/actions/App/Http/Controllers/Admin/RelationshipController';
 import EntityForm, { defaultFormData } from '@/components/entity-form';
 import type { EntityFormData } from '@/components/entity-form';
 import HistoricalMapViewer from '@/components/historical-map-viewer';
@@ -10,6 +8,8 @@ import AppLayout from '@/layouts/app-layout';
 import type { GeoJsonLike } from '@/lib/geojson';
 import { yearToOhmDate } from '@/lib/ohm-date';
 import { update } from '@/routes/entities';
+import * as RelationshipRoutes from '@/routes/entities/relationships';
+import * as SnapshotRoutes from '@/routes/entities/snapshots';
 import type { BreadcrumbItem, EntityDetail, EntityFormOptions } from '@/types';
 
 const MapEditor = lazy(() => import('@/components/map-editor'));
