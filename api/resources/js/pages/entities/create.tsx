@@ -1,8 +1,9 @@
-import { Head, router, useForm } from '@inertiajs/react';
 import type { FormDataConvertible } from '@inertiajs/core';
-import { store } from '@/routes/entities';
-import EntityForm, { defaultFormData, type EntityFormData } from '@/components/entity-form';
+import { Head, router, useForm } from '@inertiajs/react';
+import EntityForm, { defaultFormData } from '@/components/entity-form';
+import type { EntityFormData } from '@/components/entity-form';
 import AppLayout from '@/layouts/app-layout';
+import { store } from '@/routes/entities';
 import type { BreadcrumbItem, EntityFormOptions } from '@/types';
 
 type Props = {
@@ -16,9 +17,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function EntityCreate({ formOptions }: Props) {
-    const { data, setData, processing, errors } = useForm<EntityFormData>(defaultFormData());
+    const { data, setData, processing, errors } =
+        useForm<EntityFormData>(defaultFormData());
 
-    function handleChange<K extends keyof EntityFormData>(field: K, value: EntityFormData[K]) {
+    function handleChange<K extends keyof EntityFormData>(
+        field: K,
+        value: EntityFormData[K],
+    ) {
         setData((previous) => ({
             ...previous,
             [field]: value,
@@ -29,8 +34,11 @@ export default function EntityCreate({ formOptions }: Props) {
         e.preventDefault();
 
         // Collect attr_* keys into attributes object, split comma strings to arrays
-        const attrEntries = Object.entries(data).filter(([key]) => key.startsWith('attr_'));
+        const attrEntries = Object.entries(data).filter(([key]) =>
+            key.startsWith('attr_'),
+        );
         const attributes: Record<string, unknown> = {};
+
         for (const [key, value] of attrEntries) {
             if (typeof value === 'string' && value.trim() !== '') {
                 attributes[key.replace(/^attr_/, '')] = value;
@@ -39,11 +47,20 @@ export default function EntityCreate({ formOptions }: Props) {
 
         const payload = {
             ...data,
-            tags: data.tags ? data.tags.split(',').map((s) => s.trim()).filter(Boolean) : [],
-            alternative_names: data.alternative_names
-                ? data.alternative_names.split(',').map((s) => s.trim()).filter(Boolean)
+            tags: data.tags
+                ? data.tags
+                      .split(',')
+                      .map((s) => s.trim())
+                      .filter(Boolean)
                 : [],
-            attributes: Object.keys(attributes).length > 0 ? attributes : undefined,
+            alternative_names: data.alternative_names
+                ? data.alternative_names
+                      .split(',')
+                      .map((s) => s.trim())
+                      .filter(Boolean)
+                : [],
+            attributes:
+                Object.keys(attributes).length > 0 ? attributes : undefined,
         };
 
         // Strip attr_* keys — they are now in attributes
@@ -53,7 +70,10 @@ export default function EntityCreate({ formOptions }: Props) {
             }
         }
 
-        router.post(store.url(), payload as unknown as Record<string, FormDataConvertible>);
+        router.post(
+            store.url(),
+            payload as unknown as Record<string, FormDataConvertible>,
+        );
     }
 
     return (
@@ -62,9 +82,12 @@ export default function EntityCreate({ formOptions }: Props) {
 
             <div className="mx-auto max-w-3xl p-4">
                 <div className="mb-6">
-                    <h1 className="text-2xl font-bold tracking-tight">New Entity</h1>
-                    <p className="text-muted-foreground mt-1 text-sm">
-                        Fill in the fields below to create a new historical entity.
+                    <h1 className="text-2xl font-bold tracking-tight">
+                        New Entity
+                    </h1>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        Fill in the fields below to create a new historical
+                        entity.
                     </p>
                 </div>
 

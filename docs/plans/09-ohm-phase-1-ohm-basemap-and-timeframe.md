@@ -65,4 +65,4 @@ Switch all map surfaces from current OpenFreeMap styling to OpenHistoricalMap-co
 - No regressions in geometry overlay rendering.
 
 ## Status
-- Planned
+- In progress

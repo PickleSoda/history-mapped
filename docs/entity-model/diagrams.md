@@ -28,6 +28,7 @@ erDiagram
         text name "full-text indexed"
         text_array alternative_names
         text wikidata_id
+        uuid primary_geo_ref_id FK "nullable — active canonical georef"
         geometry geom "PostGIS GIST indexed"
         geometry territory_geom "PostGIS GIST indexed"
         text location_name
@@ -126,9 +127,31 @@ erDiagram
         jsonb source_citations
         text notes "editorial"
         integer display_priority
+        uuid geo_ref_id FK "optional — external geo ref (OHM/other source)"
         uuid source_event_id FK "optional — event that changed territory"
         uuid relationship_id FK "optional — relationship that placed entity here (CASCADE)"
         text created_by
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    entity_geo_refs {
+        uuid geo_ref_id PK
+        uuid entity_id FK "NOT NULL — cascade delete"
+        text provider "ohm | wikidata | geonames | pleiades | custom"
+        text external_type "node | way | relation | feature | qid"
+        text external_id "e.g. relation/2744968 or Q16553"
+        text match_role "primary | candidate | fallback | rejected"
+        text retrieval_method "overpass | nominatim | rest | manual"
+        text temporal_start
+        text temporal_end
+        integer temporal_start_year "normalized for filtering"
+        integer temporal_end_year "normalized for filtering"
+        jsonb external_tags "raw OSM/OHM tags or external metadata"
+        jsonb source_meta "query, endpoint, attribution, license"
+        numeric match_score
+        boolean is_active
+        timestamp last_verified_at
         timestamp created_at
         timestamp updated_at
     }
@@ -151,6 +174,9 @@ erDiagram
     entities ||--o{ relationships : "source_entity_id"
     entities ||--o{ relationships : "target_entity_id"
     entities ||--o{ geometry_snapshots : "entity_id (temporal geometries)"
+    entities ||--o{ entity_geo_refs : "entity_id (external geo links)"
+    entity_geo_refs ||--o| entities : "primary_geo_ref_id (canonical link)"
+    entity_geo_refs ||--o{ geometry_snapshots : "geo_ref_id (geometry provenance)"
     entities ||--o{ geometry_snapshots : "source_event_id (territory change cause)"
     relationships ||--o{ geometry_snapshots : "relationship_id (presence cause — CASCADE)"
     users }o--o{ roles : "model_has_roles"
@@ -165,8 +191,96 @@ erDiagram
 - **`sources`** is referenced from `entities.source_citations` (JSONB array of `{ source_id, page, quote }`)
 - **Self-referencing FKs** on `entities`: `parent_entity_id` (tree hierarchy) and `successor_entity_id` (temporal succession chain)
 - **`geometry_snapshots`** stores time-varying geometries per entity (empire borders, person presence at events). The `description` field explains *why* the geometry exists. Two optional provenance FKs: `relationship_id` (CASCADE — for presence snapshots derived from a specific relationship like `signed_by`) and `source_event_id` (SET NULL — for territory changes caused by events)
+- **`entity_geo_refs`** stores canonical links to external geospatial systems (especially OHM/OSM), including typed element IDs (`node|way|relation`) and raw tag snapshots used at match time
+- **`entities.primary_geo_ref_id`** points to the canonical active georef row, so an entity always has one default external anchor when available
+- **Geometry provenance chain**: `geometry_snapshots.geo_ref_id` points to the exact external reference that produced the geometry, so map interactions can open the underlying OHM feature or fallback source
 - **PostGIS columns**: `geom` (point/polygon/linestring), `territory_geom` (nullable polygon extent)
 - **pgvector column**: `embedding` (1536-dim, HNSW indexed) for semantic search
+
+### 1.1 OHM Under the Hood (OSM-Compatible Data Model)
+
+OpenHistoricalMap uses the OSM element model:
+
+- **Node** — point geometry
+- **Way** — ordered nodes (line or closed polygon)
+- **Relation** — grouped members (critical for boundaries and chronology)
+- **Tags** — key/value metadata attached to any element
+
+For historical entities, the most important relation type is `type=chronology`, which links multiple dated stages of the same real-world feature. In practice, your map integration should prefer chronology relations when available, then fall back to stage members.
+
+### 1.2 Geo Resolution Pipeline (Wikidata → OHM → Fallback → Empty)
+
+```mermaid
+flowchart TD
+    A[Extract entity from Wikidata] --> B{Has geo clue?\ncoords / place / boundary / QID}
+    B -- no --> Z[Store entity with empty geom\nlocation_confidence=unresolved]
+    B -- yes --> C[Try OHM resolution\nNominatim + Overpass + relation lookup]
+    C --> D{Matched OHM element?}
+    D -- yes --> E[Create entity_geo_refs row\nprovider=ohm, external_type=node|way|relation]
+    E --> F[Hydrate geom/territory_geom\nfrom OHM element geometry]
+    F --> G[Optional: add geometry_snapshots\nwith geo_ref_id provenance]
+    D -- no --> H[Try fallback border/geometry providers\n(custom datasets, manual digitizing)]
+    H --> I{Fallback geometry found?}
+    I -- yes --> J[Create entity_geo_refs row\nprovider=custom or source name]
+    J --> K[Hydrate geom/territory_geom\nmark location_method=source_database|human_assigned]
+    I -- no --> Z
+```
+
+Implementation note: `entity_geo_refs.match_role` should mark only one active `primary` record per entity, while keeping historical `candidate`/`rejected` rows for auditability.
+
+### 1.3 Click Flow: OHM Feature -> WikiGlobe Entity
+
+When the user clicks a feature on the OHM-based map (example: Rome), the app should resolve like this:
+
+1. **Map click payload** yields external feature identity, e.g. `provider=ohm`, `external_type=relation`, `external_id=2704719`, plus active date (or date range).
+2. **Reverse lookup** in `entity_geo_refs` by `(provider, external_type, external_id)` and `is_active=true`.
+3. **Temporal filter** by requested date against `entity_geo_refs.temporal_start/end` (if set).
+4. **Entity fetch** using `entity_id` from the matched row.
+5. **Geometry selection for date**:
+    - prefer `geometry_snapshots` row whose year range contains the requested date
+    - fall back to base `entities.geom` / `entities.territory_geom` if no snapshot matches
+6. **UI open** entity detail panel for that entity.
+
+This makes the lookup deterministic even when multiple snapshots exist across time.
+
+### 1.4 SQL Snippet (Click Resolution)
+
+```sql
+-- Inputs from map click context:
+--   :provider='ohm', :external_type, :external_id, :target_year
+WITH ref_match AS (
+    SELECT r.entity_id, r.geo_ref_id
+    FROM entity_geo_refs r
+    WHERE r.provider = :provider
+        AND r.external_type = :external_type
+        AND r.external_id = :external_id
+        AND r.is_active = true
+        AND (r.temporal_start_year IS NULL OR r.temporal_start_year <= :target_year)
+        AND (r.temporal_end_year   IS NULL OR r.temporal_end_year   >= :target_year)
+    ORDER BY CASE WHEN r.match_role = 'primary' THEN 0 ELSE 1 END,
+                     r.match_score DESC NULLS LAST
+    LIMIT 1
+),
+snap AS (
+    SELECT s.*
+    FROM geometry_snapshots s
+    JOIN ref_match rm ON rm.entity_id = s.entity_id
+    WHERE s.year_start <= :target_year
+        AND s.year_end   >= :target_year
+    ORDER BY s.display_priority DESC NULLS LAST, s.updated_at DESC
+    LIMIT 1
+)
+SELECT
+    e.entity_id,
+    e.name,
+    e.entity_type,
+    COALESCE(s.geom, e.geom) AS resolved_geom,
+    COALESCE(s.territory_geom, e.territory_geom) AS resolved_territory_geom,
+    rm.geo_ref_id
+FROM ref_match rm
+JOIN entities e ON e.entity_id = rm.entity_id
+LEFT JOIN snap s ON true;
+```
 
 ---
 

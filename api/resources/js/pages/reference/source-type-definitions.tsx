@@ -1,4 +1,5 @@
 import { Head } from '@inertiajs/react';
+import { RefTableLayout } from '@/components/ref-table-layout';
 import { Badge } from '@/components/ui/badge';
 import {
     Table,
@@ -8,7 +9,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { RefTableLayout } from '@/components/ref-table-layout';
 import AppLayout from '@/layouts/app-layout';
 import { index } from '@/routes/reference/source-type-definitions';
 import type { BreadcrumbItem, PaginatedData } from '@/types';
@@ -33,7 +33,10 @@ type Props = {
     filters: Filters;
 };
 
-export default function SourceTypeDefinitionsIndex({ definitions, filters }: Props) {
+export default function SourceTypeDefinitionsIndex({
+    definitions,
+    filters,
+}: Props) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Source Type Definitions" />
@@ -54,29 +57,45 @@ export default function SourceTypeDefinitionsIndex({ definitions, filters }: Pro
                                 <TableHead>Description</TableHead>
                                 <TableHead>Default Confidence</TableHead>
                                 <TableHead>Requires Corroboration</TableHead>
-                                <TableHead className="text-right">Scoring Weight</TableHead>
+                                <TableHead className="text-right">
+                                    Scoring Weight
+                                </TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {definitions.data.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="h-24 text-center">
-                                        <div className="text-muted-foreground">No records found.</div>
+                                    <TableCell
+                                        colSpan={6}
+                                        className="h-24 text-center"
+                                    >
+                                        <div className="text-muted-foreground">
+                                            No records found.
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ) : (
                                 definitions.data.map((def) => (
                                     <TableRow key={def.definition_id}>
-                                        <TableCell className="font-mono text-sm">{def.enum_name}</TableCell>
-                                        <TableCell className="font-mono text-sm">{def.enum_value}</TableCell>
-                                        <TableCell className="text-muted-foreground max-w-xs truncate text-sm">
+                                        <TableCell className="font-mono text-sm">
+                                            {def.enum_name}
+                                        </TableCell>
+                                        <TableCell className="font-mono text-sm">
+                                            {def.enum_value}
+                                        </TableCell>
+                                        <TableCell className="max-w-xs truncate text-sm text-muted-foreground">
                                             {def.description}
                                         </TableCell>
                                         <TableCell>
                                             {def.default_confidence ? (
                                                 <Badge
                                                     variant="outline"
-                                                    className={confidenceColors[def.default_confidence] ?? ''}
+                                                    className={
+                                                        confidenceColors[
+                                                            def
+                                                                .default_confidence
+                                                        ] ?? ''
+                                                    }
                                                 >
                                                     {def.default_confidence}
                                                 </Badge>
@@ -93,7 +112,9 @@ export default function SourceTypeDefinitionsIndex({ definitions, filters }: Pro
                                                         : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
                                                 }
                                             >
-                                                {def.requires_corroboration ? 'Yes' : 'No'}
+                                                {def.requires_corroboration
+                                                    ? 'Yes'
+                                                    : 'No'}
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="text-right tabular-nums">

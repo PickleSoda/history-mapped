@@ -92,6 +92,8 @@ Two fields document how reliable the location is and how it was determined.
 | Value | Meaning |
 |---|---|
 | `ohm_nominatim` | Geocoded from OpenHistoricalMap or Nominatim |
+| `ohm_overpass` | Matched directly to OHM node/way/relation via Overpass |
+| `ohm_rest_api` | Matched by explicit OHM element lookup in `/api/0.6` |
 | `wikidata` | Taken from a Wikidata coordinate claim |
 | `geonames` | Taken from the GeoNames database |
 | `pleiades` | Taken from the Pleiades gazetteer of ancient places |
@@ -212,6 +214,19 @@ Silk Road  ──[controlled_by]─►  Tang Dynasty     (618 to 907)
 
 ---
 
+## OHM-First Resolution Policy
+
+For map interaction and provenance, resolve locations in this order:
+
+1. **Wikidata seed**: start from QID and any coordinates/place hints.
+2. **OHM match**: try OHM Nominatim, then OHM Overpass/REST to get a concrete `node`, `way`, or `relation`.
+3. **Fallback geometry source**: if no OHM match, use trusted external border datasets or manual digitization.
+4. **Empty geometry**: if both fail, leave `geom` and `territory_geom` empty and mark `location_confidence` as `unresolved`.
+
+When possible, attach and keep the external reference ID (especially OHM relation IDs) so clicking an entity can open the underlying map feature directly.
+
+---
+
 ## Checklist Before Submitting a Location
 
 - [ ] Longitude comes **before** latitude in all coordinate pairs
@@ -219,6 +234,7 @@ Silk Road  ──[controlled_by]─►  Tang Dynasty     (618 to 907)
 - [ ] `location_name` matches the actual coordinates (spot-check on a map)
 - [ ] `location_confidence` honestly reflects the evidence
 - [ ] `location_method` is filled in
+- [ ] OHM lookup was attempted before fallback geometry sources
 - [ ] If the location is disputed or estimated, this is noted in `confidence_notes`
 - [ ] Persons use relationships (`born_in`, `died_in`, `resided_in`) rather than `geom`
 - [ ] Wars and wide-area events use `territory_geom` rather than a misleading single point

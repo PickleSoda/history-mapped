@@ -19,8 +19,8 @@
 
 ### Progress Tracker
 
-- [ ] **Phase 0** — Stabilize Geometry Rendering Pipeline _(in progress)_
-- [ ] **Phase 1** — OHM Basemap + Timeframe Filtering
+- [x] **Phase 0** — Stabilize Geometry Rendering Pipeline
+- [ ] **Phase 1** — OHM Basemap + Timeframe Filtering _(in progress)_
 - [ ] **Phase 2** — Timeline-to-Map Interaction (Snapshots + Relationships)
 - [ ] **Phase 3** — Reference Existing OHM Objects
 - [ ] **Phase 4** — OHM iD Editor Integration
@@ -30,10 +30,9 @@
 
 - Program design complete.
 - Detailed per-phase plans documented.
-- Phase 0 execution started (shared viewer + normalization extraction underway).
-- Phase 0 style/config alignment completed for viewer + editor map initialization path.
-- Phase 0 preview initial-load rendering fixed (shared viewer source-readiness + idle fallback).
-- Focused geometry snapshot backend tests passing after latest rendering hardening.
+- Phase 3 now includes pipeline auto-attach + click-resolution + georef integrity hardening.
+- **Phase 0 complete** — 169/169 tests passing. Shared viewer extracted, normalization utility reused throughout, source-readiness lifecycle hardened, render diagnostics in dev, snapshot toggling reliable.
+- **Phase 1 started** — OHM basemap plugin installed and timeframe filtering wired into viewer/editor paths.
 
 ## Query Performance & Data Model
 

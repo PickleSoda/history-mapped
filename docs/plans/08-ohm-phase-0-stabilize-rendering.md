@@ -80,7 +80,7 @@ Ensure geometry and territory data reliably render immediately after load/save i
 - No regressions in existing geometry snapshot feature tests.
 
 ## Status
-- In progress
+- **Complete**
 
 ## Progress Notes
 - Shared read-only viewer extraction completed.

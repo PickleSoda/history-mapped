@@ -1,4 +1,5 @@
 import { Head } from '@inertiajs/react';
+import { RefTableLayout } from '@/components/ref-table-layout';
 import {
     Table,
     TableBody,
@@ -7,7 +8,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { RefTableLayout } from '@/components/ref-table-layout';
 import AppLayout from '@/layouts/app-layout';
 import { index } from '@/routes/reference/geographic-regions';
 import type { BreadcrumbItem, PaginatedData } from '@/types';
@@ -46,14 +46,21 @@ export default function GeographicRegionsIndex({ regions, filters }: Props) {
                                 <TableHead>Parent</TableHead>
                                 <TableHead>Depth</TableHead>
                                 <TableHead>Modern Countries</TableHead>
-                                <TableHead className="text-right">Sort Order</TableHead>
+                                <TableHead className="text-right">
+                                    Sort Order
+                                </TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {regions.data.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="h-24 text-center">
-                                        <div className="text-muted-foreground">No records found.</div>
+                                    <TableCell
+                                        colSpan={5}
+                                        className="h-24 text-center"
+                                    >
+                                        <div className="text-muted-foreground">
+                                            No records found.
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ) : (
@@ -61,20 +68,28 @@ export default function GeographicRegionsIndex({ regions, filters }: Props) {
                                     <TableRow key={region.region_id}>
                                         <TableCell className="font-medium">
                                             <span
-                                                style={{ paddingLeft: `${region.depth_level * 1.25}rem` }}
+                                                style={{
+                                                    paddingLeft: `${region.depth_level * 1.25}rem`,
+                                                }}
                                             >
                                                 {region.depth_level > 0 && (
-                                                    <span className="text-muted-foreground mr-1">↳</span>
+                                                    <span className="mr-1 text-muted-foreground">
+                                                        ↳
+                                                    </span>
                                                 )}
                                                 {region.name}
                                             </span>
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground text-sm">
+                                        <TableCell className="text-sm text-muted-foreground">
                                             {region.parent_name ?? '—'}
                                         </TableCell>
-                                        <TableCell className="tabular-nums">{region.depth_level}</TableCell>
-                                        <TableCell className="text-muted-foreground text-sm">
-                                            {region.modern_countries?.join(', ') ?? '—'}
+                                        <TableCell className="tabular-nums">
+                                            {region.depth_level}
+                                        </TableCell>
+                                        <TableCell className="text-sm text-muted-foreground">
+                                            {region.modern_countries?.join(
+                                                ', ',
+                                            ) ?? '—'}
                                         </TableCell>
                                         <TableCell className="text-right tabular-nums">
                                             {region.sort_order ?? '—'}

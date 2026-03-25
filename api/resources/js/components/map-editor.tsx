@@ -5,23 +5,25 @@
  *   - geojson:           Point or LineString (entity location/route)
  *   - territory_geojson: Polygon or MultiPolygon (entity territory/area)
  *
- * Base tiles: OpenFreeMap "liberty" style (free, no API key required).
+ * Base tiles: OpenHistoricalMap main style (with fallback to OpenFreeMap liberty).
  *
  * NOTE: @mapbox/mapbox-gl-draw types import from "mapbox-gl" but the library
  * works at runtime with maplibre-gl. We use `as unknown` casts where the type
  * mismatch would otherwise block compilation.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import { Map } from 'maplibre-gl';
-import { loadHistoricalBasemapStyle } from '@/lib/map-config';
+import { useEffect, useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { normalizeToFeatureCollection } from '@/lib/geojson';
+import { loadHistoricalBasemapStyle } from '@/lib/map-config';
+import { normalizeOhmDate } from '@/lib/ohm-date';
+import { applyOhmLayerDateFilter } from '@/lib/ohm-layer-date-filter';
 import 'maplibre-gl/dist/maplibre-gl.css';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore — mapbox-gl-draw types reference mapbox-gl but the lib is maplibre-compatible
-import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
-import { Button } from '@/components/ui/button';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -32,7 +34,12 @@ export type MapEditorProps = {
     geojson: GeoJsonGeometry;
     /** Polygon/MultiPolygon geometry (territory_geom column) */
     territoryGeojson: GeoJsonGeometry;
-    onChange: (geojson: GeoJsonGeometry, territoryGeojson: GeoJsonGeometry) => void;
+    /** OHM-compatible date string used for basemap timeframe filtering. */
+    timeframeDate?: string | null;
+    onChange: (
+        geojson: GeoJsonGeometry,
+        territoryGeojson: GeoJsonGeometry,
+    ) => void;
 };
 
 type ActiveTab = 'location' | 'territory';
@@ -76,7 +83,12 @@ const DRAW_STYLES = [
         type: 'fill',
         filter: ['all', ['==', '$type', 'Polygon']],
         paint: {
-            'fill-color': ['case', ['==', ['get', 'active'], 'true'], '#fbb03b', '#3bb2d0'],
+            'fill-color': [
+                'case',
+                ['==', ['get', 'active'], 'true'],
+                '#fbb03b',
+                '#3bb2d0',
+            ],
             'fill-opacity': 0.1,
         },
     },
@@ -84,7 +96,11 @@ const DRAW_STYLES = [
     {
         id: 'gl-draw-lines-active',
         type: 'line',
-        filter: ['all', ['any', ['==', '$type', 'LineString'], ['==', '$type', 'Polygon']], ['==', ['get', 'active'], 'true']],
+        filter: [
+            'all',
+            ['any', ['==', '$type', 'LineString'], ['==', '$type', 'Polygon']],
+            ['==', ['get', 'active'], 'true'],
+        ],
         layout: { 'line-cap': 'round', 'line-join': 'round' },
         paint: {
             'line-color': '#fbb03b',
@@ -96,7 +112,11 @@ const DRAW_STYLES = [
     {
         id: 'gl-draw-lines-inactive',
         type: 'line',
-        filter: ['all', ['any', ['==', '$type', 'LineString'], ['==', '$type', 'Polygon']], ['!=', ['get', 'active'], 'true']],
+        filter: [
+            'all',
+            ['any', ['==', '$type', 'LineString'], ['==', '$type', 'Polygon']],
+            ['!=', ['get', 'active'], 'true'],
+        ],
         layout: { 'line-cap': 'round', 'line-join': 'round' },
         paint: {
             'line-color': '#3bb2d0',
@@ -120,14 +140,24 @@ const DRAW_STYLES = [
         filter: ['all', ['==', '$type', 'Point'], ['==', 'meta', 'feature']],
         paint: {
             'circle-radius': ['case', ['==', ['get', 'active'], 'true'], 5, 3],
-            'circle-color': ['case', ['==', ['get', 'active'], 'true'], '#fbb03b', '#3bb2d0'],
+            'circle-color': [
+                'case',
+                ['==', ['get', 'active'], 'true'],
+                '#fbb03b',
+                '#3bb2d0',
+            ],
         },
     },
     // Vertex outer
     {
         id: 'gl-draw-vertex-outer',
         type: 'circle',
-        filter: ['all', ['==', '$type', 'Point'], ['==', 'meta', 'vertex'], ['!=', 'mode', 'simple_select']],
+        filter: [
+            'all',
+            ['==', '$type', 'Point'],
+            ['==', 'meta', 'vertex'],
+            ['!=', 'mode', 'simple_select'],
+        ],
         paint: {
             'circle-radius': ['case', ['==', ['get', 'active'], 'true'], 7, 5],
             'circle-color': '#fff',
@@ -137,7 +167,12 @@ const DRAW_STYLES = [
     {
         id: 'gl-draw-vertex-inner',
         type: 'circle',
-        filter: ['all', ['==', '$type', 'Point'], ['==', 'meta', 'vertex'], ['!=', 'mode', 'simple_select']],
+        filter: [
+            'all',
+            ['==', '$type', 'Point'],
+            ['==', 'meta', 'vertex'],
+            ['!=', 'mode', 'simple_select'],
+        ],
         paint: {
             'circle-radius': ['case', ['==', ['get', 'active'], 'true'], 5, 3],
             'circle-color': '#fbb03b',
@@ -154,7 +189,12 @@ const DRAW_STYLES = [
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function MapEditor({ geojson, territoryGeojson, onChange }: MapEditorProps) {
+export default function MapEditor({
+    geojson,
+    territoryGeojson,
+    timeframeDate,
+    onChange,
+}: MapEditorProps) {
     const [activeTab, setActiveTab] = useState<ActiveTab>('location');
 
     // Refs to avoid stale closures in event handlers
@@ -162,9 +202,17 @@ export default function MapEditor({ geojson, territoryGeojson, onChange }: MapEd
     const territoryRef = useRef<GeoJsonGeometry>(territoryGeojson);
     const onChangeRef = useRef(onChange);
 
-    useEffect(() => { geojsonRef.current = geojson; }, [geojson]);
-    useEffect(() => { territoryRef.current = territoryGeojson; }, [territoryGeojson]);
-    useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
+    useEffect(() => {
+        geojsonRef.current = geojson;
+    }, [geojson]);
+
+    useEffect(() => {
+        territoryRef.current = territoryGeojson;
+    }, [territoryGeojson]);
+
+    useEffect(() => {
+        onChangeRef.current = onChange;
+    }, [onChange]);
 
     return (
         <div className="rounded-lg border">
@@ -189,7 +237,10 @@ export default function MapEditor({ geojson, territoryGeojson, onChange }: MapEd
                 mapId="map-location"
                 visible={activeTab === 'location'}
                 initialGeometry={geojson}
-                controls={DRAW_CONTROLS_LOCATION as unknown as MapboxDraw.MapboxDrawControls}
+                timeframeDate={timeframeDate}
+                controls={
+                    DRAW_CONTROLS_LOCATION as unknown as MapboxDraw.MapboxDrawControls
+                }
                 onGeometryChange={(geometry) => {
                     onChangeRef.current(geometry, territoryRef.current);
                 }}
@@ -198,7 +249,10 @@ export default function MapEditor({ geojson, territoryGeojson, onChange }: MapEd
                 mapId="map-territory"
                 visible={activeTab === 'territory'}
                 initialGeometry={territoryGeojson}
-                controls={DRAW_CONTROLS_TERRITORY as unknown as MapboxDraw.MapboxDrawControls}
+                timeframeDate={timeframeDate}
+                controls={
+                    DRAW_CONTROLS_TERRITORY as unknown as MapboxDraw.MapboxDrawControls
+                }
                 onGeometryChange={(geometry) => {
                     onChangeRef.current(geojsonRef.current, geometry);
                 }}
@@ -232,7 +286,9 @@ function TabButton({
             ].join(' ')}
         >
             <span>{label}</span>
-            <span className="text-muted-foreground text-xs font-normal">{hint}</span>
+            <span className="text-xs font-normal text-muted-foreground">
+                {hint}
+            </span>
         </button>
     );
 }
@@ -243,30 +299,49 @@ type MapPanelProps = {
     mapId: string;
     visible: boolean;
     initialGeometry: GeoJsonGeometry;
+    timeframeDate?: string | null;
     controls: MapboxDraw.MapboxDrawControls;
     onGeometryChange: (geometry: GeoJsonGeometry) => void;
 };
 
-function MapPanel({ mapId, visible, initialGeometry, controls, onGeometryChange }: MapPanelProps) {
+function MapPanel({
+    visible,
+    initialGeometry,
+    timeframeDate,
+    controls,
+    onGeometryChange,
+}: MapPanelProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<Map | null>(null);
     const drawRef = useRef<MapboxDraw | null>(null);
     const initialGeometryRef = useRef(initialGeometry);
+    const timeframeDateRef = useRef(timeframeDate);
     const onChangeRef = useRef(onGeometryChange);
     const applyingExternalGeometryRef = useRef(false);
     const lastAppliedGeometryJsonRef = useRef<string>('');
 
-    useEffect(() => { onChangeRef.current = onGeometryChange; }, [onGeometryChange]);
-    useEffect(() => { initialGeometryRef.current = initialGeometry; }, [initialGeometry]);
+    useEffect(() => {
+        onChangeRef.current = onGeometryChange;
+    }, [onGeometryChange]);
+
+    useEffect(() => {
+        initialGeometryRef.current = initialGeometry;
+    }, [initialGeometry]);
+
+    useEffect(() => {
+        timeframeDateRef.current = timeframeDate;
+    }, [timeframeDate]);
 
     const applyGeometryToDraw = (geometry: GeoJsonGeometry) => {
         const draw = drawRef.current;
+
         if (!draw) {
             return;
         }
 
         const featureCollection = normalizeToFeatureCollection([geometry]);
         const nextJson = JSON.stringify(featureCollection.features);
+
         if (nextJson === lastAppliedGeometryJsonRef.current) {
             return;
         }
@@ -310,7 +385,9 @@ function MapPanel({ mapId, visible, initialGeometry, controls, onGeometryChange 
                 });
 
                 // MapboxDraw expects a mapbox-gl Map but works with maplibre-gl at runtime
-                map.addControl(draw as unknown as Parameters<Map['addControl']>[0]);
+                map.addControl(
+                    draw as unknown as Parameters<Map['addControl']>[0],
+                );
 
                 // @mapbox/mapbox-gl-draw renders its toolbar with class `mapboxgl-ctrl`
                 // (the Mapbox prefix). MapLibre v5's CSS only grants `pointer-events: auto`
@@ -322,6 +399,11 @@ function MapPanel({ mapId, visible, initialGeometry, controls, onGeometryChange 
 
                 map.on('load', () => {
                     applyGeometryToDraw(initialGeometryRef.current);
+                    applyTimeFilter(map, timeframeDateRef.current ?? null);
+                });
+
+                map.on('styledata', () => {
+                    applyTimeFilter(map, timeframeDateRef.current ?? null);
                 });
 
                 // Emit changes on create/update/delete
@@ -331,14 +413,22 @@ function MapPanel({ mapId, visible, initialGeometry, controls, onGeometryChange 
                     }
 
                     const fc = draw.getAll();
-                    lastAppliedGeometryJsonRef.current = JSON.stringify(fc.features);
+                    lastAppliedGeometryJsonRef.current = JSON.stringify(
+                        fc.features,
+                    );
+
                     if (fc.features.length === 0) {
                         onChangeRef.current(null);
+
                         return;
                     }
+
                     if (fc.features.length === 1) {
                         // Emit the raw geometry object
-                        onChangeRef.current(fc.features[0]!.geometry as unknown as GeoJsonGeometry);
+                        onChangeRef.current(
+                            fc.features[0]!
+                                .geometry as unknown as GeoJsonGeometry,
+                        );
                     } else {
                         // Multiple features — emit as FeatureCollection
                         onChangeRef.current(fc as unknown as GeoJsonGeometry);
@@ -362,8 +452,8 @@ function MapPanel({ mapId, visible, initialGeometry, controls, onGeometryChange 
             mapRef.current = null;
             drawRef.current = null;
         };
-    // Run only once — controls are stable for the lifetime of the panel
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // Run only once — controls are stable for the lifetime of the panel
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Resize the map when it becomes visible (the container was hidden on init)
@@ -376,6 +466,7 @@ function MapPanel({ mapId, visible, initialGeometry, controls, onGeometryChange 
     useEffect(() => {
         const draw = drawRef.current;
         const map = mapRef.current;
+
         if (!draw || !map || !map.isStyleLoaded()) {
             return;
         }
@@ -383,13 +474,26 @@ function MapPanel({ mapId, visible, initialGeometry, controls, onGeometryChange 
         applyGeometryToDraw(initialGeometry);
     }, [initialGeometry]);
 
+    useEffect(() => {
+        const map = mapRef.current;
+
+        if (!map || !map.isStyleLoaded()) {
+            return;
+        }
+
+        applyTimeFilter(map, timeframeDate ?? null);
+    }, [timeframeDate]);
+
     return (
         <div className={visible ? 'block' : 'hidden'}>
-            <div ref={containerRef} style={{ height: '420px', width: '100%' }} />
-            <div className="bg-muted/40 flex items-center justify-between border-t px-3 py-2 text-xs">
+            <div
+                ref={containerRef}
+                style={{ height: '420px', width: '100%' }}
+            />
+            <div className="flex items-center justify-between border-t bg-muted/40 px-3 py-2 text-xs">
                 <span className="text-muted-foreground">
-                    Click the toolbar buttons to draw. Click a shape to select and drag to move.
-                    Use trash icon to delete.
+                    Click the toolbar buttons to draw. Click a shape to select
+                    and drag to move. Use trash icon to delete.
                 </span>
                 <Button
                     type="button"
@@ -406,4 +510,16 @@ function MapPanel({ mapId, visible, initialGeometry, controls, onGeometryChange 
             </div>
         </div>
     );
+}
+
+function applyTimeFilter(map: Map, timeframeDate: string | null): void {
+    try {
+        const normalizedDate = normalizeOhmDate(timeframeDate);
+        applyOhmLayerDateFilter(map, normalizedDate, { includeUndated: true });
+    } catch (error) {
+        console.warn('[MapEditor] Failed to apply OHM date filter', {
+            timeframeDate,
+            error,
+        });
+    }
 }

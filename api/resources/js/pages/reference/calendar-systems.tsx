@@ -1,4 +1,5 @@
 import { Head } from '@inertiajs/react';
+import { RefTableLayout } from '@/components/ref-table-layout';
 import { Badge } from '@/components/ui/badge';
 import {
     Table,
@@ -8,7 +9,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { RefTableLayout } from '@/components/ref-table-layout';
 import AppLayout from '@/layouts/app-layout';
 import { index } from '@/routes/reference/calendar-systems';
 import type { BreadcrumbItem, PaginatedData } from '@/types';
@@ -53,19 +53,28 @@ export default function CalendarSystemsIndex({ calendars, filters }: Props) {
                         <TableBody>
                             {calendars.data.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="h-24 text-center">
-                                        <div className="text-muted-foreground">No records found.</div>
+                                    <TableCell
+                                        colSpan={5}
+                                        className="h-24 text-center"
+                                    >
+                                        <div className="text-muted-foreground">
+                                            No records found.
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ) : (
                                 calendars.data.map((calendar) => (
                                     <TableRow key={calendar.calendar_id}>
-                                        <TableCell className="font-medium">{calendar.name}</TableCell>
-                                        <TableCell className="font-mono text-sm">{calendar.code}</TableCell>
-                                        <TableCell className="text-muted-foreground text-sm">
+                                        <TableCell className="font-medium">
+                                            {calendar.name}
+                                        </TableCell>
+                                        <TableCell className="font-mono text-sm">
+                                            {calendar.code}
+                                        </TableCell>
+                                        <TableCell className="text-sm text-muted-foreground">
                                             {calendar.calendar_type}
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground tabular-nums text-sm">
+                                        <TableCell className="text-sm text-muted-foreground tabular-nums">
                                             {calendar.epoch_gregorian ?? '—'}
                                         </TableCell>
                                         <TableCell>
@@ -77,7 +86,9 @@ export default function CalendarSystemsIndex({ calendars, filters }: Props) {
                                                         : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
                                                 }
                                             >
-                                                {calendar.still_in_use ? 'Yes' : 'No'}
+                                                {calendar.still_in_use
+                                                    ? 'Yes'
+                                                    : 'No'}
                                             </Badge>
                                         </TableCell>
                                     </TableRow>

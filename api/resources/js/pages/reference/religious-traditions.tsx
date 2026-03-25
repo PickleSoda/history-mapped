@@ -1,4 +1,5 @@
 import { Head } from '@inertiajs/react';
+import { RefTableLayout } from '@/components/ref-table-layout';
 import {
     Table,
     TableBody,
@@ -7,7 +8,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { RefTableLayout } from '@/components/ref-table-layout';
 import AppLayout from '@/layouts/app-layout';
 import { index } from '@/routes/reference/religious-traditions';
 import type { BreadcrumbItem, PaginatedData } from '@/types';
@@ -26,7 +26,10 @@ type Props = {
     filters: Filters;
 };
 
-export default function ReligiousTraditionsIndex({ traditions, filters }: Props) {
+export default function ReligiousTraditionsIndex({
+    traditions,
+    filters,
+}: Props) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Religious Traditions" />
@@ -49,14 +52,21 @@ export default function ReligiousTraditionsIndex({ traditions, filters }: Props)
                                 <TableHead>Origin</TableHead>
                                 <TableHead>Founder</TableHead>
                                 <TableHead>Colour</TableHead>
-                                <TableHead className="text-right">Sort</TableHead>
+                                <TableHead className="text-right">
+                                    Sort
+                                </TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {traditions.data.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={8} className="h-24 text-center">
-                                        <div className="text-muted-foreground">No records found.</div>
+                                    <TableCell
+                                        colSpan={8}
+                                        className="h-24 text-center"
+                                    >
+                                        <div className="text-muted-foreground">
+                                            No records found.
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ) : (
@@ -69,24 +79,31 @@ export default function ReligiousTraditionsIndex({ traditions, filters }: Props)
                                                 }}
                                             >
                                                 {tradition.depth_level > 0 && (
-                                                    <span className="text-muted-foreground mr-1">↳</span>
+                                                    <span className="mr-1 text-muted-foreground">
+                                                        ↳
+                                                    </span>
                                                 )}
                                                 {tradition.name}
                                             </span>
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground text-sm">
+                                        <TableCell className="text-sm text-muted-foreground">
                                             {tradition.parent_name ?? '—'}
                                         </TableCell>
-                                        <TableCell className="tabular-nums">{tradition.depth_level}</TableCell>
-                                        <TableCell className="text-muted-foreground text-sm">
+                                        <TableCell className="tabular-nums">
+                                            {tradition.depth_level}
+                                        </TableCell>
+                                        <TableCell className="text-sm text-muted-foreground">
                                             {tradition.tradition_type ?? '—'}
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground text-sm">
-                                            {[tradition.origin_date, tradition.origin_region]
+                                        <TableCell className="text-sm text-muted-foreground">
+                                            {[
+                                                tradition.origin_date,
+                                                tradition.origin_region,
+                                            ]
                                                 .filter(Boolean)
                                                 .join(', ') || '—'}
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground text-sm">
+                                        <TableCell className="text-sm text-muted-foreground">
                                             {tradition.founder ?? '—'}
                                         </TableCell>
                                         <TableCell>
@@ -94,9 +111,12 @@ export default function ReligiousTraditionsIndex({ traditions, filters }: Props)
                                                 <span className="inline-flex items-center gap-1.5">
                                                     <span
                                                         className="inline-block size-4 rounded-sm border"
-                                                        style={{ backgroundColor: tradition.color_hex }}
+                                                        style={{
+                                                            backgroundColor:
+                                                                tradition.color_hex,
+                                                        }}
                                                     />
-                                                    <span className="text-muted-foreground text-xs tabular-nums">
+                                                    <span className="text-xs text-muted-foreground tabular-nums">
                                                         {tradition.color_hex}
                                                     </span>
                                                 </span>
