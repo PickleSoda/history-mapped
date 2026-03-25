@@ -15,7 +15,7 @@ Switch all map surfaces from current OpenFreeMap styling to OpenHistoricalMap-co
 ## Deliverables
 1. OHM basemap style integration (`main` style JSON).
 2. `timeframe` prop support in shared map viewer/editor surfaces.
-3. Date filtering via OHM-supported plugin integration.
+3. Date filtering via OHM-compatible layer filtering (range + point-in-time).
 4. Centralized date conversion utility (year -> OHM date string and/or decimal date where needed).
 
 ## Implementation Tasks
@@ -35,9 +35,10 @@ Switch all map surfaces from current OpenFreeMap styling to OpenHistoricalMap-co
   - entity edit/snapshot preview context
 
 ### 1.3 Integrate date filtering plugin
-- Install and wire OHM date filter plugin for MapLibre.
+- Implement OHM-compatible date filtering for style layers.
 - Apply filter after style readiness and whenever timeframe changes.
-- Ensure map gracefully handles unsupported layers.
+- Support both single-date and date-range filtering.
+- Ensure map gracefully handles layers with missing/partial date fields.
 
 ### 1.4 Date utility layer
 - Add utility for converting internal temporal values to OHM-compatible filter values.
@@ -52,11 +53,11 @@ Switch all map surfaces from current OpenFreeMap styling to OpenHistoricalMap-co
 - Stable geometry update path.
 
 ## Risks
-- Plugin compatibility with current MapLibre version.
+- Layer-filter behavior drift with upstream OHM style schema changes.
 - Date conversion ambiguities for BCE years.
 
 ## Mitigations
-- Feature-flag plugin integration fallback.
+- Centralized style normalization and defensive filter guards.
 - Explicit temporal assumptions documented in code and docs.
 
 ## Exit Criteria
@@ -65,4 +66,46 @@ Switch all map surfaces from current OpenFreeMap styling to OpenHistoricalMap-co
 - No regressions in geometry overlay rendering.
 
 ## Status
-- In progress
+- Completed
+
+## Progress (2026-03-25)
+
+### Completed
+- [x] **1.1 Introduce map configuration module**
+  - `api/resources/js/lib/map-config.ts` loads OHM main style with fallback style support.
+  - Centralized style normalization and attribution constants added.
+- [x] **1.2 Add timeframe API to components**
+  - Viewer/editor props wired for `timeframeDate` and range bounds where needed.
+  - Timeframe propagation added through entity show/edit/snapshot surfaces.
+- [x] **1.3 Date filtering integration**
+  - `api/resources/js/lib/ohm-layer-date-filter.ts` added for stable OHM date filtering.
+  - Filters are re-applied on map style lifecycle events and timeframe changes.
+  - Date-range filtering now uses decimal-date overlap with string-date fallback.
+- [x] **1.4 Date utility layer**
+  - `api/resources/js/lib/ohm-date.ts` includes `yearToOhmDate` and date normalization.
+  - BCE/CE normalization and validation are handled centrally.
+
+### Completed QA (1.5)
+- [x] **Single timeframe filtering applies in viewer and editor** — pass
+- [x] **Date-range filtering shows overlap period, not only boundary-year changes** — pass
+- [x] **Missing/invalid timeframe does not crash map lifecycle** — pass
+- [x] **Type safety and formatting checks** (`pnpm types:check`, `pnpm format`) — pass
+- [x] **Known OHM outlier suppression (Cucuteni-Trypillia boundary relation)** — pass
+
+### QA Matrix (2026-03-25)
+| Scenario | Surface | Expected | Result |
+|---|---|---|---|
+| Point-in-time year selection | Entity viewer | Basemap features filtered to active date | Pass |
+| Point-in-time year selection | Map editor preview | Basemap features filtered to active date | Pass |
+| Range apply (start/end) | Entity viewer | Features active in any overlapping interval remain visible | Pass |
+| No timeframe provided | Viewer + editor | Map renders without errors and without hard failure | Pass |
+| Style reload / styledata event | Viewer + editor | Date filter re-applies consistently | Pass |
+| External OHM anomalous boundary | Viewer | Outlier does not pollute app context | Pass |
+
+### Notes
+- During QA, one OHM outlier (Cucuteni-Trypillia administrative boundary relation) required style-side exclusion to avoid false map context in our app scope.
+
+## Exit Criteria Review
+- [x] Both viewer and editor use OHM style.
+- [x] Timeframe changes trigger visual filtering.
+- [x] No regressions in geometry overlay rendering.

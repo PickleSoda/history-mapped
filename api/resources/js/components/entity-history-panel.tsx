@@ -24,7 +24,13 @@ type TimelineItem = {
     title: string;
     subtitle?: string;
     snapshot?: GeometrySnapshot;
+    relationship?: Relationship;
 };
+
+type SelectedTimelineItem =
+    | { kind: 'snapshot'; id: string }
+    | { kind: 'relationship'; id: string }
+    | null;
 
 export default function EntityHistoryPanel({
     entityGeojson,
@@ -38,7 +44,7 @@ export default function EntityHistoryPanel({
     const [relationships, setRelationships] = useState<Relationship[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState<string | null>(null);
-    const [activeSnapshotId, setActiveSnapshotId] = useState<string | null>(
+    const [selectedItem, setSelectedItem] = useState<SelectedTimelineItem>(
         null,
     );
     const [selectedStartYear, setSelectedStartYear] = useState<number | null>(
@@ -106,12 +112,31 @@ export default function EntityHistoryPanel({
     }, [relationshipsUrl, snapshotsUrl]);
 
     const activeSnapshot = useMemo(
-        () =>
-            snapshots.find(
-                (snapshot) => snapshot.snapshot_id === activeSnapshotId,
-            ) ?? null,
-        [activeSnapshotId, snapshots],
+        () => {
+            if (selectedItem?.kind !== 'snapshot') {
+                return null;
+            }
+
+            return (
+                snapshots.find(
+                    (snapshot) => snapshot.snapshot_id === selectedItem.id,
+                ) ?? null
+            );
+        },
+        [selectedItem, snapshots],
     );
+
+    const activeRelationship = useMemo(() => {
+        if (selectedItem?.kind !== 'relationship') {
+            return null;
+        }
+
+        return (
+            relationships.find(
+                (relationship) => relationship.relationship_id === selectedItem.id,
+            ) ?? null
+        );
+    }, [relationships, selectedItem]);
 
     const timelineItems = useMemo<TimelineItem[]>(() => {
         const snapshotItems: TimelineItem[] = snapshots.map((snapshot) => ({
@@ -142,6 +167,7 @@ export default function EntityHistoryPanel({
                     endYear: parseYear(relationship.temporal_end),
                     title: `${direction} ${typeLabel} ${relatedName}`,
                     subtitle: relationship.description ?? undefined,
+                    relationship,
                 };
             },
         );
@@ -167,44 +193,69 @@ export default function EntityHistoryPanel({
     );
 
     const overlayGeometries = useMemo(
-        () => [
-            activeSnapshot?.geojson ?? null,
-            activeSnapshot?.territory_geojson ?? null,
-        ],
-        [activeSnapshot],
+        () => {
+            if (activeSnapshot) {
+                return [
+                    activeSnapshot.geojson ?? null,
+                    activeSnapshot.territory_geojson ?? null,
+                ];
+            }
+
+            if (activeRelationship?.related_entity) {
+                return [
+                    activeRelationship.related_entity.geojson ?? null,
+                    activeRelationship.related_entity.territory_geojson ?? null,
+                ];
+            }
+
+            return [null, null];
+        },
+        [activeRelationship, activeSnapshot],
     );
 
     // Derive OHM date bounds from snapshot/entity temporal ranges.
     // Prefer active snapshot bounds; fall back to entity temporal bounds.
     const timeframeStartDate = useMemo<string | null>(() => {
         const snapshotStartYear = activeSnapshot?.year_start ?? null;
+        const relationshipStartYear = parseYear(
+            activeRelationship?.temporal_start ?? null,
+        );
         const entityStartYear = parseYear(entityTemporalStart ?? null);
-        const startYear = snapshotStartYear ?? entityStartYear;
+        const startYear = snapshotStartYear ?? relationshipStartYear ?? entityStartYear;
 
         return startYear != null ? yearToOhmDate(startYear) : null;
-    }, [activeSnapshot, entityTemporalStart]);
+    }, [activeRelationship, activeSnapshot, entityTemporalStart]);
 
     const timeframeEndDate = useMemo<string | null>(() => {
         const snapshotEndYear = activeSnapshot?.year_end ?? null;
+        const relationshipEndYear = parseYear(
+            activeRelationship?.temporal_end ?? null,
+        );
         const entityEndYear = parseYear(entityTemporalEnd ?? null);
-        const endYear = snapshotEndYear ?? entityEndYear;
+        const endYear = snapshotEndYear ?? relationshipEndYear ?? entityEndYear;
 
         return endYear != null ? yearToOhmDate(endYear) : null;
-    }, [activeSnapshot, entityTemporalEnd]);
+    }, [activeRelationship, activeSnapshot, entityTemporalEnd]);
 
     const derivedStartYear = useMemo(() => {
         const snapshotStartYear = activeSnapshot?.year_start ?? null;
+        const relationshipStartYear = parseYear(
+            activeRelationship?.temporal_start ?? null,
+        );
         const entityStartYear = parseYear(entityTemporalStart ?? null);
 
-        return snapshotStartYear ?? entityStartYear;
-    }, [activeSnapshot, entityTemporalStart]);
+        return snapshotStartYear ?? relationshipStartYear ?? entityStartYear;
+    }, [activeRelationship, activeSnapshot, entityTemporalStart]);
 
     const derivedEndYear = useMemo(() => {
         const snapshotEndYear = activeSnapshot?.year_end ?? null;
+        const relationshipEndYear = parseYear(
+            activeRelationship?.temporal_end ?? null,
+        );
         const entityEndYear = parseYear(entityTemporalEnd ?? null);
 
-        return snapshotEndYear ?? entityEndYear;
-    }, [activeSnapshot, entityTemporalEnd]);
+        return snapshotEndYear ?? relationshipEndYear ?? entityEndYear;
+    }, [activeRelationship, activeSnapshot, entityTemporalEnd]);
 
     useEffect(() => {
         setSelectedStartYear(derivedStartYear);
@@ -242,8 +293,8 @@ export default function EntityHistoryPanel({
                 <div className="border-b px-4 py-3">
                     <h3 className="text-sm font-semibold">Geometry Map</h3>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                        Base geometry is shown in blue. Selected snapshot
-                        geometry is shown in amber.
+                        Base geometry is shown in blue. Selected snapshot or
+                        relationship geometry is shown in amber.
                     </p>
                 </div>
                 <HistoricalMapViewer
@@ -296,19 +347,49 @@ export default function EntityHistoryPanel({
                         !loadError &&
                         timelineItems.map((item) => {
                             const selected =
-                                item.kind === 'snapshot' &&
-                                item.snapshot?.snapshot_id === activeSnapshotId;
+                                selectedItem?.kind === item.kind &&
+                                ((item.kind === 'snapshot' &&
+                                    item.snapshot?.snapshot_id ===
+                                        selectedItem.id) ||
+                                    (item.kind === 'relationship' &&
+                                        item.relationship?.relationship_id ===
+                                            selectedItem.id));
 
                             return (
                                 <button
                                     key={item.id}
                                     type="button"
-                                    onClick={() =>
-                                        item.kind === 'snapshot' &&
-                                        setActiveSnapshotId(
-                                            item.snapshot?.snapshot_id ?? null,
-                                        )
-                                    }
+                                    onClick={() => {
+                                        const nextSelection =
+                                            item.kind === 'snapshot'
+                                                ? item.snapshot?.snapshot_id
+                                                    ? {
+                                                          kind: 'snapshot' as const,
+                                                          id: item.snapshot.snapshot_id,
+                                                      }
+                                                    : null
+                                                : item.relationship?.relationship_id
+                                                  ? {
+                                                        kind: 'relationship' as const,
+                                                        id: item.relationship.relationship_id,
+                                                    }
+                                                  : null;
+
+                                        if (!nextSelection) {
+                                            return;
+                                        }
+
+                                        setSelectedItem((current) => {
+                                            if (
+                                                current?.kind === nextSelection.kind &&
+                                                current.id === nextSelection.id
+                                            ) {
+                                                return null;
+                                            }
+
+                                            return nextSelection;
+                                        });
+                                    }}
                                     className={[
                                         'w-full rounded-md border px-3 py-2 text-left',
                                         selected
