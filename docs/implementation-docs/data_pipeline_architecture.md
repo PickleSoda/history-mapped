@@ -763,3 +763,60 @@ CREATE INDEX idx_prh_target_wikidata ON pipeline_relationship_hints (target_wiki
 | `legal_code` | Code of law | Q2135540 |
 | `religious_movement` | Religious movement | Q2061186 |
 | `technology` | Technology | Q11016 |
+## Fallback Architecture: Experimental Inferred Boundary Pipeline (Plan 14)
+
+> **New in v1.1:** Adds a fully automated, license-safe fallback pipeline for inferred historical boundaries when no OHM geometry is available and no human review is possible. See `docs/plans/14-experimental-inferred-boundary-fallback-pipeline.md` for full details.
+
+### Overview
+
+When a map view requests a polity boundary for date `t`:
+
+1. Use verified geometry if available.
+2. Else check OHM-derived geometry snapshots.
+3. Else check inferred-layer snapshots (from fallback pipeline).
+4. If no inferred snapshot passes the confidence threshold, render nothing.
+
+This hybrid abstention model ensures no border is shown rather than a low-confidence or license-unsafe border.
+
+### Fallback Pipeline Flow
+
+```text
+OHM / open datasets / terrain / places / text constraints
+      │
+      ▼
+  Compliance gate + provenance manifest
+      │
+      ▼
+    Gap detection stage
+      │
+      ▼
+  Candidate evidence bundle
+      │
+      ▼
+  Inference engines (parallel)
+    - temporal interpolation
+    - influence field growth
+    - constrained Voronoi
+    - text constraint geometry
+    - region occupancy model
+      │
+      ▼
+    Candidate polygon set
+      │
+      ▼
+  Scoring + topology validation
+      │
+      ┌─────┴─────┐
+      ▼           ▼
+ publish      abstain / drop
+      │
+      ▼
+ inferred_geometry_snapshots
+```
+
+### Hard Constraints
+- **No human review:** All acceptance/rejection is automated.
+- **License-safe only:** No proprietary or unclear-license sources.
+- **Inferred output is not canonical:** Separate storage, explicit metadata (`geometry_origin = inferred`, `confidence_score`, etc.).
+
+See also: [Plan 14 — Experimental Inferred Boundary Fallback Pipeline](../plans/14-experimental-inferred-boundary-fallback-pipeline.md)
