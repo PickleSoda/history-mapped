@@ -23,6 +23,7 @@ readonly class GeometrySnapshotData
         public string $entityId,
         public int $yearStart,
         public int $yearEnd,
+        public ?string $geoRefId = null,
         public ?array $geojson = null,
         public ?array $territoryGeojson = null,
         public ?string $label = null,
@@ -46,6 +47,7 @@ readonly class GeometrySnapshotData
             entityId: $validated['entity_id'],
             yearStart: (int) $validated['year_start'],
             yearEnd: (int) $validated['year_end'],
+            geoRefId: $validated['geo_ref_id'] ?? null,
             geojson: $validated['geojson'] ?? null,
             territoryGeojson: $validated['territory_geojson'] ?? null,
             label: $validated['label'] ?? null,
@@ -69,6 +71,7 @@ readonly class GeometrySnapshotData
     {
         $data = [
             'entity_id' => $this->entityId,
+            'geo_ref_id' => $this->geoRefId,
             'year_start' => $this->yearStart,
             'year_end' => $this->yearEnd,
             'display_priority' => $this->displayPriority,

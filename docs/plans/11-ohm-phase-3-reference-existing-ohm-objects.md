@@ -10,12 +10,14 @@ Allow entities/snapshots to reference existing OHM objects (node/way/relation), 
 - Pipeline attachment flow (Wikidata seed -> OHM match -> fallback -> unresolved).
 - API endpoints for attach/list/remove references.
 - API endpoint for click resolution by OHM feature identity + date.
-- Rendering OHM-referenced objects in map viewer/editor.
+- Local geometry hydration from attached OHM references.
 - Integrity constraints ensuring canonical georef ownership and uniqueness.
 
 ## Out of Scope
 
 - Direct writeback/contribution to OHM API.
+- Rendering directly from `entity_geo_refs`.
+- Changing the existing map hot path to read geometry from georef records.
 
 ## Deliverables
 
@@ -23,8 +25,22 @@ Allow entities/snapshots to reference existing OHM objects (node/way/relation), 
 2. OHM lookup/fetch service integration.
 3. Pipeline auto-attach logic for entity georefs.
 4. UI for selecting and attaching OHM objects.
-5. Viewer support for rendering referenced OHM geometries with timeframe filtering.
-6. Deterministic click-resolution path (`OHM feature -> entity -> date-scoped geometry`).
+5. Deterministic click-resolution path (`OHM feature -> entity -> date-scoped geometry`).
+6. Local PostGIS hydration path so attached OHM references can populate `entities` / `geometry_snapshots` without changing renderer queries.
+
+## Current Implementation Slice
+
+This phase is being implemented backend-first with a strict separation between
+reference metadata and render geometry.
+
+- `entity_geo_refs` is a provenance and reverse-lookup table, not a render source.
+- Map rendering continues to read only from `entities.geom`, `entities.territory_geom`,
+  and `geometry_snapshots`.
+- When an OHM object is attached and accepted as canonical, its geometry is hydrated
+  into the existing local PostGIS columns/tables.
+- `geometry_snapshots.geo_ref_id` is a provenance link only.
+- Viewer/editor attachment workflows remain part of Phase 3, but follow the backend
+  schema/API foundation rather than leading it.
 
 ## Proposed Data Model
 
@@ -66,7 +82,7 @@ Allow entities/snapshots to reference existing OHM objects (node/way/relation), 
 - If OHM match exists:
   - create `entity_geo_refs` row with `provider='ohm'`, set `match_role='primary'` when canonical;
   - set `entities.primary_geo_ref_id`;
-  - hydrate `geom`/`territory_geom` and optional `geometry_snapshots.geo_ref_id`.
+  - hydrate `geom`/`territory_geom` into local PostGIS storage and optional `geometry_snapshots.geo_ref_id` provenance.
 - If OHM fails, attempt fallback dataset/manual source and mark `match_role='fallback'`.
 - If fallback fails, leave geometry null and mark unresolved status.
 
@@ -83,7 +99,7 @@ Allow entities/snapshots to reference existing OHM objects (node/way/relation), 
 - `POST /entities/{id}/geography-references`
 - `GET /entities/{id}/geography-references`
 - `DELETE /entities/{id}/geography-references/{ref}`
-- Snapshot-level equivalents if required.
+- Snapshot-level equivalents if required later.
 - Add click-resolution endpoint/action:
   - `POST /map/resolve-ohm-feature`
   - input: `provider`, `external_type`, `external_id`, `target_year`
@@ -91,17 +107,19 @@ Allow entities/snapshots to reference existing OHM objects (node/way/relation), 
 
 ### 3.5 UI workflow
 
+- Planned as a follow-on slice within Phase 3 after the backend schema/API foundation lands.
 - "Reference from OHM" action in editor.
 - Search/lookup by ID and optional name workflow.
-- Attach selected OHM object as entity/snapshot geometry source.
+- Attach selected OHM object as entity/snapshot geometry source via the new backend endpoints.
+- Manual attach/list/remove remains available through API during backend-first implementation.
 
 ### 3.6 Rendering precedence rules
 
-- Define precedence when both local geometry and OHM references exist.
-- Support toggling visibility between local vs referenced source.
-- Date-scoped precedence:
+- For the current slice, rendering remains unchanged and reads only from local geometry.
+- Date-scoped precedence remains:
   1. matching `geometry_snapshots` for selected year;
   2. else base entity geometry.
+- Future viewer work may expose source toggles, but that is deferred.
 
 ### 3.7 Deterministic reverse lookup + tests
 
@@ -133,10 +151,10 @@ Allow entities/snapshots to reference existing OHM objects (node/way/relation), 
 
 ## Exit Criteria
 
-- User can attach existing OHM object to entity/snapshot manually.
+- User can attach existing OHM object to entity manually via API.
 - Pipeline auto-attaches OHM references where a deterministic match exists.
 - Clicking OHM-rendered Rome (or equivalent) resolves to one deterministic entity for a chosen date.
-- Referenced geometry renders on map without local redrawing.
+- Attached OHM references can hydrate local geometry without changing the map render query path.
 - Reference metadata persists, is queryable, and is integrity-constrained.
 
 ## Status

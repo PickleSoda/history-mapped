@@ -38,13 +38,13 @@ class CreateSnapshotAction
 
             $sql = <<<SQL
                 INSERT INTO geometry_snapshots
-                    (snapshot_id, entity_id, year_start, year_end,
+                    (snapshot_id, entity_id, geo_ref_id, year_start, year_end,
                      geom, territory_geom,
                      label, confidence, source_citations, notes, description,
                      relationship_id, source_event_id,
                      display_priority, created_by, created_at, updated_at)
                 VALUES
-                    (?, ?, ?, ?,
+                    (?, ?, ?, ?, ?,
                      {$geomExpr}, {$territoryGeomExpr},
                      ?, ?, ?::jsonb, ?, ?,
                      ?, ?,
@@ -53,7 +53,7 @@ class CreateSnapshotAction
 
             $modelData = $data->toModelArray();
 
-            $bindings = [$snapshotId, $modelData['entity_id'], $modelData['year_start'], $modelData['year_end']];
+            $bindings = [$snapshotId, $modelData['entity_id'], $modelData['geo_ref_id'] ?? null, $modelData['year_start'], $modelData['year_end']];
 
             if ($geojson !== null) {
                 $bindings[] = json_encode($geojson);

@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\GeoRefExternalType;
+use App\Enums\GeoRefMatchRole;
+use App\Enums\GeoRefProvider;
+use App\Enums\GeoRefRetrievalMethod;
 use App\Enums\ConfidenceLevel;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -51,6 +55,21 @@ class StoreGeometrySnapshotRequest extends FormRequest
             'source_citations' => ['sometimes', 'nullable', 'array'],
             'notes' => ['sometimes', 'nullable', 'string', 'max:5000'],
             'display_priority' => ['sometimes', 'nullable', 'integer', 'between:0,100'],
+
+            'geography_reference' => ['sometimes', 'array'],
+            'geography_reference.provider' => ['required_with:geography_reference', 'string', Rule::enum(GeoRefProvider::class)],
+            'geography_reference.external_type' => ['required_with:geography_reference', 'string', Rule::enum(GeoRefExternalType::class)],
+            'geography_reference.external_id' => ['required_with:geography_reference', 'string', 'max:255'],
+            'geography_reference.match_role' => ['required_with:geography_reference', 'string', Rule::enum(GeoRefMatchRole::class)],
+            'geography_reference.retrieval_method' => ['required_with:geography_reference', 'string', Rule::enum(GeoRefRetrievalMethod::class)],
+            'geography_reference.temporal_start' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'geography_reference.temporal_end' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'geography_reference.temporal_start_year' => ['sometimes', 'nullable', 'integer'],
+            'geography_reference.temporal_end_year' => ['sometimes', 'nullable', 'integer', 'gte:geography_reference.temporal_start_year'],
+            'geography_reference.external_tags' => ['sometimes', 'nullable', 'array'],
+            'geography_reference.source_meta' => ['sometimes', 'nullable', 'array'],
+            'geography_reference.match_score' => ['sometimes', 'nullable', 'numeric', 'between:0,1'],
+            'geography_reference.is_active' => ['sometimes', 'boolean'],
         ];
     }
 
@@ -74,8 +93,9 @@ class StoreGeometrySnapshotRequest extends FormRequest
         $validator->after(function (\Illuminate\Validation\Validator $v): void {
             $geojson = $this->input('geojson');
             $territoryGeojson = $this->input('territory_geojson');
+            $geoReference = $this->input('geography_reference');
 
-            if (empty($geojson) && empty($territoryGeojson)) {
+            if (empty($geojson) && empty($territoryGeojson) && empty($geoReference)) {
                 $v->errors()->add('geojson', 'At least one geometry (geojson or territory_geojson) must be provided.');
             }
 
