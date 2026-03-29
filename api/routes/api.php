@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Api\V1\Controllers\EntityController;
-use App\Http\Api\V1\Controllers\GeometrySnapshotController;
+use App\Http\Api\V1\Controllers\EntityGeoRefController;
 use App\Http\Api\V1\Controllers\EntityRelationshipController;
+use App\Http\Api\V1\Controllers\GeometrySnapshotController;
+use App\Http\Api\V1\Controllers\MapResolutionController;
 use App\Http\Api\V1\Controllers\ReferenceController;
 use App\Http\Api\V1\Controllers\SourceController;
 use Illuminate\Http\Request;
@@ -35,6 +37,12 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/entities/{entity}/geometry-snapshots/at/{year}', [GeometrySnapshotController::class, 'atYear'])
         ->name('api.v1.entities.geometry-snapshots.at-year');
+
+    Route::get('/entities/{entity}/geography-references', [EntityGeoRefController::class, 'index'])
+        ->name('api.v1.entities.geography-references.index');
+
+    Route::post('/map/resolve-ohm-feature', [MapResolutionController::class, 'resolveOhmFeature'])
+        ->name('api.v1.map.resolve-ohm-feature');
 
     // Entity Relationships
     Route::get('/entities/{entity}/relationships', [EntityRelationshipController::class, 'index'])
@@ -69,6 +77,12 @@ Route::prefix('v1')->group(function () {
 
         Route::delete('/entities/{entity}', [EntityController::class, 'destroy'])
             ->name('api.v1.entities.destroy');
+
+        Route::post('/entities/{entity}/geography-references', [EntityGeoRefController::class, 'store'])
+            ->name('api.v1.entities.geography-references.store');
+
+        Route::delete('/entities/{entity}/geography-references/{ref}', [EntityGeoRefController::class, 'destroy'])
+            ->name('api.v1.entities.geography-references.destroy');
 
         // Geometry Snapshots (write)
         Route::post('/entities/{entity}/geometry-snapshots', [GeometrySnapshotController::class, 'store'])

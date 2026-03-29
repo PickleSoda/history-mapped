@@ -40,4 +40,9 @@ return [
         'embedding_model' => env('OPENAI_EMBEDDING_MODEL', 'text-embedding-3-small'),
     ],
 
+    'ohm' => [
+        'nominatim_base_url' => env('OHM_NOMINATIM_BASE_URL', 'https://nominatim.openhistoricalmap.org'),
+        'timeout' => env('OHM_HTTP_TIMEOUT', 20),
+    ],
+
 ];

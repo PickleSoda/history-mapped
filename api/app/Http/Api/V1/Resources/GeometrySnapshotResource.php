@@ -21,6 +21,7 @@ class GeometrySnapshotResource extends JsonResource
         return [
             'snapshot_id' => $this->snapshot_id,
             'entity_id' => $this->entity_id,
+            'geo_ref_id' => $this->geo_ref_id,
             'year_start' => $this->year_start,
             'year_end' => $this->year_end,
             'label' => $this->label,

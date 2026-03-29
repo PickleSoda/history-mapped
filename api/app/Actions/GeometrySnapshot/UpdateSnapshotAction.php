@@ -32,6 +32,7 @@ class UpdateSnapshotAction
 
             // Scalar fields from modelData
             $scalarMap = [
+                'geo_ref_id' => 'geo_ref_id',
                 'year_start' => 'year_start',
                 'year_end' => 'year_end',
                 'label' => 'label',

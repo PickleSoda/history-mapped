@@ -21,8 +21,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use App\Models\GeometrySnapshot;
+use Illuminate\Database\Query\Builder;
 use Pgvector\Laravel\HasNeighbors;
+use Pgvector\Laravel\Vector;
 
 #[Fillable([
     'entity_id',
@@ -53,6 +54,7 @@ use Pgvector\Laravel\HasNeighbors;
     'location_confidence',
     'location_method',
     'source_citations',
+    'primary_geo_ref_id',
 ])]
 class Entity extends Model
 {
@@ -96,7 +98,7 @@ class Entity extends Model
             'icon_class' => IconClass::class,
             'geom' => GeoJson::class,
             'territory_geom' => GeoJson::class,
-            'embedding' => \Pgvector\Laravel\Vector::class,
+            'embedding' => Vector::class,
             'attributes' => 'json',
             'source_citations' => 'json',
             'tags' => PgTextArray::class,
@@ -144,6 +146,21 @@ class Entity extends Model
             ->orderBy('year_start');
     }
 
+    /** @return HasMany<EntityGeoRef, $this> */
+    public function geoRefs(): HasMany
+    {
+        return $this->hasMany(EntityGeoRef::class, 'entity_id', 'entity_id')
+            ->orderByDesc('is_active')
+            ->orderByRaw("CASE WHEN match_role = 'primary' THEN 0 ELSE 1 END")
+            ->orderByDesc('match_score');
+    }
+
+    /** @return BelongsTo<EntityGeoRef, $this> */
+    public function primaryGeoRef(): BelongsTo
+    {
+        return $this->belongsTo(EntityGeoRef::class, 'primary_geo_ref_id', 'geo_ref_id');
+    }
+
     public function geometrySnapshotAt(int $year): ?GeometrySnapshot
     {
         return $this->geometrySnapshots()
@@ -171,7 +188,7 @@ class Entity extends Model
     /**
      * Create a new Eloquent query builder for the model.
      *
-     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  Builder  $query
      * @return EntityBuilder<static>
      */
     public function newEloquentBuilder($query): EntityBuilder

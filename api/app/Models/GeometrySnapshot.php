@@ -11,10 +11,12 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Query\Builder;
 
 #[Fillable([
     'snapshot_id',
     'entity_id',
+    'geo_ref_id',
     'year_start',
     'year_end',
     'label',
@@ -71,12 +73,18 @@ class GeometrySnapshot extends Model
         return $this->belongsTo(EntityRelationship::class, 'relationship_id', 'relationship_id');
     }
 
+    /** @return BelongsTo<EntityGeoRef, $this> */
+    public function geoRef(): BelongsTo
+    {
+        return $this->belongsTo(EntityGeoRef::class, 'geo_ref_id', 'geo_ref_id');
+    }
+
     // ── Custom Query Builder ─────────────────────────────────
 
     /**
      * Create a new Eloquent query builder for the model.
      *
-     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  Builder  $query
      * @return GeometrySnapshotBuilder<static>
      */
     public function newEloquentBuilder($query): GeometrySnapshotBuilder

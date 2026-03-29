@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Actions\EntityGeoRef\AutoAttachOhmGeoRefAction;
 use App\Actions\Entity\CreateEntityAction;
 use App\Actions\Entity\UpdateEntityAction;
 use App\DTOs\EntityData;
@@ -94,6 +95,8 @@ class ImportEntityJob implements ShouldQueue
 
                     $this->stageRelationshipHints($entity->entity_id, $relationshipHints);
                 }
+
+                $this->autoAttachOhmGeoRef($entity);
             } else {
                 $action = app(CreateEntityAction::class);
                 $entity = $action($entityData, "pipeline:{$this->batchId}");
@@ -103,6 +106,8 @@ class ImportEntityJob implements ShouldQueue
                 if (! empty($relationshipHints)) {
                     $this->stageRelationshipHints($entity->entity_id, $relationshipHints);
                 }
+
+                $this->autoAttachOhmGeoRef($entity);
             }
 
         } catch (\Throwable $e) {
@@ -174,6 +179,18 @@ class ImportEntityJob implements ShouldQueue
                         json_encode($hints)."'::jsonb)"
                     ),
                 ]);
+        }
+    }
+
+    private function autoAttachOhmGeoRef(Entity $entity): void
+    {
+        try {
+            app(AutoAttachOhmGeoRefAction::class)->__invoke($entity);
+        } catch (\Throwable $e) {
+            Log::warning('[Pipeline] OHM auto-attach failed: '.$e->getMessage(), [
+                'entity_id' => $entity->entity_id,
+                'name' => $entity->name,
+            ]);
         }
     }
 }
