@@ -6,6 +6,7 @@ namespace App\Http\Api\V1\Controllers;
 
 use App\Actions\EntityGeoRef\CreateEntityGeoRefAction;
 use App\Actions\EntityGeoRef\PrepareGeoRefAttachmentAction;
+use App\Actions\EntityGeoRef\PruneOrphanSnapshotGeoRefAction;
 use App\Actions\GeometrySnapshot\CreateSnapshotAction;
 use App\Actions\GeometrySnapshot\DeleteSnapshotAction;
 use App\Actions\GeometrySnapshot\ListSnapshotsAction;
@@ -83,11 +84,13 @@ class GeometrySnapshotController extends Controller
         UpdateSnapshotAction $updateSnapshot,
         PrepareGeoRefAttachmentAction $prepareGeoRefAttachment,
         CreateEntityGeoRefAction $createEntityGeoRef,
+        PruneOrphanSnapshotGeoRefAction $pruneOrphanSnapshotGeoRef,
     ): GeometrySnapshotResource {
         $model = GeometrySnapshot::query()
             ->where('snapshot_id', $snapshot)
             ->where('entity_id', $entity->entity_id)
             ->firstOrFail();
+        $previousGeoRefId = $model->geo_ref_id;
 
         $validated = $this->prepareSnapshotPayload(
             $request->validated(),
@@ -104,8 +107,13 @@ class GeometrySnapshotController extends Controller
         ], $validated);
 
         $data = GeometrySnapshotData::fromArray($merged);
+        $updatedSnapshot = $updateSnapshot($model, $data);
 
-        return new GeometrySnapshotResource($updateSnapshot($model, $data));
+        if ($previousGeoRefId !== $updatedSnapshot->geo_ref_id) {
+            $pruneOrphanSnapshotGeoRef->__invoke($previousGeoRefId, $entity->entity_id);
+        }
+
+        return new GeometrySnapshotResource($updatedSnapshot);
     }
 
     /**
