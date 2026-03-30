@@ -16,6 +16,7 @@ import {
     useState,
 } from 'react';
 import HistoricalMapViewer from '@/components/historical-map-viewer';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -36,6 +37,8 @@ type SnapshotFormData = {
     confidence: ConfidenceLevel | '';
     notes: string;
     display_priority: string;
+    geo_ref_external_type: 'relation' | 'way' | 'node';
+    geo_ref_external_id: string;
     geojson: GeoJsonGeometry;
     territory_geojson: GeoJsonGeometry;
 };
@@ -64,6 +67,8 @@ function emptyForm(): SnapshotFormData {
         confidence: '',
         notes: '',
         display_priority: '0',
+        geo_ref_external_type: 'relation',
+        geo_ref_external_id: '',
         geojson: null,
         territory_geojson: null,
     };
@@ -151,6 +156,8 @@ export default function SnapshotBuilder({
             confidence: snapshot.confidence ?? '',
             notes: snapshot.notes ?? '',
             display_priority: String(snapshot.display_priority),
+            geo_ref_external_type: 'relation',
+            geo_ref_external_id: '',
             geojson: snapshot.geojson,
             territory_geojson: snapshot.territory_geojson,
         });
@@ -188,6 +195,16 @@ export default function SnapshotBuilder({
             geojson: form.geojson ?? undefined,
             territory_geojson: form.territory_geojson ?? undefined,
         };
+
+        if (form.geo_ref_external_id.trim() !== '') {
+            payload['geography_reference'] = {
+                provider: 'ohm',
+                external_type: form.geo_ref_external_type,
+                external_id: form.geo_ref_external_id.trim(),
+                match_role: 'candidate',
+                retrieval_method: 'rest',
+            };
+        }
 
         const isCreating = editingId === null;
         const url = isCreating ? storeUrl : updateUrlFn(editingId!);
@@ -365,6 +382,9 @@ function SnapshotRow({
                             {snapshot.confidence}
                         </span>
                     )}
+                    {snapshot.geo_ref_id && (
+                        <Badge variant="outline">OHM linked</Badge>
+                    )}
                 </div>
                 <div className="mt-0.5 flex gap-2 text-xs text-muted-foreground">
                     {hasGeom && <span>Point/line</span>}
@@ -530,6 +550,49 @@ function SnapshotForm({
                     placeholder="Editorial notes about this snapshot…"
                     maxLength={5000}
                 />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 rounded-md border border-dashed p-3">
+                <div className="col-span-2">
+                    <p className="text-xs font-medium">Attach existing OHM object</p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                        Optional. If no local geometry is set, the snapshot will hydrate from the referenced OHM object.
+                    </p>
+                </div>
+                <div className="space-y-1">
+                    <Label htmlFor="snap-geo-ref-type" className="text-xs">
+                        OHM object type
+                    </Label>
+                    <select
+                        id="snap-geo-ref-type"
+                        className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+                        value={form.geo_ref_external_type}
+                        onChange={(e) =>
+                            onChange(
+                                'geo_ref_external_type',
+                                e.target.value as 'relation' | 'way' | 'node',
+                            )
+                        }
+                    >
+                        <option value="relation">Relation</option>
+                        <option value="way">Way</option>
+                        <option value="node">Node</option>
+                    </select>
+                </div>
+                <div className="space-y-1">
+                    <Label htmlFor="snap-geo-ref-id" className="text-xs">
+                        OHM object id
+                    </Label>
+                    <Input
+                        id="snap-geo-ref-id"
+                        value={form.geo_ref_external_id}
+                        onChange={(e) =>
+                            onChange('geo_ref_external_id', e.target.value)
+                        }
+                        placeholder="1880"
+                        inputMode="numeric"
+                    />
+                </div>
             </div>
 
             {/* Geometry section */}

@@ -48,6 +48,47 @@ class EntityGeoRefApiTest extends TestCase
             ->assertJsonPath('data.0.match_role', 'primary');
     }
 
+    public function test_search_returns_ohm_candidates_with_metadata(): void
+    {
+        $entity = Entity::factory()->create();
+
+        Http::fake([
+            'https://nominatim.openhistoricalmap.org/search*' => Http::response([
+                [
+                    'osm_type' => 'relation',
+                    'osm_id' => 1880,
+                    'display_name' => 'Roman Empire, Mediterranean',
+                    'class' => 'boundary',
+                    'type' => 'historic',
+                    'geojson' => [
+                        'type' => 'Polygon',
+                        'coordinates' => [[[12.0, 41.0], [13.0, 41.0], [13.0, 42.0], [12.0, 42.0], [12.0, 41.0]]],
+                    ],
+                    'extratags' => [
+                        'name' => 'Roman Empire',
+                        'historic' => 'empire',
+                    ],
+                    'lat' => '41.9',
+                    'lon' => '12.5',
+                ],
+            ], 200),
+        ]);
+
+        $this->getJson(route('api.v1.entities.geography-references.search', [
+            'entity' => $entity,
+            'q' => 'Roman Empire',
+            'location_name' => 'Mediterranean',
+        ]))
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.external_type', 'relation')
+            ->assertJsonPath('data.0.external_id', '1880')
+            ->assertJsonPath('data.0.display_name', 'Roman Empire, Mediterranean')
+            ->assertJsonPath('data.0.match_label', 'Roman Empire')
+            ->assertJsonPath('data.0.external_tags.historic', 'empire')
+            ->assertJsonPath('data.0.source_meta.class', 'boundary');
+    }
+
     public function test_store_creates_geography_reference_and_sets_primary_pointer(): void
     {
         $entity = Entity::factory()->create();

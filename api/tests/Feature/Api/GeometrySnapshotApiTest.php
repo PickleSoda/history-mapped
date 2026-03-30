@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Tests\Feature\Api;
 
 use App\Models\Entity;
+use App\Models\EntityGeoRef;
 use App\Models\GeometrySnapshot;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
-use App\Models\User;
 
 class GeometrySnapshotApiTest extends TestCase
 {
@@ -114,7 +116,7 @@ class GeometrySnapshotApiTest extends TestCase
         ]);
     }
 
-    public function test_destroying_snapshot_keeps_entity_georef_available(): void
+    public function test_destroying_snapshot_cleans_up_orphan_candidate_georef(): void
     {
         $entity = Entity::factory()->create();
 
@@ -162,9 +164,128 @@ class GeometrySnapshotApiTest extends TestCase
             'snapshot_id' => $snapshotId,
         ]);
 
-        $this->assertDatabaseHas('entity_geo_refs', [
+        $this->assertDatabaseMissing('entity_geo_refs', [
             'geo_ref_id' => $geoRefId,
+        ]);
+    }
+
+    public function test_destroying_snapshot_preserves_primary_georef(): void
+    {
+        $entity = Entity::factory()->create();
+        $geoRef = EntityGeoRef::factory()->forEntity($entity)->primary()->create();
+
+        DB::table('entities')
+            ->where('entity_id', $entity->entity_id)
+            ->update(['primary_geo_ref_id' => $geoRef->geo_ref_id]);
+
+        $snapshot = GeometrySnapshot::factory()
+            ->forEntity($entity)
+            ->forYears(-27, 476)
+            ->withTerritoryGeometry()
+            ->create();
+
+        DB::table('geometry_snapshots')
+            ->where('snapshot_id', $snapshot->snapshot_id)
+            ->update(['geo_ref_id' => $geoRef->geo_ref_id]);
+
+        $this->actingAs($this->user)
+            ->deleteJson(route('api.v1.entities.geometry-snapshots.destroy', [
+                'entity' => $entity,
+                'snapshot' => $snapshot->snapshot_id,
+            ]))
+            ->assertNoContent();
+
+        $this->assertDatabaseMissing('geometry_snapshots', [
+            'snapshot_id' => $snapshot->snapshot_id,
+        ]);
+
+        $this->assertDatabaseHas('entity_geo_refs', [
+            'geo_ref_id' => $geoRef->geo_ref_id,
             'entity_id' => $entity->entity_id,
+            'match_role' => 'primary',
+        ]);
+    }
+
+    public function test_updating_snapshot_reference_cleans_up_replaced_orphan_candidate_georef(): void
+    {
+        $entity = Entity::factory()->create();
+
+        Http::fake([
+            'https://nominatim.openhistoricalmap.org/lookup*' => Http::sequence()
+                ->push([
+                    [
+                        'osm_type' => 'relation',
+                        'osm_id' => 1880,
+                        'display_name' => 'Roman Empire',
+                        'geojson' => [
+                            'type' => 'Polygon',
+                            'coordinates' => [[[12.0, 41.0], [13.0, 41.0], [13.0, 42.0], [12.0, 42.0], [12.0, 41.0]]],
+                        ],
+                    ],
+                ], 200)
+                ->push([
+                    [
+                        'osm_type' => 'relation',
+                        'osm_id' => 2880,
+                        'display_name' => 'Late Roman Empire',
+                        'geojson' => [
+                            'type' => 'Polygon',
+                            'coordinates' => [[[14.0, 43.0], [15.0, 43.0], [15.0, 44.0], [14.0, 44.0], [14.0, 43.0]]],
+                        ],
+                    ],
+                ], 200),
+        ]);
+
+        $storeResponse = $this->actingAs($this->user)
+            ->postJson(route('api.v1.entities.geometry-snapshots.store', $entity), [
+                'year_start' => -27,
+                'year_end' => 476,
+                'label' => 'Imperial extent',
+                'geography_reference' => [
+                    'provider' => 'ohm',
+                    'external_type' => 'relation',
+                    'external_id' => '1880',
+                    'match_role' => 'candidate',
+                    'retrieval_method' => 'rest',
+                    'match_score' => 0.95,
+                ],
+            ])
+            ->assertCreated();
+
+        $snapshotId = (string) $storeResponse->json('data.snapshot_id');
+        $oldGeoRefId = (string) $storeResponse->json('data.geo_ref_id');
+
+        $updateResponse = $this->actingAs($this->user)
+            ->putJson(route('api.v1.entities.geometry-snapshots.update', [
+                'entity' => $entity,
+                'snapshot' => $snapshotId,
+            ]), [
+                'label' => 'Late imperial extent',
+                'geography_reference' => [
+                    'provider' => 'ohm',
+                    'external_type' => 'relation',
+                    'external_id' => '2880',
+                    'match_role' => 'candidate',
+                    'retrieval_method' => 'rest',
+                    'match_score' => 0.97,
+                ],
+            ]);
+
+        $updateResponse->assertOk()
+            ->assertJsonPath('data.label', 'Late imperial extent')
+            ->assertJsonPath('data.geo_ref_id', fn ($value) => is_string($value) && $value !== '' && $value !== $oldGeoRefId)
+            ->assertJsonPath('data.territory_geom.type', 'Polygon');
+
+        $newGeoRefId = (string) $updateResponse->json('data.geo_ref_id');
+
+        $this->assertDatabaseMissing('entity_geo_refs', [
+            'geo_ref_id' => $oldGeoRefId,
+        ]);
+
+        $this->assertDatabaseHas('entity_geo_refs', [
+            'geo_ref_id' => $newGeoRefId,
+            'entity_id' => $entity->entity_id,
+            'external_id' => '2880',
         ]);
     }
 }

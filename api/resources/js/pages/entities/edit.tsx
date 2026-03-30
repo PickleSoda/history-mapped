@@ -1,6 +1,7 @@
 import { Head, router } from '@inertiajs/react';
 import { lazy, Suspense, useState } from 'react';
 import EntityForm, { defaultFormData } from '@/components/entity-form';
+import EntityGeoRefEditor from '@/components/entity-geo-ref-editor';
 import type { EntityFormData } from '@/components/entity-form';
 import HistoricalMapViewer from '@/components/historical-map-viewer';
 import { Button } from '@/components/ui/button';
@@ -203,6 +204,16 @@ export default function EntityEdit({ entity, formOptions }: Props) {
 
                     {mapOpen && (
                         <div className="border-t">
+                            <div className="border-b p-4">
+                                <EntityGeoRefEditor
+                                    entityId={entity.id}
+                                    onHydratedGeometryChange={(geo, territory) => {
+                                        setGeojson(geo);
+                                        setTerritoryGeojson(territory);
+                                    }}
+                                />
+                            </div>
+
                             <div className="border-b">
                                 <div className="px-4 py-2">
                                     <p className="text-xs font-medium">

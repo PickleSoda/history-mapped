@@ -8,6 +8,7 @@ use App\Models\Entity;
 use App\Models\GeometrySnapshot;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class GeometrySnapshotControllerTest extends TestCase
@@ -185,6 +186,40 @@ class GeometrySnapshotControllerTest extends TestCase
             ->assertJsonPath('snapshot.display_priority', 5);
     }
 
+    public function test_store_can_attach_ohm_reference_and_hydrate_snapshot_geometry(): void
+    {
+        Http::fake([
+            'https://nominatim.openhistoricalmap.org/lookup*' => Http::response([
+                [
+                    'osm_type' => 'relation',
+                    'osm_id' => 1880,
+                    'display_name' => 'Roman Empire',
+                    'geojson' => self::POLYGON_GEOJSON,
+                ],
+            ], 200),
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->postJson(route('entities.snapshots.store', $this->entity), [
+                'year_start' => 100,
+                'year_end' => 200,
+                'label' => 'Imperial extent',
+                'geography_reference' => [
+                    'provider' => 'ohm',
+                    'external_type' => 'relation',
+                    'external_id' => '1880',
+                    'match_role' => 'candidate',
+                    'retrieval_method' => 'rest',
+                    'match_score' => 0.95,
+                ],
+            ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('snapshot.label', 'Imperial extent')
+            ->assertJsonPath('snapshot.geo_ref_id', fn ($value) => is_string($value) && $value !== '')
+            ->assertJsonPath('snapshot.territory_geojson.type', 'Polygon');
+    }
+
     public function test_store_requires_year_start(): void
     {
         $this->actingAs($this->user)
@@ -298,6 +333,39 @@ class GeometrySnapshotControllerTest extends TestCase
             'year_start' => 50,
             'year_end' => 150,
         ]);
+    }
+
+    public function test_update_can_replace_snapshot_reference_via_ohm_attachment(): void
+    {
+        Http::fake([
+            'https://nominatim.openhistoricalmap.org/lookup*' => Http::response([
+                [
+                    'osm_type' => 'relation',
+                    'osm_id' => 2880,
+                    'display_name' => 'Late Roman Empire',
+                    'geojson' => self::POLYGON_GEOJSON,
+                ],
+            ], 200),
+        ]);
+
+        $snapshot = GeometrySnapshot::factory()->forEntity($this->entity)->forYears(0, 100)->create();
+
+        $this->actingAs($this->user)
+            ->putJson(route('entities.snapshots.update', [$this->entity, $snapshot]), [
+                'label' => 'Late imperial extent',
+                'geography_reference' => [
+                    'provider' => 'ohm',
+                    'external_type' => 'relation',
+                    'external_id' => '2880',
+                    'match_role' => 'candidate',
+                    'retrieval_method' => 'rest',
+                    'match_score' => 0.97,
+                ],
+            ])
+            ->assertOk()
+            ->assertJsonPath('snapshot.label', 'Late imperial extent')
+            ->assertJsonPath('snapshot.geo_ref_id', fn ($value) => is_string($value) && $value !== '')
+            ->assertJsonPath('snapshot.territory_geojson.type', 'Polygon');
     }
 
     public function test_update_rejects_snapshot_belonging_to_different_entity(): void

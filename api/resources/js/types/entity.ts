@@ -165,6 +165,7 @@ export type PaginatedData<T> = {
 export type GeometrySnapshot = {
     snapshot_id: string;
     entity_id: string;
+    geo_ref_id: string | null;
     year_start: number;
     year_end: number;
     label: string | null;
@@ -179,6 +180,26 @@ export type GeometrySnapshot = {
     geojson: Record<string, unknown> | null;
     /** Polygon/MultiPolygon geometry */
     territory_geojson: Record<string, unknown> | null;
+    created_at: string | null;
+    updated_at: string | null;
+};
+
+export type EntityGeoRef = {
+    geo_ref_id: string;
+    entity_id: string;
+    provider: 'ohm' | string;
+    external_type: string;
+    external_id: string;
+    match_role: string | null;
+    retrieval_method: string | null;
+    temporal_start: string | null;
+    temporal_end: string | null;
+    temporal_start_year: number | null;
+    temporal_end_year: number | null;
+    external_tags: Record<string, unknown> | null;
+    source_meta: Record<string, unknown> | null;
+    match_score: number | null;
+    is_active: boolean;
     created_at: string | null;
     updated_at: string | null;
 };

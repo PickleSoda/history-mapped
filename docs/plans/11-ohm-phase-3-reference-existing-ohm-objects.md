@@ -42,6 +42,40 @@ reference metadata and render geometry.
 - Viewer/editor attachment workflows remain part of Phase 3, but follow the backend
   schema/API foundation rather than leading it.
 
+## Recommended Service Boundary
+
+For the current Phase 3 scope, OHM communication should remain authoritative in the
+Laravel application layer, not in the Python scraper pipeline.
+
+- Python pipeline responsibility:
+  - scrape and normalize Wikidata/Wikipedia inputs;
+  - emit stable entity identity, names, aliases, location hints, and source metadata;
+  - stay offline from app persistence concerns and OHM-specific matching policy.
+- Laravel import/application responsibility:
+  - perform canonical OHM lookup/match/attach decisions;
+  - write `entity_geo_refs` and `primary_geo_ref_id`;
+  - hydrate local PostGIS geometry;
+  - expose the same OHM attachment rules to admin/manual UI flows and pipeline import.
+
+### Why this is the right current split
+
+- One matching policy. Manual attach, API attach, and pipeline import all reuse the same
+  OHM lookup and hydration path instead of duplicating logic across Python and PHP.
+- One cache boundary. OHM response caching, rate limiting, and retry policy belong in the
+  application service that already owns persistence and attach semantics.
+- Lower operational complexity. The Python pipeline currently produces JSONL and does not
+  speak to OHM. Adding direct OHM traffic there would create a second runtime that must
+  stay behaviorally consistent with Laravel.
+- Cleaner fallback evolution. The unresolved and fallback paths can be expanded in Laravel
+  without changing the scraper contract.
+
+### When pipeline-side OHM communication would make sense later
+
+Only add OHM communication to Python if there is a clear bulk-processing need that Laravel
+cannot handle efficiently, such as offline candidate generation or large batched coverage
+audits. Even in that case, Python should produce advisory match candidates, not become the
+canonical writer of georef attachment state.
+
 ## Proposed Data Model
 
 - `entity_geo_refs`
@@ -99,7 +133,7 @@ reference metadata and render geometry.
 - `POST /entities/{id}/geography-references`
 - `GET /entities/{id}/geography-references`
 - `DELETE /entities/{id}/geography-references/{ref}`
-- Snapshot-level equivalents if required later.
+- Snapshot-level attach is currently supported via `POST/PUT /entities/{id}/geometry-snapshots` using nested `geography_reference` input; dedicated snapshot georef endpoints remain deferred.
 - Add click-resolution endpoint/action:
   - `POST /map/resolve-ohm-feature`
   - input: `provider`, `external_type`, `external_id`, `target_year`
@@ -159,4 +193,79 @@ reference metadata and render geometry.
 
 ## Status
 
-- Planned
+- In progress
+- Where we stand now:
+  1. Schema + model layer
+    - Done.
+    - `entity_geo_refs`, ownership constraints, the primary pointer, and snapshot
+     provenance links are in place.
+  2. Pipeline auto-attach flow
+    - Partially done.
+    - Deterministic OHM auto-attach works during Laravel import.
+    - Local geometry hydration works.
+    - Exact normalized-name matching is enforced.
+    - Fallback source flow is still not implemented.
+  3. OHM retrieval service
+    - Partially done.
+    - Nominatim lookup and name search are implemented.
+    - REST `/full`, Overpass helpers, and caching are still missing.
+  4. API endpoints
+    - Mostly done for backend foundations.
+    - Entity georef CRUD is done.
+    - Reverse-resolution endpoint is done.
+    - Snapshot attach is supported through snapshot create/update payloads.
+    - Dedicated snapshot georef endpoints are still deferred.
+  5. UI workflow
+    - Not started as a product-integrated workflow.
+    - This is now the largest remaining user-facing gap in Phase 3.
+  6. Rendering precedence rules
+    - Done for current scope.
+    - Rendering still reads only local PostGIS geometry.
+  7. Deterministic reverse lookup + tests
+    - Done for the current backend scope.
+    - Reverse resolution, integrity constraints, entity attach, snapshot attach,
+     lifecycle cleanup, and deterministic pipeline matching are covered.
+- Completed:
+  - `entity_geo_refs` schema, constraints, enums, and ownership invariants
+  - Entity georef CRUD API
+  - Deterministic reverse lookup endpoint (`/map/resolve-ohm-feature`)
+  - Attach-time OHM lookup and local entity geometry hydration
+  - Stage 3 pipeline auto-attach for deterministic OHM matches
+  - Snapshot attach via nested `geography_reference` on snapshot create/update
+  - Snapshot georef lifecycle cleanup for delete and replacement of orphan candidate refs
+- Remaining:
+  - OHM retrieval expansion beyond current Nominatim lookup/search path (REST `/full`, Overpass helpers, caching)
+  - UI/editor workflows for entity and snapshot OHM attach/search/remove
+  - Final viewer-side integration for click-driven workflows and attachment UX
+
+## Recommended Parallel Workstreams
+
+While the UI/editor slice is being built, the following backend work can proceed safely in
+parallel without forcing schema churn.
+
+1. OHM retrieval hardening in Laravel
+  - Add REST element expansion, relation `/full`, optional Overpass helpers, and short-TTL caching.
+  - This improves attach reliability for both pipeline import and manual UI attach.
+2. Alias-aware deterministic matching
+  - Extend the current exact normalized-name matcher with aliases, Wikidata labels, and curated alternates.
+  - Keep the matching policy deterministic and conservative.
+3. Fallback-source contract
+  - Define and implement the first non-OHM fallback path so unresolved imports can become explicit `fallback` refs.
+  - This can remain backend-only until the UI needs to expose it.
+4. Viewer click-through integration
+  - Wire the existing reverse-resolution endpoint into the viewer/editor interaction layer.
+  - This is separate from the attach UI and can validate end-to-end reference usage.
+5. Operational hardening
+  - Add caching observability, rate-limit handling, and failure telemetry around OHM retrieval.
+
+## Recommended Next Step
+
+Primary recommendation: keep the UI/editor OHM attach workflow as the lead slice, while
+running OHM retrieval hardening in Laravel in parallel.
+
+Reason:
+
+- The backend contract is already stable enough to support the editor/viewer flow.
+- UI integration is the biggest remaining product gap.
+- Retrieval hardening is the best parallel backend track because it improves both manual
+  attach UX and pipeline attach coverage without changing the Phase 3 data model.
