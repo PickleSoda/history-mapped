@@ -152,7 +152,13 @@ export default function EntityGeoRefEditor({
                     external_id: candidate.external_id,
                     match_role: 'candidate',
                     retrieval_method: 'rest',
-                    source_meta: candidate.source_meta,
+                    // Omit source_meta.raw and the top-level geojson — both contain the full
+                    // coordinate payload. The backend re-fetches geometry from OHM via
+                    // PrepareGeoRefAttachmentAction::lookupByIdentity(), so sending coordinates
+                    // here is wasteful and causes 413 for large polygons.
+                    source_meta: candidate.source_meta
+                        ? (({ raw: _raw, ...rest }) => rest)(candidate.source_meta as Record<string, unknown> & { raw?: unknown })
+                        : undefined,
                     external_tags: candidate.external_tags,
                 }),
             });

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Actions\EntityGeoRef\AutoAttachOhmGeoRefAction;
+use App\Actions\EntityGeoRef\ImportGeoResolutionAction;
 use App\Actions\Entity\CreateEntityAction;
 use App\Actions\Entity\UpdateEntityAction;
 use App\DTOs\EntityData;
@@ -57,9 +57,10 @@ class ImportEntityJob implements ShouldQueue
 
             // ── Strip pipeline-only fields before creating EntityData ───
             $relationshipHints = $record['_relationship_hints'] ?? [];
+            $geoResolution = $record['_geo_resolution'] ?? null;
 
             $entityRecord = $record;
-            unset($entityRecord['_relationship_hints']);
+            unset($entityRecord['_relationship_hints'], $entityRecord['_geo_resolution']);
 
             if (isset($entityRecord['attributes']['_infobox'])) {
                 unset($entityRecord['attributes']['_infobox']);
@@ -96,7 +97,7 @@ class ImportEntityJob implements ShouldQueue
                     $this->stageRelationshipHints($entity->entity_id, $relationshipHints);
                 }
 
-                $this->autoAttachOhmGeoRef($entity);
+                $this->importGeoResolution($entity, $geoResolution);
             } else {
                 $action = app(CreateEntityAction::class);
                 $entity = $action($entityData, "pipeline:{$this->batchId}");
@@ -107,7 +108,7 @@ class ImportEntityJob implements ShouldQueue
                     $this->stageRelationshipHints($entity->entity_id, $relationshipHints);
                 }
 
-                $this->autoAttachOhmGeoRef($entity);
+                $this->importGeoResolution($entity, $geoResolution);
             }
 
         } catch (\Throwable $e) {
@@ -182,12 +183,16 @@ class ImportEntityJob implements ShouldQueue
         }
     }
 
-    private function autoAttachOhmGeoRef(Entity $entity): void
+    private function importGeoResolution(Entity $entity, ?array $manifest): void
     {
+        if ($manifest === null) {
+            return;
+        }
+
         try {
-            app(AutoAttachOhmGeoRefAction::class)->__invoke($entity);
+            app(ImportGeoResolutionAction::class)->__invoke($entity, $manifest);
         } catch (\Throwable $e) {
-            Log::warning('[Pipeline] OHM auto-attach failed: '.$e->getMessage(), [
+            Log::warning('[Pipeline] Geo-resolution import failed: '.$e->getMessage(), [
                 'entity_id' => $entity->entity_id,
                 'name' => $entity->name,
             ]);

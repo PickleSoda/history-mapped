@@ -9,6 +9,7 @@ from pipeline.scraper.wikipedia import WikipediaEnricher
 from pipeline.scraper.topic import TopicScraper
 from pipeline.mapper.entity_mapper import EntityMapper
 from pipeline.dedup.deduplicator import Deduplicator
+from pipeline.resolver.geo_resolver import resolve_batch
 
 console = Console(legacy_windows=False)
 
@@ -77,7 +78,14 @@ def scrape(entity_type, entity_group, start_year, end_year, limit, skip_wikipedi
         entities = dedup.deduplicate(entities)
         console.print(f"  → {len(entities)} unique entities after dedup")
 
-        # Step 5: Write JSONL
+        # Step 5: Geo-resolve (OHM Nominatim lookup)
+        if settings.ohm_enabled:
+            console.print("  Resolving geo-references via OHM…")
+            resolve_batch(entities)
+            matched = sum(1 for e in entities if e.get("_geo_resolution", {}).get("status") == "matched")
+            console.print(f"  → {matched}/{len(entities)} matched on OHM")
+
+        # Step 6: Write JSONL
         outfile = out / f"{etype}.jsonl"
         with open(outfile, "ab") as f:
             for entity in entities:
@@ -266,7 +274,16 @@ def topic(query, depth, limit, co_seeds, skip_wikipedia, skip_untyped, output_di
     all_entities = dedup.deduplicate(all_entities)
     console.print(f"  {before} → {len(all_entities)} ({before - len(all_entities)} duplicates removed)")
 
-    # ── Step 8: Write output ─────────────────────────────────────────────────
+    # ── Step 8: Geo-resolve (OHM Nominatim lookup) ───────────────────────────
+
+    if settings.ohm_enabled:
+        console.rule("[bold blue]Geo-Resolution")
+        console.print(f"  Resolving {len(all_entities)} entities via OHM Nominatim…")
+        resolve_batch(all_entities)
+        matched = sum(1 for e in all_entities if e.get("_geo_resolution", {}).get("status") == "matched")
+        console.print(f"  → {matched}/{len(all_entities)} matched on OHM")
+
+    # ── Step 9: Write output ─────────────────────────────────────────────────
 
     slug = _slugify(query)
     outfile = out / f"topic_{slug}.jsonl"

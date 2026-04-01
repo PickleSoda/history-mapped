@@ -44,37 +44,30 @@ reference metadata and render geometry.
 
 ## Recommended Service Boundary
 
-For the current Phase 3 scope, OHM communication should remain authoritative in the
-Laravel application layer, not in the Python scraper pipeline.
+For the current Phase 3 scope, automatic georesolution should be authoritative in the
+Python pipeline, with Laravel acting as the persistence and manual-override layer.
 
 - Python pipeline responsibility:
   - scrape and normalize Wikidata/Wikipedia inputs;
-  - emit stable entity identity, names, aliases, location hints, and source metadata;
-  - stay offline from app persistence concerns and OHM-specific matching policy.
+  - perform OHM lookup and future fallback/inferred-boundary decisions;
+  - emit a canonical `_geo_resolution` manifest in JSONL output;
+  - decide whether an entity is `matched`, `no_match`, or `skipped`.
 - Laravel import/application responsibility:
-  - perform canonical OHM lookup/match/attach decisions;
+  - consume the pipeline's `_geo_resolution` verdict without re-running matching logic;
   - write `entity_geo_refs` and `primary_geo_ref_id`;
-  - hydrate local PostGIS geometry;
-  - expose the same OHM attachment rules to admin/manual UI flows and pipeline import.
+  - hydrate local PostGIS geometry from the emitted geometry payload;
+  - support manual attach/search/remove workflows for editors.
 
-### Why this is the right current split
+### Why this is the right split now
 
-- One matching policy. Manual attach, API attach, and pipeline import all reuse the same
-  OHM lookup and hydration path instead of duplicating logic across Python and PHP.
-- One cache boundary. OHM response caching, rate limiting, and retry policy belong in the
-  application service that already owns persistence and attach semantics.
-- Lower operational complexity. The Python pipeline currently produces JSONL and does not
-  speak to OHM. Adding direct OHM traffic there would create a second runtime that must
-  stay behaviorally consistent with Laravel.
-- Cleaner fallback evolution. The unresolved and fallback paths can be expanded in Laravel
-  without changing the scraper contract.
-
-### When pipeline-side OHM communication would make sense later
-
-Only add OHM communication to Python if there is a clear bulk-processing need that Laravel
-cannot handle efficiently, such as offline candidate generation or large batched coverage
-audits. Even in that case, Python should produce advisory match candidates, not become the
-canonical writer of georef attachment state.
+- One automatic decision-maker. OHM lookup and fallback policy live in the same place that
+  already understands pipeline-scale enrichment, batch processing, and unresolved entities.
+- Cleaner fallback evolution. Inferred boundaries and non-OHM fallbacks belong next to the
+  pipeline's broader enrichment logic, not split across Python and Laravel.
+- Stable importer contract. Laravel no longer needs source-specific matching heuristics in the
+  import path; it only persists the canonical verdict.
+- Manual flows stay separate. Admin/editor attach flows can continue to use Laravel-side OHM
+  services for interactive lookup without becoming the source of truth for automated imports.
 
 ## Proposed Data Model
 
@@ -112,13 +105,15 @@ canonical writer of georef attachment state.
 
 ### 3.2 Pipeline auto-attach flow
 
-- In Stage 3 georesolution, attempt OHM match first (Nominatim -> Overpass/REST).
-- If OHM match exists:
-  - create `entity_geo_refs` row with `provider='ohm'`, set `match_role='primary'` when canonical;
-  - set `entities.primary_geo_ref_id`;
-  - hydrate `geom`/`territory_geom` into local PostGIS storage and optional `geometry_snapshots.geo_ref_id` provenance.
-- If OHM fails, attempt fallback dataset/manual source and mark `match_role='fallback'`.
-- If fallback fails, leave geometry null and mark unresolved status.
+- In Stage 3 georesolution, the Python pipeline attempts OHM match first and later fallback engines.
+- If OHM match exists, the pipeline emits `_geo_resolution.status='matched'` with the canonical
+  `geo_ref`, geometry payload, and provenance metadata.
+- Laravel import consumes that manifest by:
+  - creating the `entity_geo_refs` row;
+  - setting `entities.primary_geo_ref_id`;
+  - hydrating `geom`/`territory_geom` into local PostGIS storage.
+- If OHM fails, the pipeline emits `no_match` for now and can later emit fallback matches.
+- If resolution is intentionally skipped, the pipeline emits `skipped`.
 
 ### 3.3 OHM data retrieval service
 
@@ -201,8 +196,8 @@ canonical writer of georef attachment state.
      provenance links are in place.
   2. Pipeline auto-attach flow
     - Partially done.
-    - Deterministic OHM auto-attach works during Laravel import.
-    - Local geometry hydration works.
+    - Deterministic OHM matching now runs in the Python pipeline and emits `_geo_resolution`.
+    - Laravel import consumes the manifest and hydrates local geometry.
     - Exact normalized-name matching is enforced.
     - Fallback source flow is still not implemented.
   3. OHM retrieval service
@@ -230,7 +225,7 @@ canonical writer of georef attachment state.
   - Entity georef CRUD API
   - Deterministic reverse lookup endpoint (`/map/resolve-ohm-feature`)
   - Attach-time OHM lookup and local entity geometry hydration
-  - Stage 3 pipeline auto-attach for deterministic OHM matches
+  - Stage 3 pipeline `_geo_resolution` manifest import for deterministic OHM matches
   - Snapshot attach via nested `geography_reference` on snapshot create/update
   - Snapshot georef lifecycle cleanup for delete and replacement of orphan candidate refs
 - Remaining:
@@ -243,20 +238,20 @@ canonical writer of georef attachment state.
 While the UI/editor slice is being built, the following backend work can proceed safely in
 parallel without forcing schema churn.
 
-1. OHM retrieval hardening in Laravel
+1. OHM retrieval hardening in Python
   - Add REST element expansion, relation `/full`, optional Overpass helpers, and short-TTL caching.
-  - This improves attach reliability for both pipeline import and manual UI attach.
+  - This improves pipeline resolution coverage before import.
 2. Alias-aware deterministic matching
   - Extend the current exact normalized-name matcher with aliases, Wikidata labels, and curated alternates.
   - Keep the matching policy deterministic and conservative.
 3. Fallback-source contract
   - Define and implement the first non-OHM fallback path so unresolved imports can become explicit `fallback` refs.
-  - This can remain backend-only until the UI needs to expose it.
+  - Laravel import already has a stable manifest contract to consume these later.
 4. Viewer click-through integration
   - Wire the existing reverse-resolution endpoint into the viewer/editor interaction layer.
-  - This is separate from the attach UI and can validate end-to-end reference usage.
+  - This remains separate from the import-side manifest flow.
 5. Operational hardening
-  - Add caching observability, rate-limit handling, and failure telemetry around OHM retrieval.
+  - Add caching observability, rate-limit handling, and failure telemetry around pipeline OHM retrieval.
 
 ## Recommended Next Step
 

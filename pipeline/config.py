@@ -71,6 +71,24 @@ class Settings:
     def commons_rpm(self) -> int:
         return int(os.getenv("COMMONS_REQUESTS_PER_MINUTE", "30"))
 
+    # ── OHM Nominatim ───────────────────────────────────────────────────
+
+    @property
+    def ohm_nominatim_base_url(self) -> str:
+        return os.getenv("OHM_NOMINATIM_BASE_URL", "https://nominatim.openhistoricalmap.org")
+
+    @property
+    def ohm_timeout(self) -> int:
+        return int(os.getenv("OHM_TIMEOUT", "20"))
+
+    @property
+    def ohm_rpm(self) -> int:
+        return int(os.getenv("OHM_REQUESTS_PER_MINUTE", "30"))
+
+    @property
+    def ohm_enabled(self) -> bool:
+        return os.getenv("OHM_ENABLED", "true").lower() in {"1", "true", "yes", "on"}
+
     @property
     def database_url(self) -> str | None:
         return os.getenv("DATABASE_URL") or None
