@@ -12,7 +12,9 @@ use App\Http\Api\V1\Resources\EntityGeoRefResource;
 use App\Http\Controllers\Controller;
 use App\Models\Entity;
 use App\Models\EntityGeoRef;
+use App\Services\Ohm\OhmLookupService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class EntityGeoRefController extends Controller
@@ -32,6 +34,26 @@ class EntityGeoRefController extends Controller
         return (new EntityGeoRefResource($geoRef))
             ->response()
             ->setStatusCode(201);
+    }
+
+    public function search(
+        Request $request,
+        Entity $entity,
+        OhmLookupService $lookupService,
+    ): JsonResponse {
+        $validated = $request->validate([
+            'q' => ['required', 'string', 'min:2', 'max:255'],
+            'location_name' => ['sometimes', 'nullable', 'string', 'max:255'],
+        ]);
+
+        $results = $lookupService->searchByName(
+            (string) $validated['q'],
+            isset($validated['location_name']) ? (string) $validated['location_name'] : null,
+        );
+
+        return response()->json([
+            'data' => $results,
+        ]);
     }
 
     public function destroy(

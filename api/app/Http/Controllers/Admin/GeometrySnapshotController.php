@@ -149,6 +149,18 @@ class GeometrySnapshotController extends Controller
             'source_event_id' => $snapshot->source_event_id,
             'geojson' => $snapshot->geom,
             'territory_geojson' => $snapshot->territory_geom,
+            'geo_ref' => $snapshot->geoRef !== null
+                ? [
+                    'geo_ref_id' => $snapshot->geoRef->geo_ref_id,
+                    'provider' => $snapshot->geoRef->provider?->value,
+                    'external_type' => $snapshot->geoRef->external_type?->value,
+                    'external_id' => $snapshot->geoRef->external_id,
+                    'match_role' => $snapshot->geoRef->match_role?->value,
+                    'retrieval_method' => $snapshot->geoRef->retrieval_method?->value,
+                    'match_score' => $snapshot->geoRef->match_score !== null ? (float) $snapshot->geoRef->match_score : null,
+                    'source_meta' => $snapshot->geoRef->source_meta,
+                ]
+                : null,
             'created_at' => $snapshot->created_at?->toISOString(),
             'updated_at' => $snapshot->updated_at?->toISOString(),
         ];

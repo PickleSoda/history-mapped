@@ -117,7 +117,7 @@ describe('EntityGeoRefEditor', () => {
 
         expect(await screen.findByText(/Roman Empire, Mediterranean/i)).toBeInTheDocument();
         expect(screen.getByText(/boundary/i)).toBeInTheDocument();
-        expect(screen.getByText(/historic/i)).toBeInTheDocument();
+        expect(screen.getByText('historic')).toBeInTheDocument();
 
         fireEvent.click(screen.getByRole('button', { name: /Attach Roman Empire/i }));
 

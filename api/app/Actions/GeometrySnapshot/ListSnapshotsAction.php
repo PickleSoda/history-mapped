@@ -21,6 +21,7 @@ class ListSnapshotsAction
     {
         return GeometrySnapshot::query()
             ->forEntity($entity->entity_id)
+            ->with('geoRef')
             ->withGeoJson()
             ->orderChronologically()
             ->get();

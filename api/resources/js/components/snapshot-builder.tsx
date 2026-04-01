@@ -364,6 +364,10 @@ function SnapshotRow({
     const hasGeom = snapshot.geojson !== null;
     const hasTerritoryGeom = snapshot.territory_geojson !== null;
     const yearRange = formatYearRange(snapshot.year_start, snapshot.year_end);
+    const geoRefDisplayName =
+        typeof snapshot.geo_ref?.source_meta?.display_name === 'string'
+            ? snapshot.geo_ref.source_meta.display_name
+            : 'Unknown OHM object';
 
     return (
         <div className="flex items-center justify-between px-4 py-3">
@@ -393,6 +397,20 @@ function SnapshotRow({
                         <span className="text-destructive">No geometry</span>
                     )}
                 </div>
+                {snapshot.geo_ref && (
+                    <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                        <span>{geoRefDisplayName}</span>
+                        <span>
+                            {snapshot.geo_ref.external_type}:{snapshot.geo_ref.external_id}
+                        </span>
+                        {snapshot.geo_ref.match_role && (
+                            <Badge variant="outline">{snapshot.geo_ref.match_role}</Badge>
+                        )}
+                        {snapshot.geo_ref.match_score !== null && (
+                            <span>{snapshot.geo_ref.match_score.toFixed(2)}</span>
+                        )}
+                    </div>
+                )}
             </div>
             <div className="ml-4 flex shrink-0 gap-2">
                 <Button

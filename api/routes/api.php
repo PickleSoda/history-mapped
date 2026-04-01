@@ -41,6 +41,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/entities/{entity}/geography-references', [EntityGeoRefController::class, 'index'])
         ->name('api.v1.entities.geography-references.index');
 
+    Route::get('/entities/{entity}/geography-references/search', [EntityGeoRefController::class, 'search'])
+        ->name('api.v1.entities.geography-references.search');
+
     Route::post('/map/resolve-ohm-feature', [MapResolutionController::class, 'resolveOhmFeature'])
         ->name('api.v1.map.resolve-ohm-feature');
 

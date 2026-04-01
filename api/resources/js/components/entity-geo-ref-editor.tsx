@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { GeoJsonLike } from '@/lib/geojson';
-import type { EntityGeoRef } from '@/types/entity';
+import type { EntityGeoRef, OhmLookupCandidate } from '@/types/entity';
 
 type EntityGeoRefEditorProps = {
     entityId: string;
@@ -33,9 +33,10 @@ export default function EntityGeoRefEditor({
 }: EntityGeoRefEditorProps) {
     const csrfRef = useRef<string>('');
     const [refs, setRefs] = useState<EntityGeoRef[]>([]);
-    const [externalType, setExternalType] = useState<'relation' | 'way' | 'node'>('relation');
-    const [externalId, setExternalId] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [searchResults, setSearchResults] = useState<OhmLookupCandidate[]>([]);
     const [loading, setLoading] = useState(true);
+    const [searching, setSearching] = useState(false);
     const [attaching, setAttaching] = useState(false);
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -75,6 +76,45 @@ export default function EntityGeoRefEditor({
         void reload();
     }, [reload]);
 
+    async function handleSearch(): Promise<void> {
+        if (searchTerm.trim().length < 2) {
+            setSearchResults([]);
+
+            return;
+        }
+
+        setSearching(true);
+        setError(null);
+
+        try {
+            const query = new URLSearchParams({ q: searchTerm.trim() });
+            const response = await fetch(
+                `/api/v1/entities/${entityId}/geography-references/search?${query.toString()}`,
+                {
+                    method: 'GET',
+                    headers: {
+                        Accept: 'application/json',
+                        'X-CSRF-TOKEN': csrfRef.current,
+                    },
+                },
+            );
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const payload = (await response.json()) as {
+                data?: OhmLookupCandidate[];
+            };
+            setSearchResults(payload.data ?? []);
+        } catch (caught) {
+            console.error(caught);
+            setError('Failed to search OHM by name.');
+        } finally {
+            setSearching(false);
+        }
+    }
+
     async function refreshEntityGeometry(): Promise<void> {
         const response = await fetch(
             showEntity(entityId, { query: { include_territory: true } }).url,
@@ -94,11 +134,7 @@ export default function EntityGeoRefEditor({
         onHydratedGeometryChange(payload.geom ?? null, payload.territory_geom ?? null);
     }
 
-    async function handleAttach(): Promise<void> {
-        if (externalId.trim() === '') {
-            return;
-        }
-
+    async function handleAttach(candidate: OhmLookupCandidate): Promise<void> {
         setAttaching(true);
         setError(null);
 
@@ -112,10 +148,12 @@ export default function EntityGeoRefEditor({
                 },
                 body: JSON.stringify({
                     provider: 'ohm',
-                    external_type: externalType,
-                    external_id: externalId.trim(),
+                    external_type: candidate.external_type,
+                    external_id: candidate.external_id,
                     match_role: 'candidate',
                     retrieval_method: 'rest',
+                    source_meta: candidate.source_meta,
+                    external_tags: candidate.external_tags,
                 }),
             });
 
@@ -125,7 +163,7 @@ export default function EntityGeoRefEditor({
 
             await refreshEntityGeometry();
             await reload();
-            setExternalId('');
+            setSearchResults([]);
         } catch (caught) {
             console.error(caught);
             setError('Failed to attach OHM reference.');
@@ -179,43 +217,59 @@ export default function EntityGeoRefEditor({
             )}
 
             <div className="grid gap-3 rounded-md border border-dashed p-3 md:grid-cols-[10rem_1fr_auto] md:items-end">
-                <div className="space-y-1">
-                    <Label htmlFor="entity-geo-ref-type" className="text-xs">
-                        OHM object type
-                    </Label>
-                    <select
-                        id="entity-geo-ref-type"
-                        className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
-                        value={externalType}
-                        onChange={(event) =>
-                            setExternalType(event.target.value as 'relation' | 'way' | 'node')
-                        }
-                    >
-                        <option value="relation">Relation</option>
-                        <option value="way">Way</option>
-                        <option value="node">Node</option>
-                    </select>
-                </div>
-                <div className="space-y-1">
-                    <Label htmlFor="entity-geo-ref-id" className="text-xs">
-                        OHM object id
+                <div className="space-y-1 md:col-span-2">
+                    <Label htmlFor="entity-geo-ref-search" className="text-xs">
+                        Search OHM by name
                     </Label>
                     <Input
-                        id="entity-geo-ref-id"
-                        value={externalId}
-                        onChange={(event) => setExternalId(event.target.value)}
-                        placeholder="1880"
-                        inputMode="numeric"
+                        id="entity-geo-ref-search"
+                        value={searchTerm}
+                        onChange={(event) => setSearchTerm(event.target.value)}
+                        placeholder="Roman Empire"
                     />
                 </div>
                 <Button
                     type="button"
-                    onClick={() => void handleAttach()}
-                    disabled={attaching || externalId.trim() === ''}
+                    onClick={() => void handleSearch()}
+                    disabled={searching || searchTerm.trim().length < 2}
                 >
-                    {attaching ? 'Attaching…' : 'Attach OHM reference'}
+                    {searching ? 'Searching…' : 'Search OHM'}
                 </Button>
             </div>
+
+            {searchResults.length > 0 && (
+                <div className="divide-y rounded-md border">
+                    {searchResults.map((candidate) => (
+                        <div
+                            key={`${candidate.external_type}:${candidate.external_id}`}
+                            className="flex items-center justify-between gap-3 px-4 py-3"
+                        >
+                            <div className="min-w-0 flex-1">
+                                <p className="truncate text-sm font-medium">
+                                    {candidate.display_name ?? candidate.match_label ?? `${candidate.external_type}:${candidate.external_id}`}
+                                </p>
+                                <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                                    <span>
+                                        {candidate.external_type}:{candidate.external_id}
+                                    </span>
+                                    <span>{String(candidate.source_meta?.class ?? '')}</span>
+                                    <span>{String(candidate.source_meta?.type ?? '')}</span>
+                                </div>
+                            </div>
+                            <Button
+                                type="button"
+                                size="sm"
+                                onClick={() => void handleAttach(candidate)}
+                                disabled={attaching}
+                            >
+                                {attaching
+                                    ? 'Attaching…'
+                                    : `Attach ${candidate.match_label ?? candidate.display_name ?? candidate.external_id}`}
+                            </Button>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             {loading ? (
                 <div className="text-sm text-muted-foreground">Loading OHM references…</div>
