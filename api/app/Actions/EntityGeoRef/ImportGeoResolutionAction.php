@@ -24,6 +24,8 @@ class ImportGeoResolutionAction
     private const RESOLVER_TO_LOCATION_METHOD = [
         'ohm_nominatim' => 'ohm_nominatim',
         'wikidata_coords' => 'wikidata',
+        'geonames' => 'geonames',
+        'pleiades' => 'pleiades',
     ];
 
     public function __construct(
@@ -37,6 +39,19 @@ class ImportGeoResolutionAction
     public function __invoke(Entity $entity, ?array $manifest): ?EntityGeoRef
     {
         if ($manifest === null || ($manifest['status'] ?? null) !== 'matched') {
+            return null;
+        }
+
+        $resolver = is_string($manifest['provenance']['resolver'] ?? null)
+            ? (string) $manifest['provenance']['resolver']
+            : null;
+
+        // Inferred-boundary outputs are non-canonical (Plan 14) and must not hydrate canonical geometry.
+        if ($resolver === 'inferred_boundary') {
+            Log::info('[Pipeline] Skipping inferred_boundary manifest in canonical import path', [
+                'entity_id' => $entity->entity_id,
+            ]);
+
             return null;
         }
 
@@ -84,8 +99,18 @@ class ImportGeoResolutionAction
         // Hydrate geometry if the pipeline included it
         $geometry = $manifest['geometry'] ?? null;
         if (is_array($geometry)) {
-            $resolver = $manifest['provenance']['resolver'] ?? 'ohm_nominatim';
-            $this->hydrateGeometry->__invoke($entity, $geoRef, $geometry, self::RESOLVER_TO_LOCATION_METHOD[$resolver] ?? 'ohm_nominatim');
+            $locationMethod = $resolver !== null
+                ? (self::RESOLVER_TO_LOCATION_METHOD[$resolver] ?? null)
+                : null;
+
+            if ($resolver !== null && $locationMethod === null) {
+                Log::warning('[Pipeline] Unknown geo-resolution resolver; preserving geometry but not setting location_method', [
+                    'entity_id' => $entity->entity_id,
+                    'resolver' => $resolver,
+                ]);
+            }
+
+            $this->hydrateGeometry->__invoke($entity, $geoRef, $geometry, $locationMethod);
         }
 
         return $geoRef->fresh();
