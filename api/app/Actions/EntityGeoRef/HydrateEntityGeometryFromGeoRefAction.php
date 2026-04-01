@@ -14,7 +14,7 @@ class HydrateEntityGeometryFromGeoRefAction
     /**
      * @param  array<string, mixed>|null  $geojson
      */
-    public function __invoke(Entity $entity, EntityGeoRef $geoRef, ?array $geojson, string $locationMethod = 'ohm_nominatim'): Entity
+    public function __invoke(Entity $entity, EntityGeoRef $geoRef, ?array $geojson, ?string $locationMethod = 'ohm_nominatim'): Entity
     {
         $normalized = NormalizeGeoJsonForPostgis::normalize($geojson);
 
@@ -34,7 +34,7 @@ class HydrateEntityGeometryFromGeoRefAction
                 [json_encode($normalized), $currentEntity->entity_id],
             );
 
-            if ($currentEntity->primary_geo_ref_id === $geoRef->geo_ref_id) {
+            if ($currentEntity->primary_geo_ref_id === $geoRef->geo_ref_id && $locationMethod !== null) {
                 DB::statement(
                     'UPDATE entities SET location_method = ?::location_resolution_method WHERE entity_id = ?',
                     [$locationMethod, $currentEntity->entity_id],
