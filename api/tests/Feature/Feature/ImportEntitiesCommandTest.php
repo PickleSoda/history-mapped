@@ -7,7 +7,6 @@ namespace Tests\Feature\Feature;
 use App\Jobs\ImportEntityJob;
 use App\Models\Entity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
@@ -45,6 +44,47 @@ class ImportEntitiesCommandTest extends TestCase
         if (file_exists($this->jsonlFile)) {
             unlink($this->jsonlFile);
         }
+    }
+
+    /**
+     * @param  array<string, mixed>  $overrides
+     * @return array<string, mixed>
+     */
+    private function geoResolutionManifest(array $overrides = []): array
+    {
+        $manifest = [
+            'status' => 'matched',
+            'geo_ref' => [
+                'provider' => 'ohm',
+                'external_type' => 'relation',
+                'external_id' => '1880',
+                'match_role' => 'primary',
+                'retrieval_method' => 'nominatim',
+                'match_score' => 1.0,
+                'external_tags' => [
+                    'historic' => 'empire',
+                ],
+                'source_meta' => [
+                    'display_name' => 'Roman Empire',
+                    'class' => 'boundary',
+                    'type' => 'historic',
+                    'lat' => '41.9',
+                    'lon' => '12.5',
+                ],
+            ],
+            'geometry' => [
+                'type' => 'Polygon',
+                'coordinates' => [[[12.0, 41.0], [13.0, 41.0], [13.0, 42.0], [12.0, 42.0], [12.0, 41.0]]],
+            ],
+            'provenance' => [
+                'resolver' => 'ohm_nominatim',
+                'query' => 'Roman Empire Rome',
+                'candidates' => 1,
+                'reason' => 'exact_name_match',
+            ],
+        ];
+
+        return array_replace_recursive($manifest, $overrides);
     }
 
     public function test_import_creates_entity_when_none_exists(): void
@@ -145,7 +185,7 @@ class ImportEntitiesCommandTest extends TestCase
         });
     }
 
-    public function test_sync_import_auto_attaches_deterministic_ohm_reference(): void
+    public function test_sync_import_consumes_pipeline_geo_resolution_manifest(): void
     {
         $record = [
             'name' => 'Roman Empire',
@@ -156,28 +196,10 @@ class ImportEntitiesCommandTest extends TestCase
             'location_name' => 'Rome',
             'verification_status' => 'pipeline_draft',
             'confidence' => 'medium',
+            '_geo_resolution' => $this->geoResolutionManifest(),
         ];
 
         file_put_contents($this->jsonlFile, json_encode($record)."\n");
-
-        Http::fake([
-            'https://nominatim.openhistoricalmap.org/search*' => Http::response([
-                [
-                    'osm_type' => 'relation',
-                    'osm_id' => 1880,
-                    'display_name' => 'Roman Empire',
-                    'geojson' => [
-                        'type' => 'Polygon',
-                        'coordinates' => [[[12.0, 41.0], [13.0, 41.0], [13.0, 42.0], [12.0, 42.0], [12.0, 41.0]]],
-                    ],
-                    'extratags' => [
-                        'historic' => 'empire',
-                    ],
-                    'lat' => '41.9',
-                    'lon' => '12.5',
-                ],
-            ], 200),
-        ]);
 
         $this->artisan('pipeline:import', [
             'path' => $this->jsonlFile,
@@ -200,9 +222,13 @@ class ImportEntitiesCommandTest extends TestCase
         $this->assertNotNull($entity->primary_geo_ref_id);
         $this->assertIsArray($entity->territory_geom);
         $this->assertSame('Polygon', $entity->territory_geom['type'] ?? null);
+        $this->assertDatabaseHas('entities', [
+            'entity_id' => $entity->entity_id,
+            'location_method' => 'ohm_nominatim',
+        ]);
     }
 
-    public function test_sync_import_skips_auto_attach_when_best_name_match_is_not_exact_enough(): void
+    public function test_sync_import_skips_geo_ref_creation_when_manifest_reports_no_match(): void
     {
         $record = [
             'name' => 'Roman Empire',
@@ -213,32 +239,18 @@ class ImportEntitiesCommandTest extends TestCase
             'location_name' => 'Rome',
             'verification_status' => 'pipeline_draft',
             'confidence' => 'medium',
+            '_geo_resolution' => $this->geoResolutionManifest([
+                'status' => 'no_match',
+                'geo_ref' => null,
+                'geometry' => null,
+                'provenance' => [
+                    'candidates' => 2,
+                    'reason' => 'no_exact_name_match',
+                ],
+            ]),
         ];
 
         file_put_contents($this->jsonlFile, json_encode($record)."\n");
-
-        Http::fake([
-            'https://nominatim.openhistoricalmap.org/search*' => Http::response([
-                [
-                    'osm_type' => 'relation',
-                    'osm_id' => 1880,
-                    'display_name' => 'Roman Republic',
-                    'geojson' => [
-                        'type' => 'Polygon',
-                        'coordinates' => [[[12.0, 41.0], [13.0, 41.0], [13.0, 42.0], [12.0, 42.0], [12.0, 41.0]]],
-                    ],
-                ],
-                [
-                    'osm_type' => 'relation',
-                    'osm_id' => 1881,
-                    'display_name' => 'Imperial Roman Domain',
-                    'geojson' => [
-                        'type' => 'Polygon',
-                        'coordinates' => [[[12.0, 41.0], [13.0, 41.0], [13.0, 42.0], [12.0, 42.0], [12.0, 41.0]]],
-                    ],
-                ],
-            ], 200),
-        ]);
 
         $this->artisan('pipeline:import', [
             'path' => $this->jsonlFile,
