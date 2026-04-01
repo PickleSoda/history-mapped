@@ -43,11 +43,9 @@ The pipeline is the **sole decision-maker** for automatic geo-resolution. It que
 
 ## Status Values
 
-| Status     | Meaning                                                     | `geo_ref` present? |
-|------------|-------------------------------------------------------------|---------------------|
-| `matched`  | Pipeline found a confident match and recommends attaching   | Yes                 |
-| `no_match` | Pipeline searched but found no acceptable match             | No                  |
-| `skipped`  | Pipeline intentionally skipped resolution (e.g. no name)    | No                  |
+- `matched`: Pipeline found a confident match and recommends attaching (`geo_ref` must be present).
+- `no_match`: Pipeline searched but found no acceptable match (`geo_ref` must be absent).
+- `skipped`: Pipeline intentionally skipped resolution (`geo_ref` must be absent).
 
 ## Laravel Consumption Rules
 
@@ -58,18 +56,14 @@ The pipeline is the **sole decision-maker** for automatic geo-resolution. It que
 
 ## Mapping to Laravel Enums
 
-| Manifest field             | Laravel Enum               | DB column              |
-|----------------------------|----------------------------|------------------------|
-| `geo_ref.provider`         | `GeoRefProvider`           | `provider`             |
-| `geo_ref.external_type`    | `GeoRefExternalType`       | `external_type`        |
-| `geo_ref.match_role`       | `GeoRefMatchRole`          | `match_role`           |
-| `geo_ref.retrieval_method` | `GeoRefRetrievalMethod`    | `retrieval_method`     |
-| `provenance.resolver`      | `LocationResolutionMethod` | `entities.location_method` |
+- `geo_ref.provider` -> `GeoRefProvider` -> `provider`
+- `geo_ref.external_type` -> `GeoRefExternalType` -> `external_type`
+- `geo_ref.match_role` -> `GeoRefMatchRole` -> `match_role`
+- `geo_ref.retrieval_method` -> `GeoRefRetrievalMethod` -> `retrieval_method`
+- `provenance.resolver` -> `LocationResolutionMethod` -> `entities.location_method`
 
-### `provenance.resolver` → `LocationResolutionMethod` mapping
+### `provenance.resolver` -> `LocationResolutionMethod` mapping
 
-| Pipeline resolver value | Laravel enum value |
-|------------------------|--------------------|
-| `ohm_nominatim`        | `ohm_nominatim`    |
-| `wikidata_coords`      | `wikidata`         |
-| `inferred_boundary`    | *(future)*         |
+- `ohm_nominatim` -> `ohm_nominatim`
+- `wikidata_coords` -> `wikidata`
+- `inferred_boundary` -> `(future)`
