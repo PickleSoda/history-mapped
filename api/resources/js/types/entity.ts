@@ -176,6 +176,7 @@ export type GeometrySnapshot = {
     source_event_id: string | null;
     display_priority: number;
     source_citations: Record<string, unknown>[] | null;
+    geo_ref: SnapshotGeoRefSummary | null;
     /** Point/LineString geometry */
     geojson: Record<string, unknown> | null;
     /** Polygon/MultiPolygon geometry */
@@ -202,6 +203,27 @@ export type EntityGeoRef = {
     is_active: boolean;
     created_at: string | null;
     updated_at: string | null;
+};
+
+export type OhmLookupCandidate = {
+    external_type: string;
+    external_id: string;
+    display_name: string | null;
+    match_label: string | null;
+    geojson: Record<string, unknown> | null;
+    external_tags: Record<string, unknown>;
+    source_meta: Record<string, unknown>;
+};
+
+export type SnapshotGeoRefSummary = {
+    geo_ref_id: string;
+    provider: string | null;
+    external_type: string | null;
+    external_id: string | null;
+    match_role: string | null;
+    retrieval_method: string | null;
+    match_score: number | null;
+    source_meta: Record<string, unknown> | null;
 };
 
 /** Summary of a related entity as returned in relationship payloads. */
