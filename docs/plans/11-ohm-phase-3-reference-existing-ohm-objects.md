@@ -256,7 +256,7 @@ parallel without forcing schema churn.
 ## Recommended Next Step
 
 Primary recommendation: keep the UI/editor OHM attach workflow as the lead slice, while
-running OHM retrieval hardening in Laravel in parallel.
+running OHM retrieval hardening in Python in parallel.
 
 Reason:
 
@@ -264,3 +264,11 @@ Reason:
 - UI integration is the biggest remaining product gap.
 - Retrieval hardening is the best parallel backend track because it improves both manual
   attach UX and pipeline attach coverage without changing the Phase 3 data model.
+
+### Fallback Alignment Note (Plan 14)
+
+This plan's fallback references should be interpreted as deterministic external references
+that can still hydrate canonical geometry when confidence is high and provenance is explicit.
+
+Inferred-boundary outputs from Plan 14 remain a separate non-canonical product class and must
+not be written into canonical entity geometry fields by default.
