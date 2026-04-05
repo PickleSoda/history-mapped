@@ -219,7 +219,7 @@ flowchart TD
     D -- yes --> E[Create entity_geo_refs row\nprovider=ohm, external_type=node/way/relation]
     E --> F[Hydrate geom/territory_geom\nfrom OHM element geometry]
     F --> G[Optional: add geometry_snapshots\nwith geo_ref_id provenance]
-    D -- no --> H[Try fallback border/geometry providers\n(custom datasets, manual digitizing)]
+    D -- no --> H[Try fallback border/geometry providers\ncustom datasets, manual digitizing]
     H --> I{Fallback geometry found?}
     I -- yes --> J[Create entity_geo_refs row\nprovider=custom or source name]
     J --> K[Hydrate geom/territory_geom\nmark location_method=source_database/human_assigned]
