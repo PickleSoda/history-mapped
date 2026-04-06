@@ -12,7 +12,6 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'geo_ref_id',
@@ -68,9 +67,4 @@ class EntityGeoRef extends Model
         return $this->belongsTo(Entity::class, 'entity_id', 'entity_id');
     }
 
-    /** @return HasMany<GeometrySnapshot, $this> */
-    public function geometrySnapshots(): HasMany
-    {
-        return $this->hasMany(GeometrySnapshot::class, 'geo_ref_id', 'geo_ref_id');
-    }
 }

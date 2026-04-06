@@ -91,34 +91,10 @@ return new class extends Migration
             ADD CONSTRAINT entities_primary_geo_ref_owner_fk
             FOREIGN KEY (entity_id, primary_geo_ref_id)
             REFERENCES entity_geo_refs (entity_id, geo_ref_id)');
-
-        Schema::table('geometry_snapshots', function (Blueprint $table) {
-            $table->uuid('geo_ref_id')->nullable()->after('entity_id');
-            $table->index('geo_ref_id', 'gs_geo_ref_id_idx');
-        });
-
-        DB::statement('ALTER TABLE geometry_snapshots
-            ADD CONSTRAINT gs_geo_ref_fk
-            FOREIGN KEY (geo_ref_id)
-            REFERENCES entity_geo_refs (geo_ref_id)
-            ON DELETE SET NULL');
-
-        DB::statement('ALTER TABLE geometry_snapshots
-            ADD CONSTRAINT gs_geo_ref_owner_fk
-            FOREIGN KEY (entity_id, geo_ref_id)
-            REFERENCES entity_geo_refs (entity_id, geo_ref_id)');
     }
 
     public function down(): void
     {
-        DB::statement('ALTER TABLE geometry_snapshots DROP CONSTRAINT IF EXISTS gs_geo_ref_owner_fk');
-        DB::statement('ALTER TABLE geometry_snapshots DROP CONSTRAINT IF EXISTS gs_geo_ref_fk');
-
-        Schema::table('geometry_snapshots', function (Blueprint $table) {
-            $table->dropIndex('gs_geo_ref_id_idx');
-            $table->dropColumn('geo_ref_id');
-        });
-
         DB::statement('ALTER TABLE entities DROP CONSTRAINT IF EXISTS entities_primary_geo_ref_owner_fk');
         DB::statement('ALTER TABLE entities DROP CONSTRAINT IF EXISTS entities_primary_geo_ref_fk');
 

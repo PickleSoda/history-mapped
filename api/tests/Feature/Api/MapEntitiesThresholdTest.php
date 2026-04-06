@@ -24,19 +24,6 @@ class MapEntitiesThresholdTest extends TestCase
             ->update(['geom' => DB::raw("ST_SetSRID(ST_Point({$lng}, {$lat}), 4326)")]);
     }
 
-    private function createTerritorySnapshot(Entity $entity, int $yearStart, int $yearEnd): void
-    {
-        DB::statement(
-            <<<'SQL'
-                INSERT INTO geometry_snapshots
-                    (snapshot_id, entity_id, year_start, year_end, territory_geom, confidence, display_priority, created_at, updated_at)
-                VALUES
-                    (gen_random_uuid(), ?, ?, ?, ST_GeomFromText('POLYGON((12 41, 13 41, 13 42, 12 42, 12 41))', 4326), 'medium', 5, NOW(), NOW())
-                SQL,
-            [$entity->entity_id, $yearStart, $yearEnd],
-        );
-    }
-
     public function test_map_endpoint_requires_bbox(): void
     {
         $this->getJson(route('api.v1.entities.map'))
@@ -125,46 +112,5 @@ class MapEntitiesThresholdTest extends TestCase
         $response->assertOk();
         $ids = array_column($response->json('features'), 'id');
         $this->assertContains($low->entity_id, $ids);
-    }
-
-    public function test_include_territories_false_returns_empty_territories_array(): void
-    {
-        $entity = Entity::factory()->verified()->create(['impact_score' => 80]);
-        $this->setGeom($entity);
-        $this->createTerritorySnapshot($entity, 100, 200);
-
-        $response = $this->getJson(route('api.v1.entities.map', [
-            'bbox_min_lng' => 0,
-            'bbox_min_lat' => 30,
-            'bbox_max_lng' => 30,
-            'bbox_max_lat' => 50,
-        ]));
-
-        $response->assertOk();
-        $this->assertSame([], $response->json('territories'));
-    }
-
-    public function test_include_territories_true_returns_matching_snapshots(): void
-    {
-        $entity = Entity::factory()->verified()->create(['impact_score' => 80]);
-        $this->setGeom($entity);
-        $this->createTerritorySnapshot($entity, 100, 200);
-
-        $response = $this->getJson(route('api.v1.entities.map', [
-            'bbox_min_lng' => 0,
-            'bbox_min_lat' => 30,
-            'bbox_max_lng' => 30,
-            'bbox_max_lat' => 50,
-            'include_territories' => true,
-            'temporal_start' => 150,
-            'temporal_end' => 150,
-        ]));
-
-        $response->assertOk();
-
-        $territories = $response->json('territories');
-        $this->assertCount(1, $territories);
-        $this->assertSame($entity->entity_id, $territories[0]['entity_id']);
-        $this->assertSame('Polygon', $territories[0]['geometry']['type']);
     }
 }

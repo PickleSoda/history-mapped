@@ -273,24 +273,4 @@ class EntityBuilder extends Builder
             ->selectRaw('ST_AsGeoJSON(geom)::jsonb AS geojson');
     }
 
-    /**
-     * Eager-load only snapshots that are valid at a specific year.
-     */
-    public function withSnapshotAt(int $year): self
-    {
-        return $this->with([
-            'geometrySnapshots' => fn ($query) => $query
-                ->atYear($year)
-                ->orderByDesc('display_priority')
-                ->orderBy('year_start'),
-        ]);
-    }
-
-    /**
-     * Eager-load all snapshots ordered chronologically.
-     */
-    public function withAllSnapshots(): self
-    {
-        return $this->with('geometrySnapshots');
-    }
 }

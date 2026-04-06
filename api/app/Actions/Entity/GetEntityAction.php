@@ -17,8 +17,7 @@ class GetEntityAction
     public function __invoke(string $entityId, array $with = []): Entity
     {
         $query = Entity::query()
-            ->where('entity_id', $entityId)
-            ->withCount('geometrySnapshots');
+            ->where('entity_id', $entityId);
 
         if ($with !== []) {
             $query->with($with);
