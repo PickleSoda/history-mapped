@@ -58,41 +58,6 @@ class ResolveOhmFeatureAction
             throw (new ModelNotFoundException)->setModel(EntityGeoRef::class);
         }
 
-        $snapshot = $entity->geometrySnapshots()
-            ->where('year_start', '<=', $payload['target_year'])
-            ->where('year_end', '>=', $payload['target_year'])
-            ->where('geo_ref_id', $geoRef->geo_ref_id)
-            ->reorder()
-            ->orderByDesc('display_priority')
-            ->orderBy('year_start')
-            ->first();
-
-        if ($snapshot === null) {
-            $snapshot = $entity->geometrySnapshots()
-                ->where('year_start', '<=', $payload['target_year'])
-                ->where('year_end', '>=', $payload['target_year'])
-                ->reorder()
-                ->orderByDesc('display_priority')
-                ->orderBy('year_start')
-                ->first();
-        }
-
-        $snapshotGeometry = $snapshot?->territory_geom ?? $snapshot?->geom;
-
-        if (is_array($snapshotGeometry)) {
-            return [
-                'entity' => [
-                    'id' => $entity->entity_id,
-                    'name' => $entity->name,
-                    'entity_type' => $entity->entity_type?->value,
-                    'entity_group' => $entity->entity_group?->value,
-                ],
-                'geo_ref_id' => $geoRef->geo_ref_id,
-                'resolution_source' => 'geometry_snapshot',
-                'geometry' => $snapshotGeometry,
-            ];
-        }
-
         $baseGeometry = $entity->territory_geom ?? $entity->geom;
 
         if (! is_array($baseGeometry)) {

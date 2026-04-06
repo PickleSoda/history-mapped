@@ -22,18 +22,11 @@ class ResolveOhmFeatureApiTest extends TestCase
         );
     }
 
-    private function createTerritorySnapshot(Entity $entity, int $yearStart, int $yearEnd, ?string $geoRefId = null): void
+    private function setEntityTerritoryGeom(Entity $entity): void
     {
-        $snapshotId = Str::uuid()->toString();
-
         DB::statement(
-            <<<'SQL'
-                INSERT INTO geometry_snapshots
-                    (snapshot_id, entity_id, year_start, year_end, territory_geom, geo_ref_id, confidence, display_priority, created_at, updated_at)
-                VALUES
-                    (?, ?, ?, ?, ST_GeomFromText('POLYGON((12 41, 13 41, 13 42, 12 42, 12 41))', 4326), ?, 'high', 5, NOW(), NOW())
-                SQL,
-            [$snapshotId, $entity->entity_id, $yearStart, $yearEnd, $geoRefId],
+            "UPDATE entities SET territory_geom = ST_GeomFromText('POLYGON((10 40, 15 40, 15 45, 10 45, 10 40))', 4326) WHERE entity_id = ?",
+            [$entity->entity_id],
         );
     }
 
@@ -80,7 +73,7 @@ class ResolveOhmFeatureApiTest extends TestCase
             ->where('entity_id', $primaryEntity->entity_id)
             ->update(['primary_geo_ref_id' => $primaryGeoRefId]);
 
-        $this->createTerritorySnapshot($primaryEntity, 100, 200, $primaryGeoRefId);
+        $this->setEntityTerritoryGeom($primaryEntity);
         $this->setEntityPointGeom($primaryEntity, 12.5, 41.9);
 
         $response = $this->postJson(route('api.v1.map.resolve-ohm-feature'), [
@@ -93,7 +86,7 @@ class ResolveOhmFeatureApiTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('data.entity.id', $primaryEntity->entity_id)
             ->assertJsonPath('data.geo_ref_id', $primaryGeoRefId)
-            ->assertJsonPath('data.resolution_source', 'geometry_snapshot')
+            ->assertJsonPath('data.resolution_source', 'entity_geom')
             ->assertJsonPath('data.geometry.type', 'Polygon');
     }
 
@@ -143,3 +136,4 @@ class ResolveOhmFeatureApiTest extends TestCase
         ])->assertNotFound();
     }
 }
+

@@ -139,13 +139,6 @@ class Entity extends Model
         return $this->belongsTo(User::class, 'reviewer_id');
     }
 
-    /** @return HasMany<GeometrySnapshot, $this> */
-    public function geometrySnapshots(): HasMany
-    {
-        return $this->hasMany(GeometrySnapshot::class, 'entity_id', 'entity_id')
-            ->orderBy('year_start');
-    }
-
     /** @return HasMany<EntityGeoRef, $this> */
     public function geoRefs(): HasMany
     {
@@ -159,16 +152,6 @@ class Entity extends Model
     public function primaryGeoRef(): BelongsTo
     {
         return $this->belongsTo(EntityGeoRef::class, 'primary_geo_ref_id', 'geo_ref_id');
-    }
-
-    public function geometrySnapshotAt(int $year): ?GeometrySnapshot
-    {
-        return $this->geometrySnapshots()
-            ->where('year_start', '<=', $year)
-            ->where('year_end', '>=', $year)
-            ->orderByDesc('display_priority')
-            ->orderBy('year_start')
-            ->first();
     }
 
     /** @return HasMany<EntityRelationship, $this> */

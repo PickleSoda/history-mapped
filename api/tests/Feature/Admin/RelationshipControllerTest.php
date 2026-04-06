@@ -6,7 +6,6 @@ namespace Tests\Feature\Admin;
 
 use App\Models\Entity;
 use App\Models\EntityRelationship;
-use App\Models\GeometrySnapshot;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -32,9 +31,6 @@ class RelationshipControllerTest extends TestCase
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    /**
-     * Set a PostGIS point geometry on the given entity (required for auto-snapshot).
-     */
     private function giveEntityPointGeom(Entity $entity, float $lng = 28.97, float $lat = 41.01): void
     {
         DB::statement(
@@ -227,83 +223,6 @@ class RelationshipControllerTest extends TestCase
             'target_entity_id' => $this->target->entity_id,
             'relationship_type' => 'allied_with',
         ])->assertUnauthorized();
-    }
-
-    // ── store — auto-snapshot ─────────────────────────────────────────────────
-
-    public function test_store_creates_auto_snapshot_for_auto_snapshot_type_with_geom_and_temporal_start(): void
-    {
-        $this->giveEntityPointGeom($this->source);
-
-        $this->actingAs($this->user)
-            ->postJson(route('entities.relationships.store', $this->source), [
-                'target_entity_id' => $this->target->entity_id,
-                'relationship_type' => 'fought_at',
-                'temporal_start' => '1453',
-                'temporal_end' => '1453',
-            ])
-            ->assertCreated();
-
-        $this->assertDatabaseHas('geometry_snapshots', [
-            'entity_id' => $this->source->entity_id,
-            'year_start' => 1453,
-            'year_end' => 1453,
-        ]);
-
-        $snapshot = GeometrySnapshot::where('entity_id', $this->source->entity_id)->first();
-        $this->assertNotNull($snapshot);
-        $this->assertStringContainsString($this->target->name, $snapshot->description);
-        $this->assertStringContainsString('fought at', $snapshot->description);
-    }
-
-    public function test_store_does_not_create_auto_snapshot_for_non_auto_snapshot_type(): void
-    {
-        $this->giveEntityPointGeom($this->source);
-
-        $this->actingAs($this->user)
-            ->postJson(route('entities.relationships.store', $this->source), [
-                'target_entity_id' => $this->target->entity_id,
-                'relationship_type' => 'allied_with',
-                'temporal_start' => '1648',
-            ])
-            ->assertCreated();
-
-        $this->assertDatabaseMissing('geometry_snapshots', [
-            'entity_id' => $this->source->entity_id,
-        ]);
-    }
-
-    public function test_store_does_not_create_auto_snapshot_when_source_has_no_geom(): void
-    {
-        // Source entity has no geom (factory default)
-        $this->actingAs($this->user)
-            ->postJson(route('entities.relationships.store', $this->source), [
-                'target_entity_id' => $this->target->entity_id,
-                'relationship_type' => 'fought_at',
-                'temporal_start' => '1453',
-            ])
-            ->assertCreated();
-
-        $this->assertDatabaseMissing('geometry_snapshots', [
-            'entity_id' => $this->source->entity_id,
-        ]);
-    }
-
-    public function test_store_does_not_create_auto_snapshot_when_no_temporal_start(): void
-    {
-        $this->giveEntityPointGeom($this->source);
-
-        $this->actingAs($this->user)
-            ->postJson(route('entities.relationships.store', $this->source), [
-                'target_entity_id' => $this->target->entity_id,
-                'relationship_type' => 'fought_at',
-                // No temporal_start
-            ])
-            ->assertCreated();
-
-        $this->assertDatabaseMissing('geometry_snapshots', [
-            'entity_id' => $this->source->entity_id,
-        ]);
     }
 
     // ── destroy ───────────────────────────────────────────────────────────────
