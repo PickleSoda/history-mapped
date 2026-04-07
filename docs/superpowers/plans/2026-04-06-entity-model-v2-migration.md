@@ -430,7 +430,7 @@ Recommended flag names:
 Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelV2DeprecationTest.php`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add api/database/migrations docs/entity-model api/tests/Feature/Feature/EntityModelV2DeprecationTest.php
@@ -534,24 +534,24 @@ git commit -m "chore: inventory legacy model usage and enforce write gates"
 - Test: `api/tests/Feature/Api/MapEntitiesThresholdTest.php`
 - Test: `api/tests/Feature/Api/EntityDetailGeometrySnapshotsCountTest.php`
 
-- [ ] **Step 1: Write failing tests for removed snapshot endpoints and v2 replacement behavior**
+- [x] **Step 1: Write failing tests for removed snapshot endpoints and v2 replacement behavior**
 
 Coverage:
 - old snapshot endpoints return `410` (or `404` after hard removal)
 - timeline/map/detail endpoints still serve equivalent data from v2 read model
 
-- [ ] **Step 2: Run focused endpoint tests to verify failure**
+- [x] **Step 2: Run focused endpoint tests to verify failure**
 
 Run: `docker compose exec app php artisan test api/tests/Feature/Api/EntityTimelineApiTest.php api/tests/Feature/Api/MapEntitiesThresholdTest.php api/tests/Feature/Api/EntityDetailGeometrySnapshotsCountTest.php`
 Expected: FAIL before endpoint/routing cleanup is complete.
 
-- [ ] **Step 3: Remove snapshot compatibility controllers/resources/routes and regenerate bindings**
+- [x] **Step 3: Remove snapshot compatibility controllers/resources/routes and regenerate bindings**
 
 Rules:
 - do not leave stale route/action bindings
 - preserve stable v2 consumer endpoints
 
-- [ ] **Step 4: Rerun focused endpoint tests**
+- [x] **Step 4: Rerun focused endpoint tests**
 
 Run: `docker compose exec app php artisan test api/tests/Feature/Api/EntityTimelineApiTest.php api/tests/Feature/Api/MapEntitiesThresholdTest.php api/tests/Feature/Api/EntityDetailGeometrySnapshotsCountTest.php`
 Expected: PASS.
