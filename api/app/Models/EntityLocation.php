@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable([
     'entity_id',
     'location_name',
+    'geom',
+    'territory_geom',
     'location_method',
     'location_confidence',
     'is_primary',

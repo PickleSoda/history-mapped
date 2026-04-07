@@ -37,6 +37,9 @@ Edge cases to resolve during migration:
 - [x] Removed model, builders, actions, controllers, requests, resources, routes, factory, and snapshot-specific tests
 - [x] Removed residual references in `EntityFactory`, `entity_geo_refs` migration, and `EntityGeoRefIntegrityTest`
 - [x] Test suite status after cleanup: 144 passed
+- [x] Task 1 core schema complete for aliases/tags/temporal ranges/locations (citations/link tables still pending)
+- [x] Task 2 model graph complete and verified (`EntityModelV2RelationsTest` passing)
+- [x] Task 3 backfill command + actions added and verified in Docker
 
 ## Timeline UX Gap Update (2026-04-07)
 
@@ -157,30 +160,30 @@ git commit -m "feat: add entity model v2 schema tables"
 - Modify: `api/app/Models/Entity.php`
 - Test: `api/tests/Feature/Feature/EntityModelV2RelationsTest.php`
 
-- [ ] **Step 1: Write failing relation tests for the new model graph**
+- [x] **Step 1: Write failing relation tests for the new model graph**
 
 Test expectations:
 - `Entity` has many aliases, tags, temporal ranges, locations, geometry periods, timeline entries
 - `GeometryPeriod` belongs to entity and optionally relationship/source event
 
-- [ ] **Step 2: Run the relation test to verify failure**
+- [x] **Step 2: Run the relation test to verify failure**
 
 Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelV2RelationsTest.php`
 Expected: FAIL with missing classes/relations.
 
-- [ ] **Step 3: Implement the new models and add relations to `Entity`**
+- [x] **Step 3: Implement the new models and add relations to `Entity`**
 
 Notes:
 - keep existing `geometrySnapshots()` relation temporarily for compatibility
 - add explicit `geometryPeriods()` and `timelineEntries()`
 - do not remove existing relations in this task
 
-- [ ] **Step 4: Rerun relation tests**
+- [x] **Step 4: Rerun relation tests**
 
 Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelV2RelationsTest.php`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add api/app/Models api/tests/Feature/Feature/EntityModelV2RelationsTest.php
@@ -198,20 +201,20 @@ git commit -m "feat: add entity model v2 eloquent models"
 - Create: `api/app/Actions/EntityModelV2/BackfillGeometryPeriodsAction.php`
 - Test: `api/tests/Feature/Feature/BackfillEntityModelV2CommandTest.php`
 
-- [ ] **Step 1: Write a failing command test for backfill behavior**
+- [x] **Step 1: Write a failing command test for backfill behavior**
 
 Required coverage:
 - `alternative_names` becomes alias rows
 - `tags` becomes tag rows
 - entity temporal/location fields become primary range/location rows
-- `geometry_snapshots` become `geometry_periods` with provenance mapping
+- `geometry_snapshots` become `geometry_periods` with provenance mapping (N/A in this rollout because snapshots were hard-removed)
 
-- [ ] **Step 2: Run the command test to verify failure**
+- [x] **Step 2: Run the command test to verify failure**
 
 Run: `docker compose exec app php artisan test api/tests/Feature/Feature/BackfillEntityModelV2CommandTest.php`
 Expected: FAIL because the command does not exist.
 
-- [ ] **Step 3: Implement the backfill command and actions**
+- [x] **Step 3: Implement the backfill command and actions**
 
 Edge-case rules:
 - if a snapshot has `relationship_id`, convert to `period_type='presence'`, `provenance_mode='derived'`
@@ -219,7 +222,7 @@ Edge-case rules:
 - if neither exists, convert to `provenance_mode='manual'` and record review flag for manual audit
 - if entity has `geom` or `territory_geom`, write a primary `entity_locations` row rather than a period row
 
-- [ ] **Step 4: Run backfill test and a dry-run command**
+- [x] **Step 4: Run backfill test and a dry-run command**
 
 Run: `docker compose exec app php artisan test api/tests/Feature/Feature/BackfillEntityModelV2CommandTest.php`
 Run: `docker compose exec app php artisan entity-model-v2:backfill --dry-run`
