@@ -246,6 +246,70 @@ class RelationshipControllerTest extends TestCase
         ])->assertUnauthorized();
     }
 
+    public function test_store_creates_derived_presence_period_for_auto_snapshot_type_with_geom_and_temporal_start(): void
+    {
+        $this->giveEntityPointGeom($this->source, 12.48, 41.89);
+
+        $response = $this->actingAs($this->user)
+            ->postJson(route('entities.relationships.store', $this->source), [
+                'target_entity_id' => $this->target->entity_id,
+                'relationship_type' => 'fought_at',
+                'temporal_start' => '1648',
+                'temporal_end' => '1648',
+                'description' => 'Battle participation',
+            ])
+            ->assertCreated();
+
+        $relationshipId = (string) $response->json('relationship.relationship_id');
+
+        $this->assertDatabaseHas('geometry_periods', [
+            'entity_id' => $this->source->entity_id,
+            'period_type' => 'presence',
+            'start_year' => 1648,
+            'end_year' => 1648,
+            'provenance_mode' => 'derived',
+            'relationship_id' => $relationshipId,
+        ]);
+    }
+
+    public function test_store_does_not_create_derived_presence_period_for_non_auto_snapshot_type(): void
+    {
+        $this->giveEntityPointGeom($this->source, 12.48, 41.89);
+
+        $response = $this->actingAs($this->user)
+            ->postJson(route('entities.relationships.store', $this->source), [
+                'target_entity_id' => $this->target->entity_id,
+                'relationship_type' => 'allied_with',
+                'temporal_start' => '1648',
+                'temporal_end' => '1648',
+            ])
+            ->assertCreated();
+
+        $relationshipId = (string) $response->json('relationship.relationship_id');
+
+        $this->assertDatabaseMissing('geometry_periods', [
+            'relationship_id' => $relationshipId,
+        ]);
+    }
+
+    public function test_store_does_not_create_derived_presence_period_when_source_has_no_geom(): void
+    {
+        $response = $this->actingAs($this->user)
+            ->postJson(route('entities.relationships.store', $this->source), [
+                'target_entity_id' => $this->target->entity_id,
+                'relationship_type' => 'fought_at',
+                'temporal_start' => '1648',
+                'temporal_end' => '1648',
+            ])
+            ->assertCreated();
+
+        $relationshipId = (string) $response->json('relationship.relationship_id');
+
+        $this->assertDatabaseMissing('geometry_periods', [
+            'relationship_id' => $relationshipId,
+        ]);
+    }
+
     // ── destroy ───────────────────────────────────────────────────────────────
 
     public function test_destroy_deletes_relationship(): void

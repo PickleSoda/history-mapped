@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
+    'relationship_id',
     'source_entity_id',
     'target_entity_id',
     'relationship_type',
