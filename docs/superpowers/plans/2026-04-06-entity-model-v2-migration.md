@@ -408,24 +408,24 @@ git commit -m "refactor: move map and detail reads to geometry periods"
 - Modify: `docs/entity-model/for-geodata-contributors.md`
 - Test: `api/tests/Feature/Feature/EntityModelV2DeprecationTest.php`
 
-- [ ] **Step 1: Write failing tests or assertions for deprecated access paths**
+- [x] **Step 1: Write failing tests or assertions for deprecated access paths**
 
 Required behavior:
 - no new writes to legacy entity temporal/location columns except temporary compatibility sync if still enabled
 - no new writes to `geometry_snapshots` after cutover flag is enabled
 
-- [ ] **Step 2: Run deprecation tests to verify failure**
+- [x] **Step 2: Run deprecation tests to verify failure**
 
 Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelV2DeprecationTest.php`
 Expected: FAIL before cutover logic exists.
 
-- [ ] **Step 3: Add feature flag or staged cutover guard and update docs**
+- [x] **Step 3: Add feature flag or staged cutover guard and update docs**
 
 Recommended flag names:
 - `entity_model_v2_write_enabled`
 - `geometry_snapshot_compat_read_enabled`
 
-- [ ] **Step 4: Rerun tests and spot-check docs**
+- [x] **Step 4: Rerun tests and spot-check docs**
 
 Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelV2DeprecationTest.php`
 Expected: PASS.

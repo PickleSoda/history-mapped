@@ -17,10 +17,27 @@ use Illuminate\Support\Str;
  */
 class CreateEntityAction
 {
+    /** @var list<string> */
+    private const LEGACY_ENTITY_COLUMNS = [
+        'temporal_start',
+        'temporal_end',
+        'temporal_start_year',
+        'temporal_end_year',
+        'location_name',
+        'location_confidence',
+        'location_method',
+    ];
+
     public function __invoke(EntityData $data, ?string $createdBy = null): Entity
     {
         return DB::transaction(function () use ($data, $createdBy): Entity {
             $modelData = $data->toModelArray();
+
+            if ((bool) config('entity_model.entity_model_v2_write_enabled', false)) {
+                foreach (self::LEGACY_ENTITY_COLUMNS as $column) {
+                    unset($modelData[$column]);
+                }
+            }
 
             if ($createdBy !== null) {
                 $modelData['created_by'] = $createdBy;

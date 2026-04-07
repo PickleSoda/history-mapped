@@ -219,6 +219,17 @@ How the date was determined.
 
 ## Location
 
+## Migration Flags (V2 Cutover)
+
+During the v2 migration, write behavior is controlled by two app flags:
+
+- `ENTITY_MODEL_V2_WRITE_ENABLED`:
+	- `false` (default): legacy `entities` temporal/location columns continue to be written.
+	- `true`: create/update paths stop writing legacy temporal/location columns (`temporal_*`, `location_*`).
+- `GEOMETRY_SNAPSHOT_COMPAT_READ_ENABLED`:
+	- `true` (default): compatibility read endpoints remain available.
+	- `false`: compatibility reads can be turned off after clients migrate.
+
 ### `location_name`
 **Optional.**
 Plain-text description of the location, for human readers. See [for-geodata-contributors.md](./for-geodata-contributors.md) for guidance.
