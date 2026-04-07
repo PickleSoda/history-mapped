@@ -6,6 +6,7 @@ namespace Tests\Feature\Feature;
 
 use App\Jobs\RebuildEntityTimelineJob;
 use App\Models\Entity;
+use App\Models\EntityTemporalRange;
 use App\Models\GeometryPeriod;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +17,31 @@ use Tests\TestCase;
 class RebuildEntityTimelineCommandTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_rebuild_command_uses_primary_temporal_range_when_geometry_periods_are_missing(): void
+    {
+        $entity = Entity::factory()->create(['name' => 'Late Republic']);
+
+        EntityTemporalRange::query()->create([
+            'entity_id' => $entity->entity_id,
+            'range_type' => 'primary',
+            'start_year' => -133,
+            'end_year' => -27,
+            'is_primary' => true,
+            'notes' => 'Conventional late republican dating.',
+        ]);
+
+        $this->artisan('timeline:rebuild', ['entity_id' => $entity->entity_id])->assertExitCode(0);
+
+        $this->assertDatabaseHas('entity_timeline_entries', [
+            'entity_id' => $entity->entity_id,
+            'entry_kind' => 'temporal_range',
+            'source_table' => 'entity_temporal_ranges',
+            'start_year' => -133,
+            'end_year' => -27,
+            'title' => 'Primary temporal range',
+        ]);
+    }
 
     public function test_rebuild_command_projects_denormalized_relationship_fields(): void
     {
