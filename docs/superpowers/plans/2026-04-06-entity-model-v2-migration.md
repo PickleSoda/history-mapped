@@ -228,7 +228,7 @@ Run: `docker compose exec app php artisan test api/tests/Feature/Feature/Backfil
 Run: `docker compose exec app php artisan entity-model-v2:backfill --dry-run`
 Expected: PASS and a dry-run summary with counts by migrated table.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add api/app/Console/Commands api/app/Actions/EntityModelV2 api/tests/Feature/Feature/BackfillEntityModelV2CommandTest.php
@@ -267,7 +267,7 @@ Preferred path:
 Run: `docker compose exec app php artisan test api/tests/Feature/Admin/RelationshipControllerTest.php`
 Expected: PASS with geometry-period assertions.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add api/app/Actions/Relationship api/app/Actions/GeometrySnapshot/CreateLinkedSnapshotsAction.php api/tests/Feature/Admin/RelationshipControllerTest.php
