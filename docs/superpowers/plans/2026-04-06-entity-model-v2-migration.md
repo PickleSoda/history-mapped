@@ -141,7 +141,7 @@ Run: `docker compose exec app php artisan migrate`
 Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelV2SchemaTest.php`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add api/database/migrations api/tests/Feature/Feature/EntityModelV2SchemaTest.php
