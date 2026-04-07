@@ -642,7 +642,7 @@ Run:
 
 Expected: PASS or unrelated failures documented in rollout notes.
 
-- [ ] **Step 5: Commit and release notes update**
+- [x] **Step 5: Commit and release notes update**
 
 ```bash
 git add api/database/migrations api/app/Models/Entity.php api/tests docs/entity-model docs/superpowers/plans/2026-04-07-entity-model-v2-rollout-notes.md
