@@ -244,25 +244,25 @@ git commit -m "feat: add entity model v2 backfill pipeline"
 - Modify: `api/app/Actions/Relationship/CreateRelationshipAction.php`
 - Test: `api/tests/Feature/Admin/RelationshipControllerTest.php`
 
-- [ ] **Step 1: Add or update failing tests around relationship-derived presence creation**
+- [x] **Step 1: Add or update failing tests around relationship-derived presence creation**
 
 New expectation:
 - creating `fought_at`, `signed_by`, `born_in`, `died_in`, `resided_in` creates a derived geometry period or queues timeline projection input
 - no free-standing manual snapshot row is created anymore
 
-- [ ] **Step 2: Run the focused relationship tests to verify failure**
+- [x] **Step 2: Run the focused relationship tests to verify failure**
 
 Run: `docker compose exec app php artisan test api/tests/Feature/Admin/RelationshipControllerTest.php --filter=auto_snapshot`
 Expected: FAIL against old snapshot behavior.
 
-- [ ] **Step 3: Implement compatibility transition**
+- [x] **Step 3: Implement compatibility transition**
 
 Preferred path:
 - keep `CreateAutoSnapshotAction` as a shim for one release
 - internally delegate to `CreateDerivedPresencePeriodAction`
 - mark old naming as deprecated in docblocks
 
-- [ ] **Step 4: Rerun relationship tests**
+- [x] **Step 4: Rerun relationship tests**
 
 Run: `docker compose exec app php artisan test api/tests/Feature/Admin/RelationshipControllerTest.php`
 Expected: PASS with geometry-period assertions.
