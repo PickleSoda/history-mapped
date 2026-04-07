@@ -29,17 +29,19 @@ Rollback procedure:
 
 ## Compatibility Flags Used
 
-- `ENTITY_MODEL_V2_WRITE_ENABLED`
   - `false`: legacy entity temporal/location writes still active.
   - `true`: legacy entity temporal/location writes disabled; legacy geometry-snapshot write endpoints return HTTP 410.
 
-- `GEOMETRY_SNAPSHOT_COMPAT_READ_ENABLED`
   - `true`: compatibility read endpoints remain available during migration.
   - `false`: disable compatibility read path after all clients switch to v2/timeline reads.
 
 ## Data Audit Queries (Manual Geometry Periods)
 
 Find manual geometry periods by entity and year range:
+
+## Legacy Erasure Inventory
+
+- See `docs/superpowers/plans/2026-04-07-legacy-erasure-inventory.md` for the full Task 10 Step 1 usage inventory and removal ordering.
 
 ```sql
 SELECT entity_id, period_type, start_year, end_year, provenance_mode, relationship_id, source_event_id

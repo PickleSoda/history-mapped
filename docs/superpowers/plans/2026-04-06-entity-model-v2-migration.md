@@ -478,3 +478,173 @@ Document:
 git add .
 git commit -m "test: verify entity model v2 migration rollout"
 ```
+
+### Task 10: Legacy Usage Inventory and Cutover Safety Net
+
+**Files:**
+- Create: `docs/superpowers/plans/2026-04-07-legacy-erasure-inventory.md`
+- Modify: `docs/superpowers/plans/2026-04-07-entity-model-v2-rollout-notes.md`
+- Test: `api/tests/Feature/Feature/EntityModelV2DeprecationTest.php`
+
+- [x] **Step 1: Produce inventory of all legacy fields and table consumers**
+
+Inventory scope:
+- table: `geometry_snapshots`
+- entity columns: `geom`, `territory_geom`, `location_name`, `temporal_start`, `temporal_end`, `temporal_start_year`, `temporal_end_year`, `alternative_names`, `tags`
+
+Run:
+- `rg -n "geometry_snapshots|geometrySnapshots|temporal_start|temporal_end|location_name|territory_geom|\bgeom\b|alternative_names|\btags\b" api`
+
+Expected: markdown inventory grouped by API, admin UI, actions/jobs, seeders/factories, and tests.
+
+- [x] **Step 2: Add failing assertions that legacy writes are blocked in v2 mode**
+
+Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelV2DeprecationTest.php`
+Expected: FAIL until all write paths are blocked.
+
+- [x] **Step 3: Enforce global no-legacy-write gate and update tests**
+
+Required behavior:
+- entity write paths do not persist legacy temporal/location/geometry columns when `entity_model_v2_write_enabled=true`
+- no path creates or updates `geometry_snapshots`
+
+- [x] **Step 4: Rerun deprecation test**
+
+Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelV2DeprecationTest.php`
+Expected: PASS.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add docs/superpowers/plans/2026-04-07-legacy-erasure-inventory.md docs/superpowers/plans/2026-04-07-entity-model-v2-rollout-notes.md api/tests/Feature/Feature/EntityModelV2DeprecationTest.php
+git commit -m "chore: inventory legacy model usage and enforce write gates"
+```
+
+### Task 11: Remove Compatibility Snapshot Surface and V2-Only Reads
+
+**Files:**
+- Delete: `api/app/Http/Api/V1/Controllers/GeometrySnapshotController.php`
+- Delete: `api/app/Http/Api/V1/Resources/GeometrySnapshotResource.php`
+- Delete: `api/app/Http/Api/V1/Resources/GeometrySnapshotMapResource.php`
+- Delete: `api/app/Http/Controllers/Admin/GeometrySnapshotController.php`
+- Modify: `api/routes/api.php`
+- Modify: `api/routes/web.php`
+- Modify: generated route/action bindings under `api/resources/js/routes/**` and `api/resources/js/actions/**`
+- Test: `api/tests/Feature/Api/EntityTimelineApiTest.php`
+- Test: `api/tests/Feature/Api/MapEntitiesThresholdTest.php`
+- Test: `api/tests/Feature/Api/EntityDetailGeometrySnapshotsCountTest.php`
+
+- [ ] **Step 1: Write failing tests for removed snapshot endpoints and v2 replacement behavior**
+
+Coverage:
+- old snapshot endpoints return `410` (or `404` after hard removal)
+- timeline/map/detail endpoints still serve equivalent data from v2 read model
+
+- [ ] **Step 2: Run focused endpoint tests to verify failure**
+
+Run: `docker compose exec app php artisan test api/tests/Feature/Api/EntityTimelineApiTest.php api/tests/Feature/Api/MapEntitiesThresholdTest.php api/tests/Feature/Api/EntityDetailGeometrySnapshotsCountTest.php`
+Expected: FAIL before endpoint/routing cleanup is complete.
+
+- [ ] **Step 3: Remove snapshot compatibility controllers/resources/routes and regenerate bindings**
+
+Rules:
+- do not leave stale route/action bindings
+- preserve stable v2 consumer endpoints
+
+- [ ] **Step 4: Rerun focused endpoint tests**
+
+Run: `docker compose exec app php artisan test api/tests/Feature/Api/EntityTimelineApiTest.php api/tests/Feature/Api/MapEntitiesThresholdTest.php api/tests/Feature/Api/EntityDetailGeometrySnapshotsCountTest.php`
+Expected: PASS.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add api/app/Http/Api/V1/Controllers api/app/Http/Api/V1/Resources api/app/Http/Controllers/Admin api/routes/api.php api/routes/web.php api/resources/js/routes api/resources/js/actions api/tests/Feature/Api
+git commit -m "refactor: remove legacy geometry snapshot compatibility surface"
+```
+
+### Task 12: Seeder/Factory Cleanup and Legacy Drop Migration A
+
+**Files:**
+- Modify: `api/database/seeders/EntitySeeder.php`
+- Modify: `api/database/seeders/DatabaseSeeder.php` (if seed flow order needs update)
+- Modify: `api/database/factories/EntityFactory.php`
+- Create: `api/database/migrations/xxxx_xx_xx_xxxxxx_prepare_legacy_drop_phase_a.php`
+- Test: `api/tests/Feature/Feature/BackfillEntityModelV2CommandTest.php`
+- Test: `api/tests/Feature/Feature/EntityModelV2SchemaTest.php`
+
+- [ ] **Step 1: Write failing tests for seed/factory v2-only expectations**
+
+Coverage:
+- seeded entities create v2 records via backfill command path expectations
+- factories no longer rely on removed snapshot semantics
+
+- [ ] **Step 2: Run seed/factory/schema focused tests to verify failure**
+
+Run: `docker compose exec app php artisan test api/tests/Feature/Feature/BackfillEntityModelV2CommandTest.php api/tests/Feature/Feature/EntityModelV2SchemaTest.php`
+Expected: FAIL before cleanup and migration A.
+
+- [ ] **Step 3: Implement seed/factory cleanup and migration A prep**
+
+Migration A purpose:
+- remove/adjust constraints and indexes that block final column/table drops
+- keep schema backward-safe for one release window
+
+- [ ] **Step 4: Rerun focused tests**
+
+Run: `docker compose exec app php artisan test api/tests/Feature/Feature/BackfillEntityModelV2CommandTest.php api/tests/Feature/Feature/EntityModelV2SchemaTest.php`
+Expected: PASS.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add api/database/seeders api/database/factories api/database/migrations api/tests/Feature/Feature/BackfillEntityModelV2CommandTest.php api/tests/Feature/Feature/EntityModelV2SchemaTest.php
+git commit -m "chore: align seeders and schema for legacy drop phase a"
+```
+
+### Task 13: Hard-Drop Legacy Fields/Tables and Final Verification
+
+**Files:**
+- Create: `api/database/migrations/xxxx_xx_xx_xxxxxx_drop_legacy_entity_fields_and_snapshot_table.php`
+- Modify: `api/app/Models/Entity.php`
+- Modify: `docs/entity-model/attributes.md`
+- Modify: `docs/entity-model/for-historians.md`
+- Modify: `docs/entity-model/for-geodata-contributors.md`
+- Modify: `docs/superpowers/plans/2026-04-07-entity-model-v2-rollout-notes.md`
+- Test: `api/tests/Feature/Feature/EntityModelV2SchemaTest.php`
+- Test: `api/tests/Feature/Api/EntityTimelineApiTest.php`
+- Test: `api/tests/Feature/Api/MapEntitiesThresholdTest.php`
+- Test: `api/tests/Feature/Api/EntityDetailGeometrySnapshotsCountTest.php`
+- Test: `api/tests/Feature/Feature/EntityGeoRefIntegrityTest.php`
+
+- [ ] **Step 1: Add failing schema assertions that legacy artifacts are removed**
+
+Required absent artifacts:
+- table: `geometry_snapshots`
+- columns on `entities`: `geom`, `territory_geom`, `location_name`, `temporal_start`, `temporal_end`, `temporal_start_year`, `temporal_end_year`, `alternative_names`, `tags`
+
+- [ ] **Step 2: Run schema and impacted suites to verify failure**
+
+Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelV2SchemaTest.php api/tests/Feature/Api/EntityTimelineApiTest.php api/tests/Feature/Api/MapEntitiesThresholdTest.php api/tests/Feature/Api/EntityDetailGeometrySnapshotsCountTest.php api/tests/Feature/Feature/EntityGeoRefIntegrityTest.php`
+Expected: FAIL before final migration and model cleanup.
+
+- [ ] **Step 3: Implement migration B hard-drop and model/doc cleanup**
+
+Rules:
+- remove legacy fillable/casts/relations from `Entity` that target dropped artifacts
+- update docs to v2-only model semantics
+
+- [ ] **Step 4: Run full verification suite**
+
+Run:
+- `docker compose exec app php artisan test`
+- `pnpm --dir api exec vitest run resources/js/components/__tests__/entity-history-panel.test.tsx`
+
+Expected: PASS or unrelated failures documented in rollout notes.
+
+- [ ] **Step 5: Commit and release notes update**
+
+```bash
+git add api/database/migrations api/app/Models/Entity.php api/tests docs/entity-model docs/superpowers/plans/2026-04-07-entity-model-v2-rollout-notes.md
+git commit -m "feat: hard-drop legacy entity fields and snapshot table"
+```

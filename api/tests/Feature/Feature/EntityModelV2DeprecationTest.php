@@ -25,7 +25,7 @@ class EntityModelV2DeprecationTest extends TestCase
         config()->set('entity_model.entity_model_v2_write_enabled', true);
     }
 
-    public function test_create_does_not_write_legacy_temporal_or_location_columns_when_v2_writes_enabled(): void
+    public function test_create_does_not_write_legacy_temporal_location_or_geometry_columns_when_v2_writes_enabled(): void
     {
         $response = $this->actingAs($this->user)
             ->post(route('entities.store'), [
@@ -36,6 +36,14 @@ class EntityModelV2DeprecationTest extends TestCase
                 'temporal_end' => '-1100',
                 'location_name' => 'Eastern Mediterranean',
                 'location_method' => 'human_assigned',
+                'geojson' => [
+                    'type' => 'Point',
+                    'coordinates' => [35.0, 33.0],
+                ],
+                'territory_geojson' => [
+                    'type' => 'Polygon',
+                    'coordinates' => [[[34.0, 32.0], [36.0, 32.0], [36.0, 34.0], [34.0, 34.0], [34.0, 32.0]]],
+                ],
             ]);
 
         $response->assertRedirect();
@@ -47,9 +55,11 @@ class EntityModelV2DeprecationTest extends TestCase
         $this->assertNull($entity->temporal_start_year);
         $this->assertNull($entity->temporal_end_year);
         $this->assertNull($entity->location_name);
+        $this->assertNull($entity->geom);
+        $this->assertNull($entity->territory_geom);
     }
 
-    public function test_update_does_not_mutate_legacy_temporal_or_location_columns_when_v2_writes_enabled(): void
+    public function test_update_does_not_mutate_legacy_temporal_location_or_geometry_columns_when_v2_writes_enabled(): void
     {
         $entity = Entity::factory()->create([
             'temporal_start' => null,
@@ -57,6 +67,8 @@ class EntityModelV2DeprecationTest extends TestCase
             'temporal_start_year' => null,
             'temporal_end_year' => null,
             'location_name' => null,
+            'geom' => null,
+            'territory_geom' => null,
         ]);
 
         $this->actingAs($this->user)
@@ -65,6 +77,14 @@ class EntityModelV2DeprecationTest extends TestCase
                 'temporal_end' => '-0450',
                 'location_name' => 'Aegean basin',
                 'location_method' => 'human_assigned',
+                'geojson' => [
+                    'type' => 'Point',
+                    'coordinates' => [23.7, 37.9],
+                ],
+                'territory_geojson' => [
+                    'type' => 'Polygon',
+                    'coordinates' => [[[22.0, 36.5], [25.0, 36.5], [25.0, 39.0], [22.0, 39.0], [22.0, 36.5]]],
+                ],
             ])
             ->assertOk();
 
@@ -75,6 +95,8 @@ class EntityModelV2DeprecationTest extends TestCase
         $this->assertNull($entity->temporal_start_year);
         $this->assertNull($entity->temporal_end_year);
         $this->assertNull($entity->location_name);
+        $this->assertNull($entity->geom);
+        $this->assertNull($entity->territory_geom);
     }
 
     public function test_legacy_geometry_snapshot_write_endpoint_is_disabled_when_v2_writes_enabled(): void
