@@ -171,8 +171,17 @@ class RelationshipControllerTest extends TestCase
             ->assertCreated()
             ->assertJsonPath('relationship.temporal_start', '1648')
             ->assertJsonPath('relationship.temporal_end', '1700')
+            ->assertJsonPath('relationship.start_year', 1648)
+            ->assertJsonPath('relationship.end_year', 1700)
             ->assertJsonPath('relationship.description', 'Alliance forged at Westphalia')
             ->assertJsonPath('relationship.confidence', 'high');
+
+        $this->assertDatabaseHas('relationships', [
+            'source_entity_id' => $this->source->entity_id,
+            'target_entity_id' => $this->target->entity_id,
+            'start_year' => 1648,
+            'end_year' => 1700,
+        ]);
     }
 
     public function test_store_requires_target_entity_id(): void

@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\GeometryPeriod;
+use App\Observers\GeometryPeriodObserver;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +25,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        GeometryPeriod::observe(GeometryPeriodObserver::class);
+
         $this->configureDefaults();
     }
 

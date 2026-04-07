@@ -17,6 +17,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'relationship_type',
     'temporal_start',
     'temporal_end',
+    'start_year',
+    'end_year',
     'description',
     'confidence',
     'source_citations',
@@ -49,6 +51,8 @@ class EntityRelationship extends Model
             'relationship_type' => RelationshipType::class,
             'confidence' => ConfidenceLevel::class,
             'source_citations' => 'json',
+            'start_year' => 'integer',
+            'end_year' => 'integer',
         ];
     }
 

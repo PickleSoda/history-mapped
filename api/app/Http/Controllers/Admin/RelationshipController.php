@@ -138,6 +138,8 @@ class RelationshipController extends Controller
                 : $relationship->relationship_type,
             'temporal_start' => $relationship->temporal_start,
             'temporal_end' => $relationship->temporal_end,
+            'start_year' => $relationship->start_year,
+            'end_year' => $relationship->end_year,
             'description' => $relationship->description,
             'confidence' => $relationship->confidence instanceof ConfidenceLevel
                 ? $relationship->confidence->value
