@@ -113,4 +113,45 @@ class MapEntitiesThresholdTest extends TestCase
         $ids = array_column($response->json('features'), 'id');
         $this->assertContains($low->entity_id, $ids);
     }
+
+    public function test_map_can_include_territories_from_geometry_periods_with_threshold_filtering(): void
+    {
+        $high = Entity::factory()->verified()->create(['impact_score' => 90]);
+        $low = Entity::factory()->verified()->create(['impact_score' => 20]);
+
+        DB::statement(
+            "INSERT INTO geometry_periods (
+                geometry_period_id, entity_id, period_type, start_year, end_year,
+                territory_geom, provenance_mode, created_by, created_at, updated_at
+            ) VALUES
+            (
+                gen_random_uuid(), ?, 'territory', -100, -50,
+                ST_SetSRID(ST_GeomFromText('POLYGON((10 40, 11 40, 11 41, 10 41, 10 40))'), 4326),
+                'manual', 'test', NOW(), NOW()
+            ),
+            (
+                gen_random_uuid(), ?, 'territory', -100, -50,
+                ST_SetSRID(ST_GeomFromText('POLYGON((12 40, 13 40, 13 41, 12 41, 12 40))'), 4326),
+                'manual', 'test', NOW(), NOW()
+            )",
+            [$high->entity_id, $low->entity_id],
+        );
+
+        $response = $this->getJson(route('api.v1.entities.map', [
+            'bbox_min_lng' => 0,
+            'bbox_min_lat' => 30,
+            'bbox_max_lng' => 30,
+            'bbox_max_lat' => 50,
+            'zoom_level' => 1,
+            'include_territories' => true,
+        ]));
+
+        $response->assertOk();
+
+        $territories = $response->json('territories');
+        $territoryEntityIds = array_column($territories, 'entity_id');
+
+        $this->assertContains($high->entity_id, $territoryEntityIds);
+        $this->assertNotContains($low->entity_id, $territoryEntityIds);
+    }
 }

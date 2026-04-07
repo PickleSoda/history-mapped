@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\DB;
 
 class DeleteEntityGeoRefAction
 {
+    public function __construct(
+        private readonly PruneOrphanGeometryPeriodGeoRefAction $pruneOrphanGeometryPeriodGeoRefs,
+    ) {}
+
     public function __invoke(EntityGeoRef $geoRef): void
     {
         DB::transaction(function () use ($geoRef): void {
@@ -21,6 +25,10 @@ class DeleteEntityGeoRefAction
             }
 
             $geoRef->delete();
+
+            if ($entity !== null) {
+                ($this->pruneOrphanGeometryPeriodGeoRefs)($entity);
+            }
         });
     }
 }

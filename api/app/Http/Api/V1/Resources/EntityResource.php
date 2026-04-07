@@ -77,6 +77,8 @@ class EntityResource extends JsonResource
             // Sources / Media
             'source_citations' => $this->source_citations,
             'media_refs' => $attrs['media_refs'] ?? null,
+            'geometry_periods_count' => $this->geometry_periods_count,
+            'timeline_entries_count' => $this->timeline_entries_count,
 
             // Relationships (conditionally loaded)
             'relationships' => $this->when(

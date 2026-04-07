@@ -7,7 +7,9 @@ namespace App\Actions\Entity;
 use App\Enums\ConfidenceLevel;
 use App\Enums\EntityGroup;
 use App\Enums\EntityType;
+use App\Enums\VerificationStatus;
 use App\Models\Entity;
+use App\Models\GeometryPeriod;
 use App\Services\ZoomImpactThreshold;
 use Illuminate\Support\Collection;
 
@@ -26,7 +28,7 @@ class MapEntitiesAction
 {
     /**
      * @param  array<string, mixed>  $filters
-     * @return array{entities: Collection<int, Entity>}
+        * @return array{entities: Collection<int, Entity>, territories: Collection<int, GeometryPeriod>}
      */
     public function __invoke(array $filters): array
     {
@@ -83,8 +85,49 @@ class MapEntitiesAction
 
         $entities = $query->limit($limit)->get();
 
+        $territories = collect();
+
+        if ((bool) ($filters['include_territories'] ?? false)) {
+            $territoryQuery = GeometryPeriod::query()
+                ->with(['entity'])
+                ->where('period_type', 'territory')
+                ->whereNotNull('territory_geom')
+                ->whereRaw(
+                    'territory_geom && ST_MakeEnvelope(?, ?, ?, ?, 4326)',
+                    [
+                        (float) $filters['bbox_min_lng'],
+                        (float) $filters['bbox_min_lat'],
+                        (float) $filters['bbox_max_lng'],
+                        (float) $filters['bbox_max_lat'],
+                    ],
+                )
+                ->whereHas('entity', function ($entityQuery) use ($minImpact): void {
+                    $entityQuery->whereIn('verification_status', [
+                        VerificationStatus::HumanVerified->value,
+                        VerificationStatus::ExpertVerified->value,
+                    ]);
+
+                    if ($minImpact !== null) {
+                        $entityQuery->where('impact_score', '>=', $minImpact);
+                    }
+                });
+
+            if (isset($filters['temporal_start'], $filters['temporal_end'])) {
+                $territoryQuery
+                    ->where('start_year', '<=', (int) $filters['temporal_end'])
+                    ->where('end_year', '>=', (int) $filters['temporal_start']);
+            }
+
+            $territories = $territoryQuery
+                ->orderBy('start_year')
+                ->orderBy('end_year')
+                ->limit($limit)
+                ->get();
+        }
+
         return [
             'entities' => $entities,
+            'territories' => $territories,
         ];
     }
 

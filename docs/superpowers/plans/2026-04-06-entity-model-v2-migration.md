@@ -369,24 +369,24 @@ git commit -m "feat: migrate snapshot endpoints to geometry period adapters"
 - Test: `api/tests/Feature/Api/EntityDetailGeometrySnapshotsCountTest.php`
 - Test: `api/tests/Feature/Feature/EntityGeoRefIntegrityTest.php`
 
-- [ ] **Step 1: Write or update failing tests for read-model consumers**
+- [x] **Step 1: Write or update failing tests for read-model consumers**
 
 Coverage:
 - map threshold endpoint reads matching geometry periods for territories
 - entity detail counts migrate from `geometrySnapshots` to geometry periods/timeline counts
 - geo-ref cleanup does not delete shared entity-level references incorrectly
 
-- [ ] **Step 2: Run focused tests to verify failure**
+- [x] **Step 2: Run focused tests to verify failure**
 
 Run: `docker compose exec app php artisan test api/tests/Feature/Api/MapEntitiesThresholdTest.php api/tests/Feature/Api/EntityDetailGeometrySnapshotsCountTest.php api/tests/Feature/Feature/EntityGeoRefIntegrityTest.php`
 Expected: FAIL once model lookups are changed.
 
-- [ ] **Step 3: Implement the read path switch and geo-ref pruning adjustments**
+- [x] **Step 3: Implement the read path switch and geo-ref pruning adjustments**
 
 Edge case:
 - period-level georef cleanup must distinguish entity-primary refs from derived/manual period refs
 
-- [ ] **Step 4: Rerun the focused tests**
+- [x] **Step 4: Rerun the focused tests**
 
 Run: `docker compose exec app php artisan test api/tests/Feature/Api/MapEntitiesThresholdTest.php api/tests/Feature/Api/EntityDetailGeometrySnapshotsCountTest.php api/tests/Feature/Feature/EntityGeoRefIntegrityTest.php`
 Expected: PASS.
