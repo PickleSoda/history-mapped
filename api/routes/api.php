@@ -4,6 +4,7 @@ use App\Http\Api\V1\Controllers\EntityController;
 use App\Http\Api\V1\Controllers\EntityGeoRefController;
 use App\Http\Api\V1\Controllers\EntityRelationshipController;
 use App\Http\Api\V1\Controllers\EntityTimelineController;
+use App\Http\Api\V1\Controllers\GeometrySnapshotController;
 use App\Http\Api\V1\Controllers\MapResolutionController;
 use App\Http\Api\V1\Controllers\ReferenceController;
 use App\Http\Api\V1\Controllers\SourceController;
@@ -46,6 +47,13 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/entities/{entity}/timeline', [EntityTimelineController::class, 'index'])
         ->name('api.v1.entities.timeline.index');
+
+    // Legacy compatibility endpoints mapped to geometry periods.
+    Route::get('/entities/{entity}/geometry-snapshots', [GeometrySnapshotController::class, 'index'])
+        ->name('api.v1.entities.geometry-snapshots.index');
+
+    Route::get('/entities/{entity}/geometry-snapshots/at-year/{year}', [GeometrySnapshotController::class, 'atYear'])
+        ->name('api.v1.entities.geometry-snapshots.at-year');
 
     // Sources
     Route::get('/sources', [SourceController::class, 'index'])
