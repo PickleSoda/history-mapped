@@ -1,13 +1,13 @@
 # Entity Model V2 Rollout Notes
 
-Date: 2026-04-07
+Date: 2026-04-08
 
 ## Required Backfill Order
 
-1. Run core v2 backfill to seed normalized tables from legacy entity fields.
+1. Run core v2 backfill to confirm canonical table idempotency.
 2. Run timeline rebuild (`timeline:rebuild`) so `entity_timeline_entries` reflect geometry periods and temporal fallback.
 3. Re-run targeted integrity checks for geo refs and timeline counts.
-4. Keep compatibility endpoints enabled until client consumers are migrated.
+4. Confirm no legacy-table/column references remain in app and test paths.
 
 Suggested command order:
 
@@ -19,21 +19,17 @@ docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feat
 
 ## Safe Rollback Point
 
-Safe rollback point is immediately before enabling `ENTITY_MODEL_V2_WRITE_ENABLED=true` in production.
+Safe rollback point is immediately before applying migration `2026_04_08_000002_drop_legacy_entity_fields_and_snapshot_table`.
 
 Rollback procedure:
 
-1. Set `ENTITY_MODEL_V2_WRITE_ENABLED=false`.
-2. Keep `GEOMETRY_SNAPSHOT_COMPAT_READ_ENABLED=true`.
-3. Re-run `timeline:rebuild` for consistency if period writes were made while transitioning.
+1. Restore DB from backup or run migration rollback to re-add legacy columns.
+2. Re-run `timeline:rebuild` for consistency if period writes were made while transitioning.
 
 ## Compatibility Flags Used
 
-  - `false`: legacy entity temporal/location writes still active.
-  - `true`: legacy entity temporal/location writes disabled; legacy geometry-snapshot write endpoints return HTTP 410.
-
-  - `true`: compatibility read endpoints remain available during migration.
-  - `false`: disable compatibility read path after all clients switch to v2/timeline reads.
+- `ENTITY_MODEL_V2_WRITE_ENABLED`: retained for rollout safety but write paths are now v2-only.
+- `GEOMETRY_SNAPSHOT_COMPAT_READ_ENABLED`: no longer used; geometry snapshot compatibility surface has been removed.
 
 ## Data Audit Queries (Manual Geometry Periods)
 

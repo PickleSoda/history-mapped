@@ -20,6 +20,8 @@ The primary name of the entity, in English or the most widely accepted scholarly
 **Optional.** Array of strings.
 Other names this entity is known by: local-language names, transliterations, earlier or later names, names in other scholarly traditions.
 
+Storage note: persisted in `entity_aliases` (one row per alias); exposed through API as `alternative_names`.
+
 *Examples:*
 - `["Qart-hadasht", "Cartagena", "Karchedon"]` (for Carthage)
 - `["Tamerlane", "Timur-i-lang", "Аmir Temur"]` (for Timur)
@@ -51,6 +53,8 @@ Longer passage explaining why the entity matters and what its historical consequ
 ### `tags`
 **Optional.** Array of strings (free-form labels).
 Used for thematic filtering and clustering. Lower-case, underscore-separated.
+
+Storage note: persisted in `entity_tags` (one row per tag); exposed through API as `tags`.
 
 *Common conventions:* `iron_age`, `bronze_age`, `mediterranean`, `steppe`, `nomadic`, `maritime`, `collapse`, `urbanisation`, `religious_conflict`, `trade`, `plague`
 

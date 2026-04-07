@@ -25,7 +25,7 @@ class EntityModelV2DeprecationTest extends TestCase
         config()->set('entity_model.entity_model_v2_write_enabled', true);
     }
 
-    public function test_create_does_not_write_legacy_temporal_location_or_geometry_columns_when_v2_writes_enabled(): void
+    public function test_create_writes_temporal_and_location_data_to_canonical_v2_tables(): void
     {
         $response = $this->actingAs($this->user)
             ->post(route('entities.store'), [
@@ -50,26 +50,23 @@ class EntityModelV2DeprecationTest extends TestCase
 
         $entity = Entity::query()->where('name', 'Late Bronze Age polity')->firstOrFail();
 
-        $this->assertNull($entity->temporal_start);
-        $this->assertNull($entity->temporal_end);
-        $this->assertNull($entity->temporal_start_year);
-        $this->assertNull($entity->temporal_end_year);
-        $this->assertNull($entity->location_name);
-        $this->assertNull($entity->geom);
-        $this->assertNull($entity->territory_geom);
+        $this->assertDatabaseHas('entity_temporal_ranges', [
+            'entity_id' => $entity->entity_id,
+            'is_primary' => true,
+            'start_year' => -1200,
+            'end_year' => -1100,
+        ]);
+
+        $this->assertDatabaseHas('entity_locations', [
+            'entity_id' => $entity->entity_id,
+            'is_primary' => true,
+            'location_name' => 'Eastern Mediterranean',
+        ]);
     }
 
-    public function test_update_does_not_mutate_legacy_temporal_location_or_geometry_columns_when_v2_writes_enabled(): void
+    public function test_update_writes_temporal_and_location_data_to_canonical_v2_tables(): void
     {
-        $entity = Entity::factory()->create([
-            'temporal_start' => null,
-            'temporal_end' => null,
-            'temporal_start_year' => null,
-            'temporal_end_year' => null,
-            'location_name' => null,
-            'geom' => null,
-            'territory_geom' => null,
-        ]);
+        $entity = Entity::factory()->create();
 
         $this->actingAs($this->user)
             ->putJson(route('api.v1.entities.update', $entity->entity_id), [
@@ -90,13 +87,18 @@ class EntityModelV2DeprecationTest extends TestCase
 
         $entity->refresh();
 
-        $this->assertNull($entity->temporal_start);
-        $this->assertNull($entity->temporal_end);
-        $this->assertNull($entity->temporal_start_year);
-        $this->assertNull($entity->temporal_end_year);
-        $this->assertNull($entity->location_name);
-        $this->assertNull($entity->geom);
-        $this->assertNull($entity->territory_geom);
+        $this->assertDatabaseHas('entity_temporal_ranges', [
+            'entity_id' => $entity->entity_id,
+            'is_primary' => true,
+            'start_year' => -500,
+            'end_year' => -450,
+        ]);
+
+        $this->assertDatabaseHas('entity_locations', [
+            'entity_id' => $entity->entity_id,
+            'is_primary' => true,
+            'location_name' => 'Aegean basin',
+        ]);
     }
 
     public function test_legacy_geometry_snapshot_write_endpoint_is_removed_when_v2_writes_enabled(): void

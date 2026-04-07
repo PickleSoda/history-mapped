@@ -30,8 +30,42 @@ class HydrateEntityGeometryFromGeoRefAction
 
         DB::transaction(function () use ($currentEntity, $geoRef, $normalized, $column, $locationMethod): void {
             DB::statement(
-                sprintf('UPDATE entities SET %s = ST_SetSRID(ST_GeomFromGeoJSON(?), 4326) WHERE entity_id = ?', $column),
-                [json_encode($normalized), $currentEntity->entity_id],
+                sprintf(
+                    "UPDATE entity_locations
+                     SET %s = ST_SetSRID(ST_GeomFromGeoJSON(?), 4326),
+                                                 location_method = COALESCE(location_method, ?),
+                         updated_at = NOW()
+                     WHERE entity_id = ?
+                       AND is_primary = true",
+                    $column,
+                ),
+                [json_encode($normalized), $locationMethod, $currentEntity->entity_id],
+            );
+
+            DB::statement(
+                sprintf(
+                    "INSERT INTO entity_locations (
+                        location_id, entity_id, location_name, %s,
+                        location_method, location_confidence, is_primary,
+                        created_at, updated_at
+                    )
+                    SELECT
+                        gen_random_uuid(), ?, NULL,
+                        ST_SetSRID(ST_GeomFromGeoJSON(?), 4326),
+                        ?, NULL, true,
+                        NOW(), NOW()
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM entity_locations
+                        WHERE entity_id = ? AND is_primary = true
+                    )",
+                    $column,
+                ),
+                [
+                    $currentEntity->entity_id,
+                    json_encode($normalized),
+                    $locationMethod,
+                    $currentEntity->entity_id,
+                ],
             );
 
             if ($currentEntity->primary_geo_ref_id === $geoRef->geo_ref_id && $locationMethod !== null) {

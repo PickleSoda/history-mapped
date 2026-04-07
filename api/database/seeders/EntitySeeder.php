@@ -36,42 +36,119 @@ class EntitySeeder extends Seeder
 
         foreach ($entities as $entity) {
             $id = $entity['entity_id'];
+            $legacyAlternativeNames = $entity['alternative_names'] ?? null;
+            $legacyTags = $entity['tags'] ?? null;
+            $legacyTemporalStart = $entity['temporal_start'] ?? null;
+            $legacyTemporalEnd = $entity['temporal_end'] ?? null;
+            $legacyLocationName = $entity['location_name'] ?? null;
+
+            unset(
+                $entity['alternative_names'],
+                $entity['tags'],
+                $entity['temporal_start'],
+                $entity['temporal_end'],
+                $entity['temporal_start_year'],
+                $entity['temporal_end_year'],
+                $entity['location_name'],
+            );
 
             DB::table('entities')->insert($entity);
 
-            // Add point geometry if defined
-            if (isset($this->geometries[$id])) {
-                $coords = $this->geometries[$id];
-                DB::statement(
-                    'UPDATE entities SET geom = ST_SetSRID(ST_MakePoint(?, ?), 4326) WHERE entity_id = ?',
-                    [$coords['lon'], $coords['lat'], $id],
-                );
+            foreach ($this->parsePgTextArrayLiteral($legacyAlternativeNames) as $alias) {
+                DB::table('entity_aliases')->insert([
+                    'alias_id' => DB::raw('gen_random_uuid()'),
+                    'entity_id' => $id,
+                    'name' => $alias,
+                    'is_primary' => false,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
             }
 
-            // Add territory polygon if defined
-            if (isset($this->territories[$id])) {
+            foreach ($this->parsePgTextArrayLiteral($legacyTags) as $tag) {
+                DB::table('entity_tags')->insert([
+                    'entity_tag_id' => DB::raw('gen_random_uuid()'),
+                    'entity_id' => $id,
+                    'tag' => $tag,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            if ($legacyTemporalStart !== null || $legacyTemporalEnd !== null) {
+                DB::table('entity_temporal_ranges')->insert([
+                    'temporal_range_id' => DB::raw('gen_random_uuid()'),
+                    'entity_id' => $id,
+                    'range_type' => 'primary',
+                    'start_year' => $legacyTemporalStart !== null ? $this->extractYear((string) $legacyTemporalStart) : null,
+                    'end_year' => $legacyTemporalEnd !== null ? $this->extractYear((string) $legacyTemporalEnd) : null,
+                    'start_date' => $legacyTemporalStart,
+                    'end_date' => $legacyTemporalEnd,
+                    'duration_type' => $entity['duration_type'] ?? null,
+                    'date_method' => $entity['date_method'] ?? null,
+                    'date_confidence' => $entity['date_confidence'] ?? null,
+                    'is_primary' => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            if ($legacyLocationName !== null || isset($this->geometries[$id]) || isset($this->territories[$id])) {
+                $geomExpression = 'NULL';
+                if (isset($this->geometries[$id])) {
+                    $coords = $this->geometries[$id];
+                    $geomExpression = sprintf('ST_SetSRID(ST_MakePoint(%F, %F), 4326)', $coords['lon'], $coords['lat']);
+                }
+
+                $territoryExpression = 'NULL';
+                if (isset($this->territories[$id])) {
+                    $territoryExpression = "ST_SetSRID(ST_GeomFromGeoJSON('" . str_replace("'", "''", $this->territories[$id]) . "'), 4326)";
+                }
+
                 DB::statement(
-                    'UPDATE entities SET territory_geom = ST_SetSRID(ST_GeomFromGeoJSON(?), 4326) WHERE entity_id = ?',
-                    [$this->territories[$id], $id],
+                    "INSERT INTO entity_locations (
+                        location_id, entity_id, location_name, geom, territory_geom,
+                        location_method, location_confidence, is_primary, created_at, updated_at
+                    ) VALUES (
+                        gen_random_uuid(), ?, ?, {$geomExpression}, {$territoryExpression},
+                        ?::location_resolution_method, ?::confidence_level, true, NOW(), NOW()
+                    )",
+                    [
+                        $id,
+                        $legacyLocationName,
+                        $entity['location_method'] ?? null,
+                        $entity['location_confidence'] ?? null,
+                    ],
                 );
             }
         }
+    }
 
-        // Derive integer year columns from text temporal values
-        DB::statement("
-            UPDATE entities
-            SET temporal_start_year = CAST(SUBSTRING(temporal_start FROM '^-?\\d+') AS integer)
-            WHERE temporal_start IS NOT NULL
-              AND temporal_start ~ '^-?\\d+'
-              AND temporal_start_year IS NULL
-        ");
-        DB::statement("
-            UPDATE entities
-            SET temporal_end_year = CAST(SUBSTRING(temporal_end FROM '^-?\\d+') AS integer)
-            WHERE temporal_end IS NOT NULL
-              AND temporal_end ~ '^-?\\d+'
-              AND temporal_end_year IS NULL
-        ");
+    /** @return list<string> */
+    private function parsePgTextArrayLiteral(mixed $value): array
+    {
+        if (! is_string($value) || $value === '' || $value === '{}') {
+            return [];
+        }
+
+        $trimmed = trim($value, '{}');
+        if ($trimmed === '') {
+            return [];
+        }
+
+        /** @var list<string> $items */
+        $items = str_getcsv($trimmed);
+
+        return array_values(array_filter(array_map('trim', $items), static fn (string $item): bool => $item !== ''));
+    }
+
+    private function extractYear(string $value): ?int
+    {
+        if (preg_match('/^-?\d+/', trim($value), $matches) !== 1) {
+            return null;
+        }
+
+        return (int) $matches[0];
     }
 
     /**

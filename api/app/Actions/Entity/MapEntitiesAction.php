@@ -36,7 +36,13 @@ class MapEntitiesAction
 
         $query = Entity::query()
             ->selectForMap()
-            ->whereNotNull('geom');
+            ->whereExists(function ($locationQuery): void {
+                $locationQuery->selectRaw('1')
+                    ->from('entity_locations as el')
+                    ->whereColumn('el.entity_id', 'entities.entity_id')
+                    ->where('el.is_primary', true)
+                    ->whereNotNull('el.geom');
+            });
 
         // Bounding box is required for map queries
         $query->inBbox(

@@ -19,9 +19,26 @@ class MapEntitiesThresholdTest extends TestCase
      */
     private function setGeom(Entity $entity, float $lng = 12.5, float $lat = 41.9): void
     {
-        DB::table('entities')
+        DB::table('entity_locations')
             ->where('entity_id', $entity->entity_id)
-            ->update(['geom' => DB::raw("ST_SetSRID(ST_Point({$lng}, {$lat}), 4326)")]);
+            ->where('is_primary', true)
+            ->delete();
+
+        DB::statement(
+            "INSERT INTO entity_locations (
+                location_id, entity_id, location_name, geom,
+                location_method, location_confidence, is_primary, created_at, updated_at
+            ) VALUES (
+                gen_random_uuid(), ?, NULL,
+                ST_SetSRID(ST_Point(?, ?), 4326),
+                'human_assigned'::location_resolution_method,
+                'high'::confidence_level,
+                true,
+                NOW(),
+                NOW()
+            )",
+            [$entity->entity_id, $lng, $lat],
+        );
     }
 
     public function test_map_endpoint_requires_bbox(): void

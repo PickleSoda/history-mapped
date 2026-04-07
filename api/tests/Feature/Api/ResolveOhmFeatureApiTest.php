@@ -16,16 +16,69 @@ class ResolveOhmFeatureApiTest extends TestCase
 
     private function setEntityPointGeom(Entity $entity, float $lng, float $lat): void
     {
+        $hasPrimary = DB::table('entity_locations')
+            ->where('entity_id', $entity->entity_id)
+            ->where('is_primary', true)
+            ->exists();
+
+        if ($hasPrimary) {
+            DB::statement(
+                "UPDATE entity_locations
+                 SET geom = ST_SetSRID(ST_MakePoint(?, ?), 4326), updated_at = NOW()
+                 WHERE entity_id = ? AND is_primary = true",
+                [$lng, $lat, $entity->entity_id],
+            );
+
+            return;
+        }
+
         DB::statement(
-            'UPDATE entities SET geom = ST_SetSRID(ST_MakePoint(?, ?), 4326) WHERE entity_id = ?',
-            [$lng, $lat, $entity->entity_id],
+            "INSERT INTO entity_locations (
+                location_id, entity_id, location_name, geom,
+                location_method, location_confidence, is_primary, created_at, updated_at
+            ) VALUES (
+                gen_random_uuid(), ?, NULL,
+                ST_SetSRID(ST_MakePoint(?, ?), 4326),
+                'human_assigned'::location_resolution_method,
+                'high'::confidence_level,
+                true,
+                NOW(), NOW()
+            )",
+            [$entity->entity_id, $lng, $lat],
         );
     }
 
     private function setEntityTerritoryGeom(Entity $entity): void
     {
+        $hasPrimary = DB::table('entity_locations')
+            ->where('entity_id', $entity->entity_id)
+            ->where('is_primary', true)
+            ->exists();
+
+        if ($hasPrimary) {
+            DB::statement(
+                "UPDATE entity_locations
+                 SET territory_geom = ST_GeomFromText('POLYGON((10 40, 15 40, 15 45, 10 45, 10 40))', 4326),
+                     updated_at = NOW()
+                 WHERE entity_id = ? AND is_primary = true",
+                [$entity->entity_id],
+            );
+
+            return;
+        }
+
         DB::statement(
-            "UPDATE entities SET territory_geom = ST_GeomFromText('POLYGON((10 40, 15 40, 15 45, 10 45, 10 40))', 4326) WHERE entity_id = ?",
+            "INSERT INTO entity_locations (
+                location_id, entity_id, location_name, territory_geom,
+                location_method, location_confidence, is_primary, created_at, updated_at
+            ) VALUES (
+                gen_random_uuid(), ?, NULL,
+                ST_GeomFromText('POLYGON((10 40, 15 40, 15 45, 10 45, 10 40))', 4326),
+                'human_assigned'::location_resolution_method,
+                'high'::confidence_level,
+                true,
+                NOW(), NOW()
+            )",
             [$entity->entity_id],
         );
     }

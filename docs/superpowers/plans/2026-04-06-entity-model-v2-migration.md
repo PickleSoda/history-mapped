@@ -617,24 +617,24 @@ git commit -m "chore: align seeders and schema for legacy drop phase a"
 - Test: `api/tests/Feature/Api/EntityDetailGeometrySnapshotsCountTest.php`
 - Test: `api/tests/Feature/Feature/EntityGeoRefIntegrityTest.php`
 
-- [ ] **Step 1: Add failing schema assertions that legacy artifacts are removed**
+- [x] **Step 1: Add failing schema assertions that legacy artifacts are removed**
 
 Required absent artifacts:
 - table: `geometry_snapshots`
 - columns on `entities`: `geom`, `territory_geom`, `location_name`, `temporal_start`, `temporal_end`, `temporal_start_year`, `temporal_end_year`, `alternative_names`, `tags`
 
-- [ ] **Step 2: Run schema and impacted suites to verify failure**
+- [x] **Step 2: Run schema and impacted suites to verify failure**
 
 Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelV2SchemaTest.php api/tests/Feature/Api/EntityTimelineApiTest.php api/tests/Feature/Api/MapEntitiesThresholdTest.php api/tests/Feature/Api/EntityDetailGeometrySnapshotsCountTest.php api/tests/Feature/Feature/EntityGeoRefIntegrityTest.php`
 Expected: FAIL before final migration and model cleanup.
 
-- [ ] **Step 3: Implement migration B hard-drop and model/doc cleanup**
+- [x] **Step 3: Implement migration B hard-drop and model/doc cleanup**
 
 Rules:
 - remove legacy fillable/casts/relations from `Entity` that target dropped artifacts
 - update docs to v2-only model semantics
 
-- [ ] **Step 4: Run full verification suite**
+- [x] **Step 4: Run full verification suite**
 
 Run:
 - `docker compose exec app php artisan test`
