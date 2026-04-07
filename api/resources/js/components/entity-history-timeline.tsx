@@ -1,19 +1,17 @@
 import { Badge } from '@/components/ui/badge';
-import type { GeometrySnapshot, Relationship } from '@/types/entity';
+import type { Relationship } from '@/types/entity';
 
 export type TimelineItem = {
     id: string;
-    kind: 'snapshot' | 'relationship';
+    kind: 'relationship';
     startYear: number | null;
     endYear: number | null;
     title: string;
     subtitle?: string;
-    snapshot?: GeometrySnapshot;
     relationship?: Relationship;
 };
 
 export type SelectedTimelineItem =
-    | { kind: 'snapshot'; id: string }
     | { kind: 'relationship'; id: string }
     | null;
 
@@ -46,7 +44,7 @@ export default function EntityHistoryTimeline({
             )}
             {!loading && !loadError && items.length === 0 && (
                 <p className="text-sm text-muted-foreground">
-                    No snapshots or relationships with timeline data.
+                    No relationships with timeline data.
                 </p>
             )}
 
@@ -55,11 +53,7 @@ export default function EntityHistoryTimeline({
                 items.map((item) => {
                     const selected =
                         selectedItem?.kind === item.kind &&
-                        ((item.kind === 'snapshot' &&
-                            item.snapshot?.snapshot_id === selectedItem.id) ||
-                            (item.kind === 'relationship' &&
-                                item.relationship?.relationship_id ===
-                                    selectedItem.id));
+                        item.relationship?.relationship_id === selectedItem.id;
 
                     // Ref for scrolling/focusing
                     const ref = (el: HTMLDivElement | null) => {
@@ -76,20 +70,12 @@ export default function EntityHistoryTimeline({
                             className="relative group"
                             ref={ref}
                             onMouseEnter={() => {
-                                const hovered =
-                                    item.kind === 'snapshot'
-                                        ? item.snapshot?.snapshot_id
-                                            ? {
-                                                  kind: 'snapshot' as const,
-                                                  id: item.snapshot.snapshot_id,
-                                              }
-                                            : null
-                                        : item.relationship?.relationship_id
-                                          ? {
-                                                kind: 'relationship' as const,
-                                                id: item.relationship.relationship_id,
-                                            }
-                                          : null;
+                                const hovered = item.relationship?.relationship_id
+                                    ? {
+                                          kind: 'relationship' as const,
+                                          id: item.relationship.relationship_id,
+                                      }
+                                    : null;
 
                                 onHover?.(hovered);
                             }}
@@ -100,20 +86,12 @@ export default function EntityHistoryTimeline({
                             <button
                                 type="button"
                                 onClick={() => {
-                                    const nextSelection =
-                                        item.kind === 'snapshot'
-                                            ? item.snapshot?.snapshot_id
-                                                ? {
-                                                      kind: 'snapshot' as const,
-                                                      id: item.snapshot.snapshot_id,
-                                                  }
-                                                : null
-                                            : item.relationship?.relationship_id
-                                              ? {
-                                                    kind: 'relationship' as const,
-                                                    id: item.relationship.relationship_id,
-                                                }
-                                              : null;
+                                    const nextSelection = item.relationship?.relationship_id
+                                        ? {
+                                              kind: 'relationship' as const,
+                                              id: item.relationship.relationship_id,
+                                          }
+                                        : null;
 
                                     if (!nextSelection) {
                                         return;
@@ -134,11 +112,7 @@ export default function EntityHistoryTimeline({
                             >
                                 <div className="mb-1 flex items-center justify-between gap-2">
                                     <Badge
-                                        variant={
-                                            item.kind === 'snapshot'
-                                                ? 'secondary'
-                                                : 'outline'
-                                        }
+                                        variant="outline"
                                     >
                                         {item.kind}
                                     </Badge>

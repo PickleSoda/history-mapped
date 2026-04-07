@@ -5,7 +5,7 @@
  * Outgoing relationships (where this entity is the source) can be deleted.
  * Incoming relationships are shown read-only.
  *
- * Auto-snapshots are created server-side transparently when applicable.
+ * Derived presence geometry is created server-side transparently when applicable.
  *
  * Communicates with Admin\RelationshipController via JSON fetch.
  */
@@ -135,8 +135,8 @@ const CONFIDENCE_OPTIONS: Array<{ value: ConfidenceLevel; label: string }> = [
     { value: 'unresolved', label: 'Unresolved' },
 ];
 
-/** Relationship types that trigger auto-snapshot creation. */
-const AUTO_SNAPSHOT_TYPES = new Set([
+/** Relationship types that trigger derived presence geometry creation. */
+const AUTO_PRESENCE_TYPES = new Set([
     'signed_by',
     'commanded',
     'fought_at',
@@ -362,8 +362,8 @@ export default function RelationshipPanel({
                 <div>
                     <h3 className="text-sm font-semibold">Relationships</h3>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                        Connections to other entities. Auto-snapshots are
-                        created for presence-type links.
+                        Connections to other entities. Presence-type links can
+                        derive timeline geometry automatically.
                     </p>
                 </div>
                 {!readonly && (
@@ -467,10 +467,12 @@ function RelationshipRow({
     deleting: boolean;
 }) {
     const typeLabel = relationship.relationship_type.replace(/_/g, ' ');
-    const isAutoSnapshot = AUTO_SNAPSHOT_TYPES.has(
+    const hasDerivedPresence = AUTO_PRESENCE_TYPES.has(
         relationship.relationship_type,
     );
     const entityName = relationship.related_entity?.name ?? '—';
+    const relatedIsDraft =
+        relationship.related_entity?.verification_status === 'pipeline_draft';
     const temporalRange = formatTemporalRange(
         relationship.temporal_start,
         relationship.temporal_end,
@@ -481,12 +483,17 @@ function RelationshipRow({
             <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-1.5">
                     <span className="text-sm font-medium">{entityName}</span>
+                    {relatedIsDraft && (
+                        <Badge variant="secondary" className="text-[10px]">
+                            draft
+                        </Badge>
+                    )}
                     <Badge variant="outline" className="text-[10px]">
                         {typeLabel}
                     </Badge>
-                    {isAutoSnapshot && (
+                    {hasDerivedPresence && (
                         <Badge variant="secondary" className="text-[10px]">
-                            auto-snapshot
+                            derived presence
                         </Badge>
                     )}
                     {relationship.confidence && (
@@ -707,7 +714,7 @@ function RelationshipForm({
                             {types.map((t) => (
                                 <option key={t.value} value={t.value}>
                                     {t.label}
-                                    {AUTO_SNAPSHOT_TYPES.has(t.value)
+                                    {AUTO_PRESENCE_TYPES.has(t.value)
                                         ? ' ★'
                                         : ''}
                                 </option>
@@ -715,9 +722,9 @@ function RelationshipForm({
                         </optgroup>
                     ))}
                 </select>
-                {AUTO_SNAPSHOT_TYPES.has(form.relationship_type) && (
+                {AUTO_PRESENCE_TYPES.has(form.relationship_type) && (
                     <p className="text-xs text-muted-foreground">
-                        ★ This type will auto-create a presence snapshot if the
+                        ★ This type can auto-create derived presence geometry if the
                         entity has point geometry.
                     </p>
                 )}

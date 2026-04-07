@@ -1,8 +1,8 @@
 import { Head, router } from '@inertiajs/react';
 import { lazy, Suspense, useState } from 'react';
 import EntityForm, { defaultFormData } from '@/components/entity-form';
-import EntityGeoRefEditor from '@/components/entity-geo-ref-editor';
 import type { EntityFormData } from '@/components/entity-form';
+import EntityGeoRefEditor from '@/components/entity-geo-ref-editor';
 import HistoricalMapViewer from '@/components/historical-map-viewer';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
@@ -10,11 +10,9 @@ import type { GeoJsonLike } from '@/lib/geojson';
 import { yearToOhmDate } from '@/lib/ohm-date';
 import { update } from '@/routes/entities';
 import * as RelationshipRoutes from '@/routes/entities/relationships';
-import * as SnapshotRoutes from '@/routes/entities/snapshots';
 import type { BreadcrumbItem, EntityDetail, EntityFormOptions } from '@/types';
 
 const MapEditor = lazy(() => import('@/components/map-editor'));
-const SnapshotBuilder = lazy(() => import('@/components/snapshot-builder'));
 const RelationshipPanel = lazy(() => import('@/components/relationship-panel'));
 
 type Props = {
@@ -95,7 +93,6 @@ export default function EntityEdit({ entity, formOptions }: Props) {
         entity.territory_geojson ?? null,
     );
     const [mapOpen, setMapOpen] = useState(false);
-    const [snapshotOpen, setSnapshotOpen] = useState(false);
     const [relationshipOpen, setRelationshipOpen] = useState(false);
     const entityStartYear = Number(entity.temporal_start);
     const timeframeDate = Number.isFinite(entityStartYear)
@@ -271,53 +268,6 @@ export default function EntityEdit({ entity, formOptions }: Props) {
                                     Save with geometry
                                 </Button>
                             </div>
-                        </div>
-                    )}
-                </div>
-                {/* Snapshot builder — collapsible */}
-                <div className="mt-4 rounded-lg border">
-                    <button
-                        type="button"
-                        onClick={() => setSnapshotOpen((v) => !v)}
-                        className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium"
-                    >
-                        <span>Geometry Snapshots</span>
-                        <span className="text-xs text-muted-foreground">
-                            {snapshotOpen ? 'Collapse' : 'Expand'}
-                        </span>
-                    </button>
-
-                    {snapshotOpen && (
-                        <div className="border-t p-4">
-                            <Suspense
-                                fallback={
-                                    <div className="flex h-24 items-center justify-center text-sm text-muted-foreground">
-                                        Loading snapshot builder…
-                                    </div>
-                                }
-                            >
-                                <SnapshotBuilder
-                                    entityId={entity.id}
-                                    listUrl={SnapshotRoutes.index.url(
-                                        entity.id,
-                                    )}
-                                    storeUrl={SnapshotRoutes.store.url(
-                                        entity.id,
-                                    )}
-                                    updateUrlFn={(snapshotId) =>
-                                        SnapshotRoutes.update.url({
-                                            entity: entity.id,
-                                            snapshot: snapshotId,
-                                        })
-                                    }
-                                    deleteUrlFn={(snapshotId) =>
-                                        SnapshotRoutes.destroy.url({
-                                            entity: entity.id,
-                                            snapshot: snapshotId,
-                                        })
-                                    }
-                                />
-                            </Suspense>
                         </div>
                     )}
                 </div>

@@ -142,7 +142,7 @@ For empires and states whose borders shifted substantially over time, the `terri
 
 > *"Territory polygon represents approximate maximum extent c. 120 CE under Trajan. Earlier and later extents were significantly different."*
 
-If the system later supports time-varying geometries, this field will be split into multiple snapshots. For now, document the time it refers to.
+For time-varying geometries, this field should map into multiple geometry periods. For now, document the time it refers to.
 
 ### The entity has no meaningful single point
 

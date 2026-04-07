@@ -7,14 +7,13 @@ import TimeframeRangeSelector from '@/components/timeframe-range-selector';
 import { normalizeToFeatureCollection } from '@/lib/geojson';
 import type { GeoJsonLike } from '@/lib/geojson';
 import { yearToOhmDate } from '@/lib/ohm-date';
-import type { GeometrySnapshot, Relationship } from '@/types/entity';
+import type { Relationship } from '@/types/entity';
 
 type Props = {
     entityGeojson: GeoJsonLike;
     entityTerritoryGeojson: GeoJsonLike;
     entityTemporalStart?: string | null;
     entityTemporalEnd?: string | null;
-    snapshotsUrl: string;
     relationshipsUrl: string;
 };
 
@@ -24,7 +23,6 @@ export default function EntityHistoryPanel({
     entityTerritoryGeojson,
     entityTemporalStart,
     entityTemporalEnd,
-    snapshotsUrl,
     relationshipsUrl,
 }: Props) {
     const [selectedItem, setSelectedItem] = useState<SelectedTimelineItem>(
@@ -35,22 +33,6 @@ export default function EntityHistoryPanel({
         startYear: number | null;
         endYear: number | null;
     } | null>(null);
-
-    const snapshotsQuery = useQuery({
-        queryKey: ['entity-history', 'snapshots', snapshotsUrl],
-        enabled: Boolean(snapshotsUrl),
-        queryFn: async () => {
-            const response = await fetch(snapshotsUrl, {
-                headers: { Accept: 'application/json' },
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-
-            return (await response.json()) as { snapshots: GeometrySnapshot[] };
-        },
-    });
 
     const relationshipsQuery = useQuery({
         queryKey: ['entity-history', 'relationships', relationshipsUrl],
@@ -71,10 +53,6 @@ export default function EntityHistoryPanel({
         },
     });
 
-    const snapshots = useMemo(
-        () => snapshotsQuery.data?.snapshots ?? [],
-        [snapshotsQuery.data?.snapshots],
-    );
     const relationships = useMemo(
         () => [
             ...(relationshipsQuery.data?.outgoing ?? []),
@@ -82,25 +60,10 @@ export default function EntityHistoryPanel({
         ],
         [relationshipsQuery.data?.incoming, relationshipsQuery.data?.outgoing],
     );
-    const loading = snapshotsQuery.isLoading || relationshipsQuery.isLoading;
-    const loadError = snapshotsQuery.isError || relationshipsQuery.isError
+    const loading = relationshipsQuery.isLoading;
+    const loadError = relationshipsQuery.isError
         ? 'Failed to load timeline data.'
         : null;
-
-    const activeSnapshot = useMemo(
-        () => {
-            if (selectedItem?.kind !== 'snapshot') {
-                return null;
-            }
-
-            return (
-                snapshots.find(
-                    (snapshot) => snapshot.snapshot_id === selectedItem.id,
-                ) ?? null
-            );
-        },
-        [selectedItem, snapshots],
-    );
 
     const activeRelationship = useMemo(() => {
         if (selectedItem?.kind !== 'relationship') {
@@ -127,16 +90,6 @@ export default function EntityHistoryPanel({
     }, [hoveredItem, relationships]);
 
     const timelineItems = useMemo<TimelineItem[]>(() => {
-        const snapshotItems: TimelineItem[] = snapshots.map((snapshot) => ({
-            id: `snapshot:${snapshot.snapshot_id}`,
-            kind: 'snapshot',
-            startYear: snapshot.year_start,
-            endYear: snapshot.year_end,
-            title: snapshot.label ?? 'Geometry Snapshot',
-            subtitle: snapshot.description ?? undefined,
-            snapshot,
-        }));
-
         const relationshipItems: TimelineItem[] = relationships.map(
             (relationship) => {
                 const direction =
@@ -160,7 +113,7 @@ export default function EntityHistoryPanel({
             },
         );
 
-        return [...snapshotItems, ...relationshipItems].sort((a, b) => {
+        return relationshipItems.sort((a, b) => {
             const aStart = a.startYear ?? Number.POSITIVE_INFINITY;
             const bStart = b.startYear ?? Number.POSITIVE_INFINITY;
 
@@ -173,7 +126,7 @@ export default function EntityHistoryPanel({
 
             return aEnd - bEnd;
         });
-    }, [relationships, snapshots]);
+    }, [relationships]);
 
     const baseGeometries = useMemo(
         () => [entityGeojson, entityTerritoryGeojson],
@@ -213,26 +166,6 @@ export default function EntityHistoryPanel({
     );
 
     const overlayGeometries = useMemo<GeoJsonLike[]>(() => {
-        // If a snapshot is selected, show only that snapshot's geometry
-        if (activeSnapshot) {
-            return [
-                enrichGeoJson(activeSnapshot.geojson ?? null, {
-                    snapshot_id: activeSnapshot.snapshot_id,
-                    label: activeSnapshot.label,
-                    summary: activeSnapshot.description,
-                    year_start: activeSnapshot.year_start,
-                    year_end: activeSnapshot.year_end,
-                }),
-                enrichGeoJson(activeSnapshot.territory_geojson ?? null, {
-                    snapshot_id: activeSnapshot.snapshot_id,
-                    label: activeSnapshot.label,
-                    summary: activeSnapshot.description,
-                    year_start: activeSnapshot.year_start,
-                    year_end: activeSnapshot.year_end,
-                }),
-            ];
-        }
-
         // If a relationship is selected, show selected geometry and optional hovered preview geometry.
         if (activeRelationship?.related_entity) {
             const selectedGeometries = relationshipToOverlayGeometries(
@@ -273,51 +206,46 @@ export default function EntityHistoryPanel({
         return allRelated.length > 0 ? allRelated : [null, null];
     }, [
         activeRelationship,
-        activeSnapshot,
         hoveredRelationship,
         relationshipToOverlayGeometries,
         relationships,
     ]);
 
-    // Derive OHM date bounds from snapshot/entity temporal ranges.
+    // Derive OHM date bounds from selected relationship/entity temporal ranges.
     // Combine active selection bounds with entity temporal bounds for comparison.
     const timeframeStartDate = useMemo<string | null>(() => {
-        const activeStartYear = activeSnapshot?.year_start
-            ?? parseYear(activeRelationship?.temporal_start ?? null)
+        const activeStartYear = parseYear(activeRelationship?.temporal_start ?? null)
             ?? null;
         const entityStartYear = parseYear(entityTemporalStart ?? null);
         const startYear = minYear(activeStartYear, entityStartYear);
 
         return startYear != null ? yearToOhmDate(startYear) : null;
-    }, [activeRelationship, activeSnapshot, entityTemporalStart]);
+    }, [activeRelationship, entityTemporalStart]);
 
     const timeframeEndDate = useMemo<string | null>(() => {
-        const activeEndYear = activeSnapshot?.year_end
-            ?? parseYear(activeRelationship?.temporal_end ?? null)
+        const activeEndYear = parseYear(activeRelationship?.temporal_end ?? null)
             ?? null;
         const entityEndYear = parseYear(entityTemporalEnd ?? null);
         const endYear = maxYear(activeEndYear, entityEndYear);
 
         return endYear != null ? yearToOhmDate(endYear) : null;
-    }, [activeRelationship, activeSnapshot, entityTemporalEnd]);
+    }, [activeRelationship, entityTemporalEnd]);
 
     const derivedStartYear = useMemo(() => {
-        const activeStartYear = activeSnapshot?.year_start
-            ?? parseYear(activeRelationship?.temporal_start ?? null)
+        const activeStartYear = parseYear(activeRelationship?.temporal_start ?? null)
             ?? null;
         const entityStartYear = parseYear(entityTemporalStart ?? null);
 
         return minYear(activeStartYear, entityStartYear);
-    }, [activeRelationship, activeSnapshot, entityTemporalStart]);
+    }, [activeRelationship, entityTemporalStart]);
 
     const derivedEndYear = useMemo(() => {
-        const activeEndYear = activeSnapshot?.year_end
-            ?? parseYear(activeRelationship?.temporal_end ?? null)
+        const activeEndYear = parseYear(activeRelationship?.temporal_end ?? null)
             ?? null;
         const entityEndYear = parseYear(entityTemporalEnd ?? null);
 
         return maxYear(activeEndYear, entityEndYear);
-    }, [activeRelationship, activeSnapshot, entityTemporalEnd]);
+    }, [activeRelationship, entityTemporalEnd]);
 
     const effectiveStartYear = selectedRange?.startYear ?? derivedStartYear;
     const effectiveEndYear = selectedRange?.endYear ?? derivedEndYear;
@@ -353,25 +281,15 @@ export default function EntityHistoryPanel({
 
     const handleFeatureClick = useCallback((feature: any) => {
         const relId = feature?.properties?.relationship_id;
-        const snapId = feature?.properties?.snapshot_id;
 
         if (relId) {
             setSelectedRange(null);
             setSelectedItem({ kind: 'relationship', id: String(relId) });
-
-            return;
-        }
-
-        if (snapId) {
-            setSelectedRange(null);
-            setSelectedItem({ kind: 'snapshot', id: String(snapId) });
         }
     }, []);
 
     const hoveredRelationshipId =
         hoveredItem?.kind === 'relationship' ? hoveredItem.id : null;
-    const hoveredSnapshotId =
-        hoveredItem?.kind === 'snapshot' ? hoveredItem.id : null;
 
     return (
         <div className="flex flex-col gap-4 lg:flex-row">
@@ -379,8 +297,8 @@ export default function EntityHistoryPanel({
                 <div className="border-b px-4 py-3">
                     <h3 className="text-sm font-semibold">Geometry Map</h3>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                        Base geometry is shown in blue. Selected snapshot or
-                        relationship geometry is shown in amber.
+                        Base geometry is shown in blue. Selected relationship
+                        geometry is shown in amber.
                     </p>
                 </div>
                 <HistoricalMapViewer
@@ -389,7 +307,6 @@ export default function EntityHistoryPanel({
                     overlayGeometries={overlayGeometries}
                     overlayRelationship={activeRelationship}
                     hoveredRelationshipId={hoveredRelationshipId}
-                    hoveredSnapshotId={hoveredSnapshotId}
                     timeframeDate={timeframeDate}
                     timeframeStartDate={selectedStartDate}
                     timeframeEndDate={selectedEndDate}
@@ -407,7 +324,7 @@ export default function EntityHistoryPanel({
                 {!loading && !hasAnyRenderableGeometry && (
                     <div className="border-t px-4 py-2 text-xs text-muted-foreground">
                         No renderable geometry found for this entity or the
-                        selected snapshot.
+                        selected relationship.
                     </div>
                 )}
             </div>
@@ -416,7 +333,7 @@ export default function EntityHistoryPanel({
                 <div className="border-b px-4 py-3">
                     <h3 className="text-sm font-semibold">Timeline</h3>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                        Snapshots and relationships sorted chronologically.
+                        Relationships sorted chronologically.
                     </p>
                 </div>
                 <div className="flex-1 min-h-0">
