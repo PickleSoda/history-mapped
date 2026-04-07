@@ -328,26 +328,26 @@ git commit -m "feat: add derived entity timeline projection"
 - Test: `api/tests/Feature/Api/GeometrySnapshotApiTest.php`
 - Test: `api/tests/Feature/Admin/GeometrySnapshotControllerTest.php`
 
-- [ ] **Step 1: Decide compatibility mode and write failing endpoint tests**
+- [x] **Step 1: Decide compatibility mode and write failing endpoint tests**
 
 Compatibility recommendation:
 - retain existing `geometry-snapshots` endpoints temporarily
 - serve them from `geometry_periods` or timeline projection under an adapter
 - add new timeline endpoint in parallel
 
-- [ ] **Step 2: Run existing snapshot endpoint tests to capture baseline**
+- [x] **Step 2: Run existing snapshot endpoint tests to capture baseline**
 
 Run: `docker compose exec app php artisan test api/tests/Feature/Api/GeometrySnapshotApiTest.php api/tests/Feature/Admin/GeometrySnapshotControllerTest.php`
 Expected: current baseline result captured before edits.
 
-- [ ] **Step 3: Implement adapter layer and timeline endpoint**
+- [x] **Step 3: Implement adapter layer and timeline endpoint**
 
 Rules:
 - old snapshot resources become compatibility serializers over geometry periods
 - admin create/update paths must reject forbidden manual presence entries
 - JS route bindings must remain valid or be regenerated in the same task
 
-- [ ] **Step 4: Rerun endpoint tests**
+- [x] **Step 4: Rerun endpoint tests**
 
 Run: `docker compose exec app php artisan test api/tests/Feature/Api/GeometrySnapshotApiTest.php api/tests/Feature/Admin/GeometrySnapshotControllerTest.php`
 Expected: PASS with compatibility behavior preserved.
