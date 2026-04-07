@@ -38,3 +38,5 @@ Odoacer               ──[succeeded_by]───►  Western Roman Empire
 | [for-geodata-contributors.md](./for-geodata-contributors.md) | People entering geographic and spatial data — explains location fields, coordinate systems, and territory geometry |
 | [attributes.md](./attributes.md) | Full reference for every attribute (field) on an entity, with allowed values and notes |
 | [relationships.md](./relationships.md) | Full reference for all 76 relationship types with examples |
+| [schema-proposal-v2-strict-write-derived-timeline.md](./schema-proposal-v2-strict-write-derived-timeline.md) | Proposed V2 model: strict normalized write model, derived timeline projection, and manual geometry period policy |
+| [laravel-implementation-checklist-v2.md](./laravel-implementation-checklist-v2.md) | Repository-specific implementation checklist covering migrations, models, APIs, read paths, tests, and cutover concerns |

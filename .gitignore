@@ -39,3 +39,4 @@ api/storage/logs/*
 __pycache__/
 
 .superpowers/
+.gitnexus
