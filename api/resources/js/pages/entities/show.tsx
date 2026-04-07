@@ -41,7 +41,6 @@ export default function EntityShow({ entity }: Props) {
         });
     }
 
-    const snapshotsUrl = `/entities/${entity.id}/snapshots`;
     const relationshipsUrl = `/entities/${entity.id}/relationships`;
 
     return (
@@ -176,7 +175,6 @@ export default function EntityShow({ entity }: Props) {
                             entityTerritoryGeojson={entity.territory_geojson}
                             entityTemporalStart={entity.temporal_start}
                             entityTemporalEnd={entity.temporal_end}
-                            snapshotsUrl={snapshotsUrl}
                             relationshipsUrl={relationshipsUrl}
                         />
                     </Suspense>

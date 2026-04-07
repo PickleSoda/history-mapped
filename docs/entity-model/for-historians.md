@@ -123,13 +123,13 @@ See [relationships.md](./relationships.md) for all 76 types.
 
 ---
 
-### Geometry Snapshots — Where Entities Were, and Why
+### Geometry Periods — Where Entities Were, and Why
 
-Every entity has a location on the map. But many entities moved, expanded, or appeared at places they are not normally associated with. The **geometry snapshot** system records these time-bound locations.
+Every entity has a location on the map. But many entities moved, expanded, or appeared at places they are not normally associated with. The **geometry periods** system records these time-bound locations.
 
-A snapshot answers: **"Where was this entity during this period, and why?"**
+A geometry period answers: **"Where was this entity during this period, and why?"**
 
-#### What a snapshot records
+#### What a geometry period records
 
 | Field | Meaning | Example |
 |---|---|---|
@@ -139,46 +139,46 @@ A snapshot answers: **"Where was this entity during this period, and why?"**
 | **Description** | Why the entity was there | "Present as French representative for the signing of the Treaty of Westphalia" |
 | **Confidence** | How certain we are | `high`, `medium`, `low` |
 
-#### Two kinds of snapshot
+#### Two kinds of geometry period
 
-**Presence snapshots** — A person or group was *at a place* because of a specific relationship. These are tied to the relationship that put them there.
+**Presence periods** — A person or group was *at a place* because of a specific relationship. These are tied to the relationship that put them there.
 
-> Cardinal Mazarin was in Münster in 1648 *because* he signed the Treaty of Westphalia. If we later determine that Mazarin did not actually attend the signing, we remove the `signed_by` relationship and the snapshot disappears automatically.
+> Cardinal Mazarin was in Münster in 1648 *because* he signed the Treaty of Westphalia. If we later determine that Mazarin did not actually attend the signing, we remove the `signed_by` relationship and the derived presence period disappears automatically.
 
-**Territory snapshots** — A state's borders changed because of an event. These are tied to the event that caused the change.
+**Territory periods** — A state's borders changed because of an event. These are tied to the event that caused the change.
 
-> The Roman Empire's borders contracted after 395 CE *because* of the division under Theodosius I. Even if we delete the event entity for that division, the territory snapshot survives — we still know what the borders looked like.
+> The Roman Empire's borders contracted after 395 CE *because* of the division under Theodosius I. Even if we delete the event entity for that division, the territory period survives — we still know what the borders looked like.
 
-#### How you create snapshots in the application
+#### How you create geometry periods in the application
 
-You do not usually create snapshots in isolation. They are produced as a natural side effect of the relationships you build.
+You do not usually create geometry periods in isolation. They are produced as a natural side effect of the relationships you build.
 
 **From the event page (most common):**
 
 1. You open the **Peace of Westphalia** entity
 2. You add a `signed_by` relationship pointing to **Cardinal Mazarin**
-3. The system asks: *"Create a presence snapshot for Cardinal Mazarin at this location?"*
+3. The system asks: *"Create a derived presence period for Cardinal Mazarin at this location?"*
 4. You fill in the description: *"Present as French representative for the signing"*
-5. The system creates the snapshot — Mazarin now appears on the map at Münster in 1648
+5. The system creates the derived period — Mazarin now appears on the map at Münster in 1648
 
-You can repeat this for every signatory. Each gets their own snapshot with their own description.
+You can repeat this for every signatory. Each gets their own derived period with its own description.
 
 **From the referenced entity page:**
 
-If you open **Cardinal Mazarin**'s entity page, you will see all his snapshots listed — every place he appeared on the map and why. Each snapshot links back to the relationship (and therefore the event) that put him there. You can edit the description or adjust the dates from either side.
+If you open **Cardinal Mazarin**'s entity page, you will see all his geometry periods listed — every place he appeared on the map and why. Each period links back to the relationship (and therefore the event) that put him there. You can edit the description or adjust the dates from either side.
 
 **Manually (for territory changes):**
 
 For empire borders, you draw the polygon directly on the map for a given year range and write a description explaining the change. These are not tied to a single relationship — they are tied to an event (a conquest, a treaty, a division).
 
-#### When snapshots are useful
+#### When geometry periods are useful
 
 | Situation | What you do |
 |---|---|
-| A treaty was signed at a specific location | Add `signed_by` relationships → system offers snapshots for each signatory |
-| A battle involved specific commanders | Add `fought_at` or `commanded` relationships → snapshots for commanders at the battle site |
-| A person founded a city | Add `founded` relationship → snapshot for the founder at the city |
-| A person was born or died somewhere | Add `born_in` / `died_in` relationship → snapshot at the city |
+| A treaty was signed at a specific location | Add `signed_by` relationships -> system offers derived presence periods for each signatory |
+| A battle involved specific commanders | Add `fought_at` or `commanded` relationships -> derived periods for commanders at the battle site |
+| A person founded a city | Add `founded` relationship -> derived period for the founder at the city |
+| A person was born or died somewhere | Add `born_in` / `died_in` relationship -> derived period at the city |
 | An empire's borders changed over centuries | Draw territory polygons for each period on the map |
 | A trade route shifted over time | Draw the route's path for different eras |
 
@@ -186,7 +186,7 @@ For empire borders, you draw the polygon directly on the map for a given year ra
 
 When a user moves the time slider to **1648**, Cardinal Mazarin appears at Münster — even though his "home" location might be Paris. The map tooltip shows: *"At Münster — Present as French representative for the signing of the Treaty of Westphalia"*. Clicking through takes the user to the Treaty of Westphalia entity.
 
-For an empire like Rome, moving the time slider shows borders expanding and contracting smoothly, with each snapshot carrying a description of what caused the change.
+For an empire like Rome, moving the time slider shows borders expanding and contracting smoothly, with each geometry period carrying a description of what caused the change.
 
 ---
 
@@ -294,9 +294,9 @@ Martin Luther   ──[founded]───────────►  Lutheran Ch
 Lutheran Church ──[schism_from]───────►  Catholic Church
 ```
 
-**Geometry Snapshots (auto-generated from relationships above):**
+**Geometry Periods (derived from relationships above):**
 
-When the `signed_by` and `mediated_by` relationships are created on the Peace of Westphalia (located at Münster), the system offers to create presence snapshots:
+When the `signed_by` and `mediated_by` relationships are created on the Peace of Westphalia (located at Münster), the system offers to create derived presence periods:
 
 | Entity | Location | Year | Label | Description | Via relationship |
 |---|---|---|---|---|---|
@@ -304,17 +304,17 @@ When the `signed_by` and `mediated_by` relationships are created on the Peace of
 | Kingdom of France | Münster | 1648 | At Münster | French delegation led by the Duc de Longueville | `signed_by` |
 | Kingdom of Sweden | Osnabrück | 1648 | At Osnabrück | Swedish delegation present for the Treaty of Osnabrück | `signed_by` |
 
-Notice that the Swedish delegation's location can be corrected to **Osnabrück** — the historian fills in the actual location when creating the snapshot, rather than blindly copying the treaty's coordinates.
+Notice that the Swedish delegation's location can be corrected to **Osnabrück** — the historian fills in the actual location when creating the derived period, rather than blindly copying the treaty's coordinates.
 
-**Territory snapshot (manual):**
+**Territory period (manual):**
 
-The Peace of Westphalia also redrew the map of Europe. A historian can draw territory snapshots on the affected polities:
+The Peace of Westphalia also redrew the map of Europe. A historian can draw territory periods on the affected polities:
 
 | Entity | Year range | Description | Linked event |
 |---|---|---|---|
 | Holy Roman Empire | 1648–1806 | Borders after the Peace of Westphalia; Swiss Confederacy and United Provinces formally independent | Peace of Westphalia |
 
-On Martin Luther's entity page, a historian sees his existing snapshots — born in Eisleben (1483), at Wittenberg posting the Theses (1517), at the Diet of Worms (1521) — each with a description and a link to the event or relationship that placed him there.
+On Martin Luther's entity page, a historian sees his existing geometry periods — born in Eisleben (1483), at Wittenberg posting the Theses (1517), at the Diet of Worms (1521) — each with a description and a link to the event or relationship that placed him there.
 
 ---
 

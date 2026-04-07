@@ -114,11 +114,12 @@ erDiagram
         timestamp updated_at
     }
 
-    geometry_snapshots {
-        uuid snapshot_id PK
+    geometry_periods {
+        uuid geometry_period_id PK
         uuid entity_id FK "NOT NULL — cascade delete"
-        integer year_start "NOT NULL"
-        integer year_end "NOT NULL"
+        integer start_year "NOT NULL"
+        integer end_year "NOT NULL"
+        text period_type "territory | route | spread_zone | movement_path | presence"
         geometry geom "PostGIS — point or linestring"
         geometry territory_geom "PostGIS — polygon"
         text label "short display title"
@@ -173,12 +174,12 @@ erDiagram
     users ||--o{ entities : "reviewer_id (reviews)"
     entities ||--o{ relationships : "source_entity_id"
     entities ||--o{ relationships : "target_entity_id"
-    entities ||--o{ geometry_snapshots : "entity_id (temporal geometries)"
+    entities ||--o{ geometry_periods : "entity_id (temporal geometries)"
     entities ||--o{ entity_geo_refs : "entity_id (external geo links)"
     entity_geo_refs ||--o| entities : "primary_geo_ref_id (canonical link)"
-    entity_geo_refs ||--o{ geometry_snapshots : "geo_ref_id (geometry provenance)"
-    entities ||--o{ geometry_snapshots : "source_event_id (territory change cause)"
-    relationships ||--o{ geometry_snapshots : "relationship_id (presence cause — CASCADE)"
+    entity_geo_refs ||--o{ geometry_periods : "geo_ref_id (geometry provenance)"
+    entities ||--o{ geometry_periods : "source_event_id (territory change cause)"
+    relationships ||--o{ geometry_periods : "relationship_id (presence cause — CASCADE)"
     users }o--o{ roles : "model_has_roles"
     users }o--o{ permissions : "model_has_permissions"
     roles }o--o{ permissions : "role_has_permissions"
@@ -190,10 +191,10 @@ erDiagram
 - **`relationships`** is a many-to-many junction between entities with a typed edge (`relationship_type` — 76 values)
 - **`sources`** is referenced from `entities.source_citations` (JSONB array of `{ source_id, page, quote }`)
 - **Self-referencing FKs** on `entities`: `parent_entity_id` (tree hierarchy) and `successor_entity_id` (temporal succession chain)
-- **`geometry_snapshots`** stores time-varying geometries per entity (empire borders, person presence at events). The `description` field explains *why* the geometry exists. Two optional provenance FKs: `relationship_id` (CASCADE — for presence snapshots derived from a specific relationship like `signed_by`) and `source_event_id` (SET NULL — for territory changes caused by events)
-- **`entity_geo_refs`** stores canonical links to external geospatial systems (especially OHM/OSM), including typed element IDs (`node|way|relation`) and raw tag snapshots used at match time
+- **`geometry_periods`** stores time-varying geometries per entity (empire borders, person presence at events). The `description` field explains *why* the geometry exists. Two optional provenance FKs: `relationship_id` (CASCADE — for relationship-derived presence periods) and `source_event_id` (SET NULL — for territory changes caused by events)
+- **`entity_geo_refs`** stores canonical links to external geospatial systems (especially OHM/OSM), including typed element IDs (`node|way|relation`) and raw tag metadata captured at match time
 - **`entities.primary_geo_ref_id`** points to the canonical active georef row, so an entity always has one default external anchor when available
-- **Geometry provenance chain**: `geometry_snapshots.geo_ref_id` points to the exact external reference that produced the geometry, so map interactions can open the underlying OHM feature or fallback source
+- **Geometry provenance chain**: `geometry_periods.geo_ref_id` points to the exact external reference that produced the geometry, so map interactions can open the underlying OHM feature or fallback source
 - **PostGIS columns**: `geom` (point/polygon/linestring), `territory_geom` (nullable polygon extent)
 - **pgvector column**: `embedding` (1536-dim, HNSW indexed) for semantic search
 
@@ -218,7 +219,7 @@ flowchart TD
     C --> D{Matched OHM element?}
     D -- yes --> E[Create entity_geo_refs row\nprovider=ohm, external_type=node/way/relation]
     E --> F[Hydrate geom/territory_geom\nfrom OHM element geometry]
-    F --> G[Optional: add geometry_snapshots\nwith geo_ref_id provenance]
+    F --> G[Optional: add geometry_periods\nwith geo_ref_id provenance]
     D -- no --> H[Try fallback border/geometry providers\ncustom datasets, manual digitizing]
     H --> I{Fallback geometry found?}
     I -- yes --> J[Create entity_geo_refs row\nprovider=custom or source name]
@@ -237,11 +238,11 @@ When the user clicks a feature on the OHM-based map (example: Rome), the app sho
 3. **Temporal filter** by requested date against `entity_geo_refs.temporal_start/end` (if set).
 4. **Entity fetch** using `entity_id` from the matched row.
 5. **Geometry selection for date**:
-    - prefer `geometry_snapshots` row whose year range contains the requested date
-    - fall back to base `entities.geom` / `entities.territory_geom` if no snapshot matches
+    - prefer `geometry_periods` row whose year range contains the requested date
+    - fall back to base `entities.geom` / `entities.territory_geom` if no period matches
 6. **UI open** entity detail panel for that entity.
 
-This makes the lookup deterministic even when multiple snapshots exist across time.
+This makes the lookup deterministic even when multiple geometry periods exist across time.
 
 ### 1.4 SQL Snippet (Click Resolution)
 
@@ -263,10 +264,10 @@ WITH ref_match AS (
 ),
 snap AS (
     SELECT s.*
-    FROM geometry_snapshots s
+    FROM geometry_periods s
     JOIN ref_match rm ON rm.entity_id = s.entity_id
-    WHERE s.year_start <= :target_year
-        AND s.year_end   >= :target_year
+    WHERE s.start_year <= :target_year
+        AND s.end_year   >= :target_year
     ORDER BY s.display_priority DESC NULLS LAST, s.updated_at DESC
     LIMIT 1
 )

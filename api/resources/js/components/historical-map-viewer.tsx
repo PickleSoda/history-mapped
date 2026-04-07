@@ -23,7 +23,6 @@ type Props = {
     overlayGeometries?: GeoJsonLike[];
     overlayRelationship?: Relationship | null;
     hoveredRelationshipId?: string | null;
-    hoveredSnapshotId?: string | null;
     /**
      * OHM-compatible date string (`YYYY`, `YYYY-MM`, or `YYYY-MM-DD`, negative years for BCE).
      * When set, OHM base layers are filtered to features visible on that date.
@@ -47,7 +46,6 @@ function HistoricalMapViewer({
     overlayGeometries = [],
     overlayRelationship = null,
     hoveredRelationshipId = null,
-    hoveredSnapshotId = null,
     className,
     fitBounds = true,
     onRenderStateChange,
@@ -285,10 +283,9 @@ function HistoricalMapViewer({
         const hasSelectedRelationship = Boolean(
             overlayRelationship?.relationship_id,
         );
-        const hasHover = Boolean(hoveredRelationshipId || hoveredSnapshotId);
+        const hasHover = Boolean(hoveredRelationshipId);
 
         const hoverExpression: any[] = [
-            'any',
             hoveredRelationshipId
                 ? [
                       '==',
@@ -297,13 +294,6 @@ function HistoricalMapViewer({
                           ['coalesce', ['get', 'relationship_id'], ''],
                       ],
                       hoveredRelationshipId,
-                  ]
-                : false,
-            hoveredSnapshotId
-                ? [
-                      '==',
-                      ['to-string', ['coalesce', ['get', 'snapshot_id'], '']],
-                      hoveredSnapshotId,
                   ]
                 : false,
         ];
@@ -375,7 +365,6 @@ function HistoricalMapViewer({
         }
     }, [
         hoveredRelationshipId,
-        hoveredSnapshotId,
         mapReady,
         overlayRelationship?.direction,
         overlayRelationship?.relationship_id,
@@ -518,7 +507,6 @@ function HistoricalMapViewer({
         'year_start',
         'year_end',
         'relationship_id',
-        'snapshot_id',
     ]);
 
     const popupEntries = Object.entries(popupProperties)
@@ -604,27 +592,6 @@ function HistoricalMapViewer({
                                     }}
                                 >
                                     Focus Relationship
-                                </Button>
-                            )}
-                            {popupProperties.snapshot_id && (
-                                <Button
-                                    variant="secondary"
-                                    size="sm"
-                                    className="mt-2 w-full"
-                                    onClick={(e: MouseEvent<HTMLButtonElement>) => {
-                                        e.stopPropagation();
-                                        clearPopupCloseTimer();
-
-                                        if (onFeatureClickRef.current) {
-                                            onFeatureClickRef.current(popupInfo.feature);
-                                        }
-
-                                        popupHoveredRef.current = false;
-                                        pointHoveredRef.current = false;
-                                        setPopupInfo(null);
-                                    }}
-                                >
-                                    Focus Snapshot
                                 </Button>
                             )}
                         </CardContent>
