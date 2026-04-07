@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Api;
 
 use App\Models\Entity;
+use App\Models\EntityTemporalRange;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -13,6 +14,18 @@ use Tests\TestCase;
 class EntityTimelineApiTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_timeline_endpoint_rejects_direct_writes(): void
+    {
+        $entity = Entity::factory()->create();
+
+        $this->postJson(route('api.v1.entities.timeline.index', $entity->entity_id), [
+            'entry_kind' => 'relationship_presence',
+            'start_year' => -10,
+            'end_year' => -10,
+            'title' => 'Manual timeline write',
+        ])->assertMethodNotAllowed();
+    }
 
     public function test_timeline_endpoint_returns_relationship_denormalized_fields(): void
     {
@@ -59,5 +72,30 @@ class EntityTimelineApiTest extends TestCase
             ->assertJsonPath('data.0.end_year', -52)
             ->assertJsonPath('data.0.source_table', 'geometry_periods')
             ->assertJsonPath('data.0.source_id', $periodId);
+    }
+
+    public function test_timeline_endpoint_falls_back_to_primary_temporal_range_when_no_geometry_period_exists(): void
+    {
+        $entity = Entity::factory()->create(['name' => 'Roman Republic']);
+
+        EntityTemporalRange::query()->create([
+            'entity_id' => $entity->entity_id,
+            'range_type' => 'primary',
+            'start_year' => -509,
+            'end_year' => -27,
+            'is_primary' => true,
+            'notes' => 'Traditional Roman Republican period.',
+        ]);
+
+        $this->artisan('timeline:rebuild', ['entity_id' => $entity->entity_id])->assertExitCode(0);
+
+        $this->getJson(route('api.v1.entities.timeline.index', $entity->entity_id))
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.entry_kind', 'temporal_range')
+            ->assertJsonPath('data.0.start_year', -509)
+            ->assertJsonPath('data.0.end_year', -27)
+            ->assertJsonPath('data.0.source_table', 'entity_temporal_ranges')
+            ->assertJsonPath('data.0.title', 'Primary temporal range');
     }
 }

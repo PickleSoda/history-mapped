@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Actions\Timeline;
 
+use App\Builders\EntityTimelineEntryBuilder;
+use App\Models\Entity;
+use App\Models\EntityTemporalRange;
 use App\Models\EntityTimelineEntry;
 use App\Models\GeometryPeriod;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +16,8 @@ use Illuminate\Support\Facades\DB;
  */
 class ProjectEntityTimelineAction
 {
+    public function __construct(private readonly EntityTimelineEntryBuilder $entryBuilder) {}
+
     /**
      * @return int Number of inserted timeline entries.
      */
@@ -24,8 +29,15 @@ class ProjectEntityTimelineAction
 
         $entityIds = GeometryPeriod::query()
             ->distinct()
-            ->orderBy('entity_id')
-            ->pluck('entity_id');
+            ->pluck('entity_id')
+            ->merge(
+                EntityTemporalRange::query()
+                    ->distinct()
+                    ->pluck('entity_id'),
+            )
+            ->unique()
+            ->sort()
+            ->values();
 
         $inserted = 0;
 
@@ -59,46 +71,39 @@ class ProjectEntityTimelineAction
         $inserted = 0;
 
         foreach ($periods as $period) {
-            $relationship = $period->relationship;
-
-            $relatedEntity = null;
-            if ($relationship !== null) {
-                $relatedEntity = $relationship->source_entity_id === $entityId
-                    ? $relationship->targetEntity
-                    : $relationship->sourceEntity;
+            if (! $period instanceof GeometryPeriod) {
+                continue;
             }
 
-            if ($relatedEntity === null && $period->sourceEvent !== null) {
-                $relatedEntity = $period->sourceEvent;
-            }
-
-            $entryKind = $period->period_type === 'presence'
-                ? 'relationship_presence'
-                : 'territory_period';
-
-            $title = $relatedEntity?->name
-                ?? $period->description
-                ?? ($period->period_type === 'presence' ? 'Presence period' : 'Territory period');
-
-            EntityTimelineEntry::query()->create([
-                'entity_id' => $entityId,
-                'entry_kind' => $entryKind,
-                'start_year' => $period->start_year,
-                'end_year' => $period->end_year,
-                'title' => $title,
-                'description' => $period->description ?? $relationship?->description,
-                'location_entity_id' => $period->source_event_id,
-                'geom' => $period->geom,
-                'territory_geom' => $period->territory_geom,
-                'source_table' => 'geometry_periods',
-                'source_id' => $period->geometry_period_id,
-                'relationship_type' => $relationship?->relationship_type?->value,
-                'related_entity_id' => $relatedEntity?->entity_id,
-                'related_entity_name' => $relatedEntity?->name,
-                'derived_at' => now(),
-            ]);
+            EntityTimelineEntry::query()->create(
+                $this->entryBuilder->fromGeometryPeriod($period, $entityId),
+            );
 
             $inserted++;
+        }
+
+        if ($inserted === 0) {
+            $primaryTemporalRange = EntityTemporalRange::query()
+                ->where('entity_id', $entityId)
+                ->where(function ($query): void {
+                    $query->whereNotNull('start_year')
+                        ->orWhereNotNull('end_year');
+                })
+                ->orderByDesc('is_primary')
+                ->orderBy('start_year')
+                ->first();
+
+            if ($primaryTemporalRange !== null) {
+                $entityName = (string) (Entity::query()
+                    ->where('entity_id', $entityId)
+                    ->value('name') ?? 'Unknown entity');
+
+                EntityTimelineEntry::query()->create(
+                    $this->entryBuilder->fromPrimaryTemporalRange($primaryTemporalRange, $entityName),
+                );
+
+                $inserted++;
+            }
         }
 
         return $inserted;

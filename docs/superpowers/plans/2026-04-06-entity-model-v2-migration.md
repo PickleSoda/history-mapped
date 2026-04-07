@@ -284,26 +284,26 @@ git commit -m "refactor: derive presence periods from relationships"
 - Test: `api/tests/Feature/Api/EntityTimelineApiTest.php`
 - Test: `api/tests/Feature/Feature/RebuildEntityTimelineCommandTest.php`
 
-- [ ] **Step 1: Write failing tests for timeline projection and API shape**
+- [x] **Step 1: Write failing tests for timeline projection and API shape**
 
 Required coverage:
 - timeline entries derive from relationships and geometry periods
 - entries include source table/id metadata
 - no direct writes via admin UI
 
-- [ ] **Step 2: Run the focused tests to verify failure**
+- [x] **Step 2: Run the focused tests to verify failure**
 
 Run: `docker compose exec app php artisan test api/tests/Feature/Api/EntityTimelineApiTest.php api/tests/Feature/Feature/RebuildEntityTimelineCommandTest.php`
 Expected: FAIL because the projection path does not exist.
 
-- [ ] **Step 3: Implement the projection builder and rebuild command**
+- [x] **Step 3: Implement the projection builder and rebuild command**
 
 Projection inputs:
 - relationship-derived presence periods
 - manual/derived territory periods
 - primary temporal range fallback
 
-- [ ] **Step 4: Rerun timeline tests**
+- [x] **Step 4: Rerun timeline tests**
 
 Run: `docker compose exec app php artisan test api/tests/Feature/Api/EntityTimelineApiTest.php api/tests/Feature/Feature/RebuildEntityTimelineCommandTest.php`
 Expected: PASS.
