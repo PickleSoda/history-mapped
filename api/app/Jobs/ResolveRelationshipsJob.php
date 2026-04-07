@@ -182,8 +182,13 @@ class ResolveRelationshipsJob implements ShouldQueue
     private function resolveFromEntityAttributes(CreateRelationshipAction $createRelationship): void
     {
         $entities = DB::table('entities')
-            ->where('created_by', 'like', "pipeline:{$this->batchId}%")
-            ->whereRaw("attributes ? '_relationship_hints'")
+            ->whereRaw('jsonb_exists(attributes, ?)', ['_relationship_hints'])
+            ->where(function ($query): void {
+                $query
+                    ->whereRaw("attributes->>'_relationship_hints_batch' = ?", [$this->batchId])
+                    // Legacy fallback hints (from before batch tagging) must still be processed.
+                    ->orWhereRaw('NOT jsonb_exists(attributes, ?)', ['_relationship_hints_batch']);
+            })
             ->select('entity_id', 'attributes')
             ->get();
 
@@ -234,7 +239,7 @@ class ResolveRelationshipsJob implements ShouldQueue
             DB::table('entities')
                 ->where('entity_id', $entity->entity_id)
                 ->update([
-                    'attributes' => DB::raw("attributes - '_relationship_hints'"),
+                    'attributes' => DB::raw("attributes - '_relationship_hints' - '_relationship_hints_batch'"),
                 ]);
         }
 
