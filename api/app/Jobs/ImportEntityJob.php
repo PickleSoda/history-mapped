@@ -16,6 +16,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use JsonException;
 
 /**
  * Import a single entity from a pipeline JSONL record.
@@ -90,9 +91,11 @@ class ImportEntityJob implements ShouldQueue
 
                 // Re-stage relationship hints, clearing stale ones first
                 if (! empty($relationshipHints)) {
-                    DB::table('pipeline_relationship_hints')
-                        ->where('source_entity_id', $entity->entity_id)
-                        ->delete();
+                    if ($this->hasStagingTable()) {
+                        DB::table('pipeline_relationship_hints')
+                            ->where('source_entity_id', $entity->entity_id)
+                            ->delete();
+                    }
 
                     $this->stageRelationshipHints($entity->entity_id, $relationshipHints);
                 }
@@ -172,14 +175,33 @@ class ImportEntityJob implements ShouldQueue
             // Fallback: store hints in entity attributes
             Log::debug("[Pipeline] Staging table not available, storing hints in attributes: {$e->getMessage()}");
 
-            DB::table('entities')
-                ->where('entity_id', $entityId)
-                ->update([
-                    'attributes' => DB::raw(
-                        "jsonb_set(COALESCE(attributes, '{}'::jsonb), '{_relationship_hints}', '".
-                        json_encode($hints)."'::jsonb)"
-                    ),
+            try {
+                $encodedHints = json_encode($hints, JSON_THROW_ON_ERROR);
+
+                DB::update(
+                    "update entities
+                    set attributes = jsonb_set(
+                        jsonb_set(COALESCE(attributes, '{}'::jsonb), '{_relationship_hints}', ?::jsonb),
+                        '{_relationship_hints_batch}',
+                        to_jsonb(?::text)
+                    )
+                    where entity_id = ?",
+                    [$encodedHints, $this->batchId, $entityId],
+                );
+            } catch (JsonException $jsonException) {
+                Log::warning('[Pipeline] Failed to JSON-encode relationship hints for attribute fallback: '.$jsonException->getMessage(), [
+                    'entity_id' => $entityId,
                 ]);
+            }
+        }
+    }
+
+    private function hasStagingTable(): bool
+    {
+        try {
+            return DB::getSchemaBuilder()->hasTable('pipeline_relationship_hints');
+        } catch (\Throwable) {
+            return false;
         }
     }
 

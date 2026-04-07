@@ -10,6 +10,7 @@ use App\Models\Entity;
 use App\Models\EntityRelationship;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -322,5 +323,36 @@ class ResolveRelationshipsJobTest extends TestCase
 
         // Already resolved — skipped, still 0 new relationships
         $this->assertDatabaseCount('relationships', 0);
+    }
+
+    public function test_fallback_resolves_embedded_hints_for_non_pipeline_entities(): void
+    {
+        Schema::dropIfExists('pipeline_relationship_hints');
+
+        $source = Entity::factory()->create([
+            'wikidata_id' => 'Q70',
+            'created_by' => 'seeder',
+            'attributes' => [
+                '_relationship_hints' => [[
+                    'relationship_type' => 'part_of',
+                    'target_wikidata_id' => 'Q71',
+                    'confidence' => 'medium',
+                ]],
+                '_relationship_hints_batch' => $this->batchId,
+            ],
+        ]);
+        $target = Entity::factory()->create(['wikidata_id' => 'Q71']);
+
+        $this->runJob();
+
+        $this->assertDatabaseHas('relationships', [
+            'source_entity_id' => $source->entity_id,
+            'target_entity_id' => $target->entity_id,
+            'relationship_type' => 'part_of',
+        ]);
+
+        $source->refresh();
+        $this->assertArrayNotHasKey('_relationship_hints', $source->attributes ?? []);
+        $this->assertArrayNotHasKey('_relationship_hints_batch', $source->attributes ?? []);
     }
 }
