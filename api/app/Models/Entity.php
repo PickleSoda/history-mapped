@@ -165,7 +165,43 @@ class Entity extends Model
     {
         return $this->hasMany(EntityRelationship::class, 'target_entity_id', 'entity_id');
     }
+    // ── V2 Entity Model Relations ─────────────────────────────────
 
+    /** @return HasMany<EntityAlias, $this> */
+    public function aliases(): HasMany
+    {
+        return $this->hasMany(EntityAlias::class, 'entity_id', 'entity_id');
+    }
+
+    /** @return HasMany<EntityTag, $this> */
+    public function entityTags(): HasMany
+    {
+        return $this->hasMany(EntityTag::class, 'entity_id', 'entity_id');
+    }
+
+    /** @return HasMany<EntityTemporalRange, $this> */
+    public function temporalRanges(): HasMany
+    {
+        return $this->hasMany(EntityTemporalRange::class, 'entity_id', 'entity_id');
+    }
+
+    /** @return HasMany<EntityLocation, $this> */
+    public function locations(): HasMany
+    {
+        return $this->hasMany(EntityLocation::class, 'entity_id', 'entity_id');
+    }
+
+    /** @return HasMany<GeometryPeriod, $this> */
+    public function geometryPeriods(): HasMany
+    {
+        return $this->hasMany(GeometryPeriod::class, 'entity_id', 'entity_id');
+    }
+
+    /** @return HasMany<EntityTimelineEntry, $this> */
+    public function timelineEntries(): HasMany
+    {
+        return $this->hasMany(EntityTimelineEntry::class, 'entity_id', 'entity_id');
+    }
     // ── Custom Query Builder ─────────────────────────────────
 
     /**
