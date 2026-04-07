@@ -28,11 +28,35 @@ class RelationshipController extends Controller
     public function index(Entity $entity): JsonResponse
     {
         $outgoing = $entity->outgoingRelationships()
-            ->with('targetEntity:entity_id,name,entity_type,entity_group,geom,territory_geom')
+            ->with([
+                'targetEntity' => fn ($query) => $query
+                    ->withoutGlobalScopes()
+                    ->select([
+                        'entity_id',
+                        'name',
+                        'entity_type',
+                        'entity_group',
+                        'verification_status',
+                        'geom',
+                        'territory_geom',
+                    ]),
+            ])
             ->get();
 
         $incoming = $entity->incomingRelationships()
-            ->with('sourceEntity:entity_id,name,entity_type,entity_group,geom,territory_geom')
+            ->with([
+                'sourceEntity' => fn ($query) => $query
+                    ->withoutGlobalScopes()
+                    ->select([
+                        'entity_id',
+                        'name',
+                        'entity_type',
+                        'entity_group',
+                        'verification_status',
+                        'geom',
+                        'territory_geom',
+                    ]),
+            ])
             ->get();
 
         return response()->json([
@@ -55,7 +79,19 @@ class RelationshipController extends Controller
         $data = RelationshipData::fromArray($validated);
         $relationship = $createRelationship($data, (string) $request->user()->id);
 
-        $relationship->load(['targetEntity:entity_id,name,entity_type,entity_group,geom,territory_geom']);
+        $relationship->load([
+            'targetEntity' => fn ($query) => $query
+                ->withoutGlobalScopes()
+                ->select([
+                    'entity_id',
+                    'name',
+                    'entity_type',
+                    'entity_group',
+                    'verification_status',
+                    'geom',
+                    'territory_geom',
+                ]),
+        ]);
 
         return response()->json([
             'relationship' => self::buildRelationshipData($relationship, 'outgoing'),
@@ -112,6 +148,7 @@ class RelationshipController extends Controller
                 'name' => $relatedEntity->name,
                 'entity_type' => $relatedEntity->entity_type?->value,
                 'entity_group' => $relatedEntity->entity_group?->value,
+                'verification_status' => $relatedEntity->verification_status?->value,
                 'geojson' => $relatedEntity->geom,
                 'territory_geojson' => $relatedEntity->territory_geom,
             ] : null,
