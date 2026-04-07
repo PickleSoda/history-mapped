@@ -308,7 +308,7 @@ Projection inputs:
 Run: `docker compose exec app php artisan test api/tests/Feature/Api/EntityTimelineApiTest.php api/tests/Feature/Feature/RebuildEntityTimelineCommandTest.php`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add api/app/Actions/Timeline api/app/Console/Commands/RebuildEntityTimelineCommand.php api/app/Builders/EntityTimelineEntryBuilder.php api/app/Http/Api/V1/Resources/EntityTimelineEntryResource.php api/tests/Feature/Api/EntityTimelineApiTest.php api/tests/Feature/Feature/RebuildEntityTimelineCommandTest.php
