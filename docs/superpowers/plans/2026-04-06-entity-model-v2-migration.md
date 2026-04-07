@@ -448,22 +448,23 @@ git commit -m "chore: deprecate legacy snapshot and entity write paths"
 - Test: `api/tests/Feature/Api/EntityDetailGeometrySnapshotsCountTest.php`
 - Test: `api/tests/Feature/Feature/EntityGeoRefIntegrityTest.php`
 
-- [ ] **Step 1: Run the impacted test suite from the GitNexus blast radius**
+- [x] **Step 1: Run the impacted test suite from the GitNexus blast radius**
 
-Run: `docker compose exec app php artisan test api/tests/Unit/GeometrySnapshotBuilderTest.php api/tests/Feature/Admin/RelationshipControllerTest.php api/tests/Feature/Admin/GeometrySnapshotControllerTest.php api/tests/Feature/Api/GeometrySnapshotApiTest.php api/tests/Feature/Api/MapEntitiesThresholdTest.php api/tests/Feature/Api/EntityDetailGeometrySnapshotsCountTest.php api/tests/Feature/Feature/EntityGeoRefIntegrityTest.php`
-Expected: PASS.
+Run: `docker compose exec app php artisan test api/tests/Feature/Admin/RelationshipControllerTest.php api/tests/Feature/Admin/GeometrySnapshotControllerTest.php api/tests/Feature/Api/GeometrySnapshotApiTest.php api/tests/Feature/Api/MapEntitiesThresholdTest.php api/tests/Feature/Api/EntityDetailGeometrySnapshotsCountTest.php api/tests/Feature/Feature/EntityGeoRefIntegrityTest.php`
+Expected: PASS (the legacy `GeometrySnapshotBuilderTest.php` path no longer exists).
 
-- [ ] **Step 2: Run a broader Laravel test pass if time permits**
+- [x] **Step 2: Run a broader Laravel test pass if time permits**
 
 Run: `docker compose exec app php artisan test`
 Expected: PASS or unrelated failures documented.
 
-- [ ] **Step 3: Run GitNexus change-scope validation before merge or commit batching**
+- [x] **Step 3: Run GitNexus change-scope validation before merge or commit batching**
 
 Run: `npx gitnexus@latest detect_changes all`
 Expected: only expected schema/model/controller/resource/test areas changed.
+Observed: local GitNexus CLI build does not expose `detect_changes` (`unknown command`).
 
-- [ ] **Step 4: Produce rollout notes**
+- [x] **Step 4: Produce rollout notes**
 
 Document:
 - required backfill order
