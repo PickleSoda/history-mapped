@@ -352,7 +352,7 @@ Rules:
 Run: `docker compose exec app php artisan test api/tests/Feature/Api/GeometrySnapshotApiTest.php api/tests/Feature/Admin/GeometrySnapshotControllerTest.php`
 Expected: PASS with compatibility behavior preserved.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add api/app/Http/Controllers/Admin/GeometrySnapshotController.php api/app/Http/Api/V1/Controllers api/app/Http/Api/V1/Resources api/resources/js/routes/api/v1/entities/geometry-snapshots/index.ts api/resources/js/actions/App/Http/Api/V1/Controllers/GeometrySnapshotController.ts api/tests/Feature/Api/GeometrySnapshotApiTest.php api/tests/Feature/Admin/GeometrySnapshotControllerTest.php
