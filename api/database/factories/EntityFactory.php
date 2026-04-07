@@ -13,6 +13,8 @@ use App\Enums\IconClass;
 use App\Enums\LocationResolutionMethod;
 use App\Enums\VerificationStatus;
 use App\Models\Entity;
+use App\Models\EntityLocation;
+use App\Models\EntityTemporalRange;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -134,7 +136,24 @@ class EntityFactory extends Factory
             'temporal_start_year' => (int) $start,
             'temporal_end_year' => (int) $end,
             'duration_type' => DurationType::Period->value,
-        ]);
+        ])->afterCreating(function (Entity $entity) use ($start, $end): void {
+            EntityTemporalRange::query()->updateOrCreate(
+                [
+                    'entity_id' => $entity->entity_id,
+                    'is_primary' => true,
+                ],
+                [
+                    'range_type' => 'primary',
+                    'start_year' => (int) $start,
+                    'end_year' => (int) $end,
+                    'start_date' => $start,
+                    'end_date' => $end,
+                    'duration_type' => DurationType::Period,
+                    'date_method' => $entity->date_method,
+                    'date_confidence' => $entity->date_confidence,
+                ],
+            );
+        });
     }
 
     /**
@@ -148,7 +167,24 @@ class EntityFactory extends Factory
             'temporal_start_year' => (int) $date,
             'temporal_end_year' => (int) $date,
             'duration_type' => DurationType::Point->value,
-        ]);
+        ])->afterCreating(function (Entity $entity) use ($date): void {
+            EntityTemporalRange::query()->updateOrCreate(
+                [
+                    'entity_id' => $entity->entity_id,
+                    'is_primary' => true,
+                ],
+                [
+                    'range_type' => 'primary',
+                    'start_year' => (int) $date,
+                    'end_year' => (int) $date,
+                    'start_date' => $date,
+                    'end_date' => $date,
+                    'duration_type' => DurationType::Point,
+                    'date_method' => $entity->date_method,
+                    'date_confidence' => $entity->date_confidence,
+                ],
+            );
+        });
     }
 
     // ── Spatial States ──────────────────────────────────────
@@ -160,6 +196,18 @@ class EntityFactory extends Factory
     {
         return $this->state(fn () => [
             'location_name' => $name,
-        ]);
+        ])->afterCreating(function (Entity $entity) use ($name): void {
+            EntityLocation::query()->updateOrCreate(
+                [
+                    'entity_id' => $entity->entity_id,
+                    'is_primary' => true,
+                ],
+                [
+                    'location_name' => $name,
+                    'location_method' => $entity->location_method,
+                    'location_confidence' => $entity->location_confidence,
+                ],
+            );
+        });
     }
 }

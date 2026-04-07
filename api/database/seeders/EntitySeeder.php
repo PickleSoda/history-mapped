@@ -76,6 +76,10 @@ class EntitySeeder extends Seeder
 
     /**
      * Build the complete list of entity records.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function buildEntities(): array
     {
         $now = now();
 
