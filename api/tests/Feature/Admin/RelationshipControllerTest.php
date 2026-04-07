@@ -120,6 +120,18 @@ class RelationshipControllerTest extends TestCase
             ->assertJsonPath('outgoing.0.related_entity.territory_geojson', null);
     }
 
+    public function test_index_includes_pipeline_draft_related_entity(): void
+    {
+        $this->target->update(['verification_status' => 'pipeline_draft']);
+        $this->createRelationship();
+
+        $this->actingAs($this->user)
+            ->getJson(route('entities.relationships.index', $this->source))
+            ->assertOk()
+            ->assertJsonPath('outgoing.0.related_entity.id', $this->target->entity_id)
+            ->assertJsonPath('outgoing.0.related_entity.verification_status', 'pipeline_draft');
+    }
+
     public function test_index_requires_authentication(): void
     {
         $this->getJson(route('entities.relationships.index', $this->source))
