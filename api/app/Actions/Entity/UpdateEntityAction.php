@@ -31,8 +31,9 @@ class UpdateEntityAction
     {
         return DB::transaction(function () use ($entity, $data): Entity {
             $modelData = $data->toModelArray();
+            $v2WritesEnabled = (bool) config('entity_model.entity_model_v2_write_enabled', false);
 
-            if ((bool) config('entity_model.entity_model_v2_write_enabled', false)) {
+            if ($v2WritesEnabled) {
                 foreach (self::LEGACY_ENTITY_COLUMNS as $column) {
                     unset($modelData[$column]);
                 }
@@ -46,14 +47,14 @@ class UpdateEntityAction
             $entity->update($modelData);
 
             // Update geometry columns via PostGIS
-            if ($geojson !== null) {
+            if (! $v2WritesEnabled && $geojson !== null) {
                 DB::statement(
                     'UPDATE entities SET geom = ST_GeomFromGeoJSON(?) WHERE entity_id = ?',
                     [json_encode($geojson), $entity->entity_id],
                 );
             }
 
-            if ($territoryGeojson !== null) {
+            if (! $v2WritesEnabled && $territoryGeojson !== null) {
                 DB::statement(
                     'UPDATE entities SET territory_geom = ST_GeomFromGeoJSON(?) WHERE entity_id = ?',
                     [json_encode($territoryGeojson), $entity->entity_id],
