@@ -6,6 +6,10 @@ This document is for people entering or correcting **geographic and spatial data
 
 ## The Two Geometry Fields
 
+## Migration Note (V2 Geometry Periods)
+
+Legacy snapshot-style write paths are compatibility-only during migration. Once `ENTITY_MODEL_V2_WRITE_ENABLED=true`, new writes should flow through geometry periods and normalized location records rather than deprecated legacy columns.
+
 Every entity can have up to two geometry fields. They serve different purposes.
 
 ### `geom` — The Point Location

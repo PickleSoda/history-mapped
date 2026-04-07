@@ -16,10 +16,27 @@ use Illuminate\Support\Facades\DB;
  */
 class UpdateEntityAction
 {
+    /** @var list<string> */
+    private const LEGACY_ENTITY_COLUMNS = [
+        'temporal_start',
+        'temporal_end',
+        'temporal_start_year',
+        'temporal_end_year',
+        'location_name',
+        'location_confidence',
+        'location_method',
+    ];
+
     public function __invoke(Entity $entity, EntityData $data): Entity
     {
         return DB::transaction(function () use ($entity, $data): Entity {
             $modelData = $data->toModelArray();
+
+            if ((bool) config('entity_model.entity_model_v2_write_enabled', false)) {
+                foreach (self::LEGACY_ENTITY_COLUMNS as $column) {
+                    unset($modelData[$column]);
+                }
+            }
 
             // Extract geometry — handled separately
             $geojson = $data->geojson;

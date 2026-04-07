@@ -6,6 +6,10 @@ This document explains how historical knowledge is structured in this database. 
 
 ## The Core Idea: Everything is an Entity
 
+## Migration Note (Entity Model V2)
+
+The platform is transitioning from legacy per-entity temporal/location columns to normalized v2 tables (`entity_temporal_ranges`, `entity_locations`) and derived timeline entries. During rollout, feature flags may disable legacy write paths while preserving read compatibility.
+
 History is full of things that existed in time and space and that mattered. We call all of them **entities**. An entity can be:
 
 - A **state** — the Achaemenid Empire, the Venetian Republic, the Qing dynasty

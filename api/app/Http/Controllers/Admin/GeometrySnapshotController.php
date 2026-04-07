@@ -8,6 +8,7 @@ use App\Http\Api\V1\Resources\GeometrySnapshotResource;
 use App\Http\Controllers\Controller;
 use App\Models\Entity;
 use App\Models\GeometryPeriod;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -30,6 +31,8 @@ class GeometrySnapshotController extends Controller
 
     public function store(Request $request, Entity $entity): JsonResponse
     {
+        $this->ensureLegacyWriteEnabled();
+
         $validated = $this->validatePayload($request);
 
         $period = GeometryPeriod::query()->create([
@@ -61,6 +64,8 @@ class GeometrySnapshotController extends Controller
 
     public function update(Request $request, Entity $entity, string $snapshot): GeometrySnapshotResource
     {
+        $this->ensureLegacyWriteEnabled();
+
         $period = GeometryPeriod::query()
             ->where('geometry_period_id', $snapshot)
             ->where('entity_id', $entity->entity_id)
@@ -90,6 +95,8 @@ class GeometrySnapshotController extends Controller
 
     public function destroy(Entity $entity, string $snapshot): JsonResponse
     {
+        $this->ensureLegacyWriteEnabled();
+
         $period = GeometryPeriod::query()
             ->where('geometry_period_id', $snapshot)
             ->where('entity_id', $entity->entity_id)
@@ -142,5 +149,12 @@ class GeometrySnapshotController extends Controller
         $validated = $validator->validated();
 
         return $validated;
+    }
+
+    private function ensureLegacyWriteEnabled(): void
+    {
+        if ((bool) config('entity_model.entity_model_v2_write_enabled', false)) {
+            throw new HttpException(410, 'Legacy geometry snapshot write endpoints are disabled.');
+        }
     }
 }
