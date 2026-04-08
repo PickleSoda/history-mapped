@@ -37,9 +37,8 @@ class RelationshipController extends Controller
                         'entity_type',
                         'entity_group',
                         'verification_status',
-                        'geom',
-                        'territory_geom',
                     ]),
+                'targetEntity.primaryLocation',
             ])
             ->get();
 
@@ -53,9 +52,8 @@ class RelationshipController extends Controller
                         'entity_type',
                         'entity_group',
                         'verification_status',
-                        'geom',
-                        'territory_geom',
                     ]),
+                'sourceEntity.primaryLocation',
             ])
             ->get();
 
@@ -88,9 +86,8 @@ class RelationshipController extends Controller
                     'entity_type',
                     'entity_group',
                     'verification_status',
-                    'geom',
-                    'territory_geom',
                 ]),
+            'targetEntity.primaryLocation',
         ]);
 
         return response()->json([

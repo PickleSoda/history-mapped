@@ -131,10 +131,6 @@ class EntityFactory extends Factory
     public function withTemporalRange(string $start, string $end): static
     {
         return $this->state(fn () => [
-            'temporal_start' => $start,
-            'temporal_end' => $end,
-            'temporal_start_year' => (int) $start,
-            'temporal_end_year' => (int) $end,
             'duration_type' => DurationType::Period->value,
         ])->afterCreating(function (Entity $entity) use ($start, $end): void {
             EntityTemporalRange::query()->updateOrCreate(
@@ -162,10 +158,6 @@ class EntityFactory extends Factory
     public function atTime(string $date): static
     {
         return $this->state(fn () => [
-            'temporal_start' => $date,
-            'temporal_end' => $date,
-            'temporal_start_year' => (int) $date,
-            'temporal_end_year' => (int) $date,
             'duration_type' => DurationType::Point->value,
         ])->afterCreating(function (Entity $entity) use ($date): void {
             EntityTemporalRange::query()->updateOrCreate(
@@ -194,9 +186,7 @@ class EntityFactory extends Factory
      */
     public function atLocation(string $name): static
     {
-        return $this->state(fn () => [
-            'location_name' => $name,
-        ])->afterCreating(function (Entity $entity) use ($name): void {
+        return $this->afterCreating(function (Entity $entity) use ($name): void {
             EntityLocation::query()->updateOrCreate(
                 [
                     'entity_id' => $entity->entity_id,

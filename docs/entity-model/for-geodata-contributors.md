@@ -8,7 +8,7 @@ This document is for people entering or correcting **geographic and spatial data
 
 ## Migration Note (V2 Geometry Periods)
 
-Legacy snapshot-style write paths are compatibility-only during migration. Once `ENTITY_MODEL_V2_WRITE_ENABLED=true`, new writes should flow through geometry periods and normalized location records rather than deprecated legacy columns.
+Legacy snapshot-style and legacy entity geometry write paths are removed. New writes flow through geometry periods and normalized location records (`entity_locations`).
 
 Every entity can have up to two geometry fields. They serve different purposes.
 

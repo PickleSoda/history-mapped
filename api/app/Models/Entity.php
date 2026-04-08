@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Builders\EntityBuilder;
-use App\Casts\GeoJson;
-use App\Casts\PgTextArray;
 use App\Enums\ConfidenceLevel;
 use App\Enums\DateResolutionMethod;
 use App\Enums\DurationType;
@@ -33,14 +31,8 @@ use Pgvector\Laravel\Vector;
     'summary',
     'significance',
     'attributes',
-    'tags',
     'impact_score',
     'wikidata_id',
-    'temporal_start',
-    'temporal_end',
-    'temporal_start_year',
-    'temporal_end_year',
-    'location_name',
     'parent_entity_id',
     'successor_entity_id',
     'verification_status',
@@ -96,13 +88,9 @@ class Entity extends Model
             'duration_type' => DurationType::class,
             'location_method' => LocationResolutionMethod::class,
             'icon_class' => IconClass::class,
-            'geom' => GeoJson::class,
-            'territory_geom' => GeoJson::class,
             'embedding' => Vector::class,
             'attributes' => 'json',
             'source_citations' => 'json',
-            'tags' => PgTextArray::class,
-            'alternative_names' => PgTextArray::class,
             'review_date' => 'datetime',
         ];
     }
@@ -191,6 +179,22 @@ class Entity extends Model
         return $this->hasMany(EntityLocation::class, 'entity_id', 'entity_id');
     }
 
+    /** @return HasOne<EntityTemporalRange, $this> */
+    public function primaryTemporalRange(): HasOne
+    {
+        return $this->hasOne(EntityTemporalRange::class, 'entity_id', 'entity_id')
+            ->where('is_primary', true)
+            ->latest('updated_at');
+    }
+
+    /** @return HasOne<EntityLocation, $this> */
+    public function primaryLocation(): HasOne
+    {
+        return $this->hasOne(EntityLocation::class, 'entity_id', 'entity_id')
+            ->where('is_primary', true)
+            ->latest('updated_at');
+    }
+
     /** @return HasMany<GeometryPeriod, $this> */
     public function geometryPeriods(): HasMany
     {
@@ -213,5 +217,132 @@ class Entity extends Model
     public function newEloquentBuilder($query): EntityBuilder
     {
         return new EntityBuilder($query);
+    }
+
+    protected function getTemporalStartAttribute(): ?string
+    {
+        if (array_key_exists('temporal_start', $this->attributes)) {
+            $value = $this->attributes['temporal_start'];
+
+            return $value !== null ? (string) $value : null;
+        }
+
+        return $this->primaryTemporalRange?->start_date;
+    }
+
+    protected function getTemporalEndAttribute(): ?string
+    {
+        if (array_key_exists('temporal_end', $this->attributes)) {
+            $value = $this->attributes['temporal_end'];
+
+            return $value !== null ? (string) $value : null;
+        }
+
+        return $this->primaryTemporalRange?->end_date;
+    }
+
+    protected function getTemporalStartYearAttribute(): ?int
+    {
+        if (array_key_exists('temporal_start_year', $this->attributes)) {
+            $value = $this->attributes['temporal_start_year'];
+
+            return $value !== null ? (int) $value : null;
+        }
+
+        return $this->primaryTemporalRange?->start_year;
+    }
+
+    protected function getTemporalEndYearAttribute(): ?int
+    {
+        if (array_key_exists('temporal_end_year', $this->attributes)) {
+            $value = $this->attributes['temporal_end_year'];
+
+            return $value !== null ? (int) $value : null;
+        }
+
+        return $this->primaryTemporalRange?->end_year;
+    }
+
+    protected function getLocationNameAttribute(): ?string
+    {
+        if (array_key_exists('location_name', $this->attributes)) {
+            $value = $this->attributes['location_name'];
+
+            return $value !== null ? (string) $value : null;
+        }
+
+        return $this->primaryLocation?->location_name;
+    }
+
+    /** @return array<string, mixed>|null */
+    protected function getGeomAttribute(): ?array
+    {
+        if (array_key_exists('geom', $this->attributes)) {
+            $value = $this->attributes['geom'];
+
+            return is_array($value) ? $value : null;
+        }
+
+        $geom = $this->primaryLocation?->geom;
+
+        return is_array($geom) ? $geom : null;
+    }
+
+    /** @return array<string, mixed>|null */
+    protected function getTerritoryGeomAttribute(): ?array
+    {
+        if (array_key_exists('territory_geom', $this->attributes)) {
+            $value = $this->attributes['territory_geom'];
+
+            return is_array($value) ? $value : null;
+        }
+
+        $territory = $this->primaryLocation?->territory_geom;
+
+        return is_array($territory) ? $territory : null;
+    }
+
+    /** @return list<string> */
+    protected function getTagsAttribute(): array
+    {
+        if (array_key_exists('tags', $this->attributes)) {
+            $value = $this->attributes['tags'];
+
+            return is_array($value) ? array_values($value) : [];
+        }
+
+        return $this->collectRelationValues('entityTags', 'tag');
+    }
+
+    /** @return list<string> */
+    protected function getAlternativeNamesAttribute(): array
+    {
+        if (array_key_exists('alternative_names', $this->attributes)) {
+            $value = $this->attributes['alternative_names'];
+
+            return is_array($value) ? array_values($value) : [];
+        }
+
+        return $this->collectRelationValues('aliases', 'name');
+    }
+
+    /** @return list<string> */
+    private function collectRelationValues(string $relationName, string $column): array
+    {
+        if ($this->relationLoaded($relationName)) {
+            $relation = $this->getRelation($relationName);
+            if (method_exists($relation, 'pluck')) {
+                return array_values($relation->pluck($column)->filter()->map(
+                    static fn (mixed $value): string => (string) $value,
+                )->all());
+            }
+        }
+
+        /** @var list<string> $values */
+        $values = $this->{$relationName}()->pluck($column)->filter()->map(
+            static fn (mixed $value): string => (string) $value,
+        )->values()->all();
+
+        return $values;
     }
 }

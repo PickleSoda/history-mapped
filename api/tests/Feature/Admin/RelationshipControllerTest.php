@@ -33,9 +33,24 @@ class RelationshipControllerTest extends TestCase
 
     private function giveEntityPointGeom(Entity $entity, float $lng = 28.97, float $lat = 41.01): void
     {
+        DB::table('entity_locations')
+            ->where('entity_id', $entity->entity_id)
+            ->where('is_primary', true)
+            ->delete();
+
         DB::statement(
-            'UPDATE entities SET geom = ST_SetSRID(ST_MakePoint(?, ?), 4326) WHERE entity_id = ?',
-            [$lng, $lat, $entity->entity_id],
+            "INSERT INTO entity_locations (
+                location_id, entity_id, location_name, geom,
+                location_method, location_confidence, is_primary, created_at, updated_at
+            ) VALUES (
+                gen_random_uuid(), ?, NULL,
+                ST_SetSRID(ST_MakePoint(?, ?), 4326),
+                'human_assigned'::location_resolution_method,
+                'high'::confidence_level,
+                true,
+                NOW(), NOW()
+            )",
+            [$entity->entity_id, $lng, $lat],
         );
     }
 

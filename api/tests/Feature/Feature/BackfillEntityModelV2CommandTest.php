@@ -12,16 +12,41 @@ class BackfillEntityModelV2CommandTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_backfill_command_migrates_core_legacy_entity_fields(): void
+    public function test_backfill_command_is_safe_with_existing_canonical_rows(): void
     {
-        $entity = Entity::factory()->create([
-            'alternative_names' => ['Imperium Romanum', 'Res Publica Romana'],
-            'tags' => ['rome', 'republic'],
-            'temporal_start' => '-0509',
-            'temporal_end' => '-0027',
-            'temporal_start_year' => -509,
-            'temporal_end_year' => -27,
+        $entity = Entity::factory()->create();
+
+        \App\Models\EntityAlias::query()->create([
+            'entity_id' => $entity->entity_id,
+            'name' => 'Imperium Romanum',
+            'is_primary' => false,
+        ]);
+
+        \App\Models\EntityAlias::query()->create([
+            'entity_id' => $entity->entity_id,
+            'name' => 'Res Publica Romana',
+            'is_primary' => false,
+        ]);
+
+        \App\Models\EntityTag::query()->create([
+            'entity_id' => $entity->entity_id,
+            'tag' => 'rome',
+        ]);
+
+        \App\Models\EntityTemporalRange::query()->create([
+            'entity_id' => $entity->entity_id,
+            'range_type' => 'primary',
+            'start_year' => -509,
+            'end_year' => -27,
+            'start_date' => '-0509',
+            'end_date' => '-0027',
+            'is_primary' => true,
+        ]);
+
+        \App\Models\EntityLocation::query()->create([
+            'entity_id' => $entity->entity_id,
             'location_name' => 'Rome',
+            'is_primary' => true,
         ]);
 
         $this->artisan('entity-model-v2:backfill')->assertExitCode(0);
@@ -59,14 +84,7 @@ class BackfillEntityModelV2CommandTest extends TestCase
 
     public function test_backfill_command_supports_dry_run_without_writing(): void
     {
-        $entity = Entity::factory()->create([
-            'alternative_names' => ['Roma'],
-            'tags' => ['rome'],
-            'temporal_start' => '-0753',
-            'temporal_end' => null,
-            'temporal_start_year' => -753,
-            'location_name' => 'Rome',
-        ]);
+        $entity = Entity::factory()->create();
 
         $this->artisan('entity-model-v2:backfill --dry-run')
             ->expectsOutputToContain('[DRY-RUN] Entity Model V2 backfill summary')

@@ -8,7 +8,7 @@ This document explains how historical knowledge is structured in this database. 
 
 ## Migration Note (Entity Model V2)
 
-The platform is transitioning from legacy per-entity temporal/location columns to normalized v2 tables (`entity_temporal_ranges`, `entity_locations`) and derived timeline entries. During rollout, feature flags may disable legacy write paths while preserving read compatibility.
+The platform now uses normalized v2 tables (`entity_temporal_ranges`, `entity_locations`, `entity_aliases`, `entity_tags`) and derived timeline entries as canonical storage. Legacy per-entity temporal/location/geometry columns were removed.
 
 History is full of things that existed in time and space and that mattered. We call all of them **entities**. An entity can be:
 

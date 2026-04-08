@@ -99,4 +99,34 @@ class EntityModelV2SchemaTest extends TestCase
 
         return (bool) ($row?->exists ?? false);
     }
+
+    public function test_legacy_entity_columns_are_removed(): void
+    {
+        $legacyColumns = [
+            'geom',
+            'territory_geom',
+            'location_name',
+            'temporal_start',
+            'temporal_end',
+            'temporal_start_year',
+            'temporal_end_year',
+            'alternative_names',
+            'tags',
+        ];
+
+        foreach ($legacyColumns as $column) {
+            $this->assertFalse(
+                Schema::hasColumn('entities', $column),
+                "Column entities.{$column} should be absent after legacy hard-drop",
+            );
+        }
+    }
+
+    public function test_geometry_snapshots_table_is_gone(): void
+    {
+        $this->assertFalse(
+            Schema::hasTable('geometry_snapshots'),
+            'Table geometry_snapshots should not exist after legacy hard-drop',
+        );
+    }
 }

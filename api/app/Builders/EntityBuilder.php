@@ -87,7 +87,7 @@ class EntityBuilder extends Builder
     public function inBbox(float $minLng, float $minLat, float $maxLng, float $maxLat): self
     {
         return $this->whereRaw(
-            'geom && ST_MakeEnvelope(?, ?, ?, ?, 4326)',
+            sprintf('%s && ST_MakeEnvelope(?, ?, ?, ?, 4326)', self::primaryLocationGeomSql()),
             [$minLng, $minLat, $maxLng, $maxLat],
         );
     }
@@ -98,7 +98,7 @@ class EntityBuilder extends Builder
     public function territoryInBbox(float $minLng, float $minLat, float $maxLng, float $maxLat): self
     {
         return $this->whereRaw(
-            'territory_geom && ST_MakeEnvelope(?, ?, ?, ?, 4326)',
+            sprintf('%s && ST_MakeEnvelope(?, ?, ?, ?, 4326)', self::primaryLocationTerritorySql()),
             [$minLng, $minLat, $maxLng, $maxLat],
         );
     }
@@ -110,7 +110,7 @@ class EntityBuilder extends Builder
     public function nearPoint(float $lng, float $lat, float $radiusMeters): self
     {
         return $this->whereRaw(
-            'ST_DWithin(geom::geography, ST_Point(?, ?)::geography, ?)',
+            sprintf('ST_DWithin((%s)::geography, ST_Point(?, ?)::geography, ?)', self::primaryLocationGeomSql()),
             [$lng, $lat, $radiusMeters],
         );
     }
@@ -121,7 +121,7 @@ class EntityBuilder extends Builder
     public function orderByDistanceFrom(float $lng, float $lat): self
     {
         return $this->orderByRaw(
-            'geom <-> ST_Point(?, ?)::geometry',
+            sprintf('(%s) <-> ST_Point(?, ?)::geometry', self::primaryLocationGeomSql()),
             [$lng, $lat],
         );
     }
@@ -134,8 +134,16 @@ class EntityBuilder extends Builder
      */
     public function inTimeRange(int $startYear, int $endYear): self
     {
-        return $this->where('temporal_start_year', '<=', $endYear)
-            ->where('temporal_end_year', '>=', $startYear);
+        return $this->whereRaw(
+            sprintf(
+                'COALESCE(%s, %d) <= ? AND COALESCE(%s, %d) >= ?',
+                self::primaryTemporalStartYearSql(),
+                PHP_INT_MAX,
+                self::primaryTemporalEndYearSql(),
+                PHP_INT_MIN,
+            ),
+            [$endYear, $startYear],
+        );
     }
 
     /**
@@ -143,8 +151,16 @@ class EntityBuilder extends Builder
      */
     public function existsAt(int $year): self
     {
-        return $this->where('temporal_start_year', '<=', $year)
-            ->where('temporal_end_year', '>=', $year);
+        return $this->whereRaw(
+            sprintf(
+                'COALESCE(%s, %d) <= ? AND COALESCE(%s, %d) >= ?',
+                self::primaryTemporalStartYearSql(),
+                PHP_INT_MAX,
+                self::primaryTemporalEndYearSql(),
+                PHP_INT_MIN,
+            ),
+            [$year, $year],
+        );
     }
 
     /**
@@ -152,7 +168,10 @@ class EntityBuilder extends Builder
      */
     public function startingAfter(int $year): self
     {
-        return $this->where('temporal_start_year', '>=', $year);
+        return $this->whereRaw(
+            sprintf('COALESCE(%s, %d) >= ?', self::primaryTemporalStartYearSql(), PHP_INT_MIN),
+            [$year],
+        );
     }
 
     /**
@@ -160,7 +179,10 @@ class EntityBuilder extends Builder
      */
     public function endingBefore(int $year): self
     {
-        return $this->where('temporal_end_year', '<=', $year);
+        return $this->whereRaw(
+            sprintf('COALESCE(%s, %d) <= ?', self::primaryTemporalEndYearSql(), PHP_INT_MAX),
+            [$year],
+        );
     }
 
     // ── Text Search ──────────────────────────────────────────
@@ -216,7 +238,12 @@ class EntityBuilder extends Builder
      */
     public function hasTag(string $tag): self
     {
-        return $this->whereRaw('? = ANY(tags)', [$tag]);
+        return $this->whereExists(function (Builder $query) use ($tag): void {
+            $query->selectRaw('1')
+                ->from('entity_tags as et')
+                ->whereColumn('et.entity_id', 'entities.entity_id')
+                ->where('et.tag', $tag);
+        });
     }
 
     // ── Sorting Presets ──────────────────────────────────────
@@ -233,7 +260,7 @@ class EntityBuilder extends Builder
 
     public function orderByChronological(): self
     {
-        return $this->orderBy('temporal_start_year');
+        return $this->orderByRaw(self::primaryTemporalStartYearSql().' ASC NULLS LAST');
     }
 
     // ── Select Presets ───────────────────────────────────────
@@ -248,8 +275,11 @@ class EntityBuilder extends Builder
     public function withGeoJson(): self
     {
         return $this->select(['entities.*'])
-            ->selectRaw('ST_AsGeoJSON(geom)::jsonb AS geom_geojson')
-            ->selectRaw('ST_AsGeoJSON(territory_geom)::jsonb AS territory_geom_geojson');
+            ->selectRaw(sprintf('%s AS temporal_start', self::primaryTemporalStartDateSql()))
+            ->selectRaw(sprintf('%s AS temporal_end', self::primaryTemporalEndDateSql()))
+            ->selectRaw(sprintf('%s AS location_name', self::primaryLocationNameSql()))
+            ->selectRaw(sprintf('ST_AsGeoJSON(%s)::jsonb AS geom_geojson', self::primaryLocationGeomSql()))
+            ->selectRaw(sprintf('ST_AsGeoJSON(%s)::jsonb AS territory_geom_geojson', self::primaryLocationTerritorySql()));
     }
 
     /**
@@ -263,14 +293,49 @@ class EntityBuilder extends Builder
             'name',
             'entity_type',
             'entity_group',
-            'temporal_start',
-            'temporal_end',
             'display_priority',
             'icon_class',
             'impact_score',
         ])
+            ->selectRaw(sprintf('%s AS temporal_start', self::primaryTemporalStartDateSql()))
+            ->selectRaw(sprintf('%s AS temporal_end', self::primaryTemporalEndDateSql()))
             ->selectRaw("attributes->>'entity_color' AS entity_color")
-            ->selectRaw('ST_AsGeoJSON(geom)::jsonb AS geojson');
+            ->selectRaw(sprintf('ST_AsGeoJSON(%s)::jsonb AS geojson', self::primaryLocationGeomSql()));
+    }
+
+    private static function primaryTemporalStartYearSql(): string
+    {
+        return "(SELECT etr.start_year FROM entity_temporal_ranges etr WHERE etr.entity_id = entities.entity_id AND etr.is_primary = true ORDER BY etr.updated_at DESC NULLS LAST, etr.created_at DESC NULLS LAST LIMIT 1)";
+    }
+
+    private static function primaryTemporalEndYearSql(): string
+    {
+        return "(SELECT etr.end_year FROM entity_temporal_ranges etr WHERE etr.entity_id = entities.entity_id AND etr.is_primary = true ORDER BY etr.updated_at DESC NULLS LAST, etr.created_at DESC NULLS LAST LIMIT 1)";
+    }
+
+    private static function primaryTemporalStartDateSql(): string
+    {
+        return "(SELECT etr.start_date FROM entity_temporal_ranges etr WHERE etr.entity_id = entities.entity_id AND etr.is_primary = true ORDER BY etr.updated_at DESC NULLS LAST, etr.created_at DESC NULLS LAST LIMIT 1)";
+    }
+
+    private static function primaryTemporalEndDateSql(): string
+    {
+        return "(SELECT etr.end_date FROM entity_temporal_ranges etr WHERE etr.entity_id = entities.entity_id AND etr.is_primary = true ORDER BY etr.updated_at DESC NULLS LAST, etr.created_at DESC NULLS LAST LIMIT 1)";
+    }
+
+    private static function primaryLocationNameSql(): string
+    {
+        return "(SELECT el.location_name FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true ORDER BY el.updated_at DESC NULLS LAST, el.created_at DESC NULLS LAST LIMIT 1)";
+    }
+
+    private static function primaryLocationGeomSql(): string
+    {
+        return "(SELECT el.geom FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true ORDER BY el.updated_at DESC NULLS LAST, el.created_at DESC NULLS LAST LIMIT 1)";
+    }
+
+    private static function primaryLocationTerritorySql(): string
+    {
+        return "(SELECT el.territory_geom FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true ORDER BY el.updated_at DESC NULLS LAST, el.created_at DESC NULLS LAST LIMIT 1)";
     }
 
 }
