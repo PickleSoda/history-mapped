@@ -4,15 +4,15 @@ This document is for people entering or correcting **geographic and spatial data
 
 ---
 
-## The Two Geometry Fields
+## Canonical Geometry Storage
 
 ## Migration Note (V2 Geometry Periods)
 
-Legacy snapshot-style and legacy entity geometry write paths are removed. New writes flow through geometry periods and normalized location records (`entity_locations`).
+Legacy snapshot-style and legacy entity geometry write paths are removed. New writes flow through normalized location records (`entity_locations`) and time-scoped `geometry_periods`.
 
-Every entity can have up to two geometry fields. They serve different purposes.
+Each entity should have one primary `entity_locations` row (for baseline map placement) and optional `geometry_periods` rows for time-varying geometry.
 
-### `geom` — The Point Location
+### `entity_locations.geom` — The Primary Point Location
 
 This is a **single coordinate** representing the most meaningful geographic position for this entity.
 
@@ -44,7 +44,7 @@ Positive latitude = North. Negative latitude = South.
 
 ---
 
-### `territory_geom` — The Territorial Extent
+### `entity_locations.territory_geom` — The Primary Territorial Extent
 
 This is a **polygon, multipolygon, or line** representing the spatial extent of the entity.
 
@@ -146,7 +146,7 @@ For empires and states whose borders shifted substantially over time, the `terri
 
 > *"Territory polygon represents approximate maximum extent c. 120 CE under Trajan. Earlier and later extents were significantly different."*
 
-For time-varying geometries, this field should map into multiple geometry periods. For now, document the time it refers to.
+For time-varying geometries, create explicit `geometry_periods` rows keyed by year range and provenance.
 
 ### The entity has no meaningful single point
 
@@ -225,7 +225,7 @@ For map interaction and provenance, resolve locations in this order:
 1. **Wikidata seed**: start from QID and any coordinates/place hints.
 2. **OHM match**: try OHM Nominatim, then OHM Overpass/REST to get a concrete `node`, `way`, or `relation`.
 3. **Fallback geometry source**: if no OHM match, use trusted external border datasets or manual digitization.
-4. **Empty geometry**: if both fail, leave `geom` and `territory_geom` empty and mark `location_confidence` as `unresolved`.
+4. **Empty geometry**: if both fail, leave the primary `entity_locations` geometry empty and mark `location_confidence` as `unresolved`.
 
 When possible, attach and keep the external reference ID (especially OHM relation IDs) so clicking an entity can open the underlying map feature directly.
 

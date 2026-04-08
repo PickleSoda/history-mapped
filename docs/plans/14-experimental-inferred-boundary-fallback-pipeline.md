@@ -22,12 +22,12 @@ The output of this pipeline is **not canonical territory data**. It is an inferr
 1. Source compliance registry and enforcement gate.
 2. OHM missing-boundary inventory for `political_entity`.
 3. At least one working inference prototype with offline backtest results.
-4. Dedicated inferred snapshot storage model and API contract.
+4. Dedicated inferred period storage model and API contract.
 5. Quantitative promotion / stop criteria for future rollout decisions.
 
 ## Dependencies
 - OHM boundary access and date filtering already documented in [../implementation-docs/ohm_integraton_guide.md](../implementation-docs/ohm_integraton_guide.md).
-- Existing geometry snapshot concepts in [../implementation-docs/attributes_and_geometry_snapshots.md](../implementation-docs/attributes_and_geometry_snapshots.md).
+- Historical geometry snapshot concepts (superseded) in [../implementation-docs/attributes_and_geometry_snapshots.md](../implementation-docs/attributes_and_geometry_snapshots.md).
 - Existing pipeline architecture in [../implementation-docs/data_pipeline_architecture.md](../implementation-docs/data_pipeline_architecture.md).
 
 ## Why This Exists
@@ -93,9 +93,9 @@ This experiment does **not** aim to:
 When a map view requests a polity boundary for date `t`:
 
 1. Use verified geometry if available.
-2. Else check OHM-derived geometry snapshots.
-3. Else check inferred-layer snapshots.
-4. If no inferred snapshot passes the confidence threshold, render nothing.
+2. Else check OHM-derived geometry periods.
+3. Else check inferred-layer periods.
+4. If no inferred period passes the confidence threshold, render nothing.
 
 This is a **hybrid abstention model**: no border is preferable to a low-confidence border.
 
@@ -132,7 +132,7 @@ OHM / open datasets / terrain / places / text constraints
    publish inferred   abstain / drop
         │
         ▼
- inferred_geometry_snapshots
+ inferred_geometry_periods
 ```
 
 ## Source Policy
@@ -365,13 +365,13 @@ Additional hard rejection rules:
 Do not write inferred geometry into the main canonical geometry fields.
 
 Add a dedicated store, for example:
-- `inferred_geometry_snapshots`
+- `inferred_geometry_periods`
 
 Suggested fields:
 - `id`
 - `entity_id`
-- `snapshot_date_start`
-- `snapshot_date_end`
+- `period_start_year`
+- `period_end_year`
 - `geom`
 - `confidence_score`
 - `confidence_band`

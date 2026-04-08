@@ -140,16 +140,20 @@ The specific type within the group. Must be consistent with `entity_group`.
 ## Time
 
 ### `temporal_start`
-**Optional.**
+**Optional (API/read-model field).**
 The year the entity began, as a number. BCE years are negative. Year 1 CE = `1`. Year 1 BCE = `-1`.
+
+Storage note: canonical temporal values are stored in `entity_temporal_ranges` (primary row per entity) and surfaced as `temporal_start` in API responses.
 
 *Note: there is no year 0 in the historical calendar; the system follows the astronomical convention where year 0 = 1 BCE.*
 
 ---
 
 ### `temporal_end`
-**Optional.**
+**Optional (API/read-model field).**
 The year the entity ended. Leave blank for ongoing entities.
+
+Storage note: canonical temporal values are stored in `entity_temporal_ranges` and surfaced as `temporal_end` in API responses.
 
 ---
 
@@ -223,32 +227,35 @@ How the date was determined.
 
 ## Location
 
-## Migration Flags (V2 Cutover)
-
-During the v2 migration, write behavior is controlled by two app flags:
+## Migration Flags (Current State)
 
 - `ENTITY_MODEL_V2_WRITE_ENABLED`:
-	- `false` (default): legacy `entities` temporal/location columns continue to be written.
-	- `true`: create/update paths stop writing legacy temporal/location columns (`temporal_*`, `location_*`).
+  - retained as a rollout safety flag.
+  - current behavior is v2-only writes (normalized tables), even when legacy columns are absent.
 - `GEOMETRY_SNAPSHOT_COMPAT_READ_ENABLED`:
-	- `true` (default): compatibility read endpoints remain available.
-	- `false`: compatibility reads can be turned off after clients migrate.
+  - retired; geometry snapshot compatibility endpoints were removed.
 
 ### `location_name`
-**Optional.**
+**Optional (API/read-model field).**
 Plain-text description of the location, for human readers. See [for-geodata-contributors.md](./for-geodata-contributors.md) for guidance.
+
+Storage note: canonical location values are stored in `entity_locations` (primary row per entity) and surfaced as `location_name` in API responses.
 
 ---
 
 ### `geom`
-**Optional.** PostGIS point geometry (WGS 84).
+**Optional (API/read-model field).** PostGIS point geometry (WGS 84).
 The primary geographic coordinate of the entity. Longitude before latitude in decimal degrees. See [for-geodata-contributors.md](./for-geodata-contributors.md) for full guidance.
+
+Storage note: canonical point geometry is stored in `entity_locations.geom` (primary row) and may also appear in `geometry_periods` for time-scoped presence/territory facts.
 
 ---
 
 ### `territory_geom`
-**Optional.** PostGIS geometry (polygon, line, or multipart).
+**Optional (API/read-model field).** PostGIS geometry (polygon, line, or multipart).
 The spatial extent of the entity. See [for-geodata-contributors.md](./for-geodata-contributors.md) for full guidance.
+
+Storage note: canonical area/route geometry is stored in `entity_locations.territory_geom` and in `geometry_periods` for temporal variants.
 
 ---
 

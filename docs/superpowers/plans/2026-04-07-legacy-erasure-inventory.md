@@ -1,5 +1,8 @@
 # Legacy Erasure Inventory (Task 10 Step 1)
 
+> Historical status (completed): this inventory captured pre-hard-drop usage before Task 13 landed.
+> Keep for audit traceability; current codebase should no longer contain active runtime usage of listed artifacts.
+
 Date: 2026-04-07
 Scope:
 - Legacy table: geometry_snapshots compatibility surface

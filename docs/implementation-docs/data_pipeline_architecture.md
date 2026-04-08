@@ -655,7 +655,7 @@ php artisan pipeline:embeddings --pending
 
 - **Polygons for territories** — Scrape simplified boundary geometries from Wikidata/OpenHistoricalMap for political entities and display on the map.
 - **LineStrings for trade routes** — Approximate route geometries from waypoint sequences.
-- **Geometry snapshots** — Time-varying geometries stored in the `geometry_snapshots` table (see `plans/attributes_and_geometry_snapshots.md`).
+- **Geometry periods** — Time-varying geometries stored in canonical `geometry_periods` rows, keyed by year ranges and provenance metadata.
 
 ### v3: Scheduled Pipeline & Monitoring
 
@@ -681,7 +681,7 @@ php artisan pipeline:embeddings --pending
 When a map view requests a polity boundary for date `t`:
 
 1. Use verified geometry if available.
-2. Else check OHM-derived geometry snapshots.
+2. Else check OHM-derived geometry periods.
 3. Else check inferred-layer snapshots (from fallback pipeline).
 4. If no inferred snapshot passes the confidence threshold, render nothing.
 
@@ -720,7 +720,7 @@ OHM / open datasets / terrain / places / text constraints
  publish      abstain / drop
       │
       ▼
- inferred_geometry_snapshots
+ inferred_geometry_periods
 ```
 
 ### Hard Constraints
