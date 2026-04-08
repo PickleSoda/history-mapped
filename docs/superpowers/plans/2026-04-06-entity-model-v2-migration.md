@@ -513,7 +513,7 @@ Required behavior:
 Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelV2DeprecationTest.php`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add docs/superpowers/plans/2026-04-07-legacy-erasure-inventory.md docs/superpowers/plans/2026-04-07-entity-model-v2-rollout-notes.md api/tests/Feature/Feature/EntityModelV2DeprecationTest.php
