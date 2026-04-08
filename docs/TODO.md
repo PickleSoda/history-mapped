@@ -45,7 +45,7 @@
   Added `$hidden = ['embedding', 'embedding_version']` to the `Entity` model.
 
 - [x] **Fix temporal string sorting for BCE/CE ranges**
-  Added `temporal_start_year` / `temporal_end_year` integer columns via migration `2026_03_20_120000`. Updated `EntityBuilder` temporal methods, `EntityFilterData`, validation rules, and `EntityData::toModelArray()` to use integer year columns. Old text columns retained for raw display.
+  Added normalized year columns for ordering/filtering and updated query/build paths to use integer temporal fields. Current canonical temporal storage is in `entity_temporal_ranges`; legacy entity-level temporal columns were removed during v2 hard-drop.
 
 ### Medium Priority
 
@@ -77,8 +77,8 @@
 - [ ] **Add per-type expression indexes on `attributes` JSONB**
   `hasAttribute('government_type', 'monarchy')` does a full GIN scan. For high-cardinality keys used in filters, add PostgreSQL expression indexes scoped to each entity type. 11 indexes planned — see `plans/attributes_and_geometry_snapshots.md` Section 5.
 
-- [ ] **Implement `geometry_snapshots` table for time-varying geometries**
-  Entities like empires, trade routes, and epidemics need PostGIS geometries that change over time. Full plan with schema, indexes, query patterns, API endpoints, and Laravel implementation checklist in `plans/attributes_and_geometry_snapshots.md`.
+- [ ] **Harden `geometry_periods` lifecycle for time-varying geometries**
+  Ensure all pipelines consistently write canonical period geometries (empires, routes, epidemics), validate non-overlapping periods per geometry role, and keep provenance fields complete.
 
 ---
 

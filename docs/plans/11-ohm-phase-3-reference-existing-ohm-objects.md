@@ -1,8 +1,12 @@
 # Phase 3 — Reference Existing OHM Objects Instead of Re-Creating Geometry
 
+> Historical note (post-Task-13): this phase plan predates the v2 hard-drop.
+> References to "snapshots" should now be interpreted as `geometry_periods` and normalized georef records.
+> Retained for planning history; current implementation docs are authoritative.
+
 ## Objective
 
-Allow entities/snapshots to reference existing OHM objects (node/way/relation), automatically attach these references during pipeline ingestion when possible, and support deterministic map-click resolution back to a WikiGlobe entity.
+Allow entities/geometry periods to reference existing OHM objects (node/way/relation), automatically attach these references during pipeline ingestion when possible, and support deterministic map-click resolution back to a WikiGlobe entity.
 
 ## Scope
 
@@ -26,7 +30,7 @@ Allow entities/snapshots to reference existing OHM objects (node/way/relation), 
 3. Pipeline auto-attach logic for entity georefs.
 4. UI for selecting and attaching OHM objects.
 5. Deterministic click-resolution path (`OHM feature -> entity -> date-scoped geometry`).
-6. Local PostGIS hydration path so attached OHM references can populate `entities` / `geometry_snapshots` without changing renderer queries.
+6. Local PostGIS hydration path so attached OHM references can populate `entity_locations` / `geometry_periods` without changing renderer queries.
 
 ## Current Implementation Slice
 
@@ -34,11 +38,11 @@ This phase is being implemented backend-first with a strict separation between
 reference metadata and render geometry.
 
 - `entity_geo_refs` is a provenance and reverse-lookup table, not a render source.
-- Map rendering continues to read only from `entities.geom`, `entities.territory_geom`,
-  and `geometry_snapshots`.
+- Map rendering continues to read only from canonical location/period stores (`entity_locations`,
+  `geometry_periods`).
 - When an OHM object is attached and accepted as canonical, its geometry is hydrated
   into the existing local PostGIS columns/tables.
-- `geometry_snapshots.geo_ref_id` is a provenance link only.
+- `geometry_periods.geo_ref_id` is a provenance link only.
 - Viewer/editor attachment workflows remain part of Phase 3, but follow the backend
   schema/API foundation rather than leading it.
 
@@ -87,7 +91,7 @@ Python pipeline, with Laravel acting as the persistence and manual-override laye
   - `is_active` (boolean)
   - timestamps
 - `entities.primary_geo_ref_id` (uuid, nullable canonical georef pointer)
-- `geometry_snapshots.geo_ref_id` (uuid, nullable provenance link)
+- `geometry_periods.geo_ref_id` (uuid, nullable provenance link)
 
 ### Data integrity invariants
 
@@ -99,7 +103,7 @@ Python pipeline, with Laravel acting as the persistence and manual-override laye
 
 ### 3.1 Schema + model layer
 
-- Migration + model + relations from Entity/Snapshot.
+- Migration + model + relations from Entity/GeometryPeriod.
 - Validation for mutually exclusive entity/snapshot association where needed.
 - Add/verify constraints and indexes for ownership/uniqueness/lookup performance.
 
@@ -128,7 +132,7 @@ Python pipeline, with Laravel acting as the persistence and manual-override laye
 - `POST /entities/{id}/geography-references`
 - `GET /entities/{id}/geography-references`
 - `DELETE /entities/{id}/geography-references/{ref}`
-- Snapshot-level attach is currently supported via `POST/PUT /entities/{id}/geometry-snapshots` using nested `geography_reference` input; dedicated snapshot georef endpoints remain deferred.
+- Historical note: snapshot-level attach endpoints were replaced by geometry-period and normalized georef flows.
 - Add click-resolution endpoint/action:
   - `POST /map/resolve-ohm-feature`
   - input: `provider`, `external_type`, `external_id`, `target_year`
@@ -139,14 +143,14 @@ Python pipeline, with Laravel acting as the persistence and manual-override laye
 - Planned as a follow-on slice within Phase 3 after the backend schema/API foundation lands.
 - "Reference from OHM" action in editor.
 - Search/lookup by ID and optional name workflow.
-- Attach selected OHM object as entity/snapshot geometry source via the new backend endpoints.
+- Attach selected OHM object as entity/geometry-period geometry source via the backend endpoints.
 - Manual attach/list/remove remains available through API during backend-first implementation.
 
 ### 3.6 Rendering precedence rules
 
 - For the current slice, rendering remains unchanged and reads only from local geometry.
 - Date-scoped precedence remains:
-  1. matching `geometry_snapshots` for selected year;
+  1. matching `geometry_periods` for selected year;
   2. else base entity geometry.
 - Future viewer work may expose source toggles, but that is deferred.
 
@@ -159,7 +163,7 @@ Python pipeline, with Laravel acting as the persistence and manual-override laye
   3. latest update, deterministic id fallback.
 - Add tests for:
   - successful OHM relation click resolution,
-  - snapshot vs base geometry fallback,
+  - geometry-period vs base geometry fallback,
   - inactive georef exclusion,
   - ownership constraint violation rejection.
 

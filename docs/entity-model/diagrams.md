@@ -1,4 +1,7 @@
 # Entity Model — UML Diagrams
+geometry_snapshots
+> Status note (post-Task-13): diagrams in this file include historical views from before the legacy-column hard-drop.
+> Treat normalized-table and geometry-period diagrams as canonical; legacy `entities` temporal/location columns and `geometry_snapshots` are no longer active.
 
 Visual diagrams for the WikiGlobe data model. All diagrams use Mermaid syntax.
 

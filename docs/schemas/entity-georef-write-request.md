@@ -18,8 +18,6 @@ Endpoint:
 
   "temporal_start": "-0027",
   "temporal_end": "0476",
-  "temporal_start_year": -27,
-  "temporal_end_year": 476,
 
   "external_tags": {
     "historic": "empire"
@@ -47,7 +45,7 @@ Endpoint:
   - `match_score` in range `[0,1]`
   - `is_active` boolean
 - Constraint:
-  - `temporal_end_year >= temporal_start_year` when both are present.
+  - Temporal ranges must be coherent (`temporal_end` not earlier than `temporal_start`) when both are present.
 
 ## Notes
 

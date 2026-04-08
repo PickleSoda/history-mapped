@@ -1,5 +1,8 @@
 # Entity Model V2 Migration Implementation Plan
 
+> Historical status (completed): this migration plan is retained as an execution record.
+> Current source of truth is the post-hard-drop schema/model state (`entity_locations`, `entity_temporal_ranges`, `geometry_periods`) and rollout notes.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Migrate the current snapshot-centric entity model to a strict normalized write model with geometry periods and a derived timeline read model, without breaking existing admin/API workflows during rollout.
@@ -423,7 +426,7 @@ Expected: FAIL before cutover logic exists.
 
 Recommended flag names:
 - `entity_model_v2_write_enabled`
-- `geometry_snapshot_compat_read_enabled`
+- `geometry_snapshot_compat_read_enabled` (historical; retired after compatibility surface removal)
 
 - [x] **Step 4: Rerun tests and spot-check docs**
 
@@ -494,6 +497,8 @@ Inventory scope:
 
 Run:
 - `rg -n "geometry_snapshots|geometrySnapshots|temporal_start|temporal_end|location_name|territory_geom|\bgeom\b|alternative_names|\btags\b" api`
+
+Historical note: this command is kept for archive/replay context; active code should no longer return runtime usages of removed artifacts.
 
 Expected: markdown inventory grouped by API, admin UI, actions/jobs, seeders/factories, and tests.
 

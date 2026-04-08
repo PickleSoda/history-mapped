@@ -1,5 +1,8 @@
 # Historical Atlas — Entity Specification v2.1
 
+> Status note (post-Task-13): canonical persistence now uses normalized tables for temporal/location aliases/tags and `geometry_periods` for time-varying geometry.
+> Some legacy schema snippets in this spec are retained for migration history and should not be used as implementation truth without checking current migrations/models.
+
 > **Companion to:** Data Pipeline Architecture, Foundational Architecture Document, Game-Inspired UI/UX Design Guide
 > **Storage context:** PostgreSQL (PostGIS + pgvector) for structured/queryable data, S3-compatible object storage for raw files and logs.
 > **Changes from v1.0:** Merged Economic/Trade Good into Natural Resource. Demoted Historical Period/Era and Historiographical School to reference tables (see `reference_tables.md`). Added Infrastructure/Monument, Diplomatic Relationship/Alliance, and Epidemic/Disease as new first-class entities.
@@ -486,7 +489,7 @@ CREATE TYPE icon_class AS ENUM (
 
 ## 3. Shared Base Fields (All Entities)
 
-Every entity in PostgreSQL shares these columns. Type-specific fields are stored in the JSONB `attributes` column (see Section 4). Time-varying geometries use a dedicated `geometry_snapshots` sub-table (see `plans/attributes_and_geometry_snapshots.md`).
+Every entity in PostgreSQL shares these columns. Type-specific fields are stored in the JSONB `attributes` column (see Section 4). Time-varying geometries now use `geometry_periods` in the canonical v2 model.
 
 | Field | Type | Storage | Source | Notes |
 |-------|------|---------|--------|-------|
@@ -591,7 +594,7 @@ ALTER TABLE entities
   DEFERRABLE INITIALLY DEFERRED;
 ```
 
-`geometry_snapshots` should optionally reference `geo_ref_id` so every generated geometry is traceable to a specific OHM element or fallback source.
+`geometry_periods` should optionally reference `geo_ref_id` so every generated geometry is traceable to a specific OHM element or fallback source.
 
 ### 3.1.1 Reverse Lookup Query (OHM Click -> Entity -> Date-Scoped Geometry)
 
@@ -616,7 +619,7 @@ WITH ref_match AS (
 ),
 snap AS (
   SELECT s.*
-  FROM geometry_snapshots s
+  FROM geometry_periods s
   JOIN ref_match rm ON rm.entity_id = s.entity_id
   WHERE s.year_start <= :target_year
     AND s.year_end   >= :target_year
@@ -653,11 +656,11 @@ Pipeline logic for `geom`/`territory_geom` assignment:
 
 > **Storage decision:** All type-specific fields are stored as keys in the JSONB `attributes` column on the `entities` table. They are **not** separate database columns or sub-tables. This section documents the expected JSONB schema per entity type for pipeline ingestion, validation, and admin panel form generation.
 >
-> **Rationale:** Type-specific attributes are never queried on the map hot path (which uses only base columns from Section 3). They are loaded only when displaying entity detail views — a single-row JSON decode. JSONB avoids 30 sub-tables, 30 models, and 30 migrations while allowing schema evolution without DDL changes. For the few attribute keys used in filters, PostgreSQL expression indexes provide indexed equality lookups (see `plans/attributes_and_geometry_snapshots.md` Section 5).
+> **Rationale:** Type-specific attributes are never queried on the map hot path (which uses only base columns from Section 3). They are loaded only when displaying entity detail views — a single-row JSON decode. JSONB avoids 30 sub-tables, 30 models, and 30 migrations while allowing schema evolution without DDL changes. For the few attribute keys used in filters, PostgreSQL expression indexes provide indexed equality lookups.
 >
 > **Cross-entity references in JSONB:** Fields like `"city_entity_id"` or `"person_id"` stored inside JSONB arrays are **soft references** (UUID strings), not foreign keys. Referential integrity for these is enforced at the application layer during pipeline validation (Stage 7) and admin panel saves. Hard FK references that need database-level enforcement are stored as base columns (`parent_entity_id`, `successor_entity_id`) or in the `relationships` table.
 >
-> **Time-varying geometries:** Entities whose PostGIS geometries change over time (empire borders, trade route shifts, migration paths) use the dedicated `geometry_snapshots` table — not JSONB — because PostGIS spatial queries require GIST-indexed `geometry` columns. See `plans/attributes_and_geometry_snapshots.md` Section 4.
+> **Time-varying geometries:** Entities whose PostGIS geometries change over time (empire borders, trade route shifts, migration paths) use `geometry_periods` — not JSONB — because PostGIS spatial queries require GIST-indexed `geometry` columns.
 
 All entities carry every field from Section 3 in addition to the `attributes` keys listed below.
 
@@ -1371,7 +1374,7 @@ Relationships are **directional**: `(Rome, vassal_of, Parthia)` is different fro
 Everything that gets queried, joined, filtered, or indexed:
 
 - **Entity table** with all fields from Section 3 and type-specific JSONB attributes
-- **Geometry snapshots table** for time-varying PostGIS geometries (empire borders, trade route shifts) — see `plans/attributes_and_geometry_snapshots.md`
+- **Geometry periods table** for time-varying PostGIS geometries (empire borders, trade route shifts)
 - **Relationships table** (Section 6)
 - **Sources metadata table** (Section 5, minus raw files)
 - **PostGIS geometry columns** with GIST spatial indexes on `geom` and `territory_geom`
