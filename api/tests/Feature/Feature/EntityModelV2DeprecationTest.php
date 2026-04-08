@@ -99,12 +99,12 @@ class EntityModelV2DeprecationTest extends TestCase
         $this->assertNull($entity->territory_geom);
     }
 
-    public function test_legacy_geometry_snapshot_write_endpoint_is_disabled_when_v2_writes_enabled(): void
+    public function test_legacy_geometry_snapshot_write_endpoint_is_removed_when_v2_writes_enabled(): void
     {
         $entity = Entity::factory()->create();
 
         $this->actingAs($this->user)
-            ->postJson(route('entities.geometry-snapshots.store', $entity), [
+            ->postJson("/entities/{$entity->entity_id}/geometry-snapshots", [
                 'period_type' => 'territory',
                 'start_year' => -80,
                 'end_year' => -20,
@@ -114,6 +114,6 @@ class EntityModelV2DeprecationTest extends TestCase
                     'coordinates' => [[[10.0, 10.0], [11.0, 10.0], [11.0, 11.0], [10.0, 11.0], [10.0, 10.0]]],
                 ],
             ])
-            ->assertStatus(410);
+            ->assertStatus(404);
     }
 }
