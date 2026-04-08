@@ -1,19 +1,29 @@
 {
-  "servers": {
-    "laravel-boost": {
-      "type": "stdio",
-      "command": "docker",
-      "args": [
-        "compose",
-        "-f",
-        "docker/docker-compose.yml",
-        "exec",
-        "-T",
-        "app",
-        "php",
-        "artisan",
-        "boost:mcp"
-      ]
-    },
-  }
+	"servers": {
+		"laravel-boost": {
+			"type": "stdio",
+			"command": "docker",
+			"args": [
+				"compose",
+				"-f",
+				"docker/docker-compose.yml",
+				"exec",
+				"-T",
+				"app",
+				"php",
+				"artisan",
+				"boost:mcp"
+			]
+		},
+		"gitnexus": {
+			"type": "stdio",
+			"command": "npx",
+			"args": [
+				"-y",
+				"gitnexus",
+				"mcp"
+			]
+		}
+	},
+	"inputs": []
 }
