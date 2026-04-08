@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\EntityController;
+use App\Http\Controllers\Admin\EntityGeometryPeriodController;
 use App\Http\Controllers\Admin\Reference\CalendarSystemController;
 use App\Http\Controllers\Admin\Reference\EraDateLookupController;
 use App\Http\Controllers\Admin\Reference\GeographicRegionController;
@@ -33,7 +34,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ── Relationships (JSON, embedded in entity edit/show pages) ─────────
     Route::get('entities/{entity}/relationships', [RelationshipController::class, 'index'])->name('entities.relationships.index');
     Route::post('entities/{entity}/relationships', [RelationshipController::class, 'store'])->name('entities.relationships.store');
+    Route::put('entities/{entity}/relationships/{relationship}', [RelationshipController::class, 'update'])->name('entities.relationships.update');
     Route::delete('entities/{entity}/relationships/{relationship}', [RelationshipController::class, 'destroy'])->name('entities.relationships.destroy');
+
+    // ── Geometry Periods (JSON, embedded in entity edit/show pages) ─
+    Route::get('entities/{entity}/geometry-periods', [EntityGeometryPeriodController::class, 'index'])->name('entities.geometry-periods.index');
+    Route::post('entities/{entity}/geometry-periods', [EntityGeometryPeriodController::class, 'store'])->name('entities.geometry-periods.store');
+    Route::put('entities/{entity}/geometry-periods/{geometryPeriod}', [EntityGeometryPeriodController::class, 'update'])->name('entities.geometry-periods.update');
+    Route::delete('entities/{entity}/geometry-periods/{geometryPeriod}', [EntityGeometryPeriodController::class, 'destroy'])->name('entities.geometry-periods.destroy');
 
     // ── Reference Tables ─────────────────────────────────────────────
     Route::get('reference/geographic-regions', [GeographicRegionController::class, 'index'])->name('reference.geographic-regions.index');

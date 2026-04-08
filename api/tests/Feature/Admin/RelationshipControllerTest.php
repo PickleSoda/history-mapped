@@ -325,6 +325,117 @@ class RelationshipControllerTest extends TestCase
         ]);
     }
 
+    // ── update ───────────────────────────────────────────────────────────────
+
+    public function test_update_updates_outgoing_relationship_fields(): void
+    {
+        $relationship = $this->createRelationship([
+            'relationship_type' => 'allied_with',
+            'temporal_start' => '1648',
+            'temporal_end' => '1650',
+            'start_year' => 1648,
+            'end_year' => 1650,
+            'description' => 'Original',
+            'confidence' => 'low',
+        ]);
+
+        $url = '/entities/'.$this->source->entity_id.'/relationships/'.$relationship->relationship_id;
+
+        $this->actingAs($this->user)
+            ->putJson($url, [
+                'target_entity_id' => $this->target->entity_id,
+                'relationship_type' => 'at_war_with',
+                'temporal_start' => '1651',
+                'temporal_end' => null,
+                'description' => 'Updated',
+                'confidence' => 'high',
+            ])
+            ->assertOk()
+            ->assertJsonPath('relationship.relationship_type', 'at_war_with')
+            ->assertJsonPath('relationship.temporal_start', '1651')
+            ->assertJsonPath('relationship.temporal_end', null)
+            ->assertJsonPath('relationship.start_year', 1651)
+            ->assertJsonPath('relationship.end_year', null)
+            ->assertJsonPath('relationship.description', 'Updated')
+            ->assertJsonPath('relationship.confidence', 'high');
+
+        $this->assertDatabaseHas('relationships', [
+            'relationship_id' => $relationship->relationship_id,
+            'relationship_type' => 'at_war_with',
+            'temporal_start' => '1651',
+            'description' => 'Updated',
+            'confidence' => 'high',
+        ]);
+    }
+
+    public function test_update_syncs_and_removes_derived_presence_period_for_type_change(): void
+    {
+        $this->giveEntityPointGeom($this->source, 12.48, 41.89);
+
+        $response = $this->actingAs($this->user)
+            ->postJson(route('entities.relationships.store', $this->source), [
+                'target_entity_id' => $this->target->entity_id,
+                'relationship_type' => 'fought_at',
+                'temporal_start' => '1648',
+                'temporal_end' => '1648',
+                'description' => 'Battle participation',
+            ])
+            ->assertCreated();
+
+        $relationshipId = (string) $response->json('relationship.relationship_id');
+        $url = '/entities/'.$this->source->entity_id.'/relationships/'.$relationshipId;
+
+        $this->assertDatabaseHas('geometry_periods', [
+            'relationship_id' => $relationshipId,
+            'period_type' => 'presence',
+            'provenance_mode' => 'derived',
+        ]);
+
+        $this->actingAs($this->user)
+            ->putJson($url, [
+                'target_entity_id' => $this->target->entity_id,
+                'relationship_type' => 'allied_with',
+                'temporal_start' => '1648',
+                'temporal_end' => '1650',
+                'description' => 'Now an alliance',
+                'confidence' => 'medium',
+            ])
+            ->assertOk();
+
+        $this->assertDatabaseMissing('geometry_periods', [
+            'relationship_id' => $relationshipId,
+            'period_type' => 'presence',
+            'provenance_mode' => 'derived',
+        ]);
+    }
+
+    public function test_update_404s_when_entity_is_not_source(): void
+    {
+        $relationship = $this->createRelationship([
+            'source_entity_id' => $this->target->entity_id,
+            'target_entity_id' => $this->source->entity_id,
+        ]);
+        $url = '/entities/'.$this->source->entity_id.'/relationships/'.$relationship->relationship_id;
+
+        $this->actingAs($this->user)
+            ->putJson($url, [
+                'target_entity_id' => $this->target->entity_id,
+                'relationship_type' => 'allied_with',
+            ])
+            ->assertNotFound();
+    }
+
+    public function test_update_requires_authentication(): void
+    {
+        $relationship = $this->createRelationship();
+        $url = '/entities/'.$this->source->entity_id.'/relationships/'.$relationship->relationship_id;
+
+        $this->putJson($url, [
+            'target_entity_id' => $this->target->entity_id,
+            'relationship_type' => 'allied_with',
+        ])->assertUnauthorized();
+    }
+
     // ── destroy ───────────────────────────────────────────────────────────────
 
     public function test_destroy_deletes_relationship(): void

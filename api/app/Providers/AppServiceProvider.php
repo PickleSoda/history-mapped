@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\EntityTemporalRange;
 use App\Models\GeometryPeriod;
+use App\Observers\EntityTemporalRangeObserver;
 use App\Observers\GeometryPeriodObserver;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -26,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         GeometryPeriod::observe(GeometryPeriodObserver::class);
+        EntityTemporalRange::observe(EntityTemporalRangeObserver::class);
 
         $this->configureDefaults();
     }

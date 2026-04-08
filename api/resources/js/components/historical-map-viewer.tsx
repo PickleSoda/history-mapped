@@ -285,18 +285,16 @@ function HistoricalMapViewer({
         );
         const hasHover = Boolean(hoveredRelationshipId);
 
-        const hoverExpression: any[] = [
-            hoveredRelationshipId
-                ? [
-                      '==',
-                      [
-                          'to-string',
-                          ['coalesce', ['get', 'relationship_id'], ''],
-                      ],
-                      hoveredRelationshipId,
-                  ]
-                : false,
-        ];
+        const hoverExpression: any = hoveredRelationshipId
+            ? [
+                  '==',
+                  [
+                      'to-string',
+                      ['coalesce', ['get', 'relationship_id'], ''],
+                  ],
+                  hoveredRelationshipId,
+              ]
+            : false;
         const hoverPreviewExpression: any[] = [
             '==',
             ['coalesce', ['get', 'hover_preview'], false],

@@ -67,7 +67,7 @@ class EntityTimelineEntryBuilder
             'entity_id' => $range->entity_id,
             'entry_kind' => 'temporal_range',
             'start_year' => $range->start_year,
-            'end_year' => $range->end_year,
+            'end_year' => $range->end_year ?? $range->start_year,
             'title' => $title,
             'description' => $range->notes,
             'source_table' => 'entity_temporal_ranges',

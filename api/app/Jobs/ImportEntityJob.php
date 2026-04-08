@@ -164,6 +164,8 @@ class ImportEntityJob implements ShouldQueue
                     'relationship_type' => $hint['relationship_type'],
                     'target_wikidata_id' => $hint['target_wikidata_id'],
                     'target_label' => $hint['target_label'] ?? null,
+                    'temporal_start' => $hint['temporal_start'] ?? null,
+                    'temporal_end' => $hint['temporal_end'] ?? null,
                     'confidence' => $hint['confidence'] ?? 'medium',
                     'wikidata_property' => $hint['source'] ?? null,
                     'batch_id' => $this->batchId,

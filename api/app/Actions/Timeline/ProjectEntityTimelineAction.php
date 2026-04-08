@@ -83,7 +83,7 @@ class ProjectEntityTimelineAction
         }
 
         if ($inserted === 0) {
-            $primaryTemporalRange = EntityTemporalRange::query()
+            $temporalRanges = EntityTemporalRange::query()
                 ->where('entity_id', $entityId)
                 ->where(function ($query): void {
                     $query->whereNotNull('start_year')
@@ -91,18 +91,20 @@ class ProjectEntityTimelineAction
                 })
                 ->orderByDesc('is_primary')
                 ->orderBy('start_year')
-                ->first();
+                ->get();
 
-            if ($primaryTemporalRange !== null) {
+            if ($temporalRanges->isNotEmpty()) {
                 $entityName = (string) (Entity::query()
                     ->where('entity_id', $entityId)
                     ->value('name') ?? 'Unknown entity');
 
-                EntityTimelineEntry::query()->create(
-                    $this->entryBuilder->fromPrimaryTemporalRange($primaryTemporalRange, $entityName),
-                );
+                foreach ($temporalRanges as $range) {
+                    EntityTimelineEntry::query()->create(
+                        $this->entryBuilder->fromPrimaryTemporalRange($range, $entityName),
+                    );
 
-                $inserted++;
+                    $inserted++;
+                }
             }
         }
 

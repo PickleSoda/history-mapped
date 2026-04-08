@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 /**
  * Seeds the relationships table with curated historical connections.
@@ -34,6 +36,9 @@ class RelationshipSeeder extends Seeder
     private const PRAETORIAN = '10000000-0000-0000-0000-000000000006';
     private const MONGOL     = '10000000-0000-0000-0000-000000000007';
     private const BYZANTINE  = '10000000-0000-0000-0000-000000000008';
+    private const MEHMED_II  = '10000000-0000-0000-0000-000000000009';
+    private const CONSTANTINE_XI = '10000000-0000-0000-0000-000000000010';
+    private const MURAD_II   = '10000000-0000-0000-0000-000000000011';
 
     // Place
     private const CONSTANTINOPLE = '20000000-0000-0000-0000-000000000001';
@@ -42,6 +47,7 @@ class RelationshipSeeder extends Seeder
     private const BOLOGNA        = '20000000-0000-0000-0000-000000000004';
     private const ANGKOR         = '20000000-0000-0000-0000-000000000005';
     private const ALEXANDRIA     = '20000000-0000-0000-0000-000000000006';
+    private const EDIRNE         = '20000000-0000-0000-0000-000000000007';
 
     // Event
     private const FALL_CONST  = '30000000-0000-0000-0000-000000000001';
@@ -52,6 +58,7 @@ class RelationshipSeeder extends Seeder
     private const GUTENBERG   = '30000000-0000-0000-0000-000000000006';
     private const MAGNA_CARTA = '30000000-0000-0000-0000-000000000007';
     private const MIGRATION   = '30000000-0000-0000-0000-000000000008';
+    private const VARNA       = '30000000-0000-0000-0000-000000000009';
 
     // Economy
     private const SILK_ROAD    = '40000000-0000-0000-0000-000000000001';
@@ -112,6 +119,16 @@ class RelationshipSeeder extends Seeder
     private const R38 = 'b0000000-0000-0000-0000-000000000038';
     private const R39 = 'b0000000-0000-0000-0000-000000000039';
     private const R40 = 'b0000000-0000-0000-0000-000000000040';
+    private const R41 = 'b0000000-0000-0000-0000-000000000041';
+    private const R42 = 'b0000000-0000-0000-0000-000000000042';
+    private const R43 = 'b0000000-0000-0000-0000-000000000043';
+    private const R44 = 'b0000000-0000-0000-0000-000000000044';
+    private const R45 = 'b0000000-0000-0000-0000-000000000045';
+    private const R46 = 'b0000000-0000-0000-0000-000000000046';
+    private const R47 = 'b0000000-0000-0000-0000-000000000047';
+    private const R48 = 'b0000000-0000-0000-0000-000000000048';
+    private const R49 = 'b0000000-0000-0000-0000-000000000049';
+    private const R50 = 'b0000000-0000-0000-0000-000000000050';
 
     public function run(): void
     {
@@ -123,10 +140,12 @@ class RelationshipSeeder extends Seeder
                     INSERT INTO relationships
                         (relationship_id, source_entity_id, target_entity_id,
                          relationship_type, temporal_start, temporal_end,
+                         start_year, end_year,
                          description, confidence, source_citations,
                          created_by, created_at)
                     VALUES (?, ?, ?,
                             ?::relationship_type, ?, ?,
+                            ?, ?,
                             ?, ?::confidence_level, ?::jsonb,
                             ?, ?)
                     SQL,
@@ -137,6 +156,8 @@ class RelationshipSeeder extends Seeder
                     $r['type'],
                     $r['start'] ?? null,
                     $r['end'] ?? null,
+                    self::extractYear($r['start'] ?? null),
+                    self::extractYear($r['end'] ?? null),
                     $r['desc'] ?? null,
                     $r['confidence'] ?? 'medium',
                     isset($r['citations']) ? json_encode($r['citations']) : null,
@@ -144,6 +165,11 @@ class RelationshipSeeder extends Seeder
                     $now,
                 ],
             );
+        }
+
+        $exitCode = Artisan::call('entity-model-v2:backfill');
+        if ($exitCode !== 0) {
+            throw new RuntimeException('Entity Model V2 backfill failed after relationship seeding.');
         }
     }
 
@@ -407,6 +433,126 @@ class RelationshipSeeder extends Seeder
                 'desc' => 'Greek scholars fleeing Constantinople brought manuscripts and classical knowledge to Italy, accelerating the Renaissance.',
                 'confidence' => 'medium',
                 'citations' => [['source' => 'Wilson, From Byzantium to Italy', 'year' => 2017]],
+            ],
+
+            // Fall of Constantinople → located_at → Constantinople
+            [
+                'id' => self::R41,
+                'source' => self::FALL_CONST,
+                'target' => self::CONSTANTINOPLE,
+                'type' => 'located_at',
+                'start' => '1453',
+                'end' => '1453',
+                'desc' => 'The siege and capture occurred at Constantinople in 1453.',
+                'confidence' => 'high',
+            ],
+
+            // Murad II → rules → Ottoman Empire
+            [
+                'id' => self::R42,
+                'source' => self::MURAD_II,
+                'target' => self::OTTOMAN,
+                'type' => 'rules',
+                'start' => '1421',
+                'end' => '1451',
+                'desc' => 'Murad II ruled the Ottoman Empire and restored political stability after internal and external crises.',
+                'confidence' => 'high',
+            ],
+
+            // Mehmed II → rules → Ottoman Empire
+            [
+                'id' => self::R43,
+                'source' => self::MEHMED_II,
+                'target' => self::OTTOMAN,
+                'type' => 'rules',
+                'start' => '1451',
+                'end' => '1481',
+                'desc' => 'Mehmed II ruled as Ottoman sultan and expanded the empire after conquering Constantinople.',
+                'confidence' => 'high',
+            ],
+
+            // Mehmed II → victorious_at → Fall of Constantinople
+            [
+                'id' => self::R44,
+                'source' => self::MEHMED_II,
+                'target' => self::FALL_CONST,
+                'type' => 'victorious_at',
+                'start' => '1453',
+                'end' => '1453',
+                'desc' => 'As Ottoman commander, Mehmed II won the siege that captured Constantinople.',
+                'confidence' => 'high',
+            ],
+
+            // Constantine XI → rules → Byzantine Empire
+            [
+                'id' => self::R45,
+                'source' => self::CONSTANTINE_XI,
+                'target' => self::BYZANTINE,
+                'type' => 'rules',
+                'start' => '1449',
+                'end' => '1453',
+                'desc' => 'Constantine XI was the final reigning Byzantine emperor until the city fell in 1453.',
+                'confidence' => 'high',
+            ],
+
+            // Constantine XI → died_in → Fall of Constantinople
+            [
+                'id' => self::R46,
+                'source' => self::CONSTANTINE_XI,
+                'target' => self::FALL_CONST,
+                'type' => 'died_in',
+                'start' => '1453',
+                'end' => '1453',
+                'desc' => 'Constantine XI was killed during the final defense of Constantinople.',
+                'confidence' => 'high',
+            ],
+
+            // Edirne → capital_of → Ottoman Empire (pre-1453)
+            [
+                'id' => self::R47,
+                'source' => self::EDIRNE,
+                'target' => self::OTTOMAN,
+                'type' => 'capital_of',
+                'start' => '1369',
+                'end' => '1453',
+                'desc' => 'Edirne (Adrianople) served as the principal Ottoman capital before Constantinople.',
+                'confidence' => 'high',
+            ],
+
+            // Murad II → victorious_at → Battle of Varna
+            [
+                'id' => self::R48,
+                'source' => self::MURAD_II,
+                'target' => self::VARNA,
+                'type' => 'victorious_at',
+                'start' => '1444',
+                'end' => '1444',
+                'desc' => 'Murad II led the Ottoman victory over crusader forces at Varna.',
+                'confidence' => 'high',
+            ],
+
+            // Ottoman Empire → victorious_at → Battle of Varna
+            [
+                'id' => self::R49,
+                'source' => self::OTTOMAN,
+                'target' => self::VARNA,
+                'type' => 'victorious_at',
+                'start' => '1444',
+                'end' => '1444',
+                'desc' => 'The Ottoman victory at Varna secured strategic dominance in the Balkans.',
+                'confidence' => 'high',
+            ],
+
+            // Battle of Varna → enabled → Fall of Constantinople
+            [
+                'id' => self::R50,
+                'source' => self::VARNA,
+                'target' => self::FALL_CONST,
+                'type' => 'enabled',
+                'start' => '1444',
+                'end' => '1453',
+                'desc' => 'The defeat of crusader intervention at Varna enabled later Ottoman concentration on Constantinople.',
+                'confidence' => 'medium',
             ],
 
             // Migration Period → weakened → Roman Empire
@@ -679,5 +825,18 @@ class RelationshipSeeder extends Seeder
                 'citations' => [['source' => 'Rashdall, The Universities of Europe in the Middle Ages', 'year' => 1895]],
             ],
         ];
+    }
+
+    private static function extractYear(?string $temporal): ?int
+    {
+        if ($temporal === null || trim($temporal) === '') {
+            return null;
+        }
+
+        if (! preg_match('/^-?\d+/', $temporal, $matches)) {
+            return null;
+        }
+
+        return (int) $matches[0];
     }
 }

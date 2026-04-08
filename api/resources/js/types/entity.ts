@@ -106,6 +106,7 @@ export type EntityDetail = {
     geojson: Record<string, unknown> | null;
     /** Territory/area geometry as GeoJSON (maps to PostGIS territory_geom column) */
     territory_geojson: Record<string, unknown> | null;
+    geometry_periods_url?: string;
     created_at: string | null;
     updated_at: string | null;
 };

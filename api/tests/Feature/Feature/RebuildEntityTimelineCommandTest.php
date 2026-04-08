@@ -43,6 +43,51 @@ class RebuildEntityTimelineCommandTest extends TestCase
         ]);
     }
 
+    public function test_rebuild_command_projects_all_temporal_ranges_when_geometry_periods_are_missing(): void
+    {
+        $entity = Entity::factory()->create(['name' => 'Roman Republic']);
+
+        EntityTemporalRange::query()->create([
+            'entity_id' => $entity->entity_id,
+            'range_type' => 'primary',
+            'start_year' => -509,
+            'end_year' => -27,
+            'is_primary' => true,
+            'notes' => 'Primary span',
+        ]);
+
+        EntityTemporalRange::query()->create([
+            'entity_id' => $entity->entity_id,
+            'range_type' => 'phase',
+            'start_year' => -133,
+            'end_year' => -27,
+            'is_primary' => false,
+            'notes' => 'Late republican phase',
+        ]);
+
+        $this->artisan('timeline:rebuild', ['entity_id' => $entity->entity_id])->assertExitCode(0);
+
+        $this->assertDatabaseCount('entity_timeline_entries', 2);
+
+        $this->assertDatabaseHas('entity_timeline_entries', [
+            'entity_id' => $entity->entity_id,
+            'entry_kind' => 'temporal_range',
+            'source_table' => 'entity_temporal_ranges',
+            'start_year' => -509,
+            'end_year' => -27,
+            'title' => 'Primary temporal range',
+        ]);
+
+        $this->assertDatabaseHas('entity_timeline_entries', [
+            'entity_id' => $entity->entity_id,
+            'entry_kind' => 'temporal_range',
+            'source_table' => 'entity_temporal_ranges',
+            'start_year' => -133,
+            'end_year' => -27,
+            'title' => 'Temporal range',
+        ]);
+    }
+
     public function test_rebuild_command_projects_denormalized_relationship_fields(): void
     {
         $person = Entity::factory()->create(['name' => 'Julius Caesar']);

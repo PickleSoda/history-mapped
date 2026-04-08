@@ -235,6 +235,18 @@ class EntitySeeder extends Seeder
             'coordinates' => [[[26.0, 36.0], [40.0, 36.0], [40.0, 43.0], [26.0, 43.0], [26.0, 36.0]]],
         ]);
 
+        // Mehmed II
+        $mehmedId = '10000000-0000-0000-0000-000000000009';
+        $this->geometries[$mehmedId] = ['lat' => 41.0082, 'lon' => 28.9784];
+
+        // Constantine XI Palaiologos
+        $constantineXiId = '10000000-0000-0000-0000-000000000010';
+        $this->geometries[$constantineXiId] = ['lat' => 41.0082, 'lon' => 28.9784];
+
+        // Murad II
+        $muradId = '10000000-0000-0000-0000-000000000011';
+        $this->geometries[$muradId] = ['lat' => 41.6742, 'lon' => 26.5623];
+
         return [
             [
                 'entity_id' => $romanId,
@@ -521,6 +533,105 @@ class EntitySeeder extends Seeder
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
+            [
+                'entity_id' => $mehmedId,
+                'name' => 'Mehmed II',
+                'entity_type' => 'person',
+                'entity_group' => 'POLITY',
+                'summary' => 'Ottoman sultan known as Mehmed the Conqueror, who captured Constantinople in 1453 and transformed the Ottoman state into an imperial power. He reigned 1444-1446 and 1451-1481.',
+                'significance' => 'His conquest of Constantinople ended the Byzantine Empire and marked a major geopolitical shift between medieval and early modern Eurasia.',
+                'impact_score' => 93,
+                'temporal_start' => '1432',
+                'temporal_end' => '1481',
+                'location_name' => 'Edirne and Constantinople',
+                'wikidata_id' => 'Q125052',
+                'verification_status' => 'expert_verified',
+                'confidence' => 'high',
+                'date_method' => 'source_database',
+                'date_confidence' => 'high',
+                'duration_type' => 'period',
+                'location_confidence' => 'high',
+                'location_method' => 'wikidata',
+                'display_priority' => 10,
+                'icon_class' => 'crown',
+                'tags' => $this->textArray(['ottoman', 'sultan', 'constantinople', 'conqueror', '15th_century']),
+                'alternative_names' => $this->textArray(['Mehmed the Conqueror', 'Fatih Sultan Mehmed']),
+                'attributes' => json_encode([
+                    'person_subtype' => 'ruler',
+                    'date_raw' => '1432-1481 CE',
+                    'entity_color' => '#8B0000',
+                ]),
+                'source_citations' => json_encode([['source' => 'İnalcık, The Ottoman Empire: The Classical Age', 'year' => 1973]]),
+                'created_by' => 'seeder',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'entity_id' => $constantineXiId,
+                'name' => 'Constantine XI Palaiologos',
+                'entity_type' => 'person',
+                'entity_group' => 'POLITY',
+                'summary' => 'Final Byzantine emperor (r. 1449-1453), killed during the defense of Constantinople in 1453.',
+                'significance' => 'His death symbolized the end of the Byzantine imperial line and the fall of Eastern Roman sovereignty.',
+                'impact_score' => 84,
+                'temporal_start' => '1405',
+                'temporal_end' => '1453',
+                'location_name' => 'Constantinople',
+                'wikidata_id' => 'Q161871',
+                'verification_status' => 'expert_verified',
+                'confidence' => 'high',
+                'date_method' => 'source_database',
+                'date_confidence' => 'high',
+                'duration_type' => 'period',
+                'location_confidence' => 'high',
+                'location_method' => 'wikidata',
+                'display_priority' => 8,
+                'icon_class' => 'crown',
+                'tags' => $this->textArray(['byzantine', 'emperor', 'constantinople', '1453']),
+                'alternative_names' => $this->textArray(['Constantine XI', 'Konstantinos XI Palaiologos']),
+                'attributes' => json_encode([
+                    'person_subtype' => 'ruler',
+                    'date_raw' => '1405-1453 CE',
+                    'entity_color' => '#4B0082',
+                ]),
+                'source_citations' => json_encode([['source' => 'Nicol, The Immortal Emperor', 'year' => 1992]]),
+                'created_by' => 'seeder',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'entity_id' => $muradId,
+                'name' => 'Murad II',
+                'entity_type' => 'person',
+                'entity_group' => 'POLITY',
+                'summary' => 'Ottoman sultan (r. 1421-1451, with a brief abdication), who stabilized Ottoman power in the Balkans and defeated crusader forces at Varna in 1444.',
+                'significance' => 'His military and political consolidation enabled the later conquest of Constantinople under Mehmed II.',
+                'impact_score' => 86,
+                'temporal_start' => '1404',
+                'temporal_end' => '1451',
+                'location_name' => 'Edirne',
+                'wikidata_id' => 'Q233171',
+                'verification_status' => 'expert_verified',
+                'confidence' => 'high',
+                'date_method' => 'source_database',
+                'date_confidence' => 'high',
+                'duration_type' => 'period',
+                'location_confidence' => 'high',
+                'location_method' => 'wikidata',
+                'display_priority' => 8,
+                'icon_class' => 'crown',
+                'tags' => $this->textArray(['ottoman', 'sultan', 'varna', 'balkans']),
+                'alternative_names' => $this->textArray(['Sultan Murad II']),
+                'attributes' => json_encode([
+                    'person_subtype' => 'ruler',
+                    'date_raw' => '1404-1451 CE',
+                    'entity_color' => '#B22222',
+                ]),
+                'source_citations' => json_encode([['source' => 'Imber, The Ottoman Empire 1300-1650', 'year' => 2002]]),
+                'created_by' => 'seeder',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
         ];
     }
 
@@ -552,6 +663,10 @@ class EntitySeeder extends Seeder
         // Alexandria
         $alexandriaId = '20000000-0000-0000-0000-000000000006';
         $this->geometries[$alexandriaId] = ['lat' => 31.2001, 'lon' => 29.9187];
+
+        // Edirne (Adrianople)
+        $edirneId = '20000000-0000-0000-0000-000000000007';
+        $this->geometries[$edirneId] = ['lat' => 41.6742, 'lon' => 26.5623];
 
         return [
             [
@@ -766,6 +881,39 @@ class EntitySeeder extends Seeder
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
+            [
+                'entity_id' => $edirneId,
+                'name' => 'Edirne',
+                'entity_type' => 'city',
+                'entity_group' => 'PLACE',
+                'summary' => 'Historic city in Thrace known as Adrianople, serving as a major Ottoman administrative and military center and imperial capital before 1453.',
+                'significance' => 'Functioned as the Ottoman capital before the conquest of Constantinople and remained a key strategic gateway between Anatolia and the Balkans.',
+                'impact_score' => 82,
+                'temporal_start' => '0130',
+                'temporal_end' => null,
+                'location_name' => 'Edirne, Turkey',
+                'wikidata_id' => 'Q1800',
+                'verification_status' => 'expert_verified',
+                'confidence' => 'high',
+                'date_method' => 'source_database',
+                'date_confidence' => 'high',
+                'duration_type' => 'ongoing',
+                'location_confidence' => 'high',
+                'location_method' => 'wikidata',
+                'display_priority' => 8,
+                'icon_class' => 'city',
+                'tags' => $this->textArray(['ottoman', 'thrace', 'capital', 'adrianople']),
+                'alternative_names' => $this->textArray(['Adrianople', 'Hadrianopolis']),
+                'attributes' => json_encode([
+                    'settlement_subtype' => 'major_city',
+                    'date_raw' => 'Roman era to present; Ottoman capital 1369-1453',
+                    'entity_color' => '#8B4513',
+                ]),
+                'source_citations' => json_encode([['source' => 'Finkel, Osman’s Dream', 'year' => 2005]]),
+                'created_by' => 'seeder',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
         ];
     }
 
@@ -805,6 +953,10 @@ class EntitySeeder extends Seeder
         // Great Migration Period
         $migrationId = '30000000-0000-0000-0000-000000000008';
         $this->geometries[$migrationId] = ['lat' => 50.0, 'lon' => 20.0];
+
+        // Battle of Varna
+        $varnaId = '30000000-0000-0000-0000-000000000009';
+        $this->geometries[$varnaId] = ['lat' => 43.2141, 'lon' => 27.9147];
 
         return [
             [
@@ -1093,6 +1245,41 @@ class EntitySeeder extends Seeder
                     'entity_color' => '#8FBC8F',
                 ]),
                 'source_citations' => json_encode([['source' => 'Heather, Empires and Barbarians', 'year' => 2009]]),
+                'created_by' => 'seeder',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'entity_id' => $varnaId,
+                'name' => 'Battle of Varna',
+                'entity_type' => 'event_battle',
+                'entity_group' => 'EVENT',
+                'summary' => 'A decisive battle fought on 10 November 1444 near Varna between Ottoman forces under Murad II and a crusader coalition led by Wladyslaw III of Poland-Hungary.',
+                'significance' => 'The Ottoman victory ended the major crusading attempt in the Balkans and secured Ottoman strategic dominance before the conquest of Constantinople.',
+                'impact_score' => 88,
+                'temporal_start' => '1444-11-10',
+                'temporal_end' => '1444-11-10',
+                'location_name' => 'Varna, Bulgaria',
+                'wikidata_id' => 'Q487829',
+                'verification_status' => 'expert_verified',
+                'confidence' => 'high',
+                'date_method' => 'source_database',
+                'date_confidence' => 'high',
+                'duration_type' => 'point',
+                'location_confidence' => 'high',
+                'location_method' => 'wikidata',
+                'display_priority' => 9,
+                'icon_class' => 'crossed_swords',
+                'tags' => $this->textArray(['ottoman', 'crusade', 'balkans', 'murad_ii', 'varna']),
+                'alternative_names' => $this->textArray(['Second Battle of Varna']),
+                'attributes' => json_encode([
+                    'battle_subtype' => 'field_battle',
+                    'outcome' => 'decisive_victory',
+                    'victor_side' => 'Ottoman',
+                    'date_raw' => '10 November 1444',
+                    'entity_color' => '#B22222',
+                ]),
+                'source_citations' => json_encode([['source' => 'Setton, The Papacy and the Levant', 'year' => 1978]]),
                 'created_by' => 'seeder',
                 'created_at' => $now,
                 'updated_at' => $now,

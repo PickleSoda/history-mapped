@@ -1,18 +1,18 @@
 import { Badge } from '@/components/ui/badge';
-import type { Relationship } from '@/types/entity';
 
 export type TimelineItem = {
     id: string;
-    kind: 'relationship';
+    kind: 'timeline';
     startYear: number | null;
     endYear: number | null;
     title: string;
     subtitle?: string;
-    relationship?: Relationship;
+    badgeLabel?: string;
+    relatedEntityId?: string | null;
 };
 
 export type SelectedTimelineItem =
-    | { kind: 'relationship'; id: string }
+    | { kind: 'timeline'; id: string }
     | null;
 
 export type EntityHistoryTimelineProps = {
@@ -53,7 +53,7 @@ export default function EntityHistoryTimeline({
                 items.map((item) => {
                     const selected =
                         selectedItem?.kind === item.kind &&
-                        item.relationship?.relationship_id === selectedItem.id;
+                        item.id === selectedItem.id;
 
                     // Ref for scrolling/focusing
                     const ref = (el: HTMLDivElement | null) => {
@@ -70,10 +70,10 @@ export default function EntityHistoryTimeline({
                             className="relative group"
                             ref={ref}
                             onMouseEnter={() => {
-                                const hovered = item.relationship?.relationship_id
+                                const hovered = item.id
                                     ? {
-                                          kind: 'relationship' as const,
-                                          id: item.relationship.relationship_id,
+                                          kind: 'timeline' as const,
+                                          id: item.id,
                                       }
                                     : null;
 
@@ -86,10 +86,10 @@ export default function EntityHistoryTimeline({
                             <button
                                 type="button"
                                 onClick={() => {
-                                    const nextSelection = item.relationship?.relationship_id
+                                    const nextSelection = item.id
                                         ? {
-                                              kind: 'relationship' as const,
-                                              id: item.relationship.relationship_id,
+                                              kind: 'timeline' as const,
+                                              id: item.id,
                                           }
                                         : null;
 
@@ -114,7 +114,7 @@ export default function EntityHistoryTimeline({
                                     <Badge
                                         variant="outline"
                                     >
-                                        {item.kind}
+                                        {item.badgeLabel ?? item.kind}
                                     </Badge>
                                     <span className="text-xs text-muted-foreground tabular-nums">
                                         {formatYearRange(
@@ -132,9 +132,9 @@ export default function EntityHistoryTimeline({
                                     </p>
                                 )}
                             </button>
-                            {item.kind === 'relationship' && item.relationship?.related_entity?.id && (
+                            {item.relatedEntityId && (
                                 <a
-                                    href={`/entities/${item.relationship.related_entity.id}`}
+                                    href={`/entities/${item.relatedEntityId}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-blue-600 underline"

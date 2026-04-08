@@ -3,6 +3,7 @@ import { lazy, Suspense, useState } from 'react';
 import EntityForm, { defaultFormData } from '@/components/entity-form';
 import type { EntityFormData } from '@/components/entity-form';
 import EntityGeoRefEditor from '@/components/entity-geo-ref-editor';
+import EntityGeometryPeriodsPanel from '@/components/entity-geometry-periods-panel';
 import HistoricalMapViewer from '@/components/historical-map-viewer';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
@@ -92,7 +93,10 @@ export default function EntityEdit({ entity, formOptions }: Props) {
     const [territoryGeojson, setTerritoryGeojson] = useState<GeoJsonLike>(
         entity.territory_geojson ?? null,
     );
+    const [highlightedPeriodGeometries, setHighlightedPeriodGeometries] =
+        useState<GeoJsonLike[]>([]);
     const [mapOpen, setMapOpen] = useState(false);
+    const [geometryPeriodsOpen, setGeometryPeriodsOpen] = useState(false);
     const [relationshipOpen, setRelationshipOpen] = useState(false);
     const entityStartYear = Number(entity.temporal_start);
     const timeframeDate = Number.isFinite(entityStartYear)
@@ -223,6 +227,7 @@ export default function EntityEdit({ entity, formOptions }: Props) {
                                 </div>
                                 <HistoricalMapViewer
                                     baseGeometries={[geojson, territoryGeojson]}
+                                    overlayGeometries={highlightedPeriodGeometries}
                                     timeframeDate={timeframeDate}
                                     fitBounds
                                 />
@@ -271,6 +276,46 @@ export default function EntityEdit({ entity, formOptions }: Props) {
                         </div>
                     )}
                 </div>
+
+                {/* Geometry periods — collapsible */}
+                <div className="mt-4 rounded-lg border">
+                    <button
+                        type="button"
+                        onClick={() => setGeometryPeriodsOpen((v) => !v)}
+                        className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium"
+                    >
+                        <span>Geometry Periods</span>
+                        <span className="text-xs text-muted-foreground">
+                            {geometryPeriodsOpen ? 'Collapse' : 'Expand'}
+                        </span>
+                    </button>
+
+                    {geometryPeriodsOpen && (
+                        <div className="border-t p-4">
+                            <EntityGeometryPeriodsPanel
+                                listUrl={entity.geometry_periods_url ?? `/entities/${entity.id}/geometry-periods`}
+                                storeUrl={`/entities/${entity.id}/geometry-periods`}
+                                updateUrlFn={(periodId) =>
+                                    `/entities/${entity.id}/geometry-periods/${periodId}`
+                                }
+                                deleteUrlFn={(periodId) =>
+                                    `/entities/${entity.id}/geometry-periods/${periodId}`
+                                }
+                                onSelectPeriod={(period) => {
+                                    setHighlightedPeriodGeometries(
+                                        period
+                                            ? [period.geom ?? null, period.territory_geom ?? null]
+                                            : [],
+                                    );
+                                    if (period) {
+                                        setMapOpen(true);
+                                    }
+                                }}
+                            />
+                        </div>
+                    )}
+                </div>
+
                 {/* Relationship panel — collapsible */}
                 <div className="mt-4 rounded-lg border">
                     <button
@@ -301,6 +346,9 @@ export default function EntityEdit({ entity, formOptions }: Props) {
                                     storeUrl={RelationshipRoutes.store.url(
                                         entity.id,
                                     )}
+                                    updateUrlFn={(relationshipId) =>
+                                        `/entities/${entity.id}/relationships/${relationshipId}`
+                                    }
                                     deleteUrlFn={(relationshipId) =>
                                         RelationshipRoutes.destroy.url({
                                             entity: entity.id,

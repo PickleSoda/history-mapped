@@ -31,34 +31,34 @@ afterEach(() => {
 });
 
 describe('EntityHistoryPanel', () => {
-    const relationships = [
+    const timelineEntries = [
         {
-            relationship_id: 'rel1',
-            source_entity_id: 'e1',
-            target_entity_id: 'e2',
-            relationship_type: 'allied_with',
-            temporal_start: '120',
-            temporal_end: '130',
+            id: 'timeline-1',
+            entity_id: 'e1',
+            entry_kind: 'relationship_presence',
+            start_year: 120,
+            end_year: 130,
+            title: 'Alliance of 120 CE',
             description: 'Rel 1',
-            confidence: 'medium',
-            direction: 'outgoing',
-            related_entity: {
-                id: 'e2',
-                name: 'Entity 2',
-                entity_type: 'city',
-                entity_group: 'PLACE',
-                geojson: { type: 'Point', coordinates: [3, 4] },
-                territory_geojson: null,
-            },
+            location_entity_id: null,
+            geom: { type: 'Point', coordinates: [3, 4] },
+            territory_geom: null,
+            source_table: 'geometry_periods',
+            source_id: 'gp-1',
+            relationship_type: 'allied_with',
+            related_entity_id: 'e2',
+            related_entity_name: 'Entity 2',
+            derived_at: null,
             created_at: null,
+            updated_at: null,
         },
     ];
 
     function mockFetchImpl(url: string) {
-        if (url.includes('relationships')) {
+        if (url.includes('/timeline')) {
             return Promise.resolve({
                 ok: true,
-                json: () => Promise.resolve({ outgoing: relationships, incoming: [] }),
+                json: () => Promise.resolve({ data: timelineEntries }),
             } as Response);
         }
 
@@ -85,21 +85,21 @@ describe('EntityHistoryPanel', () => {
                     entityTerritoryGeojson={{ type: 'FeatureCollection', features: [] }}
                     entityTemporalStart={null}
                     entityTemporalEnd={null}
-                    relationshipsUrl="/fake/relationships"
+                    timelineUrl="/api/v1/entities/e1/timeline"
                 />
             </QueryClientProvider>,
         );
 
         // Wait for timeline items to appear
-        expect(await screen.findByText(/allied with Entity 2/i)).toBeInTheDocument();
+        expect(await screen.findByText(/Alliance of 120 CE/i)).toBeInTheDocument();
 
         // Simulate clicking the relationship timeline item
-        const relItem = screen.getByText(/allied with Entity 2/i);
+        const relItem = screen.getByText(/Alliance of 120 CE/i);
         fireEvent.click(relItem);
 
         // No assertion on map overlays (MapLibre is not rendered in jsdom),
         // but we can check that the timeline selection logic works by checking for selected class
         // or by checking that the timeline item is still present
-        expect(screen.getByText(/allied with Entity 2/i)).toBeInTheDocument();
+        expect(screen.getByText(/Alliance of 120 CE/i)).toBeInTheDocument();
     });
 });

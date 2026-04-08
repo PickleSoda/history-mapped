@@ -65,11 +65,15 @@ class EntityTimelineApiTest extends TestCase
         $this->getJson(route('api.v1.entities.timeline.index', $caesar->entity_id))
             ->assertOk()
             ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', fn ($value) => is_string($value) && $value !== '')
+            ->assertJsonPath('data.0.title', fn ($value) => is_string($value) && $value !== '')
+            ->assertJsonPath('data.0.description', fn ($value) => $value === null || is_string($value))
             ->assertJsonPath('data.0.relationship_type', 'victorious_at')
             ->assertJsonPath('data.0.related_entity_id', $alesia->entity_id)
             ->assertJsonPath('data.0.related_entity_name', 'Siege of Alesia')
             ->assertJsonPath('data.0.start_year', -52)
             ->assertJsonPath('data.0.end_year', -52)
+            ->assertJsonPath('data.0.geom.type', 'Point')
             ->assertJsonPath('data.0.source_table', 'geometry_periods')
             ->assertJsonPath('data.0.source_id', $periodId);
     }

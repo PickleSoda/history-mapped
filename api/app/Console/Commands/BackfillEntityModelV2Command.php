@@ -9,6 +9,7 @@ use App\Actions\EntityModelV2\BackfillGeometryPeriodsAction;
 use App\Actions\EntityModelV2\BackfillLocationsAction;
 use App\Actions\EntityModelV2\BackfillTagsAction;
 use App\Actions\EntityModelV2\BackfillTemporalRangesAction;
+use App\Actions\Timeline\ProjectEntityTimelineAction;
 use App\Models\Entity;
 use Illuminate\Console\Command;
 
@@ -24,6 +25,7 @@ class BackfillEntityModelV2Command extends Command
         BackfillTemporalRangesAction $temporalRangesAction,
         BackfillLocationsAction $locationsAction,
         BackfillGeometryPeriodsAction $geometryPeriodsAction,
+        ProjectEntityTimelineAction $timelineProjector,
     ): int {
         $dryRun = (bool) $this->option('dry-run');
         $singleEntityId = $this->option('entity-id');
@@ -59,6 +61,7 @@ class BackfillEntityModelV2Command extends Command
             $counts['temporal_ranges'] += $temporalRangesAction($entity);
             $counts['locations'] += $locationsAction($entity);
             $counts['geometry_periods'] += $geometryPeriodsAction($entity);
+            $timelineProjector($entity->entity_id);
         }
 
         $mode = $dryRun ? 'DRY-RUN' : 'APPLIED';
