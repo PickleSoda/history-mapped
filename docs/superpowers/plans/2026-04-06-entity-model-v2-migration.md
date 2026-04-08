@@ -595,7 +595,7 @@ Migration A purpose:
 Run: `docker compose exec app php artisan test api/tests/Feature/Feature/BackfillEntityModelV2CommandTest.php api/tests/Feature/Feature/EntityModelV2SchemaTest.php`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add api/database/seeders api/database/factories api/database/migrations api/tests/Feature/Feature/BackfillEntityModelV2CommandTest.php api/tests/Feature/Feature/EntityModelV2SchemaTest.php
