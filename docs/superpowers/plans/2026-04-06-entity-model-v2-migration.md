@@ -573,24 +573,24 @@ git commit -m "refactor: remove legacy geometry snapshot compatibility surface"
 - Test: `api/tests/Feature/Feature/BackfillEntityModelV2CommandTest.php`
 - Test: `api/tests/Feature/Feature/EntityModelV2SchemaTest.php`
 
-- [ ] **Step 1: Write failing tests for seed/factory v2-only expectations**
+- [x] **Step 1: Write failing tests for seed/factory v2-only expectations**
 
 Coverage:
 - seeded entities create v2 records via backfill command path expectations
 - factories no longer rely on removed snapshot semantics
 
-- [ ] **Step 2: Run seed/factory/schema focused tests to verify failure**
+- [x] **Step 2: Run seed/factory/schema focused tests to verify failure**
 
 Run: `docker compose exec app php artisan test api/tests/Feature/Feature/BackfillEntityModelV2CommandTest.php api/tests/Feature/Feature/EntityModelV2SchemaTest.php`
 Expected: FAIL before cleanup and migration A.
 
-- [ ] **Step 3: Implement seed/factory cleanup and migration A prep**
+- [x] **Step 3: Implement seed/factory cleanup and migration A prep**
 
 Migration A purpose:
 - remove/adjust constraints and indexes that block final column/table drops
 - keep schema backward-safe for one release window
 
-- [ ] **Step 4: Rerun focused tests**
+- [x] **Step 4: Rerun focused tests**
 
 Run: `docker compose exec app php artisan test api/tests/Feature/Feature/BackfillEntityModelV2CommandTest.php api/tests/Feature/Feature/EntityModelV2SchemaTest.php`
 Expected: PASS.

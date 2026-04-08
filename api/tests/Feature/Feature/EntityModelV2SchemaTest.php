@@ -59,6 +59,16 @@ class EntityModelV2SchemaTest extends TestCase
         $this->assertTrue($this->constraintExists('entity_timeline_entries', 'ete_valid_year_range'));
     }
 
+    public function test_phase_a_drops_legacy_entity_indexes_before_hard_drop(): void
+    {
+        $this->assertFalse($this->indexExists('entities_geom_gist_idx'));
+        $this->assertFalse($this->indexExists('entities_territory_geom_gist_idx'));
+        $this->assertFalse($this->indexExists('entities_temporal_range_idx'));
+        $this->assertFalse($this->indexExists('entities_temporal_start_index'));
+        $this->assertFalse($this->indexExists('entities_temporal_end_index'));
+        $this->assertFalse($this->indexExists('entities_tags_gin_idx'));
+    }
+
     private function constraintExists(string $table, string $constraint): bool
     {
         /** @var object{exists: bool}|null $row */
@@ -70,6 +80,21 @@ class EntityModelV2SchemaTest extends TestCase
                 WHERE t.relname = ? AND c.conname = ?
             ) AS exists',
             [$table, $constraint],
+        );
+
+        return (bool) ($row?->exists ?? false);
+    }
+
+    private function indexExists(string $indexName): bool
+    {
+        /** @var object{exists: bool}|null $row */
+        $row = DB::selectOne(
+            'SELECT EXISTS (
+                SELECT 1
+                FROM pg_indexes
+                WHERE indexname = ?
+            ) AS exists',
+            [$indexName],
         );
 
         return (bool) ($row?->exists ?? false);

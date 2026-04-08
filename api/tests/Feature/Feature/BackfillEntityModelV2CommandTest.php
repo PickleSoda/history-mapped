@@ -77,4 +77,55 @@ class BackfillEntityModelV2CommandTest extends TestCase
         $this->assertDatabaseMissing('entity_temporal_ranges', ['entity_id' => $entity->entity_id]);
         $this->assertDatabaseMissing('entity_locations', ['entity_id' => $entity->entity_id]);
     }
+
+    public function test_database_seeder_runs_backfill_for_canonical_v2_tables(): void
+    {
+        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+
+        $entity = Entity::query()->where('name', 'Roman Empire')->firstOrFail();
+
+        $this->assertDatabaseHas('entity_aliases', [
+            'entity_id' => $entity->entity_id,
+            'name' => 'Imperium Romanum',
+        ]);
+
+        $this->assertDatabaseHas('entity_tags', [
+            'entity_id' => $entity->entity_id,
+            'tag' => 'rome',
+        ]);
+
+        $this->assertDatabaseHas('entity_temporal_ranges', [
+            'entity_id' => $entity->entity_id,
+            'is_primary' => true,
+        ]);
+
+        $this->assertDatabaseHas('entity_locations', [
+            'entity_id' => $entity->entity_id,
+            'is_primary' => true,
+            'location_name' => 'Rome, Italia',
+        ]);
+    }
+
+    public function test_factory_temporal_and_location_states_create_canonical_v2_rows(): void
+    {
+        $entity = Entity::factory()
+            ->withTemporalRange('-0509', '-0027')
+            ->atLocation('Rome')
+            ->create();
+
+        $this->assertDatabaseHas('entity_temporal_ranges', [
+            'entity_id' => $entity->entity_id,
+            'is_primary' => true,
+            'start_year' => -509,
+            'end_year' => -27,
+            'start_date' => '-0509',
+            'end_date' => '-0027',
+        ]);
+
+        $this->assertDatabaseHas('entity_locations', [
+            'entity_id' => $entity->entity_id,
+            'is_primary' => true,
+            'location_name' => 'Rome',
+        ]);
+    }
 }
