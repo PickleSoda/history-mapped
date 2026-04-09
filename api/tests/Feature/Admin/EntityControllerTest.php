@@ -157,6 +157,7 @@ class EntityControllerTest extends TestCase
                 $this->assertSame('Carthage', $props['entity']['name']);
                 $this->assertArrayHasKey('geojson', $props['entity']);
                 $this->assertArrayHasKey('territory_geojson', $props['entity']);
+                $this->assertArrayHasKey('geometry_periods_url', $props['entity']);
             });
     }
 
@@ -196,6 +197,7 @@ class EntityControllerTest extends TestCase
                 $this->assertArrayHasKey('formOptions', $props);
                 $this->assertSame('Julius Caesar', $props['entity']['name']);
                 $this->assertSame(95, $props['entity']['impact_score']);
+                $this->assertArrayHasKey('geometry_periods_url', $props['entity']);
             });
     }
 

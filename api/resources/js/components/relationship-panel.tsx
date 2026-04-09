@@ -173,6 +173,7 @@ type RelationshipPanelProps = {
     entityId: string;
     listUrl: string;
     storeUrl: string;
+    updateUrlFn?: (relationshipId: string) => string;
     deleteUrlFn: (relationshipId: string) => string;
     /** If true, shows only the list (no add/delete controls). */
     readonly?: boolean;
@@ -196,6 +197,7 @@ export default function RelationshipPanel({
     entityId,
     listUrl,
     storeUrl,
+    updateUrlFn,
     deleteUrlFn,
     readonly = false,
 }: RelationshipPanelProps) {
@@ -205,6 +207,9 @@ export default function RelationshipPanel({
     const [loadError, setLoadError] = useState<string | null>(null);
 
     const [formOpen, setFormOpen] = useState(false);
+    const [editingRelationshipId, setEditingRelationshipId] = useState<
+        string | null
+    >(null);
     const [form, setForm] = useState<RelationshipFormData>(emptyForm());
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
     const [saving, setSaving] = useState(false);
@@ -255,11 +260,28 @@ export default function RelationshipPanel({
     function openCreate() {
         setForm(emptyForm());
         setFormErrors({});
+        setEditingRelationshipId(null);
+        setFormOpen(true);
+    }
+
+    function openEdit(relationship: Relationship) {
+        setForm({
+            target_entity_id: relationship.target_entity_id,
+            target_entity_name: relationship.related_entity?.name ?? '',
+            relationship_type: relationship.relationship_type,
+            temporal_start: relationship.temporal_start ?? '',
+            temporal_end: relationship.temporal_end ?? '',
+            description: relationship.description ?? '',
+            confidence: (relationship.confidence ?? '') as ConfidenceLevel | '',
+        });
+        setFormErrors({});
+        setEditingRelationshipId(relationship.relationship_id);
         setFormOpen(true);
     }
 
     function closeForm() {
         setFormOpen(false);
+        setEditingRelationshipId(null);
     }
 
     function handleFormChange<K extends keyof RelationshipFormData>(
@@ -273,18 +295,39 @@ export default function RelationshipPanel({
         setSaving(true);
         setFormErrors({});
 
+        const isEditing = Boolean(editingRelationshipId);
+
+        if (isEditing && !editingRelationshipId) {
+            setFormErrors({ _: 'Missing relationship id for update.' });
+            setSaving(false);
+
+            return;
+        }
+
         const payload: Record<string, unknown> = {
             target_entity_id: form.target_entity_id || undefined,
             relationship_type: form.relationship_type || undefined,
-            temporal_start: form.temporal_start || undefined,
-            temporal_end: form.temporal_end || undefined,
-            description: form.description || undefined,
-            confidence: form.confidence || undefined,
+            temporal_start: form.temporal_start || null,
+            temporal_end: form.temporal_end || null,
+            description: form.description || null,
+            confidence: form.confidence || null,
         };
 
         try {
-            const res = await fetch(storeUrl, {
-                method: 'POST',
+            const method = isEditing ? 'PUT' : 'POST';
+            const url = isEditing && updateUrlFn
+                ? updateUrlFn(editingRelationshipId!)
+                : storeUrl;
+
+            if (isEditing && !updateUrlFn) {
+                setFormErrors({ _: 'Update endpoint not configured.' });
+                setSaving(false);
+
+                return;
+            }
+
+            const res = await fetch(url, {
+                method,
                 headers: {
                     'Content-Type': 'application/json',
                     Accept: 'application/json',
@@ -402,6 +445,8 @@ export default function RelationshipPanel({
                                     <RelationshipRow
                                         key={r.relationship_id}
                                         relationship={r}
+                                        canEdit={!readonly}
+                                        onEdit={() => openEdit(r)}
                                         canDelete={!readonly}
                                         onDelete={() =>
                                             void handleDelete(r.relationship_id)
@@ -424,6 +469,8 @@ export default function RelationshipPanel({
                                     <RelationshipRow
                                         key={r.relationship_id}
                                         relationship={r}
+                                        canEdit={false}
+                                        onEdit={() => openEdit(r)}
                                         canDelete={false}
                                         onDelete={() =>
                                             void handleDelete(r.relationship_id)
@@ -443,6 +490,7 @@ export default function RelationshipPanel({
                     form={form}
                     errors={formErrors}
                     saving={saving}
+                    isEditing={Boolean(editingRelationshipId)}
                     onChange={handleFormChange}
                     onSave={() => void handleSave()}
                     onCancel={closeForm}
@@ -457,11 +505,15 @@ export default function RelationshipPanel({
 
 function RelationshipRow({
     relationship,
+    canEdit,
+    onEdit,
     canDelete,
     onDelete,
     deleting,
 }: {
     relationship: Relationship;
+    canEdit: boolean;
+    onEdit: () => void;
     canDelete: boolean;
     onDelete: () => void;
     deleting: boolean;
@@ -513,17 +565,31 @@ function RelationshipRow({
                     </p>
                 )}
             </div>
-            {canDelete && (
+            {(canEdit || canDelete) && (
                 <div className="ml-4 shrink-0">
-                    <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        onClick={onDelete}
-                        disabled={deleting}
-                    >
-                        {deleting ? 'Deleting…' : 'Delete'}
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        {canEdit && (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={onEdit}
+                            >
+                                Edit
+                            </Button>
+                        )}
+                        {canDelete && (
+                            <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                onClick={onDelete}
+                                disabled={deleting}
+                            >
+                                {deleting ? 'Deleting…' : 'Delete'}
+                            </Button>
+                        )}
+                    </div>
                 </div>
             )}
         </div>
@@ -536,6 +602,7 @@ function RelationshipForm({
     form,
     errors,
     saving,
+    isEditing,
     onChange,
     onSave,
     onCancel,
@@ -544,6 +611,7 @@ function RelationshipForm({
     form: RelationshipFormData;
     errors: Record<string, string>;
     saving: boolean;
+    isEditing: boolean;
     onChange: <K extends keyof RelationshipFormData>(
         field: K,
         value: RelationshipFormData[K],
@@ -619,7 +687,9 @@ function RelationshipForm({
 
     return (
         <div className="space-y-4 rounded-lg border bg-card p-4">
-            <h4 className="text-sm font-semibold">New Relationship</h4>
+            <h4 className="text-sm font-semibold">
+                {isEditing ? 'Edit Relationship' : 'New Relationship'}
+            </h4>
 
             {errors['_'] && (
                 <p className="text-sm text-destructive">{errors['_']}</p>
@@ -822,7 +892,11 @@ function RelationshipForm({
                     onClick={onSave}
                     disabled={saving}
                 >
-                    {saving ? 'Saving…' : 'Create Relationship'}
+                    {saving
+                        ? 'Saving…'
+                        : isEditing
+                          ? 'Save Changes'
+                          : 'Create Relationship'}
                 </Button>
             </div>
         </div>

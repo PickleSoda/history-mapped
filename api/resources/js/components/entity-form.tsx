@@ -3117,6 +3117,41 @@ export default function EntityForm({
                 </FieldWrapper>
             </div>
 
+            {/* ── Hierarchy ── */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <SectionHeading>Hierarchy</SectionHeading>
+
+                <FieldWrapper
+                    label="Parent Entity ID"
+                    htmlFor="parent_entity_id"
+                    error={errors.parent_entity_id}
+                >
+                    <Input
+                        id="parent_entity_id"
+                        value={data.parent_entity_id}
+                        onChange={(e) =>
+                            onChange('parent_entity_id', e.target.value)
+                        }
+                        placeholder="UUID of strict parent entity"
+                    />
+                </FieldWrapper>
+
+                <FieldWrapper
+                    label="Successor Entity ID"
+                    htmlFor="successor_entity_id"
+                    error={errors.successor_entity_id}
+                >
+                    <Input
+                        id="successor_entity_id"
+                        value={data.successor_entity_id}
+                        onChange={(e) =>
+                            onChange('successor_entity_id', e.target.value)
+                        }
+                        placeholder="UUID of direct successor entity"
+                    />
+                </FieldWrapper>
+            </div>
+
             {/* ── Type-specific ── */}
             {entityType && (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

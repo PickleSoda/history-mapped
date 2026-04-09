@@ -228,6 +228,7 @@ class EntityController extends Controller
             'era_label' => $entity->attributes['era_label'] ?? null,
             'geojson' => $entity->geom,
             'territory_geojson' => $entity->territory_geom,
+            'geometry_periods_url' => route('entities.geometry-periods.index', $entity),
             'created_at' => $entity->created_at?->toISOString(),
             'updated_at' => $entity->updated_at?->toISOString(),
         ];

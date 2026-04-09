@@ -149,6 +149,8 @@ class ResolveRelationshipsJob implements ShouldQueue
                     sourceEntityId: $hint->source_entity_id,
                     targetEntityId: $targetEntity,
                     relationshipType: $type,
+                    temporalStart: $hint->temporal_start,
+                    temporalEnd: $hint->temporal_end,
                     confidence: ConfidenceLevel::tryFrom($hint->confidence ?? '') ?? ConfidenceLevel::Medium,
                     sourceCitations: $citations,
                 );
@@ -220,10 +222,22 @@ class ResolveRelationshipsJob implements ShouldQueue
                 }
 
                 try {
+                    $temporalStart = $hint['temporal_start'] ?? null;
+                    if ($temporalStart === null && isset($hint['start_year']) && is_numeric($hint['start_year'])) {
+                        $temporalStart = (string) (int) $hint['start_year'];
+                    }
+
+                    $temporalEnd = $hint['temporal_end'] ?? null;
+                    if ($temporalEnd === null && isset($hint['end_year']) && is_numeric($hint['end_year'])) {
+                        $temporalEnd = (string) (int) $hint['end_year'];
+                    }
+
                     $data = new RelationshipData(
                         sourceEntityId: $entity->entity_id,
                         targetEntityId: $targetId,
                         relationshipType: $type,
+                        temporalStart: $temporalStart,
+                        temporalEnd: $temporalEnd,
                         confidence: ConfidenceLevel::tryFrom($hint['confidence'] ?? '') ?? ConfidenceLevel::Medium,
                     );
 

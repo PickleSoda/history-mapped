@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Actions\Relationship\CreateRelationshipAction;
+use App\Actions\Relationship\CreateDerivedPresencePeriodAction;
 use App\DTOs\RelationshipData;
 use App\Enums\ConfidenceLevel;
 use App\Enums\RelationshipType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreRelationshipRequest;
+use App\Http\Requests\Admin\UpdateRelationshipRequest;
 use App\Models\Entity;
 use App\Models\EntityRelationship;
+use App\Models\GeometryPeriod;
 use Illuminate\Http\JsonResponse;
 
 /**
@@ -22,6 +25,15 @@ use Illuminate\Http\JsonResponse;
  */
 class RelationshipController extends Controller
 {
+    /** @var list<string> */
+    private const AUTO_PRESENCE_TYPES = [
+        'fought_at',
+        'signed_by',
+        'born_in',
+        'died_in',
+        'resided_in',
+    ];
+
     /**
      * List all relationships (outgoing + incoming) for an entity.
      */
@@ -112,6 +124,63 @@ class RelationshipController extends Controller
         return response()->json(null, 204);
     }
 
+    /**
+     * Update an existing outgoing relationship.
+     */
+    public function update(
+        UpdateRelationshipRequest $request,
+        Entity $entity,
+        EntityRelationship $relationship,
+        CreateDerivedPresencePeriodAction $createDerivedPresencePeriod,
+    ): JsonResponse {
+        if ($relationship->source_entity_id !== $entity->entity_id) {
+            abort(404);
+        }
+
+        $validated = $request->validated();
+        $updates = [];
+
+        foreach (['target_entity_id', 'relationship_type', 'temporal_start', 'temporal_end', 'description', 'confidence'] as $field) {
+            if (array_key_exists($field, $validated)) {
+                $updates[$field] = $validated[$field];
+            }
+        }
+
+        if (array_key_exists('temporal_start', $updates)) {
+            $updates['start_year'] = self::extractYear($updates['temporal_start']);
+        }
+
+        if (array_key_exists('temporal_end', $updates)) {
+            $updates['end_year'] = self::extractYear($updates['temporal_end']);
+        }
+
+        $relationship->update($updates);
+        $relationship->refresh();
+
+        $this->syncDerivedPresencePeriods(
+            $relationship,
+            $createDerivedPresencePeriod,
+            (string) $request->user()->id,
+        );
+
+        $relationship->load([
+            'targetEntity' => fn ($query) => $query
+                ->withoutGlobalScopes()
+                ->select([
+                    'entity_id',
+                    'name',
+                    'entity_type',
+                    'entity_group',
+                    'verification_status',
+                ]),
+            'targetEntity.primaryLocation',
+        ]);
+
+        return response()->json([
+            'relationship' => self::buildRelationshipData($relationship, 'outgoing'),
+        ]);
+    }
+
     // ── Private helpers ──────────────────────────────────────────────────────
 
     /**
@@ -153,5 +222,72 @@ class RelationshipController extends Controller
             ] : null,
             'created_at' => $relationship->created_at?->toISOString(),
         ];
+    }
+
+    private static function extractYear(?string $temporal): ?int
+    {
+        if ($temporal === null || trim($temporal) === '') {
+            return null;
+        }
+
+        if (! preg_match('/^-?\d+/', $temporal, $matches)) {
+            return null;
+        }
+
+        return (int) $matches[0];
+    }
+
+    private function syncDerivedPresencePeriods(
+        EntityRelationship $relationship,
+        CreateDerivedPresencePeriodAction $createDerivedPresencePeriod,
+        string $userId,
+    ): void {
+        $linkedDerivedPeriods = GeometryPeriod::query()
+            ->where('relationship_id', $relationship->relationship_id)
+            ->where('provenance_mode', 'derived');
+
+        $typeValue = $relationship->relationship_type instanceof RelationshipType
+            ? $relationship->relationship_type->value
+            : (string) $relationship->relationship_type;
+
+        $isAutoPresenceType = in_array($typeValue, self::AUTO_PRESENCE_TYPES, true);
+
+        if (! $isAutoPresenceType) {
+            $linkedDerivedPeriods->delete();
+
+            return;
+        }
+
+        $periodStartYear = $relationship->start_year;
+        $periodEndYear = $relationship->end_year ?? $periodStartYear;
+
+        if ($periodStartYear === null || $periodEndYear === null) {
+            $linkedDerivedPeriods->delete();
+
+            return;
+        }
+
+        if ($linkedDerivedPeriods->exists()) {
+            $linkedDerivedPeriods->update([
+                'start_year' => $periodStartYear,
+                'end_year' => $periodEndYear,
+                'description' => $relationship->description,
+            ]);
+
+            return;
+        }
+
+        $data = new RelationshipData(
+            sourceEntityId: $relationship->source_entity_id,
+            targetEntityId: $relationship->target_entity_id,
+            relationshipType: RelationshipType::from($typeValue),
+            temporalStart: $relationship->temporal_start,
+            temporalEnd: $relationship->temporal_end,
+            description: $relationship->description,
+            confidence: $relationship->confidence,
+            sourceCitations: $relationship->source_citations,
+        );
+
+        $createDerivedPresencePeriod($relationship, $data, $userId);
     }
 }

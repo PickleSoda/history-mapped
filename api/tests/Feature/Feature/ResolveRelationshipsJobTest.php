@@ -7,6 +7,7 @@ namespace Tests\Feature\Feature;
 use App\Actions\Relationship\CreateRelationshipAction;
 use App\Jobs\ResolveRelationshipsJob;
 use App\Models\Entity;
+use App\Models\EntityLocation;
 use App\Models\EntityRelationship;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -56,6 +57,8 @@ class ResolveRelationshipsJobTest extends TestCase
             'relationship_type' => $type,
             'target_wikidata_id' => $targetWikidataId,
             'target_label' => 'Some Label',
+            'temporal_start' => null,
+            'temporal_end' => null,
             'confidence' => 'medium',
             'wikidata_property' => 'P36',
             'batch_id' => $this->batchId,
@@ -145,6 +148,43 @@ class ResolveRelationshipsJobTest extends TestCase
 
         $relationship = EntityRelationship::where('source_entity_id', $source->entity_id)->firstOrFail();
         $this->assertNull($relationship->source_citations);
+    }
+
+    public function test_temporal_hints_create_derived_presence_geometry_period_for_auto_types(): void
+    {
+        $source = Entity::factory()->create(['wikidata_id' => 'Q210']);
+        $target = Entity::factory()->create(['wikidata_id' => 'Q211']);
+
+        EntityLocation::query()->create([
+            'entity_id' => $source->entity_id,
+            'is_primary' => true,
+            'location_name' => 'Rome',
+            'geom' => [
+                'type' => 'Point',
+                'coordinates' => [12.5, 41.9],
+            ],
+        ]);
+
+        $this->seedHint($source, 'Q211', 'fought_at', [
+            'temporal_start' => '-0052',
+            'temporal_end' => '-0052',
+        ]);
+
+        $this->runJob();
+
+        $relationship = EntityRelationship::where('source_entity_id', $source->entity_id)
+            ->where('target_entity_id', $target->entity_id)
+            ->where('relationship_type', 'fought_at')
+            ->firstOrFail();
+
+        $this->assertDatabaseHas('geometry_periods', [
+            'entity_id' => $source->entity_id,
+            'relationship_id' => $relationship->relationship_id,
+            'period_type' => 'presence',
+            'start_year' => -52,
+            'end_year' => -52,
+            'provenance_mode' => 'derived',
+        ]);
     }
 
     // ── Target not found ──────────────────────────────────────────────────────

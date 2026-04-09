@@ -6,8 +6,6 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Artisan;
-use RuntimeException;
 
 class DatabaseSeeder extends Seeder
 {
@@ -58,12 +56,5 @@ class DatabaseSeeder extends Seeder
         // ── Relationships between entities ──────────────────────────
 
         $this->call(RelationshipSeeder::class);
-
-        // ── Canonical V2 backfill for seeded legacy fields ───────────
-
-        $exitCode = Artisan::call('entity-model-v2:backfill');
-        if ($exitCode !== 0) {
-            throw new RuntimeException('Entity Model V2 backfill failed during database seeding.');
-        }
     }
 }
