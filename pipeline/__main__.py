@@ -304,6 +304,53 @@ def topic(query, depth, limit, co_seeds, skip_wikipedia, skip_untyped, output_di
         console.print(f"  {group:8s}  {t:35s}  {c}")
 
 
+@cli.command()
+@click.option("--output", default=None, help="Output JSONL path (default: output/ohm_borders.jsonl)")
+@click.option("--query-file", default=None, type=click.Path(exists=True), help="Override Overpass query file")
+@click.option("--no-enrich", is_flag=True, help="Skip Wikidata enrichment")
+def borders(output, query_file, no_enrich):
+    """Fetch all admin_level=2 OHM borders and emit a JSONL file."""
+    import orjson
+    from pathlib import Path
+
+    from pipeline.ohm_borders.enricher import batch_enrich_qids
+    from pipeline.ohm_borders.fetcher import GLOBAL_QUERY, fetch_raw, parse_elements
+    from pipeline.ohm_borders.mapper import map_polity_to_jsonl
+
+    out = Path(output or "output/ohm_borders.jsonl")
+    out.parent.mkdir(parents=True, exist_ok=True)
+
+    query = GLOBAL_QUERY
+    if query_file:
+        query = Path(query_file).read_text(encoding="utf-8")
+
+    console.rule("[bold blue]OHM Borders")
+    console.print("  Fetching OHM admin_level=2 boundaries…")
+    raw = fetch_raw(query)
+    elements = raw.get("elements", [])
+    console.print(f"  → {len(elements)} elements returned")
+
+    polities = parse_elements(elements)
+    console.print(f"  → {len(polities)} polities parsed")
+
+    wikidata_index: dict[str, dict] = {}
+    if not no_enrich:
+        qids = [p.get("tags", {}).get("wikidata") for p in polities]
+        qids = [qid for qid in qids if qid]
+        qids = list(dict.fromkeys(qids))
+
+        console.print(f"  Enriching {len(qids)} QIDs from Wikidata…")
+        wikidata_index = batch_enrich_qids(qids)
+        console.print(f"  → {len(wikidata_index)} QIDs enriched")
+
+    with open(out, "wb") as f:
+        for polity in polities:
+            record = map_polity_to_jsonl(polity, wikidata_index)
+            f.write(orjson.dumps(record) + b"\n")
+
+    console.print(f"\n[bold green]Done.[/bold green] Written to {out}")
+
+
 def _slugify(text: str) -> str:
     """Convert a string to a safe filename slug."""
     import re

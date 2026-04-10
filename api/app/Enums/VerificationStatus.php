@@ -7,6 +7,7 @@ namespace App\Enums;
 enum VerificationStatus: string
 {
     case PipelineDraft = 'pipeline_draft';
+    case OhmDraft = 'ohm_draft';
     case AutoValidated = 'auto_validated';
     case NeedsReview = 'needs_review';
     case InReview = 'in_review';
