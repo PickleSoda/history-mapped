@@ -118,6 +118,42 @@ docker compose -f docker/docker-compose.yml exec app \
   php artisan pipeline:import storage/app/pipeline/ --all
 ```
 
+### 2a. Full OHM border fetch and Laravel import
+
+Use these commands to run the full OHM `admin_level=2` border extract and then populate the Laravel app.
+
+```bash
+# From the repo root, create the full OHM border JSONL.
+# This is a large Overpass query and can take a long time to finish.
+py -m pipeline borders --output output/ohm_borders_global.jsonl
+
+# Make the JSONL visible inside the Laravel Docker container.
+Copy-Item output/ohm_borders_global.jsonl api/storage/app/ohm_borders_global.jsonl
+
+# Import synchronously into Laravel from the container-visible path.
+docker compose -f docker/docker-compose.yml exec app \
+  php artisan pipeline:import-borders \
+    /var/www/html/storage/app/ohm_borders_global.jsonl \
+    --sync \
+    --batch-id=global-$(Get-Date -Format yyyy-MM-dd)
+```
+
+If you want the queue to process the import asynchronously instead, drop `--sync`:
+
+```bash
+docker compose -f docker/docker-compose.yml exec app \
+  php artisan pipeline:import-borders \
+    /var/www/html/storage/app/ohm_borders_global.jsonl \
+    --batch-id=global-$(Get-Date -Format yyyy-MM-dd)
+```
+
+Optional verification after import:
+
+```bash
+docker compose -f docker/docker-compose.yml exec app \
+  php artisan tinker --execute "echo App\\Models\\Entity::query()->where('created_by', 'borders:global-' . now()->format('Y-m-d'))->count() . PHP_EOL;"
+```
+
 ### 3. Generate embeddings
 
 ```bash
