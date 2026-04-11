@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 from typing import Any
 
 import requests
@@ -16,6 +17,14 @@ GLOBAL_QUERY = """
 relation["boundary"="administrative"]["admin_level"="2"];
 out geom;
 """
+
+
+def load_query_text(query_file: str | Path | None = None) -> str:
+    """Load an Overpass query from disk or fall back to the global query."""
+    if query_file is None:
+        return GLOBAL_QUERY
+
+    return Path(query_file).read_text(encoding="utf-8")
 
 
 def fetch_raw(query: str = GLOBAL_QUERY) -> dict[str, Any]:

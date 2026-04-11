@@ -1,9 +1,22 @@
 """CLI entry point: python -m pipeline.scrape ..."""
 
+import re
+import shutil
+from pathlib import Path
+
 import click
+import orjson
 from rich.console import Console
 
 from pipeline.config import settings, ENTITY_GROUPS, TYPE_TO_GROUP
+from pipeline.ohm_borders.fetcher import load_query_text
+from pipeline.ohm_borders.stages import (
+    default_parallelism,
+    run_build_stage,
+    run_enrich_stage,
+    run_fetch_stage,
+    run_parse_stage,
+)
 from pipeline.scraper.wikidata import WikidataScraper
 from pipeline.scraper.wikipedia import WikipediaEnricher
 from pipeline.scraper.topic import TopicScraper
@@ -30,8 +43,6 @@ def cli():
 @click.option("--output-dir", default=None, help="Override output directory")
 def scrape(entity_type, entity_group, start_year, end_year, limit, skip_wikipedia, output_dir):
     """Scrape entities from Wikidata and optionally enrich from Wikipedia."""
-    import os, orjson
-    from pathlib import Path
 
     out = Path(output_dir or settings.output_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -101,8 +112,6 @@ def scrape(entity_type, entity_group, start_year, end_year, limit, skip_wikipedi
 @click.option("--check-db", is_flag=True, help="Also check against existing DB records")
 def dedup(jsonl_file, check_db):
     """Deduplicate a JSONL file in-place."""
-    import orjson
-    from pathlib import Path
 
     deduplicator = Deduplicator(check_db=check_db)
     path = Path(jsonl_file)
@@ -152,9 +161,6 @@ def topic(query, depth, limit, co_seeds, skip_wikipedia, skip_untyped, output_di
 
         python -m pipeline topic "Late Bronze Age Collapse" --co-seed Q4496560 --co-seed Q193850
     """
-    import orjson
-    from pathlib import Path
-
     out = Path(output_dir or settings.output_dir)
     out.mkdir(parents=True, exist_ok=True)
 
@@ -304,56 +310,216 @@ def topic(query, depth, limit, co_seeds, skip_wikipedia, skip_untyped, output_di
         console.print(f"  {group:8s}  {t:35s}  {c}")
 
 
-@cli.command()
-@click.option("--output", default=None, help="Output JSONL path (default: output/ohm_borders.jsonl)")
-@click.option("--query-file", default=None, type=click.Path(exists=True), help="Override Overpass query file")
-@click.option("--no-enrich", is_flag=True, help="Skip Wikidata enrichment")
-def borders(output, query_file, no_enrich):
-    """Fetch all admin_level=2 OHM borders and emit a JSONL file."""
-    import orjson
-    from pathlib import Path
+def _run_borders_pipeline(
+    *,
+    run_id,
+    artifact_dir,
+    query_file,
+    output,
+    parsed_shard_size,
+    parse_workers,
+    enrich_batch_size,
+    enrich_workers,
+    resume,
+    force,
+    no_enrich,
+):
+    fetch_result = run_fetch_stage(
+        run_id=run_id,
+        artifact_dir=artifact_dir,
+        query=load_query_text(query_file),
+        resume=resume,
+        force=force,
+    )
+    console.print(f"Fetch {fetch_result['status']}: {fetch_result['element_count']} elements -> {fetch_result['raw_path']}")
 
-    from pipeline.ohm_borders.enricher import batch_enrich_qids
-    from pipeline.ohm_borders.fetcher import GLOBAL_QUERY, fetch_raw, parse_elements
-    from pipeline.ohm_borders.mapper import map_polity_to_jsonl
+    resolved_parallelism = default_parallelism()
+    parse_result = run_parse_stage(
+        run_id=run_id,
+        artifact_dir=artifact_dir,
+        parsed_shard_size=parsed_shard_size or 100,
+        parse_workers=parse_workers or resolved_parallelism,
+        resume=resume,
+        force=force,
+    )
+    console.print(f"Parse {parse_result['status']}: {parse_result['polity_count']} polities across {parse_result['shard_count']} shards")
 
-    out = Path(output or "output/ohm_borders.jsonl")
-    out.parent.mkdir(parents=True, exist_ok=True)
-
-    query = GLOBAL_QUERY
-    if query_file:
-        query = Path(query_file).read_text(encoding="utf-8")
-
-    console.rule("[bold blue]OHM Borders")
-    console.print("  Fetching OHM admin_level=2 boundaries…")
-    raw = fetch_raw(query)
-    elements = raw.get("elements", [])
-    console.print(f"  → {len(elements)} elements returned")
-
-    polities = parse_elements(elements)
-    console.print(f"  → {len(polities)} polities parsed")
-
-    wikidata_index: dict[str, dict] = {}
     if not no_enrich:
-        qids = [p.get("tags", {}).get("wikidata") for p in polities]
-        qids = [qid for qid in qids if qid]
-        qids = list(dict.fromkeys(qids))
+        enrich_result = run_enrich_stage(
+            run_id=run_id,
+            artifact_dir=artifact_dir,
+            enrich_batch_size=enrich_batch_size or 50,
+            enrich_workers=enrich_workers or 4,
+            resume=resume,
+            force=force,
+        )
+        console.print(f"Enrich {enrich_result['status']}: {enrich_result['qid_count']} unique QIDs across {enrich_result['shard_count']} shards")
 
-        console.print(f"  Enriching {len(qids)} QIDs from Wikidata…")
-        wikidata_index = batch_enrich_qids(qids)
-        console.print(f"  → {len(wikidata_index)} QIDs enriched")
+    build_result = run_build_stage(
+        run_id=run_id,
+        artifact_dir=artifact_dir,
+        resume=resume,
+        force=force,
+        no_enrich=no_enrich,
+    )
 
-    with open(out, "wb") as f:
-        for polity in polities:
-            record = map_polity_to_jsonl(polity, wikidata_index)
-            f.write(orjson.dumps(record) + b"\n")
+    final_output_path = build_result["final_path"]
+    if output is not None:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(build_result["final_path"], output)
+        final_output_path = output
 
-    console.print(f"\n[bold green]Done.[/bold green] Written to {out}")
+    console.print(f"Build {build_result['status']}: {build_result['record_count']} records -> {build_result['final_path']}")
+    console.print(f"Borders run complete -> {final_output_path}")
+
+
+@cli.group(invoke_without_command=True)
+@click.option("--output", type=click.Path(path_type=Path, dir_okay=False), default=None, help="Compatibility mode: copy the final merged JSONL to this path")
+@click.option("--run-id", default=None, help="Deterministic run id for the artifact directory")
+@click.option("--artifact-dir", type=click.Path(path_type=Path, file_okay=False), default=None, help="Explicit artifact directory override")
+@click.option("--query-file", type=click.Path(path_type=Path, exists=True, dir_okay=False), default=None, help="Override Overpass query file")
+@click.option("--parsed-shard-size", type=int, default=None, help="Polities per parsed shard")
+@click.option("--parse-workers", type=int, default=None, help="Reserved worker count for parallel parse stages")
+@click.option("--enrich-batch-size", type=int, default=None, help="Unique Wikidata QIDs per enrichment shard")
+@click.option("--enrich-workers", type=int, default=None, help="Bounded worker count for enrichment batches")
+@click.option("--resume", is_flag=True, help="Skip writing existing stage artifacts when possible")
+@click.option("--force", is_flag=True, help="Overwrite existing stage artifacts")
+@click.option("--no-enrich", is_flag=True, help="Run fetch/parse/build without the enrich stage")
+@click.pass_context
+def borders(ctx, output, run_id, artifact_dir, query_file, parsed_shard_size, parse_workers, enrich_batch_size, enrich_workers, resume, force, no_enrich):
+    """Fetch and parse OHM borders artifacts."""
+    if ctx.invoked_subcommand is None and output is not None:
+        _run_borders_pipeline(
+            run_id=run_id,
+            artifact_dir=artifact_dir,
+            query_file=query_file,
+            output=output,
+            parsed_shard_size=parsed_shard_size,
+            parse_workers=parse_workers,
+            enrich_batch_size=enrich_batch_size,
+            enrich_workers=enrich_workers,
+            resume=resume,
+            force=force,
+            no_enrich=no_enrich,
+        )
+        return
+
+    if ctx.invoked_subcommand is None:
+        console.print(ctx.get_help())
+
+
+@borders.command("fetch")
+@click.option("--run-id", default=None, help="Deterministic run id for the artifact directory")
+@click.option("--artifact-dir", type=click.Path(path_type=Path, file_okay=False), default=None, help="Explicit artifact directory override")
+@click.option("--query-file", type=click.Path(path_type=Path, exists=True, dir_okay=False), default=None, help="Override Overpass query file")
+@click.option("--resume", is_flag=True, help="Skip fetch when raw/overpass.json already exists")
+@click.option("--force", is_flag=True, help="Overwrite existing raw/overpass.json even when resuming")
+def borders_fetch(run_id, artifact_dir, query_file, resume, force):
+    """Fetch raw OHM border data into staged artifacts."""
+    result = run_fetch_stage(
+        run_id=run_id,
+        artifact_dir=artifact_dir,
+        query=load_query_text(query_file),
+        resume=resume,
+        force=force,
+    )
+
+    console.print(f"Fetch {result['status']}: {result['element_count']} elements -> {result['raw_path']}")
+
+
+@borders.command("parse")
+@click.option("--run-id", default=None, help="Deterministic run id for the artifact directory")
+@click.option("--artifact-dir", type=click.Path(path_type=Path, file_okay=False), default=None, help="Explicit artifact directory override")
+@click.option("--parsed-shard-size", type=int, default=None, help="Polities per parsed shard")
+@click.option("--parse-workers", type=int, default=None, help="Reserved worker count for parallel parse stages")
+@click.option("--resume", is_flag=True, help="Skip writing parsed shards that already exist")
+@click.option("--force", is_flag=True, help="Overwrite existing parsed shards")
+def borders_parse(run_id, artifact_dir, parsed_shard_size, parse_workers, resume, force):
+    """Parse raw OHM border elements into staged JSONL shards."""
+    resolved_parallelism = default_parallelism()
+    result = run_parse_stage(
+        run_id=run_id,
+        artifact_dir=artifact_dir,
+        parsed_shard_size=parsed_shard_size or 100,
+        parse_workers=parse_workers or resolved_parallelism,
+        resume=resume,
+        force=force,
+    )
+
+    console.print(f"Parse {result['status']}: {result['polity_count']} polities across {result['shard_count']} shards")
+
+
+@borders.command("enrich")
+@click.option("--run-id", default=None, help="Deterministic run id for the artifact directory")
+@click.option("--artifact-dir", type=click.Path(path_type=Path, file_okay=False), default=None, help="Explicit artifact directory override")
+@click.option("--enrich-batch-size", type=int, default=None, help="Unique Wikidata QIDs per enrichment shard")
+@click.option("--enrich-workers", type=int, default=None, help="Bounded worker count for enrichment batches")
+@click.option("--resume", is_flag=True, help="Skip writing enrichment shards that already exist")
+@click.option("--force", is_flag=True, help="Overwrite existing enrichment shards")
+def borders_enrich(run_id, artifact_dir, enrich_batch_size, enrich_workers, resume, force):
+    """Enrich parsed OHM border shards with batched Wikidata metadata."""
+    result = run_enrich_stage(
+        run_id=run_id,
+        artifact_dir=artifact_dir,
+        enrich_batch_size=enrich_batch_size or 50,
+        enrich_workers=enrich_workers or 4,
+        resume=resume,
+        force=force,
+    )
+
+    console.print(f"Enrich {result['status']}: {result['qid_count']} unique QIDs across {result['shard_count']} shards")
+
+
+@borders.command("build")
+@click.option("--run-id", default=None, help="Deterministic run id for the artifact directory")
+@click.option("--artifact-dir", type=click.Path(path_type=Path, file_okay=False), default=None, help="Explicit artifact directory override")
+@click.option("--resume", is_flag=True, help="Skip writing build outputs that already exist")
+@click.option("--force", is_flag=True, help="Overwrite existing build outputs")
+@click.option("--no-enrich", is_flag=True, help="Build without loading enrichment shards")
+def borders_build(run_id, artifact_dir, resume, force, no_enrich):
+    """Build importer-facing JSONL shards and the final merged OHM borders file."""
+    result = run_build_stage(
+        run_id=run_id,
+        artifact_dir=artifact_dir,
+        resume=resume,
+        force=force,
+        no_enrich=no_enrich,
+    )
+
+    console.print(f"Build {result['status']}: {result['record_count']} records -> {result['final_path']}")
+
+
+@borders.command("run")
+@click.option("--run-id", default=None, help="Deterministic run id for the artifact directory")
+@click.option("--artifact-dir", type=click.Path(path_type=Path, file_okay=False), default=None, help="Explicit artifact directory override")
+@click.option("--query-file", type=click.Path(path_type=Path, exists=True, dir_okay=False), default=None, help="Override Overpass query file")
+@click.option("--output", type=click.Path(path_type=Path, dir_okay=False), default=None, help="Optional path for a copied final merged JSONL")
+@click.option("--parsed-shard-size", type=int, default=None, help="Polities per parsed shard")
+@click.option("--parse-workers", type=int, default=None, help="Reserved worker count for parallel parse stages")
+@click.option("--enrich-batch-size", type=int, default=None, help="Unique Wikidata QIDs per enrichment shard")
+@click.option("--enrich-workers", type=int, default=None, help="Bounded worker count for enrichment batches")
+@click.option("--resume", is_flag=True, help="Skip writing existing stage artifacts when possible")
+@click.option("--force", is_flag=True, help="Overwrite existing stage artifacts")
+@click.option("--no-enrich", is_flag=True, help="Run fetch/parse/build without the enrich stage")
+def borders_run(run_id, artifact_dir, query_file, output, parsed_shard_size, parse_workers, enrich_batch_size, enrich_workers, resume, force, no_enrich):
+    """Run the full staged OHM borders workflow."""
+    _run_borders_pipeline(
+        run_id=run_id,
+        artifact_dir=artifact_dir,
+        query_file=query_file,
+        output=output,
+        parsed_shard_size=parsed_shard_size,
+        parse_workers=parse_workers,
+        enrich_batch_size=enrich_batch_size,
+        enrich_workers=enrich_workers,
+        resume=resume,
+        force=force,
+        no_enrich=no_enrich,
+    )
 
 
 def _slugify(text: str) -> str:
     """Convert a string to a safe filename slug."""
-    import re
     slug = text.lower().strip()
     slug = re.sub(r"[^a-z0-9]+", "_", slug)
     slug = slug.strip("_")
