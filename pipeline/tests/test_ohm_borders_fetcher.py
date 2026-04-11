@@ -129,3 +129,87 @@ def test_assemble_geometry_closed_outer() -> None:
 
 def test_assemble_geometry_returns_none_on_empty() -> None:
     assert assemble_geometry([]) is None
+
+
+def test_assemble_geometry_keeps_only_more_detailed_overlapping_outline() -> None:
+    members = [
+        {
+            "type": "way",
+            "ref": 1,
+            "role": "outer",
+            "geometry": [
+                {"lat": 0.0, "lon": 0.0},
+                {"lat": 0.0, "lon": 4.0},
+                {"lat": 4.0, "lon": 4.0},
+                {"lat": 4.0, "lon": 0.0},
+                {"lat": 0.0, "lon": 0.0},
+            ],
+        },
+        {
+            "type": "way",
+            "ref": 2,
+            "role": "outer",
+            "geometry": [
+                {"lat": 0.0, "lon": 0.0},
+                {"lat": 0.0, "lon": 1.0},
+                {"lat": 0.0, "lon": 2.0},
+                {"lat": 0.0, "lon": 3.0},
+                {"lat": 0.0, "lon": 4.0},
+                {"lat": 1.0, "lon": 4.0},
+                {"lat": 2.0, "lon": 4.0},
+                {"lat": 3.0, "lon": 4.0},
+                {"lat": 4.0, "lon": 4.0},
+                {"lat": 4.0, "lon": 3.0},
+                {"lat": 4.0, "lon": 2.0},
+                {"lat": 4.0, "lon": 1.0},
+                {"lat": 4.0, "lon": 0.0},
+                {"lat": 3.0, "lon": 0.0},
+                {"lat": 2.0, "lon": 0.0},
+                {"lat": 1.0, "lon": 0.0},
+                {"lat": 0.0, "lon": 0.0},
+            ],
+        },
+    ]
+
+    geojson = assemble_geometry(members)
+
+    assert geojson is not None
+    assert geojson["type"] in ("Polygon", "MultiPolygon")
+    coordinates = geojson["coordinates"] if geojson["type"] == "MultiPolygon" else [geojson["coordinates"]]
+    assert len(coordinates) == 1
+    assert len(coordinates[0][0]) == 17
+
+
+def test_assemble_geometry_preserves_disjoint_outlines() -> None:
+    members = [
+        {
+            "type": "way",
+            "ref": 1,
+            "role": "outer",
+            "geometry": [
+                {"lat": 0.0, "lon": 0.0},
+                {"lat": 0.0, "lon": 1.0},
+                {"lat": 1.0, "lon": 1.0},
+                {"lat": 1.0, "lon": 0.0},
+                {"lat": 0.0, "lon": 0.0},
+            ],
+        },
+        {
+            "type": "way",
+            "ref": 2,
+            "role": "outer",
+            "geometry": [
+                {"lat": 10.0, "lon": 10.0},
+                {"lat": 10.0, "lon": 11.0},
+                {"lat": 11.0, "lon": 11.0},
+                {"lat": 11.0, "lon": 10.0},
+                {"lat": 10.0, "lon": 10.0},
+            ],
+        },
+    ]
+
+    geojson = assemble_geometry(members)
+
+    assert geojson is not None
+    assert geojson["type"] == "MultiPolygon"
+    assert len(geojson["coordinates"]) == 2

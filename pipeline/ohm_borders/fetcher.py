@@ -119,6 +119,134 @@ def parse_elements(elements: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return polities
 
 
+def _detail_score(coords: list[list[float]]) -> int:
+    return len(coords)
+
+
+def _ring_area(coords: list[list[float]]) -> float:
+    area = 0.0
+
+    for index in range(len(coords) - 1):
+        x1, y1 = coords[index]
+        x2, y2 = coords[index + 1]
+        area += (x1 * y2) - (x2 * y1)
+
+    return abs(area) / 2.0
+
+
+def _ring_bbox(coords: list[list[float]]) -> tuple[float, float, float, float]:
+    xs = [point[0] for point in coords]
+    ys = [point[1] for point in coords]
+
+    return min(xs), min(ys), max(xs), max(ys)
+
+
+def _bbox_overlap_ratio(
+    first_bbox: tuple[float, float, float, float],
+    second_bbox: tuple[float, float, float, float],
+) -> float:
+    first_min_x, first_min_y, first_max_x, first_max_y = first_bbox
+    second_min_x, second_min_y, second_max_x, second_max_y = second_bbox
+
+    overlap_width = min(first_max_x, second_max_x) - max(first_min_x, second_min_x)
+    overlap_height = min(first_max_y, second_max_y) - max(first_min_y, second_min_y)
+    if overlap_width <= 0 or overlap_height <= 0:
+        return 0.0
+
+    overlap_area = overlap_width * overlap_height
+    first_area = max((first_max_x - first_min_x) * (first_max_y - first_min_y), 0.0)
+    second_area = max((second_max_x - second_min_x) * (second_max_y - second_min_y), 0.0)
+    min_area = min(first_area, second_area)
+
+    if min_area <= 0:
+        return 0.0
+
+    return overlap_area / min_area
+
+
+def _ring_centroid(coords: list[list[float]]) -> tuple[float, float]:
+    unique_points = coords[:-1] if len(coords) > 1 and coords[0] == coords[-1] else coords
+    if not unique_points:
+        return 0.0, 0.0
+
+    x_total = sum(point[0] for point in unique_points)
+    y_total = sum(point[1] for point in unique_points)
+    count = len(unique_points)
+
+    return x_total / count, y_total / count
+
+
+def _point_in_ring(point: tuple[float, float], ring: list[list[float]]) -> bool:
+    x, y = point
+    inside = False
+
+    for index in range(len(ring) - 1):
+        x1, y1 = ring[index]
+        x2, y2 = ring[index + 1]
+
+        if ((y1 > y) != (y2 > y)) and (x < ((x2 - x1) * (y - y1) / ((y2 - y1) or 1e-12)) + x1):
+            inside = not inside
+
+    return inside
+
+
+def _is_near_duplicate_outline(first_coords: list[list[float]], second_coords: list[list[float]]) -> bool:
+    first_area = _ring_area(first_coords)
+    second_area = _ring_area(second_coords)
+    min_area = min(first_area, second_area)
+    max_area = max(first_area, second_area)
+
+    if min_area <= 0 or max_area <= 0:
+        return False
+
+    area_ratio = min_area / max_area
+    bbox_ratio = _bbox_overlap_ratio(_ring_bbox(first_coords), _ring_bbox(second_coords))
+    if area_ratio < 0.9 or bbox_ratio < 0.98:
+        return False
+
+    return _point_in_ring(_ring_centroid(first_coords), second_coords) and _point_in_ring(_ring_centroid(second_coords), first_coords)
+
+
+
+def _prefer_ring(
+    current_coords: list[list[float]],
+    candidate_coords: list[list[float]],
+) -> list[list[float]]:
+    current_score = _detail_score(current_coords)
+    candidate_score = _detail_score(candidate_coords)
+
+    if candidate_score > current_score:
+        return candidate_coords
+
+    if candidate_score < current_score:
+        return current_coords
+
+    if _ring_area(candidate_coords) > _ring_area(current_coords):
+        return candidate_coords
+
+    return current_coords
+
+
+def _filter_duplicate_rings(rings: list[list[list[float]]]) -> list[list[list[float]]]:
+    filtered: list[list[list[float]]] = []
+
+    for ring in rings:
+        duplicate_index = None
+
+        for index, existing_ring in enumerate(filtered):
+            if not _is_near_duplicate_outline(existing_ring, ring):
+                continue
+
+            duplicate_index = index
+            filtered[index] = _prefer_ring(existing_ring, ring)
+            break
+
+        if duplicate_index is None:
+            filtered.append(ring)
+
+    return filtered
+
+
 def assemble_geometry(members: list[dict[str, Any]]) -> dict[str, Any] | None:
     """Assemble geometry from member way coordinates.
 
@@ -146,6 +274,8 @@ def assemble_geometry(members: list[dict[str, Any]]) -> dict[str, Any] | None:
     if not rings:
         return None
 
+    rings = _filter_duplicate_rings(rings)
+
     try:
         from shapely.geometry import MultiPolygon, Polygon, mapping
 
@@ -153,6 +283,9 @@ def assemble_geometry(members: list[dict[str, Any]]) -> dict[str, Any] | None:
         polygons = [polygon for polygon in polygons if polygon.is_valid and not polygon.is_empty]
         if not polygons:
             return None
+
+        if len(polygons) == 1:
+            return mapping(polygons[0])
 
         return mapping(MultiPolygon(polygons))
     except Exception as exc:  # pragma: no cover - fallback for missing shapely/runtime issues
