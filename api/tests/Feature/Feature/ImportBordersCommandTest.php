@@ -139,6 +139,120 @@ class ImportBordersCommandTest extends TestCase
         $this->assertSame([1800, 1850], $periods->pluck('start_year')->sort()->values()->all());
     }
 
+    public function test_command_sorts_geo_ref_temporal_bounds_when_geometry_periods_are_unordered(): void
+    {
+        $record = $this->makeRecord([
+            'wikidata_id' => 'Q1619',
+            'temporal_start' => '1619',
+            'temporal_end' => '1620',
+            '_ohm_relation_id' => '2847638',
+            '_geometry_periods' => [
+                [
+                    'ohm_relation_id' => '2847638',
+                    'external_type' => 'relation',
+                    'start_year' => 1620,
+                    'end_year' => 1620,
+                    'start_date' => '1620',
+                    'end_date' => '1620',
+                    'geojson' => [
+                        'type' => 'MultiPolygon',
+                        'coordinates' => [[[[0, 0], [2, 0], [2, 2], [0, 0]]]],
+                    ],
+                    'label' => 'Later stage',
+                    'external_tags' => [],
+                ],
+                [
+                    'ohm_relation_id' => '2847638',
+                    'external_type' => 'relation',
+                    'start_year' => 1619,
+                    'end_year' => 1619,
+                    'start_date' => '1619',
+                    'end_date' => '1619',
+                    'geojson' => [
+                        'type' => 'MultiPolygon',
+                        'coordinates' => [[[[0, 0], [3, 0], [3, 3], [0, 0]]]],
+                    ],
+                    'label' => 'Earlier stage',
+                    'external_tags' => [],
+                ],
+            ],
+        ]);
+
+        $path = $this->writeTemp(json_encode($record)."\n");
+
+        $this->artisan('pipeline:import-borders', [
+            'path' => $path,
+            '--sync' => true,
+        ])->assertExitCode(0);
+
+        $entity = Entity::query()->where('wikidata_id', 'Q1619')->firstOrFail();
+        $geoRef = EntityGeoRef::query()->where('entity_id', $entity->entity_id)->firstOrFail();
+
+        $this->assertSame(1619, $geoRef->temporal_start_year);
+        $this->assertSame(1620, $geoRef->temporal_end_year);
+        $this->assertSame('1619', $geoRef->temporal_start);
+        $this->assertSame('1620', $geoRef->temporal_end);
+    }
+
+    public function test_command_skips_invalid_geometry_periods_with_reversed_years(): void
+    {
+        $record = $this->makeRecord([
+            'wikidata_id' => 'Q4948',
+            'name' => 'Republic of Venice',
+            'temporal_start' => '0697',
+            'temporal_end' => '1797',
+            '_ohm_relation_id' => '2835819',
+            '_geometry_periods' => [
+                [
+                    'ohm_relation_id' => '2835819',
+                    'external_type' => 'relation',
+                    'start_year' => 1390,
+                    'end_year' => 1363,
+                    'start_date' => '1390',
+                    'end_date' => '1363',
+                    'geojson' => [
+                        'type' => 'MultiPolygon',
+                        'coordinates' => [[[[0, 0], [2, 0], [2, 2], [0, 0]]]],
+                    ],
+                    'label' => 'Republic of Venice (1390-1363)',
+                    'external_tags' => [],
+                ],
+                [
+                    'ohm_relation_id' => '2835820',
+                    'external_type' => 'relation',
+                    'start_year' => 1391,
+                    'end_year' => 1404,
+                    'start_date' => '1391',
+                    'end_date' => '1404',
+                    'geojson' => [
+                        'type' => 'MultiPolygon',
+                        'coordinates' => [[[[0, 0], [3, 0], [3, 3], [0, 0]]]],
+                    ],
+                    'label' => 'Republic of Venice (1391-1404)',
+                    'external_tags' => [],
+                ],
+            ],
+        ]);
+
+        $path = $this->writeTemp(json_encode($record)."\n");
+
+        $this->artisan('pipeline:import-borders', [
+            'path' => $path,
+            '--sync' => true,
+        ])->assertExitCode(0);
+
+        $entity = Entity::query()->where('wikidata_id', 'Q4948')->firstOrFail();
+        $periods = GeometryPeriod::query()
+            ->where('entity_id', $entity->entity_id)
+            ->orderBy('start_year')
+            ->get();
+
+        $this->assertCount(1, $periods);
+        $this->assertSame(1391, $periods[0]->start_year);
+        $this->assertSame(1404, $periods[0]->end_year);
+        $this->assertSame('Republic of Venice (1391-1404)', $periods[0]->description);
+    }
+
     public function test_command_force_updates_existing_entity(): void
     {
         $record = $this->makeRecord([

@@ -5,3 +5,7 @@
 - **Implementation**: After planning, we implement according to the plans, referencing both the implementation docs and plans as needed.
 
 This structure ensures a clear progression from idea to execution, with traceable documentation at each stage.
+
+Useful entry points:
+
+- OHM border extraction walkthrough: [docs/implementation-docs/ohm_border_extraction_step_by_step.md](/c:/Users/Achi/Code/FL/WG/docs/implementation-docs/ohm_border_extraction_step_by_step.md)

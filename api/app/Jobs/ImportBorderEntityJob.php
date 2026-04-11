@@ -22,6 +22,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Collection;
 
 class ImportBorderEntityJob implements ShouldQueue
 {
@@ -55,6 +56,8 @@ class ImportBorderEntityJob implements ShouldQueue
             $geometryPeriods = is_array($record['_geometry_periods'] ?? null)
                 ? $record['_geometry_periods']
                 : [];
+            $geometryPeriods = $this->filterValidGeometryPeriods($geometryPeriods);
+            $geometryPeriods = $this->sortGeometryPeriods($geometryPeriods);
 
             $ohmRelationId = isset($record['_ohm_relation_id'])
                 ? (string) $record['_ohm_relation_id']
@@ -99,6 +102,41 @@ class ImportBorderEntityJob implements ShouldQueue
 
             throw $e;
         }
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $geometryPeriods
+     * @return array<int, array<string, mixed>>
+     */
+    private function sortGeometryPeriods(array $geometryPeriods): array
+    {
+        return Collection::make($geometryPeriods)
+            ->sortBy([
+                fn (array $period): int => isset($period['start_year']) ? (int) $period['start_year'] : PHP_INT_MAX,
+                fn (array $period): int => isset($period['end_year']) ? (int) $period['end_year'] : PHP_INT_MAX,
+                fn (array $period): string => isset($period['start_date']) ? (string) $period['start_date'] : '',
+                fn (array $period): string => isset($period['end_date']) ? (string) $period['end_date'] : '',
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $geometryPeriods
+     * @return array<int, array<string, mixed>>
+     */
+    private function filterValidGeometryPeriods(array $geometryPeriods): array
+    {
+        return Collection::make($geometryPeriods)
+            ->filter(function (array $period): bool {
+                if (! isset($period['start_year'], $period['end_year'])) {
+                    return true;
+                }
+
+                return (int) $period['start_year'] <= (int) $period['end_year'];
+            })
+            ->values()
+            ->all();
     }
 
     /**

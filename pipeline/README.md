@@ -122,29 +122,107 @@ docker compose -f docker/docker-compose.yml exec app \
 
 Use these commands to run the full OHM `admin_level=2` border extract and then populate the Laravel app.
 
+The pipeline now supports a staged, shard-based workflow under `output/ohm_borders/<run_id>/`.
+Each stage writes retryable artifacts and updates a manifest, so you can resume an interrupted run without redoing completed work.
+
+Artifact layout:
+
+```text
+output/ohm_borders/<run_id>/
+├── manifest.json
+├── raw/
+│   └── overpass.json
+├── parsed/
+│   └── parsed-00001.jsonl
+├── enriched/
+│   └── enriched-qids-00001.json
+├── built/
+│   └── built-00001.jsonl
+└── final/
+    └── ohm_borders.jsonl
+```
+
+Throughput-oriented defaults:
+
+- `parse-workers`: `max(1, cpu_count() - 1)`
+- `parsed-shard-size`: `100`
+- `enrich-workers`: `4`
+- `enrich-batch-size`: `50`
+
+`--resume` reuses completed stage artifacts when they already exist. `--force` overwrites artifacts for the current stage. Use `--no-enrich` when you want to build importer-ready JSONL without Wikidata enrichment.
+
+The importer reads the JSONL file line by line, so a very large file can still be processed. For the full global OHM export, prefer `--sync` so the raw border records are not serialized into thousands of large queue payloads. Some single OHM records are still very large, so run the import with a higher PHP memory limit.
+
+Recommended staged commands:
+
+```bash
+# Full staged run that also copies the merged JSONL to a stable output path.
+py -m pipeline borders run \
+  --run-id global-2026-04-11 \
+  --output output/ohm_borders_global.jsonl
+
+# Resume a partially completed run without re-fetching or rebuilding finished shards.
+py -m pipeline borders run \
+  --run-id global-2026-04-11 \
+  --resume \
+  --output output/ohm_borders_global.jsonl
+
+# Execute stages individually.
+py -m pipeline borders fetch --run-id global-2026-04-11
+py -m pipeline borders parse --run-id global-2026-04-11 --resume
+py -m pipeline borders enrich --run-id global-2026-04-11 --resume
+py -m pipeline borders build --run-id global-2026-04-11 --resume
+```
+
+Compatibility mode is still available and now routes through the same staged pipeline:
+
+```bash
+py -m pipeline borders \
+  --run-id global-2026-04-11 \
+  --output output/ohm_borders_global.jsonl
+```
+
 ```bash
 # From the repo root, create the full OHM border JSONL.
 # This is a large Overpass query and can take a long time to finish.
-py -m pipeline borders --output output/ohm_borders_global.jsonl
+py -m pipeline borders run --output output/ohm_borders_global.jsonl
 
 # Make the JSONL visible inside the Laravel Docker container.
 Copy-Item output/ohm_borders_global.jsonl api/storage/app/ohm_borders_global.jsonl
 
 # Import synchronously into Laravel from the container-visible path.
 docker compose -f docker/docker-compose.yml exec app \
-  php artisan pipeline:import-borders \
+  php -d memory_limit=1024M artisan pipeline:import-borders \
     /var/www/html/storage/app/ohm_borders_global.jsonl \
     --sync \
-    --batch-id=global-$(Get-Date -Format yyyy-MM-dd)
+    --batch-id=global-2026-04-11
+```
+
+PowerShell version:
+
+```powershell
+$batchId = "global-$(Get-Date -Format 'yyyy-MM-dd')"
+
+py -m pipeline borders run --output output/ohm_borders_global.jsonl
+Copy-Item output/ohm_borders_global.jsonl api/storage/app/ohm_borders_global.jsonl
+docker compose -f docker/docker-compose.yml exec app php -d memory_limit=1024M artisan pipeline:import-borders /var/www/html/storage/app/ohm_borders_global.jsonl --sync "--batch-id=$batchId"
 ```
 
 If you want the queue to process the import asynchronously instead, drop `--sync`:
 
 ```bash
 docker compose -f docker/docker-compose.yml exec app \
-  php artisan pipeline:import-borders \
+  php -d memory_limit=1024M artisan pipeline:import-borders \
     /var/www/html/storage/app/ohm_borders_global.jsonl \
-    --batch-id=global-$(Get-Date -Format yyyy-MM-dd)
+    --batch-id=global-2026-04-11
+```
+
+PowerShell version:
+
+```powershell
+$batchId = "global-$(Get-Date -Format 'yyyy-MM-dd')"
+
+docker compose -f docker/docker-compose.yml exec app php -d memory_limit=1024M artisan pipeline:import-borders /var/www/html/storage/app/ohm_borders_global.jsonl "--batch-id=$batchId"
 ```
 
 Optional verification after import:
