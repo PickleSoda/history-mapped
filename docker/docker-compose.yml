@@ -122,7 +122,7 @@ services:
       context: ..
       dockerfile: docker/api/Dockerfile
     working_dir: /var/www/html
-    command: php artisan queue:work --verbose --tries=1 --timeout=90
+    command: php -d memory_limit=1024M artisan queue:work --verbose --tries=1 --timeout=90 --memory=1024
     volumes:
       - ../api:/var/www/html
       - api_vendor:/var/www/html/vendor
