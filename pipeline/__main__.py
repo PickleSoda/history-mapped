@@ -17,6 +17,7 @@ from pipeline.ohm_borders.stages import (
     run_fetch_stage,
     run_parse_stage,
 )
+from pipeline.ohm_borders.enricher import enrich_output_jsonl_missing_qids
 from pipeline.scraper.wikidata import WikidataScraper
 from pipeline.scraper.wikipedia import WikipediaEnricher
 from pipeline.scraper.topic import TopicScraper
@@ -515,6 +516,26 @@ def borders_run(run_id, artifact_dir, query_file, output, parsed_shard_size, par
         resume=resume,
         force=force,
         no_enrich=no_enrich,
+    )
+
+
+@borders.command("enrich-output-names")
+@click.option("--input", "input_path", required=True, type=click.Path(path_type=Path, exists=True, dir_okay=False), help="Built or final OHM borders JSONL to post-process")
+@click.option("--output", "output_path", required=True, type=click.Path(path_type=Path, dir_okay=False), help="Destination JSONL with name-search Wikidata enrichment applied")
+@click.option("--enrich-batch-size", type=int, default=50, show_default=True, help="Batch size for Wikidata metadata hydration after name search")
+def borders_enrich_output_names(input_path, output_path, enrich_batch_size):
+    """Search Wikidata by name for OHM border records missing QIDs and write an enriched JSONL."""
+    result = enrich_output_jsonl_missing_qids(
+        input_path=input_path,
+        output_path=output_path,
+        batch_size=enrich_batch_size,
+    )
+
+    console.print(
+        "Name-search enrichment complete: "
+        f"{result['record_count']} records, "
+        f"searched {result['searched_count']}, "
+        f"matched {result['matched_count']} -> {result['output_path']}"
     )
 
 
