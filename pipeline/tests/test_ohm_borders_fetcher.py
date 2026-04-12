@@ -213,3 +213,57 @@ def test_assemble_geometry_preserves_disjoint_outlines() -> None:
     assert geojson is not None
     assert geojson["type"] == "MultiPolygon"
     assert len(geojson["coordinates"]) == 2
+
+
+def test_assemble_geometry_deduplicates_contained_outlines() -> None:
+    """Test that when one outline is contained within another, only the more detailed one is kept.
+    
+    This handles the case where OSM has both a simplified boundary outline and a detailed 
+    one for the same region (e.g., Domnonée case).
+    """
+    members = [
+        # Simplified outline (contained within the detailed one)
+        {
+            "type": "way",
+            "ref": 1,
+            "role": "outer",
+            "geometry": [
+                {"lat": 0.5, "lon": 0.5},
+                {"lat": 0.5, "lon": 1.5},
+                {"lat": 1.5, "lon": 1.5},
+                {"lat": 1.5, "lon": 0.5},
+                {"lat": 0.5, "lon": 0.5},
+            ],
+        },
+        # Detailed outline (contains the simplified one)
+        {
+            "type": "way",
+            "ref": 2,
+            "role": "outer",
+            "geometry": [
+                {"lat": 0.0, "lon": 0.0},
+                {"lat": 0.0, "lon": 0.1},
+                {"lat": 0.0, "lon": 0.2},
+                {"lat": 0.0, "lon": 2.0},
+                {"lat": 0.1, "lon": 2.0},
+                {"lat": 0.2, "lon": 2.0},
+                {"lat": 2.0, "lon": 2.0},
+                {"lat": 2.0, "lon": 1.9},
+                {"lat": 2.0, "lon": 1.8},
+                {"lat": 2.0, "lon": 0.0},
+                {"lat": 1.9, "lon": 0.0},
+                {"lat": 1.8, "lon": 0.0},
+                {"lat": 0.0, "lon": 0.0},
+            ],
+        },
+    ]
+
+    geojson = assemble_geometry(members)
+
+    assert geojson is not None
+    assert geojson["type"] in ("Polygon", "MultiPolygon")
+    coordinates = geojson["coordinates"] if geojson["type"] == "MultiPolygon" else [geojson["coordinates"]]
+    # Should have only 1 polygon (the detailed one, not both)
+    assert len(coordinates) == 1
+    # The detailed outline has more coordinates than the simplified one
+    assert len(coordinates[0][0]) >= 13  # detailed ring has at least 13 points

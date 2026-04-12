@@ -227,6 +227,18 @@ def _prefer_ring(
     return current_coords
 
 
+def _is_ring_contained_in_ring(inner_coords: list[list[float]], outer_coords: list[list[float]]) -> bool:
+    """Check if inner_coords is contained within outer_coords using centroid test.
+    
+    Returns True if the centroid of inner_coords is inside outer_coords.
+    This is a simple heuristic that handles the case where one simplified
+    outline is a subset of a detailed outline.
+    """
+    inner_centroid = _ring_centroid(inner_coords)
+    # If inner centroid is inside outer ring, they likely represent the same area
+    return _point_in_ring(inner_centroid, outer_coords)
+
+
 def _filter_duplicate_rings(rings: list[list[list[float]]]) -> list[list[list[float]]]:
     filtered: list[list[list[float]]] = []
 
@@ -234,12 +246,23 @@ def _filter_duplicate_rings(rings: list[list[list[float]]]) -> list[list[list[fl
         duplicate_index = None
 
         for index, existing_ring in enumerate(filtered):
-            if not _is_near_duplicate_outline(existing_ring, ring):
-                continue
-
-            duplicate_index = index
-            filtered[index] = _prefer_ring(existing_ring, ring)
-            break
+            # Check exact/near duplicates (area and bbox similarity)
+            if _is_near_duplicate_outline(existing_ring, ring):
+                duplicate_index = index
+                filtered[index] = _prefer_ring(existing_ring, ring)
+                break
+            
+            # Check containment: if one ring is inside the other, keep the more detailed one
+            # This handles cases where a simplified outline is merged with a detailed one
+            if _is_ring_contained_in_ring(ring, existing_ring):
+                # ring is inside existing_ring, replace existing with more detailed
+                duplicate_index = index
+                filtered[index] = _prefer_ring(existing_ring, ring)
+                break
+            elif _is_ring_contained_in_ring(existing_ring, ring):
+                # existing_ring is inside ring, skip adding ring (keep existing)
+                duplicate_index = index
+                break
 
         if duplicate_index is None:
             filtered.append(ring)
