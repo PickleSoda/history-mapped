@@ -225,6 +225,21 @@ $batchId = "global-$(Get-Date -Format 'yyyy-MM-dd')"
 docker compose -f docker/docker-compose.yml exec app php -d memory_limit=1024M artisan pipeline:import-borders /var/www/html/storage/app/ohm_borders_global.jsonl "--batch-id=$batchId"
 ```
 
+If you want to enrich a built OHM borders JSONL after the run has finished, you can post-process it with Wikidata name search for records that are still missing a `wikidata_id`:
+
+```powershell
+py -m pipeline borders enrich-output-names `
+  --input output/ohm_borders_global_2026-04-11.jsonl `
+  --output output/ohm_borders_global_2026-04-11.name-enriched.jsonl
+```
+
+This command:
+
+- preserves records that already have a `wikidata_id`
+- searches Wikidata by `name` only for records with no `wikidata_id`
+- hydrates matched QIDs through the normal SPARQL metadata enrichment
+- writes `_wikidata_match_source` so you can audit whether a record used an existing QID, a name search match, or stayed unmatched
+
 Optional verification after import:
 
 ```bash

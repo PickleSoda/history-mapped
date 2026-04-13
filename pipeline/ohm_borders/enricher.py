@@ -4,11 +4,16 @@ from __future__ import annotations
 
 import logging
 import re
+from pathlib import Path
 from typing import Any
+
+import orjson
+import requests
 
 logger = logging.getLogger(__name__)
 
 WIKIDATA_SPARQL = "https://query.wikidata.org/sparql"
+WIKIDATA_API = "https://www.wikidata.org/w/api.php"
 _USER_AGENT = "WikiGlobe-Pipeline/1.0 (https://wikiglobe.example)"
 
 _SPARQL_TEMPLATE = """
@@ -79,3 +84,122 @@ def batch_enrich_qids(qids: list[str], batch_size: int = 50) -> dict[str, dict[s
             }
 
     return results
+
+
+def search_qid_by_name(name: str) -> str | None:
+    search_term = str(name).strip()
+    if not search_term:
+        return None
+
+    params = {
+        "action": "wbsearchentities",
+        "search": search_term,
+        "language": "en",
+        "format": "json",
+        "limit": 1,
+    }
+
+    try:
+        response = requests.get(
+            WIKIDATA_API,
+            params=params,
+            timeout=30,
+            headers={"User-Agent": _USER_AGENT},
+        )
+        response.raise_for_status()
+        payload = response.json()
+    except Exception as exc:
+        logger.warning("Wikidata name search failed for %r: %s", search_term, exc)
+        return None
+
+    results = payload.get("search", [])
+    if not results:
+        return None
+
+    top_match = results[0]
+    qid = top_match.get("id")
+    return qid if isinstance(qid, str) and qid else None
+
+
+def _merge_metadata(record: dict[str, Any], metadata: dict[str, Any], match_source: str) -> dict[str, Any]:
+    enriched = dict(record)
+
+    if metadata.get("name_en") and not enriched.get("name"):
+        enriched["name"] = metadata["name_en"]
+
+    if metadata.get("description") and not enriched.get("summary"):
+        enriched["summary"] = metadata["description"]
+
+    aliases = metadata.get("aliases_en") or []
+    if aliases and not enriched.get("alternative_names"):
+        enriched["alternative_names"] = aliases
+
+    if metadata.get("temporal_start") and not enriched.get("temporal_start"):
+        enriched["temporal_start"] = metadata["temporal_start"]
+
+    if metadata.get("temporal_end") and not enriched.get("temporal_end"):
+        enriched["temporal_end"] = metadata["temporal_end"]
+
+    enriched["_wikidata_match_source"] = match_source
+    return enriched
+
+
+def enrich_output_jsonl_missing_qids(
+    *,
+    input_path: str | Path,
+    output_path: str | Path,
+    batch_size: int = 50,
+    searcher: Any = search_qid_by_name,
+    enricher: Any = batch_enrich_qids,
+) -> dict[str, Any]:
+    source_path = Path(input_path)
+    destination_path = Path(output_path)
+
+    records: list[dict[str, Any]] = []
+    qids_in_order: list[str] = []
+    searched_count = 0
+    matched_count = 0
+
+    with source_path.open("rb") as handle:
+        for raw_line in handle:
+            if not raw_line.strip():
+                continue
+
+            record = orjson.loads(raw_line)
+            qid = record.get("wikidata_id")
+
+            if isinstance(qid, str) and qid:
+                qids_in_order.append(qid)
+                record["_wikidata_match_source"] = "existing_qid"
+                records.append(record)
+                continue
+
+            searched_count += 1
+            resolved_qid = searcher(record.get("name", ""))
+            if isinstance(resolved_qid, str) and resolved_qid:
+                record["wikidata_id"] = resolved_qid
+                qids_in_order.append(resolved_qid)
+                record["_wikidata_match_source"] = "name_search"
+                matched_count += 1
+            else:
+                record["_wikidata_match_source"] = "name_search_unmatched"
+
+            records.append(record)
+
+    metadata_by_qid = enricher(list(dict.fromkeys(qids_in_order)), batch_size) if qids_in_order else {}
+
+    destination_path.parent.mkdir(parents=True, exist_ok=True)
+    with destination_path.open("wb") as handle:
+        for record in records:
+            qid = record.get("wikidata_id")
+            if isinstance(qid, str) and qid in metadata_by_qid:
+                record = _merge_metadata(record, metadata_by_qid[qid], record.get("_wikidata_match_source", "existing_qid"))
+
+            handle.write(orjson.dumps(record) + b"\n")
+
+    return {
+        "record_count": len(records),
+        "searched_count": searched_count,
+        "matched_count": matched_count,
+        "output_path": destination_path,
+    }

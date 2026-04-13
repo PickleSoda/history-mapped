@@ -167,3 +167,38 @@ def test_borders_compatibility_mode_runs_staged_workflow_and_writes_output(tmp_p
     assert stage_calls[2][1]["no_enrich"] is True
     assert stage_calls[2][1]["resume"] is True
     assert stage_calls[2][1]["force"] is True
+
+
+def test_borders_enrich_output_names_cli_wires_paths_and_batch_size(tmp_path: Path, monkeypatch) -> None:
+    runner = CliRunner()
+    input_path = tmp_path / "ohm_borders.jsonl"
+    output_path = tmp_path / "ohm_borders_enriched.jsonl"
+    input_path.write_text('{"name":"Testland"}\n', encoding="utf-8")
+
+    captured: dict[str, object] = {}
+
+    def fake_enrich_output_jsonl_missing_qids(**kwargs):
+        captured.update(kwargs)
+        output_path.write_text('{"name":"Testland","wikidata_id":"Q1"}\n', encoding="utf-8")
+        return {"record_count": 1, "searched_count": 1, "matched_count": 1, "output_path": output_path}
+
+    monkeypatch.setattr(main_module, "enrich_output_jsonl_missing_qids", fake_enrich_output_jsonl_missing_qids)
+
+    result = runner.invoke(
+        cli,
+        [
+            "borders",
+            "enrich-output-names",
+            "--input",
+            str(input_path),
+            "--output",
+            str(output_path),
+            "--enrich-batch-size",
+            "25",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert captured["input_path"] == input_path
+    assert captured["output_path"] == output_path
+    assert captured["batch_size"] == 25
