@@ -234,8 +234,19 @@ def _is_ring_contained_in_ring(inner_coords: list[list[float]], outer_coords: li
     This is a simple heuristic that handles the case where one simplified
     outline is a subset of a detailed outline.
     """
+    inner_bbox = _ring_bbox(inner_coords)
+    outer_bbox = _ring_bbox(outer_coords)
+    
+    # Quick rejection: if inner bbox is not contained in outer bbox, skip expensive check
+    inner_min_x, inner_min_y, inner_max_x, inner_max_y = inner_bbox
+    outer_min_x, outer_min_y, outer_max_x, outer_max_y = outer_bbox
+    
+    if not (outer_min_x <= inner_min_x and inner_max_x <= outer_max_x and
+            outer_min_y <= inner_min_y and inner_max_y <= outer_max_y):
+        return False
+    
+    # Now do the expensive point-in-ring check only if bboxes suggest containment
     inner_centroid = _ring_centroid(inner_coords)
-    # If inner centroid is inside outer ring, they likely represent the same area
     return _point_in_ring(inner_centroid, outer_coords)
 
 
@@ -260,8 +271,9 @@ def _filter_duplicate_rings(rings: list[list[list[float]]]) -> list[list[list[fl
                 filtered[index] = _prefer_ring(existing_ring, ring)
                 break
             elif _is_ring_contained_in_ring(existing_ring, ring):
-                # existing_ring is inside ring, skip adding ring (keep existing)
+                # existing_ring is inside ring, replace with more detailed
                 duplicate_index = index
+                filtered[index] = _prefer_ring(existing_ring, ring)
                 break
 
         if duplicate_index is None:
