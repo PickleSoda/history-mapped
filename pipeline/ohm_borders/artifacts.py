@@ -14,6 +14,10 @@ def raw_dir(artifact_dir: str | Path) -> Path:
     return Path(artifact_dir) / "raw"
 
 
+def done_dir(artifact_dir: str | Path) -> Path:
+    return Path(artifact_dir) / ".done"
+
+
 def parsed_dir(artifact_dir: str | Path) -> Path:
     return Path(artifact_dir) / "parsed"
 
@@ -32,6 +36,16 @@ def final_dir(artifact_dir: str | Path) -> Path:
 
 def raw_overpass_path(artifact_dir: str | Path) -> Path:
     return raw_dir(artifact_dir) / "overpass.json"
+
+
+def raw_shard_path(artifact_dir: str | Path, shard_index: int) -> Path:
+    return raw_dir(artifact_dir) / f"raw-{shard_index:05d}.jsonl"
+
+
+def stage_done_marker_path(artifact_dir: str | Path, stage_name: str) -> Path:
+    if not stage_name.strip():
+        raise ValueError("stage_name must not be empty")
+    return done_dir(artifact_dir) / f"{stage_name}.done"
 
 
 def parsed_shard_path(artifact_dir: str | Path, shard_index: int) -> Path:
@@ -53,6 +67,7 @@ def final_jsonl_path(artifact_dir: str | Path) -> Path:
 def ensure_artifact_dirs(artifact_dir: str | Path) -> None:
     for directory in (
         raw_dir(artifact_dir),
+        done_dir(artifact_dir),
         parsed_dir(artifact_dir),
         enriched_dir(artifact_dir),
         built_dir(artifact_dir),

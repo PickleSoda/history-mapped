@@ -8,6 +8,8 @@ from pipeline.ohm_borders.artifacts import (
     enriched_shard_path,
     final_jsonl_path,
     parsed_shard_path,
+    raw_shard_path,
+    stage_done_marker_path,
     raw_overpass_path,
 )
 from pipeline.ohm_borders.manifest import create_manifest, save_manifest, update_manifest
@@ -25,9 +27,17 @@ def test_artifact_paths_are_deterministic_from_run_id(tmp_path: Path) -> None:
 def test_shard_paths_are_deterministic() -> None:
     artifact_dir = Path("output/ohm_borders/20260411-120000")
 
+    assert raw_shard_path(artifact_dir, 4) == artifact_dir / "raw" / "raw-00004.jsonl"
     assert parsed_shard_path(artifact_dir, 1) == artifact_dir / "parsed" / "parsed-00001.jsonl"
     assert enriched_shard_path(artifact_dir, 7) == artifact_dir / "enriched" / "enriched-qids-00007.json"
     assert built_shard_path(artifact_dir, 12) == artifact_dir / "built" / "built-00012.jsonl"
+
+
+def test_stage_done_marker_paths_are_deterministic() -> None:
+    artifact_dir = Path("output/ohm_borders/20260411-120000")
+
+    assert stage_done_marker_path(artifact_dir, "fetch") == artifact_dir / ".done" / "fetch.done"
+    assert stage_done_marker_path(artifact_dir, "parse") == artifact_dir / ".done" / "parse.done"
 
 
 def test_create_manifest_matches_documented_top_level_shape(tmp_path: Path) -> None:

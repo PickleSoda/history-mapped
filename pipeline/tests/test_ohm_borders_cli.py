@@ -52,8 +52,12 @@ def test_borders_run_executes_full_staged_workflow_and_propagates_options(tmp_pa
             str(artifact_dir),
             "--parsed-shard-size",
             "23",
+            "--raw-shard-size",
+            "77",
             "--parse-workers",
             "4",
+            "--build-workers",
+            "6",
             "--enrich-batch-size",
             "11",
             "--enrich-workers",
@@ -75,6 +79,7 @@ def test_borders_run_executes_full_staged_workflow_and_propagates_options(tmp_pa
         "run_id": "run-001",
         "artifact_dir": artifact_dir,
         "query": "[out:json];relation(1);out geom;",
+        "raw_shard_size": 77,
         "resume": True,
         "force": True,
     }
@@ -100,6 +105,7 @@ def test_borders_run_executes_full_staged_workflow_and_propagates_options(tmp_pa
         "resume": True,
         "force": True,
         "no_enrich": False,
+        "build_workers": 6,
     }
 
 
@@ -146,8 +152,12 @@ def test_borders_compatibility_mode_runs_staged_workflow_and_writes_output(tmp_p
             str(artifact_dir),
             "--parsed-shard-size",
             "17",
+            "--raw-shard-size",
+            "31",
             "--parse-workers",
             "3",
+            "--build-workers",
+            "8",
             "--enrich-batch-size",
             "9",
             "--enrich-workers",
@@ -162,9 +172,11 @@ def test_borders_compatibility_mode_runs_staged_workflow_and_writes_output(tmp_p
     assert [stage_name for stage_name, _ in stage_calls] == ["fetch", "parse", "build"]
     assert output_path.read_text(encoding="utf-8") == '{"name":"Compatland"}\n'
     assert stage_calls[0][1]["run_id"] == "compat-run"
+    assert stage_calls[0][1]["raw_shard_size"] == 31
     assert stage_calls[1][1]["parsed_shard_size"] == 17
     assert stage_calls[1][1]["parse_workers"] == 3
     assert stage_calls[2][1]["no_enrich"] is True
+    assert stage_calls[2][1]["build_workers"] == 8
     assert stage_calls[2][1]["resume"] is True
     assert stage_calls[2][1]["force"] is True
 
