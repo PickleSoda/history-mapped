@@ -47,6 +47,144 @@ def _build_relation_index(elements: list[dict[str, Any]]) -> dict[int, dict[str,
     }
 
 
+def parse_relation_subset(
+    elements: list[dict[str, Any]],
+    parser: Any = None,
+    relation_index: dict[int, dict[str, Any]] | None = None,
+    chronology_member_ids: set[int] | None = None,
+) -> list[dict[str, Any]]:
+    """Parse a relation-only subset safely while preserving parser compatibility.
+
+    This helper is intentionally thin: it sanitizes relation inputs for one shard
+    and then delegates to the provided parser (defaulting to parse_elements).
+    """
+    relation_elements: list[dict[str, Any]] = []
+
+    for element in elements:
+        if not isinstance(element, dict):
+            continue
+        if element.get("type") != "relation" or "id" not in element:
+            continue
+
+        try:
+            relation_id = int(element["id"])
+        except (TypeError, ValueError):
+            continue
+
+        relation_elements.append({**element, "id": relation_id})
+
+    relation_elements.sort(key=lambda relation: relation["id"])
+
+    parse_fn = parser or parse_elements
+
+    if parse_fn is parse_elements and relation_index is not None:
+        return _parse_relation_subset_with_index(
+            relation_elements=relation_elements,
+            relation_index=relation_index,
+            chronology_member_ids=chronology_member_ids,
+        )
+
+    return parse_fn(relation_elements)
+
+
+def _collect_chronology_members(relation_index: dict[int, dict[str, Any]]) -> set[int]:
+    members: set[int] = set()
+
+    for relation in relation_index.values():
+        tags = relation.get("tags", {})
+        if tags.get("type") != "chronology":
+            continue
+
+        for member in relation.get("members", []):
+            if member.get("type") != "relation" or "ref" not in member:
+                continue
+
+            try:
+                members.add(int(member["ref"]))
+            except (TypeError, ValueError):
+                continue
+
+    return members
+
+
+def _parse_relation_subset_with_index(
+    *,
+    relation_elements: list[dict[str, Any]],
+    relation_index: dict[int, dict[str, Any]],
+    chronology_member_ids: set[int] | None,
+) -> list[dict[str, Any]]:
+    chronology_ids = {
+        relation_id
+        for relation_id, relation in relation_index.items()
+        if relation.get("tags", {}).get("type") == "chronology"
+    }
+    global_chronology_member_ids = chronology_member_ids or _collect_chronology_members(relation_index)
+
+    polities: list[dict[str, Any]] = []
+
+    for relation in relation_elements:
+        relation_id = int(relation["id"])
+        if relation_id not in chronology_ids:
+            continue
+
+        stages: list[dict[str, Any]] = []
+
+        for member in relation.get("members", []):
+            if member.get("type") != "relation" or "ref" not in member:
+                continue
+
+            try:
+                member_relation_id = int(member["ref"])
+            except (TypeError, ValueError):
+                continue
+
+            stage_relation = relation_index.get(member_relation_id)
+            if stage_relation is None:
+                continue
+
+            stages.append(
+                {
+                    "relation_id": member_relation_id,
+                    "tags": stage_relation.get("tags", {}),
+                    "geometry": assemble_geometry(stage_relation.get("members", [])),
+                }
+            )
+
+        polities.append(
+            {
+                "relation_id": relation_id,
+                "tags": relation.get("tags", {}),
+                "stages": stages,
+            }
+        )
+
+    for relation in relation_elements:
+        relation_id = int(relation["id"])
+        if relation_id in chronology_ids or relation_id in global_chronology_member_ids:
+            continue
+
+        tags = relation.get("tags", {})
+        if tags.get("boundary") != "administrative" or tags.get("admin_level") != "2":
+            continue
+
+        geometry = assemble_geometry(relation.get("members", []))
+        polities.append(
+            {
+                "relation_id": relation_id,
+                "tags": tags,
+                "stages": [
+                    {
+                        "relation_id": relation_id,
+                        "tags": tags,
+                        "geometry": geometry,
+                    }
+                ],
+            }
+        )
+
+    return polities
+
+
 def parse_elements(elements: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Split OHM relations into polity records with stage geometry entries."""
     relation_by_id = _build_relation_index(elements)

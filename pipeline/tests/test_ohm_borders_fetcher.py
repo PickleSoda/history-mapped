@@ -1,4 +1,4 @@
-from pipeline.ohm_borders.fetcher import parse_elements, assemble_geometry
+from pipeline.ohm_borders.fetcher import assemble_geometry, parse_elements, parse_relation_subset
 
 BOUNDARY_FIXTURE = {
     "elements": [
@@ -118,6 +118,61 @@ def test_parse_elements_chronology() -> None:
     assert polity["relation_id"] == 200
     assert polity["tags"]["wikidata"] == "Q1000"
     assert len(polity["stages"]) == 2
+
+
+def test_parse_relation_subset_filters_and_sorts_relations_before_parsing() -> None:
+    seen_ids: list[int] = []
+
+    def fake_parser(elements: list[dict]) -> list[dict]:
+        nonlocal seen_ids
+        seen_ids = [int(element["id"]) for element in elements]
+        return [{"relation_id": relation_id, "tags": {}, "stages": []} for relation_id in seen_ids]
+
+    result = parse_relation_subset(
+        [
+            {"type": "relation", "id": "3", "tags": {"name": "Three"}},
+            {"type": "way", "id": 100},
+            {"type": "relation", "id": 1, "tags": {"name": "One"}},
+            {"type": "relation", "id": "bad", "tags": {"name": "Bad"}},
+            {"type": "relation", "id": 2, "tags": {"name": "Two"}},
+        ],
+        parser=fake_parser,
+    )
+
+    assert seen_ids == [1, 2, 3]
+    assert [record["relation_id"] for record in result] == [1, 2, 3]
+
+
+def test_parse_relation_subset_with_global_index_handles_cross_shard_chronology_members() -> None:
+    relation_index = {
+        200: {
+            "type": "relation",
+            "id": 200,
+            "tags": {"type": "chronology", "boundary": "administrative", "name": "Evolving State"},
+            "members": [{"type": "relation", "ref": 201, "role": ""}],
+        },
+        201: {
+            "type": "relation",
+            "id": 201,
+            "tags": {"boundary": "administrative", "admin_level": "2", "start_date": "1800", "end_date": "1850"},
+            "members": [],
+        },
+    }
+
+    chronology_records = parse_relation_subset(
+        [relation_index[200]],
+        relation_index=relation_index,
+        chronology_member_ids={201},
+    )
+    member_records = parse_relation_subset(
+        [relation_index[201]],
+        relation_index=relation_index,
+        chronology_member_ids={201},
+    )
+
+    assert [record["relation_id"] for record in chronology_records] == [200]
+    assert [stage["relation_id"] for stage in chronology_records[0]["stages"]] == [201]
+    assert member_records == []
 
 
 def test_assemble_geometry_closed_outer() -> None:

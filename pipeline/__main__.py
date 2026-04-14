@@ -317,8 +317,10 @@ def _run_borders_pipeline(
     artifact_dir,
     query_file,
     output,
+    raw_shard_size,
     parsed_shard_size,
     parse_workers,
+    build_workers,
     enrich_batch_size,
     enrich_workers,
     resume,
@@ -329,6 +331,7 @@ def _run_borders_pipeline(
         run_id=run_id,
         artifact_dir=artifact_dir,
         query=load_query_text(query_file),
+        raw_shard_size=raw_shard_size or 200,
         resume=resume,
         force=force,
     )
@@ -362,6 +365,7 @@ def _run_borders_pipeline(
         resume=resume,
         force=force,
         no_enrich=no_enrich,
+        build_workers=build_workers,
     )
 
     final_output_path = build_result["final_path"]
@@ -379,15 +383,17 @@ def _run_borders_pipeline(
 @click.option("--run-id", default=None, help="Deterministic run id for the artifact directory")
 @click.option("--artifact-dir", type=click.Path(path_type=Path, file_okay=False), default=None, help="Explicit artifact directory override")
 @click.option("--query-file", type=click.Path(path_type=Path, exists=True, dir_okay=False), default=None, help="Override Overpass query file")
+@click.option("--raw-shard-size", type=int, default=None, help="Relations per raw fetch shard")
 @click.option("--parsed-shard-size", type=int, default=None, help="Polities per parsed shard")
 @click.option("--parse-workers", type=int, default=None, help="Reserved worker count for parallel parse stages")
+@click.option("--build-workers", type=int, default=None, help="Reserved worker count for parallel build stage")
 @click.option("--enrich-batch-size", type=int, default=None, help="Unique Wikidata QIDs per enrichment shard")
 @click.option("--enrich-workers", type=int, default=None, help="Bounded worker count for enrichment batches")
 @click.option("--resume", is_flag=True, help="Skip writing existing stage artifacts when possible")
 @click.option("--force", is_flag=True, help="Overwrite existing stage artifacts")
 @click.option("--no-enrich", is_flag=True, help="Run fetch/parse/build without the enrich stage")
 @click.pass_context
-def borders(ctx, output, run_id, artifact_dir, query_file, parsed_shard_size, parse_workers, enrich_batch_size, enrich_workers, resume, force, no_enrich):
+def borders(ctx, output, run_id, artifact_dir, query_file, raw_shard_size, parsed_shard_size, parse_workers, build_workers, enrich_batch_size, enrich_workers, resume, force, no_enrich):
     """Fetch and parse OHM borders artifacts."""
     if ctx.invoked_subcommand is None and output is not None:
         _run_borders_pipeline(
@@ -395,8 +401,10 @@ def borders(ctx, output, run_id, artifact_dir, query_file, parsed_shard_size, pa
             artifact_dir=artifact_dir,
             query_file=query_file,
             output=output,
+            raw_shard_size=raw_shard_size,
             parsed_shard_size=parsed_shard_size,
             parse_workers=parse_workers,
+            build_workers=build_workers,
             enrich_batch_size=enrich_batch_size,
             enrich_workers=enrich_workers,
             resume=resume,
@@ -413,14 +421,16 @@ def borders(ctx, output, run_id, artifact_dir, query_file, parsed_shard_size, pa
 @click.option("--run-id", default=None, help="Deterministic run id for the artifact directory")
 @click.option("--artifact-dir", type=click.Path(path_type=Path, file_okay=False), default=None, help="Explicit artifact directory override")
 @click.option("--query-file", type=click.Path(path_type=Path, exists=True, dir_okay=False), default=None, help="Override Overpass query file")
+@click.option("--raw-shard-size", type=int, default=None, help="Relations per raw fetch shard")
 @click.option("--resume", is_flag=True, help="Skip fetch when raw/overpass.json already exists")
 @click.option("--force", is_flag=True, help="Overwrite existing raw/overpass.json even when resuming")
-def borders_fetch(run_id, artifact_dir, query_file, resume, force):
+def borders_fetch(run_id, artifact_dir, query_file, raw_shard_size, resume, force):
     """Fetch raw OHM border data into staged artifacts."""
     result = run_fetch_stage(
         run_id=run_id,
         artifact_dir=artifact_dir,
         query=load_query_text(query_file),
+        raw_shard_size=raw_shard_size or 200,
         resume=resume,
         force=force,
     )
@@ -477,7 +487,8 @@ def borders_enrich(run_id, artifact_dir, enrich_batch_size, enrich_workers, resu
 @click.option("--resume", is_flag=True, help="Skip writing build outputs that already exist")
 @click.option("--force", is_flag=True, help="Overwrite existing build outputs")
 @click.option("--no-enrich", is_flag=True, help="Build without loading enrichment shards")
-def borders_build(run_id, artifact_dir, resume, force, no_enrich):
+@click.option("--build-workers", type=int, default=None, help="Reserved worker count for parallel build stage")
+def borders_build(run_id, artifact_dir, resume, force, no_enrich, build_workers):
     """Build importer-facing JSONL shards and the final merged OHM borders file."""
     result = run_build_stage(
         run_id=run_id,
@@ -485,6 +496,7 @@ def borders_build(run_id, artifact_dir, resume, force, no_enrich):
         resume=resume,
         force=force,
         no_enrich=no_enrich,
+        build_workers=build_workers,
     )
 
     console.print(f"Build {result['status']}: {result['record_count']} records -> {result['final_path']}")
@@ -495,22 +507,26 @@ def borders_build(run_id, artifact_dir, resume, force, no_enrich):
 @click.option("--artifact-dir", type=click.Path(path_type=Path, file_okay=False), default=None, help="Explicit artifact directory override")
 @click.option("--query-file", type=click.Path(path_type=Path, exists=True, dir_okay=False), default=None, help="Override Overpass query file")
 @click.option("--output", type=click.Path(path_type=Path, dir_okay=False), default=None, help="Optional path for a copied final merged JSONL")
+@click.option("--raw-shard-size", type=int, default=None, help="Relations per raw fetch shard")
 @click.option("--parsed-shard-size", type=int, default=None, help="Polities per parsed shard")
 @click.option("--parse-workers", type=int, default=None, help="Reserved worker count for parallel parse stages")
+@click.option("--build-workers", type=int, default=None, help="Reserved worker count for parallel build stage")
 @click.option("--enrich-batch-size", type=int, default=None, help="Unique Wikidata QIDs per enrichment shard")
 @click.option("--enrich-workers", type=int, default=None, help="Bounded worker count for enrichment batches")
 @click.option("--resume", is_flag=True, help="Skip writing existing stage artifacts when possible")
 @click.option("--force", is_flag=True, help="Overwrite existing stage artifacts")
 @click.option("--no-enrich", is_flag=True, help="Run fetch/parse/build without the enrich stage")
-def borders_run(run_id, artifact_dir, query_file, output, parsed_shard_size, parse_workers, enrich_batch_size, enrich_workers, resume, force, no_enrich):
+def borders_run(run_id, artifact_dir, query_file, output, raw_shard_size, parsed_shard_size, parse_workers, build_workers, enrich_batch_size, enrich_workers, resume, force, no_enrich):
     """Run the full staged OHM borders workflow."""
     _run_borders_pipeline(
         run_id=run_id,
         artifact_dir=artifact_dir,
         query_file=query_file,
         output=output,
+        raw_shard_size=raw_shard_size,
         parsed_shard_size=parsed_shard_size,
         parse_workers=parse_workers,
+        build_workers=build_workers,
         enrich_batch_size=enrich_batch_size,
         enrich_workers=enrich_workers,
         resume=resume,

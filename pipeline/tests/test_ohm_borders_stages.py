@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+import time
 
 from click.testing import CliRunner
 import orjson
@@ -11,6 +12,8 @@ from pipeline.ohm_borders.artifacts import (
     enriched_shard_path,
     final_jsonl_path,
     parsed_shard_path,
+    raw_shard_path,
+    stage_done_marker_path,
     raw_overpass_path,
 )
 from pipeline.ohm_borders.stages import (
@@ -37,28 +40,59 @@ def test_fetch_stage_writes_raw_overpass_and_manifest_summary(tmp_path: Path) ->
 
     def fake_fetch_raw(query: str) -> dict:
         assert query == "[out:json];relation(1);out geom;"
-        return {"elements": [{"id": 1}, {"id": 2}]}
+        return {
+            "elements": [
+                {"type": "relation", "id": 2, "tags": {"name": "Second"}},
+                {"type": "relation", "id": 1, "tags": {"name": "First"}},
+                {"type": "way", "id": 999},
+            ]
+        }
 
     result = run_fetch_stage(
         run_id="run-001",
         artifact_dir=artifact_dir,
         query="[out:json];relation(1);out geom;",
+        raw_shard_size=1,
         fetcher=fake_fetch_raw,
     )
 
     raw_path = raw_overpass_path(artifact_dir)
+    shard_one = raw_shard_path(artifact_dir, 1)
+    shard_two = raw_shard_path(artifact_dir, 2)
+    done_marker = stage_done_marker_path(artifact_dir, "fetch")
     manifest_path = artifact_dir / "manifest.json"
 
     assert result["status"] == "completed"
-    assert json.loads(raw_path.read_text(encoding="utf-8")) == {"elements": [{"id": 1}, {"id": 2}]}
+    assert json.loads(raw_path.read_text(encoding="utf-8")) == {
+        "elements": [
+            {"type": "relation", "id": 2, "tags": {"name": "Second"}},
+            {"type": "relation", "id": 1, "tags": {"name": "First"}},
+            {"type": "way", "id": 999},
+        ]
+    }
+    assert [json.loads(line) for line in shard_one.read_text(encoding="utf-8").splitlines()] == [
+        {"type": "relation", "id": 1, "tags": {"name": "First"}}
+    ]
+    assert [json.loads(line) for line in shard_two.read_text(encoding="utf-8").splitlines()] == [
+        {"type": "relation", "id": 2, "tags": {"name": "Second"}}
+    ]
+    assert done_marker.exists()
 
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     assert manifest["stages"]["fetch"]["status"] == "completed"
-    assert manifest["stages"]["fetch"]["outputs"] == ["raw/overpass.json"]
-    assert manifest["summary"]["raw_elements"] == 2
+    assert manifest["stages"]["fetch"]["outputs"] == [
+        "raw/overpass.json",
+        "raw/raw-00001.jsonl",
+        "raw/raw-00002.jsonl",
+        ".done/fetch.done",
+    ]
+    assert manifest["summary"]["raw_elements"] == 3
+    assert manifest["summary"]["raw_relation_elements"] == 2
+    assert manifest["summary"]["raw_shards"] == 2
+    assert manifest["summary"]["raw_shard_size"] == 1
 
 
-def test_parse_stage_writes_parsed_shards_and_manifest_summary(tmp_path: Path) -> None:
+def test_parse_stage_falls_back_to_overpass_when_raw_shards_absent(tmp_path: Path) -> None:
     artifact_dir = tmp_path / "artifacts"
     raw_path = raw_overpass_path(artifact_dir)
     raw_path.parent.mkdir(parents=True, exist_ok=True)
@@ -89,9 +123,158 @@ def test_parse_stage_writes_parsed_shards_and_manifest_summary(tmp_path: Path) -
     assert len(shard_two.read_text(encoding="utf-8").splitlines()) == 1
     assert manifest["stages"]["parse"]["status"] == "completed"
     assert manifest["stages"]["parse"]["outputs"] == ["parsed/parsed-00001.jsonl", "parsed/parsed-00002.jsonl"]
+    assert manifest["summary"]["parsed_source"] == "overpass"
     assert manifest["summary"]["parsed_polities"] == 3
     assert manifest["summary"]["parsed_shards"] == 2
     assert manifest["summary"]["parse_workers"] == 3
+
+
+def test_parse_stage_prefers_raw_shards_and_writes_deterministic_outputs(tmp_path: Path) -> None:
+    artifact_dir = tmp_path / "artifacts"
+
+    raw_overpass_path(artifact_dir).parent.mkdir(parents=True, exist_ok=True)
+    raw_overpass_path(artifact_dir).write_text(
+        json.dumps({"elements": [{"id": 999}]}, separators=(",", ":")),
+        encoding="utf-8",
+    )
+
+    _write_jsonl(
+        raw_shard_path(artifact_dir, 1),
+        [
+            {"type": "relation", "id": 2, "tags": {"name": "Two"}, "members": []},
+            {"type": "relation", "id": 1, "tags": {"name": "One"}, "members": []},
+        ],
+    )
+    _write_jsonl(
+        raw_shard_path(artifact_dir, 2),
+        [
+            {"type": "relation", "id": 4, "tags": {"name": "Four"}, "members": []},
+            {"type": "relation", "id": 3, "tags": {"name": "Three"}, "members": []},
+        ],
+    )
+
+    parse_calls: list[list[int]] = []
+
+    def fake_parse_elements(elements: list[dict]) -> list[dict]:
+        relation_ids = [int(element["id"]) for element in elements]
+        parse_calls.append(relation_ids)
+
+        # Return intentionally reversed records so the stage must stabilize order.
+        return [
+            {"relation_id": relation_id, "tags": {"name": str(relation_id)}, "stages": []}
+            for relation_id in sorted(relation_ids, reverse=True)
+        ]
+
+    first = run_parse_stage(
+        run_id="run-001",
+        artifact_dir=artifact_dir,
+        parsed_shard_size=2,
+        parse_workers=2,
+        parser=fake_parse_elements,
+    )
+
+    first_contents = [
+        _read_jsonl(parsed_shard_path(artifact_dir, 1)),
+        _read_jsonl(parsed_shard_path(artifact_dir, 2)),
+    ]
+
+    second = run_parse_stage(
+        run_id="run-001",
+        artifact_dir=artifact_dir,
+        parsed_shard_size=2,
+        parse_workers=2,
+        force=True,
+        parser=fake_parse_elements,
+    )
+
+    second_contents = [
+        _read_jsonl(parsed_shard_path(artifact_dir, 1)),
+        _read_jsonl(parsed_shard_path(artifact_dir, 2)),
+    ]
+    manifest = json.loads((artifact_dir / "manifest.json").read_text(encoding="utf-8"))
+
+    assert first["status"] == "completed"
+    assert second["status"] == "completed"
+    assert len(parse_calls) == 4
+    assert sorted(parse_calls) == [[1, 2], [1, 2], [3, 4], [3, 4]]
+    assert first_contents == second_contents
+    assert [record["relation_id"] for record in first_contents[0]] == [1, 2]
+    assert [record["relation_id"] for record in first_contents[1]] == [3, 4]
+    assert manifest["summary"]["parsed_source"] == "raw_shards"
+    assert manifest["summary"]["parsed_input_shards"] == 2
+    assert manifest["summary"]["parsed_input_relations"] == 4
+    assert manifest["summary"]["parse_input_shards_total"] == 2
+    assert manifest["summary"]["parse_input_shards_completed"] == 2
+    assert manifest["summary"]["parse_input_shards_active"] == 0
+
+
+def test_parse_stage_resolves_chronology_members_across_raw_shards(tmp_path: Path) -> None:
+    artifact_dir = tmp_path / "artifacts"
+
+    _write_jsonl(
+        raw_shard_path(artifact_dir, 1),
+        [
+            {
+                "type": "relation",
+                "id": 200,
+                "tags": {
+                    "type": "chronology",
+                    "boundary": "administrative",
+                    "name": "Evolving State",
+                    "wikidata": "Q1000",
+                },
+                "members": [{"type": "relation", "ref": 201, "role": ""}],
+            }
+        ],
+    )
+    _write_jsonl(
+        raw_shard_path(artifact_dir, 2),
+        [
+            {
+                "type": "relation",
+                "id": 201,
+                "tags": {
+                    "boundary": "administrative",
+                    "admin_level": "2",
+                    "start_date": "1800",
+                    "end_date": "1850",
+                },
+                "members": [
+                    {
+                        "type": "way",
+                        "ref": 10,
+                        "role": "outer",
+                        "geometry": [
+                            {"lat": 0.0, "lon": 0.0},
+                            {"lat": 2.0, "lon": 0.0},
+                            {"lat": 2.0, "lon": 2.0},
+                            {"lat": 0.0, "lon": 0.0},
+                        ],
+                    }
+                ],
+            },
+            {
+                "type": "relation",
+                "id": 300,
+                "tags": {"boundary": "administrative", "admin_level": "2", "name": "Standalone"},
+                "members": [],
+            },
+        ],
+    )
+
+    result = run_parse_stage(
+        run_id="run-001",
+        artifact_dir=artifact_dir,
+        parsed_shard_size=10,
+        parse_workers=2,
+    )
+
+    parsed_records = _read_jsonl(parsed_shard_path(artifact_dir, 1))
+    chronology = next(record for record in parsed_records if record["relation_id"] == 200)
+
+    assert result["status"] == "completed"
+    assert [record["relation_id"] for record in parsed_records] == [200, 300]
+    assert [stage["relation_id"] for stage in chronology["stages"]] == [201]
 
 
 def test_fetch_stage_resume_skips_existing_raw_unless_forced(tmp_path: Path) -> None:
@@ -104,12 +287,13 @@ def test_fetch_stage_resume_skips_existing_raw_unless_forced(tmp_path: Path) -> 
 
     def fake_fetch_raw(query: str) -> dict:
         calls.append(query)
-        return {"elements": [{"id": "fresh"}]}
+        return {"elements": [{"type": "relation", "id": 321}]}
 
     skipped = run_fetch_stage(
         run_id="run-001",
         artifact_dir=artifact_dir,
         query="query-1",
+        raw_shard_size=1,
         resume=True,
         fetcher=fake_fetch_raw,
     )
@@ -117,6 +301,7 @@ def test_fetch_stage_resume_skips_existing_raw_unless_forced(tmp_path: Path) -> 
         run_id="run-001",
         artifact_dir=artifact_dir,
         query="query-2",
+        raw_shard_size=1,
         resume=True,
         force=True,
         fetcher=fake_fetch_raw,
@@ -125,7 +310,8 @@ def test_fetch_stage_resume_skips_existing_raw_unless_forced(tmp_path: Path) -> 
     assert skipped["status"] == "skipped"
     assert forced["status"] == "completed"
     assert calls == ["query-2"]
-    assert json.loads(raw_path.read_text(encoding="utf-8")) == {"elements": [{"id": "fresh"}]}
+    assert json.loads(raw_path.read_text(encoding="utf-8")) == {"elements": [{"type": "relation", "id": 321}]}
+    assert raw_shard_path(artifact_dir, 1).exists()
 
 
 def test_parse_stage_resume_skips_existing_completed_shards_unless_forced(tmp_path: Path) -> None:
@@ -171,6 +357,65 @@ def test_parse_stage_resume_skips_existing_completed_shards_unless_forced(tmp_pa
     assert forced["status"] == "completed"
 
 
+def test_parse_stage_resume_force_applies_per_output_shard_for_raw_source(tmp_path: Path) -> None:
+    artifact_dir = tmp_path / "artifacts"
+    _write_jsonl(
+        raw_shard_path(artifact_dir, 1),
+        [
+            {"type": "relation", "id": 1, "tags": {"name": "One"}, "members": []},
+            {"type": "relation", "id": 2, "tags": {"name": "Two"}, "members": []},
+            {"type": "relation", "id": 3, "tags": {"name": "Three"}, "members": []},
+        ],
+    )
+
+    existing_first = parsed_shard_path(artifact_dir, 1)
+    existing_first.parent.mkdir(parents=True, exist_ok=True)
+    existing_first.write_text("existing-first\n", encoding="utf-8")
+
+    def fake_parse_elements(elements: list[dict]) -> list[dict]:
+        return [
+            {"relation_id": int(element["id"]), "tags": element.get("tags", {}), "stages": []}
+            for element in elements
+        ]
+
+    resumed = run_parse_stage(
+        run_id="run-001",
+        artifact_dir=artifact_dir,
+        parsed_shard_size=2,
+        parse_workers=2,
+        resume=True,
+        parser=fake_parse_elements,
+    )
+
+    assert resumed["status"] == "completed"
+    assert existing_first.read_text(encoding="utf-8") == "existing-first\n"
+    assert _read_jsonl(parsed_shard_path(artifact_dir, 2)) == [
+        {"relation_id": 3, "tags": {"name": "Three"}, "stages": []}
+    ]
+
+    forced = run_parse_stage(
+        run_id="run-001",
+        artifact_dir=artifact_dir,
+        parsed_shard_size=2,
+        parse_workers=2,
+        resume=True,
+        force=True,
+        parser=fake_parse_elements,
+    )
+    manifest = json.loads((artifact_dir / "manifest.json").read_text(encoding="utf-8"))
+
+    assert forced["status"] == "completed"
+    assert _read_jsonl(parsed_shard_path(artifact_dir, 1)) == [
+        {"relation_id": 1, "tags": {"name": "One"}, "stages": []},
+        {"relation_id": 2, "tags": {"name": "Two"}, "stages": []},
+    ]
+    assert _read_jsonl(parsed_shard_path(artifact_dir, 2)) == [
+        {"relation_id": 3, "tags": {"name": "Three"}, "stages": []}
+    ]
+    assert manifest["summary"]["parsed_shards_written"] == 2
+    assert manifest["summary"]["parsed_shards_skipped"] == 0
+
+
 def test_borders_fetch_cli_wires_run_id_artifact_dir_query_file_and_flags(tmp_path: Path, monkeypatch) -> None:
     query_file = tmp_path / "query.overpass"
     query_file.write_text("[out:json];relation(42);out geom;", encoding="utf-8")
@@ -194,6 +439,8 @@ def test_borders_fetch_cli_wires_run_id_artifact_dir_query_file_and_flags(tmp_pa
             str(tmp_path / "artifacts"),
             "--query-file",
             str(query_file),
+            "--raw-shard-size",
+            "13",
             "--resume",
             "--force",
         ],
@@ -203,6 +450,7 @@ def test_borders_fetch_cli_wires_run_id_artifact_dir_query_file_and_flags(tmp_pa
     assert observed["run_id"] == "run-123"
     assert observed["artifact_dir"] == tmp_path / "artifacts"
     assert observed["query"] == "[out:json];relation(42);out geom;"
+    assert observed["raw_shard_size"] == 13
     assert observed["resume"] is True
     assert observed["force"] is True
 
@@ -380,6 +628,60 @@ def test_build_stage_loads_enrichment_index_and_writes_deterministic_outputs(tmp
     assert final_records == built_one + built_two
 
 
+def test_build_stage_parallel_workers_still_produce_deterministic_order(tmp_path: Path) -> None:
+    artifact_dir = tmp_path / "artifacts"
+    _write_jsonl(
+        parsed_shard_path(artifact_dir, 1),
+        [{"relation_id": 1, "tags": {"name": "One"}, "stages": []}],
+    )
+    _write_jsonl(
+        parsed_shard_path(artifact_dir, 2),
+        [{"relation_id": 2, "tags": {"name": "Two"}, "stages": []}],
+    )
+    _write_jsonl(
+        parsed_shard_path(artifact_dir, 3),
+        [{"relation_id": 3, "tags": {"name": "Three"}, "stages": []}],
+    )
+
+    def delayed_mapper(record: dict, _: dict) -> dict:
+        # Force out-of-order worker completion; final output must remain shard-ordered.
+        delay = {1: 0.03, 2: 0.01, 3: 0.0}[int(record["relation_id"])]
+        time.sleep(delay)
+        return {
+            "name": record["tags"]["name"],
+            "_ohm_relation_id": str(record["relation_id"]),
+        }
+
+    first = run_build_stage(
+        run_id="run-001",
+        artifact_dir=artifact_dir,
+        build_workers=3,
+        no_enrich=True,
+        mapper=delayed_mapper,
+    )
+    first_records = _read_jsonl(final_jsonl_path(artifact_dir))
+
+    second = run_build_stage(
+        run_id="run-001",
+        artifact_dir=artifact_dir,
+        build_workers=3,
+        no_enrich=True,
+        force=True,
+        mapper=delayed_mapper,
+    )
+    second_records = _read_jsonl(final_jsonl_path(artifact_dir))
+    manifest = json.loads((artifact_dir / "manifest.json").read_text(encoding="utf-8"))
+
+    assert first["status"] == "completed"
+    assert second["status"] == "completed"
+    assert [record["_ohm_relation_id"] for record in first_records] == ["1", "2", "3"]
+    assert first_records == second_records
+    assert manifest["summary"]["built_shards_total"] == 3
+    assert manifest["summary"]["built_shards_completed"] == 3
+    assert manifest["summary"]["built_shards_active"] == 0
+    assert manifest["summary"]["build_workers_used"] == 3
+
+
 def test_build_stage_resume_only_rebuilds_missing_outputs(tmp_path: Path) -> None:
     artifact_dir = tmp_path / "artifacts"
     _write_jsonl(
@@ -407,6 +709,7 @@ def test_build_stage_resume_only_rebuilds_missing_outputs(tmp_path: Path) -> Non
     assert final_records[1]["name"] == "Beta"
     assert manifest["summary"]["built_shards_skipped"] == 1
     assert manifest["summary"]["built_shards_written"] == 1
+    assert manifest["summary"]["built_shards_total"] == 2
 
 
 def test_build_stage_no_enrich_succeeds_with_empty_index(tmp_path: Path) -> None:
@@ -525,6 +828,8 @@ def test_borders_build_cli_wires_resume_force_and_no_enrich(tmp_path: Path, monk
             "--resume",
             "--force",
             "--no-enrich",
+            "--build-workers",
+            "9",
         ],
     )
 
@@ -534,3 +839,4 @@ def test_borders_build_cli_wires_resume_force_and_no_enrich(tmp_path: Path, monk
     assert observed["resume"] is True
     assert observed["force"] is True
     assert observed["no_enrich"] is True
+    assert observed["build_workers"] == 9
