@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
-from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
+from concurrent.futures import FIRST_COMPLETED, ProcessPoolExecutor, ThreadPoolExecutor, wait
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
@@ -31,11 +32,87 @@ from pipeline.ohm_borders.mapper import map_polity_to_jsonl
 
 
 _WORKER_POLL_INTERVAL_SECONDS = 0.1
+logger = logging.getLogger(__name__)
+
+_PARSE_WORKER_SOURCE = ""
+_PARSE_WORKER_OVERPASS_ELEMENTS: list[dict[str, Any]] = []
+_PARSE_WORKER_RELATION_INDEX: dict[int, dict[str, Any]] | None = None
+_PARSE_WORKER_CHRONOLOGY_MEMBER_IDS: set[int] | None = None
+
+_BUILD_WORKER_ARTIFACT_DIR = ""
+_BUILD_WORKER_RESUME = False
+_BUILD_WORKER_FORCE = False
+_BUILD_WORKER_WIKIDATA_INDEX: dict[str, dict[str, Any]] = {}
 
 
 def default_parallelism() -> int:
     cpu_total = os.cpu_count() or 1
     return max(1, cpu_total - 1)
+
+
+def _init_parse_worker(
+    parse_source: str,
+    overpass_elements: list[dict[str, Any]],
+    relation_index: dict[int, dict[str, Any]] | None,
+    chronology_member_ids: set[int] | None,
+) -> None:
+    global _PARSE_WORKER_SOURCE
+    global _PARSE_WORKER_OVERPASS_ELEMENTS
+    global _PARSE_WORKER_RELATION_INDEX
+    global _PARSE_WORKER_CHRONOLOGY_MEMBER_IDS
+
+    _PARSE_WORKER_SOURCE = parse_source
+    _PARSE_WORKER_OVERPASS_ELEMENTS = overpass_elements
+    _PARSE_WORKER_RELATION_INDEX = relation_index
+    _PARSE_WORKER_CHRONOLOGY_MEMBER_IDS = chronology_member_ids
+
+
+def _run_parse_worker(input_index: int, input_path: str) -> tuple[int, int, list[dict[str, Any]]]:
+    if _PARSE_WORKER_SOURCE == "raw_shards":
+        shard_elements = _load_jsonl_records(Path(input_path))
+        shard_polities = parse_relation_subset(
+            shard_elements,
+            parser=parse_elements,
+            relation_index=_PARSE_WORKER_RELATION_INDEX,
+            chronology_member_ids=_PARSE_WORKER_CHRONOLOGY_MEMBER_IDS,
+        )
+        relation_count = len(shard_elements)
+    else:
+        shard_polities = parse_elements(_PARSE_WORKER_OVERPASS_ELEMENTS)
+        relation_count = len(_relation_elements(_PARSE_WORKER_OVERPASS_ELEMENTS))
+
+    return input_index, relation_count, _sort_polities(shard_polities)
+
+
+def _init_build_worker(
+    artifact_dir: str,
+    resume: bool,
+    force: bool,
+    wikidata_index: dict[str, dict[str, Any]],
+) -> None:
+    global _BUILD_WORKER_ARTIFACT_DIR
+    global _BUILD_WORKER_RESUME
+    global _BUILD_WORKER_FORCE
+    global _BUILD_WORKER_WIKIDATA_INDEX
+
+    _BUILD_WORKER_ARTIFACT_DIR = artifact_dir
+    _BUILD_WORKER_RESUME = resume
+    _BUILD_WORKER_FORCE = force
+    _BUILD_WORKER_WIKIDATA_INDEX = wikidata_index
+
+
+def _run_build_worker(shard_index: int, parsed_path: str) -> tuple[int, str, bool]:
+    artifact_dir = Path(_BUILD_WORKER_ARTIFACT_DIR)
+    built_path = built_shard_path(artifact_dir, shard_index)
+    relative_path = _relative_artifact_path(artifact_dir, built_path)
+
+    if _BUILD_WORKER_RESUME and built_path.exists() and not _BUILD_WORKER_FORCE:
+        return shard_index, relative_path, False
+
+    parsed_records = _load_jsonl_records(Path(parsed_path))
+    mapped_records = [map_polity_to_jsonl(record, _BUILD_WORKER_WIKIDATA_INDEX) for record in parsed_records]
+    _write_jsonl_atomic(built_path, mapped_records)
+    return shard_index, relative_path, True
 
 
 def resolve_run_id(run_id: str | None = None, artifact_dir: str | Path | None = None) -> str:
@@ -75,6 +152,15 @@ def run_fetch_stage(
 ) -> dict[str, Any]:
     resolved_artifact_dir = resolve_artifact_dir(run_id=run_id, artifact_dir=artifact_dir)
     ensure_artifact_dirs(resolved_artifact_dir)
+
+    logger.info(
+        "fetch stage starting run_id=%s artifact_dir=%s raw_shard_size=%s resume=%s force=%s",
+        run_id,
+        resolved_artifact_dir,
+        raw_shard_size,
+        resume,
+        force,
+    )
 
     resolved_run_id = resolve_run_id(run_id=run_id, artifact_dir=resolved_artifact_dir)
     manifest_path = _load_or_create_manifest(
@@ -118,6 +204,15 @@ def run_fetch_stage(
                 "raw_shard_size": raw_shard_size,
             },
         )
+        logger.info(
+            "fetch stage resume complete status=%s raw_elements=%s raw_relations=%s raw_shards=%s written=%s skipped=%s",
+            stage_status,
+            shard_result["element_count"],
+            shard_result["relation_count"],
+            len(shard_result["shard_paths"]),
+            shard_result["written_shards"],
+            shard_result["skipped_shards"],
+        )
         return {
             "status": stage_status,
             "artifact_dir": resolved_artifact_dir,
@@ -130,6 +225,7 @@ def run_fetch_stage(
     _write_stage_update(manifest_path, "fetch", status="running", inputs=["query"])
 
     try:
+        logger.info("fetch stage requesting overpass payload")
         raw_payload = fetcher(query)
         _write_text_atomic(raw_path, json.dumps(raw_payload, ensure_ascii=False, separators=(",", ":")))
 
@@ -160,7 +256,16 @@ def run_fetch_stage(
                 "raw_shard_size": raw_shard_size,
             },
         )
+        logger.info(
+            "fetch stage completed raw_elements=%s raw_relations=%s raw_shards=%s written=%s skipped=%s",
+            shard_result["element_count"],
+            shard_result["relation_count"],
+            len(shard_result["shard_paths"]),
+            shard_result["written_shards"],
+            shard_result["skipped_shards"],
+        )
     except Exception:
+        logger.exception("fetch stage failed")
         _write_stage_update(manifest_path, "fetch", status="failed", inputs=["query"])
         raise
 
@@ -200,6 +305,19 @@ def run_parse_stage(
     )
     parse_source, parse_input_paths = _resolve_parse_inputs(resolved_artifact_dir)
     parse_inputs = [_relative_artifact_path(resolved_artifact_dir, path) for path in parse_input_paths]
+    parse_progress_interval = max(1, len(parse_input_paths) // 20)
+
+    logger.info(
+        "parse stage starting run_id=%s artifact_dir=%s source=%s input_shards=%s parsed_shard_size=%s parse_workers=%s resume=%s force=%s",
+        run_id,
+        resolved_artifact_dir,
+        parse_source,
+        len(parse_input_paths),
+        resolved_shard_size,
+        resolved_parse_workers,
+        resume,
+        force,
+    )
 
     _write_stage_update(
         manifest_path,
@@ -235,6 +353,12 @@ def run_parse_stage(
             global_relation_index = _build_global_relation_index(parse_input_paths)
             global_chronology_member_ids = _collect_chronology_member_ids(global_relation_index)
 
+        use_process_pool = (
+            parser is parse_elements
+            and parse_source == "raw_shards"
+            and len(parse_input_paths) > 1
+        )
+
         def execute_parse_work(input_index: int, input_path: Path) -> tuple[int, int, list[dict[str, Any]]]:
             if parse_source == "raw_shards":
                 shard_elements = _load_jsonl_records(input_path)
@@ -254,10 +378,31 @@ def run_parse_stage(
         parse_futures: dict[int, Any] = {}
         max_workers = min(resolved_parse_workers, max(1, len(parse_input_paths)))
 
-        executor = ThreadPoolExecutor(max_workers=max_workers)
+        logger.info(
+            "parse stage executor=%s max_workers=%s",
+            "process" if use_process_pool else "thread",
+            max_workers,
+        )
+
+        if use_process_pool:
+            executor: ProcessPoolExecutor | ThreadPoolExecutor = ProcessPoolExecutor(
+                max_workers=max_workers,
+                initializer=_init_parse_worker,
+                initargs=(
+                    parse_source,
+                    overpass_elements,
+                    global_relation_index,
+                    global_chronology_member_ids,
+                ),
+            )
+        else:
+            executor = ThreadPoolExecutor(max_workers=max_workers)
         try:
             for input_index, input_path in enumerate(parse_input_paths, start=1):
-                parse_futures[input_index] = executor.submit(execute_parse_work, input_index, input_path)
+                if use_process_pool:
+                    parse_futures[input_index] = executor.submit(_run_parse_worker, input_index, str(input_path))
+                else:
+                    parse_futures[input_index] = executor.submit(execute_parse_work, input_index, input_path)
 
             future_to_index = {future: index for index, future in parse_futures.items()}
             pending_futures = set(future_to_index.keys())
@@ -299,6 +444,16 @@ def run_parse_stage(
                             "parse_input_shards_active": active_inputs,
                         },
                     )
+
+                    if completed_inputs % parse_progress_interval == 0 or completed_inputs == len(parse_input_paths):
+                        logger.info(
+                            "parse stage progress completed_inputs=%s/%s active_inputs=%s output_shards_written=%s output_shards_skipped=%s",
+                            completed_inputs,
+                            len(parse_input_paths),
+                            active_inputs,
+                            written_shards,
+                            skipped_shards,
+                        )
 
                     while len(pending_records) >= resolved_shard_size:
                         shard_records = pending_records[:resolved_shard_size]
@@ -360,7 +515,17 @@ def run_parse_stage(
                 "parse_input_shards_active": 0,
             },
         )
+        logger.info(
+            "parse stage completed status=%s source=%s parsed_polities=%s parsed_shards=%s written=%s skipped=%s",
+            stage_status,
+            parse_source,
+            parsed_polity_count,
+            parsed_shard_count,
+            written_shards,
+            skipped_shards,
+        )
     except Exception:
+        logger.exception("parse stage failed")
         _write_stage_update(
             manifest_path,
             "parse",
@@ -407,6 +572,17 @@ def run_enrich_stage(
     if not parsed_paths:
         raise RuntimeError(f"Parsed shard artifacts not found in: {parsed_dir(resolved_artifact_dir)}")
 
+    logger.info(
+        "enrich stage starting run_id=%s artifact_dir=%s parsed_shards=%s enrich_batch_size=%s enrich_workers=%s resume=%s force=%s",
+        run_id,
+        resolved_artifact_dir,
+        len(parsed_paths),
+        resolved_batch_size,
+        resolved_workers,
+        resume,
+        force,
+    )
+
     parsed_inputs = [_relative_artifact_path(resolved_artifact_dir, path) for path in parsed_paths]
     _write_stage_update(
         manifest_path,
@@ -452,6 +628,7 @@ def run_enrich_stage(
                     try:
                         _, _, batch_payload = future.result()
                     except Exception:
+                        logger.exception("enrich stage batch failed batch_index=%s shard=%s", batch_index, relative_path)
                         failed_shards.append(relative_path)
                         continue
 
@@ -461,6 +638,13 @@ def run_enrich_stage(
                         encoding="utf-8",
                     )
                     written_shards += 1
+                    logger.info(
+                        "enrich stage batch completed batch_index=%s/%s shard=%s qids=%s",
+                        batch_index,
+                        len(batches),
+                        relative_path,
+                        len(batches[batch_index - 1]),
+                    )
 
         stage_status = "skipped" if batches and skipped_shards == len(batches) else "completed"
         _write_stage_update(
@@ -479,7 +663,17 @@ def run_enrich_stage(
                 "enrich_workers": resolved_workers,
             },
         )
+        logger.info(
+            "enrich stage completed status=%s unique_qids=%s shards=%s written=%s skipped=%s failed=%s",
+            stage_status,
+            len(unique_qids),
+            len(batches),
+            written_shards,
+            skipped_shards,
+            len(failed_shards),
+        )
     except Exception:
+        logger.exception("enrich stage failed")
         _write_stage_update(
             manifest_path,
             "enrich",
@@ -522,6 +716,17 @@ def run_build_stage(
     if not parsed_paths:
         raise RuntimeError(f"Parsed shard artifacts not found in: {parsed_dir(resolved_artifact_dir)}")
 
+    logger.info(
+        "build stage starting run_id=%s artifact_dir=%s parsed_shards=%s no_enrich=%s build_workers=%s resume=%s force=%s",
+        run_id,
+        resolved_artifact_dir,
+        len(parsed_paths),
+        no_enrich,
+        build_workers,
+        resume,
+        force,
+    )
+
     enrichment_paths = [] if no_enrich else _sorted_paths(enriched_dir(resolved_artifact_dir), "enriched-qids-*.json")
     build_inputs = [_relative_artifact_path(resolved_artifact_dir, path) for path in parsed_paths]
     build_inputs.extend(_relative_artifact_path(resolved_artifact_dir, path) for path in enrichment_paths)
@@ -547,6 +752,14 @@ def run_build_stage(
         record_count = 0
         resolved_build_workers = max(1, build_workers or default_parallelism())
         max_build_workers = min(resolved_build_workers, max(1, len(parsed_paths)))
+        build_progress_interval = max(1, len(parsed_paths) // 20)
+        use_process_pool = mapper is map_polity_to_jsonl and len(parsed_paths) > 1
+
+        logger.info(
+            "build stage executor=%s max_workers=%s",
+            "process" if use_process_pool else "thread",
+            max_build_workers,
+        )
 
         def execute_build_work(shard_index: int, parsed_path: Path) -> tuple[int, str, bool]:
             built_path = built_shard_path(resolved_artifact_dir, shard_index)
@@ -561,10 +774,25 @@ def run_build_stage(
             return shard_index, relative_path, True
 
         build_futures: dict[int, Any] = {}
-        executor = ThreadPoolExecutor(max_workers=max_build_workers)
+        if use_process_pool:
+            executor: ProcessPoolExecutor | ThreadPoolExecutor = ProcessPoolExecutor(
+                max_workers=max_build_workers,
+                initializer=_init_build_worker,
+                initargs=(
+                    str(resolved_artifact_dir),
+                    resume,
+                    force,
+                    wikidata_index,
+                ),
+            )
+        else:
+            executor = ThreadPoolExecutor(max_workers=max_build_workers)
         try:
             for shard_index, parsed_path in enumerate(parsed_paths, start=1):
-                build_futures[shard_index] = executor.submit(execute_build_work, shard_index, parsed_path)
+                if use_process_pool:
+                    build_futures[shard_index] = executor.submit(_run_build_worker, shard_index, str(parsed_path))
+                else:
+                    build_futures[shard_index] = executor.submit(execute_build_work, shard_index, parsed_path)
 
             future_to_index = {future: index for index, future in build_futures.items()}
             pending_futures = set(future_to_index.keys())
@@ -607,6 +835,16 @@ def run_build_stage(
                             "built_shards_active": len(parsed_paths) - completed_shards,
                         },
                     )
+
+                    if completed_shards % build_progress_interval == 0 or completed_shards == len(parsed_paths):
+                        logger.info(
+                            "build stage progress completed_shards=%s/%s active_shards=%s written=%s skipped=%s",
+                            completed_shards,
+                            len(parsed_paths),
+                            len(parsed_paths) - completed_shards,
+                            built_shards_written,
+                            built_shards_skipped,
+                        )
         except Exception:
             for future in build_futures.values():
                 future.cancel()
@@ -645,7 +883,16 @@ def run_build_stage(
                 "build_no_enrich": no_enrich,
             },
         )
+        logger.info(
+            "build stage completed status=%s built_shards=%s written=%s skipped=%s final_records=%s",
+            stage_status,
+            len(parsed_paths),
+            built_shards_written,
+            built_shards_skipped,
+            record_count,
+        )
     except Exception:
+        logger.exception("build stage failed")
         _write_stage_update(
             manifest_path,
             "build",

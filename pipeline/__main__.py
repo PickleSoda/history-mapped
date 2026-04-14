@@ -1,5 +1,6 @@
 """CLI entry point: python -m pipeline.scrape ..."""
 
+import logging
 import re
 import shutil
 from pathlib import Path
@@ -28,10 +29,21 @@ from pipeline.resolver.geo_resolver import resolve_batch
 console = Console(legacy_windows=False)
 
 
+def _configure_logging() -> None:
+    root_logger = logging.getLogger()
+    if root_logger.handlers:
+        return
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    )
+
+
 @click.group()
 def cli():
     """WikiGlobe data pipeline."""
-    pass
+    _configure_logging()
 
 
 @cli.command()
