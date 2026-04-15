@@ -578,6 +578,7 @@ def run_enrich_stage(
     artifact_dir: str | Path | None = None,
     enrich_batch_size: int | None = None,
     enrich_workers: int | None = None,
+    enrich_names: bool = False,
     resume: bool = False,
     force: bool = False,
     enricher: Callable[[list[str], int], dict[str, dict[str, Any]]] = batch_enrich_qids,
@@ -701,6 +702,26 @@ def run_enrich_stage(
             skipped_shards,
             len(failed_shards),
         )
+
+        if enrich_names:
+            logger.info("enrich stage name search starting enriched_shards=%s", len(batches))
+            from pipeline.ohm_borders.enricher import enrich_output_jsonl_missing_qids
+            
+            final_path = final_jsonl_path(resolved_artifact_dir)
+            if final_path.exists():
+                name_enriched_path = final_path.with_name(f"{final_path.stem}.name-enriched.jsonl")
+                name_result = enrich_output_jsonl_missing_qids(
+                    input_path=final_path,
+                    output_path=name_enriched_path,
+                    batch_size=resolved_batch_size,
+                )
+                logger.info(
+                    "enrich stage name search completed searched=%s matched=%s output=%s",
+                    name_result["searched_count"],
+                    name_result["matched_count"],
+                    name_enriched_path,
+                )
+
     except Exception:
         logger.exception("enrich stage failed")
         _write_stage_update(
@@ -727,7 +748,6 @@ def run_build_stage(
     artifact_dir: str | Path | None = None,
     resume: bool = False,
     force: bool = False,
-    no_enrich: bool = False,
     build_workers: int | None = None,
     mapper: Callable[[dict[str, Any], dict[str, dict[str, Any]]], dict[str, Any]] = map_polity_to_jsonl,
 ) -> dict[str, Any]:
@@ -738,7 +758,7 @@ def run_build_stage(
     manifest_path = _load_or_create_manifest(
         run_id=resolved_run_id,
         artifact_dir=resolved_artifact_dir,
-        options={"no_enrich": no_enrich, "build_workers": build_workers},
+        options={"build_workers": build_workers},
     )
 
     parsed_paths = _sorted_paths(parsed_dir(resolved_artifact_dir), "parsed-*.jsonl")
@@ -746,17 +766,16 @@ def run_build_stage(
         raise RuntimeError(f"Parsed shard artifacts not found in: {parsed_dir(resolved_artifact_dir)}")
 
     logger.info(
-        "build stage starting run_id=%s artifact_dir=%s parsed_shards=%s no_enrich=%s build_workers=%s resume=%s force=%s",
+        "build stage starting run_id=%s artifact_dir=%s parsed_shards=%s build_workers=%s resume=%s force=%s",
         run_id,
         resolved_artifact_dir,
         len(parsed_paths),
-        no_enrich,
         build_workers,
         resume,
         force,
     )
 
-    enrichment_paths = [] if no_enrich else _sorted_paths(enriched_dir(resolved_artifact_dir), "enriched-qids-*.json")
+    enrichment_paths = _sorted_paths(enriched_dir(resolved_artifact_dir), "enriched-qids-*.json")
     build_inputs = [_relative_artifact_path(resolved_artifact_dir, path) for path in parsed_paths]
     build_inputs.extend(_relative_artifact_path(resolved_artifact_dir, path) for path in enrichment_paths)
 
@@ -774,7 +793,7 @@ def run_build_stage(
     )
 
     try:
-        wikidata_index = {} if no_enrich else _load_enrichment_index(enrichment_paths)
+        wikidata_index = _load_enrichment_index(enrichment_paths)
         built_outputs: list[str] = []
         built_shards_written = 0
         built_shards_skipped = 0
@@ -909,7 +928,6 @@ def run_build_stage(
                 "build_workers": resolved_build_workers,
                 "build_workers_used": max_build_workers,
                 "build_records": record_count,
-                "build_no_enrich": no_enrich,
             },
         )
         logger.info(

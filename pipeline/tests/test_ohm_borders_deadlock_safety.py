@@ -74,7 +74,6 @@ def test_build_stage_worker_failure_exits_promptly_with_inflight_workers(tmp_pat
         run_build_stage(
             run_id="run-001",
             artifact_dir=artifact_dir,
-            no_enrich=True,
             build_workers=3,
             mapper=fail_fast_mapper,
         )

@@ -110,11 +110,18 @@ output/ohm_borders/<run_id>/
 | `fetch` | `borders fetch` | Downloads the Overpass payload and splits it into raw relation shards |
 | `parse` | `borders parse` | Parses each raw shard into polity records using a `ProcessPoolExecutor` |
 | `build` | `borders build` | Maps each parsed shard through the polity mapper and merges to `final/` |
-| `enrich` | `borders enrich` | Optional — resolves missing Wikidata QIDs via SPARQL |
+| `enrich` | `borders enrich` | Resolves Wikidata QIDs via SPARQL metadata enrichment; with `--enrich-names` also searches by name for missing QIDs |
 
 `--resume` skips any artifact that already exists on disk.  
-`--force` overwrites existing artifacts for the current stage.  
-`--no-enrich` skips the enrich stage (use when Wikidata enrichment is not needed).
+`--force` overwrites existing artifacts for the current stage.
+
+**Name-based enrichment (optional):** To also back-fill missing Wikidata IDs by name search during the enrich stage:
+
+```powershell
+py -m pipeline borders enrich --run-id global-2026-04-15 --enrich-names
+```
+
+This searches Wikidata by `name` for any records still lacking a `wikidata_id`, hydrates matched QIDs through normal SPARQL enrichment, and writes a `_wikidata_match_source` field for audit purposes.
 
 #### Key CLI options
 
@@ -136,12 +143,17 @@ py -m pipeline borders fetch --run-id global-2026-04-15
 # 2. Parse — CPU-bound, runs shards in parallel across all cores (~90 min for 18 shards on 8 cores)
 py -m pipeline borders parse --run-id global-2026-04-15 --resume --parse-workers 8
 
-# 3. Build — I/O-bound, very fast
-py -m pipeline borders build --run-id global-2026-04-15 --resume --no-enrich --build-workers 8
+# 3. Entrich - Resolves Wikidata QIDs via SPARQL metadata enrichment
+py -m pipeline borders enrich --run-id global-2026-04-15 --enrich-names
+
+# 4. Build — I/O-bound, very fast
+py -m pipeline borders build --run-id global-2026-04-15 --resume --build-workers 8
 ```
 
 To resume after an interruption, pass `--resume` to any stage — already-written
 shards are skipped automatically.
+
+If Wikidata enrichment is not needed, simply skip the enrich step and proceed directly from parse to build.
 
 #### Importing into Laravel
 
@@ -165,20 +177,6 @@ Optional verification after import:
 docker compose -f docker/docker-compose.yml exec app \
   php artisan tinker --execute "echo App\Models\Entity::query()->where('created_by', 'borders:global-' . now()->format('Y-m-d'))->count() . PHP_EOL;"
 ```
-
-#### Post-run name enrichment
-
-If you want to back-fill Wikidata IDs on records that were built without them:
-
-```powershell
-py -m pipeline borders enrich-output-names `
-  --input  output/ohm_borders_global_2026-04-15.jsonl `
-  --output output/ohm_borders_global_2026-04-15.name-enriched.jsonl
-```
-
-This searches Wikidata by `name` for any record missing a `wikidata_id`, hydrates
-matched QIDs through the normal SPARQL enrichment, and writes a
-`_wikidata_match_source` field so you can audit the result.
 
 ### 4. Generate embeddings
 

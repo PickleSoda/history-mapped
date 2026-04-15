@@ -337,7 +337,6 @@ def _run_borders_pipeline(
     enrich_workers,
     resume,
     force,
-    no_enrich,
 ):
     fetch_result = run_fetch_stage(
         run_id=run_id,
@@ -360,23 +359,21 @@ def _run_borders_pipeline(
     )
     console.print(f"Parse {parse_result['status']}: {parse_result['polity_count']} polities across {parse_result['shard_count']} shards")
 
-    if not no_enrich:
-        enrich_result = run_enrich_stage(
-            run_id=run_id,
-            artifact_dir=artifact_dir,
-            enrich_batch_size=enrich_batch_size or 50,
-            enrich_workers=enrich_workers or 4,
-            resume=resume,
-            force=force,
-        )
-        console.print(f"Enrich {enrich_result['status']}: {enrich_result['qid_count']} unique QIDs across {enrich_result['shard_count']} shards")
+    enrich_result = run_enrich_stage(
+        run_id=run_id,
+        artifact_dir=artifact_dir,
+        enrich_batch_size=enrich_batch_size or 50,
+        enrich_workers=enrich_workers or 4,
+        resume=resume,
+        force=force,
+    )
+    console.print(f"Enrich {enrich_result['status']}: {enrich_result['qid_count']} unique QIDs across {enrich_result['shard_count']} shards")
 
     build_result = run_build_stage(
         run_id=run_id,
         artifact_dir=artifact_dir,
         resume=resume,
         force=force,
-        no_enrich=no_enrich,
         build_workers=build_workers,
     )
 
@@ -403,9 +400,8 @@ def _run_borders_pipeline(
 @click.option("--enrich-workers", type=int, default=None, help="Bounded worker count for enrichment batches")
 @click.option("--resume", is_flag=True, help="Skip writing existing stage artifacts when possible")
 @click.option("--force", is_flag=True, help="Overwrite existing stage artifacts")
-@click.option("--no-enrich", is_flag=True, help="Run fetch/parse/build without the enrich stage")
 @click.pass_context
-def borders(ctx, output, run_id, artifact_dir, query_file, raw_shard_size, parsed_shard_size, parse_workers, build_workers, enrich_batch_size, enrich_workers, resume, force, no_enrich):
+def borders(ctx, output, run_id, artifact_dir, query_file, raw_shard_size, parsed_shard_size, parse_workers, build_workers, enrich_batch_size, enrich_workers, resume, force):
     """Fetch and parse OHM borders artifacts."""
     if ctx.invoked_subcommand is None and output is not None:
         _run_borders_pipeline(
@@ -421,7 +417,6 @@ def borders(ctx, output, run_id, artifact_dir, query_file, raw_shard_size, parse
             enrich_workers=enrich_workers,
             resume=resume,
             force=force,
-            no_enrich=no_enrich,
         )
         return
 
@@ -477,15 +472,17 @@ def borders_parse(run_id, artifact_dir, parsed_shard_size, parse_workers, resume
 @click.option("--artifact-dir", type=click.Path(path_type=Path, file_okay=False), default=None, help="Explicit artifact directory override")
 @click.option("--enrich-batch-size", type=int, default=None, help="Unique Wikidata QIDs per enrichment shard")
 @click.option("--enrich-workers", type=int, default=None, help="Bounded worker count for enrichment batches")
+@click.option("--enrich-names", is_flag=True, help="After SPARQL enrichment, also search Wikidata by name for missing Wikidata IDs")
 @click.option("--resume", is_flag=True, help="Skip writing enrichment shards that already exist")
 @click.option("--force", is_flag=True, help="Overwrite existing enrichment shards")
-def borders_enrich(run_id, artifact_dir, enrich_batch_size, enrich_workers, resume, force):
+def borders_enrich(run_id, artifact_dir, enrich_batch_size, enrich_workers, enrich_names, resume, force):
     """Enrich parsed OHM border shards with batched Wikidata metadata."""
     result = run_enrich_stage(
         run_id=run_id,
         artifact_dir=artifact_dir,
         enrich_batch_size=enrich_batch_size or 50,
         enrich_workers=enrich_workers or 4,
+        enrich_names=enrich_names,
         resume=resume,
         force=force,
     )
@@ -498,16 +495,14 @@ def borders_enrich(run_id, artifact_dir, enrich_batch_size, enrich_workers, resu
 @click.option("--artifact-dir", type=click.Path(path_type=Path, file_okay=False), default=None, help="Explicit artifact directory override")
 @click.option("--resume", is_flag=True, help="Skip writing build outputs that already exist")
 @click.option("--force", is_flag=True, help="Overwrite existing build outputs")
-@click.option("--no-enrich", is_flag=True, help="Build without loading enrichment shards")
 @click.option("--build-workers", type=int, default=None, help="Reserved worker count for parallel build stage")
-def borders_build(run_id, artifact_dir, resume, force, no_enrich, build_workers):
+def borders_build(run_id, artifact_dir, resume, force, build_workers):
     """Build importer-facing JSONL shards and the final merged OHM borders file."""
     result = run_build_stage(
         run_id=run_id,
         artifact_dir=artifact_dir,
         resume=resume,
         force=force,
-        no_enrich=no_enrich,
         build_workers=build_workers,
     )
 
@@ -527,8 +522,7 @@ def borders_build(run_id, artifact_dir, resume, force, no_enrich, build_workers)
 @click.option("--enrich-workers", type=int, default=None, help="Bounded worker count for enrichment batches")
 @click.option("--resume", is_flag=True, help="Skip writing existing stage artifacts when possible")
 @click.option("--force", is_flag=True, help="Overwrite existing stage artifacts")
-@click.option("--no-enrich", is_flag=True, help="Run fetch/parse/build without the enrich stage")
-def borders_run(run_id, artifact_dir, query_file, output, raw_shard_size, parsed_shard_size, parse_workers, build_workers, enrich_batch_size, enrich_workers, resume, force, no_enrich):
+def borders_run(run_id, artifact_dir, query_file, output, raw_shard_size, parsed_shard_size, parse_workers, build_workers, enrich_batch_size, enrich_workers, resume, force):
     """Run the full staged OHM borders workflow."""
     _run_borders_pipeline(
         run_id=run_id,
@@ -543,7 +537,6 @@ def borders_run(run_id, artifact_dir, query_file, output, raw_shard_size, parsed
         enrich_workers=enrich_workers,
         resume=resume,
         force=force,
-        no_enrich=no_enrich,
     )
 
 
