@@ -5,6 +5,9 @@ from __future__ import annotations
 import json
 import logging
 import os
+import pickle
+import sqlite3
+import tempfile
 from concurrent.futures import FIRST_COMPLETED, ProcessPoolExecutor, ThreadPoolExecutor, wait
 from datetime import datetime, timezone
 from pathlib import Path
@@ -26,7 +29,7 @@ from pipeline.ohm_borders.artifacts import (
     raw_overpass_path,
 )
 from pipeline.ohm_borders.enricher import batch_enrich_qids
-from pipeline.ohm_borders.fetcher import fetch_raw, parse_elements, parse_relation_subset
+from pipeline.ohm_borders.fetcher import assemble_geometry, fetch_raw, parse_elements, parse_relation_subset
 from pipeline.ohm_borders.manifest import create_manifest, load_manifest, save_manifest, update_manifest
 from pipeline.ohm_borders.mapper import map_polity_to_jsonl
 
@@ -36,7 +39,8 @@ logger = logging.getLogger(__name__)
 
 _PARSE_WORKER_SOURCE = ""
 _PARSE_WORKER_OVERPASS_ELEMENTS: list[dict[str, Any]] = []
-_PARSE_WORKER_RELATION_INDEX: dict[int, dict[str, Any]] | None = None
+_PARSE_WORKER_RELATION_DB_PATH = ""
+_PARSE_WORKER_RELATION_DB_CONN: sqlite3.Connection | None = None
 _PARSE_WORKER_CHRONOLOGY_MEMBER_IDS: set[int] | None = None
 
 _BUILD_WORKER_ARTIFACT_DIR = ""
@@ -50,32 +54,34 @@ def default_parallelism() -> int:
     return max(1, cpu_total - 1)
 
 
-def _init_parse_worker(
-    parse_source: str,
-    overpass_elements: list[dict[str, Any]],
-    relation_index: dict[int, dict[str, Any]] | None,
-    chronology_member_ids: set[int] | None,
-) -> None:
+def _init_parse_worker(parse_source: str, context_path: str) -> None:
     global _PARSE_WORKER_SOURCE
     global _PARSE_WORKER_OVERPASS_ELEMENTS
-    global _PARSE_WORKER_RELATION_INDEX
+    global _PARSE_WORKER_RELATION_DB_PATH
+    global _PARSE_WORKER_RELATION_DB_CONN
     global _PARSE_WORKER_CHRONOLOGY_MEMBER_IDS
 
     _PARSE_WORKER_SOURCE = parse_source
-    _PARSE_WORKER_OVERPASS_ELEMENTS = overpass_elements
-    _PARSE_WORKER_RELATION_INDEX = relation_index
-    _PARSE_WORKER_CHRONOLOGY_MEMBER_IDS = chronology_member_ids
+    if context_path:
+        with open(context_path, "rb") as fh:
+            ctx = pickle.load(fh)
+        _PARSE_WORKER_OVERPASS_ELEMENTS = ctx.get("overpass_elements", [])
+        _PARSE_WORKER_RELATION_DB_PATH = ctx.get("relation_db_path", "")
+        _PARSE_WORKER_RELATION_DB_CONN = None
+        chronology_member_ids = ctx.get("chronology_member_ids")
+        _PARSE_WORKER_CHRONOLOGY_MEMBER_IDS = set(chronology_member_ids) if chronology_member_ids else set()
 
 
 def _run_parse_worker(input_index: int, input_path: str) -> tuple[int, int, list[dict[str, Any]]]:
     if _PARSE_WORKER_SOURCE == "raw_shards":
         shard_elements = _load_jsonl_records(Path(input_path))
-        shard_polities = parse_relation_subset(
-            shard_elements,
-            parser=parse_elements,
-            relation_index=_PARSE_WORKER_RELATION_INDEX,
-            chronology_member_ids=_PARSE_WORKER_CHRONOLOGY_MEMBER_IDS,
-        )
+        if _PARSE_WORKER_RELATION_DB_PATH:
+            shard_polities = _parse_relation_subset_with_worker_lookup(
+                shard_elements,
+                chronology_member_ids=_PARSE_WORKER_CHRONOLOGY_MEMBER_IDS or set(),
+            )
+        else:
+            shard_polities = parse_relation_subset(shard_elements, parser=parse_elements)
         relation_count = len(shard_elements)
     else:
         shard_polities = parse_elements(_PARSE_WORKER_OVERPASS_ELEMENTS)
@@ -343,15 +349,15 @@ def run_parse_stage(
         pending_records: list[dict[str, Any]] = []
 
         overpass_elements: list[dict[str, Any]] = []
-        global_relation_index: dict[int, dict[str, Any]] | None = None
         global_chronology_member_ids: set[int] | None = None
+        relation_db_path = ""
         if parse_source == "overpass":
             raw_payload = json.loads(parse_input_paths[0].read_text(encoding="utf-8"))
             raw_elements = raw_payload.get("elements", [])
             overpass_elements = raw_elements if isinstance(raw_elements, list) else []
         elif parser is parse_elements:
-            global_relation_index = _build_global_relation_index(parse_input_paths)
-            global_chronology_member_ids = _collect_chronology_member_ids(global_relation_index)
+            global_chronology_member_ids = _collect_chronology_member_ids_from_raw_shards(parse_input_paths)
+            relation_db_path = _build_relation_lookup_db(parse_input_paths, resolved_artifact_dir)
 
         use_process_pool = (
             parser is parse_elements
@@ -362,12 +368,18 @@ def run_parse_stage(
         def execute_parse_work(input_index: int, input_path: Path) -> tuple[int, int, list[dict[str, Any]]]:
             if parse_source == "raw_shards":
                 shard_elements = _load_jsonl_records(input_path)
-                shard_polities = parse_relation_subset(
-                    shard_elements,
-                    parser=parser,
-                    relation_index=global_relation_index,
-                    chronology_member_ids=global_chronology_member_ids,
-                )
+                if parser is parse_elements and relation_db_path:
+                    with sqlite3.connect(relation_db_path) as relation_db_conn:
+                        shard_polities = _parse_relation_subset_with_db_lookup(
+                            shard_elements,
+                            chronology_member_ids=global_chronology_member_ids or set(),
+                            relation_db_conn=relation_db_conn,
+                        )
+                else:
+                    shard_polities = parse_relation_subset(
+                        shard_elements,
+                        parser=parser,
+                    )
                 relation_count = len(shard_elements)
             else:
                 shard_polities = parser(overpass_elements)
@@ -384,16 +396,23 @@ def run_parse_stage(
             max_workers,
         )
 
+        _parse_context_path = ""
+        _parse_lookup_db_path = relation_db_path
         if use_process_pool:
+            ctx = {
+                "overpass_elements": overpass_elements,
+                "relation_db_path": relation_db_path,
+                "chronology_member_ids": global_chronology_member_ids,
+            }
+            _fh = tempfile.NamedTemporaryFile(delete=False, suffix=".pkl", prefix="ohm_parse_ctx_")
+            pickle.dump(ctx, _fh, protocol=pickle.HIGHEST_PROTOCOL)
+            _fh.close()
+            _parse_context_path = _fh.name
+            logger.info("parse stage context_file=%s size_mb=%.1f", _parse_context_path, os.path.getsize(_parse_context_path) / 1_048_576)
             executor: ProcessPoolExecutor | ThreadPoolExecutor = ProcessPoolExecutor(
                 max_workers=max_workers,
                 initializer=_init_parse_worker,
-                initargs=(
-                    parse_source,
-                    overpass_elements,
-                    global_relation_index,
-                    global_chronology_member_ids,
-                ),
+                initargs=(parse_source, _parse_context_path),
             )
         else:
             executor = ThreadPoolExecutor(max_workers=max_workers)
@@ -485,6 +504,16 @@ def run_parse_stage(
             raise
         finally:
             executor.shutdown(wait=False, cancel_futures=True)
+            if _parse_context_path:
+                try:
+                    os.unlink(_parse_context_path)
+                except OSError:
+                    pass
+            if _parse_lookup_db_path:
+                try:
+                    os.unlink(_parse_lookup_db_path)
+                except OSError:
+                    pass
 
         parsed_shard_count = len(outputs)
 
@@ -1071,41 +1100,199 @@ def _collect_unique_qids(parsed_paths: list[Path]) -> list[str]:
     return sorted(qids)
 
 
-def _build_global_relation_index(raw_shard_paths: list[Path]) -> dict[int, dict[str, Any]]:
-    relation_index: dict[int, dict[str, Any]] = {}
+def _get_worker_relation_db_conn() -> sqlite3.Connection:
+    global _PARSE_WORKER_RELATION_DB_CONN
 
-    for shard_path in raw_shard_paths:
-        for relation in _load_jsonl_records(shard_path):
-            if relation.get("type") != "relation" or "id" not in relation:
-                continue
+    if _PARSE_WORKER_RELATION_DB_CONN is None:
+        if not _PARSE_WORKER_RELATION_DB_PATH:
+            raise RuntimeError("parse worker relation db is not configured")
+        _PARSE_WORKER_RELATION_DB_CONN = sqlite3.connect(_PARSE_WORKER_RELATION_DB_PATH)
 
-            try:
-                relation_id = int(relation["id"])
-            except (TypeError, ValueError):
-                continue
-
-            relation_index[relation_id] = {**relation, "id": relation_id}
-
-    return relation_index
+    return _PARSE_WORKER_RELATION_DB_CONN
 
 
-def _collect_chronology_member_ids(relation_index: dict[int, dict[str, Any]]) -> set[int]:
-    member_ids: set[int] = set()
+def _lookup_relation_payload(
+    relation_id: int,
+    *,
+    relation_db_conn: sqlite3.Connection,
+) -> dict[str, Any] | None:
+    row = relation_db_conn.execute(
+        "SELECT payload FROM relations WHERE relation_id = ?",
+        (relation_id,),
+    ).fetchone()
+    if row is None:
+        return None
 
-    for relation in relation_index.values():
-        if relation.get("tags", {}).get("type") != "chronology":
+    payload = row[0]
+    if isinstance(payload, memoryview):
+        payload = payload.tobytes()
+    return orjson.loads(payload)
+
+
+def _parse_relation_subset_with_worker_lookup(
+    elements: list[dict[str, Any]],
+    *,
+    chronology_member_ids: set[int],
+) -> list[dict[str, Any]]:
+    return _parse_relation_subset_with_db_lookup(
+        elements,
+        chronology_member_ids=chronology_member_ids,
+        relation_db_conn=_get_worker_relation_db_conn(),
+    )
+
+
+def _parse_relation_subset_with_db_lookup(
+    elements: list[dict[str, Any]],
+    *,
+    chronology_member_ids: set[int],
+    relation_db_conn: sqlite3.Connection,
+) -> list[dict[str, Any]]:
+    relation_elements: list[dict[str, Any]] = []
+    chronology_ids: set[int] = set()
+
+    for element in elements:
+        if not isinstance(element, dict):
+            continue
+        if element.get("type") != "relation" or "id" not in element:
             continue
 
+        try:
+            relation_id = int(element["id"])
+        except (TypeError, ValueError):
+            continue
+
+        relation = {**element, "id": relation_id}
+        relation_elements.append(relation)
+        if relation.get("tags", {}).get("type") == "chronology":
+            chronology_ids.add(relation_id)
+
+    relation_elements.sort(key=lambda relation: relation["id"])
+
+    polities: list[dict[str, Any]] = []
+
+    for relation in relation_elements:
+        relation_id = int(relation["id"])
+        if relation_id not in chronology_ids:
+            continue
+
+        stages: list[dict[str, Any]] = []
         for member in relation.get("members", []):
             if member.get("type") != "relation" or "ref" not in member:
                 continue
-
             try:
-                member_ids.add(int(member["ref"]))
+                member_relation_id = int(member["ref"])
             except (TypeError, ValueError):
                 continue
 
+            stage_relation = _lookup_relation_payload(member_relation_id, relation_db_conn=relation_db_conn)
+            if stage_relation is None:
+                continue
+
+            stages.append(
+                {
+                    "relation_id": member_relation_id,
+                    "tags": stage_relation.get("tags", {}),
+                    "geometry": assemble_geometry(stage_relation.get("members", [])),
+                }
+            )
+
+        polities.append(
+            {
+                "relation_id": relation_id,
+                "tags": relation.get("tags", {}),
+                "stages": stages,
+            }
+        )
+
+    for relation in relation_elements:
+        relation_id = int(relation["id"])
+        if relation_id in chronology_ids or relation_id in chronology_member_ids:
+            continue
+
+        tags = relation.get("tags", {})
+        if tags.get("boundary") != "administrative" or tags.get("admin_level") != "2":
+            continue
+
+        geometry = assemble_geometry(relation.get("members", []))
+        polities.append(
+            {
+                "relation_id": relation_id,
+                "tags": tags,
+                "stages": [
+                    {
+                        "relation_id": relation_id,
+                        "tags": tags,
+                        "geometry": geometry,
+                    }
+                ],
+            }
+        )
+
+    return polities
+
+
+def _collect_chronology_member_ids_from_raw_shards(raw_shard_paths: list[Path]) -> set[int]:
+    member_ids: set[int] = set()
+
+    for shard_path in raw_shard_paths:
+        for relation in _load_jsonl_records(shard_path):
+            if relation.get("type") != "relation":
+                continue
+            if relation.get("tags", {}).get("type") != "chronology":
+                continue
+
+            for member in relation.get("members", []):
+                if member.get("type") != "relation" or "ref" not in member:
+                    continue
+                try:
+                    member_ids.add(int(member["ref"]))
+                except (TypeError, ValueError):
+                    continue
+
     return member_ids
+
+
+def _build_relation_lookup_db(raw_shard_paths: list[Path], artifact_dir: Path) -> str:
+    lookup_dir = artifact_dir / "_tmp"
+    lookup_dir.mkdir(parents=True, exist_ok=True)
+    lookup_path = lookup_dir / "parse_relation_lookup.sqlite"
+
+    if lookup_path.exists():
+        lookup_path.unlink()
+
+    with sqlite3.connect(lookup_path) as conn:
+        conn.execute("PRAGMA journal_mode = OFF")
+        conn.execute("PRAGMA synchronous = OFF")
+        conn.execute(
+            "CREATE TABLE relations (relation_id INTEGER PRIMARY KEY, payload BLOB NOT NULL)"
+        )
+
+        for shard_path in raw_shard_paths:
+            rows: list[tuple[int, bytes]] = []
+            for relation in _load_jsonl_records(shard_path):
+                if relation.get("type") != "relation" or "id" not in relation:
+                    continue
+                try:
+                    relation_id = int(relation["id"])
+                except (TypeError, ValueError):
+                    continue
+
+                rows.append((relation_id, orjson.dumps({**relation, "id": relation_id})))
+
+            if rows:
+                conn.executemany(
+                    "INSERT OR REPLACE INTO relations (relation_id, payload) VALUES (?, ?)",
+                    rows,
+                )
+
+        conn.commit()
+
+    logger.info(
+        "parse stage relation_lookup_db=%s size_mb=%.1f",
+        lookup_path,
+        lookup_path.stat().st_size / 1_048_576,
+    )
+    return str(lookup_path)
 
 
 def _load_enrichment_index(enrichment_paths: list[Path]) -> dict[str, dict[str, Any]]:
