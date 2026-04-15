@@ -656,7 +656,6 @@ def test_build_stage_parallel_workers_still_produce_deterministic_order(tmp_path
         run_id="run-001",
         artifact_dir=artifact_dir,
         build_workers=3,
-        no_enrich=True,
         mapper=delayed_mapper,
     )
     first_records = _read_jsonl(final_jsonl_path(artifact_dir))
@@ -665,7 +664,6 @@ def test_build_stage_parallel_workers_still_produce_deterministic_order(tmp_path
         run_id="run-001",
         artifact_dir=artifact_dir,
         build_workers=3,
-        no_enrich=True,
         force=True,
         mapper=delayed_mapper,
     )
@@ -737,7 +735,7 @@ def test_build_stage_no_enrich_succeeds_with_empty_index(tmp_path: Path) -> None
         ],
     )
 
-    result = run_build_stage(run_id="run-001", artifact_dir=artifact_dir, no_enrich=True)
+    result = run_build_stage(run_id="run-001", artifact_dir=artifact_dir)
     built_records = _read_jsonl(built_shard_path(artifact_dir, 1))
 
     assert result["status"] == "completed"
@@ -827,7 +825,6 @@ def test_borders_build_cli_wires_resume_force_and_no_enrich(tmp_path: Path, monk
             str(tmp_path / "artifacts"),
             "--resume",
             "--force",
-            "--no-enrich",
             "--build-workers",
             "9",
         ],
@@ -838,5 +835,4 @@ def test_borders_build_cli_wires_resume_force_and_no_enrich(tmp_path: Path, monk
     assert observed["artifact_dir"] == tmp_path / "artifacts"
     assert observed["resume"] is True
     assert observed["force"] is True
-    assert observed["no_enrich"] is True
     assert observed["build_workers"] == 9
