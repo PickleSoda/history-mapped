@@ -14,7 +14,7 @@ import logging
 from typing import Any
 
 from pipeline.config import settings
-from pipeline.resolver.ohm_client import search_by_name, _normalize_name
+from pipeline.wikidata.resolver.ohm_client import search_by_name, _normalize_name
 
 logger = logging.getLogger(__name__)
 
