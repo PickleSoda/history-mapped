@@ -27,8 +27,8 @@ import requests
 from ratelimit import limits, sleep_and_retry
 
 from pipeline.config import settings
-from pipeline.mapper.type_configs import WIKIDATA_TYPE_CONFIGS, WIKIDATA_REF_CONFIGS
-from pipeline.scraper.geoshape import GeoshapeResolver
+from pipeline.wikidata.mapper.type_configs import WIKIDATA_TYPE_CONFIGS, WIKIDATA_REF_CONFIGS
+from pipeline.wikidata.scraper.geoshape import GeoshapeResolver
 
 logger = logging.getLogger(__name__)
 

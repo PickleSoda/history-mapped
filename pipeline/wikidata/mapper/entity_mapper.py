@@ -32,7 +32,7 @@ import logging
 from typing import Any
 
 from pipeline.config import TYPE_TO_GROUP, settings
-from pipeline.mapper.type_configs import WIKIDATA_TYPE_CONFIGS
+from pipeline.wikidata.mapper.type_configs import WIKIDATA_TYPE_CONFIGS
 
 logger = logging.getLogger(__name__)
 
