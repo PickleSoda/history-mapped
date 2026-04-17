@@ -107,6 +107,21 @@ def _collect_chronology_members(relation_index: dict[int, dict[str, Any]]) -> se
     return members
 
 
+def _collect_chronology_wikidata_ids(relation_index: dict[int, dict[str, Any]]) -> set[str]:
+    wikidata_ids: set[str] = set()
+
+    for relation in relation_index.values():
+        tags = relation.get("tags", {})
+        if tags.get("type") != "chronology":
+            continue
+
+        wikidata_id = tags.get("wikidata")
+        if isinstance(wikidata_id, str) and wikidata_id:
+            wikidata_ids.add(wikidata_id)
+
+    return wikidata_ids
+
+
 def _parse_relation_subset_with_index(
     *,
     relation_elements: list[dict[str, Any]],
@@ -119,6 +134,7 @@ def _parse_relation_subset_with_index(
         if relation.get("tags", {}).get("type") == "chronology"
     }
     global_chronology_member_ids = chronology_member_ids or _collect_chronology_members(relation_index)
+    chronology_wikidata_ids = _collect_chronology_wikidata_ids(relation_index)
 
     polities: list[dict[str, Any]] = []
 
@@ -166,6 +182,9 @@ def _parse_relation_subset_with_index(
         tags = relation.get("tags", {})
         if tags.get("boundary") != "administrative" or tags.get("admin_level") != "2":
             continue
+        wikidata_id = tags.get("wikidata")
+        if isinstance(wikidata_id, str) and wikidata_id in chronology_wikidata_ids:
+            continue
 
         geometry = assemble_geometry(relation.get("members", []))
         polities.append(
@@ -191,12 +210,16 @@ def parse_elements(elements: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
     chronology_ids: set[int] = set()
     chronology_member_ids: set[int] = set()
+    chronology_wikidata_ids: set[str] = set()
 
     for relation in relation_by_id.values():
         tags = relation.get("tags", {})
         if tags.get("type") == "chronology":
             relation_id = int(relation["id"])
             chronology_ids.add(relation_id)
+            wikidata_id = tags.get("wikidata")
+            if isinstance(wikidata_id, str) and wikidata_id:
+                chronology_wikidata_ids.add(wikidata_id)
             for member in relation.get("members", []):
                 if member.get("type") == "relation" and "ref" in member:
                     chronology_member_ids.add(int(member["ref"]))
@@ -237,6 +260,9 @@ def parse_elements(elements: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
         tags = relation.get("tags", {})
         if tags.get("boundary") != "administrative" or tags.get("admin_level") != "2":
+            continue
+        wikidata_id = tags.get("wikidata")
+        if isinstance(wikidata_id, str) and wikidata_id in chronology_wikidata_ids:
             continue
 
         geometry = assemble_geometry(relation.get("members", []))
@@ -365,29 +391,6 @@ def _prefer_ring(
     return current_coords
 
 
-def _is_ring_contained_in_ring(inner_coords: list[list[float]], outer_coords: list[list[float]]) -> bool:
-    """Check if inner_coords is contained within outer_coords using centroid test.
-    
-    Returns True if the centroid of inner_coords is inside outer_coords.
-    This is a simple heuristic that handles the case where one simplified
-    outline is a subset of a detailed outline.
-    """
-    inner_bbox = _ring_bbox(inner_coords)
-    outer_bbox = _ring_bbox(outer_coords)
-    
-    # Quick rejection: if inner bbox is not contained in outer bbox, skip expensive check
-    inner_min_x, inner_min_y, inner_max_x, inner_max_y = inner_bbox
-    outer_min_x, outer_min_y, outer_max_x, outer_max_y = outer_bbox
-    
-    if not (outer_min_x <= inner_min_x and inner_max_x <= outer_max_x and
-            outer_min_y <= inner_min_y and inner_max_y <= outer_max_y):
-        return False
-    
-    # Now do the expensive point-in-ring check only if bboxes suggest containment
-    inner_centroid = _ring_centroid(inner_coords)
-    return _point_in_ring(inner_centroid, outer_coords)
-
-
 def _filter_duplicate_rings(rings: list[list[list[float]]]) -> list[list[list[float]]]:
     filtered: list[list[list[float]]] = []
 
@@ -397,19 +400,6 @@ def _filter_duplicate_rings(rings: list[list[list[float]]]) -> list[list[list[fl
         for index, existing_ring in enumerate(filtered):
             # Check exact/near duplicates (area and bbox similarity)
             if _is_near_duplicate_outline(existing_ring, ring):
-                duplicate_index = index
-                filtered[index] = _prefer_ring(existing_ring, ring)
-                break
-            
-            # Check containment: if one ring is inside the other, keep the more detailed one
-            # This handles cases where a simplified outline is merged with a detailed one
-            if _is_ring_contained_in_ring(ring, existing_ring):
-                # ring is inside existing_ring, replace existing with more detailed
-                duplicate_index = index
-                filtered[index] = _prefer_ring(existing_ring, ring)
-                break
-            elif _is_ring_contained_in_ring(existing_ring, ring):
-                # existing_ring is inside ring, replace with more detailed
                 duplicate_index = index
                 filtered[index] = _prefer_ring(existing_ring, ring)
                 break
@@ -426,41 +416,90 @@ def assemble_geometry(members: list[dict[str, Any]]) -> dict[str, Any] | None:
     Uses shapely when available; otherwise falls back to a simple MultiPolygon
     assembly suitable for ingestion tests.
     """
-    rings: list[list[list[float]]] = []
+    outer_rings: list[list[list[float]]] = []
+    inner_rings: list[list[list[float]]] = []
+    outer_linework: list[list[list[float]]] = []
+    inner_linework: list[list[list[float]]] = []
 
     for member in members:
         if member.get("type") != "way":
             continue
-        if member.get("role", "outer") != "outer":
-            continue
+
+        role = member.get("role", "outer")
 
         points = member.get("geometry", [])
         coords = [[float(point["lon"]), float(point["lat"])] for point in points if "lon" in point and "lat" in point]
-        if len(coords) < 3:
+        if len(coords) < 2:
             continue
 
-        if coords[0] != coords[-1]:
-            coords.append(coords[0])
+        if role == "inner":
+            inner_linework.append(coords)
+        else:
+            outer_linework.append(coords)
 
-        rings.append(coords)
+        if len(coords) >= 3:
+            ring_coords = coords if coords[0] == coords[-1] else [*coords, coords[0]]
+            if role == "inner":
+                inner_rings.append(ring_coords)
+            else:
+                outer_rings.append(ring_coords)
 
-    if not rings:
+    if not outer_linework:
         return None
 
-    rings = _filter_duplicate_rings(rings)
-
     try:
-        from shapely.geometry import MultiPolygon, Polygon, mapping
+        from shapely.geometry import LineString, MultiPolygon, Polygon, mapping
+        from shapely.ops import polygonize, unary_union
 
-        polygons = [Polygon(ring) for ring in rings if len(ring) >= 4]
-        polygons = [polygon for polygon in polygons if polygon.is_valid and not polygon.is_empty]
+        outer_lines = [LineString(coords) for coords in outer_linework if len(coords) >= 2]
+        merged_outer = unary_union(outer_lines)
+        polygons = [polygon for polygon in polygonize(merged_outer) if polygon.is_valid and not polygon.is_empty]
+
+        if not polygons:
+            deduped_outer_rings = _filter_duplicate_rings(outer_rings)
+            polygons = [Polygon(ring) for ring in deduped_outer_rings if len(ring) >= 4]
+            polygons = [polygon for polygon in polygons if polygon.is_valid and not polygon.is_empty]
+
+        if inner_linework and polygons:
+            inner_lines = [LineString(coords) for coords in inner_linework if len(coords) >= 2]
+            merged_inner = unary_union(inner_lines)
+            inner_polygons = [polygon for polygon in polygonize(merged_inner) if polygon.is_valid and not polygon.is_empty]
+
+            if not inner_polygons and inner_rings:
+                deduped_inner_rings = _filter_duplicate_rings(inner_rings)
+                inner_polygons = [Polygon(ring) for ring in deduped_inner_rings if len(ring) >= 4]
+                inner_polygons = [polygon for polygon in inner_polygons if polygon.is_valid and not polygon.is_empty]
+
+            if inner_polygons:
+                inner_union = unary_union(inner_polygons)
+                clipped_polygons: list[Polygon] = []
+                for polygon in polygons:
+                    diff = polygon.difference(inner_union)
+                    if diff.is_empty:
+                        continue
+                    if diff.geom_type == "Polygon":
+                        clipped_polygons.append(diff)
+                    elif diff.geom_type == "MultiPolygon":
+                        clipped_polygons.extend(geom for geom in diff.geoms if geom.is_valid and not geom.is_empty)
+                polygons = clipped_polygons
+
         if not polygons:
             return None
 
-        if len(polygons) == 1:
-            return mapping(polygons[0])
+        merged_polygon = unary_union(polygons)
 
-        return mapping(MultiPolygon(polygons))
+        if merged_polygon.is_empty:
+            return None
+
+        if merged_polygon.geom_type == "Polygon":
+            return mapping(merged_polygon)
+
+        if merged_polygon.geom_type == "MultiPolygon":
+            return mapping(merged_polygon)
+
+        multi_polygon = MultiPolygon([geom for geom in getattr(merged_polygon, "geoms", []) if geom.geom_type == "Polygon"])
+        return mapping(multi_polygon) if not multi_polygon.is_empty else None
     except Exception as exc:  # pragma: no cover - fallback for missing shapely/runtime issues
         logger.debug("Shapely fallback in assemble_geometry: %s", exc)
-        return {"type": "MultiPolygon", "coordinates": [[ring] for ring in rings]}
+        deduped_outer_rings = _filter_duplicate_rings(outer_rings)
+        return {"type": "MultiPolygon", "coordinates": [[ring] for ring in deduped_outer_rings]} if deduped_outer_rings else None
