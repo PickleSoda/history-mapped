@@ -86,7 +86,17 @@ def batch_enrich_qids(qids: list[str], batch_size: int = 50) -> dict[str, dict[s
     return results
 
 
-def search_qid_by_name(name: str) -> str | None:
+def search_qid_by_name(name: str, min_score: float = 0.0, debug: bool = False) -> str | None:
+    """Search Wikidata by name and return the best matching QID.
+    
+    Args:
+        name: Entity name to search for
+        min_score: Minimum confidence score (0-1) to accept a match. Default 0.0 = accept all.
+        debug: If True, log all candidates for audit purposes.
+    
+    Returns:
+        Best matching QID or None if no match found / below threshold.
+    """
     search_term = str(name).strip()
     if not search_term:
         return None
@@ -96,7 +106,7 @@ def search_qid_by_name(name: str) -> str | None:
         "search": search_term,
         "language": "en",
         "format": "json",
-        "limit": 1,
+        "limit": 5,
     }
 
     try:
@@ -114,11 +124,48 @@ def search_qid_by_name(name: str) -> str | None:
 
     results = payload.get("search", [])
     if not results:
+        logger.debug("No Wikidata results for: %s", search_term)
         return None
 
+    # Log top 3 candidates for visibility
+    for i, r in enumerate(results[:3], 1):
+        desc = r.get("description", "")
+        match = r.get("match", {})
+        score = match.get("text", {}).get("confidence", 0) if isinstance(match, dict) else 0
+        qid = r.get("id", "")
+        if debug or i == 1:
+            logger.info(
+                "  Candidate %d (score=%.2f): %s — %s (%s)",
+                i,
+                score,
+                qid,
+                r.get("label", ""),
+                desc,
+            )
+
+    # Evaluate top match
     top_match = results[0]
     qid = top_match.get("id")
-    return qid if isinstance(qid, str) and qid else None
+    
+    if not isinstance(qid, str) or not qid:
+        return None
+    
+    # Check score threshold if provided
+    match_data = top_match.get("match", {})
+    if isinstance(match_data, dict):
+        score = match_data.get("text", {}).get("confidence", 0) if isinstance(match_data.get("text"), dict) else 0
+        if score < min_score:
+            logger.debug(
+                "Wikidata match for %r below threshold: %s (score=%.2f < %.2f)",
+                search_term,
+                qid,
+                score,
+                min_score,
+            )
+            return None
+    
+    logger.info("Resolved %r -> %s", search_term, qid)
+    return qid
 
 
 def _merge_metadata(record: dict[str, Any], metadata: dict[str, Any], match_source: str) -> dict[str, Any]:
@@ -175,7 +222,9 @@ def enrich_output_jsonl_missing_qids(
                 continue
 
             searched_count += 1
-            resolved_qid = searcher(record.get("name", ""))
+            # Enable debug logging for first 10 searches to audit match quality
+            debug = searched_count <= 10
+            resolved_qid = searcher(record.get("name", ""), debug=debug)
             if isinstance(resolved_qid, str) and resolved_qid:
                 record["wikidata_id"] = resolved_qid
                 qids_in_order.append(resolved_qid)
