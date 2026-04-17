@@ -175,6 +175,116 @@ def test_parse_relation_subset_with_global_index_handles_cross_shard_chronology_
     assert member_records == []
 
 
+def test_parse_relation_subset_with_global_index_skips_standalone_when_chronology_has_same_wikidata() -> None:
+    relation_index = {
+        200: {
+            "type": "relation",
+            "id": 200,
+            "tags": {
+                "type": "chronology",
+                "boundary": "administrative",
+                "name": "Evolving State",
+                "wikidata": "Q1000",
+            },
+            "members": [{"type": "relation", "ref": 201, "role": ""}],
+        },
+        201: {
+            "type": "relation",
+            "id": 201,
+            "tags": {
+                "boundary": "administrative",
+                "admin_level": "2",
+                "start_date": "1800",
+                "end_date": "1850",
+            },
+            "members": [],
+        },
+        301: {
+            "type": "relation",
+            "id": 301,
+            "tags": {
+                "boundary": "administrative",
+                "admin_level": "2",
+                "name": "Evolving State (approx)",
+                "wikidata": "Q1000",
+            },
+            "members": [],
+        },
+        302: {
+            "type": "relation",
+            "id": 302,
+            "tags": {
+                "boundary": "administrative",
+                "admin_level": "2",
+                "name": "Standalone",
+                "wikidata": "Q2000",
+            },
+            "members": [],
+        },
+    }
+
+    records = parse_relation_subset(
+        [relation_index[200], relation_index[301], relation_index[302]],
+        relation_index=relation_index,
+        chronology_member_ids={201},
+    )
+
+    assert [record["relation_id"] for record in records] == [200, 302]
+
+
+def test_parse_elements_skips_standalone_when_chronology_has_same_wikidata() -> None:
+    elements = [
+        {
+            "type": "relation",
+            "id": 200,
+            "tags": {
+                "type": "chronology",
+                "boundary": "administrative",
+                "name": "Evolving State",
+                "wikidata": "Q1000",
+            },
+            "members": [{"type": "relation", "ref": 201, "role": ""}],
+        },
+        {
+            "type": "relation",
+            "id": 201,
+            "tags": {
+                "boundary": "administrative",
+                "admin_level": "2",
+                "start_date": "1800",
+                "end_date": "1850",
+            },
+            "members": [],
+        },
+        {
+            "type": "relation",
+            "id": 301,
+            "tags": {
+                "boundary": "administrative",
+                "admin_level": "2",
+                "name": "Evolving State (approx)",
+                "wikidata": "Q1000",
+            },
+            "members": [],
+        },
+        {
+            "type": "relation",
+            "id": 302,
+            "tags": {
+                "boundary": "administrative",
+                "admin_level": "2",
+                "name": "Standalone",
+                "wikidata": "Q2000",
+            },
+            "members": [],
+        },
+    ]
+
+    polities = parse_elements(elements)
+
+    assert [record["relation_id"] for record in polities] == [200, 302]
+
+
 def test_assemble_geometry_closed_outer() -> None:
     members = BOUNDARY_FIXTURE["elements"][0]["members"]
     geojson = assemble_geometry(members)
@@ -184,6 +294,55 @@ def test_assemble_geometry_closed_outer() -> None:
 
 def test_assemble_geometry_returns_none_on_empty() -> None:
     assert assemble_geometry([]) is None
+
+
+def test_assemble_geometry_stitches_segmented_outer_ways_into_single_polygon() -> None:
+    members = [
+        {
+            "type": "way",
+            "ref": 1,
+            "role": "outer",
+            "geometry": [
+                {"lat": 0.0, "lon": 0.0},
+                {"lat": 0.0, "lon": 1.0},
+            ],
+        },
+        {
+            "type": "way",
+            "ref": 2,
+            "role": "outer",
+            "geometry": [
+                {"lat": 0.0, "lon": 1.0},
+                {"lat": 1.0, "lon": 1.0},
+            ],
+        },
+        {
+            "type": "way",
+            "ref": 3,
+            "role": "outer",
+            "geometry": [
+                {"lat": 1.0, "lon": 1.0},
+                {"lat": 1.0, "lon": 0.0},
+            ],
+        },
+        {
+            "type": "way",
+            "ref": 4,
+            "role": "outer",
+            "geometry": [
+                {"lat": 1.0, "lon": 0.0},
+                {"lat": 0.0, "lon": 0.0},
+            ],
+        },
+    ]
+
+    geojson = assemble_geometry(members)
+
+    assert geojson is not None
+    assert geojson["type"] in ("Polygon", "MultiPolygon")
+    coordinates = geojson["coordinates"] if geojson["type"] == "MultiPolygon" else [geojson["coordinates"]]
+    assert len(coordinates) == 1
+    assert len(coordinates[0][0]) == 5
 
 
 def test_assemble_geometry_keeps_only_more_detailed_overlapping_outline() -> None:
@@ -270,11 +429,11 @@ def test_assemble_geometry_preserves_disjoint_outlines() -> None:
     assert len(geojson["coordinates"]) == 2
 
 
-def test_assemble_geometry_deduplicates_contained_outlines() -> None:
-    """Test that when one outline is contained within another, only the more detailed one is kept.
-    
-    This handles the case where OSM has both a simplified boundary outline and a detailed 
-    one for the same region (e.g., Domnonée case).
+def test_assemble_geometry_preserves_contained_outlines_without_extra_deduplication() -> None:
+    """Contained outlines should not trigger the expensive containment heuristic.
+
+    Polygon stitching now handles segmented borders, so nested outlines are left as-is
+    unless they are near-duplicates by the cheaper overlap test.
     """
     members = [
         # Simplified outline (contained within the detailed one)
@@ -318,7 +477,4 @@ def test_assemble_geometry_deduplicates_contained_outlines() -> None:
     assert geojson is not None
     assert geojson["type"] in ("Polygon", "MultiPolygon")
     coordinates = geojson["coordinates"] if geojson["type"] == "MultiPolygon" else [geojson["coordinates"]]
-    # Should have only 1 polygon (the detailed one, not both)
-    assert len(coordinates) == 1
-    # The detailed outline has more coordinates than the simplified one
-    assert len(coordinates[0][0]) >= 13  # detailed ring has at least 13 points
+    assert len(coordinates) == 2

@@ -259,6 +259,17 @@ def test_parse_stage_resolves_chronology_members_across_raw_shards(tmp_path: Pat
                 "tags": {"boundary": "administrative", "admin_level": "2", "name": "Standalone"},
                 "members": [],
             },
+            {
+                "type": "relation",
+                "id": 301,
+                "tags": {
+                    "boundary": "administrative",
+                    "admin_level": "2",
+                    "name": "Evolving State (approx)",
+                    "wikidata": "Q1000",
+                },
+                "members": [],
+            },
         ],
     )
 

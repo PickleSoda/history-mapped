@@ -42,6 +42,7 @@ _PARSE_WORKER_OVERPASS_ELEMENTS: list[dict[str, Any]] = []
 _PARSE_WORKER_RELATION_DB_PATH = ""
 _PARSE_WORKER_RELATION_DB_CONN: sqlite3.Connection | None = None
 _PARSE_WORKER_CHRONOLOGY_MEMBER_IDS: set[int] | None = None
+_PARSE_WORKER_CHRONOLOGY_WIKIDATA_IDS: set[str] | None = None
 
 _BUILD_WORKER_ARTIFACT_DIR = ""
 _BUILD_WORKER_RESUME = False
@@ -60,6 +61,7 @@ def _init_parse_worker(parse_source: str, context_path: str) -> None:
     global _PARSE_WORKER_RELATION_DB_PATH
     global _PARSE_WORKER_RELATION_DB_CONN
     global _PARSE_WORKER_CHRONOLOGY_MEMBER_IDS
+    global _PARSE_WORKER_CHRONOLOGY_WIKIDATA_IDS
 
     _PARSE_WORKER_SOURCE = parse_source
     if context_path:
@@ -70,6 +72,8 @@ def _init_parse_worker(parse_source: str, context_path: str) -> None:
         _PARSE_WORKER_RELATION_DB_CONN = None
         chronology_member_ids = ctx.get("chronology_member_ids")
         _PARSE_WORKER_CHRONOLOGY_MEMBER_IDS = set(chronology_member_ids) if chronology_member_ids else set()
+        chronology_wikidata_ids = ctx.get("chronology_wikidata_ids")
+        _PARSE_WORKER_CHRONOLOGY_WIKIDATA_IDS = set(chronology_wikidata_ids) if chronology_wikidata_ids else set()
 
 
 def _run_parse_worker(input_index: int, input_path: str) -> tuple[int, int, list[dict[str, Any]]]:
@@ -79,6 +83,7 @@ def _run_parse_worker(input_index: int, input_path: str) -> tuple[int, int, list
             shard_polities = _parse_relation_subset_with_worker_lookup(
                 shard_elements,
                 chronology_member_ids=_PARSE_WORKER_CHRONOLOGY_MEMBER_IDS or set(),
+                chronology_wikidata_ids=_PARSE_WORKER_CHRONOLOGY_WIKIDATA_IDS or set(),
             )
         else:
             shard_polities = parse_relation_subset(shard_elements, parser=parse_elements)
@@ -350,6 +355,7 @@ def run_parse_stage(
 
         overpass_elements: list[dict[str, Any]] = []
         global_chronology_member_ids: set[int] | None = None
+        global_chronology_wikidata_ids: set[str] | None = None
         relation_db_path = ""
         if parse_source == "overpass":
             raw_payload = json.loads(parse_input_paths[0].read_text(encoding="utf-8"))
@@ -357,6 +363,7 @@ def run_parse_stage(
             overpass_elements = raw_elements if isinstance(raw_elements, list) else []
         elif parser is parse_elements:
             global_chronology_member_ids = _collect_chronology_member_ids_from_raw_shards(parse_input_paths)
+            global_chronology_wikidata_ids = _collect_chronology_wikidata_ids_from_raw_shards(parse_input_paths)
             relation_db_path = _build_relation_lookup_db(parse_input_paths, resolved_artifact_dir)
 
         use_process_pool = (
@@ -373,6 +380,7 @@ def run_parse_stage(
                         shard_polities = _parse_relation_subset_with_db_lookup(
                             shard_elements,
                             chronology_member_ids=global_chronology_member_ids or set(),
+                            chronology_wikidata_ids=global_chronology_wikidata_ids or set(),
                             relation_db_conn=relation_db_conn,
                         )
                 else:
@@ -403,6 +411,7 @@ def run_parse_stage(
                 "overpass_elements": overpass_elements,
                 "relation_db_path": relation_db_path,
                 "chronology_member_ids": global_chronology_member_ids,
+                "chronology_wikidata_ids": global_chronology_wikidata_ids,
             }
             _fh = tempfile.NamedTemporaryFile(delete=False, suffix=".pkl", prefix="ohm_parse_ctx_")
             pickle.dump(ctx, _fh, protocol=pickle.HIGHEST_PROTOCOL)
@@ -1151,10 +1160,12 @@ def _parse_relation_subset_with_worker_lookup(
     elements: list[dict[str, Any]],
     *,
     chronology_member_ids: set[int],
+    chronology_wikidata_ids: set[str],
 ) -> list[dict[str, Any]]:
     return _parse_relation_subset_with_db_lookup(
         elements,
         chronology_member_ids=chronology_member_ids,
+        chronology_wikidata_ids=chronology_wikidata_ids,
         relation_db_conn=_get_worker_relation_db_conn(),
     )
 
@@ -1163,6 +1174,7 @@ def _parse_relation_subset_with_db_lookup(
     elements: list[dict[str, Any]],
     *,
     chronology_member_ids: set[int],
+    chronology_wikidata_ids: set[str],
     relation_db_conn: sqlite3.Connection,
 ) -> list[dict[str, Any]]:
     relation_elements: list[dict[str, Any]] = []
@@ -1230,6 +1242,9 @@ def _parse_relation_subset_with_db_lookup(
         tags = relation.get("tags", {})
         if tags.get("boundary") != "administrative" or tags.get("admin_level") != "2":
             continue
+        wikidata_id = tags.get("wikidata")
+        if isinstance(wikidata_id, str) and wikidata_id in chronology_wikidata_ids:
+            continue
 
         geometry = assemble_geometry(relation.get("members", []))
         polities.append(
@@ -1268,6 +1283,23 @@ def _collect_chronology_member_ids_from_raw_shards(raw_shard_paths: list[Path]) 
                     continue
 
     return member_ids
+
+
+def _collect_chronology_wikidata_ids_from_raw_shards(raw_shard_paths: list[Path]) -> set[str]:
+    wikidata_ids: set[str] = set()
+
+    for shard_path in raw_shard_paths:
+        for relation in _load_jsonl_records(shard_path):
+            if relation.get("type") != "relation":
+                continue
+            if relation.get("tags", {}).get("type") != "chronology":
+                continue
+
+            wikidata_id = relation.get("tags", {}).get("wikidata")
+            if isinstance(wikidata_id, str) and wikidata_id:
+                wikidata_ids.add(wikidata_id)
+
+    return wikidata_ids
 
 
 def _build_relation_lookup_db(raw_shard_paths: list[Path], artifact_dir: Path) -> str:
