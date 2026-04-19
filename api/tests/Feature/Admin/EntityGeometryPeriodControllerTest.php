@@ -91,6 +91,43 @@ class EntityGeometryPeriodControllerTest extends TestCase
         ]);
     }
 
+    public function test_store_creates_polygon_geometry_period(): void
+    {
+        $response = $this->actingAs($this->user)
+            ->postJson(route('entities.geometry-periods.store', $this->entity), [
+                'period_type' => 'territory',
+                'start_year' => 300,
+                'end_year' => 320,
+                'description' => 'Territorial extent',
+                'provenance_mode' => 'manual',
+                'territory_geom' => [
+                    'type' => 'Polygon',
+                    'coordinates' => [[[10, 40], [11, 40], [11, 41], [10, 41], [10, 40]]],
+                ],
+            ]);
+
+        $response
+            ->assertCreated()
+            ->assertJsonPath('data.entity_id', $this->entity->entity_id)
+            ->assertJsonPath('data.territory_geom.type', 'Polygon')
+            ->assertJsonPath('data.territory_geom.coordinates.0.0.0', 10)
+            ->assertJsonPath('data.territory_geom.coordinates.0.0.1', 40);
+
+        $periodId = (string) $response->json('data.geometry_period_id');
+
+        $territoryGeoJson = DB::table('geometry_periods')
+            ->where('geometry_period_id', $periodId)
+            ->selectRaw('ST_AsGeoJSON(territory_geom)::jsonb AS territory_geom')
+            ->value('territory_geom');
+
+        if (is_string($territoryGeoJson)) {
+            $territoryGeoJson = json_decode($territoryGeoJson, true, 512, JSON_THROW_ON_ERROR);
+        }
+
+        $this->assertIsArray($territoryGeoJson);
+        $this->assertSame('Polygon', $territoryGeoJson['type'] ?? null);
+    }
+
     public function test_store_validates_year_range(): void
     {
         $this->actingAs($this->user)
@@ -150,6 +187,43 @@ class EntityGeometryPeriodControllerTest extends TestCase
             'end_year' => 161,
             'description' => 'Updated period',
         ]);
+    }
+
+    public function test_update_replaces_point_with_polygon_geometry_period(): void
+    {
+        $periodId = $this->createGeometryPeriod($this->entity, 120, 160);
+
+        $response = $this->actingAs($this->user)
+            ->putJson(route('entities.geometry-periods.update', [$this->entity, $periodId]), [
+                'period_type' => 'territory',
+                'start_year' => 121,
+                'end_year' => 161,
+                'description' => 'Expanded territory',
+                'provenance_mode' => 'manual',
+                'territory_geom' => [
+                    'type' => 'Polygon',
+                    'coordinates' => [[[13, 52], [14, 52], [14, 53], [13, 53], [13, 52]]],
+                ],
+            ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('data.period_type', 'territory')
+            ->assertJsonPath('data.territory_geom.type', 'Polygon')
+            ->assertJsonPath('data.territory_geom.coordinates.0.0.0', 13)
+            ->assertJsonPath('data.territory_geom.coordinates.0.0.1', 52);
+
+        $territoryGeoJson = DB::table('geometry_periods')
+            ->where('geometry_period_id', $periodId)
+            ->selectRaw('ST_AsGeoJSON(territory_geom)::jsonb AS territory_geom')
+            ->value('territory_geom');
+
+        if (is_string($territoryGeoJson)) {
+            $territoryGeoJson = json_decode($territoryGeoJson, true, 512, JSON_THROW_ON_ERROR);
+        }
+
+        $this->assertIsArray($territoryGeoJson);
+        $this->assertSame('Polygon', $territoryGeoJson['type'] ?? null);
     }
 
     public function test_destroy_deletes_geometry_period(): void

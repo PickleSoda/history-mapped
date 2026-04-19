@@ -32,6 +32,8 @@ type Props = {
     timeframeEndDate?: string | null;
     className?: string;
     fitBounds?: boolean;
+    fitBoundsKey?: string | number | null;
+    dataVersion?: string | number | null;
     onRenderStateChange?: (state: {
         mapReady: boolean;
         baseFeatureCount: number;
@@ -48,6 +50,8 @@ function HistoricalMapViewer({
     hoveredRelationshipId = null,
     className,
     fitBounds = true,
+    fitBoundsKey,
+    dataVersion,
     onRenderStateChange,
     timeframeDate,
     timeframeStartDate,
@@ -409,8 +413,19 @@ function HistoricalMapViewer({
                 return false;
             }
 
-            baseSource.setData(baseData);
-            overlaySource.setData(overlayData);
+            // Force new object references so MapLibre reliably applies source updates
+            // even when upstream caching keeps deep-equal structures.
+            const nextBaseData: GeoJSON.FeatureCollection = {
+                type: 'FeatureCollection',
+                features: [...baseData.features],
+            };
+            const nextOverlayData: GeoJSON.FeatureCollection = {
+                type: 'FeatureCollection',
+                features: [...overlayData.features],
+            };
+
+            baseSource.setData(nextBaseData);
+            overlaySource.setData(nextOverlayData);
 
             if (fitBounds && !hasAutoFitRef.current) {
                 const combinedFeatures = [
@@ -457,7 +472,20 @@ function HistoricalMapViewer({
         return () => {
             map.off('idle', handleIdle);
         };
-    }, [baseData, fitBounds, mapReady, onRenderStateChange, overlayData]);
+    }, [
+        baseData,
+        dataVersion,
+        fitBounds,
+        fitBoundsKey,
+        mapReady,
+        onRenderStateChange,
+        overlayData,
+    ]);
+
+    useEffect(() => {
+        // Allow bounded re-fit cycles (e.g. dashboard year changes) without remounting.
+        hasAutoFitRef.current = false;
+    }, [fitBoundsKey]);
 
     useEffect(() => {
         if (!mapContainerRef.current || !mapRef.current) {

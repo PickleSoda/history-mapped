@@ -16,7 +16,6 @@ use App\Http\Api\V1\Requests\ListEntitiesRequest;
 use App\Http\Api\V1\Requests\MapEntitiesRequest;
 use App\Http\Api\V1\Requests\StoreEntityRequest;
 use App\Http\Api\V1\Requests\UpdateEntityRequest;
-use App\Http\Api\V1\Resources\EntityMapResource;
 use App\Http\Api\V1\Resources\EntityResource;
 use App\Http\Api\V1\Resources\EntitySummaryResource;
 use App\Http\Controllers\Controller;
@@ -51,21 +50,10 @@ class EntityController extends Controller
         MapEntitiesAction $action,
     ): JsonResponse {
         $result = $action($request->validated());
-        $entities = $result['entities'];
 
         return response()->json([
             'type' => 'FeatureCollection',
-            'features' => EntityMapResource::collection($entities),
-            'entities' => EntityMapResource::collection($entities),
-            'territories' => $result['territories']->map(static fn ($territory): array => [
-                'id' => $territory->geometry_period_id,
-                'entity_id' => $territory->entity_id,
-                'start_year' => $territory->start_year,
-                'end_year' => $territory->end_year,
-                'period_type' => $territory->period_type,
-                'provenance_mode' => $territory->provenance_mode,
-                'geometry' => $territory->territory_geom,
-            ])->values(),
+            'features' => $result['features'],
         ]);
     }
 

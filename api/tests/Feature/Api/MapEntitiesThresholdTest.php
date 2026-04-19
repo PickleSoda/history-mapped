@@ -15,29 +15,28 @@ class MapEntitiesThresholdTest extends TestCase
     use RefreshDatabase;
 
     /**
-     * Insert a geometry into an entity so that it is returned by the map endpoint.
+     * Insert a geometry period so that it is returned by the map endpoint.
      */
-    private function setGeom(Entity $entity, float $lng = 12.5, float $lat = 41.9): void
+    private function setGeometryPeriod(
+        Entity $entity,
+        int $startYear,
+        int $endYear,
+        string $periodType = 'territory',
+        ?string $polygonWkt = null,
+    ): void
     {
-        DB::table('entity_locations')
-            ->where('entity_id', $entity->entity_id)
-            ->where('is_primary', true)
-            ->delete();
+        $polygon = $polygonWkt ?? 'POLYGON((10 40, 11 40, 11 41, 10 41, 10 40))';
 
         DB::statement(
-            "INSERT INTO entity_locations (
-                location_id, entity_id, location_name, geom,
-                location_method, location_confidence, is_primary, created_at, updated_at
+            "INSERT INTO geometry_periods (
+                geometry_period_id, entity_id, period_type, start_year, end_year,
+                territory_geom, provenance_mode, created_by, created_at, updated_at
             ) VALUES (
-                gen_random_uuid(), ?, NULL,
-                ST_SetSRID(ST_Point(?, ?), 4326),
-                'human_assigned'::location_resolution_method,
-                'high'::confidence_level,
-                true,
-                NOW(),
-                NOW()
+                gen_random_uuid(), ?, ?, ?, ?,
+                ST_SetSRID(ST_GeomFromText(?), 4326),
+                'manual', 'test', NOW(), NOW()
             )",
-            [$entity->entity_id, $lng, $lat],
+            [$entity->entity_id, $periodType, $startYear, $endYear, $polygon],
         );
     }
 
@@ -51,11 +50,17 @@ class MapEntitiesThresholdTest extends TestCase
     {
         // impact 85 — should appear at zoom 1 (threshold 80)
         $high = Entity::factory()->verified()->create(['impact_score' => 85]);
-        $this->setGeom($high);
+        $this->setGeometryPeriod($high, 900, 1100);
 
         // impact 50 — should not appear at zoom 1 (threshold 80)
         $low = Entity::factory()->verified()->create(['impact_score' => 50]);
-        $this->setGeom($low, 12.6, 42.0);
+        $this->setGeometryPeriod(
+            $low,
+            900,
+            1100,
+            'territory',
+            'POLYGON((12 40, 13 40, 13 41, 12 41, 12 40))',
+        );
 
         $response = $this->getJson(route('api.v1.entities.map', [
             'bbox_min_lng' => 0,
@@ -75,7 +80,7 @@ class MapEntitiesThresholdTest extends TestCase
     {
         // impact 5 — should appear at zoom 12 (no threshold)
         $low = Entity::factory()->verified()->create(['impact_score' => 5]);
-        $this->setGeom($low);
+        $this->setGeometryPeriod($low, 900, 1100);
 
         $response = $this->getJson(route('api.v1.entities.map', [
             'bbox_min_lng' => 0,
@@ -94,10 +99,16 @@ class MapEntitiesThresholdTest extends TestCase
     {
         // zoom 1 would imply threshold 80, but min_impact=30 overrides it
         $mid = Entity::factory()->verified()->create(['impact_score' => 50]);
-        $this->setGeom($mid);
+        $this->setGeometryPeriod($mid, 900, 1100);
 
         $low = Entity::factory()->verified()->create(['impact_score' => 10]);
-        $this->setGeom($low, 12.6, 42.0);
+        $this->setGeometryPeriod(
+            $low,
+            900,
+            1100,
+            'territory',
+            'POLYGON((12 40, 13 40, 13 41, 12 41, 12 40))',
+        );
 
         $response = $this->getJson(route('api.v1.entities.map', [
             'bbox_min_lng' => 0,
@@ -117,7 +128,7 @@ class MapEntitiesThresholdTest extends TestCase
     public function test_without_zoom_or_min_impact_no_threshold_is_applied(): void
     {
         $low = Entity::factory()->verified()->create(['impact_score' => 1]);
-        $this->setGeom($low);
+        $this->setGeometryPeriod($low, 900, 1100);
 
         $response = $this->getJson(route('api.v1.entities.map', [
             'bbox_min_lng' => 0,
@@ -131,44 +142,149 @@ class MapEntitiesThresholdTest extends TestCase
         $this->assertContains($low->entity_id, $ids);
     }
 
-    public function test_map_can_include_territories_from_geometry_periods_with_threshold_filtering(): void
+    public function test_map_response_does_not_duplicate_features_under_entities_key(): void
     {
-        $high = Entity::factory()->verified()->create(['impact_score' => 90]);
-        $low = Entity::factory()->verified()->create(['impact_score' => 20]);
-
-        DB::statement(
-            "INSERT INTO geometry_periods (
-                geometry_period_id, entity_id, period_type, start_year, end_year,
-                territory_geom, provenance_mode, created_by, created_at, updated_at
-            ) VALUES
-            (
-                gen_random_uuid(), ?, 'territory', -100, -50,
-                ST_SetSRID(ST_GeomFromText('POLYGON((10 40, 11 40, 11 41, 10 41, 10 40))'), 4326),
-                'manual', 'test', NOW(), NOW()
-            ),
-            (
-                gen_random_uuid(), ?, 'territory', -100, -50,
-                ST_SetSRID(ST_GeomFromText('POLYGON((12 40, 13 40, 13 41, 12 41, 12 40))'), 4326),
-                'manual', 'test', NOW(), NOW()
-            )",
-            [$high->entity_id, $low->entity_id],
-        );
+        $entity = Entity::factory()->verified()->create();
+        $this->setGeometryPeriod($entity, 900, 1100);
 
         $response = $this->getJson(route('api.v1.entities.map', [
             'bbox_min_lng' => 0,
             'bbox_min_lat' => 30,
             'bbox_max_lng' => 30,
             'bbox_max_lat' => 50,
-            'zoom_level' => 1,
-            'include_territories' => true,
+        ]));
+
+        $response->assertOk();
+        $response->assertJsonMissingPath('entities');
+    }
+
+    public function test_global_bbox_clamps_excessive_requested_limit(): void
+    {
+        for ($i = 0; $i < 90; $i++) {
+            $entity = Entity::factory()->verified()->create();
+            $baseLng = -170 + ($i * 0.5);
+            $baseLat = -60 + ($i * 0.3);
+
+            $this->setGeometryPeriod(
+                $entity,
+                900,
+                1100,
+                'territory',
+                sprintf(
+                    'POLYGON((%1$.2f %2$.2f, %3$.2f %2$.2f, %3$.2f %4$.2f, %1$.2f %4$.2f, %1$.2f %2$.2f))',
+                    $baseLng,
+                    $baseLat,
+                    $baseLng + 0.2,
+                    $baseLat + 0.2,
+                ),
+            );
+        }
+
+        $response = $this->getJson(route('api.v1.entities.map', [
+            'bbox_min_lng' => -180,
+            'bbox_min_lat' => -85,
+            'bbox_max_lng' => 180,
+            'bbox_max_lat' => 85,
+            'year' => 1500,
+            'limit' => 500,
+        ]));
+
+        $response->assertOk();
+        $this->assertLessThanOrEqual(75, count($response->json('features')));
+    }
+
+    public function test_map_returns_border_period_type_in_feature_properties(): void
+    {
+        $entity = Entity::factory()->verified()->create(['impact_score' => 90]);
+        $this->setGeometryPeriod($entity, -100, -50, 'territory');
+
+        $response = $this->getJson(route('api.v1.entities.map', [
+            'bbox_min_lng' => 0,
+            'bbox_min_lat' => 30,
+            'bbox_max_lng' => 30,
+            'bbox_max_lat' => 50,
+            'year' => -80,
         ]));
 
         $response->assertOk();
 
-        $territories = $response->json('territories');
-        $territoryEntityIds = array_column($territories, 'entity_id');
+        $feature = collect($response->json('features'))
+            ->firstWhere('id', $entity->entity_id);
 
-        $this->assertContains($high->entity_id, $territoryEntityIds);
-        $this->assertNotContains($low->entity_id, $territoryEntityIds);
+        $this->assertNotNull($feature);
+        $this->assertSame('territory', $feature['properties']['period_type'] ?? null);
+        $response->assertJsonMissingPath('territories');
+    }
+
+    public function test_map_bbox_matches_geometry_period_territory_only(): void
+    {
+        $territoryEntity = Entity::factory()->verified()->create();
+        $this->setGeometryPeriod($territoryEntity, 900, 1100);
+
+        $response = $this->getJson(route('api.v1.entities.map', [
+            'bbox_min_lng' => 9,
+            'bbox_min_lat' => 39,
+            'bbox_max_lng' => 12,
+            'bbox_max_lat' => 42,
+            'year' => 1000,
+        ]));
+
+        $response->assertOk();
+
+        $feature = collect($response->json('features'))
+            ->firstWhere('id', $territoryEntity->entity_id);
+
+        $this->assertNotNull($feature);
+        $this->assertSame('Polygon', $feature['geometry']['type'] ?? null);
+    }
+
+    public function test_map_includes_ohm_draft_entities_from_pipeline_imports(): void
+    {
+        $imported = Entity::factory()->create([
+            'verification_status' => VerificationStatus::OhmDraft->value,
+            'impact_score' => 42,
+        ]);
+        $this->setGeometryPeriod(
+            $imported,
+            900,
+            1100,
+            'territory',
+            'POLYGON((15 45, 16 45, 16 46, 15 46, 15 45))',
+        );
+
+        $response = $this->getJson(route('api.v1.entities.map', [
+            'bbox_min_lng' => 10,
+            'bbox_min_lat' => 40,
+            'bbox_max_lng' => 20,
+            'bbox_max_lat' => 50,
+            'year' => 1000,
+        ]));
+
+        $response->assertOk();
+        $ids = array_column($response->json('features'), 'id');
+
+        $this->assertContains($imported->entity_id, $ids);
+    }
+
+    public function test_map_bbox_matches_entities_with_geometry_period_territory_only(): void
+    {
+        $entity = Entity::factory()->verified()->create();
+        $this->setGeometryPeriod($entity, 900, 1100);
+
+        $response = $this->getJson(route('api.v1.entities.map', [
+            'bbox_min_lng' => 9,
+            'bbox_min_lat' => 39,
+            'bbox_max_lng' => 12,
+            'bbox_max_lat' => 42,
+            'year' => 1000,
+        ]));
+
+        $response->assertOk();
+
+        $feature = collect($response->json('features'))
+            ->firstWhere('id', $entity->entity_id);
+
+        $this->assertNotNull($feature);
+        $this->assertSame('Polygon', $feature['geometry']['type'] ?? null);
     }
 }
