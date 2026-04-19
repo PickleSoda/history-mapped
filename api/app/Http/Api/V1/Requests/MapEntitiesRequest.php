@@ -33,6 +33,7 @@ class MapEntitiesRequest extends FormRequest
             'bbox_min_lat' => ['required', 'numeric', 'between:-90,90'],
             'bbox_max_lng' => ['required', 'numeric', 'between:-180,180'],
             'bbox_max_lat' => ['required', 'numeric', 'between:-90,90'],
+            'year' => ['sometimes', 'integer'],
 
             // Temporal filter (integer year, negative for BCE)
             'temporal_start' => ['sometimes', 'integer'],

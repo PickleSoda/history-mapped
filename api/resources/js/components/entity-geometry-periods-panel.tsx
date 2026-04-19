@@ -1,7 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import type { GeoJsonLike } from '@/lib/geojson';
+import { yearToOhmDate } from '@/lib/ohm-date';
+
+const MapEditor = lazy(() => import('@/components/map-editor'));
 
 type GeometryPeriod = {
     geometry_period_id: string;
@@ -36,16 +40,85 @@ type Props = {
 
 const PERIOD_TYPES = ['territory', 'route', 'spread_zone', 'movement_path', 'presence'] as const;
 
-function parsePointCoordinates(geom: Record<string, unknown> | null): { lng: string; lat: string } {
-    if (!geom || geom.type !== 'Point' || !Array.isArray(geom.coordinates)) {
-        return { lng: '', lat: '' };
+type GeometryPeriodFormState = {
+    period_type: string;
+    start_year: string;
+    end_year: string;
+    description: string;
+    provenance_mode: 'manual' | 'derived';
+    geom: GeoJsonLike;
+    territory_geom: GeoJsonLike;
+};
+
+function defaultFormState(): GeometryPeriodFormState {
+    return {
+        period_type: 'territory',
+        start_year: '',
+        end_year: '',
+        description: '',
+        provenance_mode: 'manual',
+        geom: null,
+        territory_geom: null,
+    };
+}
+
+function toFormState(period: GeometryPeriod): GeometryPeriodFormState {
+    return {
+        period_type: period.period_type,
+        start_year: String(period.start_year),
+        end_year: String(period.end_year),
+        description: period.description ?? '',
+        provenance_mode: period.provenance_mode,
+        geom: period.geom,
+        territory_geom: period.territory_geom,
+    };
+}
+
+function buildPayload(form: GeometryPeriodFormState): GeometryPeriodPayload | null {
+    const startYear = Number(form.start_year);
+    const endYear = Number(form.end_year);
+
+    if (!Number.isFinite(startYear) || !Number.isFinite(endYear)) {
+        return null;
     }
 
-    const coordinates = geom.coordinates as unknown[];
-    const lng = typeof coordinates[0] === 'number' ? String(coordinates[0]) : '';
-    const lat = typeof coordinates[1] === 'number' ? String(coordinates[1]) : '';
+    if (!form.geom && !form.territory_geom) {
+        return null;
+    }
 
-    return { lng, lat };
+    return {
+        period_type: form.period_type,
+        start_year: startYear,
+        end_year: endYear,
+        description: form.description || undefined,
+        provenance_mode: form.provenance_mode,
+        geom: form.geom ?? undefined,
+        territory_geom: form.territory_geom ?? undefined,
+    };
+}
+
+function resolveTimeframeDate(value: string): string | null {
+    const year = Number.parseInt(value, 10);
+
+    return Number.isFinite(year) ? yearToOhmDate(year) : null;
+}
+
+function describeGeometry(form: GeometryPeriodFormState): string {
+    const parts: string[] = [];
+
+    if (form.geom && typeof form.geom === 'object' && 'type' in form.geom) {
+        parts.push(`Geom: ${String(form.geom.type)}`);
+    }
+
+    if (
+        form.territory_geom &&
+        typeof form.territory_geom === 'object' &&
+        'type' in form.territory_geom
+    ) {
+        parts.push(`Territory: ${String(form.territory_geom.type)}`);
+    }
+
+    return parts.length > 0 ? parts.join(' • ') : 'No geometry drawn yet';
 }
 
 export default function EntityGeometryPeriodsPanel({
@@ -63,25 +136,12 @@ export default function EntityGeometryPeriodsPanel({
     const [saving, setSaving] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
 
-    const [createForm, setCreateForm] = useState({
-        period_type: 'territory',
-        start_year: '',
-        end_year: '',
-        description: '',
-        provenance_mode: 'manual' as 'manual' | 'derived',
-        lng: '',
-        lat: '',
-    });
-
-    const [editForm, setEditForm] = useState({
-        period_type: 'territory',
-        start_year: '',
-        end_year: '',
-        description: '',
-        provenance_mode: 'manual' as 'manual' | 'derived',
-        lng: '',
-        lat: '',
-    });
+    const [createForm, setCreateForm] = useState<GeometryPeriodFormState>(
+        defaultFormState,
+    );
+    const [editForm, setEditForm] = useState<GeometryPeriodFormState>(
+        defaultFormState,
+    );
 
     useEffect(() => {
         const token = document
@@ -131,76 +191,15 @@ export default function EntityGeometryPeriodsPanel({
         });
     }, [periods]);
 
-    function buildCreatePayload(): GeometryPeriodPayload | null {
-        const startYear = Number(createForm.start_year);
-        const endYear = Number(createForm.end_year);
-        const lng = Number(createForm.lng);
-        const lat = Number(createForm.lat);
-
-        if (!Number.isFinite(startYear) || !Number.isFinite(endYear)) {
-            return null;
-        }
-
-        if (!Number.isFinite(lng) || !Number.isFinite(lat)) {
-            return null;
-        }
-
-        return {
-            period_type: createForm.period_type,
-            start_year: startYear,
-            end_year: endYear,
-            description: createForm.description || undefined,
-            provenance_mode: createForm.provenance_mode,
-            geom: {
-                type: 'Point',
-                coordinates: [lng, lat],
-            },
-        };
-    }
-
-    function buildEditPayload(existing: GeometryPeriod): GeometryPeriodPayload | null {
-        const startYear = Number(editForm.start_year);
-        const endYear = Number(editForm.end_year);
-        const lng = Number(editForm.lng);
-        const lat = Number(editForm.lat);
-
-        if (!Number.isFinite(startYear) || !Number.isFinite(endYear)) {
-            return null;
-        }
-
-        const payload: GeometryPeriodPayload = {
-            period_type: editForm.period_type,
-            start_year: startYear,
-            end_year: endYear,
-            description: editForm.description || undefined,
-            provenance_mode: editForm.provenance_mode,
-        };
-
-        if (Number.isFinite(lng) && Number.isFinite(lat)) {
-            payload.geom = {
-                type: 'Point',
-                coordinates: [lng, lat],
-            };
-        } else if (existing.geom) {
-            payload.geom = existing.geom;
-        } else if (existing.territory_geom) {
-            payload.territory_geom = existing.territory_geom;
-        } else {
-            return null;
-        }
-
-        return payload;
-    }
-
     async function createPeriod() {
         if (!storeUrl) {
             return;
         }
 
-        const payload = buildCreatePayload();
+        const payload = buildPayload(createForm);
 
         if (!payload) {
-            setError('Start year, end year, and valid point coordinates are required.');
+            setError('Start year, end year, and at least one drawn geometry are required.');
 
             return;
         }
@@ -224,15 +223,7 @@ export default function EntityGeometryPeriodsPanel({
             }
 
             await loadPeriods();
-            setCreateForm({
-                period_type: 'territory',
-                start_year: '',
-                end_year: '',
-                description: '',
-                provenance_mode: 'manual',
-                lng: '',
-                lat: '',
-            });
+            setCreateForm(defaultFormState());
         } catch {
             setError('Failed to create geometry period.');
         } finally {
@@ -245,7 +236,7 @@ export default function EntityGeometryPeriodsPanel({
             return;
         }
 
-        const payload = buildEditPayload(period);
+        const payload = buildPayload(editForm);
 
         if (!payload) {
             setError('Valid years and geometry are required for updates.');
@@ -352,28 +343,6 @@ export default function EntityGeometryPeriodsPanel({
                                             placeholder="End year"
                                         />
                                         <Input
-                                            aria-label="Edit longitude"
-                                            value={editForm.lng}
-                                            onChange={(e) =>
-                                                setEditForm((prev) => ({
-                                                    ...prev,
-                                                    lng: e.target.value,
-                                                }))
-                                            }
-                                            placeholder="Longitude"
-                                        />
-                                        <Input
-                                            aria-label="Edit latitude"
-                                            value={editForm.lat}
-                                            onChange={(e) =>
-                                                setEditForm((prev) => ({
-                                                    ...prev,
-                                                    lat: e.target.value,
-                                                }))
-                                            }
-                                            placeholder="Latitude"
-                                        />
-                                        <Input
                                             aria-label="Edit period type"
                                             value={editForm.period_type}
                                             onChange={(e) =>
@@ -408,6 +377,39 @@ export default function EntityGeometryPeriodsPanel({
                                                 placeholder="Description"
                                                 rows={2}
                                             />
+                                        </div>
+                                        <div className="sm:col-span-2 space-y-2 rounded-md border p-3">
+                                            <div className="flex items-center justify-between gap-3">
+                                                <div>
+                                                    <p className="text-sm font-medium">Geometry</p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Use the same map editor as the base entity geometry. Draw a point or line in Geom, or a polygon in Territory.
+                                                    </p>
+                                                </div>
+                                                <span className="text-xs text-muted-foreground">
+                                                    {describeGeometry(editForm)}
+                                                </span>
+                                            </div>
+                                            <Suspense
+                                                fallback={
+                                                    <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
+                                                        Loading map editor…
+                                                    </div>
+                                                }
+                                            >
+                                                <MapEditor
+                                                    geojson={editForm.geom}
+                                                    territoryGeojson={editForm.territory_geom}
+                                                    timeframeDate={resolveTimeframeDate(editForm.start_year)}
+                                                    onChange={(geom, territoryGeom) => {
+                                                        setEditForm((prev) => ({
+                                                            ...prev,
+                                                            geom,
+                                                            territory_geom: territoryGeom,
+                                                        }));
+                                                    }}
+                                                />
+                                            </Suspense>
                                         </div>
                                         <div className="sm:col-span-2 flex gap-2">
                                             <Button
@@ -457,20 +459,7 @@ export default function EntityGeometryPeriodsPanel({
                                                     size="sm"
                                                     variant="outline"
                                                     onClick={() => {
-                                                        const point = parsePointCoordinates(
-                                                            period.geom,
-                                                        );
-                                                        setEditForm({
-                                                            period_type: period.period_type,
-                                                            start_year: String(period.start_year),
-                                                            end_year: String(period.end_year),
-                                                            description:
-                                                                period.description ?? '',
-                                                            provenance_mode:
-                                                                period.provenance_mode,
-                                                            lng: point.lng,
-                                                            lat: point.lat,
-                                                        });
+                                                        setEditForm(toFormState(period));
                                                         setEditingId(
                                                             period.geometry_period_id,
                                                         );
@@ -540,28 +529,6 @@ export default function EntityGeometryPeriodsPanel({
                             placeholder="End year"
                         />
                         <Input
-                            aria-label="Longitude"
-                            value={createForm.lng}
-                            onChange={(e) =>
-                                setCreateForm((prev) => ({
-                                    ...prev,
-                                    lng: e.target.value,
-                                }))
-                            }
-                            placeholder="Longitude"
-                        />
-                        <Input
-                            aria-label="Latitude"
-                            value={createForm.lat}
-                            onChange={(e) =>
-                                setCreateForm((prev) => ({
-                                    ...prev,
-                                    lat: e.target.value,
-                                }))
-                            }
-                            placeholder="Latitude"
-                        />
-                        <Input
                             aria-label="Period type"
                             value={createForm.period_type}
                             onChange={(e) =>
@@ -602,6 +569,39 @@ export default function EntityGeometryPeriodsPanel({
                                 placeholder="Why this geometry exists"
                                 rows={2}
                             />
+                        </div>
+                        <div className="sm:col-span-2 space-y-2 rounded-md border p-3">
+                            <div className="flex items-center justify-between gap-3">
+                                <div>
+                                    <p className="text-sm font-medium">Geometry</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        Draw a point or line in Geom, or a polygon in Territory.
+                                    </p>
+                                </div>
+                                <span className="text-xs text-muted-foreground">
+                                    {describeGeometry(createForm)}
+                                </span>
+                            </div>
+                            <Suspense
+                                fallback={
+                                    <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
+                                        Loading map editor…
+                                    </div>
+                                }
+                            >
+                                <MapEditor
+                                    geojson={createForm.geom}
+                                    territoryGeojson={createForm.territory_geom}
+                                    timeframeDate={resolveTimeframeDate(createForm.start_year)}
+                                    onChange={(geom, territoryGeom) => {
+                                        setCreateForm((prev) => ({
+                                            ...prev,
+                                            geom,
+                                            territory_geom: territoryGeom,
+                                        }));
+                                    }}
+                                />
+                            </Suspense>
                         </div>
                         <div className="sm:col-span-2">
                             <Button

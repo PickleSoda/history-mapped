@@ -300,7 +300,11 @@ class EntityBuilder extends Builder
             ->selectRaw(sprintf('%s AS temporal_start', self::primaryTemporalStartDateSql()))
             ->selectRaw(sprintf('%s AS temporal_end', self::primaryTemporalEndDateSql()))
             ->selectRaw("attributes->>'entity_color' AS entity_color")
-            ->selectRaw(sprintf('ST_AsGeoJSON(%s)::jsonb AS geojson', self::primaryLocationGeomSql()));
+            ->selectRaw(sprintf(
+                'ST_AsGeoJSON(COALESCE(%s, %s)) AS geojson',
+                self::primaryLocationTerritorySql(),
+                self::primaryLocationGeomSql(),
+            ));
     }
 
     private static function primaryTemporalStartYearSql(): string
