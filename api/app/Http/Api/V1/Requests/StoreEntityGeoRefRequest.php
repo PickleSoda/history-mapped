@@ -27,6 +27,7 @@ class StoreEntityGeoRefRequest extends FormRequest
             'provider' => ['required', 'string', Rule::enum(GeoRefProvider::class)],
             'external_type' => ['required', 'string', Rule::enum(GeoRefExternalType::class)],
             'external_id' => ['required', 'string', 'max:255'],
+            'geometry_period_id' => ['sometimes', 'nullable', 'uuid'],
             'match_role' => ['required', 'string', Rule::enum(GeoRefMatchRole::class)],
             'retrieval_method' => ['required', 'string', Rule::enum(GeoRefRetrievalMethod::class)],
             'temporal_start' => ['sometimes', 'nullable', 'string', 'max:255'],

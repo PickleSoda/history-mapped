@@ -24,6 +24,7 @@ class EntityGeoRefResource extends JsonResource
             'provider' => $this->provider?->value,
             'external_type' => $this->external_type?->value,
             'external_id' => $this->external_id,
+            'geometry_period_id' => $this->geometry_period_id,
             'match_role' => $this->match_role?->value,
             'retrieval_method' => $this->retrieval_method?->value,
             'temporal_start' => $this->temporal_start,

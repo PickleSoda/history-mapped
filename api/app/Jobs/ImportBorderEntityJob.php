@@ -70,14 +70,6 @@ class ImportBorderEntityJob implements ShouldQueue
             $entityData = EntityData::fromArray($entityRecord);
 
             $existingEntity = $this->findExistingEntity($record, $ohmRelationId);
-            if ($existingEntity !== null && ! $this->force) {
-                Log::info("[Borders] Skipped duplicate: {$name}");
-
-                $this->upsertGeometryPeriods($existingEntity, $geometryPeriods, $this->batchId);
-
-                return;
-            }
-
             $entity = $existingEntity;
             if ($entity === null) {
                 $entity = app(CreateEntityAction::class)->__invoke($entityData, "borders:{$this->batchId}");
@@ -85,7 +77,11 @@ class ImportBorderEntityJob implements ShouldQueue
             } elseif ($this->force) {
                 $entity = app(UpdateEntityAction::class)->__invoke($entity, $entityData);
                 Log::info("[Borders] Replaced: {$name} → {$entity->entity_id}");
+            } else {
+                Log::info("[Borders] Skipped duplicate: {$name}");
             }
+
+            $persistedPeriods = $this->upsertGeometryPeriods($entity, $geometryPeriods, $this->batchId);
 
             $geoRef = null;
             if ($ohmRelationId !== null && $ohmRelationId !== '') {
@@ -93,10 +89,12 @@ class ImportBorderEntityJob implements ShouldQueue
             }
 
             if ($geoRef !== null) {
-                $this->hydrateEntityGeometry($entity, $geoRef, $geometryPeriods);
+                $this->attachGeometryPeriodGeoRefs($entity, $persistedPeriods);
             }
 
-            $this->upsertGeometryPeriods($entity, $geometryPeriods, $this->batchId);
+            if ($geoRef !== null) {
+                $this->hydrateEntityGeometry($entity, $geoRef, $geometryPeriods);
+            }
         } catch (\Throwable $e) {
             Log::error("[Borders] Failed to import {$name}: {$e->getMessage()}");
 
@@ -184,6 +182,7 @@ class ImportBorderEntityJob implements ShouldQueue
             ->where('provider', GeoRefProvider::Ohm->value)
             ->where('external_type', GeoRefExternalType::Relation->value)
             ->where('external_id', $ohmRelationId)
+            ->whereNull('geometry_period_id')
             ->first();
 
         if ($existing !== null) {
@@ -216,6 +215,59 @@ class ImportBorderEntityJob implements ShouldQueue
     }
 
     /**
+     * @param  array<int, array{model: GeometryPeriod, source: array<string, mixed>}>  $persistedPeriods
+     */
+    private function attachGeometryPeriodGeoRefs(
+        Entity $entity,
+        array $persistedPeriods,
+    ): void {
+        foreach ($persistedPeriods as $entry) {
+            $period = $entry['source'];
+            $geometryPeriod = $entry['model'];
+            $periodRelationId = isset($period['ohm_relation_id']) ? (string) $period['ohm_relation_id'] : null;
+
+            if ($periodRelationId === null || $periodRelationId === '') {
+                continue;
+            }
+
+            $existingPeriodRef = EntityGeoRef::query()
+                ->where('entity_id', $entity->entity_id)
+                ->where('provider', GeoRefProvider::Ohm->value)
+                ->where('external_type', GeoRefExternalType::Relation->value)
+                ->where('external_id', $periodRelationId)
+                ->where('geometry_period_id', $geometryPeriod->geometry_period_id)
+                ->first();
+
+            if ($existingPeriodRef !== null) {
+                continue;
+            }
+
+            app(CreateEntityGeoRefAction::class)->__invoke($entity, [
+                'provider' => GeoRefProvider::Ohm->value,
+                'external_type' => GeoRefExternalType::Relation->value,
+                'external_id' => $periodRelationId,
+                'geometry_period_id' => $geometryPeriod->geometry_period_id,
+                'match_role' => GeoRefMatchRole::Candidate->value,
+                'retrieval_method' => GeoRefRetrievalMethod::Overpass->value,
+                'match_score' => 1.0,
+                'is_active' => true,
+                'temporal_start' => $period['start_date'] ?? null,
+                'temporal_end' => $period['end_date'] ?? null,
+                'temporal_start_year' => $period['start_year'] ?? null,
+                'temporal_end_year' => $period['end_year'] ?? null,
+                'external_tags' => is_array($period['external_tags'] ?? null)
+                    ? $period['external_tags']
+                    : ['admin_level' => '2'],
+                'source_meta' => [
+                    'source' => 'ohm_overpass',
+                    'origin' => 'geometry_period',
+                    'import_batch' => $this->batchId,
+                ],
+            ]);
+        }
+    }
+
+    /**
      * @param  array<int, array<string, mixed>>  $geometryPeriods
      */
     private function hydrateEntityGeometry(Entity $entity, EntityGeoRef $geoRef, array $geometryPeriods): void
@@ -233,8 +285,10 @@ class ImportBorderEntityJob implements ShouldQueue
     /**
      * @param  array<int, array<string, mixed>>  $periods
      */
-    private function upsertGeometryPeriods(Entity $entity, array $periods, string $batchId): void
+    private function upsertGeometryPeriods(Entity $entity, array $periods, string $batchId): array
     {
+        $persisted = [];
+
         foreach ($periods as $period) {
             $geojson = $period['geojson'] ?? null;
             if (! is_array($geojson)) {
@@ -250,18 +304,23 @@ class ImportBorderEntityJob implements ShouldQueue
 
             $description = $period['label'] ?? null;
 
-            $exists = GeometryPeriod::query()
+            $existing = GeometryPeriod::query()
                 ->where('entity_id', $entity->entity_id)
                 ->where('start_year', $startYear)
                 ->where('end_year', $endYear)
                 ->where('provenance_mode', 'ohm_import')
-                ->exists();
+                ->first();
 
-            if ($exists) {
+            if ($existing !== null) {
+                $persisted[] = [
+                    'model' => $existing,
+                    'source' => $period,
+                ];
+
                 continue;
             }
 
-            GeometryPeriod::query()->create([
+            $created = GeometryPeriod::query()->create([
                 'entity_id' => $entity->entity_id,
                 'period_type' => 'territory',
                 'start_year' => $startYear,
@@ -272,6 +331,13 @@ class ImportBorderEntityJob implements ShouldQueue
                 'confidence' => 'medium',
                 'created_by' => "borders:{$batchId}",
             ]);
+
+            $persisted[] = [
+                'model' => $created,
+                'source' => $period,
+            ];
         }
+
+        return $persisted;
     }
 }

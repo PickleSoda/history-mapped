@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Api;
 
 use App\Models\Entity;
+use App\Models\GeometryPeriod;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -139,7 +140,7 @@ class ResolveOhmFeatureApiTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('data.entity.id', $primaryEntity->entity_id)
             ->assertJsonPath('data.geo_ref_id', $primaryGeoRefId)
-            ->assertJsonPath('data.resolution_source', 'entity_geom')
+            ->assertJsonPath('data.resolution_source', 'entity_location')
             ->assertJsonPath('data.geometry.type', 'Polygon');
     }
 
@@ -168,8 +169,81 @@ class ResolveOhmFeatureApiTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('data.entity.id', $entity->entity_id)
             ->assertJsonPath('data.geo_ref_id', $geoRefId)
-            ->assertJsonPath('data.resolution_source', 'entity_geom')
+            ->assertJsonPath('data.resolution_source', 'entity_location')
             ->assertJsonPath('data.geometry.type', 'Point');
+    }
+
+    public function test_resolve_ohm_feature_returns_period_specific_geometry_for_period_linked_georef(): void
+    {
+        $entity = Entity::factory()->verified()->create(['name' => 'Kingdom of Leon']);
+
+        $periodA = GeometryPeriod::query()->create([
+            'entity_id' => $entity->entity_id,
+            'period_type' => 'territory',
+            'start_year' => 978,
+            'end_year' => 1064,
+            'territory_geom' => [
+                'type' => 'Polygon',
+                'coordinates' => [[[10, 40], [11, 40], [11, 41], [10, 40]]],
+            ],
+            'description' => 'Stage A',
+            'provenance_mode' => 'ohm_import',
+            'created_by' => 'test',
+        ]);
+
+        $periodB = GeometryPeriod::query()->create([
+            'entity_id' => $entity->entity_id,
+            'period_type' => 'territory',
+            'start_year' => 1065,
+            'end_year' => 1071,
+            'territory_geom' => [
+                'type' => 'Polygon',
+                'coordinates' => [[[20, 40], [21, 40], [21, 41], [20, 40]]],
+            ],
+            'description' => 'Stage B',
+            'provenance_mode' => 'ohm_import',
+            'created_by' => 'test',
+        ]);
+
+        $this->insertGeoRef($entity, [
+            'external_id' => '200085109',
+            'geometry_period_id' => $periodA->geometry_period_id,
+            'temporal_start_year' => 978,
+            'temporal_end_year' => 1064,
+            'match_role' => 'candidate',
+        ]);
+
+        $this->insertGeoRef($entity, [
+            'external_id' => '200085110',
+            'geometry_period_id' => $periodB->geometry_period_id,
+            'temporal_start_year' => 1065,
+            'temporal_end_year' => 1071,
+            'match_role' => 'candidate',
+        ]);
+
+        $responseA = $this->postJson(route('api.v1.map.resolve-ohm-feature'), [
+            'provider' => 'ohm',
+            'external_type' => 'relation',
+            'external_id' => '200085109',
+            'target_year' => 1000,
+        ]);
+
+        $responseA->assertOk()
+            ->assertJsonPath('data.entity.id', $entity->entity_id)
+            ->assertJsonPath('data.resolution_source', 'geometry_period')
+            ->assertJsonPath('data.geometry.coordinates.0.0.0', 10);
+
+        $responseB = $this->postJson(route('api.v1.map.resolve-ohm-feature'), [
+            'provider' => 'ohm',
+            'external_type' => 'relation',
+            'external_id' => '200085110',
+            'target_year' => 1065,
+        ]);
+
+        $responseB->assertOk()
+            ->assertJsonPath('data.entity.id', $entity->entity_id)
+            ->assertJsonPath('data.resolution_source', 'geometry_period')
+            ->assertJsonPath('data.geometry.coordinates.0.0.0', 20);
     }
 
     public function test_resolve_ohm_feature_excludes_inactive_references(): void
