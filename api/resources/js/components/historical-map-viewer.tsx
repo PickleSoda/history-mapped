@@ -1,6 +1,5 @@
 import { LngLatBounds, Map } from 'maplibre-gl';
 import type { MapLayerMouseEvent } from 'maplibre-gl';
-import type { FilterSpecification } from 'maplibre-gl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MouseEvent } from 'react';
 import type { MutableRefObject } from 'react';
@@ -18,9 +17,6 @@ import { applyOhmLayerDateFilter } from '@/lib/ohm-layer-date-filter';
 import { cn } from '@/lib/utils';
 import type { Relationship } from '@/types/entity';
 import 'maplibre-gl/dist/maplibre-gl.css';
-
-const OHM_HOVER_FILL_LAYER_ID = 'ohm-hover-fill';
-const OHM_HOVER_LINE_LAYER_ID = 'ohm-hover-line';
 
 type Props = {
     baseGeometries: GeoJsonLike[];
@@ -638,205 +634,46 @@ function HistoricalMapViewer({
 }
 
 function bindOhmBasemapInteractionHandlers(map: Map): () => void {
-    let activeSourceLayer: string | null = null;
-    let fillActive = false;
-
-    const removeLayerIfExists = (layerId: string) => {
-        if (map.getLayer(layerId)) {
-            map.removeLayer(layerId);
-        }
-    };
-
-    const clearHover = () => {
-        removeLayerIfExists(OHM_HOVER_FILL_LAYER_ID);
-        removeLayerIfExists(OHM_HOVER_LINE_LAYER_ID);
-        activeSourceLayer = null;
-        fillActive = false;
-    };
-
-    const buildHighlightFilter = (feature: any): FilterSpecification | null => {
-        if (feature.id !== undefined && feature.id !== null) {
-            // Normalize both sides to string to avoid MapLibre numeric-vs-string
-            // expression type mismatches across mixed vector-tile id encodings.
-            return ['==', ['to-string', ['id']], String(feature.id)] as FilterSpecification;
-        }
-
-        const properties = feature.properties ?? {};
-
-        if (properties['@id'] !== undefined && properties['@id'] !== null) {
-            return ['==', ['to-string', ['coalesce', ['get', '@id'], '']], String(properties['@id'])] as FilterSpecification;
-        }
-
-        if (properties.osm_id !== undefined && properties.osm_id !== null) {
-            return ['==', ['to-string', ['coalesce', ['get', 'osm_id'], '']], String(properties.osm_id)] as FilterSpecification;
-        }
-
-        if (properties.wikidata !== undefined && properties.wikidata !== null) {
-            return ['==', ['to-string', ['coalesce', ['get', 'wikidata'], '']], String(properties.wikidata)] as FilterSpecification;
-        }
-
-        return null;
-    };
-
-    const ensureHighlightLayers = (
-        sourceLayer: string,
-        highlightFilter: FilterSpecification,
-        includeFill: boolean,
-    ) => {
-        const mustRecreate = activeSourceLayer !== sourceLayer || fillActive !== includeFill;
-
-        if (mustRecreate) {
-            clearHover();
-
-            if (includeFill) {
-                map.addLayer({
-                    id: OHM_HOVER_FILL_LAYER_ID,
-                    type: 'fill',
-                    source: 'ohm',
-                    'source-layer': sourceLayer,
-                    filter: highlightFilter,
-                    paint: {
-                        'fill-color': '#facc15',
-                        'fill-opacity': 0.24,
-                    },
-                });
-            }
-
-            map.addLayer({
-                id: OHM_HOVER_LINE_LAYER_ID,
-                type: 'line',
-                source: 'ohm',
-                'source-layer': sourceLayer,
-                filter: highlightFilter,
-                paint: {
-                    'line-color': '#f59e0b',
-                    'line-width': 2.6,
-                },
-            });
-
-            activeSourceLayer = sourceLayer;
-            fillActive = includeFill;
-
-            return;
-        }
-
-        if (includeFill && map.getLayer(OHM_HOVER_FILL_LAYER_ID)) {
-            map.setFilter(OHM_HOVER_FILL_LAYER_ID, highlightFilter);
-        }
-
-        if (map.getLayer(OHM_HOVER_LINE_LAYER_ID)) {
-            map.setFilter(OHM_HOVER_LINE_LAYER_ID, highlightFilter);
-        }
-    };
-
-    const getInteractiveOhmLayerIds = (): string[] => {
+    const getInteractiveOhmLayerIds = () => {
         const style = map.getStyle();
 
         if (!style || !Array.isArray(style.layers)) {
-            return [];
+            return {
+                labelLayerIds: [] as string[],
+                boundaryLayerIds: [] as string[],
+            };
         }
 
-        return style.layers
-            .filter((layer) => {
-                if (!('source' in layer) || layer.source !== 'ohm') {
-                    return false;
-                }
+        const visibleOhmLayers = style.layers.filter((layer) => {
+            if (!('source' in layer) || layer.source !== 'ohm') {
+                return false;
+            }
 
-                if (layer.type !== 'fill' && layer.type !== 'line') {
-                    return false;
-                }
+            return (
+                !('layout' in layer) ||
+                layer.layout?.visibility === undefined ||
+                layer.layout.visibility !== 'none'
+            );
+        });
 
-                return (
-                    !('layout' in layer) ||
-                    layer.layout?.visibility === undefined ||
-                    layer.layout.visibility !== 'none'
-                );
-            })
+        const labelLayerIds = visibleOhmLayers
+            .filter((layer) => layer.type === 'symbol')
             .map((layer) => layer.id);
+
+        const boundaryLayerIds = visibleOhmLayers
+            .filter((layer) => layer.type === 'line')
+            .map((layer) => layer.id);
+
+        return {
+            labelLayerIds,
+            boundaryLayerIds,
+        };
     };
 
-    const pickHighlightFeature = (features: any[]): any | null => {
-        if (features.length === 0) {
-            return null;
-        }
-
-        return (
-            features.find((feature) => {
-                const type = feature.geometry?.type;
-
-                return type === 'Polygon' || type === 'MultiPolygon';
-            }) ?? features[0]
-        );
-    };
-
-    const handleMouseMove = (e: MapLayerMouseEvent) => {
-        if (!map.getStyle()) {
-            return;
-        }
-
-        const layerIds = getInteractiveOhmLayerIds();
-
-        if (layerIds.length === 0) {
-            clearHover();
-            map.getCanvas().style.cursor = '';
-
-            return;
-        }
-
-        const features = map.queryRenderedFeatures(e.point, {
-            layers: layerIds,
-        });
-        const feature = pickHighlightFeature(features);
-
-        if (!feature || !feature.geometry || !feature.sourceLayer) {
-            clearHover();
-            map.getCanvas().style.cursor = '';
-
-            return;
-        }
-
-        const highlightFilter = buildHighlightFilter(feature);
-
-        if (!highlightFilter) {
-            clearHover();
-            map.getCanvas().style.cursor = '';
-
-            return;
-        }
-
-        const geometryType = feature.geometry.type;
-        const includeFill = geometryType === 'Polygon' || geometryType === 'MultiPolygon';
-
-        map.getCanvas().style.cursor = 'pointer';
-        ensureHighlightLayers(
-            String(feature.sourceLayer),
-            highlightFilter,
-            includeFill,
-        );
-    };
-
-    const handleClick = (e: MapLayerMouseEvent) => {
-        if (!map.getStyle()) {
-            return;
-        }
-
-        const layerIds = getInteractiveOhmLayerIds();
-
-        if (layerIds.length === 0) {
-            return;
-        }
-
-        const features = map.queryRenderedFeatures(e.point, {
-            layers: layerIds,
-        });
-        const feature = pickHighlightFeature(features);
-
-        if (!feature) {
-            return;
-        }
-
+    const buildIdentifierPayload = (feature: any) => {
         const properties = feature.properties ?? {};
-        const identifierHints = {
+
+        return {
             id: feature.id ?? null,
             sourceLayer: feature.sourceLayer ?? null,
             wikidata: properties.wikidata ?? null,
@@ -848,23 +685,331 @@ function bindOhmBasemapInteractionHandlers(map: Map): () => void {
             '@id': properties['@id'] ?? null,
             id_property: properties.id ?? null,
         };
+    };
 
-        console.log('[OHM click]', {
-            identifierHints,
-            properties,
-            feature,
+    const getFeatureDedupKey = (feature: any): string => {
+        const properties = feature.properties ?? {};
+
+        return JSON.stringify([
+            feature.layer?.id ?? null,
+            feature.sourceLayer ?? null,
+            feature.id ?? null,
+            properties['@id'] ?? null,
+            properties.osm_id ?? null,
+            properties.osm_type ?? null,
+            properties.id ?? null,
+            properties.name ?? null,
+        ]);
+    };
+
+    const getDistanceFromClick = (
+        feature: any,
+        event: MapLayerMouseEvent,
+    ): number | null => {
+        const geometry = feature.geometry;
+
+        if (!geometry) {
+            return null;
+        }
+
+        const distanceFromCoordinate = (coordinate: any): number | null => {
+            if (!Array.isArray(coordinate) || coordinate.length < 2) {
+                return null;
+            }
+
+            const projected = map.project([coordinate[0], coordinate[1]]);
+            const dx = projected.x - event.point.x;
+            const dy = projected.y - event.point.y;
+
+            return Math.sqrt(dx * dx + dy * dy);
+        };
+
+        if (geometry.type === 'Point') {
+            return distanceFromCoordinate(geometry.coordinates);
+        }
+
+        const lineLike = geometry.type === 'LineString'
+            ? [geometry.coordinates]
+            : geometry.type === 'MultiLineString'
+              ? geometry.coordinates
+              : [];
+
+        if (lineLike.length === 0) {
+            return null;
+        }
+
+        let nearestDistance: number | null = null;
+
+        lineLike.forEach((segment: any) => {
+            if (!Array.isArray(segment)) {
+                return;
+            }
+
+            segment.forEach((coordinate: any) => {
+                const distance = distanceFromCoordinate(coordinate);
+
+                if (distance === null) {
+                    return;
+                }
+
+                nearestDistance =
+                    nearestDistance === null
+                        ? distance
+                        : Math.min(nearestDistance, distance);
+            });
+        });
+
+        return nearestDistance;
+    };
+
+    const queryFeaturesInRadius = (
+        event: MapLayerMouseEvent,
+        layerIds: string[],
+        radius: number,
+    ): any[] => {
+        if (layerIds.length === 0) {
+            return [];
+        }
+
+        return map.queryRenderedFeatures(
+            [
+                [
+                    Math.max(0, event.point.x - radius),
+                    Math.max(0, event.point.y - radius),
+                ],
+                [event.point.x + radius, event.point.y + radius],
+            ],
+            { layers: layerIds },
+        );
+    };
+
+    const toIdentityTokens = (feature: any): Set<string> => {
+        const properties = feature.properties ?? {};
+        const entries: Array<[string, unknown]> = [
+            ['wikidata', properties.wikidata],
+            ['@id', properties['@id']],
+            ['osm_id', properties.osm_id],
+            ['osm_type', properties.osm_type],
+            ['id', properties.id],
+            ['name', properties.name],
+            ['name_en', properties['name:en']],
+        ];
+
+        const tokens = entries
+            .filter(([, value]) => value != null && String(value).trim() !== '')
+            .map(([key, value]) => `${key}:${String(value).toLowerCase()}`);
+
+        return new Set(tokens);
+    };
+
+    const hasTokenOverlap = (left: any, right: any): boolean => {
+        const leftTokens = toIdentityTokens(left);
+        const rightTokens = toIdentityTokens(right);
+
+        for (const token of leftTokens) {
+            if (rightTokens.has(token)) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    const scoreCandidate = (
+        feature: any,
+        event: MapLayerMouseEvent,
+        source: 'label' | 'boundary',
+    ): number => {
+        const properties = feature.properties ?? {};
+        const distance = getDistanceFromClick(feature, event);
+        let score = source === 'label' ? 60 : 30;
+
+        if (distance !== null) {
+            score += Math.max(0, 35 - distance);
+        }
+
+        if (properties.wikidata) {
+            score += 15;
+        }
+
+        if (properties.name) {
+            score += 10;
+        }
+
+        return Math.round(score);
+    };
+
+    const handleClick = (e: MapLayerMouseEvent) => {
+        if (!map.getStyle()) {
+            return;
+        }
+
+        const { labelLayerIds, boundaryLayerIds } = getInteractiveOhmLayerIds();
+        const hasLabelLayers = labelLayerIds.length > 0;
+        const hasBoundaryLayers = boundaryLayerIds.length > 0;
+
+        if (!hasLabelLayers && !hasBoundaryLayers) {
+            return;
+        }
+
+        const dedupByFeature = (features: any[]) =>
+            features.filter((feature, index, collection) => {
+                const key = getFeatureDedupKey(feature);
+
+                return (
+                    index ===
+                    collection.findIndex(
+                        (candidate) => getFeatureDedupKey(candidate) === key,
+                    )
+                );
+            });
+
+        const labelSearchRadius = 20;
+        const labelFeatures = hasLabelLayers
+            ? queryFeaturesInRadius(e, labelLayerIds, labelSearchRadius)
+            : [];
+
+        const boundaryFeatures = hasBoundaryLayers
+            ? map.queryRenderedFeatures(e.point, { layers: boundaryLayerIds })
+            : [];
+
+        const uniqueLabelFeatures = dedupByFeature(labelFeatures);
+        const uniqueBoundaryFeatures = dedupByFeature(boundaryFeatures);
+        let candidateFeatures =
+            uniqueLabelFeatures.length > 0
+                ? uniqueLabelFeatures.map((feature) => ({
+                      feature,
+                      source: 'label' as const,
+                  }))
+                : uniqueBoundaryFeatures.map((feature) => ({
+                      feature,
+                      source: 'boundary' as const,
+                  }));
+
+        if (candidateFeatures.length === 0) {
+            const canvas = map.getCanvas();
+            const viewportSpan = Math.max(canvas.width, canvas.height);
+            const maxAdaptiveRadius = Math.max(
+                320,
+                Math.min(900, Math.round(viewportSpan * 0.45)),
+            );
+            const boundaryFallbackRadii = [60, 160, 320, maxAdaptiveRadius];
+            const labelFallbackRadii = [120, 240, 420, maxAdaptiveRadius];
+            const collectFirstNonEmpty = (layerIds: string[], radii: number[]) => {
+                for (const radius of radii) {
+                    const features = dedupByFeature(
+                        queryFeaturesInRadius(e, layerIds, radius),
+                    );
+
+                    if (features.length > 0) {
+                        return features;
+                    }
+                }
+
+                return [] as any[];
+            };
+            const expandedBoundaryFeatures = hasBoundaryLayers
+                ? collectFirstNonEmpty(boundaryLayerIds, boundaryFallbackRadii)
+                : [];
+            const expandedLabelFeatures = hasLabelLayers
+                ? collectFirstNonEmpty(labelLayerIds, labelFallbackRadii)
+                : [];
+
+            if (expandedBoundaryFeatures.length > 0 && expandedLabelFeatures.length > 0) {
+                const linkedLabels = expandedLabelFeatures.filter((labelFeature) =>
+                    expandedBoundaryFeatures.some((boundaryFeature) =>
+                        hasTokenOverlap(labelFeature, boundaryFeature),
+                    ),
+                );
+
+                if (linkedLabels.length > 0) {
+                    candidateFeatures = linkedLabels.map((feature) => ({
+                        feature,
+                        source: 'label' as const,
+                    }));
+                } else {
+                    candidateFeatures = expandedBoundaryFeatures.map((feature) => ({
+                        feature,
+                        source: 'boundary' as const,
+                    }));
+                }
+            } else if (expandedBoundaryFeatures.length > 0) {
+                candidateFeatures = expandedBoundaryFeatures.map((feature) => ({
+                    feature,
+                    source: 'boundary' as const,
+                }));
+            } else if (expandedLabelFeatures.length > 0) {
+                candidateFeatures = expandedLabelFeatures.map((feature) => ({
+                    feature,
+                    source: 'label' as const,
+                }));
+            }
+        }
+
+        if (candidateFeatures.length === 0 && hasLabelLayers) {
+            // Final fallback: choose nearest visible label in viewport so interior clicks don't no-op.
+            const viewportLabels = dedupByFeature(
+                map.queryRenderedFeatures({ layers: labelLayerIds }),
+            );
+
+            if (viewportLabels.length > 0) {
+                const nearestViewportLabel = viewportLabels
+                    .map((feature) => ({
+                        feature,
+                        distance: getDistanceFromClick(feature, e) ?? Number.MAX_SAFE_INTEGER,
+                    }))
+                    .sort((a, b) => a.distance - b.distance)[0];
+
+                if (nearestViewportLabel) {
+                    candidateFeatures = [
+                        {
+                            feature: nearestViewportLabel.feature,
+                            source: 'label' as const,
+                        },
+                    ];
+                }
+            }
+        }
+
+        if (candidateFeatures.length === 0) {
+            return;
+        }
+
+        const rankedCandidates = candidateFeatures
+            .map(({ feature, source }) => ({
+                feature,
+                source,
+                score: scoreCandidate(feature, e, source),
+                clickDistancePx: getDistanceFromClick(feature, e),
+            }))
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 10);
+
+        rankedCandidates.forEach((candidate, index) => {
+            const { feature } = candidate;
+            const key = getFeatureDedupKey(feature);
+
+            console.log(`[OHM click ${index + 1}/${rankedCandidates.length}]`, {
+                identifierHints: buildIdentifierPayload(feature),
+                candidateMeta: {
+                    rank: index + 1,
+                    score: candidate.score,
+                    source: candidate.source,
+                    clickDistancePx: candidate.clickDistancePx,
+                    dedupKey: key,
+                    nearbyBoundaryHits: uniqueBoundaryFeatures.length,
+                    nearbyLabelHits: uniqueLabelFeatures.length,
+                },
+                properties: feature.properties ?? {},
+                feature,
+            });
         });
     };
 
-    map.on('mousemove', handleMouseMove);
-    map.on('mouseleave', clearHover);
     map.on('click', handleClick);
 
     return () => {
-        map.off('mousemove', handleMouseMove);
-        map.off('mouseleave', clearHover);
         map.off('click', handleClick);
-        clearHover();
     };
 }
 
