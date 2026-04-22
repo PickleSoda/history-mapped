@@ -266,6 +266,50 @@ class ImportBordersCommandTest extends TestCase
         $this->assertSame('Republic of Venice (1391-1404)', $periods[0]->description);
     }
 
+    public function test_command_imports_open_ended_geometry_period(): void
+    {
+        $record = $this->makeRecord([
+            'wikidata_id' => 'Q36',
+            'name' => 'Poland',
+            'temporal_start' => '1991-03-21',
+            'temporal_end' => null,
+            '_ohm_relation_id' => '2870169',
+            '_geometry_periods' => [
+                [
+                    'ohm_relation_id' => '2870169',
+                    'external_type' => 'relation',
+                    'start_year' => 1991,
+                    'end_year' => null,
+                    'start_date' => '1991-03-21',
+                    'end_date' => null,
+                    'geojson' => [
+                        'type' => 'MultiPolygon',
+                        'coordinates' => [[[[0, 0], [1, 0], [1, 1], [0, 0]]]],
+                    ],
+                    'label' => 'Poland (1991-present)',
+                    'external_tags' => ['name' => 'Poland'],
+                ],
+            ],
+        ]);
+
+        $path = $this->writeTemp(json_encode($record)."\n");
+
+        $this->artisan('pipeline:import-borders', [
+            'path' => $path,
+            '--sync' => true,
+        ])->assertExitCode(0);
+
+        $entity = Entity::query()->where('wikidata_id', 'Q36')->firstOrFail();
+
+        $periods = GeometryPeriod::query()
+            ->where('entity_id', $entity->entity_id)
+            ->get();
+
+        $this->assertCount(1, $periods);
+        $this->assertSame(1991, $periods[0]->start_year);
+        $this->assertNull($periods[0]->end_year);
+    }
+
     public function test_command_force_updates_existing_entity(): void
     {
         $record = $this->makeRecord([
