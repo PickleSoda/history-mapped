@@ -29,6 +29,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'source_meta',
     'match_score',
     'is_active',
+    'geometry_period_id',
 ])]
 class EntityGeoRef extends Model
 {
@@ -65,6 +66,12 @@ class EntityGeoRef extends Model
     public function entity(): BelongsTo
     {
         return $this->belongsTo(Entity::class, 'entity_id', 'entity_id');
+    }
+
+    /** @return BelongsTo<GeometryPeriod, $this> */
+    public function geometryPeriod(): BelongsTo
+    {
+        return $this->belongsTo(GeometryPeriod::class, 'geometry_period_id', 'geometry_period_id');
     }
 
 }

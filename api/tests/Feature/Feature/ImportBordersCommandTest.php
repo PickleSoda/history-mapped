@@ -72,6 +72,11 @@ class ImportBordersCommandTest extends TestCase
             'external_type' => 'relation',
             'external_id' => '100',
         ]);
+
+        $geoRefs = EntityGeoRef::query()->where('entity_id', $entity->entity_id)->get();
+        $this->assertCount(2, $geoRefs);
+        $this->assertCount(1, $geoRefs->whereNull('geometry_period_id'));
+        $this->assertCount(1, $geoRefs->whereNotNull('geometry_period_id'));
     }
 
     public function test_command_is_idempotent_for_duplicate_lines(): void
@@ -89,7 +94,7 @@ class ImportBordersCommandTest extends TestCase
 
         $this->assertCount(1, Entity::query()->where('wikidata_id', 'Q6666')->get());
         $this->assertCount(1, GeometryPeriod::query()->where('entity_id', $entity->entity_id)->get());
-        $this->assertCount(1, EntityGeoRef::query()->where('entity_id', $entity->entity_id)->get());
+        $this->assertCount(2, EntityGeoRef::query()->where('entity_id', $entity->entity_id)->get());
     }
 
     public function test_command_creates_geometry_period_for_each_stage(): void
@@ -134,9 +139,17 @@ class ImportBordersCommandTest extends TestCase
 
         $entity = Entity::query()->where('wikidata_id', 'Q8888')->firstOrFail();
         $periods = GeometryPeriod::query()->where('entity_id', $entity->entity_id)->get();
+        $geoRefs = EntityGeoRef::query()->where('entity_id', $entity->entity_id)->get();
 
         $this->assertCount(2, $periods);
         $this->assertSame([1800, 1850], $periods->pluck('start_year')->sort()->values()->all());
+        $this->assertCount(3, $geoRefs);
+        $this->assertSame(
+            ['200', '201', '202'],
+            $geoRefs->pluck('external_id')->sort()->values()->all(),
+        );
+        $this->assertCount(2, $geoRefs->whereNotNull('geometry_period_id'));
+        $this->assertCount(1, $geoRefs->whereNull('geometry_period_id'));
     }
 
     public function test_command_sorts_geo_ref_temporal_bounds_when_geometry_periods_are_unordered(): void

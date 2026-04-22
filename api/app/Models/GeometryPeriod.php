@@ -9,8 +9,10 @@ use App\Enums\ConfidenceLevel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 
 #[Fillable([
+    'geometry_period_id',
     'entity_id',
     'period_type',
     'start_year',
@@ -33,6 +35,15 @@ class GeometryPeriod extends Model
     public $incrementing = false;
 
     protected $keyType = 'string';
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $period): void {
+            if (! is_string($period->geometry_period_id) || $period->geometry_period_id === '') {
+                $period->geometry_period_id = Str::uuid()->toString();
+            }
+        });
+    }
 
     protected function casts(): array
     {
