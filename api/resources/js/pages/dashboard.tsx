@@ -18,13 +18,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const WORLD_BBOX = {
-    bbox_min_lng: -180,
-    bbox_min_lat: -85,
-    bbox_max_lng: 180,
-    bbox_max_lat: 85,
-};
-
 type MapFeature = {
     type: 'Feature';
     id: string;
@@ -61,8 +54,7 @@ export default function Dashboard() {
         queryKey: ['dashboard-map', year],
         placeholderData: (previousData) => previousData,
         queryFn: async () => {
-            const url = `/api/v1/entities/map?${new URLSearchParams({
-                ...serializeBbox(WORLD_BBOX),
+            const url = `/api/v1/entities/map/year?${new URLSearchParams({
                 year: String(year),
             }).toString()}`;
 
@@ -211,7 +203,7 @@ export default function Dashboard() {
                             <>
                                 {console.log('[Dashboard] No features to render:', { year, mapData: mapQuery.data, mapFeaturesLength: mapFeatures.length })}
                                 <div className="flex h-[calc(100vh-18rem)] items-center justify-center px-8 text-center text-sm text-muted-foreground">
-                                    No mapped entities are active in {formatYearLabel(year)} within the current world extent.
+                                    No mapped entities are active in {formatYearLabel(year)}.
                                 </div>
                             </>
                         )}
@@ -333,12 +325,6 @@ function clampYear(value: string): number {
     }
 
     return Math.min(3000, Math.max(-3000, parsed));
-}
-
-function serializeBbox(bbox: typeof WORLD_BBOX): Record<string, string> {
-    return Object.fromEntries(
-        Object.entries(bbox).map(([key, value]) => [key, String(value)]),
-    );
 }
 
 function yearToTimeframe(year: number): string {

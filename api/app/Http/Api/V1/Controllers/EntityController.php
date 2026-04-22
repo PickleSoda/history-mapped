@@ -7,12 +7,14 @@ namespace App\Http\Api\V1\Controllers;
 use App\Actions\Entity\CreateEntityAction;
 use App\Actions\Entity\DeleteEntityAction;
 use App\Actions\Entity\GetEntityAction;
+use App\Actions\Entity\MapEntitiesByYearAction;
 use App\Actions\Entity\ListEntitiesAction;
 use App\Actions\Entity\MapEntitiesAction;
 use App\Actions\Entity\UpdateEntityAction;
 use App\DTOs\EntityData;
 use App\DTOs\EntityFilterData;
 use App\Http\Api\V1\Requests\ListEntitiesRequest;
+use App\Http\Api\V1\Requests\MapEntitiesByYearRequest;
 use App\Http\Api\V1\Requests\MapEntitiesRequest;
 use App\Http\Api\V1\Requests\StoreEntityRequest;
 use App\Http\Api\V1\Requests\UpdateEntityRequest;
@@ -22,6 +24,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Entity;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class EntityController extends Controller
 {
@@ -48,13 +51,53 @@ class EntityController extends Controller
     public function map(
         MapEntitiesRequest $request,
         MapEntitiesAction $action,
-    ): JsonResponse {
+    ): StreamedResponse {
+        $result = $action($request->validated());
+        return $this->streamFeatureCollection($result['features']);
+    }
+
+    /**
+     * GET /api/v1/entities/map/year
+     *
+     * Full-period borders for a given year (no bbox filter).
+     */
+    public function mapByYear(
+        MapEntitiesByYearRequest $request,
+        MapEntitiesByYearAction $action,
+    ): StreamedResponse {
         $result = $action($request->validated());
 
-        return response()->json([
-            'type' => 'FeatureCollection',
-            'features' => $result['features'],
-        ]);
+        return $this->streamFeatureCollection($result['features']);
+    }
+
+    private function streamFeatureCollection(iterable $features): StreamedResponse
+    {
+        return response()->stream(function () use ($features): void {
+            echo '{"type":"FeatureCollection","features":[';
+
+            $first = true;
+
+            foreach ($features as $feature) {
+                if (! $first) {
+                    echo ',';
+                }
+
+                $idJson = json_encode($feature['id'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                $geometryJson = is_string($feature['geometry_json'] ?? null) ? $feature['geometry_json'] : 'null';
+                $propertiesJson = json_encode($feature['properties'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+                echo sprintf(
+                    '{"type":"Feature","id":%s,"geometry":%s,"properties":%s}',
+                    $idJson === false ? 'null' : $idJson,
+                    $geometryJson,
+                    $propertiesJson === false ? '{}' : $propertiesJson,
+                );
+
+                $first = false;
+            }
+
+            echo ']}';
+        }, 200, ['Content-Type' => 'application/json']);
     }
 
     /**

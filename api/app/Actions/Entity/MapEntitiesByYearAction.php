@@ -7,21 +7,10 @@ namespace App\Actions\Entity;
 use App\Enums\ConfidenceLevel;
 use App\Enums\EntityType;
 use App\Enums\VerificationStatus;
-use App\Services\ZoomImpactThreshold;
 use Illuminate\Support\LazyCollection;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Retrieve map border features from geometry periods.
- *
- * Applies spatial (bbox), temporal, entity metadata filters, and zoom-level impact thresholds.
- *
- * Impact threshold logic:
- *   - If `min_impact` is provided it is used directly.
- *   - If only `zoom_level` is provided, the threshold is derived via ZoomImpactThreshold.
- *   - If neither is provided, no impact threshold is applied.
- */
-class MapEntitiesAction
+class MapEntitiesByYearAction
 {
     /**
      * @param  array<string, mixed>  $filters
@@ -29,12 +18,9 @@ class MapEntitiesAction
      */
     public function __invoke(array $filters): array
     {
-        $minImpact = $this->resolveMinImpact($filters);
-        $year = $this->resolveYear($filters);
-        $limit = (int) ($filters['limit'] ?? 2000);
+        $year = (int) $filters['year'];
+        $limit = (int) ($filters['limit'] ?? 100000);
 
-        // Query geometry_periods directly (map borders source of truth),
-        // enrich with entity metadata and primary alias display name.
         $query = DB::table('geometry_periods')
             ->selectRaw(
                 <<<'SQL'
@@ -71,7 +57,6 @@ class MapEntitiesAction
                     ->orWhereNotNull('geometry_periods.geom');
             });
 
-        // Apply entity filters FIRST (before spatial filtering for best performance)
         $query->whereIn('entities.verification_status', [
             VerificationStatus::PipelineDraft->value,
             VerificationStatus::OhmDraft->value,
@@ -82,11 +67,6 @@ class MapEntitiesAction
             VerificationStatus::ExpertVerified->value,
         ]);
 
-        if ($minImpact !== null) {
-            $query->where('entities.impact_score', '>=', $minImpact);
-        }
-
-        // Optional type filter
         if (isset($filters['type'])) {
             $query->where('entities.entity_type', EntityType::from($filters['type'])->value);
         }
@@ -103,27 +83,10 @@ class MapEntitiesAction
             $query->where('entities.confidence', '>=', ConfidenceLevel::from($filters['min_confidence'])->value);
         }
 
-        // Optional temporal range filter (overrides single-year filter when provided)
-        if (isset($filters['temporal_start'], $filters['temporal_end'])) {
-            $query->where('geometry_periods.start_year', '<=', (int) $filters['temporal_end'])
-                ->where('geometry_periods.end_year', '>=', (int) $filters['temporal_start']);
+        if (isset($filters['min_impact']) && $filters['min_impact'] !== null) {
+            $query->where('entities.impact_score', '>=', (int) $filters['min_impact']);
         }
 
-        // Filter by spatial bbox on border geometry columns
-        $bbox = [
-            (float) $filters['bbox_min_lng'],
-            (float) $filters['bbox_min_lat'],
-            (float) $filters['bbox_max_lng'],
-            (float) $filters['bbox_max_lat'],
-        ];
-
-        $query->whereRaw(
-            '(geometry_periods.territory_geom && ST_MakeEnvelope(?, ?, ?, ?, 4326)
-              OR geometry_periods.geom && ST_MakeEnvelope(?, ?, ?, ?, 4326))',
-            [...$bbox, ...$bbox],
-        );
-
-        // Prefer explicit border geometry first, then entity priority.
         $query
             ->orderByRaw('CASE WHEN geometry_periods.territory_geom IS NOT NULL THEN 0 ELSE 1 END')
             ->orderByDesc('entities.display_priority')
@@ -152,35 +115,4 @@ class MapEntitiesAction
 
         return ['features' => $features];
     }
-
-    /**
-     * Resolve the minimum impact score from request filters.
-     *
-     * Returns null when no threshold should be applied.
-     *
-     * @param  array<string, mixed>  $filters
-     */
-    private function resolveMinImpact(array $filters): ?int
-    {
-        if (array_key_exists('min_impact', $filters) && $filters['min_impact'] !== null) {
-            return (int) $filters['min_impact'];
-        }
-
-        if (isset($filters['zoom_level'])) {
-            return ZoomImpactThreshold::forZoom((int) $filters['zoom_level']);
-        }
-
-        return null;
-    }
-
-    /**
-     * @param  array<string, mixed>  $filters
-     */
-    private function resolveYear(array $filters): int
-    {
-        return array_key_exists('year', $filters)
-            ? (int) $filters['year']
-            : 1000;
-    }
-
 }

@@ -22,6 +22,9 @@ Route::prefix('v1')->group(function () {
     // No auth required — the SPA and third-party consumers need these.
 
     // Entities
+    Route::get('/entities/map/year', [EntityController::class, 'mapByYear'])
+        ->name('api.v1.entities.map.year');
+
     Route::get('/entities/map', [EntityController::class, 'map'])
         ->name('api.v1.entities.map');
 

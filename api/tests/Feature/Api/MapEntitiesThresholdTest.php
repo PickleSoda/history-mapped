@@ -158,7 +158,7 @@ class MapEntitiesThresholdTest extends TestCase
         $response->assertJsonMissingPath('entities');
     }
 
-    public function test_global_bbox_clamps_excessive_requested_limit(): void
+    public function test_global_bbox_respects_requested_limit_without_hard_clamp(): void
     {
         for ($i = 0; $i < 90; $i++) {
             $entity = Entity::factory()->verified()->create();
@@ -167,8 +167,8 @@ class MapEntitiesThresholdTest extends TestCase
 
             $this->setGeometryPeriod(
                 $entity,
-                900,
-                1100,
+                1400,
+                1600,
                 'territory',
                 sprintf(
                     'POLYGON((%1$.2f %2$.2f, %3$.2f %2$.2f, %3$.2f %4$.2f, %1$.2f %4$.2f, %1$.2f %2$.2f))',
@@ -190,7 +190,7 @@ class MapEntitiesThresholdTest extends TestCase
         ]));
 
         $response->assertOk();
-        $this->assertLessThanOrEqual(75, count($response->json('features')));
+        $this->assertCount(90, $response->json('features'));
     }
 
     public function test_map_returns_border_period_type_in_feature_properties(): void
