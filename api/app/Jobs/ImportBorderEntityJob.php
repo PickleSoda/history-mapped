@@ -298,7 +298,7 @@ class ImportBorderEntityJob implements ShouldQueue
             $startYear = isset($period['start_year']) ? (int) $period['start_year'] : null;
             $endYear = isset($period['end_year']) ? (int) $period['end_year'] : null;
 
-            if ($startYear === null || $endYear === null) {
+            if ($startYear === null) {
                 continue;
             }
 
@@ -307,7 +307,10 @@ class ImportBorderEntityJob implements ShouldQueue
             $existing = GeometryPeriod::query()
                 ->where('entity_id', $entity->entity_id)
                 ->where('start_year', $startYear)
-                ->where('end_year', $endYear)
+                ->when($endYear !== null,
+                    fn ($q) => $q->where('end_year', $endYear),
+                    fn ($q) => $q->whereNull('end_year'),
+                )
                 ->where('provenance_mode', 'ohm_import')
                 ->first();
 
