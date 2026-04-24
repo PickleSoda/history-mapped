@@ -61,8 +61,6 @@ readonly class RelationshipData
         $optionals = [
             'temporal_start' => $this->temporalStart,
             'temporal_end' => $this->temporalEnd,
-            'start_year' => self::extractYear($this->temporalStart),
-            'end_year' => self::extractYear($this->temporalEnd),
             'description' => $this->description,
             'confidence' => $this->confidence?->value,
             'source_citations' => $this->sourceCitations,
@@ -78,18 +76,5 @@ readonly class RelationshipData
         $data['derive_geometry_period'] = $this->deriveGeometryPeriod;
 
         return $data;
-    }
-
-    private static function extractYear(?string $temporal): ?int
-    {
-        if ($temporal === null || trim($temporal) === '') {
-            return null;
-        }
-
-        if (! preg_match('/^-?\d+/', $temporal, $matches)) {
-            return null;
-        }
-
-        return (int) $matches[0];
     }
 }

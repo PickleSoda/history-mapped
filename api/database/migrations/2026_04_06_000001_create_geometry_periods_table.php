@@ -70,6 +70,13 @@ return new class extends Migration
         DB::statement('CREATE INDEX gp_source_event_id_idx ON geometry_periods (source_event_id)');
         DB::statement('CREATE INDEX gp_geom_gist_idx ON geometry_periods USING GIST (geom)');
         DB::statement('CREATE INDEX gp_territory_geom_gist_idx ON geometry_periods USING GIST (territory_geom)');
+        DB::statement("CREATE INDEX gp_active_range_gist_idx
+            ON geometry_periods USING GIST (int4range(start_year, COALESCE(end_year, 2147483647), '[]'))");
+        DB::statement("CREATE UNIQUE INDEX gp_unique_derived_presence_relationship_idx
+            ON geometry_periods (relationship_id)
+            WHERE relationship_id IS NOT NULL
+              AND provenance_mode = 'derived'
+              AND period_type = 'presence'");
     }
 
     public function down(): void

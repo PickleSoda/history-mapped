@@ -263,7 +263,7 @@ class RelationshipControllerTest extends TestCase
 
     public function test_store_creates_derived_presence_period_for_auto_snapshot_type_with_geom_and_temporal_start(): void
     {
-        $this->giveEntityPointGeom($this->source, 12.48, 41.89);
+        $this->giveEntityPointGeom($this->target, 12.48, 41.89);
 
         $response = $this->actingAs($this->user)
             ->postJson(route('entities.relationships.store', $this->source), [
@@ -285,6 +285,59 @@ class RelationshipControllerTest extends TestCase
             'provenance_mode' => 'derived',
             'relationship_id' => $relationshipId,
         ]);
+    }
+
+    public function test_store_creates_only_one_derived_presence_period_for_a_relationship(): void
+    {
+        $this->giveEntityPointGeom($this->target, 12.48, 41.89);
+
+        $response = $this->actingAs($this->user)
+            ->postJson(route('entities.relationships.store', $this->source), [
+                'target_entity_id' => $this->target->entity_id,
+                'relationship_type' => 'fought_at',
+                'temporal_start' => '1648',
+                'temporal_end' => '1648',
+            ])
+            ->assertCreated();
+
+        $relationshipId = (string) $response->json('relationship.relationship_id');
+
+        $count = DB::table('geometry_periods')
+            ->where('relationship_id', $relationshipId)
+            ->where('period_type', 'presence')
+            ->where('provenance_mode', 'derived')
+            ->count();
+
+        $this->assertSame(1, $count);
+    }
+
+    public function test_store_uses_target_primary_location_geometry_for_locative_relationships(): void
+    {
+        $this->giveEntityPointGeom($this->source, 12.48, 41.89);
+        $this->giveEntityPointGeom($this->target, 23.72, 37.98);
+
+        $response = $this->actingAs($this->user)
+            ->postJson(route('entities.relationships.store', $this->source), [
+                'target_entity_id' => $this->target->entity_id,
+                'relationship_type' => 'fought_at',
+                'temporal_start' => '1648',
+                'temporal_end' => '1648',
+            ])
+            ->assertCreated();
+
+        $relationshipId = (string) $response->json('relationship.relationship_id');
+
+        /** @var object{lon: float, lat: float}|null $geometry */
+        $geometry = DB::selectOne(
+            'SELECT ST_X(geom::geometry) AS lon, ST_Y(geom::geometry) AS lat
+             FROM geometry_periods
+             WHERE relationship_id = ?',
+            [$relationshipId],
+        );
+
+        $this->assertNotNull($geometry);
+        $this->assertEqualsWithDelta(23.72, $geometry->lon, 0.0001);
+        $this->assertEqualsWithDelta(37.98, $geometry->lat, 0.0001);
     }
 
     public function test_store_does_not_create_derived_presence_period_for_non_auto_snapshot_type(): void
@@ -309,6 +362,26 @@ class RelationshipControllerTest extends TestCase
 
     public function test_store_does_not_create_derived_presence_period_when_source_has_no_geom(): void
     {
+        $response = $this->actingAs($this->user)
+            ->postJson(route('entities.relationships.store', $this->source), [
+                'target_entity_id' => $this->target->entity_id,
+                'relationship_type' => 'fought_at',
+                'temporal_start' => '1648',
+                'temporal_end' => '1648',
+            ])
+            ->assertCreated();
+
+        $relationshipId = (string) $response->json('relationship.relationship_id');
+
+        $this->assertDatabaseMissing('geometry_periods', [
+            'relationship_id' => $relationshipId,
+        ]);
+    }
+
+    public function test_store_does_not_create_derived_presence_period_when_target_has_no_geom(): void
+    {
+        $this->giveEntityPointGeom($this->source, 12.48, 41.89);
+
         $response = $this->actingAs($this->user)
             ->postJson(route('entities.relationships.store', $this->source), [
                 'target_entity_id' => $this->target->entity_id,

@@ -149,14 +149,6 @@ class RelationshipController extends Controller
             }
         }
 
-        if (array_key_exists('temporal_start', $updates)) {
-            $updates['start_year'] = self::extractYear($updates['temporal_start']);
-        }
-
-        if (array_key_exists('temporal_end', $updates)) {
-            $updates['end_year'] = self::extractYear($updates['temporal_end']);
-        }
-
         $relationship->update($updates);
         $relationship->refresh();
 
@@ -222,25 +214,12 @@ class RelationshipController extends Controller
                 'entity_type' => $relatedEntity->entity_type?->value,
                 'entity_group' => $relatedEntity->entity_group?->value,
                 'verification_status' => $relatedEntity->verification_status?->value,
-                'geojson' => $relatedEntity->geom,
-                'territory_geojson' => $relatedEntity->territory_geom,
+                'geojson' => $relatedEntity->primaryLocation?->geom,
+                'territory_geojson' => $relatedEntity->primaryLocation?->territory_geom,
             ] : null,
             'derive_geometry_period' => (bool) $relationship->derive_geometry_period,
             'created_at' => $relationship->created_at?->toISOString(),
         ];
-    }
-
-    private static function extractYear(?string $temporal): ?int
-    {
-        if ($temporal === null || trim($temporal) === '') {
-            return null;
-        }
-
-        if (! preg_match('/^-?\d+/', $temporal, $matches)) {
-            return null;
-        }
-
-        return (int) $matches[0];
     }
 
     private function syncDerivedPresencePeriods(

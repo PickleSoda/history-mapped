@@ -68,8 +68,39 @@ return new class extends Migration
 
         DB::statement("
             ALTER TABLE relationships
-                ADD COLUMN confidence confidence_level
+            ADD COLUMN confidence confidence_level
         ");
+
+        DB::unprepared(<<<'SQL'
+CREATE OR REPLACE FUNCTION relationships_sync_years()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    NEW.start_year := CASE
+        WHEN NEW.temporal_start IS NULL OR NEW.temporal_start !~ '^-?\d+'
+            THEN NULL
+        ELSE CAST(SUBSTRING(NEW.temporal_start FROM '^-?\d+') AS integer)
+    END;
+
+    NEW.end_year := CASE
+        WHEN NEW.temporal_end IS NULL OR NEW.temporal_end !~ '^-?\d+'
+            THEN NULL
+        ELSE CAST(SUBSTRING(NEW.temporal_end FROM '^-?\d+') AS integer)
+    END;
+
+    RETURN NEW;
+END;
+$$;
+SQL);
+
+        DB::statement('CREATE TRIGGER relationships_sync_years_trigger
+            BEFORE INSERT OR UPDATE ON relationships
+            FOR EACH ROW
+            EXECUTE FUNCTION relationships_sync_years()');
+
+        DB::statement('ALTER TABLE relationships ADD CONSTRAINT relationships_valid_year_range
+            CHECK (start_year IS NULL OR end_year IS NULL OR start_year <= end_year)');
 
         // ── Indexes requiring raw SQL ────────────────────
 
@@ -93,6 +124,8 @@ return new class extends Migration
         DB::statement('CREATE INDEX relationships_start_year_idx ON relationships (start_year)');
         DB::statement('CREATE INDEX relationships_end_year_idx ON relationships (end_year)');
         DB::statement('CREATE INDEX relationships_year_range_idx ON relationships (start_year, end_year)');
+        DB::statement("CREATE INDEX relationships_active_range_gist_idx
+            ON relationships USING GIST (int4range(start_year, COALESCE(end_year, 2147483647), '[]'))");
     }
 
     /**
@@ -101,5 +134,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('relationships');
+        DB::unprepared('DROP FUNCTION IF EXISTS relationships_sync_years()');
     }
 };

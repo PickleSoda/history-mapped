@@ -37,6 +37,8 @@ return new class extends Migration
 
         DB::statement('CREATE INDEX etr_entity_idx ON entity_temporal_ranges (entity_id)');
         DB::statement('CREATE INDEX etr_year_range_idx ON entity_temporal_ranges (start_year, end_year)');
+        DB::statement("CREATE INDEX etr_active_range_gist_idx
+            ON entity_temporal_ranges USING GIST (int4range(start_year, COALESCE(end_year, 2147483647), '[]'))");
     }
 
     public function down(): void
