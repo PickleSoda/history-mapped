@@ -21,7 +21,8 @@ class GetEntityAction
             ->withCount([
                 'geometryPeriods',
                 'timelineEntries',
-            ]);
+            ])
+            ->with(['primaryTemporalRange', 'primaryLocation', 'entityTags', 'aliases']);
 
         if ($with !== []) {
             $query->with($with);

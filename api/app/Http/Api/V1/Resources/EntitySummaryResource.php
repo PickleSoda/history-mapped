@@ -24,16 +24,32 @@ class EntitySummaryResource extends JsonResource
     {
         $attrs = $this->attributes ?? [];
 
+        // Geometry: withGeoJson() adds geom_geojson as a pre-computed SQL alias.
+        // For entities loaded without withGeoJson(), fall back to the primaryLocation relation.
+        $geom = $this->geom_geojson
+            ?? ($this->relationLoaded('primaryLocation') ? $this->primaryLocation?->geom : null);
+
+        // Tags: withGeoJson() adds entity_tags_json as a JSON-aggregated SQL alias.
+        // For entities loaded without withGeoJson(), fall back to the entityTags relation.
+        if (array_key_exists('entity_tags_json', $this->getAttributes())) {
+            $rawTags = $this->entity_tags_json;
+            $tags = is_array($rawTags) ? array_values($rawTags) : (is_string($rawTags) ? json_decode($rawTags, true) ?? [] : []);
+        } elseif ($this->relationLoaded('entityTags')) {
+            $tags = $this->entityTags->pluck('tag')->values()->all();
+        } else {
+            $tags = [];
+        }
+
         return [
             'id' => $this->entity_id,
             'name' => $this->name,
             'entity_type' => $this->entity_type?->value,
             'entity_group' => $this->entity_group?->value,
             'summary' => $this->summary,
-            'tags' => $this->tags,
+            'tags' => $tags,
             'impact_score' => $this->impact_score,
 
-            // Temporal (compact)
+            // Temporal (compact) — populated via withGeoJson() SQL aliases
             'temporal_start' => $this->temporal_start,
             'temporal_end' => $this->temporal_end,
             'temporal_display_range' => $attrs['temporal_display_range'] ?? null,
@@ -41,7 +57,7 @@ class EntitySummaryResource extends JsonResource
 
             // Spatial (point only)
             'location_name' => $this->location_name,
-            'geom' => $this->geom,
+            'geom' => $geom,
 
             // Verification
             'verification_status' => $this->verification_status?->value,

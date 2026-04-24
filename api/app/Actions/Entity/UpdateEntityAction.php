@@ -98,8 +98,6 @@ class UpdateEntityAction
                 ],
                 [
                     'range_type' => 'primary',
-                    'start_year' => $data->temporalStart !== null ? self::extractYear($data->temporalStart) : null,
-                    'end_year' => $data->temporalEnd !== null ? self::extractYear($data->temporalEnd) : null,
                     'start_date' => $data->temporalStart,
                     'end_date' => $data->temporalEnd,
                     'duration_type' => $data->durationType,
@@ -124,14 +122,5 @@ class UpdateEntityAction
                 ],
             );
         }
-    }
-
-    private static function extractYear(string $value): ?int
-    {
-        if (preg_match('/^-?\d+/', trim($value), $matches) !== 1) {
-            return null;
-        }
-
-        return (int) $matches[0];
     }
 }

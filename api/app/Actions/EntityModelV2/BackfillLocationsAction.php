@@ -11,7 +11,9 @@ class BackfillLocationsAction
 {
     public function __invoke(Entity $entity): int
     {
-        if ($entity->location_name === null && $entity->geom === null && $entity->territory_geom === null) {
+        $location = $entity->primaryLocation;
+
+        if ($location === null) {
             return 0;
         }
 
@@ -22,12 +24,12 @@ class BackfillLocationsAction
 
         EntityLocation::query()->create([
             'entity_id' => $entity->entity_id,
-            'location_name' => $entity->location_name,
-            'location_method' => $entity->location_method?->value,
-            'location_confidence' => $entity->location_confidence?->value,
+            'location_name' => $location->location_name,
+            'location_method' => $location->location_method,
+            'location_confidence' => $location->location_confidence,
             'is_primary' => true,
-            'geom' => $entity->geom,
-            'territory_geom' => $entity->territory_geom,
+            'geom' => $location->geom,
+            'territory_geom' => $location->territory_geom,
         ]);
 
         return 1;

@@ -79,13 +79,13 @@ AS $$
 BEGIN
     NEW.start_year := CASE
         WHEN NEW.temporal_start IS NULL OR NEW.temporal_start !~ '^-?\d+'
-            THEN NULL
+            THEN NEW.start_year
         ELSE CAST(SUBSTRING(NEW.temporal_start FROM '^-?\d+') AS integer)
     END;
 
     NEW.end_year := CASE
         WHEN NEW.temporal_end IS NULL OR NEW.temporal_end !~ '^-?\d+'
-            THEN NULL
+            THEN NEW.end_year
         ELSE CAST(SUBSTRING(NEW.temporal_end FROM '^-?\d+') AS integer)
     END;
 
@@ -125,7 +125,7 @@ SQL);
         DB::statement('CREATE INDEX relationships_end_year_idx ON relationships (end_year)');
         DB::statement('CREATE INDEX relationships_year_range_idx ON relationships (start_year, end_year)');
         DB::statement("CREATE INDEX relationships_active_range_gist_idx
-            ON relationships USING GIST (int4range(start_year, COALESCE(end_year, 2147483647), '[]'))");
+            ON relationships USING GIST (int4range(start_year, CASE WHEN end_year IS NULL THEN NULL ELSE end_year + 1 END, '[)'))");
     }
 
     /**

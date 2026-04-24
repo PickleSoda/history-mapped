@@ -386,16 +386,19 @@ class ImportBordersCommandTest extends TestCase
             '--sync' => true,
         ])->assertExitCode(0);
 
-        $entity = Entity::query()->where('wikidata_id', 'Q36')->firstOrFail();
+        $entity = Entity::query()
+            ->with('primaryTemporalRange')
+            ->where('wikidata_id', 'Q36')
+            ->firstOrFail();
         $periods = GeometryPeriod::query()->where('entity_id', $entity->entity_id)->get();
 
         $this->assertCount(1, $periods);
         $this->assertSame(1989, $periods[0]->start_year);
         $this->assertSame(1991, $periods[0]->end_year);
-        $this->assertSame('1989', $entity->temporal_start);
-        $this->assertSame('1991', $entity->temporal_end);
-        $this->assertSame(1989, $entity->temporal_start_year);
-        $this->assertSame(1991, $entity->temporal_end_year);
+        $this->assertSame('1989', $entity->primaryTemporalRange?->start_date);
+        $this->assertSame('1991', $entity->primaryTemporalRange?->end_date);
+        $this->assertSame(1989, $entity->primaryTemporalRange?->start_year);
+        $this->assertSame(1991, $entity->primaryTemporalRange?->end_year);
 
         // Second import has a later open-ended period with a gap; entity range should still become min/max.
         $record2 = $this->makeRecord([
@@ -429,13 +432,16 @@ class ImportBordersCommandTest extends TestCase
             '--sync' => true,
         ])->assertExitCode(0);
 
-        $entity = Entity::query()->where('wikidata_id', 'Q36')->firstOrFail();
+        $entity = Entity::query()
+            ->with('primaryTemporalRange')
+            ->where('wikidata_id', 'Q36')
+            ->firstOrFail();
         $periods = GeometryPeriod::query()->where('entity_id', $entity->entity_id)->get();
 
         $this->assertCount(2, $periods, 'Geometry periods must remain unchanged');
-        $this->assertSame('1989', $entity->temporal_start);
-        $this->assertNull($entity->temporal_end);
-        $this->assertSame(1989, $entity->temporal_start_year);
-        $this->assertNull($entity->temporal_end_year);
+        $this->assertSame('1989', $entity->primaryTemporalRange?->start_date);
+        $this->assertNull($entity->primaryTemporalRange?->end_date);
+        $this->assertSame(1989, $entity->primaryTemporalRange?->start_year);
+        $this->assertNull($entity->primaryTemporalRange?->end_year);
     }
 }

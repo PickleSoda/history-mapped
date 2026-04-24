@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Models\Entity;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -57,14 +58,11 @@ class GenerateEntityEmbeddingJob implements ShouldQueue
             return;
         }
 
-        // Load entities
-        $entities = DB::table('entities')
+        // Load entities via Eloquent — withGeoJson() provides SQL aliases for temporal/location
+        $entities = Entity::query()
+            ->withGeoJson()
+            ->with(['aliases', 'entityTags'])
             ->whereIn('entity_id', $this->entityIds)
-            ->select([
-                'entity_id', 'entity_type', 'name', 'alternative_names',
-                'summary', 'significance', 'tags',
-                'temporal_start', 'temporal_end', 'location_name',
-            ])
             ->get();
 
         if ($entities->isEmpty()) {
@@ -136,13 +134,14 @@ class GenerateEntityEmbeddingJob implements ShouldQueue
      * build_embedding_text() to ensure consistent embeddings regardless
      * of which system generates them.
      */
-    private function buildEmbeddingText(object $entity): string
+    private function buildEmbeddingText(Entity $entity): string
     {
         $parts = [];
 
         // Type + Name header
-        $header = "[{$entity->entity_type}] {$entity->name}";
-        $altNames = $this->decodeArray($entity->alternative_names);
+        $altNames = $entity->aliases->pluck('name')->all();
+        $entityTypeValue = $entity->entity_type?->value ?? (string) $entity->entity_type;
+        $header = "[{$entityTypeValue}] {$entity->name}";
 
         if (! empty($altNames)) {
             $header .= ' ('.implode(', ', array_slice($altNames, 0, 5)).')';
@@ -159,49 +158,27 @@ class GenerateEntityEmbeddingJob implements ShouldQueue
             $parts[] = $entity->significance;
         }
 
-        // Tags
-        $tags = $this->decodeArray($entity->tags);
+        // Tags — from eager-loaded entityTags relation
+        $tags = $entity->entityTags->pluck('tag')->all();
         if (! empty($tags)) {
             $parts[] = 'Tags: '.implode(', ', $tags);
         }
 
-        // Temporal range
-        if ($entity->temporal_start || $entity->temporal_end) {
-            $parts[] = 'Temporal: '.($entity->temporal_start ?? '?').' — '.($entity->temporal_end ?? '?');
+        // Temporal range — from withGeoJson() SQL aliases
+        $entityAttrs = $entity->getAttributes();
+        $temporalStart = $entityAttrs['temporal_start'] ?? null;
+        $temporalEnd = $entityAttrs['temporal_end'] ?? null;
+        if ($temporalStart || $temporalEnd) {
+            $parts[] = 'Temporal: '.($temporalStart ?? '?').' — '.($temporalEnd ?? '?');
         }
 
-        // Location
-        if ($entity->location_name) {
-            $parts[] = "Location: {$entity->location_name}";
+        // Location — from withGeoJson() SQL alias
+        $locationName = $entityAttrs['location_name'] ?? null;
+        if ($locationName) {
+            $parts[] = "Location: {$locationName}";
         }
 
         return implode("\n", $parts);
     }
 
-    /**
-     * Decode a PostgreSQL text[] or JSON array column.
-     *
-     * @return list<string>
-     */
-    private function decodeArray(mixed $value): array
-    {
-        if (is_array($value)) {
-            return $value;
-        }
-
-        if (is_string($value)) {
-            // Try JSON first
-            $decoded = json_decode($value, true);
-            if (is_array($decoded)) {
-                return $decoded;
-            }
-
-            // PostgreSQL array format: {val1,val2,val3}
-            if (str_starts_with($value, '{') && str_ends_with($value, '}')) {
-                return str_getcsv(trim($value, '{}'));
-            }
-        }
-
-        return [];
-    }
 }

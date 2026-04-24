@@ -267,7 +267,8 @@ class EntityBuilder extends Builder
             ->selectRaw(sprintf('%s AS temporal_end', self::primaryTemporalEndDateSql()))
             ->selectRaw(sprintf('%s AS location_name', self::primaryLocationNameSql()))
             ->selectRaw(sprintf('ST_AsGeoJSON(%s)::jsonb AS geom_geojson', self::primaryLocationGeomSql()))
-            ->selectRaw(sprintf('ST_AsGeoJSON(%s)::jsonb AS territory_geom_geojson', self::primaryLocationTerritorySql()));
+            ->selectRaw(sprintf('ST_AsGeoJSON(%s)::jsonb AS territory_geom_geojson', self::primaryLocationTerritorySql()))
+            ->selectRaw("COALESCE((SELECT json_agg(et.tag ORDER BY et.tag) FROM entity_tags et WHERE et.entity_id = entities.entity_id), '[]'::json) AS entity_tags_json");
     }
 
     /**

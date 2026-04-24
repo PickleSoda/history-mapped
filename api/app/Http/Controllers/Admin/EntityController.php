@@ -194,6 +194,8 @@ class EntityController extends Controller
      */
     private static function buildEntityDetail(Entity $entity): array
     {
+        $entity->loadMissing(['primaryTemporalRange', 'primaryLocation', 'entityTags', 'aliases']);
+
         return [
             'id' => $entity->entity_id,
             'name' => $entity->name,
@@ -203,15 +205,15 @@ class EntityController extends Controller
             'significance' => $entity->significance,
             'impact_score' => $entity->impact_score,
             'wikidata_id' => $entity->wikidata_id,
-            'temporal_start' => $entity->temporal_start,
-            'temporal_end' => $entity->temporal_end,
+            'temporal_start' => $entity->primaryTemporalRange?->start_date,
+            'temporal_end' => $entity->primaryTemporalRange?->end_date,
             'date_raw' => $entity->attributes['date_raw'] ?? null,
             'date_method' => $entity->date_method?->value,
             'date_confidence' => $entity->date_confidence?->value,
             'duration_type' => $entity->duration_type?->value,
             'temporal_display_range' => ($entity->attributes['temporal_display_range'] ?? null)
-                ?? self::computeTemporalRange($entity->temporal_start, $entity->temporal_end),
-            'location_name' => $entity->location_name,
+                ?? self::computeTemporalRange($entity->primaryTemporalRange?->start_date, $entity->primaryTemporalRange?->end_date),
+            'location_name' => $entity->primaryLocation?->location_name,
             'location_confidence' => $entity->location_confidence?->value,
             'location_method' => $entity->location_method?->value,
             'verification_status' => $entity->verification_status?->value,
@@ -220,12 +222,12 @@ class EntityController extends Controller
             'display_priority' => $entity->display_priority,
             'icon_class' => $entity->icon_class?->value,
             'entity_color' => $entity->attributes['entity_color'] ?? null,
-            'tags' => $entity->tags ?? [],
-            'alternative_names' => $entity->alternative_names ?? [],
+            'tags' => $entity->entityTags->pluck('tag')->values()->all(),
+            'alternative_names' => $entity->aliases->pluck('name')->values()->all(),
             'attributes' => $entity->attributes ?? [],
             'era_label' => $entity->attributes['era_label'] ?? null,
-            'geojson' => $entity->geom,
-            'territory_geojson' => $entity->territory_geom,
+            'geojson' => $entity->primaryLocation?->geom,
+            'territory_geojson' => $entity->primaryLocation?->territory_geom,
             'geometry_periods_url' => route('entities.geometry-periods.index', $entity),
             'created_at' => $entity->created_at?->toISOString(),
             'updated_at' => $entity->updated_at?->toISOString(),

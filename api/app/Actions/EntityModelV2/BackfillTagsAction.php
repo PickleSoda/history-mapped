@@ -11,9 +11,9 @@ class BackfillTagsAction
 {
     public function __invoke(Entity $entity): int
     {
-        $tags = $entity->tags;
+        $tags = $entity->entityTags->pluck('tag')->filter(fn ($t) => is_string($t) && trim($t) !== '')->all();
 
-        if (! is_array($tags) || $tags === []) {
+        if ($tags === []) {
             return 0;
         }
 
@@ -22,10 +22,6 @@ class BackfillTagsAction
         $inserted = 0;
 
         foreach (array_unique($tags) as $tag) {
-            if (! is_string($tag) || trim($tag) === '') {
-                continue;
-            }
-
             EntityTag::query()->create([
                 'entity_id' => $entity->entity_id,
                 'tag' => trim($tag),
