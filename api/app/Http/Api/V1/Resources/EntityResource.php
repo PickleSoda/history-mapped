@@ -27,7 +27,7 @@ class EntityResource extends JsonResource
         return [
             'id' => $this->entity_id,
             'name' => $this->name,
-            'alternative_names' => $this->alternative_names,
+            'alternative_names' => $this->whenLoaded('aliases', fn () => $this->aliases->pluck('name')->values()->all(), []),
             'wikidata_id' => $this->wikidata_id,
             'entity_type' => $this->entity_type?->value,
             'entity_group' => $this->entity_group?->value,
@@ -35,13 +35,13 @@ class EntityResource extends JsonResource
             // Content
             'summary' => $this->summary,
             'significance' => $this->significance,
-            'tags' => $this->tags,
+            'tags' => $this->whenLoaded('entityTags', fn () => $this->entityTags->pluck('tag')->values()->all(), []),
             'impact_score' => $this->impact_score,
             'attributes' => $attrs,
 
             // Temporal
-            'temporal_start' => $this->temporal_start,
-            'temporal_end' => $this->temporal_end,
+            'temporal_start' => $this->whenLoaded('primaryTemporalRange', fn () => $this->primaryTemporalRange?->start_date),
+            'temporal_end' => $this->whenLoaded('primaryTemporalRange', fn () => $this->primaryTemporalRange?->end_date),
             'date_raw' => $attrs['date_raw'] ?? null,
             'date_method' => $this->date_method?->value,
             'date_confidence' => $this->date_confidence?->value,
@@ -50,13 +50,13 @@ class EntityResource extends JsonResource
             'era_label' => $attrs['era_label'] ?? null,
 
             // Spatial
-            'location_name' => $this->location_name,
+            'location_name' => $this->whenLoaded('primaryLocation', fn () => $this->primaryLocation?->location_name),
             'location_confidence' => $this->location_confidence?->value,
             'location_method' => $this->location_method?->value,
-            'geom' => $this->geom,
+            'geom' => $this->whenLoaded('primaryLocation', fn () => $this->primaryLocation?->geom),
             'territory_geom' => $this->when(
-                $request->boolean('include_territory'),
-                fn () => $this->territory_geom,
+                $request->boolean('include_territory') && $this->relationLoaded('primaryLocation'),
+                fn () => $this->primaryLocation?->territory_geom,
             ),
 
             // Verification

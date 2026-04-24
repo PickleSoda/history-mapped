@@ -66,9 +66,7 @@ class ProjectEntityTimelineAction
                 ->where('entity_id', $entityId)
                 ->count();
 
-            if ($periodCount === 0) {
-                return 0;
-            }
+            $inserted = 0;
 
             $relatedEntityIdSql = <<<'SQL'
 CASE
@@ -121,23 +119,27 @@ SQL;
                 ->selectRaw("($relatedEntityNameSql) as related_entity_name", [$entityId])
                 ->selectRaw('CURRENT_TIMESTAMP as derived_at');
 
-            DB::table('entity_timeline_entries')->insertUsing([
-                'entity_id',
-                'entry_kind',
-                'start_year',
-                'end_year',
-                'title',
-                'description',
-                'location_entity_id',
-                'geom',
-                'territory_geom',
-                'source_table',
-                'source_id',
-                'relationship_type',
-                'related_entity_id',
-                'related_entity_name',
-                'derived_at',
-            ], $projection);
+            if ($periodCount > 0) {
+                DB::table('entity_timeline_entries')->insertUsing([
+                    'entity_id',
+                    'entry_kind',
+                    'start_year',
+                    'end_year',
+                    'title',
+                    'description',
+                    'location_entity_id',
+                    'geom',
+                    'territory_geom',
+                    'source_table',
+                    'source_id',
+                    'relationship_type',
+                    'related_entity_id',
+                    'related_entity_name',
+                    'derived_at',
+                ], $projection);
+
+                $inserted += $periodCount;
+            }
 
             // Insert timeline entries for relationships that have no derived geometry period.
             // This covers both: derive_geometry_period = false, and relationships with no
@@ -193,7 +195,7 @@ SQL;
                 $inserted += $relCount;
             }
 
-            return $periodCount;
+            return $inserted;
         });
 
         if ($inserted === 0) {

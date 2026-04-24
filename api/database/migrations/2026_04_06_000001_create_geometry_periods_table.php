@@ -71,7 +71,7 @@ return new class extends Migration
         DB::statement('CREATE INDEX gp_geom_gist_idx ON geometry_periods USING GIST (geom)');
         DB::statement('CREATE INDEX gp_territory_geom_gist_idx ON geometry_periods USING GIST (territory_geom)');
         DB::statement("CREATE INDEX gp_active_range_gist_idx
-            ON geometry_periods USING GIST (int4range(start_year, COALESCE(end_year, 2147483647), '[]'))");
+            ON geometry_periods USING GIST (int4range(start_year, CASE WHEN end_year IS NULL THEN NULL ELSE end_year + 1 END, '[)'))");
         DB::statement("CREATE UNIQUE INDEX gp_unique_derived_presence_relationship_idx
             ON geometry_periods (relationship_id)
             WHERE relationship_id IS NOT NULL

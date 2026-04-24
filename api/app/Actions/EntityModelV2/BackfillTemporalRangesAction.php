@@ -11,10 +11,9 @@ class BackfillTemporalRangesAction
 {
     public function __invoke(Entity $entity): int
     {
-        $startYear = $entity->getAttribute('temporal_start_year') ?? self::extractYear($entity->temporal_start);
-        $endYear = $entity->getAttribute('temporal_end_year') ?? self::extractYear($entity->temporal_end);
+        $range = $entity->primaryTemporalRange;
 
-        if ($startYear === null && $endYear === null && $entity->temporal_start === null && $entity->temporal_end === null) {
+        if ($range === null) {
             return 0;
         }
 
@@ -26,29 +25,14 @@ class BackfillTemporalRangesAction
         EntityTemporalRange::query()->create([
             'entity_id' => $entity->entity_id,
             'range_type' => 'primary',
-            'start_year' => $startYear,
-            'end_year' => $endYear,
-            'start_date' => $entity->temporal_start,
-            'end_date' => $entity->temporal_end,
-            'duration_type' => $entity->duration_type?->value,
-            'date_method' => $entity->date_method?->value,
-            'date_confidence' => $entity->date_confidence?->value,
+            'start_date' => $range->start_date,
+            'end_date' => $range->end_date,
+            'duration_type' => $range->duration_type,
+            'date_method' => $range->date_method,
+            'date_confidence' => $range->date_confidence,
             'is_primary' => true,
         ]);
 
         return 1;
-    }
-
-    private static function extractYear(?string $temporal): ?int
-    {
-        if ($temporal === null || trim($temporal) === '') {
-            return null;
-        }
-
-        if (! preg_match('/^-?\\d+/', $temporal, $matches)) {
-            return null;
-        }
-
-        return (int) $matches[0];
     }
 }

@@ -218,10 +218,10 @@ class ImportEntitiesCommandTest extends TestCase
             'is_active' => true,
         ]);
 
-        $entity->refresh();
+        $entity->refresh()->load('primaryLocation');
         $this->assertNotNull($entity->primary_geo_ref_id);
-        $this->assertIsArray($entity->territory_geom);
-        $this->assertSame('Polygon', $entity->territory_geom['type'] ?? null);
+        $this->assertIsArray($entity->primaryLocation?->territory_geom);
+        $this->assertSame('Polygon', $entity->primaryLocation?->territory_geom['type'] ?? null);
         $this->assertDatabaseHas('entities', [
             'entity_id' => $entity->entity_id,
             'location_method' => 'ohm_nominatim',

@@ -11,19 +11,15 @@ class BackfillAliasesAction
 {
     public function __invoke(Entity $entity): int
     {
-        $aliases = $entity->alternative_names;
+        $aliases = $entity->aliases->pluck('name')->filter(fn ($n) => is_string($n) && trim($n) !== '')->all();
 
-        if (! is_array($aliases) || $aliases === []) {
+        if ($aliases === []) {
             return 0;
         }
 
         EntityAlias::query()->where('entity_id', $entity->entity_id)->delete();
 
         foreach ($aliases as $alias) {
-            if (! is_string($alias) || trim($alias) === '') {
-                continue;
-            }
-
             EntityAlias::query()->create([
                 'entity_id' => $entity->entity_id,
                 'name' => trim($alias),

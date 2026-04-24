@@ -28,6 +28,9 @@ class CreateRelationshipAction
 
         $relationship = EntityRelationship::create($modelData);
 
+        // Triggers populate start_year/end_year from temporal text; refresh to expose persisted values.
+        $relationship->refresh();
+
         ($this->createAutoSnapshot)($relationship, $data, $createdBy);
 
         return $relationship;

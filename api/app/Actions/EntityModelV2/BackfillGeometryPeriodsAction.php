@@ -13,8 +13,9 @@ class BackfillGeometryPeriodsAction
 {
     public function __invoke(Entity $entity): int
     {
-        $geom = $entity->geom;
-        $territoryGeom = $entity->territory_geom;
+        $primaryLocation = $entity->primaryLocation;
+        $geom = $primaryLocation?->geom;
+        $territoryGeom = $primaryLocation?->territory_geom;
 
         GeometryPeriod::query()
             ->where('entity_id', $entity->entity_id)
@@ -72,8 +73,9 @@ class BackfillGeometryPeriodsAction
             return $inserted;
         }
 
-        $startYear = $entity->temporal_start_year ?? $entity->temporal_end_year;
-        $endYear = $entity->temporal_end_year ?? $entity->temporal_start_year;
+        $primaryRange = $entity->primaryTemporalRange;
+        $startYear = $primaryRange?->start_year ?? $primaryRange?->end_year;
+        $endYear = $primaryRange?->end_year ?? $primaryRange?->start_year;
 
         if ($geom !== null || $territoryGeom !== null) {
             if ($startYear !== null && $endYear !== null) {
@@ -102,11 +104,18 @@ class BackfillGeometryPeriodsAction
     {
         $primaryRange = $ranges->firstWhere('is_primary', true) ?? $ranges->first();
 
-        $fallbackStart = $primaryRange?->start_year ?? $entity->temporal_start_year;
-        $fallbackEnd = $primaryRange?->end_year ?? $entity->temporal_end_year;
+        $fallbackStart = $primaryRange?->start_year ?? $entity->primaryTemporalRange?->start_year;
+        $fallbackEnd = $primaryRange?->end_year ?? $entity->primaryTemporalRange?->end_year;
 
         $relationships = EntityRelationship::query()
-            ->with(['sourceEntity', 'targetEntity'])
+            ->with([
+                'sourceEntity' => fn ($query) => $query
+                    ->withoutGlobalScopes()
+                    ->with(['primaryLocation', 'primaryTemporalRange']),
+                'targetEntity' => fn ($query) => $query
+                    ->withoutGlobalScopes()
+                    ->with(['primaryLocation', 'primaryTemporalRange']),
+            ])
             ->where(function ($query) use ($entity): void {
                 $query->where('source_entity_id', $entity->entity_id)
                     ->orWhere('target_entity_id', $entity->entity_id);
@@ -123,8 +132,8 @@ class BackfillGeometryPeriodsAction
                 ? $relationship->targetEntity
                 : $relationship->sourceEntity;
 
-            $derivedGeom = $counterparty?->geom ?? $geom;
-            $derivedTerritory = $counterparty?->territory_geom ?? $territoryGeom;
+            $derivedGeom = $counterparty?->primaryLocation?->geom ?? $geom;
+            $derivedTerritory = $counterparty?->primaryLocation?->territory_geom ?? $territoryGeom;
 
             if ($startYear === null || $endYear === null) {
                 continue;

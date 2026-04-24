@@ -30,7 +30,10 @@ class BackfillEntityModelV2Command extends Command
         $dryRun = (bool) $this->option('dry-run');
         $singleEntityId = $this->option('entity-id');
 
-        $query = Entity::query()->withoutGlobalScopes()->orderBy('entity_id');
+        $query = Entity::query()
+            ->withoutGlobalScopes()
+            ->with(['aliases', 'entityTags', 'primaryTemporalRange', 'primaryLocation'])
+            ->orderBy('entity_id');
 
         if (is_string($singleEntityId) && $singleEntityId !== '') {
             $query->where('entity_id', $singleEntityId);
@@ -48,10 +51,10 @@ class BackfillEntityModelV2Command extends Command
 
         foreach ($entities as $entity) {
             if ($dryRun) {
-                $counts['aliases'] += is_array($entity->alternative_names) ? count($entity->alternative_names) : 0;
-                $counts['tags'] += is_array($entity->tags) ? count(array_filter($entity->tags, fn ($tag) => is_string($tag) && trim($tag) !== '')) : 0;
-                $counts['temporal_ranges'] += ($entity->temporal_start !== null || $entity->temporal_end !== null || $entity->temporal_start_year !== null || $entity->temporal_end_year !== null) ? 1 : 0;
-                $counts['locations'] += ($entity->location_name !== null || $entity->geom !== null || $entity->territory_geom !== null) ? 1 : 0;
+                $counts['aliases'] += $entity->aliases->count();
+                $counts['tags'] += $entity->entityTags->count();
+                $counts['temporal_ranges'] += ($entity->primaryTemporalRange !== null) ? 1 : 0;
+                $counts['locations'] += ($entity->primaryLocation !== null) ? 1 : 0;
 
                 continue;
             }

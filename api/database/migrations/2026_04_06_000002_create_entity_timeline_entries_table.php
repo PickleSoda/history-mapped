@@ -60,7 +60,7 @@ return new class extends Migration
         DB::statement('CREATE INDEX ete_entity_relationship_type_idx ON entity_timeline_entries (entity_id, relationship_type)');
         DB::statement('CREATE INDEX ete_related_entity_id_idx ON entity_timeline_entries (related_entity_id)');
         DB::statement("CREATE INDEX ete_active_range_gist_idx
-            ON entity_timeline_entries USING GIST (int4range(start_year, COALESCE(end_year, 2147483647), '[]'))");
+            ON entity_timeline_entries USING GIST (int4range(start_year, CASE WHEN end_year IS NULL THEN NULL ELSE end_year + 1 END, '[)'))");
     }
 
     public function down(): void

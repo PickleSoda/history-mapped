@@ -202,9 +202,9 @@ class EntityGeoRefApiTest extends TestCase
             ->assertJsonPath('data.source_meta.display_name', 'Roman Empire')
             ->assertJsonPath('data.external_tags.historic', 'empire');
 
-        $entity->refresh();
+        $entity->refresh()->load('primaryLocation');
 
-        $this->assertIsArray($entity->territory_geom);
-        $this->assertSame('Polygon', $entity->territory_geom['type'] ?? null);
+        $this->assertIsArray($entity->primaryLocation?->territory_geom);
+        $this->assertSame('Polygon', $entity->primaryLocation?->territory_geom['type'] ?? null);
     }
 }
