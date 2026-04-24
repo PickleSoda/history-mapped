@@ -50,7 +50,10 @@ class MapEntitiesByYearAction
             )
             ->join('entities', 'entities.entity_id', '=', 'geometry_periods.entity_id')
             ->where('geometry_periods.start_year', '<=', $year)
-            ->where('geometry_periods.end_year', '>=', $year)
+            ->where(function ($q) use ($year): void {
+                $q->whereNull('geometry_periods.end_year')
+                    ->orWhere('geometry_periods.end_year', '>=', $year);
+            })
             ->where(function ($spatialTypeQuery): void {
                 $spatialTypeQuery
                     ->whereNotNull('geometry_periods.territory_geom')

@@ -64,7 +64,10 @@ class MapEntitiesAction
             )
             ->join('entities', 'entities.entity_id', '=', 'geometry_periods.entity_id')
             ->where('geometry_periods.start_year', '<=', $year)
-            ->where('geometry_periods.end_year', '>=', $year)
+            ->where(function ($q) use ($year): void {
+                $q->whereNull('geometry_periods.end_year')
+                    ->orWhere('geometry_periods.end_year', '>=', $year);
+            })
             ->where(function ($spatialTypeQuery): void {
                 $spatialTypeQuery
                     ->whereNotNull('geometry_periods.territory_geom')
@@ -106,7 +109,10 @@ class MapEntitiesAction
         // Optional temporal range filter (overrides single-year filter when provided)
         if (isset($filters['temporal_start'], $filters['temporal_end'])) {
             $query->where('geometry_periods.start_year', '<=', (int) $filters['temporal_end'])
-                ->where('geometry_periods.end_year', '>=', (int) $filters['temporal_start']);
+                ->where(function ($q) use ($filters): void {
+                    $q->whereNull('geometry_periods.end_year')
+                        ->orWhere('geometry_periods.end_year', '>=', (int) $filters['temporal_start']);
+                });
         }
 
         // Filter by spatial bbox on border geometry columns

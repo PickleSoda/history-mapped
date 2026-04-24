@@ -351,4 +351,91 @@ class ImportBordersCommandTest extends TestCase
 
         return $path;
     }
+
+    public function test_command_updates_entity_temporal_bounds_from_imported_min_max(): void
+    {
+        // First import: bounded temporal range.
+        $record1 = $this->makeRecord([
+            'wikidata_id' => 'Q36',
+            'name' => 'Poland',
+            'temporal_start' => '1989',
+            'temporal_end' => '1991',
+            '_ohm_relation_id' => '2870169',
+            '_geometry_periods' => [
+                [
+                    'ohm_relation_id' => '2870169',
+                    'external_type' => 'relation',
+                    'start_year' => 1989,
+                    'end_year' => 1991,
+                    'start_date' => '1989',
+                    'end_date' => '1991',
+                    'geojson' => [
+                        'type' => 'MultiPolygon',
+                        'coordinates' => [[[[0, 0], [1, 0], [1, 1], [0, 0]]]],
+                    ],
+                    'label' => 'Poland (1989-1991)',
+                    'external_tags' => ['name' => 'Poland'],
+                ],
+            ],
+        ]);
+
+        $path1 = $this->writeTemp(json_encode($record1)."\n");
+
+        $this->artisan('pipeline:import-borders', [
+            'path' => $path1,
+            '--sync' => true,
+        ])->assertExitCode(0);
+
+        $entity = Entity::query()->where('wikidata_id', 'Q36')->firstOrFail();
+        $periods = GeometryPeriod::query()->where('entity_id', $entity->entity_id)->get();
+
+        $this->assertCount(1, $periods);
+        $this->assertSame(1989, $periods[0]->start_year);
+        $this->assertSame(1991, $periods[0]->end_year);
+        $this->assertSame('1989', $entity->temporal_start);
+        $this->assertSame('1991', $entity->temporal_end);
+        $this->assertSame(1989, $entity->temporal_start_year);
+        $this->assertSame(1991, $entity->temporal_end_year);
+
+        // Second import has a later open-ended period with a gap; entity range should still become min/max.
+        $record2 = $this->makeRecord([
+            'wikidata_id' => 'Q36',
+            'name' => 'Poland',
+            'temporal_start' => '1995',
+            'temporal_end' => null,
+            '_ohm_relation_id' => '2870169',
+            '_geometry_periods' => [
+                [
+                    'ohm_relation_id' => '2870169',
+                    'external_type' => 'relation',
+                    'start_year' => 1995,
+                    'end_year' => null,
+                    'start_date' => '1995',
+                    'end_date' => null,
+                    'geojson' => [
+                        'type' => 'MultiPolygon',
+                        'coordinates' => [[[[0, 0], [1, 0], [1, 1], [0, 0]]]],
+                    ],
+                    'label' => 'Poland (1995-present)',
+                    'external_tags' => ['name' => 'Poland'],
+                ],
+            ],
+        ]);
+
+        $path2 = $this->writeTemp(json_encode($record2)."\n");
+
+        $this->artisan('pipeline:import-borders', [
+            'path' => $path2,
+            '--sync' => true,
+        ])->assertExitCode(0);
+
+        $entity = Entity::query()->where('wikidata_id', 'Q36')->firstOrFail();
+        $periods = GeometryPeriod::query()->where('entity_id', $entity->entity_id)->get();
+
+        $this->assertCount(2, $periods, 'Geometry periods must remain unchanged');
+        $this->assertSame('1989', $entity->temporal_start);
+        $this->assertNull($entity->temporal_end);
+        $this->assertSame(1989, $entity->temporal_start_year);
+        $this->assertNull($entity->temporal_end_year);
+    }
 }
