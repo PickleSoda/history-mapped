@@ -15,6 +15,7 @@ use App\Enums\GeoRefProvider;
 use App\Enums\GeoRefRetrievalMethod;
 use App\Models\Entity;
 use App\Models\EntityGeoRef;
+use App\Models\EntityTemporalRange;
 use App\Models\GeometryPeriod;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -80,6 +81,8 @@ class ImportBorderEntityJob implements ShouldQueue
             } else {
                 Log::info("[Borders] Skipped duplicate: {$name}");
             }
+
+            $this->syncEntityTemporalBounds($entity, $geometryPeriods);
 
             $persistedPeriods = $this->upsertGeometryPeriods($entity, $geometryPeriods, $this->batchId);
 
@@ -342,5 +345,144 @@ class ImportBorderEntityJob implements ShouldQueue
         }
 
         return $persisted;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $geometryPeriods
+     */
+    private function syncEntityTemporalBounds(Entity $entity, array $geometryPeriods): void
+    {
+        $importedBounds = $this->extractImportedTemporalBounds($geometryPeriods);
+        if ($importedBounds === null) {
+            return;
+        }
+
+        $primaryRange = $entity->primaryTemporalRange()->first();
+
+        $startYear = $importedBounds['start_year'];
+        $startDate = $importedBounds['start_date'];
+
+        if ($primaryRange?->start_year !== null && $primaryRange->start_year < $startYear) {
+            $startYear = $primaryRange->start_year;
+            $startDate = is_string($primaryRange->start_date) && $primaryRange->start_date !== ''
+                ? $primaryRange->start_date
+                : (string) $primaryRange->start_year;
+        }
+
+        $hasOpenEnded = $importedBounds['is_open_ended'] || ($primaryRange !== null && $primaryRange->end_year === null);
+
+        $endYear = $hasOpenEnded ? null : $importedBounds['end_year'];
+        $endDate = $hasOpenEnded ? null : $importedBounds['end_date'];
+
+        if (! $hasOpenEnded && $primaryRange?->end_year !== null && ($endYear === null || $primaryRange->end_year > $endYear)) {
+            $endYear = $primaryRange->end_year;
+            $endDate = is_string($primaryRange->end_date) && $primaryRange->end_date !== ''
+                ? $primaryRange->end_date
+                : (string) $primaryRange->end_year;
+        }
+
+        EntityTemporalRange::query()->updateOrCreate(
+            [
+                'entity_id' => $entity->entity_id,
+                'is_primary' => true,
+            ],
+            [
+                'range_type' => 'primary',
+                'start_year' => $startYear,
+                'end_year' => $endYear,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+            ],
+        );
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $geometryPeriods
+     * @return array{start_year: int, end_year: int|null, start_date: string, end_date: string|null, is_open_ended: bool}|null
+     */
+    private function extractImportedTemporalBounds(array $geometryPeriods): ?array
+    {
+        $startYear = null;
+        $startDate = null;
+        $endYear = null;
+        $endDate = null;
+        $isOpenEnded = false;
+
+        foreach ($geometryPeriods as $period) {
+            $periodStartYear = $this->parseYear($period['start_year'] ?? $period['start_date'] ?? null);
+            if ($periodStartYear === null) {
+                continue;
+            }
+
+            $periodStartDate = is_string($period['start_date'] ?? null) && $period['start_date'] !== ''
+                ? $period['start_date']
+                : (string) $periodStartYear;
+
+            if ($startYear === null || $periodStartYear < $startYear) {
+                $startYear = $periodStartYear;
+                $startDate = $periodStartDate;
+            }
+
+            $hasExplicitOpenEnd = (array_key_exists('end_year', $period) && $period['end_year'] === null)
+                || (array_key_exists('end_date', $period) && $period['end_date'] === null);
+            if ($hasExplicitOpenEnd) {
+                $isOpenEnded = true;
+
+                continue;
+            }
+
+            $periodEndYear = $this->parseYear($period['end_year'] ?? $period['end_date'] ?? null);
+            if ($periodEndYear === null) {
+                continue;
+            }
+
+            $periodEndDate = is_string($period['end_date'] ?? null) && $period['end_date'] !== ''
+                ? $period['end_date']
+                : (string) $periodEndYear;
+
+            if ($endYear === null || $periodEndYear > $endYear) {
+                $endYear = $periodEndYear;
+                $endDate = $periodEndDate;
+            }
+        }
+
+        if ($startYear === null || $startDate === null) {
+            return null;
+        }
+
+        if ($isOpenEnded) {
+            return [
+                'start_year' => $startYear,
+                'end_year' => null,
+                'start_date' => $startDate,
+                'end_date' => null,
+                'is_open_ended' => true,
+            ];
+        }
+
+        return [
+            'start_year' => $startYear,
+            'end_year' => $endYear,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'is_open_ended' => false,
+        ];
+    }
+
+    private function parseYear(mixed $value): ?int
+    {
+        if (is_int($value)) {
+            return $value;
+        }
+
+        if (! is_string($value) || trim($value) === '') {
+            return null;
+        }
+
+        if (preg_match('/^-?\d+/', trim($value), $matches) !== 1) {
+            return null;
+        }
+
+        return (int) $matches[0];
     }
 }
