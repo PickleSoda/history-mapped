@@ -68,8 +68,6 @@ function entityToFormData(entity: EntityDetail): EntityFormData {
                 : '',
         icon_class: entity.icon_class ?? '',
         entity_color: entity.entity_color ?? '',
-        parent_entity_id: entity.parent_entity_id ?? '',
-        successor_entity_id: entity.successor_entity_id ?? '',
         ...attrFields,
     };
 }
@@ -307,6 +305,7 @@ export default function EntityEdit({ entity, formOptions }: Props) {
                                             ? [period.geom ?? null, period.territory_geom ?? null]
                                             : [],
                                     );
+
                                     if (period) {
                                         setMapOpen(true);
                                     }

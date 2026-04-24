@@ -33,6 +33,7 @@ class UpdateRelationshipRequest extends FormRequest
             'temporal_end' => ['sometimes', 'nullable', 'string', 'max:50'],
             'description' => ['sometimes', 'nullable', 'string', 'max:2000'],
             'confidence' => ['sometimes', 'nullable', 'string', Rule::enum(ConfidenceLevel::class)],
+            'derive_geometry_period' => ['sometimes', 'boolean'],
         ];
     }
 }

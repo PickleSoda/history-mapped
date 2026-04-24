@@ -50,8 +50,6 @@ readonly class EntityData
         public ?LocationResolutionMethod $locationMethod = null,
         public ?array $geojson = null,
         public ?array $territoryGeojson = null,
-        public ?string $parentEntityId = null,
-        public ?string $successorEntityId = null,
         public ?VerificationStatus $verificationStatus = null,
         public ?ConfidenceLevel $confidence = null,
         public ?int $displayPriority = null,
@@ -97,8 +95,6 @@ readonly class EntityData
             locationMethod: isset($validated['location_method']) ? LocationResolutionMethod::from($validated['location_method']) : null,
             geojson: $validated['geojson'] ?? null,
             territoryGeojson: $validated['territory_geojson'] ?? null,
-            parentEntityId: $validated['parent_entity_id'] ?? null,
-            successorEntityId: $validated['successor_entity_id'] ?? null,
             verificationStatus: isset($validated['verification_status']) ? VerificationStatus::from($validated['verification_status']) : null,
             confidence: isset($validated['confidence']) ? ConfidenceLevel::from($validated['confidence']) : null,
             displayPriority: isset($validated['display_priority']) ? (int) $validated['display_priority'] : null,
@@ -138,8 +134,6 @@ readonly class EntityData
             'location_name' => $this->locationName,
             'location_confidence' => $this->locationConfidence?->value,
             'location_method' => $this->locationMethod?->value,
-            'parent_entity_id' => $this->parentEntityId,
-            'successor_entity_id' => $this->successorEntityId,
             'verification_status' => $this->verificationStatus?->value,
             'confidence' => $this->confidence?->value,
             'display_priority' => $this->displayPriority,
@@ -151,14 +145,6 @@ readonly class EntityData
             if ($value !== null) {
                 $data[$key] = $value;
             }
-        }
-
-        // Derive integer year columns from temporal text values for sorting/indexing.
-        if ($this->temporalStart !== null) {
-            $data['temporal_start_year'] = self::extractYear($this->temporalStart);
-        }
-        if ($this->temporalEnd !== null) {
-            $data['temporal_end_year'] = self::extractYear($this->temporalEnd);
         }
 
         return $data;

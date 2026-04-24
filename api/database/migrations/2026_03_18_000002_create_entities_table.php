@@ -13,12 +13,9 @@ return new class extends Migration
      * Run the migrations.
      *
      * Creates the main `entities` table for the Historical Atlas platform.
-     * All 30 entity types are stored in a single table (STI pattern) with
+     * All entity types are stored in a single table (STI pattern) with
      * type-specific data in a JSONB `attributes` column.
-     *
-     * Enum-typed columns are added via DB::statement() because the PG enum
-     * types were created in a previous migration and cannot be expressed
-     * through the Laravel schema builder.
+     * Includes all indexes (B-tree, GIN, HNSW, expression) in final form.
      */
     public function up(): void
     {
@@ -30,88 +27,39 @@ return new class extends Migration
             // Core identity
             $table->uuid('entity_id')->primary()->default(DB::raw('gen_random_uuid()'));
             $table->text('name');
-            $table->text('alternative_names')->nullable(); // placeholder, replaced below
             $table->text('wikidata_id')->nullable()->index();
-
-            // Spatial (PostGIS macros)
-            $table->geometry('geom')->nullable();
-            $table->geometry('territory_geom')->nullable();
-            $table->text('location_name')->nullable();
-
-            // Temporal
-            $table->text('temporal_start')->nullable()->index();
-            $table->text('temporal_end')->nullable()->index();
-            $table->text('date_raw')->nullable();
 
             // Content
             $table->text('summary')->nullable();
             $table->text('significance')->nullable();
-            $table->text('confidence_notes')->nullable();
-            $table->text('tags')->nullable();        // placeholder, replaced below
             $table->integer('impact_score')->nullable()->index();
             $table->jsonb('attributes')->default('{}');
-
-            // Hierarchy
-            $table->uuid('parent_entity_id')->nullable()->index();
-            $table->uuid('successor_entity_id')->nullable()->index();
 
             // Verification
             $table->unsignedBigInteger('reviewer_id')->nullable();
             $table->timestamp('review_date')->nullable();
-            $table->text('validation_flags')->nullable(); // placeholder, replaced below
 
-            // Sources / Media
+            // Sources
             $table->jsonb('source_citations')->nullable();
-            $table->jsonb('media_refs')->nullable();
 
             // Embeddings (pgvector)
             $table->vector('embedding', 1536)->nullable();
-            $table->text('embedding_version')->nullable();
 
             // Display
             $table->integer('display_priority')->nullable();
-            $table->text('entity_color')->nullable();
-
-            // Computed / cached
-            $table->jsonb('confidence_breakdown')->nullable();
-            $table->jsonb('relationship_summary')->nullable();
-            $table->integer('source_diversity_score')->nullable();
-            $table->text('temporal_display_range')->nullable();
-            $table->integer('nearby_entity_count')->nullable();
-            $table->integer('cluster_id')->nullable();
-            $table->text('era_label')->nullable();
 
             // Audit
             $table->text('created_by')->nullable();
             $table->timestamps();
 
-            // reviewer FK (non-self-referencing — safe here)
+            // reviewer FK
             $table->foreign('reviewer_id')
                 ->references('id')
                 ->on('users');
         });
 
-        // Self-referencing FKs must be added AFTER the table (and its PK) exist.
-        Schema::table('entities', function (Blueprint $table) {
-            $table->foreign('parent_entity_id')
-                ->references('entity_id')
-                ->on('entities');
-
-            $table->foreign('successor_entity_id')
-                ->references('entity_id')
-                ->on('entities');
-        });
-
         // ──────────────────────────────────────────────
-        // 2. Replace placeholder columns with proper PG array types
-        // ──────────────────────────────────────────────
-
-        DB::statement('ALTER TABLE entities ALTER COLUMN alternative_names TYPE text[] USING NULL');
-        DB::statement('ALTER TABLE entities ALTER COLUMN tags TYPE text[] USING NULL');
-        DB::statement('ALTER TABLE entities ALTER COLUMN validation_flags TYPE text[] USING NULL');
-
-        // ──────────────────────────────────────────────
-        // 3. Add columns that use PostgreSQL enum types
+        // 2. Add columns that use PostgreSQL enum types
         // ──────────────────────────────────────────────
 
         // Core identity
@@ -135,7 +83,7 @@ return new class extends Migration
         DB::statement("ALTER TABLE entities ADD COLUMN icon_class icon_class");
 
         // ──────────────────────────────────────────────
-        // 4. Indexes
+        // 3. Indexes
         // ──────────────────────────────────────────────
 
         // B-tree indexes on enum columns
@@ -143,15 +91,10 @@ return new class extends Migration
         DB::statement('CREATE INDEX entities_entity_group_idx ON entities (entity_group)');
         DB::statement('CREATE INDEX entities_verification_status_idx ON entities (verification_status)');
 
-        // GIST spatial indexes
-        DB::statement('CREATE INDEX entities_geom_gist_idx ON entities USING gist (geom)');
-        DB::statement('CREATE INDEX entities_territory_geom_gist_idx ON entities USING gist (territory_geom)');
-
         // HNSW vector index for cosine similarity search
         DB::statement('CREATE INDEX entities_embedding_hnsw_idx ON entities USING hnsw (embedding vector_cosine_ops)');
 
         // GIN indexes
-        DB::statement('CREATE INDEX entities_tags_gin_idx ON entities USING gin (tags)');
         DB::statement('CREATE INDEX entities_attributes_gin_idx ON entities USING gin (attributes)');
         DB::statement('CREATE INDEX entities_source_citations_gin_idx ON entities USING gin (source_citations)');
 
@@ -160,7 +103,54 @@ return new class extends Migration
 
         // B-tree composite indexes
         DB::statement('CREATE INDEX entities_type_status_idx ON entities (entity_type, verification_status)');
-        DB::statement('CREATE INDEX entities_temporal_range_idx ON entities (temporal_start, temporal_end)');
+
+        // ──────────────────────────────────────────────
+        // 4. JSONB expression indexes for admin-panel filters
+        // ──────────────────────────────────────────────
+
+        DB::statement("CREATE INDEX entities_attr_political_subtype_idx
+            ON entities ((attributes->>'political_subtype'))
+            WHERE entity_type = 'political_entity'");
+
+        DB::statement("CREATE INDEX entities_attr_government_type_idx
+            ON entities ((attributes->>'government_type'))
+            WHERE entity_type = 'political_entity'");
+
+        DB::statement("CREATE INDEX entities_attr_settlement_subtype_idx
+            ON entities ((attributes->>'settlement_subtype'))
+            WHERE entity_type = 'city'");
+
+        DB::statement("CREATE INDEX entities_attr_unit_subtype_idx
+            ON entities ((attributes->>'unit_subtype'))
+            WHERE entity_type = 'military_unit'");
+
+        DB::statement("CREATE INDEX entities_attr_monument_subtype_idx
+            ON entities ((attributes->>'monument_subtype'))
+            WHERE entity_type = 'infrastructure_monument'");
+
+        DB::statement("CREATE INDEX entities_attr_war_subtype_idx
+            ON entities ((attributes->>'war_subtype'))
+            WHERE entity_type = 'event_war'");
+
+        DB::statement("CREATE INDEX entities_attr_battle_outcome_idx
+            ON entities ((attributes->>'outcome'))
+            WHERE entity_type = 'event_battle'");
+
+        DB::statement("CREATE INDEX entities_attr_route_subtype_idx
+            ON entities ((attributes->>'route_subtype'))
+            WHERE entity_type = 'trade_route'");
+
+        DB::statement("CREATE INDEX entities_attr_resource_category_idx
+            ON entities ((attributes->>'resource_category'))
+            WHERE entity_type = 'natural_resource'");
+
+        DB::statement("CREATE INDEX entities_attr_epidemic_subtype_idx
+            ON entities ((attributes->>'epidemic_subtype'))
+            WHERE entity_type = 'epidemic_disease'");
+
+        DB::statement("CREATE INDEX entities_attr_person_gender_idx
+            ON entities ((attributes->>'gender'))
+            WHERE entity_type = 'person'");
     }
 
     /**

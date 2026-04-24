@@ -604,8 +604,6 @@ export type EntityFormData = {
     display_priority: string;
     icon_class: string;
     entity_color: string;
-    parent_entity_id: string;
-    successor_entity_id: string;
     /** Type-specific attribute fields, prefixed with "attr_" */
     [key: `attr_${string}`]: string;
 };
@@ -636,8 +634,6 @@ export function defaultFormData(): EntityFormData {
         display_priority: '',
         icon_class: '',
         entity_color: '',
-        parent_entity_id: '',
-        successor_entity_id: '',
     };
 }
 
@@ -3113,41 +3109,6 @@ export default function EntityForm({
                         onChange={(v) => onChange('location_method', v)}
                         options={options.locationMethods}
                         placeholder="Select method"
-                    />
-                </FieldWrapper>
-            </div>
-
-            {/* ── Hierarchy ── */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <SectionHeading>Hierarchy</SectionHeading>
-
-                <FieldWrapper
-                    label="Parent Entity ID"
-                    htmlFor="parent_entity_id"
-                    error={errors.parent_entity_id}
-                >
-                    <Input
-                        id="parent_entity_id"
-                        value={data.parent_entity_id}
-                        onChange={(e) =>
-                            onChange('parent_entity_id', e.target.value)
-                        }
-                        placeholder="UUID of strict parent entity"
-                    />
-                </FieldWrapper>
-
-                <FieldWrapper
-                    label="Successor Entity ID"
-                    htmlFor="successor_entity_id"
-                    error={errors.successor_entity_id}
-                >
-                    <Input
-                        id="successor_entity_id"
-                        value={data.successor_entity_id}
-                        onChange={(e) =>
-                            onChange('successor_entity_id', e.target.value)
-                        }
-                        placeholder="UUID of direct successor entity"
                     />
                 </FieldWrapper>
             </div>

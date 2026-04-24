@@ -16,7 +16,7 @@ return new class extends Migration
             $table->uuid('entity_id');
             $table->text('period_type');
             $table->integer('start_year');
-            $table->integer('end_year');
+            $table->integer('end_year')->nullable();
             $table->geometry('geom')->nullable();
             $table->geometry('territory_geom')->nullable();
             $table->text('description')->nullable();
@@ -45,7 +45,7 @@ return new class extends Migration
         DB::statement('ALTER TABLE geometry_periods ADD COLUMN confidence confidence_level');
 
         DB::statement('ALTER TABLE geometry_periods ADD CONSTRAINT gp_valid_year_range
-            CHECK (start_year <= end_year)');
+            CHECK (end_year IS NULL OR start_year <= end_year)');
 
         DB::statement('ALTER TABLE geometry_periods ADD CONSTRAINT gp_has_geometry
             CHECK (geom IS NOT NULL OR territory_geom IS NOT NULL)');

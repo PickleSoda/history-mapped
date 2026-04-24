@@ -214,8 +214,6 @@ class EntityController extends Controller
             'location_name' => $entity->location_name,
             'location_confidence' => $entity->location_confidence?->value,
             'location_method' => $entity->location_method?->value,
-            'parent_entity_id' => $entity->parent_entity_id,
-            'successor_entity_id' => $entity->successor_entity_id,
             'verification_status' => $entity->verification_status?->value,
             'confidence' => $entity->confidence?->value,
             'confidence_notes' => $entity->attributes['confidence_notes'] ?? null,

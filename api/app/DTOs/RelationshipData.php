@@ -24,6 +24,7 @@ readonly class RelationshipData
         public ?string $description = null,
         public ?ConfidenceLevel $confidence = null,
         public ?array $sourceCitations = null,
+        public bool $deriveGeometryPeriod = true,
     ) {}
 
     /**
@@ -42,6 +43,7 @@ readonly class RelationshipData
             description: $validated['description'] ?? null,
             confidence: isset($validated['confidence']) ? ConfidenceLevel::from($validated['confidence']) : null,
             sourceCitations: $validated['source_citations'] ?? null,
+            deriveGeometryPeriod: isset($validated['derive_geometry_period']) ? (bool) $validated['derive_geometry_period'] : true,
         );
     }
 
@@ -71,6 +73,9 @@ readonly class RelationshipData
                 $data[$key] = $value;
             }
         }
+
+        // Always include the boolean toggle (false is a valid value)
+        $data['derive_geometry_period'] = $this->deriveGeometryPeriod;
 
         return $data;
     }

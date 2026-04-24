@@ -59,10 +59,6 @@ class EntityResource extends JsonResource
                 fn () => $this->territory_geom,
             ),
 
-            // Hierarchy
-            'parent_entity_id' => $this->parent_entity_id,
-            'successor_entity_id' => $this->successor_entity_id,
-
             // Verification
             'verification_status' => $this->verification_status?->value,
             'confidence' => $this->confidence?->value,

@@ -51,6 +51,13 @@ return new class extends Migration
             $table->index('source_entity_id');
             $table->index('target_entity_id');
             // relationship_type index added via DB::statement below
+
+            // Temporal year range
+            $table->integer('start_year')->nullable();
+            $table->integer('end_year')->nullable();
+
+            // Geometry period derivation toggle
+            $table->boolean('derive_geometry_period')->default(true);
         });
 
         // ── PG enum columns ──────────────────────────────
@@ -82,6 +89,10 @@ return new class extends Migration
             CREATE INDEX relationships_target_entity_id_relationship_type_index
                 ON relationships (target_entity_id, relationship_type)
         ");
+
+        DB::statement('CREATE INDEX relationships_start_year_idx ON relationships (start_year)');
+        DB::statement('CREATE INDEX relationships_end_year_idx ON relationships (end_year)');
+        DB::statement('CREATE INDEX relationships_year_range_idx ON relationships (start_year, end_year)');
     }
 
     /**
