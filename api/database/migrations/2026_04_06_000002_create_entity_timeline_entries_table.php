@@ -16,7 +16,7 @@ return new class extends Migration
             $table->uuid('entity_id');
             $table->text('entry_kind');
             $table->integer('start_year');
-            $table->integer('end_year');
+            $table->integer('end_year')->nullable();
             $table->text('title');
             $table->text('description')->nullable();
             $table->uuid('location_entity_id')->nullable();
@@ -24,6 +24,12 @@ return new class extends Migration
             $table->geometry('territory_geom')->nullable();
             $table->text('source_table');
             $table->uuid('source_id');
+
+            // Relationship metadata (nullable — only set for relationship entries)
+            $table->text('relationship_type')->nullable();
+            $table->uuid('related_entity_id')->nullable();
+            $table->text('related_entity_name')->nullable();
+
             $table->timestamp('derived_at')->useCurrent();
             $table->timestamps();
 
@@ -36,16 +42,23 @@ return new class extends Migration
                 ->references('entity_id')
                 ->on('entities')
                 ->nullOnDelete();
+
+            $table->foreign('related_entity_id')
+                ->references('entity_id')
+                ->on('entities')
+                ->nullOnDelete();
         });
 
         DB::statement('ALTER TABLE entity_timeline_entries ADD CONSTRAINT ete_valid_year_range
-            CHECK (start_year <= end_year)');
+            CHECK (end_year IS NULL OR start_year <= end_year)');
 
         DB::statement('CREATE INDEX ete_entity_year_idx ON entity_timeline_entries (entity_id, start_year, end_year)');
         DB::statement('CREATE INDEX ete_source_idx ON entity_timeline_entries (source_table, source_id)');
         DB::statement('CREATE INDEX ete_entry_kind_idx ON entity_timeline_entries (entry_kind)');
         DB::statement('CREATE INDEX ete_geom_gist_idx ON entity_timeline_entries USING GIST (geom)');
         DB::statement('CREATE INDEX ete_territory_geom_gist_idx ON entity_timeline_entries USING GIST (territory_geom)');
+        DB::statement('CREATE INDEX ete_entity_relationship_type_idx ON entity_timeline_entries (entity_id, relationship_type)');
+        DB::statement('CREATE INDEX ete_related_entity_id_idx ON entity_timeline_entries (related_entity_id)');
     }
 
     public function down(): void

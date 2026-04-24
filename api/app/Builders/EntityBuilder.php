@@ -206,18 +206,6 @@ class EntityBuilder extends Builder
         return $this->where('name', 'ILIKE', '%' . $term . '%');
     }
 
-    // ── Hierarchy ────────────────────────────────────────────
-
-    public function childrenOf(string $parentEntityId): self
-    {
-        return $this->where('parent_entity_id', $parentEntityId);
-    }
-
-    public function roots(): self
-    {
-        return $this->whereNull('parent_entity_id');
-    }
-
     // ── Attribute (JSONB) Queries ─────────────────────────────
 
     /**

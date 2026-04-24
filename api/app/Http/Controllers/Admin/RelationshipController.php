@@ -12,6 +12,7 @@ use App\Enums\RelationshipType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreRelationshipRequest;
 use App\Http\Requests\Admin\UpdateRelationshipRequest;
+use App\Jobs\RebuildEntityTimelineJob;
 use App\Models\Entity;
 use App\Models\EntityRelationship;
 use App\Models\GeometryPeriod;
@@ -25,15 +26,6 @@ use Illuminate\Http\JsonResponse;
  */
 class RelationshipController extends Controller
 {
-    /** @var list<string> */
-    private const AUTO_PRESENCE_TYPES = [
-        'fought_at',
-        'signed_by',
-        'born_in',
-        'died_in',
-        'resided_in',
-    ];
-
     /**
      * List all relationships (outgoing + incoming) for an entity.
      */
@@ -89,6 +81,14 @@ class RelationshipController extends Controller
         $data = RelationshipData::fromArray($validated);
         $relationship = $createRelationship($data, (string) $request->user()->id);
 
+        $this->syncDerivedPresencePeriods(
+            $relationship,
+            app(CreateDerivedPresencePeriodAction::class),
+            (string) $request->user()->id,
+        );
+
+        RebuildEntityTimelineJob::dispatch($relationship->source_entity_id);
+
         $relationship->load([
             'targetEntity' => fn ($query) => $query
                 ->withoutGlobalScopes()
@@ -119,7 +119,10 @@ class RelationshipController extends Controller
             abort(404);
         }
 
+        $sourceEntityId = $relationship->source_entity_id;
         $relationship->delete();
+
+        RebuildEntityTimelineJob::dispatch($sourceEntityId);
 
         return response()->json(null, 204);
     }
@@ -140,7 +143,7 @@ class RelationshipController extends Controller
         $validated = $request->validated();
         $updates = [];
 
-        foreach (['target_entity_id', 'relationship_type', 'temporal_start', 'temporal_end', 'description', 'confidence'] as $field) {
+        foreach (['target_entity_id', 'relationship_type', 'temporal_start', 'temporal_end', 'description', 'confidence', 'derive_geometry_period'] as $field) {
             if (array_key_exists($field, $validated)) {
                 $updates[$field] = $validated[$field];
             }
@@ -162,6 +165,8 @@ class RelationshipController extends Controller
             $createDerivedPresencePeriod,
             (string) $request->user()->id,
         );
+
+        RebuildEntityTimelineJob::dispatch($relationship->source_entity_id);
 
         $relationship->load([
             'targetEntity' => fn ($query) => $query
@@ -220,6 +225,7 @@ class RelationshipController extends Controller
                 'geojson' => $relatedEntity->geom,
                 'territory_geojson' => $relatedEntity->territory_geom,
             ] : null,
+            'derive_geometry_period' => (bool) $relationship->derive_geometry_period,
             'created_at' => $relationship->created_at?->toISOString(),
         ];
     }
@@ -246,13 +252,7 @@ class RelationshipController extends Controller
             ->where('relationship_id', $relationship->relationship_id)
             ->where('provenance_mode', 'derived');
 
-        $typeValue = $relationship->relationship_type instanceof RelationshipType
-            ? $relationship->relationship_type->value
-            : (string) $relationship->relationship_type;
-
-        $isAutoPresenceType = in_array($typeValue, self::AUTO_PRESENCE_TYPES, true);
-
-        if (! $isAutoPresenceType) {
+        if (! $relationship->derive_geometry_period) {
             $linkedDerivedPeriods->delete();
 
             return;
@@ -277,6 +277,10 @@ class RelationshipController extends Controller
             return;
         }
 
+        $typeValue = $relationship->relationship_type instanceof RelationshipType
+            ? $relationship->relationship_type->value
+            : (string) $relationship->relationship_type;
+
         $data = new RelationshipData(
             sourceEntityId: $relationship->source_entity_id,
             targetEntityId: $relationship->target_entity_id,
@@ -286,6 +290,7 @@ class RelationshipController extends Controller
             description: $relationship->description,
             confidence: $relationship->confidence,
             sourceCitations: $relationship->source_citations,
+            deriveGeometryPeriod: true,
         );
 
         $createDerivedPresencePeriod($relationship, $data, $userId);

@@ -33,8 +33,6 @@ use Pgvector\Laravel\Vector;
     'attributes',
     'impact_score',
     'wikidata_id',
-    'parent_entity_id',
-    'successor_entity_id',
     'verification_status',
     'confidence',
     'display_priority',
@@ -96,30 +94,6 @@ class Entity extends Model
     }
 
     // ── Relationships ────────────────────────────────────────
-
-    /** @return BelongsTo<Entity, $this> */
-    public function parent(): BelongsTo
-    {
-        return $this->belongsTo(Entity::class, 'parent_entity_id', 'entity_id');
-    }
-
-    /** @return HasMany<Entity, $this> */
-    public function children(): HasMany
-    {
-        return $this->hasMany(Entity::class, 'parent_entity_id', 'entity_id');
-    }
-
-    /** @return BelongsTo<Entity, $this> */
-    public function successor(): BelongsTo
-    {
-        return $this->belongsTo(Entity::class, 'successor_entity_id', 'entity_id');
-    }
-
-    /** @return HasOne<Entity, $this> */
-    public function predecessor(): HasOne
-    {
-        return $this->hasOne(Entity::class, 'successor_entity_id', 'entity_id');
-    }
 
     /** @return BelongsTo<User, $this> */
     public function reviewer(): BelongsTo

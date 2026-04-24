@@ -90,8 +90,6 @@ export type EntityDetail = {
     location_name: string | null;
     location_confidence: ConfidenceLevel | null;
     location_method: string | null;
-    parent_entity_id: string | null;
-    successor_entity_id: string | null;
     verification_status: VerificationStatus | null;
     confidence: ConfidenceLevel | null;
     confidence_notes: string | null;
@@ -214,6 +212,7 @@ export type Relationship = {
     description: string | null;
     confidence: ConfidenceLevel | null;
     direction: 'outgoing' | 'incoming';
+    derive_geometry_period: boolean;
     related_entity: RelatedEntitySummary | null;
     created_at: string | null;
 };

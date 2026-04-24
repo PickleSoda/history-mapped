@@ -135,19 +135,13 @@ const CONFIDENCE_OPTIONS: Array<{ value: ConfidenceLevel; label: string }> = [
     { value: 'unresolved', label: 'Unresolved' },
 ];
 
-/** Relationship types that trigger derived presence geometry creation. */
+/** Relationship types that auto-enable derived presence geometry by default. */
 const AUTO_PRESENCE_TYPES = new Set([
-    'signed_by',
-    'commanded',
     'fought_at',
-    'victorious_at',
-    'defeated_at',
-    'founded',
+    'signed_by',
     'born_in',
     'died_in',
     'resided_in',
-    'mediated_by',
-    'guaranteed_by',
 ]);
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -167,6 +161,7 @@ type RelationshipFormData = {
     temporal_end: string;
     description: string;
     confidence: ConfidenceLevel | '';
+    derive_geometry_period: boolean;
 };
 
 type RelationshipPanelProps = {
@@ -188,6 +183,7 @@ function emptyForm(): RelationshipFormData {
         temporal_end: '',
         description: '',
         confidence: '',
+        derive_geometry_period: false,
     };
 }
 
@@ -273,6 +269,7 @@ export default function RelationshipPanel({
             temporal_end: relationship.temporal_end ?? '',
             description: relationship.description ?? '',
             confidence: (relationship.confidence ?? '') as ConfidenceLevel | '',
+            derive_geometry_period: relationship.derive_geometry_period ?? true,
         });
         setFormErrors({});
         setEditingRelationshipId(relationship.relationship_id);
@@ -311,6 +308,7 @@ export default function RelationshipPanel({
             temporal_end: form.temporal_end || null,
             description: form.description || null,
             confidence: form.confidence || null,
+            derive_geometry_period: form.derive_geometry_period,
         };
 
         try {
@@ -519,9 +517,6 @@ function RelationshipRow({
     deleting: boolean;
 }) {
     const typeLabel = relationship.relationship_type.replace(/_/g, ' ');
-    const hasDerivedPresence = AUTO_PRESENCE_TYPES.has(
-        relationship.relationship_type,
-    );
     const entityName = relationship.related_entity?.name ?? '—';
     const relatedIsDraft =
         relationship.related_entity?.verification_status === 'pipeline_draft';
@@ -543,9 +538,9 @@ function RelationshipRow({
                     <Badge variant="outline" className="text-[10px]">
                         {typeLabel}
                     </Badge>
-                    {hasDerivedPresence && (
+                    {relationship.derive_geometry_period && (
                         <Badge variant="secondary" className="text-[10px]">
-                            derived presence
+                            derives geometry
                         </Badge>
                     )}
                     {relationship.confidence && (
@@ -774,9 +769,11 @@ function RelationshipForm({
                     id="rel-type"
                     className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
                     value={form.relationship_type}
-                    onChange={(e) =>
-                        onChange('relationship_type', e.target.value)
-                    }
+                    onChange={(e) => {
+                        const type = e.target.value;
+                        onChange('relationship_type', type);
+                        onChange('derive_geometry_period', AUTO_PRESENCE_TYPES.has(type));
+                    }}
                 >
                     <option value="">— select type —</option>
                     {Object.entries(groupedTypes).map(([group, types]) => (
@@ -784,20 +781,11 @@ function RelationshipForm({
                             {types.map((t) => (
                                 <option key={t.value} value={t.value}>
                                     {t.label}
-                                    {AUTO_PRESENCE_TYPES.has(t.value)
-                                        ? ' ★'
-                                        : ''}
                                 </option>
                             ))}
                         </optgroup>
                     ))}
                 </select>
-                {AUTO_PRESENCE_TYPES.has(form.relationship_type) && (
-                    <p className="text-xs text-muted-foreground">
-                        ★ This type can auto-create derived presence geometry if the
-                        entity has point geometry.
-                    </p>
-                )}
                 {errors['relationship_type'] && (
                     <p className="text-xs text-destructive">
                         {errors['relationship_type']}
@@ -873,6 +861,25 @@ function RelationshipForm({
                         </option>
                     ))}
                 </select>
+            </div>
+
+            {/* Derive Geometry Period */}
+            <div className="flex items-center gap-3">
+                <input
+                    type="checkbox"
+                    id="rel-derive-geometry"
+                    checked={form.derive_geometry_period}
+                    onChange={(e) =>
+                        onChange('derive_geometry_period', e.target.checked)
+                    }
+                    className="h-4 w-4 rounded border-input"
+                />
+                <Label htmlFor="rel-derive-geometry" className="text-xs cursor-pointer">
+                    Derive geometry period from entity location
+                    <span className="ml-1 text-muted-foreground">
+                        (auto for: born in, died in, resided in, fought at, signed by)
+                    </span>
+                </Label>
             </div>
 
             {/* Actions */}

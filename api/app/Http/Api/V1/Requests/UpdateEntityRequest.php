@@ -70,10 +70,6 @@ class UpdateEntityRequest extends FormRequest
             'territory_geojson.type' => ['required_with:territory_geojson', 'string', Rule::in(['Polygon', 'MultiPolygon'])],
             'territory_geojson.coordinates' => ['required_with:territory_geojson', 'array'],
 
-            // Hierarchy
-            'parent_entity_id' => ['sometimes', 'nullable', 'uuid', 'exists:entities,entity_id'],
-            'successor_entity_id' => ['sometimes', 'nullable', 'uuid', 'exists:entities,entity_id'],
-
             // Verification
             'verification_status' => ['sometimes', 'nullable', 'string', Rule::enum(VerificationStatus::class)],
             'confidence' => ['sometimes', 'nullable', 'string', Rule::enum(ConfidenceLevel::class)],

@@ -37,6 +37,7 @@ class StoreRelationshipRequest extends FormRequest
             'description' => ['sometimes', 'nullable', 'string', 'max:2000'],
             'confidence' => ['sometimes', 'nullable', 'string', Rule::enum(ConfidenceLevel::class)],
             'source_citations' => ['sometimes', 'nullable', 'array'],
+            'derive_geometry_period' => ['sometimes', 'boolean'],
         ];
     }
 }

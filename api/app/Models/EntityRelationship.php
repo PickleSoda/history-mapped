@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'confidence',
     'source_citations',
     'created_by',
+    'derive_geometry_period',
 ])]
 class EntityRelationship extends Model
 {
@@ -54,6 +55,7 @@ class EntityRelationship extends Model
             'source_citations' => 'json',
             'start_year' => 'integer',
             'end_year' => 'integer',
+            'derive_geometry_period' => 'boolean',
         ];
     }
 

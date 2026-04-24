@@ -6,6 +6,7 @@ namespace App\Actions\Timeline;
 
 use App\Builders\EntityTimelineEntryBuilder;
 use App\Models\Entity;
+use App\Models\EntityRelationship;
 use App\Models\EntityTemporalRange;
 use App\Models\EntityTimelineEntry;
 use App\Models\GeometryPeriod;
@@ -34,6 +35,11 @@ class ProjectEntityTimelineAction
                 EntityTemporalRange::query()
                     ->distinct()
                     ->pluck('entity_id'),
+            )
+            ->merge(
+                EntityRelationship::query()
+                    ->distinct()
+                    ->pluck('source_entity_id'),
             )
             ->unique()
             ->sort()
@@ -132,6 +138,60 @@ SQL;
                 'related_entity_name',
                 'derived_at',
             ], $projection);
+
+            // Insert timeline entries for relationships that have no derived geometry period.
+            // This covers both: derive_geometry_period = false, and relationships with no
+            // start_year (we skip those since a timeline entry requires at least start_year).
+            $relationshipsWithoutPeriod = DB::table('relationships as rel')
+                ->leftJoin('geometry_periods as gp', 'gp.relationship_id', '=', 'rel.relationship_id')
+                ->leftJoin('entities as target_entity', 'target_entity.entity_id', '=', 'rel.target_entity_id')
+                ->where('rel.source_entity_id', $entityId)
+                ->whereNull('gp.geometry_period_id')
+                ->whereNotNull('rel.start_year')
+                ->orderBy('rel.start_year')
+                ->selectRaw('? as entity_id', [$entityId])
+                ->selectRaw("'relationship' as entry_kind")
+                ->addSelect(['rel.start_year', 'rel.end_year'])
+                ->selectRaw("COALESCE(rel.description, target_entity.name, 'Relationship') as title")
+                ->selectRaw('rel.description as description')
+                ->selectRaw('NULL::uuid as location_entity_id')
+                ->selectRaw('NULL::geometry as geom')
+                ->selectRaw('NULL::geometry as territory_geom')
+                ->selectRaw("'relationships' as source_table")
+                ->addSelect(['rel.relationship_id as source_id'])
+                ->selectRaw('rel.relationship_type::text as relationship_type')
+                ->addSelect(['target_entity.entity_id as related_entity_id'])
+                ->addSelect(['target_entity.name as related_entity_name'])
+                ->selectRaw('CURRENT_TIMESTAMP as derived_at');
+
+            $relCount = DB::table('relationships as rel')
+                ->leftJoin('geometry_periods as gp', 'gp.relationship_id', '=', 'rel.relationship_id')
+                ->where('rel.source_entity_id', $entityId)
+                ->whereNull('gp.geometry_period_id')
+                ->whereNotNull('rel.start_year')
+                ->count();
+
+            if ($relCount > 0) {
+                DB::table('entity_timeline_entries')->insertUsing([
+                    'entity_id',
+                    'entry_kind',
+                    'start_year',
+                    'end_year',
+                    'title',
+                    'description',
+                    'location_entity_id',
+                    'geom',
+                    'territory_geom',
+                    'source_table',
+                    'source_id',
+                    'relationship_type',
+                    'related_entity_id',
+                    'related_entity_name',
+                    'derived_at',
+                ], $relationshipsWithoutPeriod);
+
+                $inserted += $relCount;
+            }
 
             return $periodCount;
         });
