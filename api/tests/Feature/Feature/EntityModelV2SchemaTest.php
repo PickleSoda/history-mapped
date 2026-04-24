@@ -7,6 +7,7 @@ namespace Tests\Feature\Feature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class EntityModelV2SchemaTest extends TestCase
@@ -38,6 +39,14 @@ class EntityModelV2SchemaTest extends TestCase
         $this->assertTrue($this->constraintExists('geometry_periods', 'gp_provenance_mode'));
         $this->assertTrue($this->constraintExists('geometry_periods', 'gp_derived_requires_source'));
         $this->assertTrue($this->constraintExists('geometry_periods', 'gp_presence_requires_relationship'));
+    }
+
+    public function test_schema_has_uniqueness_and_range_indexes_for_temporal_projections(): void
+    {
+        $this->assertTrue($this->indexExists('gp_unique_derived_presence_relationship_idx'));
+        $this->assertTrue($this->indexExists('gp_active_range_gist_idx'));
+        $this->assertTrue($this->indexExists('etr_active_range_gist_idx'));
+        $this->assertTrue($this->indexExists('ete_active_range_gist_idx'));
     }
 
     public function test_entity_timeline_entries_table_exists_with_required_columns(): void
@@ -128,5 +137,51 @@ class EntityModelV2SchemaTest extends TestCase
             Schema::hasTable('geometry_snapshots'),
             'Table geometry_snapshots should not exist after legacy hard-drop',
         );
+    }
+
+    public function test_relationship_year_columns_are_db_maintained_from_temporal_text(): void
+    {
+        $sourceId = Str::uuid()->toString();
+        $targetId = Str::uuid()->toString();
+
+        DB::table('entities')->insert([
+            'entity_id' => $sourceId,
+            'name' => 'Source entity',
+            'entity_type' => 'person',
+            'entity_group' => 'person',
+            'verification_status' => 'pipeline_draft',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('entities')->insert([
+            'entity_id' => $targetId,
+            'name' => 'Target entity',
+            'entity_type' => 'city',
+            'entity_group' => 'place',
+            'verification_status' => 'pipeline_draft',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $relationshipId = Str::uuid()->toString();
+
+        DB::table('relationships')->insert([
+            'relationship_id' => $relationshipId,
+            'source_entity_id' => $sourceId,
+            'target_entity_id' => $targetId,
+            'relationship_type' => 'allied_with',
+            'temporal_start' => '-0052-03',
+            'temporal_end' => null,
+            'created_by' => 'test',
+            'created_at' => now(),
+        ]);
+
+        $relationship = DB::table('relationships')
+            ->where('relationship_id', $relationshipId)
+            ->first(['start_year', 'end_year']);
+
+        $this->assertSame(-52, $relationship->start_year);
+        $this->assertNull($relationship->end_year);
     }
 }

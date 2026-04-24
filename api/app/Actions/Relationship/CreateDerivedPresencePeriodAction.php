@@ -27,9 +27,16 @@ class CreateDerivedPresencePeriodAction
             return null;
         }
 
-        $sourceEntity = Entity::query()->withoutGlobalScopes()->find($relationship->source_entity_id);
+        $targetEntity = Entity::query()
+            ->withoutGlobalScopes()
+            ->with('primaryLocation')
+            ->find($relationship->target_entity_id);
 
-        if ($sourceEntity === null || $sourceEntity->geom === null) {
+        $targetLocation = $targetEntity?->primaryLocation;
+        $targetGeom = $targetLocation?->geom;
+        $targetTerritoryGeom = $targetLocation?->territory_geom;
+
+        if ($targetEntity === null || ($targetGeom === null && $targetTerritoryGeom === null)) {
             return null;
         }
 
@@ -45,7 +52,8 @@ class CreateDerivedPresencePeriodAction
             'period_type' => 'presence',
             'start_year' => $startYear,
             'end_year' => $endYear,
-            'geom' => $sourceEntity->geom,
+            'geom' => $targetGeom,
+            'territory_geom' => $targetTerritoryGeom,
             'description' => $relationship->description,
             'provenance_mode' => 'derived',
             'relationship_id' => $relationship->relationship_id,
