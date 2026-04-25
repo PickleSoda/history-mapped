@@ -21,9 +21,14 @@ class CreateDerivedPresencePeriodAction
         RelationshipType::ResidedIn,
     ];
 
+    public function supportsRelationshipType(RelationshipType $relationshipType): bool
+    {
+        return in_array($relationshipType, self::AUTO_PRESENCE_TYPES, true);
+    }
+
     public function __invoke(EntityRelationship $relationship, RelationshipData $data, ?string $createdBy = null): ?GeometryPeriod
     {
-        if (! in_array($data->relationshipType, self::AUTO_PRESENCE_TYPES, true)) {
+        if (! $this->supportsRelationshipType($data->relationshipType)) {
             return null;
         }
 
