@@ -269,18 +269,28 @@ class BackfillEntityModelV2CommandTest extends TestCase
         $this->assertSame('territory_period', $entry->entry_kind);
     }
 
-    public function test_backfill_command_creates_derived_presence_periods_from_incoming_relationships(): void
+    public function test_backfill_command_projects_derived_presence_periods_for_source_entity_when_relationship_is_incoming_to_another_entity(): void
     {
         $source = Entity::factory()->create();
         $target = Entity::factory()->create();
         $relationshipId = (string) Str::uuid();
 
         EntityTemporalRange::query()->create([
-            'entity_id' => $target->entity_id,
+            'entity_id' => $source->entity_id,
             'range_type' => 'primary',
             'start_year' => 1453,
             'end_year' => 1453,
             'is_primary' => true,
+        ]);
+
+        EntityLocation::query()->create([
+            'entity_id' => $source->entity_id,
+            'location_name' => 'Source Place',
+            'is_primary' => true,
+            'geom' => [
+                'type' => 'Point',
+                'coordinates' => [12.4964, 41.9028],
+            ],
         ]);
 
         EntityLocation::query()->create([
@@ -306,7 +316,7 @@ class BackfillEntityModelV2CommandTest extends TestCase
         $this->artisan('entity-model-v2:backfill')->assertExitCode(0);
 
         $this->assertDatabaseHas('geometry_periods', [
-            'entity_id' => $target->entity_id,
+            'entity_id' => $source->entity_id,
             'period_type' => 'presence',
             'relationship_id' => $relationshipId,
             'start_year' => 1453,

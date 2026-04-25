@@ -116,10 +116,8 @@ class BackfillGeometryPeriodsAction
                     ->withoutGlobalScopes()
                     ->with(['primaryLocation', 'primaryTemporalRange']),
             ])
-            ->where(function ($query) use ($entity): void {
-                $query->where('source_entity_id', $entity->entity_id)
-                    ->orWhere('target_entity_id', $entity->entity_id);
-            })
+            // Derived presence periods are unique per relationship_id, so create from source side only.
+            ->where('source_entity_id', $entity->entity_id)
             ->get();
 
         $inserted = 0;
@@ -128,9 +126,7 @@ class BackfillGeometryPeriodsAction
             $startYear = $relationship->start_year ?? $fallbackStart ?? $relationship->end_year ?? $fallbackEnd;
             $endYear = $relationship->end_year ?? $fallbackEnd ?? $relationship->start_year ?? $fallbackStart;
 
-            $counterparty = $relationship->source_entity_id === $entity->entity_id
-                ? $relationship->targetEntity
-                : $relationship->sourceEntity;
+            $counterparty = $relationship->targetEntity;
 
             $derivedGeom = $counterparty?->primaryLocation?->geom ?? $geom;
             $derivedTerritory = $counterparty?->primaryLocation?->territory_geom ?? $territoryGeom;
@@ -140,6 +136,26 @@ class BackfillGeometryPeriodsAction
             }
 
             if ($derivedGeom === null && $derivedTerritory === null) {
+                continue;
+            }
+
+            $existing = GeometryPeriod::query()
+                ->where('relationship_id', $relationship->relationship_id)
+                ->where('period_type', 'presence')
+                ->where('provenance_mode', 'derived')
+                ->first();
+
+            if ($existing !== null) {
+                $existing->update([
+                    'entity_id' => $entity->entity_id,
+                    'start_year' => $startYear,
+                    'end_year' => $endYear,
+                    'geom' => $derivedGeom,
+                    'territory_geom' => $derivedTerritory,
+                    'description' => $relationship->description,
+                    'created_by' => 'backfill:entity-model-v2',
+                ]);
+
                 continue;
             }
 

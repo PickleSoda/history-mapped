@@ -148,6 +148,19 @@ class RelationshipSeeder extends Seeder
                             ?, ?,
                             ?, ?::confidence_level, ?::jsonb,
                             ?, ?)
+                    ON CONFLICT (relationship_id) DO UPDATE SET
+                        source_entity_id = EXCLUDED.source_entity_id,
+                        target_entity_id = EXCLUDED.target_entity_id,
+                        relationship_type = EXCLUDED.relationship_type,
+                        temporal_start = EXCLUDED.temporal_start,
+                        temporal_end = EXCLUDED.temporal_end,
+                        start_year = EXCLUDED.start_year,
+                        end_year = EXCLUDED.end_year,
+                        description = EXCLUDED.description,
+                        confidence = EXCLUDED.confidence,
+                        source_citations = EXCLUDED.source_citations,
+                        created_by = EXCLUDED.created_by,
+                        created_at = EXCLUDED.created_at
                     SQL,
                 [
                     $r['id'],
