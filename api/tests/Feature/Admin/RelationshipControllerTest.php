@@ -444,6 +444,7 @@ class RelationshipControllerTest extends TestCase
     public function test_update_syncs_and_removes_derived_presence_period_for_type_change(): void
     {
         $this->giveEntityPointGeom($this->source, 12.48, 41.89);
+        $this->giveEntityPointGeom($this->target, 23.72, 37.98);
 
         $response = $this->actingAs($this->user)
             ->postJson(route('entities.relationships.store', $this->source), [

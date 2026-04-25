@@ -78,13 +78,17 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     NEW.start_year := CASE
-        WHEN NEW.temporal_start IS NULL OR NEW.temporal_start !~ '^-?\d+'
+        WHEN NEW.temporal_start IS NULL
+            THEN NULL
+        WHEN NEW.temporal_start !~ '^-?\d+'
             THEN NEW.start_year
         ELSE CAST(SUBSTRING(NEW.temporal_start FROM '^-?\d+') AS integer)
     END;
 
     NEW.end_year := CASE
-        WHEN NEW.temporal_end IS NULL OR NEW.temporal_end !~ '^-?\d+'
+        WHEN NEW.temporal_end IS NULL
+            THEN NULL
+        WHEN NEW.temporal_end !~ '^-?\d+'
             THEN NEW.end_year
         ELSE CAST(SUBSTRING(NEW.temporal_end FROM '^-?\d+') AS integer)
     END;

@@ -149,6 +149,15 @@ class RelationshipController extends Controller
             }
         }
 
+        // Keep explicit year columns in sync for update payloads so DB constraints remain valid.
+        if (array_key_exists('temporal_start', $validated)) {
+            $updates['start_year'] = self::extractYear($validated['temporal_start']);
+        }
+
+        if (array_key_exists('temporal_end', $validated)) {
+            $updates['end_year'] = self::extractYear($validated['temporal_end']);
+        }
+
         $relationship->update($updates);
         $relationship->refresh();
 
@@ -231,6 +240,18 @@ class RelationshipController extends Controller
             ->where('relationship_id', $relationship->relationship_id)
             ->where('provenance_mode', 'derived');
 
+        $typeValue = $relationship->relationship_type instanceof RelationshipType
+            ? $relationship->relationship_type->value
+            : (string) $relationship->relationship_type;
+
+        $relationshipType = RelationshipType::from($typeValue);
+
+        if (! $createDerivedPresencePeriod->supportsRelationshipType($relationshipType)) {
+            $linkedDerivedPeriods->delete();
+
+            return;
+        }
+
         if (! $relationship->derive_geometry_period) {
             $linkedDerivedPeriods->delete();
 
@@ -256,14 +277,10 @@ class RelationshipController extends Controller
             return;
         }
 
-        $typeValue = $relationship->relationship_type instanceof RelationshipType
-            ? $relationship->relationship_type->value
-            : (string) $relationship->relationship_type;
-
         $data = new RelationshipData(
             sourceEntityId: $relationship->source_entity_id,
             targetEntityId: $relationship->target_entity_id,
-            relationshipType: RelationshipType::from($typeValue),
+            relationshipType: $relationshipType,
             temporalStart: $relationship->temporal_start,
             temporalEnd: $relationship->temporal_end,
             description: $relationship->description,
@@ -273,5 +290,18 @@ class RelationshipController extends Controller
         );
 
         $createDerivedPresencePeriod($relationship, $data, $userId);
+    }
+
+    private static function extractYear(mixed $value): ?int
+    {
+        if (! is_string($value) || trim($value) === '') {
+            return null;
+        }
+
+        if (preg_match('/^-?\d+/', trim($value), $matches) !== 1) {
+            return null;
+        }
+
+        return (int) $matches[0];
     }
 }
