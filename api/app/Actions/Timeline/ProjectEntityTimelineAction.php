@@ -41,6 +41,11 @@ class ProjectEntityTimelineAction
                     ->distinct()
                     ->pluck('source_entity_id'),
             )
+            ->merge(
+                EntityRelationship::query()
+                    ->distinct()
+                    ->pluck('target_entity_id'),
+            )
             ->unique()
             ->sort()
             ->values();
@@ -145,30 +150,73 @@ SQL;
             // This covers both: derive_geometry_period = false, and relationships with no
             // start_year (we skip those since a timeline entry requires at least start_year).
             $relationshipsWithoutPeriod = DB::table('relationships as rel')
-                ->leftJoin('geometry_periods as gp', 'gp.relationship_id', '=', 'rel.relationship_id')
+                ->leftJoin('geometry_periods as gp', function ($join) use ($entityId): void {
+                    $join->on('gp.relationship_id', '=', 'rel.relationship_id')
+                        ->where('gp.entity_id', '=', $entityId);
+                })
+                ->leftJoin('entities as source_entity', 'source_entity.entity_id', '=', 'rel.source_entity_id')
                 ->leftJoin('entities as target_entity', 'target_entity.entity_id', '=', 'rel.target_entity_id')
-                ->where('rel.source_entity_id', $entityId)
+                ->where(function ($query) use ($entityId): void {
+                    $query->where('rel.source_entity_id', $entityId)
+                        ->orWhere('rel.target_entity_id', $entityId);
+                })
                 ->whereNull('gp.geometry_period_id')
                 ->whereNotNull('rel.start_year')
                 ->orderBy('rel.start_year')
                 ->selectRaw('? as entity_id', [$entityId])
                 ->selectRaw("'relationship' as entry_kind")
                 ->addSelect(['rel.start_year', 'rel.end_year'])
-                ->selectRaw("COALESCE(rel.description, target_entity.name, 'Relationship') as title")
+                ->selectRaw(
+                    "COALESCE(
+                        CASE WHEN rel.source_entity_id = ? THEN target_entity.name ELSE source_entity.name END,
+                        rel.description,
+                        'Relationship'
+                    ) as title",
+                    [$entityId],
+                )
                 ->selectRaw('rel.description as description')
                 ->selectRaw('NULL::uuid as location_entity_id')
-                ->selectRaw('NULL::geometry as geom')
+                ->selectRaw(
+                    "CASE
+                        WHEN rel.target_entity_id = ? THEN (
+                            SELECT CASE
+                                WHEN el.geom IS NULL THEN NULL::geometry
+                                WHEN ST_GeometryType(el.geom) = 'ST_Point' THEN el.geom
+                                ELSE ST_PointOnSurface(el.geom)
+                            END
+                            FROM entity_locations el
+                            WHERE el.entity_id = rel.source_entity_id
+                              AND el.is_primary = true
+                            ORDER BY el.updated_at DESC NULLS LAST, el.created_at DESC NULLS LAST
+                            LIMIT 1
+                        )
+                        ELSE NULL::geometry
+                    END as geom",
+                    [$entityId],
+                )
                 ->selectRaw('NULL::geometry as territory_geom')
                 ->selectRaw("'relationships' as source_table")
                 ->addSelect(['rel.relationship_id as source_id'])
                 ->selectRaw('rel.relationship_type::text as relationship_type')
-                ->addSelect(['target_entity.entity_id as related_entity_id'])
-                ->addSelect(['target_entity.name as related_entity_name'])
+                ->selectRaw(
+                    'CASE WHEN rel.source_entity_id = ? THEN target_entity.entity_id ELSE source_entity.entity_id END as related_entity_id',
+                    [$entityId],
+                )
+                ->selectRaw(
+                    'CASE WHEN rel.source_entity_id = ? THEN target_entity.name ELSE source_entity.name END as related_entity_name',
+                    [$entityId],
+                )
                 ->selectRaw('CURRENT_TIMESTAMP as derived_at');
 
             $relCount = DB::table('relationships as rel')
-                ->leftJoin('geometry_periods as gp', 'gp.relationship_id', '=', 'rel.relationship_id')
-                ->where('rel.source_entity_id', $entityId)
+                ->leftJoin('geometry_periods as gp', function ($join) use ($entityId): void {
+                    $join->on('gp.relationship_id', '=', 'rel.relationship_id')
+                        ->where('gp.entity_id', '=', $entityId);
+                })
+                ->where(function ($query) use ($entityId): void {
+                    $query->where('rel.source_entity_id', $entityId)
+                        ->orWhere('rel.target_entity_id', $entityId);
+                })
                 ->whereNull('gp.geometry_period_id')
                 ->whereNotNull('rel.start_year')
                 ->count();

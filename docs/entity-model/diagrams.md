@@ -195,6 +195,15 @@ erDiagram
 - **`sources`** is referenced from `entities.source_citations` (JSONB array of `{ source_id, page, quote }`)
 - **Self-referencing FKs** on `entities`: `parent_entity_id` (tree hierarchy) and `successor_entity_id` (temporal succession chain)
 - **`geometry_periods`** stores time-varying geometries per entity (empire borders, person presence at events). The `description` field explains *why* the geometry exists. Two optional provenance FKs: `relationship_id` (CASCADE — for relationship-derived presence periods) and `source_event_id` (SET NULL — for territory changes caused by events)
+- **`entity_timeline_entries` is a read model** rebuilt from canonical tables. It is not user-authored source-of-truth data.
+- **Timeline projection inputs**:
+    - `geometry_periods` (primary source for timeline rows, including copied `geom` / `territory_geom`)
+    - `relationships` without a matching geometry period (relationship-only rows)
+    - `entity_temporal_ranges` only when no geometry/relationship timeline rows exist for the entity (fallback)
+- **Geometry copy behavior in read model**:
+    - For `source_table='geometry_periods'`, timeline rows copy spatial columns from `geometry_periods`.
+    - For `source_table='relationships'`, incoming rows can include the related source entity primary point (`entity_locations.geom`) while `territory_geom` stays `NULL`.
+    - For `source_table='entity_temporal_ranges'`, rows are also non-spatial temporal fallback rows.
 - **`entity_geo_refs`** stores canonical links to external geospatial systems (especially OHM/OSM), including typed element IDs (`node|way|relation`) and raw tag metadata captured at match time
 - **`entities.primary_geo_ref_id`** points to the canonical active georef row, so an entity always has one default external anchor when available
 - **Geometry provenance chain**: `geometry_periods.geo_ref_id` points to the exact external reference that produced the geometry, so map interactions can open the underlying OHM feature or fallback source
@@ -246,6 +255,63 @@ When the user clicks a feature on the OHM-based map (example: Rome), the app sho
 6. **UI open** entity detail panel for that entity.
 
 This makes the lookup deterministic even when multiple geometry periods exist across time.
+
+### 1.5 Timeline Read Model Derivation
+
+`entity_timeline_entries` is materialized by `timeline:rebuild` / `ProjectEntityTimelineAction`.
+
+```mermaid
+flowchart TD
+    A[Entity ID(s)] --> B[Delete existing entity_timeline_entries for entity]
+
+    B --> C[Project from geometry_periods]
+    C --> C1[entry_kind: relationship_presence or territory_period]
+    C --> C2[source_table: geometry_periods]
+    C --> C3[copy geom and territory_geom]
+    C --> C4[denormalize relationship_type and related_entity fields when present]
+
+    B --> D[Project relationship-only rows when no geometry_period exists for relationship]
+    D --> D1[entry_kind: relationship]
+    D --> D2[source_table: relationships]
+    D --> D3[incoming: geom from source primary point, territory_geom = NULL]
+    D --> D4[requires rel.start_year not null]
+
+    C --> E{Inserted rows > 0?}
+    D --> E
+    E -- yes --> F[Done]
+    E -- no --> G[Fallback: project entity_temporal_ranges]
+    G --> G1[entry_kind: temporal_range]
+    G --> G2[source_table: entity_temporal_ranges]
+    G --> G3[non-spatial fallback rows]
+    G --> F
+```
+
+Read-model row provenance:
+
+- `source_table='geometry_periods'` + `source_id=geometry_period_id`
+- `source_table='relationships'` + `source_id=relationship_id`
+- `source_table='entity_temporal_ranges'` + `source_id=temporal_range_id`
+
+### 1.6 Backfill and Timeline Rebuild Flow (Entity Model V2)
+
+The v2 backfill command creates canonical normalized rows, derives missing presence periods from relationships, and then rebuilds the timeline read model.
+
+```mermaid
+flowchart LR
+    A[entity-model-v2:backfill] --> B[Backfill aliases, tags, temporal ranges, locations]
+    B --> C[Backfill geometry_periods from canonical location/temporal data]
+    C --> D[Derive presence geometry_periods from relationships]
+    D --> E[timeline:rebuild / ProjectEntityTimelineAction]
+    E --> F[entity_timeline_entries materialized for API/UI]
+
+    G[geometry_period create/update/delete] --> H[Queue RebuildEntityTimelineJob for affected entity]
+    H --> E
+```
+
+Operational notes:
+
+- Backfill writes canonical tables first, then synchronously rebuilds timeline entries.
+- Ongoing geometry-period mutations trigger targeted timeline rebuild jobs for affected entities.
 
 ### 1.4 SQL Snippet (Click Resolution)
 
