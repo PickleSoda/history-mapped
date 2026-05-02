@@ -246,12 +246,6 @@ class RelationshipController extends Controller
 
         $relationshipType = RelationshipType::from($typeValue);
 
-        if (! $createDerivedPresencePeriod->supportsRelationshipType($relationshipType)) {
-            $linkedDerivedPeriods->delete();
-
-            return;
-        }
-
         if (! $relationship->derive_geometry_period) {
             $linkedDerivedPeriods->delete();
 
@@ -286,7 +280,7 @@ class RelationshipController extends Controller
             description: $relationship->description,
             confidence: $relationship->confidence,
             sourceCitations: $relationship->source_citations,
-            deriveGeometryPeriod: true,
+            deriveGeometryPeriod: (bool) $relationship->derive_geometry_period,
         );
 
         $createDerivedPresencePeriod($relationship, $data, $userId);

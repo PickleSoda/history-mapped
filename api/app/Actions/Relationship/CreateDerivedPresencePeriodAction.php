@@ -28,7 +28,7 @@ class CreateDerivedPresencePeriodAction
 
     public function __invoke(EntityRelationship $relationship, RelationshipData $data, ?string $createdBy = null): ?GeometryPeriod
     {
-        if (! $this->supportsRelationshipType($data->relationshipType)) {
+        if (! $data->deriveGeometryPeriod) {
             return null;
         }
 
