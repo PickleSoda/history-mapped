@@ -340,9 +340,9 @@ class RelationshipControllerTest extends TestCase
         $this->assertEqualsWithDelta(37.98, $geometry->lat, 0.0001);
     }
 
-    public function test_store_does_not_create_derived_presence_period_for_non_auto_snapshot_type(): void
+    public function test_store_creates_derived_presence_period_for_non_auto_type_when_derive_geometry_period_is_true(): void
     {
-        $this->giveEntityPointGeom($this->source, 12.48, 41.89);
+        $this->giveEntityPointGeom($this->target, 12.48, 41.89);
 
         $response = $this->actingAs($this->user)
             ->postJson(route('entities.relationships.store', $this->source), [
@@ -350,6 +350,39 @@ class RelationshipControllerTest extends TestCase
                 'relationship_type' => 'allied_with',
                 'temporal_start' => '1648',
                 'temporal_end' => '1648',
+                'derive_geometry_period' => true,
+            ])
+            ->assertCreated()
+            ->assertJsonPath('relationship.derive_geometry_period', true);
+
+        $relationshipId = (string) $response->json('relationship.relationship_id');
+
+        $this->assertDatabaseHas('relationships', [
+            'relationship_id' => $relationshipId,
+            'derive_geometry_period' => true,
+        ]);
+
+        $this->assertDatabaseHas('geometry_periods', [
+            'entity_id' => $this->source->entity_id,
+            'relationship_id' => $relationshipId,
+            'period_type' => 'presence',
+            'provenance_mode' => 'derived',
+            'start_year' => 1648,
+            'end_year' => 1648,
+        ]);
+    }
+
+    public function test_store_does_not_create_derived_presence_period_when_derive_geometry_period_is_false(): void
+    {
+        $this->giveEntityPointGeom($this->target, 12.48, 41.89);
+
+        $response = $this->actingAs($this->user)
+            ->postJson(route('entities.relationships.store', $this->source), [
+                'target_entity_id' => $this->target->entity_id,
+                'relationship_type' => 'allied_with',
+                'temporal_start' => '1648',
+                'temporal_end' => '1648',
+                'derive_geometry_period' => false,
             ])
             ->assertCreated();
 
@@ -441,7 +474,7 @@ class RelationshipControllerTest extends TestCase
         ]);
     }
 
-    public function test_update_syncs_and_removes_derived_presence_period_for_type_change(): void
+    public function test_update_removes_derived_presence_period_when_derive_geometry_period_is_disabled(): void
     {
         $this->giveEntityPointGeom($this->source, 12.48, 41.89);
         $this->giveEntityPointGeom($this->target, 23.72, 37.98);
@@ -453,6 +486,7 @@ class RelationshipControllerTest extends TestCase
                 'temporal_start' => '1648',
                 'temporal_end' => '1648',
                 'description' => 'Battle participation',
+                'derive_geometry_period' => true,
             ])
             ->assertCreated();
 
@@ -473,6 +507,7 @@ class RelationshipControllerTest extends TestCase
                 'temporal_end' => '1650',
                 'description' => 'Now an alliance',
                 'confidence' => 'medium',
+                'derive_geometry_period' => false,
             ])
             ->assertOk();
 
