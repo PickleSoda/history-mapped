@@ -65,7 +65,7 @@ output/ohm_borders/<run_id>/
     └── ohm_borders.jsonl
 ```
 
-The relevant path helpers live in [pipeline/ohm_borders/artifacts.py](/c:/Users/Achi/Code/FL/history-mapped/pipeline/ohm_borders/artifacts.py).
+The relevant path helpers live in [pipeline/ohm_borders/artifacts.py](/history-mapped/pipeline/ohm_borders/artifacts.py).
 
 ## Step 2: Initialize Or Reuse The Manifest
 
@@ -90,7 +90,7 @@ Each stage entry tracks:
 
 Manifest writes are atomic: the pipeline writes `manifest.json.tmp` and then replaces the real manifest. This avoids leaving a half-written manifest if the process is interrupted.
 
-Implementation lives in [pipeline/ohm_borders/manifest.py](/c:/Users/Achi/Code/FL/history-mapped/pipeline/ohm_borders/manifest.py).
+Implementation lives in [pipeline/ohm_borders/manifest.py](/history-mapped/pipeline/ohm_borders/manifest.py).
 
 ## Step 3: Fetch Raw OHM Data
 
@@ -108,7 +108,7 @@ relation["boundary"="administrative"]["admin_level"="2"];
 out geom;
 ```
 
-This request is implemented in [pipeline/ohm_borders/fetcher.py](/c:/Users/Achi/Code/FL/history-mapped/pipeline/ohm_borders/fetcher.py).
+This request is implemented in [pipeline/ohm_borders/fetcher.py](/history-mapped/pipeline/ohm_borders/fetcher.py).
 
 What happens during fetch:
 
@@ -123,7 +123,7 @@ If `--resume` is set and `raw/overpass.json` already exists, fetch is skipped un
 
 The `parse` stage reads `raw/overpass.json` and transforms raw OHM relations into normalized polity objects.
 
-This logic is also implemented in [pipeline/ohm_borders/fetcher.py](/c:/Users/Achi/Code/FL/history-mapped/pipeline/ohm_borders/fetcher.py), inside `parse_elements()`.
+This logic is also implemented in [pipeline/ohm_borders/fetcher.py](/history-mapped/pipeline/ohm_borders/fetcher.py), inside `parse_elements()`.
 
 The parser handles two OHM shapes:
 
@@ -164,7 +164,7 @@ After parsing all polities, the pipeline splits them into shards.
 
 Each shard is written as JSONL to `parsed/parsed-00001.jsonl`, `parsed/parsed-00002.jsonl`, and so on.
 
-The staged orchestration is implemented in [pipeline/ohm_borders/stages.py](/c:/Users/Achi/Code/FL/history-mapped/pipeline/ohm_borders/stages.py).
+The staged orchestration is implemented in [pipeline/ohm_borders/stages.py](/history-mapped/pipeline/ohm_borders/stages.py).
 
 If `--resume` is set, existing parsed shard files are skipped unless `--force` is set.
 
@@ -204,7 +204,7 @@ The stage is tolerant of partial failure:
 2. failed shards are recorded in `manifest.json`
 3. the build stage can still proceed with incomplete enrichment
 
-This behavior is implemented in [pipeline/ohm_borders/stages.py](/c:/Users/Achi/Code/FL/history-mapped/pipeline/ohm_borders/stages.py).
+This behavior is implemented in [pipeline/ohm_borders/stages.py](/history-mapped/pipeline/ohm_borders/stages.py).
 
 If `--resume` is set, existing enrichment shard files are skipped unless `--force` is set.
 
@@ -233,7 +233,7 @@ If you pass `--output`, the CLI also copies `final/ohm_borders.jsonl` to the pat
 
 ## Step 8: Map Parsed Polities Into Final Records
 
-The final mapping logic lives in [pipeline/ohm_borders/mapper.py](/c:/Users/Achi/Code/FL/history-mapped/pipeline/ohm_borders/mapper.py).
+The final mapping logic lives in [pipeline/ohm_borders/mapper.py](/history-mapped/pipeline/ohm_borders/mapper.py).
 
 For each polity, the mapper:
 
@@ -338,7 +338,7 @@ Copy-Item output/ohm_borders_global.jsonl api/storage/app/ohm_borders_global.jso
 docker compose -f docker/docker-compose.yml exec app php -d memory_limit=1024M artisan pipeline:import-borders /var/www/html/storage/app/ohm_borders_global.jsonl --sync --batch-id=global-2026-04-11
 ```
 
-The import command is implemented in [api/app/Console/Commands/ImportBordersCommand.php](/c:/Users/Achi/Code/FL/history-mapped/api/app/Console/Commands/ImportBordersCommand.php).
+The import command is implemented in [api/app/Console/Commands/ImportBordersCommand.php](/history-mapped/api/app/Console/Commands/ImportBordersCommand.php).
 
 What the command does:
 
@@ -354,7 +354,7 @@ The higher PHP memory limit is also important because some OHM records contain v
 
 ## Step 12: Import One Record Into The Domain Model
 
-Each JSONL record is handled by [api/app/Jobs/ImportBorderEntityJob.php](/c:/Users/Achi/Code/FL/history-mapped/api/app/Jobs/ImportBorderEntityJob.php).
+Each JSONL record is handled by [api/app/Jobs/ImportBorderEntityJob.php](/history-mapped/api/app/Jobs/ImportBorderEntityJob.php).
 
 For each record, the job:
 
@@ -484,13 +484,13 @@ docker compose -f docker/docker-compose.yml exec app php -d memory_limit=1024M a
 
 ## Files To Read If You Need To Trace The Pipeline In Code
 
-- [pipeline/__main__.py](/c:/Users/Achi/Code/FL/history-mapped/pipeline/__main__.py)
-- [pipeline/ohm_borders/fetcher.py](/c:/Users/Achi/Code/FL/history-mapped/pipeline/ohm_borders/fetcher.py)
-- [pipeline/ohm_borders/stages.py](/c:/Users/Achi/Code/FL/history-mapped/pipeline/ohm_borders/stages.py)
-- [pipeline/ohm_borders/mapper.py](/c:/Users/Achi/Code/FL/history-mapped/pipeline/ohm_borders/mapper.py)
-- [pipeline/ohm_borders/manifest.py](/c:/Users/Achi/Code/FL/history-mapped/pipeline/ohm_borders/manifest.py)
-- [api/app/Console/Commands/ImportBordersCommand.php](/c:/Users/Achi/Code/FL/history-mapped/api/app/Console/Commands/ImportBordersCommand.php)
-- [api/app/Jobs/ImportBorderEntityJob.php](/c:/Users/Achi/Code/FL/history-mapped/api/app/Jobs/ImportBorderEntityJob.php)
+- [pipeline/__main__.py](/history-mapped/pipeline/__main__.py)
+- [pipeline/ohm_borders/fetcher.py](/history-mapped/pipeline/ohm_borders/fetcher.py)
+- [pipeline/ohm_borders/stages.py](/history-mapped/pipeline/ohm_borders/stages.py)
+- [pipeline/ohm_borders/mapper.py](/history-mapped/pipeline/ohm_borders/mapper.py)
+- [pipeline/ohm_borders/manifest.py](/history-mapped/pipeline/ohm_borders/manifest.py)
+- [api/app/Console/Commands/ImportBordersCommand.php](/history-mapped/api/app/Console/Commands/ImportBordersCommand.php)
+- [api/app/Jobs/ImportBorderEntityJob.php](/history-mapped/api/app/Jobs/ImportBorderEntityJob.php)
 
 ## Key Operational Notes
 
