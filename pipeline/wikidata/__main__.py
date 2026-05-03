@@ -1,4 +1,4 @@
-"""WikiGlobe Wikidata scraping and entity pipeline CLI."""
+"""history-mapped Wikidata scraping and entity pipeline CLI."""
 
 import logging
 import re
@@ -32,7 +32,7 @@ def _configure_logging() -> None:
 
 @click.group()
 def cli():
-    """WikiGlobe Wikidata scraping and entity pipeline."""
+    """history-mapped Wikidata scraping and entity pipeline."""
     _configure_logging()
 
 

@@ -1,1 +1,1 @@
-"""WikiGlobe Wikidata scraping and entity pipeline."""
+"""history-mapped Wikidata scraping and entity pipeline."""

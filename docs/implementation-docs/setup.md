@@ -1,8 +1,8 @@
-# WikiGlobe - Monorepo Setup Guide
+# history-mapped - Monorepo Setup Guide
 
 ## Overview
 
-WikiGlobe is a monorepo containing:
+history-mapped is a monorepo containing:
 
 - **`api/`** - Laravel 13 backend with Inertia.js (React) for the admin panel, and a REST API for the customer frontend.
 - **`web/`** - React (Vite) customer-facing frontend (stub — not yet connected to the API).
@@ -25,7 +25,7 @@ Local dev environment: **fully dockerized with Docker Compose**.
 ## 1. Repository Structure
 
 ```
-wikiglobe/
+history-mapped/
 |- api/                         # Laravel 13 application
 |  |- app/
 |  |- bootstrap/
@@ -91,8 +91,8 @@ File: `docker/docker-compose.yml`
 | **app** | PHP 8.4-FPM | - | Laravel app container for PHP-FPM |
 | **nginx** | nginx:1.27-alpine | `8000:80` | Public local entrypoint for Laravel |
 | **pnpm-install** | node (web Dockerfile) | - | One-shot: runs `pnpm install` before JS services start |
-| **web** | node (web Dockerfile) | `5173:5173` | Customer Vite dev server (`@wikiglobe/web`) |
-| **vite-admin** | PHP 8.4-FPM image | `5174:5174` | Inertia admin Vite dev server (`@wikiglobe/api`) |
+| **web** | node (web Dockerfile) | `5173:5173` | Customer Vite dev server (`@history-mapped/web`) |
+| **vite-admin** | PHP 8.4-FPM image | `5174:5174` | Inertia admin Vite dev server (`@history-mapped/api`) |
 | **db** | Custom PostGIS + pgvector on Postgres 16 | `5432:5432` | Primary database with PostGIS and pgvector extensions |
 | **redis** | redis:7-alpine | `6379:6379` | Cache, sessions, queues |
 | **queue** | same as `app` | - | Runs `php artisan queue:work` |
@@ -107,8 +107,8 @@ File: `docker/docker-compose.yml`
 - **`app`** - Runs PHP-FPM. It is the only Laravel PHP runtime and is never exposed directly to the browser.
 - **`nginx`** - Sole HTTP ingress for the Laravel app in local development. Serves public assets and proxies PHP requests to `app`.
 - **`pnpm-install`** - Runs `pnpm install` once as a prerequisite for `web` and `vite-admin`. Uses named volumes for `node_modules/`.
-- **`web`** - Runs the customer Vite dev server (`pnpm --filter @wikiglobe/web dev`). Does not own API logic or Laravel assets.
-- **`vite-admin`** - Runs the Inertia admin Vite asset and HMR server (`pnpm --filter @wikiglobe/api dev`). Not the admin application's browser URL.
+- **`web`** - Runs the customer Vite dev server (`pnpm --filter @history-mapped/web dev`). Does not own API logic or Laravel assets.
+- **`vite-admin`** - Runs the Inertia admin Vite asset and HMR server (`pnpm --filter @history-mapped/api dev`). Not the admin application's browser URL.
 - **`db`** - PostgreSQL with PostGIS and pgvector extensions. No app logic or migration orchestration should live here.
 - **`redis`** - Cache, session, and queue broker only.
 - **`queue`** - Runs asynchronous Laravel jobs only. No HTTP traffic, migrations, or scheduler duties.
@@ -201,8 +201,8 @@ In `config/cors.php`:
 
 Recommended production session and cookie guidance:
 
-- `SESSION_DOMAIN=.wikiglobe.com`
-- `SANCTUM_STATEFUL_DOMAINS=app.wikiglobe.com,admin.wikiglobe.com,api.wikiglobe.com`
+- `SESSION_DOMAIN=.history-mapped.com`
+- `SANCTUM_STATEFUL_DOMAINS=app.history-mapped.com,admin.history-mapped.com,api.history-mapped.com`
 - Serve all first-party apps over HTTPS
 
 ### 3.4 Route organization
@@ -280,7 +280,7 @@ This is useful for contract review in pull requests and for generating API docum
 - Migrations in `database/migrations/`.
 - Model factories and seeders for dev data.
 - Redis-backed queues, cache, and sessions.
-- Test database: `wikiglobe_test` on the same `db` service (configured in `phpunit.xml`).
+- Test database: `history-mapped_test` on the same `db` service (configured in `phpunit.xml`).
 
 ### 3.8 Vite config for Inertia admin
 
@@ -375,7 +375,7 @@ Root `package.json`:
 
 ```json
 {
-    "name": "wikiglobe",
+    "name": "history-mapped",
     "private": true,
     "scripts": {
         "dev": "docker compose -f docker/docker-compose.yml up --build",
@@ -398,7 +398,7 @@ Note: these scripts assume the Compose stack is already running.
 Use the root env file for Docker Compose interpolation only:
 
 ```env
-COMPOSE_PROJECT_NAME=wikiglobe
+COMPOSE_PROJECT_NAME=history-mapped
 FORWARD_NGINX_PORT=8000
 FORWARD_WEB_PORT=5173
 FORWARD_ADMIN_PORT=5174
@@ -412,7 +412,7 @@ FORWARD_REDISINSIGHT_PORT=5540
 ### 6.2 `api/.env.example`
 
 ```env
-APP_NAME=WikiGlobe
+APP_NAME=history-mapped
 APP_ENV=local
 APP_KEY=
 APP_DEBUG=true
@@ -421,8 +421,8 @@ APP_URL=http://localhost:8000
 DB_CONNECTION=pgsql
 DB_HOST=db
 DB_PORT=5432
-DB_DATABASE=wikiglobe
-DB_USERNAME=wikiglobe
+DB_DATABASE=history-mapped
+DB_USERNAME=history-mapped
 DB_PASSWORD=secret
 
 REDIS_HOST=redis
@@ -435,14 +435,14 @@ SANCTUM_STATEFUL_DOMAINS=localhost:5173,localhost:5174,localhost:8000
 MAIL_MAILER=smtp
 MAIL_HOST=mailpit
 MAIL_PORT=1025
-MAIL_FROM_ADDRESS=hello@wikiglobe.test
+MAIL_FROM_ADDRESS=hello@history-mapped.test
 MAIL_FROM_NAME="${APP_NAME}"
 ```
 
 ### 6.3 `web/.env.example`
 
 ```env
-VITE_APP_NAME=WikiGlobe
+VITE_APP_NAME=history-mapped
 VITE_API_BASE_URL=http://localhost:8000
 ```
 
@@ -457,7 +457,7 @@ Rules:
 ## 7. Testing
 
 - **Framework:** PHPUnit v12 (not Pest). Tests live in `api/tests/`.
-- **Test database:** PostgreSQL `wikiglobe_test` on the `db` service (configured in `phpunit.xml` via `DB_DATABASE=wikiglobe_test`).
+- **Test database:** PostgreSQL `history-mapped_test` on the `db` service (configured in `phpunit.xml` via `DB_DATABASE=history-mapped_test`).
 - **Run all tests:** `php artisan test --compact` (inside the `app` container).
 - **Run a single file:** `php artisan test --compact tests/Feature/ExampleTest.php`.
 - **Run by filter:** `php artisan test --compact --filter=testName`.
@@ -479,5 +479,5 @@ Rules:
 - Admin routes are protected by `auth` and `verified` middleware.
 - `/api/v1` remains backward compatible until a deliberate `/api/v2` is introduced.
 - Docker service boundaries remain clear: HTTP in `nginx`, PHP runtime in `app`, jobs in `queue`, schedules in `scheduler`.
-- Test database (`wikiglobe_test`) is isolated from the development database (`wikiglobe`).
+- Test database (`history-mapped_test`) is isolated from the development database (`history-mapped`).
 - All PHP changes are formatted with `vendor/bin/pint --dirty` before committing.

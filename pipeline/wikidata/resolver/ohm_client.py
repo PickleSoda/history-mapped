@@ -62,7 +62,7 @@ def _rate_limited_get(url: str, params: dict[str, Any]) -> requests.Response:
         url,
         params=params,
         timeout=settings.ohm_timeout,
-        headers={"User-Agent": "WikiGlobe-Pipeline/1.0"},
+        headers={"User-Agent": "history-mapped-Pipeline/1.0"},
     )
 
 

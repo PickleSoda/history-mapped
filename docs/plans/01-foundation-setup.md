@@ -8,7 +8,7 @@ Create the monorepo foundation so Laravel, the customer app, and the shared pack
 
 - Add root workspace files and Docker-oriented scripts.
 - Add the initial Docker Compose stack and base images.
-- Create the real `@wikiglobe/shared` package with a build pipeline.
+- Create the real `@history-mapped/shared` package with a build pipeline.
 - Keep `api/` and `web/` app scaffolding for the next phase.
 
 ## Deliverables
@@ -21,11 +21,11 @@ Create the monorepo foundation so Laravel, the customer app, and the shared pack
 ## Verification
 
 - `docker compose -f docker/docker-compose.yml config` succeeds
-- `pnpm --filter @wikiglobe/shared build` works inside Docker
+- `pnpm --filter @history-mapped/shared build` works inside Docker
 - The repo is ready for Laravel and Vite scaffolding without host toolchains
 
 ## Notes
 
 - The first commit optimizes for repeatable plumbing, not finished product behavior.
 - Queue, scheduler, and Vite services are defined now so the next commit can plug real apps into the same runtime model.
-- **Update (post-commit):** The `@wikiglobe/shared` package was removed in a later commit. The Inertia admin panel receives data via Inertia props (no API client needed), and the web SPA will generate its own OpenAPI client directly. The `shared/` directory, its Docker service, and all workspace references have been deleted.
+- **Update (post-commit):** The `@history-mapped/shared` package was removed in a later commit. The Inertia admin panel receives data via Inertia props (no API client needed), and the web SPA will generate its own OpenAPI client directly. The `shared/` directory, its Docker service, and all workspace references have been deleted.

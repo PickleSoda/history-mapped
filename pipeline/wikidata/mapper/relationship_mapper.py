@@ -1,4 +1,4 @@
-"""Relationship mapper — resolves Wikidata properties to WikiGlobe's 76 relationship types.
+"""Relationship mapper — resolves Wikidata properties to history-mapped's 76 relationship types.
 
 This module handles the second pass: after entities are imported into PostgreSQL,
 it resolves _relationship_hints (containing Wikidata QIDs) into actual entity_id
@@ -11,7 +11,7 @@ DB access to look up entity_id by wikidata_id.
 
 from __future__ import annotations
 
-# ── Complete Wikidata property → WikiGlobe relationship_type mapping ─────────
+# ── Complete Wikidata property → history-mapped relationship_type mapping ─────────
 #
 # Bidirectional relationships: Wikidata often stores only one direction.
 # The inverse can be derived. The "inverse" column shows what to create
@@ -84,7 +84,7 @@ def get_relationship_type(
     source_entity_type: str | None = None,
     target_entity_type: str | None = None,
 ) -> str | None:
-    """Resolve a Wikidata property to a WikiGlobe relationship type.
+    """Resolve a Wikidata property to a history-mapped relationship type.
 
     Uses entity type context to disambiguate properties like P710 which
     mean different things for battles vs. treaties.

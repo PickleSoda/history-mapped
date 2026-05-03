@@ -33,7 +33,7 @@ def fetch_raw(query: str = GLOBAL_QUERY) -> dict[str, Any]:
         OVERPASS_URL,
         data={"data": query},
         timeout=1800,
-        headers={"User-Agent": "WikiGlobe-Pipeline/1.0"},
+        headers={"User-Agent": "history-mapped-Pipeline/1.0"},
     )
     response.raise_for_status()
     return response.json()

@@ -1,4 +1,4 @@
-"""Entity mapper — converts raw Wikidata/Wikipedia data to the WikiGlobe entity schema.
+"""Entity mapper — converts raw Wikidata/Wikipedia data to the history-mapped entity schema.
 
 Produces dicts matching the EntityData DTO structure:
 {
@@ -44,7 +44,7 @@ class EntityMapper:
         self._summary_cache: dict[str, str] = {}
 
     def map(self, raw: dict[str, Any], entity_type: str) -> dict[str, Any] | None:
-        """Convert a raw scraped item to the WikiGlobe entity format.
+        """Convert a raw scraped item to the history-mapped entity format.
 
         Returns None if the item lacks minimum required data (name).
         """

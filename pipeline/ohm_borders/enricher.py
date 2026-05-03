@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 WIKIDATA_SPARQL = "https://query.wikidata.org/sparql"
 WIKIDATA_API = "https://www.wikidata.org/w/api.php"
-_USER_AGENT = "WikiGlobe-Pipeline/1.0 (https://wikiglobe.example)"
+_USER_AGENT = "history-mapped-Pipeline/1.0 (https://history-mapped.example)"
 
 _SPARQL_TEMPLATE = """
 SELECT ?polity ?polityLabel ?polityDescription

@@ -1,6 +1,6 @@
 # OHM Borders & Country Names — Cookbook
 
-A practical guide to extracting administrative boundaries and their names from OpenHistoricalMap (OHM) for ingestion into WikiGlobe's PostGIS database.
+A practical guide to extracting administrative boundaries and their names from OpenHistoricalMap (OHM) for ingestion into history-mapped's PostGIS database.
 
 ---
 
@@ -68,7 +68,7 @@ The daily snapshot is a `.osm.pbf` file (Protocol Buffers, compact binary OSM fo
 
 OHM publishes MapLibre-compatible vector tilesets. These are for **rendering**, not extraction. Geometries are simplified per zoom level and clipped to tile boundaries. Do not use them as your ingestion source. Use them only in the frontend for display.
 
-**Recommendation for WikiGlobe:** Path B for the bulk ingest, Path A for targeted refreshes and ad-hoc queries.
+**Recommendation for history-mapped:** Path B for the bulk ingest, Path A for targeted refreshes and ad-hoc queries.
 
 ---
 
@@ -82,7 +82,7 @@ Content-Type: text/plain
 Body: <OverpassQL query>
 ```
 
-You can also POST via `wget`/`curl` with `--post-file=query.ql`. Output format is controlled by the `[out:...]` header: `json` (default, easiest), `xml`, or `csv`.
+You can also POST via `history-mappedet`/`curl` with `--post-file=query.ql`. Output format is controlled by the `[out:...]` header: `json` (default, easiest), `xml`, or `csv`.
 
 **Important:** OHM uses the same Overpass server software as OSM but a separate instance. The public Overpass turbo at `overpass-turbo.eu` queries OSM by default — use `https://overpass-turbo.openhistoricalmap.org/` for OHM, or inject `{{data:overpass,server=https://overpass-api.openhistoricalmap.org/api/}}` into your query.
 
@@ -213,7 +213,7 @@ This is where osmium does the hard work: assembling rings, handling inners, prod
 
 ```bash
 ogr2ogr -f PostgreSQL \
-  PG:"dbname=wikiglobe user=..." \
+  PG:"dbname=history-mapped user=..." \
   admin-boundaries.geojsonseq \
   -nln ohm_admin_raw \
   -lco GEOMETRY_NAME=geom \
@@ -258,7 +258,7 @@ A single polity that changes borders over time is modeled as:
 - N boundary relations, each valid for a date range, each with its own geometry and `start_date`/`end_date`.
 - One `type=chronology` relation whose members are those N boundary relations.
 
-**Ingestion implication for WikiGlobe:** a WikiGlobe *POLITY* entity corresponds to the **chronology relation**, and each boundary-version-in-time becomes a row in your multi-temporal geometry table keyed back to that polity. When you ingest, you should:
+**Ingestion implication for history-mapped:** a history-mapped *POLITY* entity corresponds to the **chronology relation**, and each boundary-version-in-time becomes a row in your multi-temporal geometry table keyed back to that polity. When you ingest, you should:
 
 1. Pull all `type=chronology` relations with `boundary=administrative` in their members.
 2. For each chronology, treat the chronology's own tags (`name`, `wikidata`, etc.) as the canonical entity identity.
@@ -269,7 +269,7 @@ Not every evolving polity has a chronology yet — OHM coverage is uneven. Plan 
 
 ---
 
-## 8. Recommended pipeline for WikiGlobe
+## 8. Recommended pipeline for history-mapped
 
 ```
 [daily OHM planet PBF]
@@ -292,7 +292,7 @@ Not every evolving polity has a chronology yet — OHM coverage is uneven. Plan 
         │  - insert into polity + polity_geometry_version tables
         │  - mark verification_status = 'ohm_imported' (needs editorial review)
         ▼
-[WikiGlobe canonical schema]
+[history-mapped canonical schema]
 ```
 
 **Refresh strategy:** nightly `osmium` filter against the latest planet, diff against your staging table by OHM relation ID, and only re-ingest changed relations. OHM assigns stable relation IDs, so diffing works.

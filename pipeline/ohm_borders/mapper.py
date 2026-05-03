@@ -1,4 +1,4 @@
-"""Map parsed OHM polity records to WikiGlobe JSONL entities."""
+"""Map parsed OHM polity records to history-mapped JSONL entities."""
 
 from __future__ import annotations
 

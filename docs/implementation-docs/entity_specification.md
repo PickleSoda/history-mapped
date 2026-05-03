@@ -411,7 +411,7 @@ CREATE TYPE person_role AS ENUM (
   'ruler', 'regent', 'heir', 'consort', 'general', 'admiral',
   'diplomat', 'governor', 'religious_leader', 'prophet',
   'philosopher', 'scientist', 'artist', 'architect', 'poet',
-  'historian', 'lawgiver', 'rebel_leader', 'merchant',
+  'historian', 'lahistory-mappediver', 'rebel_leader', 'merchant',
   'explorer', 'spy', 'slave', 'other'
 );
 

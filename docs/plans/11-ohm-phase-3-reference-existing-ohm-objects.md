@@ -6,7 +6,7 @@
 
 ## Objective
 
-Allow entities/geometry periods to reference existing OHM objects (node/way/relation), automatically attach these references during pipeline ingestion when possible, and support deterministic map-click resolution back to a WikiGlobe entity.
+Allow entities/geometry periods to reference existing OHM objects (node/way/relation), automatically attach these references during pipeline ingestion when possible, and support deterministic map-click resolution back to a history-mapped entity.
 
 ## Scope
 

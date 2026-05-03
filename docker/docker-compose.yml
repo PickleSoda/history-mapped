@@ -1,4 +1,4 @@
-name: wikiglobe
+name: history-mapped
 
 services:
   composer-install:
@@ -58,7 +58,7 @@ services:
       context: ..
       dockerfile: docker/web/Dockerfile
     working_dir: /workspace
-    command: pnpm --filter @wikiglobe/web dev
+    command: pnpm --filter @history-mapped/web dev
     ports:
       - '${FORWARD_WEB_PORT:-5173}:5173'
     volumes:
@@ -91,21 +91,21 @@ services:
         condition: service_completed_successfully
 
   db:
-    image: '${WG_DB_IMAGE:-wikiglobe-db:16-pgvector-v0.8.2}'
+    image: '${history-mapped_DB_IMAGE:-history-mapped-db:16-pgvector-v0.8.2}'
     build:
       context: .
       dockerfile: db/Dockerfile
     ports:
       - '${FORWARD_DB_PORT:-5432}:5432'
     environment:
-      POSTGRES_DB: '${POSTGRES_DB:-wikiglobe}'
-      POSTGRES_USER: '${POSTGRES_USER:-wikiglobe}'
+      POSTGRES_DB: '${POSTGRES_DB:-history-mapped}'
+      POSTGRES_USER: '${POSTGRES_USER:-history-mapped}'
       POSTGRES_PASSWORD: '${POSTGRES_PASSWORD:-secret}'
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./db/init-extensions.sql:/docker-entrypoint-initdb.d/10-extensions.sql:ro
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-wikiglobe} -d ${POSTGRES_DB:-wikiglobe}']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-history-mapped} -d ${POSTGRES_DB:-history-mapped}']
       interval: 10s
       timeout: 5s
       retries: 5

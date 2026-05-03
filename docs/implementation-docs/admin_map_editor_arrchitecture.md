@@ -1,4 +1,4 @@
-# WG — Entity Editor & Map UI Architecture
+# history-mapped — Entity Editor & Map UI Architecture
 
 **Version 2.0 — March 2026**
 

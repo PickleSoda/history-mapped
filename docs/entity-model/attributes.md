@@ -244,7 +244,7 @@ Storage note: canonical location values are stored in `entity_locations` (primar
 ---
 
 ### `geom`
-**Optional (API/read-model field).** PostGIS point geometry (WGS 84).
+**Optional (API/read-model field).** PostGIS point geometry (history-mappedS 84).
 The primary geographic coordinate of the entity. Longitude before latitude in decimal degrees. See [for-geodata-contributors.md](./for-geodata-contributors.md) for full guidance.
 
 Storage note: canonical point geometry is stored in `entity_locations.geom` (primary row) and may also appear in `geometry_periods` for time-scoped presence/territory facts.
