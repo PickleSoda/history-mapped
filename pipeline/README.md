@@ -1,6 +1,6 @@
-﻿# WikiGlobe Data Pipeline
+﻿# history-mapped Data Pipeline
 
-Wikidata/Wikipedia scraper and OHM borders pipeline for the WikiGlobe historical atlas.
+Wikidata/Wikipedia scraper and OHM borders pipeline for the history-mapped historical atlas.
 
 ## Quick Start
 

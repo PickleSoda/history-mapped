@@ -8,7 +8,7 @@
 
 **Tech Stack:** Laravel 13, PHP 8.4, PostgreSQL 16, PostGIS, Python pipeline CLI, JSONL batch import, PHPUnit feature tests, Python `pytest` tests for pipeline modules, documentation in `docs/entity-model` and `docs/implementation-docs`.
 
-**Execution Root:** Unless a step says otherwise, run commands from the repository root: `C:\Users\Achi\Code\FL\WG`.
+**Execution Root:** Unless a step says otherwise, run commands from the repository root: `C:\Users\Achi\Code\FL\history-mapped`.
 
 ---
 

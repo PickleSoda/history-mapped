@@ -1,4 +1,4 @@
-"""CLI dispatcher: unified entry point for WikiGlobe pipeline.
+"""CLI dispatcher: unified entry point for history-mapped pipeline.
 
 Routes commands to appropriate submodules:
   - Wikidata scraping, topic extraction: pipeline.wikidata
@@ -53,7 +53,7 @@ def _configure_logging() -> None:
 
 @click.group()
 def cli():
-    """WikiGlobe data pipeline: scrape Wikidata entities and OHM borders."""
+    """history-mapped data pipeline: scrape Wikidata entities and OHM borders."""
     _configure_logging()
 
 

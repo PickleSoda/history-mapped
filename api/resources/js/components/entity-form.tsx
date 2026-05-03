@@ -96,7 +96,7 @@ const PERSON_ROLES = [
     'architect',
     'poet',
     'historian',
-    'lawgiver',
+    'lahistory-mappediver',
     'rebel_leader',
     'merchant',
     'explorer',

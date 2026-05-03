@@ -1,6 +1,6 @@
 {
     "$schema": "https://www.schemastore.org/package.json",
-    "name": "@wikiglobe/api",
+    "name": "@history-mapped/api",
     "private": true,
     "type": "module",
     "scripts": {

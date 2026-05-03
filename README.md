@@ -1,4 +1,4 @@
-# WikiGlobe
+# history-mapped
 
 An interactive historical atlas mapping entities, events, and relationships across time and geography. Built on open infrastructure — PostgreSQL/PostGIS/pgvector, MapLibre GL JS, and OpenHistoricalMap.
 
@@ -14,7 +14,7 @@ An interactive historical atlas mapping entities, events, and relationships acro
 | **Infrastructure** | Docker Compose, Redis, Nginx |
 
 ```
-wikiglobe/
+history-mapped/
 ├── api/          # Laravel backend — REST API + Inertia admin panel
 ├── web/          # React SPA — customer-facing map interface
 ├── docker/       # Docker Compose + Dockerfiles
@@ -35,7 +35,7 @@ wikiglobe/
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/PickleSoda/WG.git && cd WG
+git clone https://github.com/PickleSoda/history-mapped.git && cd history-mapped
 
 # 2. Copy env file
 cp api/.env.example api/.env
@@ -73,8 +73,8 @@ pnpm dev:build
 After containers are up, run migrations and seed the database:
 
 ```bash
-docker exec wikiglobe-app-1 php artisan migrate
-docker exec wikiglobe-app-1 php artisan db:seed
+docker exec history-mapped-app-1 php artisan migrate
+docker exec history-mapped-app-1 php artisan db:seed
 ```
 
 ### Stopping
@@ -89,22 +89,22 @@ pnpm dev:down
 
 ```bash
 # Run tests
-docker exec wikiglobe-app-1 php artisan test
+docker exec history-mapped-app-1 php artisan test
 
 # Run a specific test file
-docker exec wikiglobe-app-1 php artisan test --filter=EntityControllerTest
+docker exec history-mapped-app-1 php artisan test --filter=EntityControllerTest
 
 # List API routes
 pnpm api:routes
 
 # Artisan commands
-docker exec wikiglobe-app-1 php artisan <command>
+docker exec history-mapped-app-1 php artisan <command>
 
 # Tinker (Laravel REPL)
-docker exec -it wikiglobe-app-1 php artisan tinker
+docker exec -it history-mapped-app-1 php artisan tinker
 
 # Fresh migrate + seed
-docker exec wikiglobe-app-1 php artisan migrate:fresh --seed
+docker exec history-mapped-app-1 php artisan migrate:fresh --seed
 ```
 
 ---
@@ -123,9 +123,9 @@ Docker Compose defaults are defined in `docker/docker-compose.yml`. Override via
 | `FORWARD_MAILPIT_PORT` | `8025` | Mailpit UI port |
 | `FORWARD_CLOUDBEAVER_PORT` | `8978` | CloudBeaver port |
 | `FORWARD_REDISINSIGHT_PORT` | `5540` | RedisInsight port |
-| `WG_DB_IMAGE` | `wikiglobe-db:16-pgvector-v0.8.2` | Optional prebuilt DB image tag (set to a registry image to skip local pgvector compilation) |
-| `POSTGRES_DB` | `wikiglobe` | Database name |
-| `POSTGRES_USER` | `wikiglobe` | Database user |
+| `history-mapped_DB_IMAGE` | `history-mapped-db:16-pgvector-v0.8.2` | Optional prebuilt DB image tag (set to a registry image to skip local pgvector compilation) |
+| `POSTGRES_DB` | `history-mapped` | Database name |
+| `POSTGRES_USER` | `history-mapped` | Database user |
 | `POSTGRES_PASSWORD` | `secret` | Database password |
 
 ---

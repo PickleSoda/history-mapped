@@ -1,4 +1,4 @@
-# WG Development Playbook
+# history-mapped Development Playbook
 
 ## Core workflow (Obra Superpowers)
 - Start every task with `using-superpowers` and invoke the relevant skills before implementation.
@@ -70,12 +70,12 @@ Use GitNexus for impact-aware edits and safe refactors.
 - Safe rename: `gitnexus_rename({symbol_name: "old", new_name: "new", dry_run: true})`, review, then `dry_run: false`
 
 ## Quick map
-- Debugging: `query` -> `context` -> `gitnexus://repo/WG/process/{name}`
+- Debugging: `query` -> `context` -> `gitnexus://repo/history-mapped/process/{name}`
 - Refactoring: `context` -> `impact` -> edit -> `detect_changes`
 
 ## Core resources
-- `gitnexus://repo/WG/context`
-- `gitnexus://repo/WG/processes`
-- `gitnexus://repo/WG/process/{name}`
+- `gitnexus://repo/history-mapped/context`
+- `gitnexus://repo/history-mapped/processes`
+- `gitnexus://repo/history-mapped/process/{name}`
 
 <!-- gitnexus:end -->

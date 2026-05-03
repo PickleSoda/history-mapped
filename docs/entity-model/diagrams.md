@@ -3,7 +3,7 @@ geometry_snapshots
 > Status note (post-Task-13): diagrams in this file include historical views from before the legacy-column hard-drop.
 > Treat normalized-table and geometry-period diagrams as canonical; legacy `entities` temporal/location columns and `geometry_snapshots` are no longer active.
 
-Visual diagrams for the WikiGlobe data model. All diagrams use Mermaid syntax.
+Visual diagrams for the history-mapped data model. All diagrams use Mermaid syntax.
 
 ---
 
@@ -241,7 +241,7 @@ flowchart TD
 
 Implementation note: `entity_geo_refs.match_role` should mark only one active `primary` record per entity, while keeping historical `candidate`/`rejected` rows for auditability.
 
-### 1.3 Click Flow: OHM Feature -> WikiGlobe Entity
+### 1.3 Click Flow: OHM Feature -> history-mapped Entity
 
 When the user clicks a feature on the OHM-based map (example: Rome), the app should resolve like this:
 

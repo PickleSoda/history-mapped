@@ -12,7 +12,7 @@ Usage (via CLI):
 The walk follows properties like P710 (participant), P276 (location),
 P828 (has cause), P1542 (has effect), P527 (has part), P361 (part of),
 etc. — essentially any property whose value is another Wikidata entity.
-Each discovered entity is classified into one of the 30 WikiGlobe types
+Each discovered entity is classified into one of the 30 history-mapped types
 by checking its P31 (instance of) against WIKIDATA_TYPE_CONFIGS.
 """
 

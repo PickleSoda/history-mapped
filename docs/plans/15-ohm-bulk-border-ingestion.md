@@ -60,7 +60,7 @@ def test_deeply_bce():
 - [ ] **1.2 Run tests to confirm they fail**
 
 ```bash
-cd C:\Users\Achi\Code\FL\WG
+cd C:\Users\Achi\Code\FL\history-mapped
 python -m pytest pipeline/tests/test_ohm_borders_date_parser.py -v 2>&1 | head -30
 ```
 
@@ -331,7 +331,7 @@ def fetch_raw(query: str = GLOBAL_QUERY) -> dict[str, Any]:
         OVERPASS_URL,
         data={"data": query},
         timeout=1800,
-        headers={"User-Agent": "WikiGlobe-Pipeline/1.0"},
+        headers={"User-Agent": "history-mapped-Pipeline/1.0"},
     )
     resp.raise_for_status()
     return resp.json()  # type: ignore[return-value]
@@ -549,7 +549,7 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 logger = logging.getLogger(__name__)
 
 WIKIDATA_SPARQL = "https://query.wikidata.org/sparql"
-_USER_AGENT = "WikiGlobe-Pipeline/1.0 (https://wikiglobe.example)"
+_USER_AGENT = "history-mapped-Pipeline/1.0 (https://history-mapped.example)"
 
 _SPARQL_TEMPLATE = """
 SELECT ?polity ?polityLabel ?polityDescription

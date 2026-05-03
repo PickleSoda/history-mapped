@@ -7,7 +7,7 @@
 
 ## Problem
 
-WikiGlobe's existing geo-resolution flow matches individual entities to OHM features one at a time during scraping. For polities, the more valuable starting point is the opposite direction: pull *everything* OHM has as sovereign-state boundaries (`admin_level=2`), use the `wikidata` tag embedded in each OHM relation to fetch entity metadata in bulk, and seed the database from that foundation rather than from Wikidata SPARQL queries alone.
+history-mapped's existing geo-resolution flow matches individual entities to OHM features one at a time during scraping. For polities, the more valuable starting point is the opposite direction: pull *everything* OHM has as sovereign-state boundaries (`admin_level=2`), use the `wikidata` tag embedded in each OHM relation to fetch entity metadata in bulk, and seed the database from that foundation rather than from Wikidata SPARQL queries alone.
 
 This gives us:
 - All borders OHM has ever mapped, with dates and geometry stages, in one sweep

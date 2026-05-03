@@ -21,7 +21,7 @@ class Settings:
 
     @property
     def wikidata_user_agent(self) -> str:
-        return os.getenv("WIKIDATA_USER_AGENT", "WikiGlobe/1.0 (https://github.com/PickleSoda/WG)")
+        return os.getenv("WIKIDATA_USER_AGENT", "history-mapped/1.0 (https://github.com/PickleSoda/history-mapped)")
 
     @property
     def wikipedia_language(self) -> str:

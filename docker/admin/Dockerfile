@@ -11,4 +11,4 @@ RUN corepack enable
 
 WORKDIR /workspace
 
-CMD ["sh", "-lc", "pnpm install --no-frozen-lockfile && pnpm --filter @wikiglobe/api dev"]
+CMD ["sh", "-lc", "pnpm install --no-frozen-lockfile && pnpm --filter @history-mapped/api dev"]

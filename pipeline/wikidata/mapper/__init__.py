@@ -1,1 +1,1 @@
-"""Mapper package — raw wiki data → WikiGlobe entity schema."""
+"""Mapper package — raw wiki data → history-mapped entity schema."""

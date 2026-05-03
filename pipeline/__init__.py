@@ -1,1 +1,1 @@
-"""WikiGlobe data pipeline — scrape Wikidata/Wikipedia, produce entity JSONL."""
+"""history-mapped data pipeline — scrape Wikidata/Wikipedia, produce entity JSONL."""

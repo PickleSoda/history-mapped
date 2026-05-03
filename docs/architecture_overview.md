@@ -1,8 +1,8 @@
-# WikiGlobe Architecture Overview
+# history-mapped Architecture Overview
 
 ## System Overview
 
-WikiGlobe is the implementation monorepo for the Historical Atlas platform described in `README.md`. The platform combines a time-aware historical map, a structured historical entity database, and editorial workflows for AI-assisted data generation with human verification.
+history-mapped is the implementation monorepo for the Historical Atlas platform described in `README.md`. The platform combines a time-aware historical map, a structured historical entity database, and editorial workflows for AI-assisted data generation with human verification.
 
 At a high level, the architecture blends two views of the system:
 

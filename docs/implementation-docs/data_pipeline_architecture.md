@@ -237,7 +237,7 @@ Maps all 30 entity types to their Wikidata classes and properties. Example:
 
 ### 3.5 Relationship Mapper (`mapper/relationship_mapper.py`)
 
-Maps ~35 Wikidata properties to the 76 WikiGlobe relationship types. Features:
+Maps ~35 Wikidata properties to the 76 history-mapped relationship types. Features:
 
 - **Context disambiguation:** Some Wikidata properties map to different relationship types depending on entity type. E.g., `P710` (participant) → `signed_by` for treaties, `participated_in` otherwise.
 - **Inverse tracking:** Records both the forward relationship and the inverse (e.g., `administered_by` ↔ `administered`).
@@ -457,7 +457,7 @@ Relationships cannot be created during entity import because the target entity m
 | Column | Type | Description |
 |--------|------|-------------|
 | `source_entity_id` | uuid (FK) | The entity that was just imported |
-| `relationship_type` | string | One of the 76 WikiGlobe relationship types |
+| `relationship_type` | string | One of the 76 history-mapped relationship types |
 | `target_wikidata_id` | string | QID of the target entity (e.g., `Q220`) |
 | `target_label` | string | Human-readable label for logging |
 | `confidence` | string | `high`, `medium`, or `low` |
@@ -479,9 +479,9 @@ Relationships cannot be created during entity import because the target entity m
 
 ### Wikidata Property Mapping
 
-~35 Wikidata properties are mapped to WikiGlobe relationship types in `mapper/relationship_mapper.py`. Examples:
+~35 Wikidata properties are mapped to history-mapped relationship types in `mapper/relationship_mapper.py`. Examples:
 
-| Wikidata Property | WikiGlobe Type | Inverse |
+| Wikidata Property | history-mapped Type | Inverse |
 |-------------------|----------------|---------|
 | P36 (capital) | `capital_of` | `has_capital` |
 | P17 (country) | `located_in_territory` | `administered` |
@@ -739,7 +739,7 @@ See also: [Plan 14 — Experimental Inferred Boundary Fallback Pipeline](../plan
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `WIKIDATA_ENDPOINT` | `https://query.wikidata.org/sparql` | SPARQL endpoint URL |
-| `USER_AGENT` | `WikiGlobePipeline/1.0` | HTTP User-Agent header |
+| `USER_AGENT` | `history-mappedPipeline/1.0` | HTTP User-Agent header |
 | `OPENAI_API_KEY` | (none) | For Python-side embedding generation |
 | `OUTPUT_DIR` | `pipeline/output` | JSONL output directory |
 | `RATE_LIMIT_CALLS` | `1` | Max requests per rate-limit period |

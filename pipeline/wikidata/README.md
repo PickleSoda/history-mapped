@@ -45,7 +45,7 @@ python -m pipeline topic "Silk Road" --co-seed Q25307
 # Skip Wikipedia enrichment
 python -m pipeline topic "Silk Road" --skip-wikipedia
 
-# Skip entities that don't map to any of the 30 WikiGlobe types
+# Skip entities that don't map to any of the 30 history-mapped types
 python -m pipeline topic Q484954 --skip-untyped
 ```
 
@@ -53,7 +53,7 @@ python -m pipeline topic Q484954 --skip-untyped
 
 | File | Contents |
 |---|---|
-| `output/topic_<slug>.jsonl` | Regular entities (30 WikiGlobe types) |
+| `output/topic_<slug>.jsonl` | Regular entities (30 history-mapped types) |
 | `output/topic_<slug>_ref.jsonl` | Reference-table items (eras, broad regions, seas, …) |
 | `output/topic_<slug>_untyped.jsonl` | Truly unclassified items (manual review) |
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Laravel 13, PHP 8.4, Inertia + React + TypeScript, PostgreSQL/PostGIS, PHPUnit feature tests, Vitest + Testing Library component tests.
 
-**Execution Root:** Unless noted otherwise, run commands from `C:\Users\Achi\Code\FL\WG`.
+**Execution Root:** Unless noted otherwise, run commands from `C:\Users\Achi\Code\FL\history-mapped`.
 
 ---
 
