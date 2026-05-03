@@ -8,6 +8,6 @@ This structure ensures a clear progression from idea to execution, with traceabl
 
 Useful entry points:
 
-- OHM border extraction walkthrough: [docs/implementation-docs/ohm_border_extraction_step_by_step.md](/c:/Users/Achi/Code/FL/history-mapped/docs/implementation-docs/ohm_border_extraction_step_by_step.md)
-- MVP deployment (low cost): [docs/implementation-docs/deployment_mvp_low_cost.md](/c:/Users/Achi/Code/FL/history-mapped/docs/implementation-docs/deployment_mvp_low_cost.md)
-- Production deployment (optimal): [docs/implementation-docs/deployment_production_optimal.md](/c:/Users/Achi/Code/FL/history-mapped/docs/implementation-docs/deployment_production_optimal.md)
+- OHM border extraction walkthrough: [docs/implementation-docs/ohm_border_extraction_step_by_step.md](/history-mapped/docs/implementation-docs/ohm_border_extraction_step_by_step.md)
+- MVP deployment (low cost): [docs/implementation-docs/deployment_mvp_low_cost.md](/history-mapped/docs/implementation-docs/deployment_mvp_low_cost.md)
+- Production deployment (optimal): [docs/implementation-docs/deployment_production_optimal.md](/history-mapped/docs/implementation-docs/deployment_production_optimal.md)
