@@ -22,7 +22,7 @@ enum PersonRole: string
     case Architect = 'architect';
     case Poet = 'poet';
     case Historian = 'historian';
-    case Lahistory-mappediver = 'lahistory-mappediver';
+    case Lawgiver = 'lawgiver';
     case RebelLeader = 'rebel_leader';
     case Merchant = 'merchant';
     case Explorer = 'explorer';
