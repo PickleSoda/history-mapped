@@ -172,7 +172,7 @@ export default function EntityHistoryPanel({
                 hoveredEntry &&
                 hoveredEntry.id !== activeEntry.id
             ) {
-                const previehistory-mappedeometries = entryToOverlayGeometries(
+                const previewGeometries = entryToOverlayGeometries(
                     hoveredEntry,
                     {
                         hover_preview: true,
@@ -180,7 +180,7 @@ export default function EntityHistoryPanel({
                     },
                 );
 
-                return [...selectedGeometries, ...previehistory-mappedeometries];
+                return [...selectedGeometries, ...previewGeometries];
             }
 
             return selectedGeometries;

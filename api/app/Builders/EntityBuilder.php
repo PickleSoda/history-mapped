@@ -82,7 +82,7 @@ class EntityBuilder extends Builder
 
     /**
      * Entities whose point geometry intersects a bounding box.
-     * Coordinates in SRID 4326 (history-mappedS84 lon/lat).
+     * Coordinates in SRID 4326 (wg S84 lon/lat).
      */
     public function inBbox(float $minLng, float $minLat, float $maxLng, float $maxLat): self
     {

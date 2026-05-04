@@ -22,7 +22,7 @@ This is a **single coordinate** representing the most meaningful geographic posi
 - For a **trade route**, this field is also usually left blank — use `territory_geom` for the route line, or use relationships to connect the route to the cities it passes through.
 - For a **state or empire**, `geom` typically marks the capital city or the political heartland, not the full extent. The full extent goes in `territory_geom`.
 
-**Format:** Longitude, latitude in decimal degrees (history-mappedS 84 / EPSG:4326). Longitude comes first.
+**Format:** Longitude, latitude in decimal degrees (WGS 84 / EPSG:4326). Longitude comes first.
 
 ```
 Correct:   [39.8261, 21.4225]   (longitude, latitude — Mecca)
@@ -180,12 +180,12 @@ The exception: if a person's movements are themselves historically significant (
 
 ## Coordinate Reference System
 
-All coordinates must be in **history-mappedS 84 (EPSG:4326)** — the same system used by GPS devices, Google Maps, and OpenStreetMap. Decimal degrees only; do not use degrees-minutes-seconds notation.
+All coordinates must be in **WGS 84 (EPSG:4326)** — the same system used by GPS devices, Google Maps, and OpenStreetMap. Decimal degrees only; do not use degrees-minutes-seconds notation.
 
 | Wrong | Right |
 |---|---|
 | `41°54'N, 12°27'E` | `41.900, 12.450` |
-| `EPSG:3857` projected coordinates | Convert to history-mappedS 84 first |
+| `EPSG:3857` projected coordinates | Convert to WGS 84 first |
 
 ---
 
@@ -234,7 +234,7 @@ When possible, attach and keep the external reference ID (especially OHM relatio
 ## Checklist Before Submitting a Location
 
 - [ ] Longitude comes **before** latitude in all coordinate pairs
-- [ ] Coordinates are in history-mappedS 84 decimal degrees
+- [ ] Coordinates are in WGS 84 decimal degrees
 - [ ] `location_name` matches the actual coordinates (spot-check on a map)
 - [ ] `location_confidence` honestly reflects the evidence
 - [ ] `location_method` is filled in
