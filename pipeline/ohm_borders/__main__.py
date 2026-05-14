@@ -14,6 +14,9 @@ from pipeline.ohm_borders.stages import (
     run_enrich_stage,
     run_fetch_stage,
     run_parse_stage,
+    run_relations_build_stage,
+    run_relations_enrich_stage,
+    run_relations_scan_stage,
 )
 from pipeline.ohm_borders.enricher import enrich_output_jsonl_missing_qids
 
@@ -93,6 +96,34 @@ def _run_borders_pipeline(
 
     console.print(f"Build {build_result['status']}: {build_result['record_count']} records -> {build_result['final_path']}")
     console.print(f"Borders run complete -> {final_output_path}")
+
+
+def _run_relations_pipeline(*, run_id, artifact_dir, resume, force):
+    scan_result = run_relations_scan_stage(
+        run_id=run_id,
+        artifact_dir=artifact_dir,
+        resume=resume,
+        force=force,
+    )
+    console.print(f"Relations scan {scan_result['status']}: {scan_result['candidate_count']} candidates")
+
+    enrich_result = run_relations_enrich_stage(
+        run_id=run_id,
+        artifact_dir=artifact_dir,
+        resume=resume,
+        force=force,
+    )
+    console.print(f"Relations enrich {enrich_result['status']}: {enrich_result['candidate_count']} enriched candidates")
+
+    build_result = run_relations_build_stage(
+        run_id=run_id,
+        artifact_dir=artifact_dir,
+        resume=resume,
+        force=force,
+    )
+    console.print(
+        f"Relations build completed: {build_result['entity_count']} entities, {build_result['hint_count']} hints"
+    )
 
 
 @click.group(invoke_without_command=True)
@@ -245,6 +276,68 @@ def run_full(run_id, artifact_dir, query_file, output, raw_shard_size, parsed_sh
         build_workers=build_workers,
         enrich_batch_size=enrich_batch_size,
         enrich_workers=enrich_workers,
+        resume=resume,
+        force=force,
+    )
+
+
+@cli.command("relations-scan")
+@click.option("--run-id", default=None, help="Deterministic run id for the artifact directory")
+@click.option("--artifact-dir", type=click.Path(path_type=Path, file_okay=False), default=None, help="Explicit artifact directory override")
+@click.option("--resume", is_flag=True, help="Skip writing relation scan shards that already exist")
+@click.option("--force", is_flag=True, help="Overwrite existing relation scan shards")
+def relations_scan(run_id, artifact_dir, resume, force):
+    result = run_relations_scan_stage(
+        run_id=run_id,
+        artifact_dir=artifact_dir,
+        resume=resume,
+        force=force,
+    )
+
+    console.print(f"Relations scan {result['status']}: {result['candidate_count']} candidates")
+
+
+@cli.command("relations-enrich")
+@click.option("--run-id", default=None, help="Deterministic run id for the artifact directory")
+@click.option("--artifact-dir", type=click.Path(path_type=Path, file_okay=False), default=None, help="Explicit artifact directory override")
+@click.option("--resume", is_flag=True, help="Skip writing relation enrich shards that already exist")
+@click.option("--force", is_flag=True, help="Overwrite existing relation enrich shards")
+def relations_enrich(run_id, artifact_dir, resume, force):
+    result = run_relations_enrich_stage(
+        run_id=run_id,
+        artifact_dir=artifact_dir,
+        resume=resume,
+        force=force,
+    )
+
+    console.print(f"Relations enrich {result['status']}: {result['candidate_count']} enriched candidates")
+
+
+@cli.command("relations-build")
+@click.option("--run-id", default=None, help="Deterministic run id for the artifact directory")
+@click.option("--artifact-dir", type=click.Path(path_type=Path, file_okay=False), default=None, help="Explicit artifact directory override")
+@click.option("--resume", is_flag=True, help="Skip writing final relation outputs that already exist")
+@click.option("--force", is_flag=True, help="Overwrite existing final relation outputs")
+def relations_build(run_id, artifact_dir, resume, force):
+    result = run_relations_build_stage(
+        run_id=run_id,
+        artifact_dir=artifact_dir,
+        resume=resume,
+        force=force,
+    )
+
+    console.print(f"Relations build completed: {result['entity_count']} entities, {result['hint_count']} hints")
+
+
+@cli.command("relations-run")
+@click.option("--run-id", default=None, help="Deterministic run id for the artifact directory")
+@click.option("--artifact-dir", type=click.Path(path_type=Path, file_okay=False), default=None, help="Explicit artifact directory override")
+@click.option("--resume", is_flag=True, help="Skip writing existing relation stage artifacts when possible")
+@click.option("--force", is_flag=True, help="Overwrite existing relation stage artifacts")
+def relations_run(run_id, artifact_dir, resume, force):
+    _run_relations_pipeline(
+        run_id=run_id,
+        artifact_dir=artifact_dir,
         resume=resume,
         force=force,
     )

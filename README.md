@@ -107,6 +107,32 @@ docker exec -it history-mapped-app-1 php artisan tinker
 docker exec history-mapped-app-1 php artisan migrate:fresh --seed
 ```
 
+## OHM Borders Import Workflow
+
+Use the base OHM borders pipeline first, then the relation pipeline against the same `run_id`.
+
+```bash
+# 1. Build importer-ready country/entity output
+py -m pipeline borders run --run-id global-2026-04-15 --parse-workers 8 --enrich-names
+
+# 2. Import country entities into Laravel
+docker compose -f docker/docker-compose.yml exec app \
+  php -d memory_limit=1024M artisan pipeline:import-borders \
+  /var/www/html/output/ohm_borders/global-2026-04-15/final/ohm_borders.jsonl \
+  --sync --batch-id=global-2026-04-15
+
+# 3. Build importer-ready relation outputs
+py -m pipeline borders relations-run --run-id global-2026-04-15 --resume
+
+# 4. Import relation entities, stage hints, and resolve relationships
+docker compose -f docker/docker-compose.yml exec app \
+  php -d memory_limit=1024M artisan pipeline:import-border-relations \
+  /var/www/html/output/ohm_borders/global-2026-04-15/relations_final \
+  --sync --batch-id=global-2026-04-15
+```
+
+For larger imports, replace the final step with `--skip-resolve`, then run one resolver pass after all relation hints are staged.
+
 ---
 
 ## Environment Variables
