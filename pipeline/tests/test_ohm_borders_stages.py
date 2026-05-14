@@ -1,4 +1,5 @@
 import json
+import importlib
 from pathlib import Path
 import time
 
@@ -6,6 +7,7 @@ from click.testing import CliRunner
 import orjson
 
 import pipeline.__main__ as main_module
+import pipeline.ohm_borders.__main__ as ohm_main_module
 from pipeline.__main__ import cli
 from pipeline.ohm_borders.artifacts import (
     built_shard_path,
@@ -33,6 +35,25 @@ def _write_jsonl(path: Path, records: list[dict]) -> None:
 
 def _read_jsonl(path: Path) -> list[dict]:
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def test_stage_modules_expose_expected_entrypoints() -> None:
+    module_expectations = {
+        "pipeline.ohm_borders.stage_fetch": ["run_fetch_stage"],
+        "pipeline.ohm_borders.stage_parse": ["run_parse_stage"],
+        "pipeline.ohm_borders.stage_enrich": ["run_enrich_stage"],
+        "pipeline.ohm_borders.stage_build": ["run_build_stage"],
+        "pipeline.ohm_borders.stage_relations": [
+            "run_relations_scan_stage",
+            "run_relations_enrich_stage",
+            "run_relations_build_stage",
+        ],
+    }
+
+    for module_name, attr_names in module_expectations.items():
+        module = importlib.import_module(module_name)
+        for attr_name in attr_names:
+            assert callable(getattr(module, attr_name))
 
 
 def test_fetch_stage_writes_raw_overpass_and_manifest_summary(tmp_path: Path) -> None:
@@ -437,7 +458,7 @@ def test_borders_fetch_cli_wires_run_id_artifact_dir_query_file_and_flags(tmp_pa
         observed.update(kwargs)
         return {"status": "completed", "artifact_dir": kwargs["artifact_dir"], "raw_path": "raw/overpass.json", "element_count": 1}
 
-    monkeypatch.setattr(main_module, "run_fetch_stage", fake_run_fetch_stage)
+    monkeypatch.setattr(ohm_main_module, "run_fetch_stage", fake_run_fetch_stage)
 
     result = runner.invoke(
         cli,
@@ -477,8 +498,8 @@ def test_borders_parse_cli_uses_documented_defaults_and_wires_flags(tmp_path: Pa
         observed.update(kwargs)
         return {"status": "completed", "artifact_dir": kwargs["artifact_dir"], "shard_count": 2, "polity_count": 3}
 
-    monkeypatch.setattr(main_module, "default_parallelism", fake_default_parallelism)
-    monkeypatch.setattr(main_module, "run_parse_stage", fake_run_parse_stage)
+    monkeypatch.setattr(ohm_main_module, "default_parallelism", fake_default_parallelism)
+    monkeypatch.setattr(ohm_main_module, "run_parse_stage", fake_run_parse_stage)
 
     result = runner.invoke(
         cli,
@@ -790,7 +811,7 @@ def test_borders_enrich_cli_uses_documented_defaults_and_wires_flags(tmp_path: P
         observed.update(kwargs)
         return {"status": "completed", "artifact_dir": kwargs["artifact_dir"], "qid_count": 3, "shard_count": 2}
 
-    monkeypatch.setattr(main_module, "run_enrich_stage", fake_run_enrich_stage)
+    monkeypatch.setattr(ohm_main_module, "run_enrich_stage", fake_run_enrich_stage)
 
     result = runner.invoke(
         cli,
@@ -823,7 +844,7 @@ def test_borders_build_cli_wires_resume_force_and_no_enrich(tmp_path: Path, monk
         observed.update(kwargs)
         return {"status": "completed", "artifact_dir": kwargs["artifact_dir"], "record_count": 3, "final_path": "final/ohm_borders.jsonl"}
 
-    monkeypatch.setattr(main_module, "run_build_stage", fake_run_build_stage)
+    monkeypatch.setattr(ohm_main_module, "run_build_stage", fake_run_build_stage)
 
     result = runner.invoke(
         cli,
