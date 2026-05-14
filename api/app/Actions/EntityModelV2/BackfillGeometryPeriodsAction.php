@@ -13,6 +13,11 @@ class BackfillGeometryPeriodsAction
 {
     public function __invoke(Entity $entity): int
     {
+        $entity = Entity::query()
+            ->withoutGlobalScopes()
+            ->with(['primaryLocation', 'primaryTemporalRange'])
+            ->findOrFail($entity->entity_id);
+
         $primaryLocation = $entity->primaryLocation;
         $geom = $primaryLocation?->geom;
         $territoryGeom = $primaryLocation?->territory_geom;

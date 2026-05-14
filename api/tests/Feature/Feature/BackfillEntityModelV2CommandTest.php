@@ -161,8 +161,8 @@ class BackfillEntityModelV2CommandTest extends TestCase
         EntityTemporalRange::query()->create([
             'entity_id' => $entity->entity_id,
             'range_type' => 'primary',
-            'start_year' => -509,
-            'end_year' => -27,
+            'start_date' => '-0509',
+            'end_date' => '-0027',
             'is_primary' => true,
             'notes' => 'Republican period',
         ]);
@@ -198,8 +198,8 @@ class BackfillEntityModelV2CommandTest extends TestCase
         EntityTemporalRange::query()->create([
             'entity_id' => $source->entity_id,
             'range_type' => 'primary',
-            'start_year' => -100,
-            'end_year' => -90,
+            'start_date' => '-0100',
+            'end_date' => '-0090',
             'is_primary' => true,
         ]);
 
@@ -243,8 +243,8 @@ class BackfillEntityModelV2CommandTest extends TestCase
         EntityTemporalRange::query()->create([
             'entity_id' => $entity->entity_id,
             'range_type' => 'primary',
-            'start_year' => -50,
-            'end_year' => -40,
+            'start_date' => '-0050',
+            'end_date' => '-0040',
             'is_primary' => true,
         ]);
 
@@ -278,8 +278,8 @@ class BackfillEntityModelV2CommandTest extends TestCase
         EntityTemporalRange::query()->create([
             'entity_id' => $source->entity_id,
             'range_type' => 'primary',
-            'start_year' => 1453,
-            'end_year' => 1453,
+            'start_date' => '1453',
+            'end_date' => '1453',
             'is_primary' => true,
         ]);
 
@@ -335,8 +335,8 @@ class BackfillEntityModelV2CommandTest extends TestCase
         EntityTemporalRange::query()->create([
             'entity_id' => $source->entity_id,
             'range_type' => 'primary',
-            'start_year' => -100,
-            'end_year' => -90,
+            'start_date' => '-0100',
+            'end_date' => '-0090',
             'is_primary' => true,
         ]);
 

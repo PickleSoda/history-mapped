@@ -25,8 +25,8 @@ class RebuildEntityTimelineCommandTest extends TestCase
         EntityTemporalRange::query()->create([
             'entity_id' => $entity->entity_id,
             'range_type' => 'primary',
-            'start_year' => -133,
-            'end_year' => -27,
+            'start_date' => '-0133',
+            'end_date' => '-0027',
             'is_primary' => true,
             'notes' => 'Conventional late republican dating.',
         ]);
@@ -50,8 +50,8 @@ class RebuildEntityTimelineCommandTest extends TestCase
         EntityTemporalRange::query()->create([
             'entity_id' => $entity->entity_id,
             'range_type' => 'primary',
-            'start_year' => -509,
-            'end_year' => -27,
+            'start_date' => '-0509',
+            'end_date' => '-0027',
             'is_primary' => true,
             'notes' => 'Primary span',
         ]);
@@ -59,8 +59,8 @@ class RebuildEntityTimelineCommandTest extends TestCase
         EntityTemporalRange::query()->create([
             'entity_id' => $entity->entity_id,
             'range_type' => 'phase',
-            'start_year' => -133,
-            'end_year' => -27,
+            'start_date' => '-0133',
+            'end_date' => '-0027',
             'is_primary' => false,
             'notes' => 'Late republican phase',
         ]);
