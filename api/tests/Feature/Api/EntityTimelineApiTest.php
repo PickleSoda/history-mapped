@@ -85,8 +85,8 @@ class EntityTimelineApiTest extends TestCase
         EntityTemporalRange::query()->create([
             'entity_id' => $entity->entity_id,
             'range_type' => 'primary',
-            'start_year' => -509,
-            'end_year' => -27,
+            'start_date' => '-0509',
+            'end_date' => '-0027',
             'is_primary' => true,
             'notes' => 'Traditional Roman Republican period.',
         ]);

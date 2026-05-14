@@ -261,16 +261,6 @@ class RelationshipController extends Controller
             return;
         }
 
-        if ($linkedDerivedPeriods->exists()) {
-            $linkedDerivedPeriods->update([
-                'start_year' => $periodStartYear,
-                'end_year' => $periodEndYear,
-                'description' => $relationship->description,
-            ]);
-
-            return;
-        }
-
         $data = new RelationshipData(
             sourceEntityId: $relationship->source_entity_id,
             targetEntityId: $relationship->target_entity_id,

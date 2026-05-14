@@ -32,16 +32,23 @@ class CreateDerivedPresencePeriodAction
             return null;
         }
 
+        $sourceEntity = Entity::query()
+            ->withoutGlobalScopes()
+            ->with('primaryLocation')
+            ->find($relationship->source_entity_id);
+
         $targetEntity = Entity::query()
             ->withoutGlobalScopes()
             ->with('primaryLocation')
             ->find($relationship->target_entity_id);
 
         $targetLocation = $targetEntity?->primaryLocation;
-        $targetGeom = $targetLocation?->geom;
-        $targetTerritoryGeom = $targetLocation?->territory_geom;
+        $sourceLocation = $sourceEntity?->primaryLocation;
 
-        if ($targetEntity === null || ($targetGeom === null && $targetTerritoryGeom === null)) {
+        $derivedGeom = $targetLocation?->geom ?? $sourceLocation?->geom;
+        $derivedTerritoryGeom = $targetLocation?->territory_geom ?? $sourceLocation?->territory_geom;
+
+        if (($derivedGeom === null && $derivedTerritoryGeom === null)) {
             return null;
         }
 
@@ -52,17 +59,33 @@ class CreateDerivedPresencePeriodAction
             return null;
         }
 
-        return GeometryPeriod::query()->create([
+        $attributes = [
             'entity_id' => $relationship->source_entity_id,
             'period_type' => 'presence',
             'start_year' => $startYear,
             'end_year' => $endYear,
-            'geom' => $targetGeom,
-            'territory_geom' => $targetTerritoryGeom,
+            'geom' => $derivedGeom,
+            'territory_geom' => $derivedTerritoryGeom,
             'description' => $relationship->description,
             'provenance_mode' => 'derived',
-            'relationship_id' => $relationship->relationship_id,
             'created_by' => $createdBy,
+        ];
+
+        $existing = GeometryPeriod::query()
+            ->where('relationship_id', $relationship->relationship_id)
+            ->where('period_type', 'presence')
+            ->where('provenance_mode', 'derived')
+            ->first();
+
+        if ($existing !== null) {
+            $existing->update($attributes);
+
+            return $existing->refresh();
+        }
+
+        return GeometryPeriod::query()->create([
+            ...$attributes,
+            'relationship_id' => $relationship->relationship_id,
         ]);
     }
 }

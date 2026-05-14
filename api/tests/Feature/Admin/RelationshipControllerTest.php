@@ -426,9 +426,58 @@ class RelationshipControllerTest extends TestCase
 
         $relationshipId = (string) $response->json('relationship.relationship_id');
 
-        $this->assertDatabaseMissing('geometry_periods', [
+        $this->assertDatabaseHas('geometry_periods', [
+            'entity_id' => $this->source->entity_id,
             'relationship_id' => $relationshipId,
+            'period_type' => 'presence',
+            'provenance_mode' => 'derived',
         ]);
+    }
+
+    public function test_update_recomputes_existing_derived_presence_period_geometry(): void
+    {
+        $alternateTarget = Entity::factory()->create();
+
+        $this->giveEntityPointGeom($this->source, 12.48, 41.89);
+        $this->giveEntityPointGeom($this->target, 23.72, 37.98);
+        $this->giveEntityPointGeom($alternateTarget, 30.52, 50.45);
+
+        $response = $this->actingAs($this->user)
+            ->postJson(route('entities.relationships.store', $this->source), [
+                'target_entity_id' => $this->target->entity_id,
+                'relationship_type' => 'fought_at',
+                'temporal_start' => '1648',
+                'temporal_end' => '1648',
+                'derive_geometry_period' => true,
+            ])
+            ->assertCreated();
+
+        $relationshipId = (string) $response->json('relationship.relationship_id');
+        $url = '/entities/'.$this->source->entity_id.'/relationships/'.$relationshipId;
+
+        $this->actingAs($this->user)
+            ->putJson($url, [
+                'target_entity_id' => $alternateTarget->entity_id,
+                'relationship_type' => 'fought_at',
+                'temporal_start' => '1649',
+                'temporal_end' => '1649',
+                'derive_geometry_period' => true,
+            ])
+            ->assertOk();
+
+        /** @var object{lon: float, lat: float, start_year: int, end_year: int}|null $geometry */
+        $geometry = DB::selectOne(
+            'SELECT ST_X(geom::geometry) AS lon, ST_Y(geom::geometry) AS lat, start_year, end_year
+             FROM geometry_periods
+             WHERE relationship_id = ?',
+            [$relationshipId],
+        );
+
+        $this->assertNotNull($geometry);
+        $this->assertEqualsWithDelta(30.52, $geometry->lon, 0.0001);
+        $this->assertEqualsWithDelta(50.45, $geometry->lat, 0.0001);
+        $this->assertSame(1649, $geometry->start_year);
+        $this->assertSame(1649, $geometry->end_year);
     }
 
     // ── update ───────────────────────────────────────────────────────────────
