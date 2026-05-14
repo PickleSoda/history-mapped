@@ -91,7 +91,7 @@ services:
         condition: service_completed_successfully
 
   db:
-    image: '${history-mapped_DB_IMAGE:-history-mapped-db:16-pgvector-v0.8.2}'
+    image: '${HISTORY_MAPPED_DB_IMAGE:-history-mapped-db:16-pgvector-v0.8.2}'
     build:
       context: .
       dockerfile: db/Dockerfile
