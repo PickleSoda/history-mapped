@@ -37,7 +37,7 @@ from pipeline.ohm_borders.enricher import enrich_output_jsonl_missing_qids
 console = Console(legacy_windows=False)
 
 _LEGACY_SCRAPE_COMMANDS = ["scrape", "dedup", "topic"]
-_LEGACY_BORDERS_COMMANDS = {"borders": ["fetch", "parse", "enrich", "build", "run", "enrich-output-names"]}
+_LEGACY_BORDERS_COMMANDS = {"borders": ["fetch", "parse", "enrich", "build", "run", "enrich-output-names", "relations-scan", "relations-enrich", "relations-build", "relations-run"]}
 
 
 def _configure_logging() -> None:
@@ -86,6 +86,10 @@ from pipeline.ohm_borders.__main__ import (
     run_full,
     enrich_output_names,
     _run_borders_pipeline,
+    relations_scan,
+    relations_enrich,
+    relations_build,
+    relations_run,
 )
 
 
@@ -132,6 +136,10 @@ borders.add_command(enrich, name="enrich")
 borders.add_command(build, name="build")
 borders.add_command(run_full, name="run")
 borders.add_command(enrich_output_names, name="enrich-output-names")
+borders.add_command(relations_scan, name="relations-scan")
+borders.add_command(relations_enrich, name="relations-enrich")
+borders.add_command(relations_build, name="relations-build")
+borders.add_command(relations_run, name="relations-run")
 
 
 def _slugify(text: str) -> str:

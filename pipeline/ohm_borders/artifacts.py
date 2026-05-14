@@ -34,6 +34,34 @@ def final_dir(artifact_dir: str | Path) -> Path:
     return Path(artifact_dir) / "final"
 
 
+def relation_candidates_dir(artifact_dir: str | Path) -> Path:
+    return Path(artifact_dir) / "relations_candidates"
+
+
+def relation_enriched_dir(artifact_dir: str | Path) -> Path:
+    return Path(artifact_dir) / "relations_enriched"
+
+
+def relation_built_dir(artifact_dir: str | Path) -> Path:
+    return Path(artifact_dir) / "relations_built"
+
+
+def relation_final_dir(artifact_dir: str | Path) -> Path:
+    return Path(artifact_dir) / "relations_final"
+
+
+def relation_candidates_shard_path(artifact_dir: str | Path, shard_index: int) -> Path:
+    return relation_candidates_dir(artifact_dir) / f"relations-candidates-{shard_index:05d}.jsonl"
+
+
+def relation_enriched_shard_path(artifact_dir: str | Path, shard_index: int) -> Path:
+    return relation_enriched_dir(artifact_dir) / f"relations-enriched-{shard_index:05d}.json"
+
+
+def relation_built_shard_path(artifact_dir: str | Path, shard_index: int) -> Path:
+    return relation_built_dir(artifact_dir) / f"relations-built-{shard_index:05d}.jsonl"
+
+
 def raw_overpass_path(artifact_dir: str | Path) -> Path:
     return raw_dir(artifact_dir) / "overpass.json"
 
@@ -64,6 +92,14 @@ def final_jsonl_path(artifact_dir: str | Path) -> Path:
     return final_dir(artifact_dir) / "ohm_borders.jsonl"
 
 
+def relation_entities_final_path(artifact_dir: str | Path) -> Path:
+    return relation_final_dir(artifact_dir) / "ohm_relation_entities.jsonl"
+
+
+def relation_hints_final_path(artifact_dir: str | Path) -> Path:
+    return relation_final_dir(artifact_dir) / "ohm_relation_hints.jsonl"
+
+
 def ensure_artifact_dirs(artifact_dir: str | Path) -> None:
     for directory in (
         raw_dir(artifact_dir),
@@ -72,5 +108,9 @@ def ensure_artifact_dirs(artifact_dir: str | Path) -> None:
         enriched_dir(artifact_dir),
         built_dir(artifact_dir),
         final_dir(artifact_dir),
+        relation_candidates_dir(artifact_dir),
+        relation_enriched_dir(artifact_dir),
+        relation_built_dir(artifact_dir),
+        relation_final_dir(artifact_dir),
     ):
         directory.mkdir(parents=True, exist_ok=True)

@@ -23,6 +23,11 @@ from pipeline.ohm_borders.artifacts import (
     enriched_shard_path,
     final_jsonl_path,
     parsed_shard_path,
+    relation_candidates_dir,
+    relation_candidates_shard_path,
+    relation_enriched_shard_path,
+    relation_entities_final_path,
+    relation_hints_final_path,
     raw_shard_path,
     stage_done_marker_path,
     parsed_dir,
@@ -32,6 +37,8 @@ from pipeline.ohm_borders.enricher import batch_enrich_qids
 from pipeline.ohm_borders.fetcher import assemble_geometry, fetch_raw, parse_elements, parse_relation_subset
 from pipeline.ohm_borders.manifest import create_manifest, load_manifest, save_manifest, update_manifest
 from pipeline.ohm_borders.mapper import map_polity_to_jsonl
+from pipeline.ohm_borders.relations_enricher import enrich_relation_candidates
+from pipeline.ohm_borders.relations_extractor import extract_relation_candidates
 
 
 _WORKER_POLL_INTERVAL_SECONDS = 0.1
@@ -578,6 +585,268 @@ def run_parse_stage(
         "manifest_path": manifest_path,
         "polity_count": parsed_polity_count,
         "shard_count": parsed_shard_count,
+    }
+
+
+def run_relations_scan_stage(
+    *,
+    run_id: str | None = None,
+    artifact_dir: str | Path | None = None,
+    resume: bool = False,
+    force: bool = False,
+) -> dict[str, Any]:
+    resolved_artifact_dir = resolve_artifact_dir(run_id=run_id, artifact_dir=artifact_dir)
+    ensure_artifact_dirs(resolved_artifact_dir)
+
+    resolved_run_id = resolve_run_id(run_id=run_id, artifact_dir=resolved_artifact_dir)
+    manifest_path = _load_or_create_manifest(
+        run_id=resolved_run_id,
+        artifact_dir=resolved_artifact_dir,
+        options={},
+    )
+
+    parsed_paths = _sorted_paths(parsed_dir(resolved_artifact_dir), "parsed-*.jsonl")
+    if not parsed_paths:
+        raise RuntimeError(f"Parsed shard artifacts not found in: {parsed_dir(resolved_artifact_dir)}")
+
+    relation_inputs = [_relative_artifact_path(resolved_artifact_dir, path) for path in parsed_paths]
+    _write_relation_stage_update(
+        manifest_path,
+        "scan",
+        status="running",
+        inputs=relation_inputs,
+    )
+
+    outputs: list[str] = []
+    candidate_count = 0
+    written_shards = 0
+
+    for shard_index, parsed_path in enumerate(parsed_paths, start=1):
+        output_path = relation_candidates_shard_path(resolved_artifact_dir, shard_index)
+        outputs.append(_relative_artifact_path(resolved_artifact_dir, output_path))
+
+        if resume and output_path.exists() and not force:
+            candidate_count += _count_jsonl_records(output_path)
+            continue
+
+        shard_candidates: list[dict[str, Any]] = []
+        for polity in _load_jsonl_records(parsed_path):
+            shard_candidates.extend(extract_relation_candidates(polity))
+
+        _write_jsonl_atomic(output_path, shard_candidates)
+        candidate_count += len(shard_candidates)
+        written_shards += 1
+
+    stage_status = "skipped" if written_shards == 0 and resume else "completed"
+    _write_relation_stage_update(
+        manifest_path,
+        "scan",
+        status=stage_status,
+        inputs=relation_inputs,
+        outputs=outputs,
+        summary={
+            "relation_candidate_shards": len(parsed_paths),
+            "relation_candidates": candidate_count,
+        },
+    )
+
+    return {
+        "status": stage_status,
+        "artifact_dir": resolved_artifact_dir,
+        "manifest_path": manifest_path,
+        "candidate_count": candidate_count,
+        "shard_count": len(parsed_paths),
+        "output_dir": relation_candidates_dir(resolved_artifact_dir),
+    }
+
+
+def run_relations_enrich_stage(
+    *,
+    run_id: str | None = None,
+    artifact_dir: str | Path | None = None,
+    resume: bool = False,
+    force: bool = False,
+    metadata_fetcher: Any = batch_enrich_qids,
+    name_searcher: Any = None,
+    wikipedia_enricher: Any | None = None,
+) -> dict[str, Any]:
+    resolved_artifact_dir = resolve_artifact_dir(run_id=run_id, artifact_dir=artifact_dir)
+    ensure_artifact_dirs(resolved_artifact_dir)
+
+    resolved_run_id = resolve_run_id(run_id=run_id, artifact_dir=resolved_artifact_dir)
+    manifest_path = _load_or_create_manifest(
+        run_id=resolved_run_id,
+        artifact_dir=resolved_artifact_dir,
+        options={},
+    )
+
+    candidate_paths = _sorted_paths(relation_candidates_dir(resolved_artifact_dir), "relations-candidates-*.jsonl")
+    if not candidate_paths:
+        raise RuntimeError(f"Relation candidate artifacts not found in: {relation_candidates_dir(resolved_artifact_dir)}")
+
+    relation_inputs = [_relative_artifact_path(resolved_artifact_dir, path) for path in candidate_paths]
+    _write_relation_stage_update(
+        manifest_path,
+        "enrich",
+        status="running",
+        inputs=relation_inputs,
+    )
+
+    outputs: list[str] = []
+    enriched_candidate_count = 0
+    written_shards = 0
+
+    for shard_index, candidate_path in enumerate(candidate_paths, start=1):
+        output_path = relation_enriched_shard_path(resolved_artifact_dir, shard_index)
+        outputs.append(_relative_artifact_path(resolved_artifact_dir, output_path))
+
+        if resume and output_path.exists() and not force:
+            enriched_candidate_count += len(json.loads(output_path.read_text(encoding="utf-8")))
+            continue
+
+        candidates = _load_jsonl_records(candidate_path)
+        enriched = enrich_relation_candidates(
+            candidates,
+            metadata_fetcher=metadata_fetcher,
+            name_searcher=name_searcher,
+            wikipedia_enricher=wikipedia_enricher,
+        )
+
+        _write_text_atomic(output_path, json.dumps(enriched, ensure_ascii=True, indent=2))
+        enriched_candidate_count += len(enriched)
+        written_shards += 1
+
+    stage_status = "skipped" if written_shards == 0 and resume else "completed"
+    _write_relation_stage_update(
+        manifest_path,
+        "enrich",
+        status=stage_status,
+        inputs=relation_inputs,
+        outputs=outputs,
+        summary={
+            "relation_enriched_shards": len(candidate_paths),
+            "relation_enriched_candidates": enriched_candidate_count,
+        },
+    )
+
+    return {
+        "status": stage_status,
+        "artifact_dir": resolved_artifact_dir,
+        "manifest_path": manifest_path,
+        "candidate_count": enriched_candidate_count,
+        "shard_count": len(candidate_paths),
+    }
+
+
+def run_relations_build_stage(
+    *,
+    run_id: str | None = None,
+    artifact_dir: str | Path | None = None,
+    resume: bool = False,
+    force: bool = False,
+) -> dict[str, Any]:
+    resolved_artifact_dir = resolve_artifact_dir(run_id=run_id, artifact_dir=artifact_dir)
+    ensure_artifact_dirs(resolved_artifact_dir)
+
+    resolved_run_id = resolve_run_id(run_id=run_id, artifact_dir=resolved_artifact_dir)
+    manifest_path = _load_or_create_manifest(
+        run_id=resolved_run_id,
+        artifact_dir=resolved_artifact_dir,
+        options={},
+    )
+
+    enriched_paths = _sorted_paths(resolved_artifact_dir / "relations_enriched", "relations-enriched-*.json")
+    if not enriched_paths:
+        raise RuntimeError(f"Relation enriched artifacts not found in: {resolved_artifact_dir / 'relations_enriched'}")
+
+    relation_inputs = [_relative_artifact_path(resolved_artifact_dir, path) for path in enriched_paths]
+    _write_relation_stage_update(manifest_path, "build", status="running", inputs=relation_inputs)
+
+    entities_path = relation_entities_final_path(resolved_artifact_dir)
+    hints_path = relation_hints_final_path(resolved_artifact_dir)
+
+    if resume and entities_path.exists() and hints_path.exists() and not force:
+        entity_count = _count_jsonl_records(entities_path)
+        hint_count = _count_jsonl_records(hints_path)
+        _write_relation_stage_update(
+            manifest_path,
+            "build",
+            status="skipped",
+            inputs=relation_inputs,
+            outputs=[
+                _relative_artifact_path(resolved_artifact_dir, entities_path),
+                _relative_artifact_path(resolved_artifact_dir, hints_path),
+            ],
+            summary={
+                "relation_final_entities": entity_count,
+                "relation_final_hints": hint_count,
+            },
+        )
+        return {
+            "status": "skipped",
+            "artifact_dir": resolved_artifact_dir,
+            "manifest_path": manifest_path,
+            "entity_count": entity_count,
+            "hint_count": hint_count,
+            "entities_path": entities_path,
+            "hints_path": hints_path,
+        }
+
+    entity_records: dict[str, dict[str, Any]] = {}
+    hint_records: dict[tuple[str, str | None, str | None, str | None, str | None], dict[str, Any]] = {}
+
+    for enriched_path in enriched_paths:
+        for record in json.loads(enriched_path.read_text(encoding="utf-8")):
+            target_entity = record.get("target_entity") or {}
+            entity_key = str(target_entity.get("wikidata_id") or target_entity.get("name") or "")
+            if entity_key and entity_key not in entity_records:
+                entity_records[entity_key] = target_entity
+
+            hint_key = (
+                str(record.get("source_wikidata_id") or ""),
+                _string_or_none(record.get("target_wikidata_id")),
+                _string_or_none(record.get("relationship_type")),
+                _string_or_none(record.get("temporal_start")),
+                _string_or_none(record.get("temporal_end")),
+            )
+            hint_records[hint_key] = {
+                "source_wikidata_id": record.get("source_wikidata_id"),
+                "source_name": record.get("source_name"),
+                "relationship_type": record.get("relationship_type"),
+                "target_wikidata_id": record.get("target_wikidata_id"),
+                "target_label": record.get("target_label"),
+                "temporal_start": record.get("temporal_start"),
+                "temporal_end": record.get("temporal_end"),
+                "confidence": "medium",
+                "source": record.get("source"),
+            }
+
+    _write_jsonl_atomic(entities_path, list(entity_records.values()))
+    _write_jsonl_atomic(hints_path, list(hint_records.values()))
+
+    _write_relation_stage_update(
+        manifest_path,
+        "build",
+        status="completed",
+        inputs=relation_inputs,
+        outputs=[
+            _relative_artifact_path(resolved_artifact_dir, entities_path),
+            _relative_artifact_path(resolved_artifact_dir, hints_path),
+        ],
+        summary={
+            "relation_final_entities": len(entity_records),
+            "relation_final_hints": len(hint_records),
+        },
+    )
+
+    return {
+        "status": "completed",
+        "artifact_dir": resolved_artifact_dir,
+        "manifest_path": manifest_path,
+        "entity_count": len(entity_records),
+        "hint_count": len(hint_records),
+        "entities_path": entities_path,
+        "hints_path": hints_path,
     }
 
 
@@ -1378,6 +1647,14 @@ def _count_jsonl_records(path: Path) -> int:
         return sum(1 for line in handle if line.strip())
 
 
+def _string_or_none(value: Any) -> str | None:
+    if value is None:
+        return None
+
+    text = str(value).strip()
+    return text or None
+
+
 def _timestamp() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -1416,6 +1693,47 @@ def _write_stage_update(
             "summary": {**current.get("summary", {}), **(summary or {})},
             "stages": {
                 **current["stages"],
+                stage_name: stage,
+            },
+        }
+
+    return update_manifest(manifest_path, apply)
+
+
+def _write_relation_stage_update(
+    manifest_path: Path,
+    stage_name: str,
+    *,
+    status: str,
+    inputs: list[str] | None = None,
+    outputs: list[str] | None = None,
+    failed_shards: list[str] | None = None,
+    summary: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    def apply(current: dict[str, Any]) -> dict[str, Any]:
+        stage = dict(current["relation_stages"][stage_name])
+        started_at = stage.get("started_at") or _timestamp()
+
+        next_inputs = stage.get("inputs", []) if inputs is None else list(inputs)
+        next_outputs = stage.get("outputs", []) if outputs is None else list(outputs)
+        next_failed_shards = stage.get("failed_shards", []) if failed_shards is None else list(failed_shards)
+
+        stage.update(
+            {
+                "status": status,
+                "inputs": next_inputs,
+                "outputs": next_outputs,
+                "failed_shards": next_failed_shards,
+                "started_at": started_at,
+                "finished_at": None if status == "running" else _timestamp(),
+            }
+        )
+
+        return {
+            **current,
+            "summary": {**current.get("summary", {}), **(summary or {})},
+            "relation_stages": {
+                **current["relation_stages"],
                 stage_name: stage,
             },
         }

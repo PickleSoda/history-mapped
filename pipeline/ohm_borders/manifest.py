@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 STAGE_NAMES = ("fetch", "parse", "enrich", "build")
+RELATION_STAGE_NAMES = ("scan", "enrich", "build")
 
 
 def _empty_stage() -> dict[str, Any]:
@@ -31,6 +32,7 @@ def create_manifest(run_id: str, artifact_dir: str | Path, options: dict[str, An
         "options": dict(options or {}),
         "summary": {},
         "stages": {stage_name: _empty_stage() for stage_name in STAGE_NAMES},
+        "relation_stages": {stage_name: _empty_stage() for stage_name in RELATION_STAGE_NAMES},
     }
 
 

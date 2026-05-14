@@ -22,6 +22,16 @@ output/ohm_borders/<run_id>/
 │   └── built-NNNNN.jsonl      # mapper output, ready for import
 └── final/
     └── ohm_borders.jsonl      # merged output file
+
+output/ohm_borders/<run_id>/
+├── relations_candidates/
+│   └── relations-candidates-NNNNN.jsonl
+├── relations_enriched/
+│   └── relations-enriched-NNNNN.json
+├── relations_built/
+└── relations_final/
+  ├── ohm_relation_entities.jsonl
+  └── ohm_relation_hints.jsonl
 ```
 
 ## Stage breakdown
@@ -33,6 +43,15 @@ output/ohm_borders/<run_id>/
 | `enrich` | `borders enrich` | Resolves Wikidata QIDs via SPARQL; optionally also searches by name |
 | `build` | `borders build` | Maps each parsed/enriched shard through the polity mapper and merges to `final/` |
 | `run` | `borders run` | Convenience: runs all four stages in sequence |
+
+Relation stages are tracked separately in `manifest.json` under `relation_stages`:
+
+| Relation stage | Command | What it does |
+|---|---|---|
+| `scan` | `borders relations-scan` | Extracts predecessor, successor, and event relation candidates from parsed shards |
+| `enrich` | `borders relations-enrich` | Enriches relation targets with Wikidata and Wikipedia metadata |
+| `build` | `borders relations-build` | Emits importer-ready relation entity and hint JSONL files |
+| full run | `borders relations-run` | Convenience: runs relation scan, enrich, and build in sequence |
 
 `--resume` skips any artifact that already exists on disk.  
 `--force` overwrites existing artifacts for the current stage.
@@ -54,6 +73,9 @@ py -m pipeline borders build --run-id global-2026-04-15 --resume
 
 # Or run all stages at once
 py -m pipeline borders run --run-id global-2026-04-15 --parse-workers 8 --enrich-names
+
+# 5. Build relation outputs after country entities exist
+py -m pipeline borders relations-run --run-id global-2026-04-15 --resume
 ```
 
 To resume after an interruption, pass `--resume` to any stage — already-written shards are skipped.  
@@ -103,6 +125,44 @@ docker compose -f docker/docker-compose.yml exec app `
 ```
 
 Drop `--sync` to process the import asynchronously via the queue.
+
+## Importing relation outputs into Laravel
+
+Run the relation import only after the country/entity import has completed for the same batch.
+
+```powershell
+$batchId = "global-$(Get-Date -Format 'yyyy-MM-dd')"
+$relationsDir = "output/ohm_borders/$batchId/relations_final"
+
+docker compose -f docker/docker-compose.yml exec app `
+  php -d memory_limit=1024M artisan pipeline:import-border-relations `
+    /var/www/html/$relationsDir `
+    --sync "--batch-id=$batchId"
+```
+
+Use `--skip-resolve` to stage hints during large loads and run one resolver pass later.
+
+## Full OHM import runbook
+
+```powershell
+# 1. Produce country/entity outputs.
+py -m pipeline borders run --run-id global-2026-04-15 --parse-workers 8 --enrich-names
+
+# 2. Import country entities into Laravel.
+docker compose -f docker/docker-compose.yml exec app `
+  php -d memory_limit=1024M artisan pipeline:import-borders `
+    /var/www/html/output/ohm_borders/global-2026-04-15/final/ohm_borders.jsonl `
+    --sync --batch-id=global-2026-04-15
+
+# 3. Produce relation outputs from the same run.
+py -m pipeline borders relations-run --run-id global-2026-04-15 --resume
+
+# 4. Import relation entities and resolve relationships.
+docker compose -f docker/docker-compose.yml exec app `
+  php -d memory_limit=1024M artisan pipeline:import-border-relations `
+    /var/www/html/output/ohm_borders/global-2026-04-15/relations_final `
+    --sync --batch-id=global-2026-04-15
+```
 
 Optional verification after import:
 
