@@ -17,10 +17,8 @@
 		},
 		"gitnexus": {
 			"type": "stdio",
-			"command": "npx",
+			"command": "gitnexus",
 			"args": [
-				"-y",
-				"gitnexus",
 				"mcp"
 			]
 		}
