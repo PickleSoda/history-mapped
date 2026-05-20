@@ -229,11 +229,7 @@ How the date was determined.
 
 ## Migration Flags (Current State)
 
-- `ENTITY_MODEL_V2_WRITE_ENABLED`:
-  - retained as a rollout safety flag.
-  - current behavior is v2-only writes (normalized tables), even when legacy columns are absent.
-- `GEOMETRY_SNAPSHOT_COMPAT_READ_ENABLED`:
-  - retired; geometry snapshot compatibility endpoints were removed.
+No migration flags remain in live app configuration. Canonical writes target normalized tables directly, and geometry snapshot compatibility endpoints are removed.
 
 ### `location_name`
 **Optional (API/read-model field).**

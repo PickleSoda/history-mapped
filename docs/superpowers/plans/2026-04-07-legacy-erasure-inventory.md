@@ -75,18 +75,18 @@ Legacy-heavy seeding still writes legacy entity columns directly:
 - api/database/seeders/EntitySeeder.php
 
 Backfill actions depend on legacy columns as migration source (expected until hard drop):
-- api/app/Actions/EntityModelV2/BackfillAliasesAction.php
-- api/app/Actions/EntityModelV2/BackfillTagsAction.php
-- api/app/Actions/EntityModelV2/BackfillTemporalRangesAction.php
-- api/app/Actions/EntityModelV2/BackfillLocationsAction.php
-- api/app/Console/Commands/BackfillEntityModelV2Command.php
+- api/app/Actions/Entity/BackfillAliasesAction.php
+- api/app/Actions/Entity/BackfillTagsAction.php
+- api/app/Actions/Entity/BackfillTemporalRangesAction.php
+- api/app/Actions/Entity/BackfillLocationsAction.php
+- api/app/Console/Commands/BackfillEntityCommand.php
 
 ## 5) Test files needing update/replacement during hard-drop
 
 Deprecation + migration safety tests:
-- api/tests/Feature/Feature/EntityModelV2DeprecationTest.php
-- api/tests/Feature/Feature/BackfillEntityModelV2CommandTest.php
-- api/tests/Feature/Feature/EntityModelV2SchemaTest.php
+- api/tests/Feature/Feature/EntityModelDeprecationTest.php
+- api/tests/Feature/Feature/BackfillEntityCommandTest.php
+- api/tests/Feature/Feature/EntityModelSchemaTest.php
 
 Read-path behavior tests impacted by field removal:
 - api/tests/Feature/Api/MapEntitiesThresholdTest.php
@@ -97,9 +97,9 @@ Read-path behavior tests impacted by field removal:
 ## 6) Recommended removal order
 
 1. Remove geometry-snapshot compatibility controllers/routes/resources and regenerate JS bindings.
-2. Convert read paths and API resources to V2-only sources (entity_locations/entity_temporal_ranges/geometry_periods/entity_timeline_entries).
-3. Convert forms/DTOs/requests to V2 payload shape; stop accepting legacy entity fields.
-4. Migrate seeders/factories to V2-only setup.
+2. Convert read paths and API resources to canonical sources (entity_locations/entity_temporal_ranges/geometry_periods/entity_timeline_entries).
+3. Convert forms/DTOs/requests to canonical payload shape; stop accepting legacy entity fields.
+4. Migrate seeders/factories to canonical-only setup.
 5. Hard-drop legacy columns and any residual snapshot artifacts in final migration.
 
 ## 7) Exit criteria for hard-drop window

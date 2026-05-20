@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
-class EntityModelV2RelationsTest extends TestCase
+class EntityModelRelationsTest extends TestCase
 {
     use RefreshDatabase;
 

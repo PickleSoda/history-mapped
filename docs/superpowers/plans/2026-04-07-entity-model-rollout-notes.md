@@ -1,10 +1,18 @@
-# Entity Model V2 Rollout Notes
+# Entity Model Rollout Notes
 
 Date: 2026-04-08
 
+## Migration Status
+
+| Status | Findings |
+|---|---|
+| Done | Canonical storage uses `entity_temporal_ranges`, `entity_locations`, `entity_aliases`, `entity_tags`, `geometry_periods`, and `entity_timeline_entries`. Legacy entity columns and `geometry_snapshots` are removed. Public snapshot endpoints are removed. |
+| Stale docs | Older rollout/checklist docs still described a cutover in progress, still referenced old migration naming, and still mentioned retired flags. |
+| Real leftovers | Citation-table normalization remains unapplied, `geometry_periods` lifecycle hardening is still open, and a small amount of legacy naming cleanup remained before this update. |
+
 ## Required Backfill Order
 
-1. Run core v2 backfill to confirm canonical table idempotency.
+1. Run the entity backfill to confirm canonical table idempotency.
 2. Run timeline rebuild (`timeline:rebuild`) so `entity_timeline_entries` reflect geometry periods and temporal fallback.
 3. Re-run targeted integrity checks for geo refs and timeline counts.
 4. Confirm no legacy-table/column references remain in app and test paths.
@@ -12,9 +20,9 @@ Date: 2026-04-08
 Suggested command order:
 
 ```bash
-docker compose -f docker/docker-compose.yml exec app php artisan entity-model-v2:backfill
+docker compose -f docker/docker-compose.yml exec app php artisan entity:backfill
 docker compose -f docker/docker-compose.yml exec app php artisan timeline:rebuild
-docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feature/Feature/BackfillEntityModelV2CommandTest.php tests/Feature/Feature/RebuildEntityTimelineCommandTest.php tests/Feature/Feature/EntityGeoRefIntegrityTest.php
+docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feature/Feature/BackfillEntityCommandTest.php tests/Feature/Feature/RebuildEntityTimelineCommandTest.php tests/Feature/Feature/EntityGeoRefIntegrityTest.php
 ```
 
 ## Safe Rollback Point
@@ -26,10 +34,9 @@ Rollback procedure:
 1. Restore DB from backup or run migration rollback to re-add legacy columns.
 2. Re-run `timeline:rebuild` for consistency if period writes were made while transitioning.
 
-## Compatibility Flags Used
+## Configuration Status
 
-- `ENTITY_MODEL_V2_WRITE_ENABLED`: retained for rollout safety but write paths are now v2-only.
-- `GEOMETRY_SNAPSHOT_COMPAT_READ_ENABLED`: no longer used; geometry snapshot compatibility surface has been removed.
+No entity-model rollout flags remain in live app config. Canonical writes are unconditional, and geometry snapshot compatibility reads are removed.
 
 ## Data Audit Queries (Manual Geometry Periods)
 

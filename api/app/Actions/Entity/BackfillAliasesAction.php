@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Actions\EntityModelV2;
+namespace App\Actions\Entity;
 
 use App\Models\Entity;
 use App\Models\EntityAlias;

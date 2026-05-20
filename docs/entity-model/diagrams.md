@@ -292,13 +292,13 @@ Read-model row provenance:
 - `source_table='relationships'` + `source_id=relationship_id`
 - `source_table='entity_temporal_ranges'` + `source_id=temporal_range_id`
 
-### 1.6 Backfill and Timeline Rebuild Flow (Entity Model V2)
+### 1.6 Backfill and Timeline Rebuild Flow
 
-The v2 backfill command creates canonical normalized rows, derives missing presence periods from relationships, and then rebuilds the timeline read model.
+The entity backfill command creates canonical normalized rows, derives missing presence periods from relationships, and then rebuilds the timeline read model.
 
 ```mermaid
 flowchart LR
-    A[entity-model-v2:backfill] --> B[Backfill aliases, tags, temporal ranges, locations]
+    A[entity:backfill] --> B[Backfill aliases, tags, temporal ranges, locations]
     B --> C[Backfill geometry_periods from canonical location/temporal data]
     C --> D[Derive presence geometry_periods from relationships]
     D --> E[timeline:rebuild / ProjectEntityTimelineAction]

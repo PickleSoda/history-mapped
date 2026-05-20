@@ -1,6 +1,6 @@
 # Phase 3 — Reference Existing OHM Objects Instead of Re-Creating Geometry
 
-> Historical note (post-Task-13): this phase plan predates the v2 hard-drop.
+> Historical note (post-Task-13): this phase plan predates the canonical entity-model cutover.
 > References to "snapshots" should now be interpreted as `geometry_periods` and normalized georef records.
 > Retained for planning history; current implementation docs are authoritative.
 

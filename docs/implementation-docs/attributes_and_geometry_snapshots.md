@@ -1,6 +1,6 @@
 # Attributes Storage & Geometry Snapshots — Implementation Plan
 
-> Historical note (post-Task-13): this document captures the pre-hard-drop planning model.
+> Historical note (post-Task-13): this document captures the pre-cutover planning model.
 > The active canonical model uses normalized tables (`entity_locations`, `entity_temporal_ranges`) and `geometry_periods` instead of `geometry_snapshots`.
 > Keep this file for decision history only; do not use it as the current implementation source of truth.
 

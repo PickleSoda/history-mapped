@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
-class BackfillEntityModelV2CommandTest extends TestCase
+class BackfillEntityCommandTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -56,7 +56,7 @@ class BackfillEntityModelV2CommandTest extends TestCase
             'is_primary' => true,
         ]);
 
-        $this->artisan('entity-model-v2:backfill')->assertExitCode(0);
+        $this->artisan('entity:backfill')->assertExitCode(0);
 
         $this->assertDatabaseHas('entity_aliases', [
             'entity_id' => $entity->entity_id,
@@ -93,8 +93,8 @@ class BackfillEntityModelV2CommandTest extends TestCase
     {
         $entity = Entity::factory()->create();
 
-        $this->artisan('entity-model-v2:backfill --dry-run')
-            ->expectsOutputToContain('[DRY-RUN] Entity Model V2 backfill summary')
+        $this->artisan('entity:backfill --dry-run')
+            ->expectsOutputToContain('[DRY-RUN] Entity backfill summary')
             ->assertExitCode(0);
 
         $this->assertDatabaseMissing('entity_aliases', ['entity_id' => $entity->entity_id]);
@@ -103,7 +103,7 @@ class BackfillEntityModelV2CommandTest extends TestCase
         $this->assertDatabaseMissing('entity_locations', ['entity_id' => $entity->entity_id]);
     }
 
-    public function test_database_seeder_runs_backfill_for_canonical_v2_tables(): void
+    public function test_database_seeder_runs_backfill_for_canonical_tables(): void
     {
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
 
@@ -131,7 +131,7 @@ class BackfillEntityModelV2CommandTest extends TestCase
         ]);
     }
 
-    public function test_factory_temporal_and_location_states_create_canonical_v2_rows(): void
+    public function test_factory_temporal_and_location_states_create_canonical_rows(): void
     {
         $entity = Entity::factory()
             ->withTemporalRange('-0509', '-0027')
@@ -177,7 +177,7 @@ class BackfillEntityModelV2CommandTest extends TestCase
             ],
         ]);
 
-        $this->artisan('entity-model-v2:backfill')->assertExitCode(0);
+        $this->artisan('entity:backfill')->assertExitCode(0);
 
         $this->assertDatabaseHas('geometry_periods', [
             'entity_id' => $entity->entity_id,
@@ -185,7 +185,7 @@ class BackfillEntityModelV2CommandTest extends TestCase
             'start_year' => -509,
             'end_year' => -27,
             'provenance_mode' => 'manual',
-            'created_by' => 'backfill:entity-model-v2',
+            'created_by' => 'backfill:entity',
         ]);
     }
 
@@ -221,7 +221,7 @@ class BackfillEntityModelV2CommandTest extends TestCase
             'created_by' => 'test',
         ]);
 
-        $this->artisan('entity-model-v2:backfill')->assertExitCode(0);
+        $this->artisan('entity:backfill')->assertExitCode(0);
 
         $this->assertDatabaseHas('geometry_periods', [
             'entity_id' => $source->entity_id,
@@ -230,7 +230,7 @@ class BackfillEntityModelV2CommandTest extends TestCase
             'start_year' => -100,
             'end_year' => -90,
             'provenance_mode' => 'derived',
-            'created_by' => 'backfill:entity-model-v2',
+            'created_by' => 'backfill:entity',
         ]);
     }
 
@@ -258,7 +258,7 @@ class BackfillEntityModelV2CommandTest extends TestCase
             ],
         ]);
 
-        $this->artisan('entity-model-v2:backfill')->assertExitCode(0);
+        $this->artisan('entity:backfill')->assertExitCode(0);
 
         $entry = EntityTimelineEntry::query()
             ->where('entity_id', $entity->entity_id)
@@ -313,7 +313,7 @@ class BackfillEntityModelV2CommandTest extends TestCase
             'created_by' => 'test',
         ]);
 
-        $this->artisan('entity-model-v2:backfill')->assertExitCode(0);
+        $this->artisan('entity:backfill')->assertExitCode(0);
 
         $this->assertDatabaseHas('geometry_periods', [
             'entity_id' => $source->entity_id,
@@ -322,7 +322,7 @@ class BackfillEntityModelV2CommandTest extends TestCase
             'start_year' => 1453,
             'end_year' => 1453,
             'provenance_mode' => 'derived',
-            'created_by' => 'backfill:entity-model-v2',
+            'created_by' => 'backfill:entity',
         ]);
     }
 
@@ -368,7 +368,7 @@ class BackfillEntityModelV2CommandTest extends TestCase
             'created_by' => 'test',
         ]);
 
-        $this->artisan('entity-model-v2:backfill')->assertExitCode(0);
+        $this->artisan('entity:backfill')->assertExitCode(0);
 
         $period = GeometryPeriod::query()
             ->where('entity_id', $source->entity_id)

@@ -11,7 +11,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class EntityModelV2DeprecationTest extends TestCase
+class EntityModelDeprecationTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -22,10 +22,9 @@ class EntityModelV2DeprecationTest extends TestCase
         parent::setUp();
 
         $this->user = User::factory()->create();
-        config()->set('entity_model.entity_model_v2_write_enabled', true);
     }
 
-    public function test_create_writes_temporal_and_location_data_to_canonical_v2_tables(): void
+    public function test_create_writes_temporal_and_location_data_to_canonical_tables(): void
     {
         $response = $this->actingAs($this->user)
             ->post(route('entities.store'), [
@@ -64,7 +63,7 @@ class EntityModelV2DeprecationTest extends TestCase
         ]);
     }
 
-    public function test_update_writes_temporal_and_location_data_to_canonical_v2_tables(): void
+    public function test_update_writes_temporal_and_location_data_to_canonical_tables(): void
     {
         $entity = Entity::factory()->create();
 
@@ -101,7 +100,7 @@ class EntityModelV2DeprecationTest extends TestCase
         ]);
     }
 
-    public function test_legacy_geometry_snapshot_write_endpoint_is_removed_when_v2_writes_enabled(): void
+    public function test_legacy_geometry_snapshot_write_endpoint_is_removed(): void
     {
         $entity = Entity::factory()->create();
 

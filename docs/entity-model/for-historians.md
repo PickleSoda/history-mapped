@@ -6,9 +6,9 @@ This document explains how historical knowledge is structured in this database. 
 
 ## The Core Idea: Everything is an Entity
 
-## Migration Note (Entity Model V2)
+## Canonical Model Note
 
-The platform now uses normalized v2 tables (`entity_temporal_ranges`, `entity_locations`, `entity_aliases`, `entity_tags`) and derived timeline entries as canonical storage. Legacy per-entity temporal/location/geometry columns were removed.
+The platform now uses normalized tables (`entity_temporal_ranges`, `entity_locations`, `entity_aliases`, `entity_tags`) and derived timeline entries as canonical storage. Legacy per-entity temporal/location/geometry columns were removed.
 
 History is full of things that existed in time and space and that mattered. We call all of them **entities**. An entity can be:
 
@@ -417,7 +417,7 @@ The model moved from "difficult to render correctly" to "renderable with three f
 | Timeline panel query | multi-table joins with text sorting | single indexed read on `entity_timeline_entries` |
 | Map animation geometry | not coupled to timeline rows | geometry embedded in timeline entries |
 | Presence period provenance | implicit / application-level | enforced with DB CHECK constraints |
-| BCE timeline sorting | incorrect with text lexicographic ordering | integer year columns in V2 tables |
+| BCE timeline sorting | incorrect with text lexicographic ordering | integer year columns in canonical normalized tables |
 | Relationship type badge on row | requires relationship join | still requires join (gap until denorm fields are added) |
 | Related entity label on row | requires relationship join | still requires join (gap until denorm fields are added) |
 | Relationship temporal filtering/sorting | text-based and index-unfriendly | still text-based in `relationships` (gap until year columns are added) |

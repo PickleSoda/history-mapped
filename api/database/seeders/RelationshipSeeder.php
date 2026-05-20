@@ -180,9 +180,9 @@ class RelationshipSeeder extends Seeder
             );
         }
 
-        $exitCode = Artisan::call('entity-model-v2:backfill');
+        $exitCode = Artisan::call('entity:backfill');
         if ($exitCode !== 0) {
-            throw new RuntimeException('Entity Model V2 backfill failed after relationship seeding.');
+            throw new RuntimeException('Entity backfill failed after relationship seeding.');
         }
     }
 

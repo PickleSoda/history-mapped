@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Actions\EntityModelV2\BackfillAliasesAction;
-use App\Actions\EntityModelV2\BackfillGeometryPeriodsAction;
-use App\Actions\EntityModelV2\BackfillLocationsAction;
-use App\Actions\EntityModelV2\BackfillTagsAction;
-use App\Actions\EntityModelV2\BackfillTemporalRangesAction;
+use App\Actions\Entity\BackfillAliasesAction;
+use App\Actions\Entity\BackfillGeometryPeriodsAction;
+use App\Actions\Entity\BackfillLocationsAction;
+use App\Actions\Entity\BackfillTagsAction;
+use App\Actions\Entity\BackfillTemporalRangesAction;
 use App\Actions\Timeline\ProjectEntityTimelineAction;
 use App\Models\Entity;
 use Illuminate\Console\Command;
 
-class BackfillEntityModelV2Command extends Command
+class BackfillEntityCommand extends Command
 {
-    protected $signature = 'entity-model-v2:backfill {--dry-run : Report changes without writing records} {--entity-id= : Backfill one entity id}';
+    protected $signature = 'entity:backfill {--dry-run : Report changes without writing records} {--entity-id= : Backfill one entity id}';
 
-    protected $description = 'Backfill Entity Model V2 canonical tables from legacy entity columns';
+    protected $description = 'Backfill canonical entity tables and rebuild timeline entries';
 
     public function handle(
         BackfillAliasesAction $aliasesAction,
@@ -68,7 +68,7 @@ class BackfillEntityModelV2Command extends Command
         }
 
         $mode = $dryRun ? 'DRY-RUN' : 'APPLIED';
-        $this->info("[$mode] Entity Model V2 backfill summary");
+        $this->info("[$mode] Entity backfill summary");
         $this->table(['table', 'rows'], [
             ['entity_aliases', (string) $counts['aliases']],
             ['entity_tags', (string) $counts['tags']],
