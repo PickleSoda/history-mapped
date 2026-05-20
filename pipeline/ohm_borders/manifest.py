@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 from typing import Any, Callable
 
-STAGE_NAMES = ("fetch", "parse", "enrich", "build")
+STAGE_NAMES = ("extract_subgraph", "fetch", "parse", "enrich", "build")
 RELATION_STAGE_NAMES = ("scan", "enrich", "build")
 
 

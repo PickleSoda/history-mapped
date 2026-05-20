@@ -12,6 +12,7 @@ from pipeline.ohm_borders.stages import (
     default_parallelism,
     run_build_stage,
     run_enrich_stage,
+    run_extract_subgraph_stage,
     run_fetch_stage,
     run_parse_stage,
     run_relations_build_stage,
@@ -125,7 +126,6 @@ def _run_relations_pipeline(*, run_id, artifact_dir, resume, force):
         f"Relations build completed: {build_result['entity_count']} entities, {build_result['hint_count']} hints"
     )
 
-
 @click.group(invoke_without_command=True)
 @click.option("--output", type=click.Path(path_type=Path, dir_okay=False), default=None, help="Compatibility mode: copy the final merged JSONL to this path")
 @click.option("--run-id", default=None, help="Deterministic run id for the artifact directory")
@@ -163,6 +163,37 @@ def cli(ctx, output, run_id, artifact_dir, query_file, raw_shard_size, parsed_sh
 
     if ctx.invoked_subcommand is None:
         console.print(ctx.get_help())
+
+
+@cli.command("extract-subgraph")
+@click.option("--input", "input_path", required=True, type=click.Path(path_type=Path, exists=True, dir_okay=False), help="Existing global overpass.json to subset")
+@click.option("--seed-qid", default=None, help="Seed polity Wikidata QID")
+@click.option("--seed-name", default=None, help="Exact OHM seed polity name fallback")
+@click.option("--run-id", default=None, help="Deterministic run id for the artifact directory")
+@click.option("--artifact-dir", type=click.Path(path_type=Path, file_okay=False), default=None, help="Explicit artifact directory override")
+@click.option("--max-depth", type=int, required=True, help="Maximum recursive graph depth from the seed")
+@click.option("--max-nodes", type=int, required=True, help="Maximum included relations before truncation")
+@click.option("--raw-shard-size", type=int, default=200, show_default=True, help="Relations per extracted raw shard")
+@click.option("--resume", is_flag=True, help="Reuse existing subset artifacts when parameters match")
+@click.option("--force", is_flag=True, help="Overwrite existing subset artifacts")
+def extract_subgraph(input_path, seed_qid, seed_name, run_id, artifact_dir, max_depth, max_nodes, raw_shard_size, resume, force):
+    """Extract a country-centered OHM border subgraph from an existing Overpass payload."""
+    result = run_extract_subgraph_stage(
+        run_id=run_id,
+        artifact_dir=artifact_dir,
+        input_path=input_path,
+        seed_qid=seed_qid,
+        seed_name=seed_name,
+        max_depth=max_depth,
+        max_nodes=max_nodes,
+        raw_shard_size=raw_shard_size,
+        resume=resume,
+        force=force,
+    )
+
+    console.print(
+        f"Extract subgraph {result['status']}: {result.get('relation_count', 'existing')} relations -> {result['raw_path']}"
+    )
 
 
 @cli.command("fetch")

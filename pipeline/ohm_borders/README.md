@@ -37,7 +37,8 @@ output/ohm_borders/<run_id>/
 ## Stage breakdown
 
 | Stage | Command | What it does |
-|---|---|---|
+| --- | --- | --- |
+| `extract_subgraph` | `borders extract-subgraph` | Reads an existing global `overpass.json`, extracts a seed-centered OHM relation subgraph, and materializes a reduced `raw/overpass.json` plus raw shards |
 | `fetch` | `borders fetch` | Downloads the Overpass payload and splits it into raw relation shards |
 | `parse` | `borders parse` | Parses each raw shard into polity records (`ProcessPoolExecutor`) |
 | `enrich` | `borders enrich` | Resolves Wikidata QIDs via SPARQL; optionally also searches by name |
@@ -47,7 +48,7 @@ output/ohm_borders/<run_id>/
 Relation stages are tracked separately in `manifest.json` under `relation_stages`:
 
 | Relation stage | Command | What it does |
-|---|---|---|
+| --- | --- | --- |
 | `scan` | `borders relations-scan` | Extracts predecessor, successor, and event relation candidates from parsed shards |
 | `enrich` | `borders relations-enrich` | Enriches relation targets with Wikidata and Wikipedia metadata |
 | `build` | `borders relations-build` | Emits importer-ready relation entity and hint JSONL files |
@@ -55,6 +56,36 @@ Relation stages are tracked separately in `manifest.json` under `relation_stages
 
 `--resume` skips any artifact that already exists on disk.  
 `--force` overwrites existing artifacts for the current stage.
+
+## Country subgraph extraction
+
+Use `extract-subgraph` when you already have a global OHM dump and want a smaller country-centered relation graph for downstream parse, enrich, build, and relation stages.
+
+```powershell
+py -m pipeline borders extract-subgraph \
+  --input output/ohm_borders/global-2026-04-14/raw/overpass.json \
+  --seed-name "Roman Empire" \
+  --run-id roman-empire-subgraph \
+  --max-depth 3 \
+  --max-nodes 400 \
+  --resume
+
+py -m pipeline borders parse --run-id roman-empire-subgraph --resume
+py -m pipeline borders enrich --run-id roman-empire-subgraph --resume --enrich-names
+py -m pipeline borders build --run-id roman-empire-subgraph --resume
+py -m pipeline borders relations-run --run-id roman-empire-subgraph --resume
+```
+
+Subset runs also write:
+
+```text
+output/ohm_borders/<run_id>/subgraph/
+├── seed.json
+├── graph_edges.jsonl
+└── closure_report.json
+```
+
+See `docs/implementation-docs/ohm_country_subgraph_runbook.md` for the full first-run and second-run workflow.
 
 ## Running the full pipeline
 
@@ -96,7 +127,7 @@ py -m pipeline borders enrich-output-names \
 ## Key CLI options
 
 | Flag | Default | Description |
-|---|---|---|
+| --- | --- | --- |
 | `--run-id ID` | auto | Deterministic run ID used as the artifact directory name |
 | `--artifact-dir PATH` | `output/ohm_borders/<run_id>` | Override artifact root |
 | `--query-file PATH` | bundled query | Override the Overpass QL query file |

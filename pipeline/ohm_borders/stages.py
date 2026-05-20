@@ -9,6 +9,7 @@ from pipeline.ohm_borders.stage_common import (
     resolve_run_id,
 )
 from pipeline.ohm_borders.stage_enrich import run_enrich_stage
+from pipeline.ohm_borders.stage_extract_subgraph import run_extract_subgraph_stage
 from pipeline.ohm_borders.stage_fetch import run_fetch_stage
 from pipeline.ohm_borders.stage_parse import run_parse_stage
 from pipeline.ohm_borders.stage_relations import (
@@ -25,6 +26,7 @@ __all__ = [
     "resolve_run_id",
     "run_build_stage",
     "run_enrich_stage",
+    "run_extract_subgraph_stage",
     "run_fetch_stage",
     "run_parse_stage",
     "run_relations_build_stage",

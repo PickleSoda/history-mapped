@@ -9,6 +9,9 @@ from pipeline.ohm_borders.artifacts import (
     final_jsonl_path,
     parsed_shard_path,
     raw_shard_path,
+    subgraph_closure_report_path,
+    subgraph_edges_path,
+    subgraph_seed_path,
     stage_done_marker_path,
     raw_overpass_path,
 )
@@ -22,6 +25,9 @@ def test_artifact_paths_are_deterministic_from_run_id(tmp_path: Path) -> None:
     assert artifact_dir == artifact_root / "20260411-120000"
     assert raw_overpass_path(artifact_dir) == artifact_dir / "raw" / "overpass.json"
     assert final_jsonl_path(artifact_dir) == artifact_dir / "final" / "ohm_borders.jsonl"
+    assert subgraph_seed_path(artifact_dir) == artifact_dir / "subgraph" / "seed.json"
+    assert subgraph_edges_path(artifact_dir) == artifact_dir / "subgraph" / "graph_edges.jsonl"
+    assert subgraph_closure_report_path(artifact_dir) == artifact_dir / "subgraph" / "closure_report.json"
 
 
 def test_shard_paths_are_deterministic() -> None:
@@ -49,14 +55,14 @@ def test_create_manifest_matches_documented_top_level_shape(tmp_path: Path) -> N
         options={"parse_workers": 4, "parsed_shard_size": 100},
     )
 
-    assert list(manifest.keys()) == ["run_id", "artifact_dir", "options", "summary", "stages"]
+    assert list(manifest.keys()) == ["run_id", "artifact_dir", "options", "summary", "stages", "relation_stages"]
     assert manifest["run_id"] == "20260411-120000"
     assert manifest["artifact_dir"] == str(artifact_dir)
     assert manifest["options"] == {"parse_workers": 4, "parsed_shard_size": 100}
     assert manifest["summary"] == {}
-    assert list(manifest["stages"].keys()) == ["fetch", "parse", "enrich", "build"]
+    assert list(manifest["stages"].keys()) == ["extract_subgraph", "fetch", "parse", "enrich", "build"]
 
-    for stage_name in ("fetch", "parse", "enrich", "build"):
+    for stage_name in ("extract_subgraph", "fetch", "parse", "enrich", "build"):
         assert list(manifest["stages"][stage_name].keys()) == [
             "status",
             "inputs",
