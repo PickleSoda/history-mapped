@@ -127,7 +127,7 @@ class Entity extends Model
     {
         return $this->hasMany(EntityRelationship::class, 'target_entity_id', 'entity_id');
     }
-    // ── V2 Entity Model Relations ─────────────────────────────────
+    // ── Canonical Entity Model Relations ──────────────────────────
 
     /** @return HasMany<EntityAlias, $this> */
     public function aliases(): HasMany

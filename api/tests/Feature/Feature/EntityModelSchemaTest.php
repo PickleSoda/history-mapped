@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
-class EntityModelV2SchemaTest extends TestCase
+class EntityModelSchemaTest extends TestCase
 {
     use RefreshDatabase;
 

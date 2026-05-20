@@ -6,7 +6,7 @@ This document is for people entering or correcting **geographic and spatial data
 
 ## Canonical Geometry Storage
 
-## Migration Note (V2 Geometry Periods)
+## Canonical Geometry Note
 
 Legacy snapshot-style and legacy entity geometry write paths are removed. New writes flow through normalized location records (`entity_locations`) and time-scoped `geometry_periods`.
 

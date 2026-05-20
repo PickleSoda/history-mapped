@@ -1,4 +1,4 @@
-# Entity Model V2 Migration Implementation Plan
+# Entity Model Migration Implementation Plan
 
 > Historical status (completed): this migration plan is retained as an execution record.
 > Current source of truth is the post-hard-drop schema/model state (`entity_locations`, `entity_temporal_ranges`, `geometry_periods`) and rollout notes.
@@ -41,7 +41,7 @@ Edge cases to resolve during migration:
 - [x] Removed residual references in `EntityFactory`, `entity_geo_refs` migration, and `EntityGeoRefIntegrityTest`
 - [x] Test suite status after cleanup: 144 passed
 - [x] Task 1 core schema complete for aliases/tags/temporal ranges/locations (citations/link tables still pending)
-- [x] Task 2 model graph complete and verified (`EntityModelV2RelationsTest` passing)
+- [x] Task 2 model graph complete and verified (`EntityModelRelationsTest` passing)
 - [x] Task 3 backfill command + actions added and verified in Docker
 
 ## Timeline UX Gap Update (2026-04-07)
@@ -49,7 +49,7 @@ Edge cases to resolve during migration:
 Validated strengths:
 - `entity_timeline_entries` is the correct read model for timeline rendering and map playback.
 - `geometry_periods` constraints correctly separate derived presence vs manual/event-driven territory periods.
-- integer year fields in new V2 tables resolve BCE sorting issues.
+- integer year fields in new canonical tables resolve BCE sorting issues.
 
 Gap status:
 1. `entity_timeline_entries` relationship/related-entity display fields implemented.
@@ -111,7 +111,7 @@ Validation run (Dockerized app + PostgreSQL):
 - Create: `api/database/migrations/xxxx_xx_xx_xxxxxx_create_geometry_periods_table.php`
 - Create: `api/database/migrations/xxxx_xx_xx_xxxxxx_create_entity_timeline_entries_table.php`
 - Create: `api/database/migrations/xxxx_xx_xx_xxxxxx_create_citations_and_link_tables.php`
-- Test: `api/tests/Feature/Feature/EntityModelV2SchemaTest.php`
+- Test: `api/tests/Feature/Feature/EntityModelSchemaTest.php`
 
 - [ ] **Step 1: Write failing schema tests for the new tables and constraints**
 
@@ -126,7 +126,7 @@ expect(Schema::hasColumns('geometry_periods', [
 
 - [ ] **Step 2: Run the focused schema test to verify failure**
 
-Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelV2SchemaTest.php`
+Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelSchemaTest.php`
 Expected: FAIL because the tables do not exist yet.
 
 - [ ] **Step 3: Create migrations with hard DB constraints**
@@ -141,14 +141,14 @@ Required constraints:
 - [ ] **Step 4: Run migrations and rerun schema test**
 
 Run: `docker compose exec app php artisan migrate`
-Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelV2SchemaTest.php`
+Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelSchemaTest.php`
 Expected: PASS.
 
 - [x] **Step 5: Commit**
 
 ```bash
-git add api/database/migrations api/tests/Feature/Feature/EntityModelV2SchemaTest.php
-git commit -m "feat: add entity model v2 schema tables"
+git add api/database/migrations api/tests/Feature/Feature/EntityModelSchemaTest.php
+git commit -m "feat: add entity model schema tables"
 ```
 
 ### Task 2: Introduce New Eloquent Models and Entity Relations
@@ -161,7 +161,7 @@ git commit -m "feat: add entity model v2 schema tables"
 - Create: `api/app/Models/GeometryPeriod.php`
 - Create: `api/app/Models/EntityTimelineEntry.php`
 - Modify: `api/app/Models/Entity.php`
-- Test: `api/tests/Feature/Feature/EntityModelV2RelationsTest.php`
+- Test: `api/tests/Feature/Feature/EntityModelRelationsTest.php`
 
 - [x] **Step 1: Write failing relation tests for the new model graph**
 
@@ -171,7 +171,7 @@ Test expectations:
 
 - [x] **Step 2: Run the relation test to verify failure**
 
-Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelV2RelationsTest.php`
+Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelRelationsTest.php`
 Expected: FAIL with missing classes/relations.
 
 - [x] **Step 3: Implement the new models and add relations to `Entity`**
@@ -183,26 +183,26 @@ Notes:
 
 - [x] **Step 4: Rerun relation tests**
 
-Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelV2RelationsTest.php`
+Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelRelationsTest.php`
 Expected: PASS.
 
 - [x] **Step 5: Commit**
 
 ```bash
-git add api/app/Models api/tests/Feature/Feature/EntityModelV2RelationsTest.php
-git commit -m "feat: add entity model v2 eloquent models"
+git add api/app/Models api/tests/Feature/Feature/EntityModelRelationsTest.php
+git commit -m "feat: add entity model eloquent models"
 ```
 
 ### Task 3: Build Backfill Commands for Existing Entity Data
 
 **Files:**
-- Create: `api/app/Console/Commands/BackfillEntityModelV2Command.php`
-- Create: `api/app/Actions/EntityModelV2/BackfillAliasesAction.php`
-- Create: `api/app/Actions/EntityModelV2/BackfillTagsAction.php`
-- Create: `api/app/Actions/EntityModelV2/BackfillTemporalRangesAction.php`
-- Create: `api/app/Actions/EntityModelV2/BackfillLocationsAction.php`
-- Create: `api/app/Actions/EntityModelV2/BackfillGeometryPeriodsAction.php`
-- Test: `api/tests/Feature/Feature/BackfillEntityModelV2CommandTest.php`
+- Create: `api/app/Console/Commands/BackfillEntityCommand.php`
+- Create: `api/app/Actions/Entity/BackfillAliasesAction.php`
+- Create: `api/app/Actions/Entity/BackfillTagsAction.php`
+- Create: `api/app/Actions/Entity/BackfillTemporalRangesAction.php`
+- Create: `api/app/Actions/Entity/BackfillLocationsAction.php`
+- Create: `api/app/Actions/Entity/BackfillGeometryPeriodsAction.php`
+- Test: `api/tests/Feature/Feature/BackfillEntityCommandTest.php`
 
 - [x] **Step 1: Write a failing command test for backfill behavior**
 
@@ -214,7 +214,7 @@ Required coverage:
 
 - [x] **Step 2: Run the command test to verify failure**
 
-Run: `docker compose exec app php artisan test api/tests/Feature/Feature/BackfillEntityModelV2CommandTest.php`
+Run: `docker compose exec app php artisan test api/tests/Feature/Feature/BackfillEntityCommandTest.php`
 Expected: FAIL because the command does not exist.
 
 - [x] **Step 3: Implement the backfill command and actions**
@@ -227,15 +227,15 @@ Edge-case rules:
 
 - [x] **Step 4: Run backfill test and a dry-run command**
 
-Run: `docker compose exec app php artisan test api/tests/Feature/Feature/BackfillEntityModelV2CommandTest.php`
-Run: `docker compose exec app php artisan entity-model-v2:backfill --dry-run`
+Run: `docker compose exec app php artisan test api/tests/Feature/Feature/BackfillEntityCommandTest.php`
+Run: `docker compose exec app php artisan entity:backfill --dry-run`
 Expected: PASS and a dry-run summary with counts by migrated table.
 
 - [x] **Step 5: Commit**
 
 ```bash
-git add api/app/Console/Commands api/app/Actions/EntityModelV2 api/tests/Feature/Feature/BackfillEntityModelV2CommandTest.php
-git commit -m "feat: add entity model v2 backfill pipeline"
+git add api/app/Console/Commands api/app/Actions/Entity api/tests/Feature/Feature/BackfillEntityCommandTest.php
+git commit -m "feat: add entity backfill pipeline"
 ```
 
 ### Task 4: Replace Auto-Snapshot Creation with Geometry-Period Semantics
@@ -409,7 +409,7 @@ git commit -m "refactor: move map and detail reads to geometry periods"
 - Modify: `docs/entity-model/attributes.md`
 - Modify: `docs/entity-model/for-historians.md`
 - Modify: `docs/entity-model/for-geodata-contributors.md`
-- Test: `api/tests/Feature/Feature/EntityModelV2DeprecationTest.php`
+- Test: `api/tests/Feature/Feature/EntityModelDeprecationTest.php`
 
 - [x] **Step 1: Write failing tests or assertions for deprecated access paths**
 
@@ -419,24 +419,24 @@ Required behavior:
 
 - [x] **Step 2: Run deprecation tests to verify failure**
 
-Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelV2DeprecationTest.php`
+Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelDeprecationTest.php`
 Expected: FAIL before cutover logic exists.
 
 - [x] **Step 3: Add feature flag or staged cutover guard and update docs**
 
 Recommended flag names:
-- `entity_model_v2_write_enabled`
-- `geometry_snapshot_compat_read_enabled` (historical; retired after compatibility surface removal)
+- No rollout flags remain in live config.
+- Geometry snapshot compatibility reads are retired after compatibility surface removal.
 
 - [x] **Step 4: Rerun tests and spot-check docs**
 
-Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelV2DeprecationTest.php`
+Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelDeprecationTest.php`
 Expected: PASS.
 
 - [x] **Step 5: Commit**
 
 ```bash
-git add api/database/migrations docs/entity-model api/tests/Feature/Feature/EntityModelV2DeprecationTest.php
+git add api/database/migrations docs/entity-model api/tests/Feature/Feature/EntityModelDeprecationTest.php
 git commit -m "chore: deprecate legacy snapshot and entity write paths"
 ```
 
@@ -463,7 +463,7 @@ Expected: PASS or unrelated failures documented.
 
 - [x] **Step 3: Run GitNexus change-scope validation before merge or commit batching**
 
-Run: `npx gitnexus@latest detect_changes all`
+Run: `gitnexus@latest detect_changes all`
 Expected: only expected schema/model/controller/resource/test areas changed.
 Observed: local GitNexus CLI build does not expose `detect_changes` (`unknown command`).
 
@@ -479,15 +479,15 @@ Document:
 
 ```bash
 git add .
-git commit -m "test: verify entity model v2 migration rollout"
+git commit -m "test: verify entity model migration rollout"
 ```
 
 ### Task 10: Legacy Usage Inventory and Cutover Safety Net
 
 **Files:**
 - Create: `docs/superpowers/plans/2026-04-07-legacy-erasure-inventory.md`
-- Modify: `docs/superpowers/plans/2026-04-07-entity-model-v2-rollout-notes.md`
-- Test: `api/tests/Feature/Feature/EntityModelV2DeprecationTest.php`
+- Modify: `docs/superpowers/plans/2026-04-07-entity-model-rollout-notes.md`
+- Test: `api/tests/Feature/Feature/EntityModelDeprecationTest.php`
 
 - [x] **Step 1: Produce inventory of all legacy fields and table consumers**
 
@@ -502,30 +502,30 @@ Historical note: this command is kept for archive/replay context; active code sh
 
 Expected: markdown inventory grouped by API, admin UI, actions/jobs, seeders/factories, and tests.
 
-- [x] **Step 2: Add failing assertions that legacy writes are blocked in v2 mode**
+- [x] **Step 2: Add failing assertions that legacy writes are blocked in canonical mode**
 
-Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelV2DeprecationTest.php`
+Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelDeprecationTest.php`
 Expected: FAIL until all write paths are blocked.
 
 - [x] **Step 3: Enforce global no-legacy-write gate and update tests**
 
 Required behavior:
-- entity write paths do not persist legacy temporal/location/geometry columns when `entity_model_v2_write_enabled=true`
+- entity write paths do not persist legacy temporal/location/geometry columns on the canonical write path
 - no path creates or updates `geometry_snapshots`
 
 - [x] **Step 4: Rerun deprecation test**
 
-Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelV2DeprecationTest.php`
+Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelDeprecationTest.php`
 Expected: PASS.
 
 - [x] **Step 5: Commit**
 
 ```bash
-git add docs/superpowers/plans/2026-04-07-legacy-erasure-inventory.md docs/superpowers/plans/2026-04-07-entity-model-v2-rollout-notes.md api/tests/Feature/Feature/EntityModelV2DeprecationTest.php
+git add docs/superpowers/plans/2026-04-07-legacy-erasure-inventory.md docs/superpowers/plans/2026-04-07-entity-model-rollout-notes.md api/tests/Feature/Feature/EntityModelDeprecationTest.php
 git commit -m "chore: inventory legacy model usage and enforce write gates"
 ```
 
-### Task 11: Remove Compatibility Snapshot Surface and V2-Only Reads
+### Task 11: Remove Compatibility Snapshot Surface and Canonical-Only Reads
 
 **Files:**
 - Delete: `api/app/Http/Api/V1/Controllers/GeometrySnapshotController.php`
@@ -539,11 +539,11 @@ git commit -m "chore: inventory legacy model usage and enforce write gates"
 - Test: `api/tests/Feature/Api/MapEntitiesThresholdTest.php`
 - Test: `api/tests/Feature/Api/EntityDetailGeometrySnapshotsCountTest.php`
 
-- [x] **Step 1: Write failing tests for removed snapshot endpoints and v2 replacement behavior**
+- [x] **Step 1: Write failing tests for removed snapshot endpoints and canonical replacement behavior**
 
 Coverage:
 - old snapshot endpoints return `410` (or `404` after hard removal)
-- timeline/map/detail endpoints still serve equivalent data from v2 read model
+- timeline/map/detail endpoints still serve equivalent data from the canonical read model
 
 - [x] **Step 2: Run focused endpoint tests to verify failure**
 
@@ -554,7 +554,7 @@ Expected: FAIL before endpoint/routing cleanup is complete.
 
 Rules:
 - do not leave stale route/action bindings
-- preserve stable v2 consumer endpoints
+- preserve stable consumer endpoints during rollout
 
 - [x] **Step 4: Rerun focused endpoint tests**
 
@@ -575,18 +575,18 @@ git commit -m "refactor: remove legacy geometry snapshot compatibility surface"
 - Modify: `api/database/seeders/DatabaseSeeder.php` (if seed flow order needs update)
 - Modify: `api/database/factories/EntityFactory.php`
 - Create: `api/database/migrations/xxxx_xx_xx_xxxxxx_prepare_legacy_drop_phase_a.php`
-- Test: `api/tests/Feature/Feature/BackfillEntityModelV2CommandTest.php`
-- Test: `api/tests/Feature/Feature/EntityModelV2SchemaTest.php`
+- Test: `api/tests/Feature/Feature/BackfillEntityCommandTest.php`
+- Test: `api/tests/Feature/Feature/EntityModelSchemaTest.php`
 
-- [x] **Step 1: Write failing tests for seed/factory v2-only expectations**
+- [x] **Step 1: Write failing tests for seed/factory canonical-only expectations**
 
 Coverage:
-- seeded entities create v2 records via backfill command path expectations
+- seeded entities create canonical records via backfill command path expectations
 - factories no longer rely on removed snapshot semantics
 
 - [x] **Step 2: Run seed/factory/schema focused tests to verify failure**
 
-Run: `docker compose exec app php artisan test api/tests/Feature/Feature/BackfillEntityModelV2CommandTest.php api/tests/Feature/Feature/EntityModelV2SchemaTest.php`
+Run: `docker compose exec app php artisan test api/tests/Feature/Feature/BackfillEntityCommandTest.php api/tests/Feature/Feature/EntityModelSchemaTest.php`
 Expected: FAIL before cleanup and migration A.
 
 - [x] **Step 3: Implement seed/factory cleanup and migration A prep**
@@ -597,13 +597,13 @@ Migration A purpose:
 
 - [x] **Step 4: Rerun focused tests**
 
-Run: `docker compose exec app php artisan test api/tests/Feature/Feature/BackfillEntityModelV2CommandTest.php api/tests/Feature/Feature/EntityModelV2SchemaTest.php`
+Run: `docker compose exec app php artisan test api/tests/Feature/Feature/BackfillEntityCommandTest.php api/tests/Feature/Feature/EntityModelSchemaTest.php`
 Expected: PASS.
 
 - [x] **Step 5: Commit**
 
 ```bash
-git add api/database/seeders api/database/factories api/database/migrations api/tests/Feature/Feature/BackfillEntityModelV2CommandTest.php api/tests/Feature/Feature/EntityModelV2SchemaTest.php
+git add api/database/seeders api/database/factories api/database/migrations api/tests/Feature/Feature/BackfillEntityCommandTest.php api/tests/Feature/Feature/EntityModelSchemaTest.php
 git commit -m "chore: align seeders and schema for legacy drop phase a"
 ```
 
@@ -615,8 +615,8 @@ git commit -m "chore: align seeders and schema for legacy drop phase a"
 - Modify: `docs/entity-model/attributes.md`
 - Modify: `docs/entity-model/for-historians.md`
 - Modify: `docs/entity-model/for-geodata-contributors.md`
-- Modify: `docs/superpowers/plans/2026-04-07-entity-model-v2-rollout-notes.md`
-- Test: `api/tests/Feature/Feature/EntityModelV2SchemaTest.php`
+- Modify: `docs/superpowers/plans/2026-04-07-entity-model-rollout-notes.md`
+- Test: `api/tests/Feature/Feature/EntityModelSchemaTest.php`
 - Test: `api/tests/Feature/Api/EntityTimelineApiTest.php`
 - Test: `api/tests/Feature/Api/MapEntitiesThresholdTest.php`
 - Test: `api/tests/Feature/Api/EntityDetailGeometrySnapshotsCountTest.php`
@@ -630,14 +630,14 @@ Required absent artifacts:
 
 - [x] **Step 2: Run schema and impacted suites to verify failure**
 
-Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelV2SchemaTest.php api/tests/Feature/Api/EntityTimelineApiTest.php api/tests/Feature/Api/MapEntitiesThresholdTest.php api/tests/Feature/Api/EntityDetailGeometrySnapshotsCountTest.php api/tests/Feature/Feature/EntityGeoRefIntegrityTest.php`
+Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelSchemaTest.php api/tests/Feature/Api/EntityTimelineApiTest.php api/tests/Feature/Api/MapEntitiesThresholdTest.php api/tests/Feature/Api/EntityDetailGeometrySnapshotsCountTest.php api/tests/Feature/Feature/EntityGeoRefIntegrityTest.php`
 Expected: FAIL before final migration and model cleanup.
 
 - [x] **Step 3: Implement migration B hard-drop and model/doc cleanup**
 
 Rules:
 - remove legacy fillable/casts/relations from `Entity` that target dropped artifacts
-- update docs to v2-only model semantics
+- update docs to canonical model semantics
 
 - [x] **Step 4: Run full verification suite**
 
@@ -650,6 +650,6 @@ Expected: PASS or unrelated failures documented in rollout notes.
 - [x] **Step 5: Commit and release notes update**
 
 ```bash
-git add api/database/migrations api/app/Models/Entity.php api/tests docs/entity-model docs/superpowers/plans/2026-04-07-entity-model-v2-rollout-notes.md
+git add api/database/migrations api/app/Models/Entity.php api/tests docs/entity-model docs/superpowers/plans/2026-04-07-entity-model-rollout-notes.md
 git commit -m "feat: hard-drop legacy entity fields and snapshot table"
 ```

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Actions\EntityModelV2;
+namespace App\Actions\Entity;
 
 use App\Models\Entity;
 use App\Models\EntityRelationship;
@@ -25,13 +25,13 @@ class BackfillGeometryPeriodsAction
         GeometryPeriod::query()
             ->where('entity_id', $entity->entity_id)
             ->where('provenance_mode', 'manual')
-            ->where('created_by', 'backfill:entity-model-v2')
+            ->where('created_by', 'backfill:entity')
             ->delete();
 
         GeometryPeriod::query()
             ->where('entity_id', $entity->entity_id)
             ->where('provenance_mode', 'derived')
-            ->where('created_by', 'backfill:entity-model-v2')
+            ->where('created_by', 'backfill:entity')
             ->whereNotNull('relationship_id')
             ->delete();
 
@@ -65,7 +65,7 @@ class BackfillGeometryPeriodsAction
                     'territory_geom' => $territoryGeom,
                     'description' => $range->notes,
                     'provenance_mode' => 'manual',
-                    'created_by' => 'backfill:entity-model-v2',
+                    'created_by' => 'backfill:entity',
                 ]);
 
                 $inserted++;
@@ -92,7 +92,7 @@ class BackfillGeometryPeriodsAction
                     'geom' => $geom,
                     'territory_geom' => $territoryGeom,
                     'provenance_mode' => 'manual',
-                    'created_by' => 'backfill:entity-model-v2',
+                    'created_by' => 'backfill:entity',
                 ]);
 
                 return 1 + $this->backfillDerivedPresencePeriods($entity, $ranges, $geom, $territoryGeom);
@@ -158,7 +158,7 @@ class BackfillGeometryPeriodsAction
                     'geom' => $derivedGeom,
                     'territory_geom' => $derivedTerritory,
                     'description' => $relationship->description,
-                    'created_by' => 'backfill:entity-model-v2',
+                    'created_by' => 'backfill:entity',
                 ]);
 
                 continue;
@@ -174,7 +174,7 @@ class BackfillGeometryPeriodsAction
                 'description' => $relationship->description,
                 'provenance_mode' => 'derived',
                 'relationship_id' => $relationship->relationship_id,
-                'created_by' => 'backfill:entity-model-v2',
+                'created_by' => 'backfill:entity',
             ]);
 
             $inserted++;

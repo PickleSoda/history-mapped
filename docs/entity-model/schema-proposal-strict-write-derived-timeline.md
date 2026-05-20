@@ -1,4 +1,4 @@
-# Entity Model V2 Proposal — Strict Write Model + Derived Timeline
+# Entity Model Proposal — Strict Write Model + Derived Timeline
 
 Status: Proposal
 Date: 2026-04-06
@@ -257,7 +257,7 @@ Application policy checks:
 
 ## 4. Revised Entity Columns (Lean vs Move vs Drop)
 
-This maps current `entities` columns to V2 decisions.
+This maps current `entities` columns to canonical model decisions.
 
 ## Keep in `entities`
 

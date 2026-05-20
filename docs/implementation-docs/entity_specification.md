@@ -489,7 +489,7 @@ CREATE TYPE icon_class AS ENUM (
 
 ## 3. Shared Base Fields (All Entities)
 
-Every entity in PostgreSQL shares these columns. Type-specific fields are stored in the JSONB `attributes` column (see Section 4). Time-varying geometries now use `geometry_periods` in the canonical v2 model.
+Every entity in PostgreSQL shares these columns. Type-specific fields are stored in the JSONB `attributes` column (see Section 4). Time-varying geometries now use `geometry_periods` in the canonical entity model.
 
 | Field | Type | Storage | Source | Notes |
 |-------|------|---------|--------|-------|

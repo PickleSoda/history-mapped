@@ -1,8 +1,8 @@
-# Entity V2 Show/Edit CRUD Alignment Implementation Plan
+# Entity Show/Edit CRUD Alignment Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Complete admin entity show/edit coverage for V2 fields by adding geometry-period CRUD, switching show timeline reads to the timeline endpoint, and exposing hierarchy controls.
+**Goal:** Complete admin entity show/edit coverage for canonical entity fields by adding geometry-period CRUD, switching show timeline reads to the timeline endpoint, and exposing hierarchy controls.
 
 **Architecture:** Keep canonical writes in existing entity actions for core fields, and add a focused geometry-period admin JSON surface for nested CRUD from entity edit/show pages. Keep timeline rendering componentized, but source timeline rows from `entity_timeline_entries` API reads instead of relationship-only fetches.
 
@@ -14,7 +14,7 @@
 
 ## Scope
 
-This plan addresses only the missing V2 CRUD/read-model coverage previously identified:
+This plan addresses only the missing canonical CRUD/read-model coverage previously identified:
 
 - geometry periods: create/read/update/delete from admin entity edit/show flow
 - timeline panel: use `/api/v1/entities/{entity}/timeline` read model on show page
@@ -264,7 +264,7 @@ git commit -m "feat: use timeline API for entity show history"
 **Files:**
 - Modify: `docs/entity-model/for-historians.md`
 - Modify: `docs/entity-model/diagrams.md`
-- Modify: `docs/implementation-docs/entity-model-v2.md` (create if missing)
+- Modify: `docs/implementation-docs/entity-model.md` (create if missing)
 
 - [ ] **Step 1: Add/refresh historian-facing notes for edit/show CRUD behavior**
 
@@ -291,8 +291,8 @@ Run:
 - [ ] **Step 4: Commit final docs and verification updates**
 
 ```bash
-git add docs/entity-model/for-historians.md docs/entity-model/diagrams.md docs/implementation-docs/entity-model-v2.md
-git commit -m "docs: document v2 show/edit CRUD surfaces"
+git add docs/entity-model/for-historians.md docs/entity-model/diagrams.md docs/implementation-docs/entity-model.md
+git commit -m "docs: document entity show/edit CRUD surfaces"
 ```
 
 ---

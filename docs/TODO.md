@@ -45,7 +45,7 @@
   Added `$hidden = ['embedding', 'embedding_version']` to the `Entity` model.
 
 - [x] **Fix temporal string sorting for BCE/CE ranges**
-  Added normalized year columns for ordering/filtering and updated query/build paths to use integer temporal fields. Current canonical temporal storage is in `entity_temporal_ranges`; legacy entity-level temporal columns were removed during v2 hard-drop.
+  Added normalized year columns for ordering/filtering and updated query/build paths to use integer temporal fields. Current canonical temporal storage is in `entity_temporal_ranges`; legacy entity-level temporal columns were removed during the canonical model cutover.
 
 ### Medium Priority
 
