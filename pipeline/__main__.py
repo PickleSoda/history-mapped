@@ -37,7 +37,7 @@ from pipeline.ohm_borders.enricher import enrich_output_jsonl_missing_qids
 console = Console(legacy_windows=False)
 
 _LEGACY_SCRAPE_COMMANDS = ["scrape", "dedup", "topic"]
-_LEGACY_BORDERS_COMMANDS = {"borders": ["extract-subgraph", "fetch", "parse", "enrich", "build", "run", "enrich-output-names", "relations-scan", "relations-enrich", "relations-build", "relations-run"]}
+_LEGACY_BORDERS_COMMANDS = {"borders": ["extract-subgraph", "build-index", "fetch", "parse", "enrich", "build", "run", "enrich-output-names", "relations-scan", "relations-enrich", "relations-build", "relations-run"]}
 def _configure_logging() -> None:
     root_logger = logging.getLogger()
     if root_logger.handlers:
@@ -77,6 +77,7 @@ cli.add_command(wikidata_topic_impl, name="topic")
 # === OHM BORDERS SUBCOMMANDS (legacy) ===
 # Create a borders subgroup that re-exports commands from ohm_borders module
 from pipeline.ohm_borders.__main__ import (
+    build_index_command,
     extract_subgraph,
     fetch,
     parse,
@@ -130,6 +131,7 @@ def borders(ctx, output, run_id, artifact_dir, query_file, raw_shard_size, parse
 
 # Register ohm_borders commands under the borders subgroup
 borders.add_command(extract_subgraph, name="extract-subgraph")
+borders.add_command(build_index_command, name="build-index")
 borders.add_command(fetch, name="fetch")
 borders.add_command(parse, name="parse")
 borders.add_command(enrich, name="enrich")

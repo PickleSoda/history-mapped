@@ -13,6 +13,7 @@ orjson>=3.9.0
 
 # Fuzzy matching for dedup
 thefuzz[speedup]>=0.22.0
+rapidfuzz>=3.9.0
 
 # Embeddings (optional — can also run via Laravel)
 openai>=1.12.0
@@ -29,3 +30,6 @@ shapely>=2.0.0
 
 # Rate limiting
 ratelimit>=2.2.1
+
+# Streaming JSON
+ijson>=3.3.0

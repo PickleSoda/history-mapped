@@ -271,6 +271,7 @@ def test_root_borders_extract_subgraph_cli_writes_subset_artifacts(tmp_path: Pat
             str(artifact_dir),
             "--seed-qid",
             "Q1",
+            "--build-index-if-missing",
             "--max-depth",
             "1",
             "--max-nodes",
@@ -283,6 +284,54 @@ def test_root_borders_extract_subgraph_cli_writes_subset_artifacts(tmp_path: Pat
     assert result.exit_code == 0
     assert (artifact_dir / "raw" / "overpass.json").exists()
     assert (artifact_dir / "subgraph" / "closure_report.json").exists()
+
+
+def test_extract_subgraph_cli_passes_index_options(tmp_path: Path, monkeypatch) -> None:
+    runner = CliRunner()
+    input_path = tmp_path / "overpass.json"
+    artifact_dir = tmp_path / "subset"
+    index_path = tmp_path / "subset-index.sqlite3"
+    input_path.write_text(json.dumps({"elements": []}), encoding="utf-8")
+
+    captured: dict[str, object] = {}
+
+    def fake_run_extract_subgraph_stage(**kwargs):
+        captured.update(kwargs)
+        raw_path = artifact_dir / "raw" / "overpass.json"
+        raw_path.parent.mkdir(parents=True, exist_ok=True)
+        raw_path.write_text('{"elements":[]}', encoding="utf-8")
+        return {"status": "completed", "raw_path": raw_path, "relation_count": 0}
+
+    monkeypatch.setattr(ohm_main_module, "run_extract_subgraph_stage", fake_run_extract_subgraph_stage)
+
+    result = runner.invoke(
+        borders_cli,
+        [
+            "extract-subgraph",
+            "--input",
+            str(input_path),
+            "--artifact-dir",
+            str(artifact_dir),
+            "--index-path",
+            str(index_path),
+            "--seed-name",
+            "roman empire",
+            "--build-index-if-missing",
+            "--auto-select-fuzzy",
+            "--max-depth",
+            "1",
+            "--max-nodes",
+            "10",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert captured["input_path"] == input_path
+    assert captured["artifact_dir"] == artifact_dir
+    assert captured["index_path"] == index_path
+    assert captured["seed_name"] == "roman empire"
+    assert captured["build_index_if_missing"] is True
+    assert captured["auto_select_fuzzy"] is True
 
 
 def test_ohm_borders_extract_subgraph_cli_supports_resume(tmp_path: Path) -> None:
@@ -320,6 +369,7 @@ def test_ohm_borders_extract_subgraph_cli_supports_resume(tmp_path: Path) -> Non
             str(artifact_dir),
             "--seed-qid",
             "Q1",
+            "--build-index-if-missing",
             "--max-depth",
             "0",
             "--max-nodes",
@@ -336,6 +386,7 @@ def test_ohm_borders_extract_subgraph_cli_supports_resume(tmp_path: Path) -> Non
             str(artifact_dir),
             "--seed-qid",
             "Q1",
+            "--build-index-if-missing",
             "--max-depth",
             "0",
             "--max-nodes",
@@ -347,3 +398,157 @@ def test_ohm_borders_extract_subgraph_cli_supports_resume(tmp_path: Path) -> Non
     assert first.exit_code == 0
     assert second.exit_code == 0
     assert "skipped" in second.output.lower()
+
+
+def test_build_index_cli_passes_input_and_force(tmp_path: Path, monkeypatch) -> None:
+    runner = CliRunner()
+    input_path = tmp_path / "overpass.json"
+    index_path = tmp_path / "overpass.sqlite3"
+    input_path.write_text(json.dumps({"elements": []}), encoding="utf-8")
+
+    captured: dict[str, object] = {}
+
+    def fake_build_index(source_path, *, index_path, force=False, stale_timeout_seconds=900):
+        captured["source_path"] = source_path
+        captured["index_path"] = index_path
+        captured["force"] = force
+        return {"status": "completed", "index_path": index_path, "relation_count": 0}
+
+    monkeypatch.setattr(ohm_main_module, "build_index", fake_build_index)
+
+    result = runner.invoke(
+        borders_cli,
+        [
+            "build-index",
+            "--input",
+            str(input_path),
+            "--index-path",
+            str(index_path),
+            "--force",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert captured == {
+        "source_path": input_path,
+        "index_path": index_path,
+        "force": True,
+    }
+
+
+def test_root_borders_build_index_cli_is_wired(tmp_path: Path, monkeypatch) -> None:
+    runner = CliRunner()
+    input_path = tmp_path / "overpass.json"
+    index_path = tmp_path / "overpass.sqlite3"
+    input_path.write_text(json.dumps({"elements": []}), encoding="utf-8")
+
+    captured: dict[str, object] = {}
+
+    def fake_build_index(source_path, *, index_path, force=False, stale_timeout_seconds=900):
+        captured["source_path"] = source_path
+        captured["index_path"] = index_path
+        captured["force"] = force
+        return {"status": "completed", "index_path": index_path, "relation_count": 0}
+
+    monkeypatch.setattr(ohm_main_module, "build_index", fake_build_index)
+
+    result = runner.invoke(
+        cli,
+        [
+            "borders",
+            "build-index",
+            "--input",
+            str(input_path),
+            "--index-path",
+            str(index_path),
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert captured == {
+        "source_path": input_path,
+        "index_path": index_path,
+        "force": False,
+    }
+
+
+def test_extract_subgraph_cli_fails_for_incompatible_index_with_rebuild_guidance(tmp_path: Path) -> None:
+    runner = CliRunner()
+    input_path = tmp_path / "overpass.json"
+    index_path = tmp_path / "overpass.sqlite3"
+    input_path.write_text(
+        json.dumps(
+            {
+                "elements": [
+                    {
+                        "type": "relation",
+                        "id": 10,
+                        "tags": {
+                            "boundary": "administrative",
+                            "admin_level": "2",
+                            "name": "Roman Empire",
+                            "wikidata": "Q1",
+                        },
+                        "members": [],
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    assert runner.invoke(
+        borders_cli,
+        [
+            "build-index",
+            "--input",
+            str(input_path),
+            "--index-path",
+            str(index_path),
+        ],
+    ).exit_code == 0
+
+    input_path.write_text(
+        json.dumps(
+            {
+                "elements": [
+                    {
+                        "type": "relation",
+                        "id": 10,
+                        "tags": {
+                            "boundary": "administrative",
+                            "admin_level": "2",
+                            "name": "Changed Roman Empire",
+                            "wikidata": "Q1",
+                        },
+                        "members": [],
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(
+        borders_cli,
+        [
+            "extract-subgraph",
+            "--input",
+            str(input_path),
+            "--index-path",
+            str(index_path),
+            "--run-id",
+            "incompatible-index",
+            "--seed-qid",
+            "Q1",
+            "--max-depth",
+            "0",
+            "--max-nodes",
+            "10",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert result.exception is not None
+    assert "build-index" in str(result.exception)
+    assert "--force" in str(result.exception)
