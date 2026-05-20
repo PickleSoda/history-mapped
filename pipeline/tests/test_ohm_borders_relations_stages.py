@@ -63,6 +63,75 @@ def test_run_relations_build_stage_emits_final_entities_and_hints(tmp_path: Path
     assert manifest["summary"]["relation_final_hints"] == 1
 
 
+def test_run_relations_build_stage_updates_subgraph_closure_report_with_bundle_validation(tmp_path: Path) -> None:
+    artifact_dir = tmp_path / "artifacts"
+    enriched_path = artifact_dir / "relations_enriched" / "relations-enriched-00001.json"
+    enriched_path.parent.mkdir(parents=True, exist_ok=True)
+    enriched_path.write_text(
+        json.dumps(
+            [
+                {
+                    "source_ohm_relation_id": "100",
+                    "source_wikidata_id": "Q100",
+                    "source_name": "Kingdom of Testland",
+                    "relationship_type": "preceded_by",
+                    "inverse_relationship_type": "succeeded_by",
+                    "target_wikidata_id": "Q090",
+                    "target_label": "Old Testland",
+                    "source_tag_key": "predecessor",
+                    "source": "wikidata:P155",
+                    "temporal_start": None,
+                    "temporal_end": None,
+                    "target_entity": {
+                        "name": "Old Testland",
+                        "entity_type": "political_entity",
+                        "entity_group": "POLITY",
+                        "wikidata_id": "Q090",
+                    },
+                },
+                {
+                    "source_ohm_relation_id": "100",
+                    "source_wikidata_id": "Q100",
+                    "source_name": "Kingdom of Testland",
+                    "relationship_type": "succeeded_by",
+                    "inverse_relationship_type": "preceded_by",
+                    "target_wikidata_id": "Q404",
+                    "target_label": "Missing Testland",
+                    "source_tag_key": "successor",
+                    "source": "wikidata:P156",
+                    "temporal_start": None,
+                    "temporal_end": None,
+                    "target_entity": {
+                        "name": "Missing Testland",
+                        "entity_type": "political_entity",
+                        "entity_group": "POLITY",
+                        "wikidata_id": "Q404",
+                    },
+                },
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (artifact_dir / "final").mkdir(parents=True, exist_ok=True)
+    (artifact_dir / "final" / "ohm_borders.jsonl").write_text(
+        json.dumps({"wikidata_id": "Q100", "name": "Kingdom of Testland"}) + "\n",
+        encoding="utf-8",
+    )
+    (artifact_dir / "subgraph").mkdir(parents=True, exist_ok=True)
+    (artifact_dir / "subgraph" / "closure_report.json").write_text(
+        json.dumps({"included_relation_count": 1}, indent=2),
+        encoding="utf-8",
+    )
+
+    run_relations_build_stage(run_id="run-001", artifact_dir=artifact_dir)
+
+    closure_report = json.loads((artifact_dir / "subgraph" / "closure_report.json").read_text(encoding="utf-8"))
+
+    assert closure_report["bundle_validation"]["import_ready"] is True
+    assert closure_report["bundle_validation"]["known_wikidata_ids"] == ["Q090", "Q100", "Q404"]
+    assert closure_report["bundle_validation"]["missing_wikidata_ids"] == []
+
+
 
 def test_relations_commands_are_wired_in_ohm_borders_cli(tmp_path: Path) -> None:
     artifact_dir = tmp_path / "artifacts"

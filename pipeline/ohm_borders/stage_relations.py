@@ -6,16 +6,19 @@ from typing import Any
 
 from pipeline.ohm_borders.artifacts import (
     ensure_artifact_dirs,
+    final_jsonl_path,
     parsed_dir,
     relation_candidates_dir,
     relation_candidates_shard_path,
     relation_enriched_shard_path,
     relation_entities_final_path,
     relation_hints_final_path,
+    subgraph_closure_report_path,
 )
 from pipeline.ohm_borders.enricher import batch_enrich_qids
 from pipeline.ohm_borders.relations_enricher import enrich_relation_candidates
 from pipeline.ohm_borders.relations_extractor import extract_relation_candidates
+from pipeline.ohm_borders.subgraph_extractor import validate_bundle_closure
 from pipeline.ohm_borders.stage_common import (
     _count_jsonl_records,
     _load_jsonl_records,
@@ -29,6 +32,26 @@ from pipeline.ohm_borders.stage_common import (
     resolve_artifact_dir,
     resolve_run_id,
 )
+
+
+def _update_subgraph_bundle_validation(artifact_dir: Path) -> None:
+    closure_report_path = subgraph_closure_report_path(artifact_dir)
+    main_entities_path = final_jsonl_path(artifact_dir)
+    relation_entities_path = relation_entities_final_path(artifact_dir)
+    relation_hints_path = relation_hints_final_path(artifact_dir)
+
+    if not closure_report_path.exists() or not main_entities_path.exists():
+        return
+    if not relation_entities_path.exists() or not relation_hints_path.exists():
+        return
+
+    closure_report = json.loads(closure_report_path.read_text(encoding="utf-8"))
+    closure_report["bundle_validation"] = validate_bundle_closure(
+        main_entities=_load_jsonl_records(main_entities_path),
+        relation_entities=_load_jsonl_records(relation_entities_path),
+        relation_hints=_load_jsonl_records(relation_hints_path),
+    )
+    _write_text_atomic(closure_report_path, json.dumps(closure_report, ensure_ascii=True, indent=2))
 
 
 def run_relations_scan_stage(
@@ -209,6 +232,7 @@ def run_relations_build_stage(
     hints_path = relation_hints_final_path(resolved_artifact_dir)
 
     if resume and entities_path.exists() and hints_path.exists() and not force:
+        _update_subgraph_bundle_validation(resolved_artifact_dir)
         entity_count = _count_jsonl_records(entities_path)
         hint_count = _count_jsonl_records(hints_path)
         _write_relation_stage_update(
@@ -266,6 +290,7 @@ def run_relations_build_stage(
 
     _write_jsonl_atomic(entities_path, list(entity_records.values()))
     _write_jsonl_atomic(hints_path, list(hint_records.values()))
+    _update_subgraph_bundle_validation(resolved_artifact_dir)
 
     _write_relation_stage_update(
         manifest_path,

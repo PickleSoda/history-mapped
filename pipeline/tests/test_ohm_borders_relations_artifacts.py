@@ -41,7 +41,7 @@ def test_create_manifest_includes_relation_stages_as_sibling_section(tmp_path: P
     )
 
     assert list(manifest.keys()) == ["run_id", "artifact_dir", "options", "summary", "stages", "relation_stages"]
-    assert list(manifest["stages"].keys()) == ["fetch", "parse", "enrich", "build"]
+    assert list(manifest["stages"].keys()) == ["extract_subgraph", "fetch", "parse", "enrich", "build"]
     assert list(manifest["relation_stages"].keys()) == ["scan", "enrich", "build"]
 
     for stage_name in ("scan", "enrich", "build"):

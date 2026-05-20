@@ -50,6 +50,10 @@ def relation_final_dir(artifact_dir: str | Path) -> Path:
     return Path(artifact_dir) / "relations_final"
 
 
+def subgraph_dir(artifact_dir: str | Path) -> Path:
+    return Path(artifact_dir) / "subgraph"
+
+
 def relation_candidates_shard_path(artifact_dir: str | Path, shard_index: int) -> Path:
     return relation_candidates_dir(artifact_dir) / f"relations-candidates-{shard_index:05d}.jsonl"
 
@@ -100,10 +104,23 @@ def relation_hints_final_path(artifact_dir: str | Path) -> Path:
     return relation_final_dir(artifact_dir) / "ohm_relation_hints.jsonl"
 
 
+def subgraph_seed_path(artifact_dir: str | Path) -> Path:
+    return subgraph_dir(artifact_dir) / "seed.json"
+
+
+def subgraph_edges_path(artifact_dir: str | Path) -> Path:
+    return subgraph_dir(artifact_dir) / "graph_edges.jsonl"
+
+
+def subgraph_closure_report_path(artifact_dir: str | Path) -> Path:
+    return subgraph_dir(artifact_dir) / "closure_report.json"
+
+
 def ensure_artifact_dirs(artifact_dir: str | Path) -> None:
     for directory in (
         raw_dir(artifact_dir),
         done_dir(artifact_dir),
+        subgraph_dir(artifact_dir),
         parsed_dir(artifact_dir),
         enriched_dir(artifact_dir),
         built_dir(artifact_dir),

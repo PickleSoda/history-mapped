@@ -1,9 +1,12 @@
 from pathlib import Path
+import json
 
 from click.testing import CliRunner
 
 import pipeline.__main__ as main_module
+import pipeline.ohm_borders.__main__ as ohm_main_module
 from pipeline.__main__ import cli
+from pipeline.ohm_borders.__main__ import cli as borders_cli
 
 
 def test_borders_run_executes_full_staged_workflow_and_propagates_options(tmp_path: Path, monkeypatch) -> None:
@@ -218,3 +221,129 @@ def test_borders_enrich_output_names_cli_wires_paths_and_batch_size(tmp_path: Pa
     assert captured["input_path"] == input_path
     assert captured["output_path"] == output_path
     assert captured["batch_size"] == 25
+
+
+def test_root_borders_extract_subgraph_cli_writes_subset_artifacts(tmp_path: Path) -> None:
+    runner = CliRunner()
+    input_path = tmp_path / "overpass.json"
+    artifact_dir = tmp_path / "subset"
+    input_path.write_text(
+        json.dumps(
+            {
+                "elements": [
+                    {
+                        "type": "relation",
+                        "id": 10,
+                        "tags": {
+                            "boundary": "administrative",
+                            "admin_level": "2",
+                            "name": "Roman Empire",
+                            "wikidata": "Q1",
+                            "successor:wikidata": "Q2",
+                        },
+                        "members": [],
+                    },
+                    {
+                        "type": "relation",
+                        "id": 20,
+                        "tags": {
+                            "boundary": "administrative",
+                            "admin_level": "2",
+                            "name": "Byzantine Empire",
+                            "wikidata": "Q2",
+                        },
+                        "members": [],
+                    },
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(
+        cli,
+        [
+            "borders",
+            "extract-subgraph",
+            "--input",
+            str(input_path),
+            "--artifact-dir",
+            str(artifact_dir),
+            "--seed-qid",
+            "Q1",
+            "--max-depth",
+            "1",
+            "--max-nodes",
+            "10",
+            "--raw-shard-size",
+            "1",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert (artifact_dir / "raw" / "overpass.json").exists()
+    assert (artifact_dir / "subgraph" / "closure_report.json").exists()
+
+
+def test_ohm_borders_extract_subgraph_cli_supports_resume(tmp_path: Path) -> None:
+    runner = CliRunner()
+    input_path = tmp_path / "overpass.json"
+    artifact_dir = tmp_path / "subset"
+    input_path.write_text(
+        json.dumps(
+            {
+                "elements": [
+                    {
+                        "type": "relation",
+                        "id": 10,
+                        "tags": {
+                            "boundary": "administrative",
+                            "admin_level": "2",
+                            "name": "Roman Empire",
+                            "wikidata": "Q1",
+                        },
+                        "members": [],
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    first = runner.invoke(
+        borders_cli,
+        [
+            "extract-subgraph",
+            "--input",
+            str(input_path),
+            "--artifact-dir",
+            str(artifact_dir),
+            "--seed-qid",
+            "Q1",
+            "--max-depth",
+            "0",
+            "--max-nodes",
+            "10",
+        ],
+    )
+    second = runner.invoke(
+        borders_cli,
+        [
+            "extract-subgraph",
+            "--input",
+            str(input_path),
+            "--artifact-dir",
+            str(artifact_dir),
+            "--seed-qid",
+            "Q1",
+            "--max-depth",
+            "0",
+            "--max-nodes",
+            "10",
+            "--resume",
+        ],
+    )
+
+    assert first.exit_code == 0
+    assert second.exit_code == 0
+    assert "skipped" in second.output.lower()
