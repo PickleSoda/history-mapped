@@ -2,262 +2,160 @@
 
 ## System Overview
 
-history-mapped is the implementation monorepo for the Historical Atlas platform described in `README.md`. The platform combines a time-aware historical map, a structured historical entity database, and editorial workflows for AI-assisted data generation with human verification.
+history-mapped is a monorepo with three active product and engineering surfaces:
 
-At a high level, the architecture blends two views of the system:
+- `api/`: the primary Laravel application, serving the REST API, auth flows, background jobs, and the Inertia-based admin/editor UI.
+- `web/`: a standalone React SPA served by Vite. Today it is a thin bootstrap client wired to the Laravel health endpoint.
+- `pipeline/`: a Python ingestion pipeline for Wikidata/Wikipedia scraping and staged OpenHistoricalMap borders processing.
 
-- A **historical mapping platform** built around OpenHistoricalMap, temporal-spatial entity data, and annotation layers.
-- A **developer-facing monorepo** built with Laravel, React, TypeScript workspaces, PostgreSQL, Redis, and Docker Compose.
+The Laravel app is the richest implemented surface today. The standalone `web/` package is already connected to the backend but remains intentionally small, while the MapLibre-based historical map and geometry editing tooling currently lives in the admin code inside `api/resources/js`.
 
-## Platform Overview
+## Runtime Surfaces
 
-### Product Architecture Layers
-
-| Layer | Purpose | Primary Technology | Source of Truth |
-|-------|---------|--------------------|-----------------|
-| **1. Historical Base Map** | Period-accurate geography, borders, cities, roads, rivers, and terrain | OpenHistoricalMap + MapLibre GL JS | OHM vector tiles and temporal metadata |
-| **2. Historical Entity Platform** | Historical entities, relationships, search, review, and temporal map overlays | Laravel + PostgreSQL 16 + PostGIS + pgvector | AI-generated data refined by human review |
-| **3. Annotation and Editorial Layer** | Beziers, labels, arrows, freeform polygons, and analytical overlays | React tooling + PostGIS-backed geometry | User and editor-created content |
-
-### Monorepo Components
-
-| Workspace / Service | Port | Description |
-|---------------------|------|-------------|
-| **`api/`** | `8000` | Laravel 13 application that serves the REST API, authentication flows, admin routes, and the Inertia React admin panel |
-| **`web/`** | `5173` | Customer-facing React SPA (stub — not yet connected to the API) |
-| **`vite-admin`** | `5174` | Dedicated Vite dev server for the Inertia admin frontend during local development |
-| **`db`** | `5432` | PostgreSQL 16 as the primary database, extended by the platform architecture with PostGIS and pgvector |
-| **`redis`** | `6379` | Cache, sessions, queues, and rate limiting |
-| **`queue`** | - | Laravel queue worker for background jobs and pipeline-style processing |
-| **`scheduler`** | - | Laravel scheduler loop for recurring jobs |
-| **`mailpit`** | `8025` | Local email testing interface |
-| **OpenHistoricalMap** | external | Historical vector tile provider used as the temporal base map |
-| **S3-compatible storage** | external / self-hosted | Raw source documents, exports, backups, and large artifacts |
-
----
-
-## 1. High-Level System Architecture
+| Surface / Service | Port | Responsibility | Current state |
+|-------------------|------|----------------|---------------|
+| **Laravel app / admin** | `8000` | Main application entry point, Inertia admin UI, and public API host | Primary working application surface |
+| **Admin Vite HMR** | `5174` | Hot-module reload server for the admin frontend | Dev-only support service |
+| **Customer web SPA** | `5173` | Standalone React client | Bootstrap client; currently checks `/api/v1/health` |
+| **Python pipeline** | - | Wikidata/topic extraction and OHM borders processing | Host-side CLI workflow |
+| **PostgreSQL** | `5432` | Primary relational, spatial, and vector store | Backed by PostGIS + pgvector |
+| **Redis** | `6379` | Cache, sessions, and queue backend | Shared infra service |
+| **Queue worker** | - | Laravel background jobs | Used by imports and async processing |
+| **Scheduler** | - | Laravel scheduled tasks | Runs the app scheduler loop |
+| **Mailpit** | `8025` | Local mail testing UI | Local development support |
+| **CloudBeaver** | `8978` | Database inspection UI | Local development support |
+| **RedisInsight** | `5540` | Redis inspection UI | Local development support |
 
 ```mermaid
 graph TB
-    subgraph "Client Layer"
-        Customer[Customer Browser]
-        Reviewer[Reviewer / Admin Browser]
-    end
-
-    subgraph "Frontend Layer"
-        Web[web/<br/>React Vite SPA<br/>:5173]
-        Admin[api/<br/>Inertia React Admin<br/>:8000 and :5174 dev]
-    end
-
-    subgraph "Application Layer"
-        Laravel[Laravel 13<br/>Web Routes + API Routes + Auth]
-        Queue[Queue Worker]
-        Scheduler[Scheduler]
-    end
-
-    subgraph "Data Layer"
-        DB[(PostgreSQL 16<br/>PostGIS + pgvector)]
-        Redis[(Redis)]
-        Storage[(S3-Compatible Object Storage)]
-    end
-
-    subgraph "External Data and Services"
-        OHM[OpenHistoricalMap]
-        AI[LLM + NLP + Geocoding Services]
-    end
+    Customer[Customer Browser]
+    Reviewer[Reviewer Browser]
+    Web[web/<br/>React + Vite<br/>:5173]
+    Admin[api/<br/>Laravel + Inertia<br/>:8000]
+    HMR[vite-admin<br/>:5174]
+    Laravel[Laravel routes + jobs]
+    DB[(PostgreSQL<br/>PostGIS + pgvector)]
+    Redis[(Redis)]
+    Pipeline[Python pipeline CLI]
+    Output[output/<br/>JSONL + OHM artifacts]
+    OHM[OpenHistoricalMap]
 
     Customer --> Web
     Reviewer --> Admin
-
+    HMR -. dev assets .-> Admin
     Web --> Laravel
     Admin --> Laravel
-
     Laravel --> DB
     Laravel --> Redis
-    Laravel --> Storage
-
-    Queue --> DB
-    Queue --> Redis
-    Queue --> Storage
-    Queue --> AI
-
-    Web --> OHM
     Admin --> OHM
-
-    style Laravel fill:#4A90E2
-    style DB fill:#7ED321
-    style Redis fill:#F5A623
-    style OHM fill:#C92A2A
+    Pipeline --> Output
+    Output --> Laravel
 ```
 
----
+## Repository Responsibilities
 
-## 2. Repository and Runtime Responsibilities
-
-| Area | Main Responsibility | Key Contents |
+| Area | Main responsibility | Key contents |
 |------|---------------------|--------------|
-| **`api/`** | Backend application and admin surface | Laravel app code, Inertia React admin, `routes/web.php`, `routes/api.php`, `routes/auth.php` |
-| **`web/`** | Customer-facing application (stub) | React SPA scaffold — not yet connected to the API |
-| **`docker/`** | Local container orchestration | Dockerfiles for API, web, admin Vite, plus `docker/docker-compose.yml` |
-| **Root workspace** | Tooling and orchestration | `pnpm-workspace.yaml`, root `package.json`, Docker helper scripts, root `.env.example` |
+| **`api/`** | Backend application and admin/editor surface | Laravel app code, Inertia React admin, `routes/web.php`, `routes/api.php`, `routes/settings.php`, queue jobs, models, actions |
+| **`web/`** | Standalone customer-facing SPA | React 19 + Vite app, TanStack Query, Axios, `src/pages/home.tsx`, `src/lib/api.ts` |
+| **`pipeline/`** | Offline ingestion and artifact generation | `wikidata/`, `ohm_borders/`, `tests/`, `config.py`, `__main__.py` |
+| **`output/`** | Generated pipeline artifacts | Topic JSONL files and `ohm_borders/<run_id>/...` stage output |
+| **`docker/`** | Local container orchestration | Dockerfiles plus `docker/docker-compose.yml` |
+| **`docs/`** | Architecture, runbooks, schemas, plans | Setup docs, pipeline docs, model docs, implementation plans |
 
-### Route and Surface Split
+## Route and Auth Model
 
-| Surface | Access Pattern | Notes |
-|---------|----------------|-------|
-| **Admin UI** | Laravel web routes (bare paths, no `/admin` prefix) | Inertia React app rendered inside Laravel, protected by `auth` and `verified` middleware |
-| **Public API** | Versioned Laravel API under `/api/v1` | Consumed by the customer SPA and future API-first consumers |
-| **Auth endpoints** | Shared Laravel auth routes via Fortify | Customer SPA uses cookie-based auth; admin uses Laravel session auth |
+### Route files in the repo
 
----
+| File | Responsibility |
+|------|----------------|
+| **`api/routes/web.php`** | Welcome page, authenticated admin pages, entity screens, reference-table pages, geometry-period routes, relationship routes |
+| **`api/routes/api.php`** | Versioned `/api/v1` JSON API, including health check, public read endpoints, and Sanctum-protected write endpoints |
+| **`api/routes/settings.php`** | Profile, security, and appearance routes for authenticated users |
+| **`api/routes/console.php`** | Console route definitions |
 
-## 3. Authentication and Authorization Model
+Laravel Fortify provides the auth endpoints; there is no separate `routes/auth.php` file in the repository.
 
-| Surface | Auth Strategy | Authorization Model |
-|---------|---------------|---------------------|
-| **Admin** | Laravel session auth with the `web` guard (via Fortify) | `spatie/laravel-permission` roles and permissions; admin routes protected by `auth` and `verified` middleware |
-| **Customer SPA** | Laravel Sanctum SPA cookie auth | First-party browser auth using `withCredentials: true` and `/sanctum/csrf-cookie` before login |
-| **Future third-party or mobile clients** | Not part of v1 | The setup guide recommends adding a dedicated OAuth2/OIDC strategy later rather than overloading SPA auth |
+### Authentication surfaces
 
-```mermaid
-sequenceDiagram
-    participant Browser as Customer Browser
-    participant Web as web/ SPA
-    participant Laravel as Laravel API
-    participant Redis as Redis Sessions
-    participant DB as PostgreSQL
+| Surface | Auth strategy | Notes |
+|---------|---------------|-------|
+| **Admin UI** | Laravel session auth via the `web` guard | Protected by `auth` and `verified` middleware |
+| **API write endpoints** | `auth:sanctum` | JSON writes under `/api/v1` require authenticated Sanctum sessions |
+| **Customer SPA** | Prepared for Sanctum SPA cookie auth | Current implementation only exercises a read-only health check path |
 
-    Browser->>Web: Open app
-    Web->>Laravel: GET /sanctum/csrf-cookie
-    Web->>Laravel: POST /login with credentials
-    Laravel->>DB: Verify user
-    Laravel->>Redis: Persist session / cache state
-    Laravel-->>Web: Authenticated cookie response
-    Web->>Laravel: GET /api/v1/... with credentials
-    Laravel->>DB: Query data
-    Laravel-->>Web: Typed JSON response
-```
+## Map and Editor Placement
 
----
+- MapLibre-based historical map rendering currently lives in the Laravel admin frontend, not the standalone `web/` package.
+- Admin-side React includes the historical map viewer, geometry editor, entity history timeline, relationship editing, and geography-reference tooling.
+- The standalone `web/` package is currently a minimal client shell with React Router, TanStack Query, Axios, and a single home page that checks backend availability.
 
-## 4. Historical Map and Data Flow
+## Data Pipeline and Import Flow
 
-The platform is designed around a temporal map experience where geography, entities, and annotations all respond to the selected time period.
+The ingestion architecture is file-based rather than streaming-based.
 
-### Core Map Request Flow
-
-```mermaid
-sequenceDiagram
-    participant User as User
-    participant Web as React SPA / Admin UI
-    participant OHM as OpenHistoricalMap
-    participant API as Laravel API
-    participant DB as PostgreSQL + PostGIS + pgvector
-
-    User->>Web: Pan map / change time slider
-    Web->>OHM: Request historical vector tiles
-    Web->>API: GET /api/entities?bbox=...&time=T
-    API->>DB: Spatial + temporal query
-    DB-->>API: GeoJSON-ready entity data
-    API-->>Web: Entity features and metadata
-    OHM-->>Web: Base map tiles
-    Web-->>User: Render base map + entities + annotations
-```
-
-### Core Query Pattern
-
-The foundational map query described in `README.md` is:
-
-- filter entities by **bounding box**
-- filter entities by **time range overlap**
-- filter entities by **verification status**
-- return geometry as **GeoJSON** for rendering
-
-This is why the target data layer combines PostgreSQL with **PostGIS** for spatial querying and **pgvector** for semantic search and similarity.
-
----
-
-## 5. AI-to-Human Verification Lifecycle
-
-The architecture assumes AI-assisted entity generation, but human review is the quality gate before public display.
+1. Python commands under `pipeline/` scrape or assemble source data.
+2. The pipeline writes JSONL files and staged OHM artifacts into `output/`.
+3. Laravel artisan commands import those artifacts into PostgreSQL.
+4. Queue jobs and follow-up commands resolve relationship hints and generate embeddings.
 
 ```mermaid
 flowchart LR
-    Draft[pipeline_draft] --> Auto[auto_validated]
-    Auto --> Queue[needs_review]
-    Queue --> Review[in_review]
-    Review --> Human[human_verified]
-    Review --> Expert[expert_verified]
-    Review --> Flagged[flagged]
-    Review --> Rejected[rejected]
-    Review --> Merged[merged]
+    Wikidata[Wikidata / Wikipedia] --> Scrape[py -m pipeline scrape | topic | dedup]
+    OHM[OpenHistoricalMap / Overpass] --> Borders[py -m pipeline borders ...]
+    Scrape --> Output[output/*.jsonl]
+    Borders --> Output
+    Output --> Import[php artisan pipeline:import*]
+    Import --> DB[(entities / relationships / hints)]
+    DB --> Embed[php artisan pipeline:embeddings]
 ```
 
-| Status | Meaning | Visibility |
-|--------|---------|------------|
-| **`pipeline_draft`** | Pipeline-created entity that is not yet validated | Reviewers only |
-| **`auto_validated`** | Passed automated checks and is waiting for review | Reviewers only |
-| **`needs_review`** | In the review queue | Reviewers only |
-| **`in_review`** | Claimed by a reviewer | Assigned reviewer and admins |
-| **`human_verified`** | Approved and visible in the normal product experience | All users |
-| **`expert_verified`** | Approved by a domain expert | All users |
-| **`flagged`** | Visible but under re-examination | All users |
-| **`rejected`** / **`merged`** | Removed from normal display, retained for audit purposes | Admin-only audit context |
+Current Laravel-side import commands:
 
----
+| Command | Purpose |
+|---------|---------|
+| **`pipeline:import`** | Import generic Wikidata/topic JSONL files |
+| **`pipeline:import-borders`** | Import OHM country/entity JSONL output |
+| **`pipeline:import-border-relations`** | Import OHM relation entities and stage relation hints |
+| **`pipeline:embeddings`** | Generate or refresh pgvector embeddings |
 
-## 6. Local Development Topology
+## Local Development Topology
 
 File: `docker/docker-compose.yml`
 
-| Service | Port | Role | Notes |
-|---------|------|------|-------|
-| **`app`** | - | PHP 8.4-FPM Laravel runtime | Runs PHP, Composer, and Artisan tasks |
-| **`nginx`** | `8000` | Local HTTP entrypoint for Laravel | Public local backend URL |
-| **`web`** | `5173` | Customer Vite dev server | Customer SPA development |
-| **`vite-admin`** | `5174` | Inertia admin Vite dev server | Admin frontend HMR |
-| **`db`** | `5432` | PostgreSQL database | Primary relational store |
-| **`redis`** | `6379` | Cache, session, and queue backend | Shared infra service |
-| **`queue`** | - | Background worker | Runs `php artisan queue:work` |
-| **`scheduler`** | - | Scheduled job runner | Laravel scheduler loop |
-| **`mailpit`** | `8025` | Local mail UI | Email testing |
-| **`cloudbeaver`** | `8978` | Web DB admin UI | CloudBeaver for database inspection |
-| **`redisinsight`** | `5540` | Redis inspection UI | RedisInsight |
+| Service | Port | Role |
+|---------|------|------|
+| **`composer-install`** | - | One-shot Composer install init container |
+| **`app`** | - | PHP-FPM runtime for Laravel |
+| **`nginx`** | `8000` | HTTP entry point for Laravel |
+| **`pnpm-install`** | - | One-shot pnpm install init container |
+| **`web`** | `5173` | Customer SPA Vite dev server |
+| **`vite-admin`** | `5174` | Admin frontend HMR server |
+| **`db`** | `5432` | PostgreSQL + PostGIS + pgvector |
+| **`redis`** | `6379` | Cache, sessions, queues |
+| **`queue`** | - | `php artisan queue:work` |
+| **`scheduler`** | - | `php artisan schedule:run` loop |
+| **`mailpit`** | `8025` | Local mail UI |
+| **`cloudbeaver`** | `8978` | DB inspection UI |
+| **`redisinsight`** | `5540` | Redis inspection UI |
 
-### Communication Patterns
+Working conventions:
 
-- Browser traffic uses published localhost ports: `8000`, `5173`, and `5174`.
-- Containers communicate internally by service name such as `db`, `redis`, `app`, and `nginx`.
-- Source code is bind-mounted into app containers, while dependency directories live in Docker volumes for consistency.
-- Day-to-day development is intended to run entirely inside containers rather than through host-installed PHP, Composer, Node, or pnpm.
+- Run PHP and Node commands through Docker for the Laravel and Vite surfaces.
+- Use `pnpm` at the repo root for workspace-level scripts.
+- Run `py -m pipeline ...` from the repo root after activating `pipeline/.venv`.
 
----
+## Architecture Summary
 
-## 7. Deployment Model
-
-| Deployment Unit | Model |
-|-----------------|-------|
-| **Laravel application** | Build one application image and run it as the web app, queue worker, and scheduler |
-| **Customer frontend** | Deploy `web/` separately as static assets behind a CDN |
-| **Database** | Start with PostgreSQL locally; move to managed PostgreSQL with PostGIS and pgvector as scale grows |
-| **Cache / sessions / queues** | Redis locally, then dedicated managed Redis in production |
-| **Object storage** | MinIO locally or S3-compatible storage such as AWS S3 or Cloudflare R2 |
-| **Historical base map** | Consume OHM tiles directly from OpenHistoricalMap infrastructure |
-
----
-
-## 8. Architecture Summary Table
-
-| Area | Primary Choice | Why It Exists |
+| Area | Current choice | Why it exists |
 |------|----------------|---------------|
-| **Backend framework** | Laravel 13 | Unifies admin delivery, auth, API routing, queues, and review workflows |
-| **Admin UI** | Inertia.js + React inside Laravel | Keeps editorial and review tools close to server-rendered workflows |
-| **Customer UI** | React + Vite SPA | Supports rich interactive browsing, search, and map experiences |
-| **Map stack** | MapLibre GL JS + OpenHistoricalMap | Enables time-aware historical map rendering without vendor lock-in |
-| **Primary data store** | PostgreSQL 16 + PostGIS + pgvector | Supports relational, spatial, temporal, and semantic queries in one system |
-| **Background processing** | Laravel queues + scheduler | Handles async work, imports, review support, and recurring jobs |
-| **Local environment** | Docker Compose | Standardizes PHP, Node, Vite, Postgres, Redis, and supporting services |
+| **Backend framework** | Laravel 13 | Unifies admin delivery, API routing, queues, auth, and editorial workflows |
+| **Admin frontend** | Inertia.js + React inside Laravel | Keeps the most advanced editing and mapping tools close to the backend |
+| **Customer frontend** | React + Vite SPA | Separate browser client for future public-facing experiences |
+| **Map stack** | MapLibre GL JS + OpenHistoricalMap | Powers historical map rendering and geometry editing in the admin surface |
+| **Data pipeline** | Python CLI + JSONL artifacts | Supports repeatable offline scrape/import workflows |
+| **Primary data store** | PostgreSQL 16 + PostGIS + pgvector | Handles relational, spatial, temporal, and semantic queries |
+| **Local environment** | Docker Compose + host Python venv | Keeps app runtime containerized while leaving the Python pipeline ergonomic to run locally |
 
 ---
 

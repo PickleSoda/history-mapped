@@ -1,483 +1,175 @@
-# history-mapped - Monorepo Setup Guide
+# history-mapped Setup Guide
 
-## Overview
+This guide describes how to run the existing monorepo locally. It is not a scaffold-from-scratch guide.
 
-history-mapped is a monorepo containing:
+## Prerequisites
 
-- **`api/`** - Laravel 13 backend with Inertia.js (React) for the admin panel, and a REST API for the customer frontend.
-- **`web/`** - React (Vite) customer-facing frontend (stub — not yet connected to the API).
+- Docker Desktop or Docker Engine with Compose v2
+- pnpm >= 10
+- Python 3.10+ for the `pipeline/` workflow
+- Git
 
-Package manager: **pnpm** with workspaces.  
-Local dev environment: **fully dockerized with Docker Compose**.
+## Repository Layout
 
----
-
-## 0. Foundation Decisions
-
-- **Admin architecture** - The admin lives inside Laravel as an Inertia React app. It is not a separate SPA and does not consume the public REST API for routine page rendering.
-- **Customer auth model** - The customer frontend is a first-party SPA and uses **Laravel Sanctum SPA cookie auth**. This keeps browser auth aligned with Laravel sessions and avoids token storage in the browser.
-- **API contract strategy** - Laravel is the source of truth for routes, validation, and response shapes. The OpenAPI spec can be exported via `dedoc/scramble` for documentation and contract review.
-- **Development model** - Development is fully dockerized. PHP, Node, Vite, Composer, pnpm, queue workers, and supporting services all run in containers.
-- **Deployment model** - Deploy the Laravel app, queue worker, and scheduler as separate processes from the same application image. Deploy `web/` separately as static assets behind a CDN.
-
----
-
-## 1. Repository Structure
-
-```
+```text
 history-mapped/
-|- api/                         # Laravel 13 application
-|  |- app/
-|  |- bootstrap/
-|  |- config/
-|  |- database/
-|  |- resources/
-|  |  \- js/                   # Inertia React admin frontend
-|  |     |- pages/
-|  |     |- components/
-|  |     |- layouts/
-|  |     \- app.tsx
-|  |- routes/
-|  |  |- web.php               # Inertia admin routes
-|  |  |- api.php               # Public API routes
-|  |  \- auth.php              # Login/logout/password routes
-|  |- storage/
-|  |  \- app/
-|  |     \- openapi.json       # Generated OpenAPI artifact (optional)
-|  |- composer.json
-|  |- vite.config.ts           # Vite config for Inertia admin assets
-|  |- tsconfig.json
-|  \- package.json             # Admin frontend package deps
-|
-|- web/                         # Customer-facing React SPA (stub)
-|  |- src/
-|  |  |- pages/
-|  |  |- components/
-|  |  |- lib/
-|  |  \- main.tsx
-|  |- vite.config.ts
-|  |- tsconfig.json
-|  \- package.json
-|
-|- docker/
-|  |- api/
-|  |  |- Dockerfile            # PHP 8.4-FPM + Composer
-|  |  \- nginx.conf
-|  |- db/
-|  |  |- Dockerfile            # PostGIS + pgvector on Postgres 16
-|  |  \- init-extensions.sql   # Creates vector and postgis extensions
-|  |- web/
-|  |  \- Dockerfile            # Node for Vite/web workspace commands
-|  |- admin/
-|  |  \- Dockerfile            # Node for Inertia Vite server
-|  \- docker-compose.yml
-|
-|- pnpm-workspace.yaml
-|- package.json                # Root workspace and Docker helper scripts
-|- .gitignore
-|- .env.example                # Root Docker Compose env only
-\- README.md
+├── api/          # Laravel app, REST API, Inertia admin, queue and scheduler code
+├── web/          # Standalone React SPA served by Vite
+├── pipeline/     # Python scrape and OHM processing pipeline
+├── output/       # Generated JSONL files and OHM stage artifacts
+├── docker/       # Dockerfiles and docker-compose.yml
+└── docs/         # Architecture, runbooks, schemas, plans, and model docs
 ```
 
----
+## 1. Boot the Local Stack
 
-## 2. Docker Compose Services
+From the repository root:
+
+```bash
+cp api/.env.example api/.env
+
+# Optional: only needed if you plan to run the Python pipeline
+cp pipeline/.env.example pipeline/.env
+
+pnpm dev
+```
+
+This starts the full Docker-based app stack and leaves logs attached to the terminal.
+
+If you need image rebuilds, run:
+
+```bash
+pnpm dev:build
+```
+
+After the containers are healthy, run the initial database setup:
+
+```bash
+docker compose -f docker/docker-compose.yml exec app php artisan migrate --seed
+```
+
+To stop the stack:
+
+```bash
+pnpm dev:down
+```
+
+## 2. Docker Services
 
 File: `docker/docker-compose.yml`
 
-| Service | Image / Base | Ports | Notes |
-|---------|--------------|-------|-------|
-| **composer-install** | PHP 8.4-FPM | - | One-shot: runs `composer install` before app starts |
-| **app** | PHP 8.4-FPM | - | Laravel app container for PHP-FPM |
-| **nginx** | nginx:1.27-alpine | `8000:80` | Public local entrypoint for Laravel |
-| **pnpm-install** | node (web Dockerfile) | - | One-shot: runs `pnpm install` before JS services start |
-| **web** | node (web Dockerfile) | `5173:5173` | Customer Vite dev server (`@history-mapped/web`) |
-| **vite-admin** | PHP 8.4-FPM image | `5174:5174` | Inertia admin Vite dev server (`@history-mapped/api`) |
-| **db** | Custom PostGIS + pgvector on Postgres 16 | `5432:5432` | Primary database with PostGIS and pgvector extensions |
-| **redis** | redis:7-alpine | `6379:6379` | Cache, sessions, queues |
-| **queue** | same as `app` | - | Runs `php artisan queue:work` |
-| **scheduler** | same as `app` | - | Runs Laravel scheduler loop |
-| **mailpit** | axllent/mailpit | `8025:8025` | Local email testing UI |
-| **cloudbeaver** | dbeaver/cloudbeaver | `8978:8978` | Web-based DB admin GUI |
-| **redisinsight** | redis/redisinsight | `5540:5540` | Redis inspection UI |
+| Service | Port | Purpose |
+|---------|------|---------|
+| **`composer-install`** | - | One-shot Composer install init container |
+| **`app`** | - | PHP-FPM runtime for Laravel |
+| **`nginx`** | `8000` | HTTP entry point for Laravel and the admin UI |
+| **`pnpm-install`** | - | One-shot pnpm install init container |
+| **`web`** | `5173` | Customer SPA Vite dev server |
+| **`vite-admin`** | `5174` | Admin HMR server |
+| **`db`** | `5432` | PostgreSQL with PostGIS + pgvector |
+| **`redis`** | `6379` | Cache, sessions, and queues |
+| **`queue`** | - | `php artisan queue:work` |
+| **`scheduler`** | - | Laravel scheduler loop |
+| **`mailpit`** | `8025` | Mail testing UI |
+| **`cloudbeaver`** | `8978` | Database inspection UI |
+| **`redisinsight`** | `5540` | Redis inspection UI |
 
-### Service responsibilities
+Important runtime notes:
 
-- **`composer-install`** - Runs `composer install` once as a prerequisite for `app`, `queue`, `scheduler`, and `vite-admin`. Uses a named Docker volume for `vendor/`.
-- **`app`** - Runs PHP-FPM. It is the only Laravel PHP runtime and is never exposed directly to the browser.
-- **`nginx`** - Sole HTTP ingress for the Laravel app in local development. Serves public assets and proxies PHP requests to `app`.
-- **`pnpm-install`** - Runs `pnpm install` once as a prerequisite for `web` and `vite-admin`. Uses named volumes for `node_modules/`.
-- **`web`** - Runs the customer Vite dev server (`pnpm --filter @history-mapped/web dev`). Does not own API logic or Laravel assets.
-- **`vite-admin`** - Runs the Inertia admin Vite asset and HMR server (`pnpm --filter @history-mapped/api dev`). Not the admin application's browser URL.
-- **`db`** - PostgreSQL with PostGIS and pgvector extensions. No app logic or migration orchestration should live here.
-- **`redis`** - Cache, session, and queue broker only.
-- **`queue`** - Runs asynchronous Laravel jobs only. No HTTP traffic, migrations, or scheduler duties.
-- **`scheduler`** - Runs scheduled Laravel tasks only.
-- **`mailpit`** - Local email capture and inspection only.
+- Open the admin UI at `http://localhost:8000`.
+- `http://localhost:5174` is only the admin HMR server, not the admin UI entry point.
+- Day-to-day PHP and Node work should run through Docker. The Python pipeline is the main host-side workflow.
 
-### Networking
+## 3. Day-to-Day Commands
 
-- Browser traffic uses published localhost ports only: `http://localhost:8000`, `http://localhost:5173`, and `http://localhost:5174`.
-- Containers talk to each other by service name: `db`, `redis`, `app`, `nginx`.
-- The customer SPA calls `http://localhost:8000` in local development.
-- The admin Inertia app is opened at `http://localhost:8000`; `http://localhost:5174` is only the Vite asset and HMR server.
-- Vite HMR should be configured with `host: 'localhost'` and polling enabled to work reliably inside Docker on macOS and Windows.
-
-### Volumes
-
-- Bind-mount source code into `app`, `web`, `vite-admin` containers.
-- Use named volumes for `vendor/`, `node_modules/`, pnpm store, Postgres data, and Redis data.
-- Keep dependency directories inside Docker volumes rather than host-mounted folders for better consistency and fewer OS-specific issues.
-
-### Local Dev Principle
-
-- All PHP and Node commands run inside containers.
-- Do not rely on host-installed PHP, Composer, Node, or pnpm for day-to-day development.
-- Root helper scripts may shell into containers, but the actual work happens in Docker.
-
-### Runtime boundaries
-
-- Keep one responsibility per service even if multiple services share the same Docker image.
-- `app`, `queue`, and `scheduler` may use the same image, but they must run different commands and be logged, restarted, and scaled independently.
-- The development Compose file is for local workflow; production should use deployment-specific manifests or platform configuration rather than running the dev Compose stack unchanged.
-
----
-
-## 3. Laravel Setup (`api/`)
-
-### 3.1 Install Laravel 13
+From the repository root:
 
 ```bash
-composer create-project laravel/laravel api
+# Laravel tests
+docker compose -f docker/docker-compose.yml exec app php artisan test
+
+# Filtered Laravel test
+docker compose -f docker/docker-compose.yml exec app php artisan test --filter=EntityControllerTest
+
+# Workspace type checks
+pnpm typecheck
+
+# Route list
+pnpm api:routes
+
+# Any artisan command
+docker compose -f docker/docker-compose.yml exec app php artisan <command>
+
+# Fresh database reset
+docker compose -f docker/docker-compose.yml exec app php artisan migrate:fresh --seed
 ```
 
-### 3.2 Install and configure packages
+## 4. Route Layout
 
-```bash
-cd api
+The repo currently uses these route files:
 
-# API routing bootstrap (Sanctum is built into Laravel 13)
-php artisan install:api
+| File | Responsibility |
+|------|----------------|
+| **`api/routes/web.php`** | Welcome page, dashboard, entity CRUD pages, relationship routes, geometry-period routes, reference-table pages |
+| **`api/routes/api.php`** | `/api/v1` JSON API including health check, public reads, and Sanctum-protected writes |
+| **`api/routes/settings.php`** | Authenticated profile, security, and appearance pages |
+| **`api/routes/console.php`** | Console route definitions |
 
-# Inertia server-side
-composer require inertiajs/inertia-laravel
+Laravel Fortify registers the auth endpoints; there is no separate `routes/auth.php` file in this repository.
 
-# Code-first OpenAPI generation (optional, for contract review)
-composer require dedoc/scramble
+## 5. Frontend Surfaces
 
-# pgvector PHP helpers
-composer require pgvector/pgvector
+### `api/` admin frontend
 
-# PostgreSQL enhanced (enums, full-text search, etc.)
-composer require tpetry/laravel-postgresql-enhanced
+- Inertia.js + React rendered by Laravel
+- Richer implementation surface today: historical map viewer, geometry editing, timelines, entity relationships, and reference tables
+- Served at `http://localhost:8000`
 
-# Roles and permissions for admin access
-composer require spatie/laravel-permission
+### `web/` standalone SPA
 
-# Admin frontend packages
-pnpm add @inertiajs/react
-pnpm add -D @vitejs/plugin-react
+- React 19 + Vite + TanStack Query + Axios
+- Current implementation is intentionally small: a single home route that checks `GET /api/v1/health`
+- Prepared for cookie-based Laravel auth via `withCredentials: true` and a Sanctum CSRF helper
+- Served at `http://localhost:5173`
+
+## 6. Python Pipeline Workflow
+
+Create and activate a virtual environment, then run all pipeline commands from the repository root:
+
+```powershell
+py -m venv pipeline/.venv
+.\pipeline\.venv\Scripts\Activate.ps1
+pip install -r pipeline/requirements.txt
 ```
 
-### 3.3 Auth and permissions
+Typical commands:
 
-- **Admin panel (Inertia):** Laravel session auth with the `web` guard, via `laravel/fortify`.
-- **Customer frontend (`web/`):** Sanctum SPA cookie auth.
-- **Not in scope for v1:** bearer-token auth for the first-party browser app. If mobile apps or third-party clients are introduced later, add a dedicated OAuth2/OIDC strategy rather than overloading the SPA flow.
-- **Admin authorization:** use `spatie/laravel-permission` with explicit roles and permissions.
-
-In `config/sanctum.php`:
-
-```php
-'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', 'localhost:5173,localhost:5174,localhost:8000')),
+```powershell
+py -m pipeline scrape --type political_entity --limit 100
+py -m pipeline topic "Late Bronze Age Collapse"
+py -m pipeline borders run --run-id global-2026-04-15 --parse-workers 8 --enrich-names
+py -m pipeline borders relations-run --run-id global-2026-04-15 --resume
 ```
 
-In `config/cors.php`:
+With the default `pipeline/.env`, `OUTPUT_DIR=output`, so running from the repo root writes artifacts into the repository-level `output/` directory.
 
-```php
-'paths' => ['api/*', 'login', 'logout', 'sanctum/csrf-cookie'],
-'supports_credentials' => true,
+Pipeline verification should use the Python test runner directly:
+
+```powershell
+py -m pytest pipeline/tests
 ```
 
-Recommended production session and cookie guidance:
+## 7. Generated Artifacts
 
-- `SESSION_DOMAIN=.history-mapped.com`
-- `SANCTUM_STATEFUL_DOMAINS=app.history-mapped.com,admin.history-mapped.com,api.history-mapped.com`
-- Serve all first-party apps over HTTPS
+Generated data is not confined to the `pipeline/` directory.
 
-### 3.4 Route organization
+- Topic and type-based JSONL files are written under `output/`.
+- OHM staged runs are written under `output/ohm_borders/<run_id>/`.
+- Laravel import commands read those artifacts back from mounted paths such as `/var/www/html/output/...` inside the `app` container.
 
-```
-routes/
-|- web.php       # Inertia admin routes (no prefix — root paths)
-|- api.php       # Versioned public API under /api/v1
-\- auth.php      # Login/logout/password routes (via Fortify)
-```
+## 8. Current Working Conventions
 
-Admin routes are protected by `auth` and `verified` middleware but are **not** under an `/admin` URL prefix. They are bare paths:
-
-```php
-// routes/web.php
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'dashboard')->name('dashboard');
-    Route::get('entities', [EntityController::class, 'index'])->name('entities.index');
-    Route::get('entities/{entity}', [EntityController::class, 'show'])->name('entities.show');
-    // reference table routes under /reference/...
-});
-```
-
-API routes stay versioned:
-
-```php
-// routes/api.php
-Route::prefix('v1')->group(function () {
-    Route::apiResource('entities', EntityController::class);
-    Route::get('entities/map', [EntityController::class, 'map']);
-});
-```
-
-### 3.4.1 `/api/v1` contract versioning rules
-
-- `/api/v1` is the public contract namespace for the customer application and any future first-party API consumers.
-- Changes shipped under `/api/v1` must be backward compatible.
-- Allowed in `v1`: new endpoints, new optional request fields, new optional or nullable response fields, additive pagination metadata, and additive enum values when consumers can safely ignore unknown values.
-- Breaking changes require a new version such as `/api/v2`. Breaking changes include removing or renaming endpoints or fields, changing field types, making optional fields required, changing validation semantics incompatibly, changing status code meaning, or changing auth requirements in a way that breaks existing clients.
-- Never ship undocumented breaking changes under `/api/v1`.
-
-### 3.5 Inertia root view
-
-Create `resources/views/app.blade.php`:
-
-```blade
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    @viteReactRefresh
-    @vite(['resources/js/app.tsx'])
-    @inertiaHead
-</head>
-<body>
-    @inertia
-</body>
-</html>
-```
-
-### 3.6 API contract generation
-
-OpenAPI can be exported from Laravel source code using `dedoc/scramble`:
-
-```bash
-php artisan scramble:export --path=storage/app/openapi.json
-```
-
-This is useful for contract review in pull requests and for generating API documentation. Regenerate whenever routes, Form Requests, or API Resources change.
-
-### 3.7 Database
-
-- PostgreSQL 16 with PostGIS and pgvector extensions enabled via `docker/db/init-extensions.sql`.
-- Migrations in `database/migrations/`.
-- Model factories and seeders for dev data.
-- Redis-backed queues, cache, and sessions.
-- Test database: `history-mapped_test` on the same `db` service (configured in `phpunit.xml`).
-
-### 3.8 Vite config for Inertia admin
-
-`api/vite.config.ts`:
-
-```ts
-import { defineConfig } from 'vite';
-import laravel from 'laravel-vite-plugin';
-import react from '@vitejs/plugin-react';
-
-export default defineConfig({
-    plugins: [
-        laravel({
-            input: ['resources/js/app.tsx'],
-            refresh: true,
-        }),
-        react(),
-    ],
-    server: {
-        host: '0.0.0.0',
-        port: 5174,
-        hmr: {
-            host: 'localhost',
-            port: 5174,
-        },
-        watch: {
-            usePolling: true,
-        },
-    },
-});
-```
-
----
-
-## 4. Customer Frontend (`web/`)
-
-The `web/` package is a Vite + React TypeScript app. It is currently a stub and not yet connected to the API. It runs as the `web` Docker service at `http://localhost:5173`.
-
-### 4.1 Key dependencies (planned)
-
-```bash
-cd web
-pnpm add react-router-dom @tanstack/react-query axios
-pnpm add -D tailwindcss @tailwindcss/vite
-```
-
-### 4.2 API communication (planned)
-
-- Set `withCredentials: true` on browser requests so Sanctum cookies are sent.
-- Before login, call `/sanctum/csrf-cookie`.
-- Use `VITE_API_BASE_URL=http://localhost:8000` in local development.
-- The customer SPA will consume the public REST API (`/api/v1`). The admin Inertia app does not consume that API for normal server-rendered workflows.
-
-### 4.3 Vite config
-
-`web/vite.config.ts`:
-
-```ts
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite';
-
-export default defineConfig({
-    plugins: [react(), tailwindcss()],
-    server: {
-        host: '0.0.0.0',
-        port: 5173,
-        hmr: {
-            host: 'localhost',
-            port: 5173,
-        },
-        watch: {
-            usePolling: true,
-        },
-    },
-});
-```
-
----
-
-## 5. pnpm Workspace Config
-
-`pnpm-workspace.yaml`:
-
-```yaml
-packages:
-    - 'api'
-    - 'web'
-```
-
-Root `package.json`:
-
-```json
-{
-    "name": "history-mapped",
-    "private": true,
-    "scripts": {
-        "dev": "docker compose -f docker/docker-compose.yml up --build",
-        "dev:down": "docker compose -f docker/docker-compose.yml down",
-        "test:api": "docker compose -f docker/docker-compose.yml exec app php artisan test",
-        "typecheck": "docker compose -f docker/docker-compose.yml exec web pnpm -r typecheck",
-        "lint": "docker compose -f docker/docker-compose.yml exec web pnpm -r lint"
-    }
-}
-```
-
-Note: these scripts assume the Compose stack is already running.
-
----
-
-## 6. Environment Variables
-
-### 6.1 Root `.env.example`
-
-Use the root env file for Docker Compose interpolation only:
-
-```env
-COMPOSE_PROJECT_NAME=history-mapped
-FORWARD_NGINX_PORT=8000
-FORWARD_WEB_PORT=5173
-FORWARD_ADMIN_PORT=5174
-FORWARD_DB_PORT=5432
-FORWARD_REDIS_PORT=6379
-FORWARD_MAILPIT_PORT=8025
-FORWARD_CLOUDBEAVER_PORT=8978
-FORWARD_REDISINSIGHT_PORT=5540
-```
-
-### 6.2 `api/.env.example`
-
-```env
-APP_NAME=history-mapped
-APP_ENV=local
-APP_KEY=
-APP_DEBUG=true
-APP_URL=http://localhost:8000
-
-DB_CONNECTION=pgsql
-DB_HOST=db
-DB_PORT=5432
-DB_DATABASE=history-mapped
-DB_USERNAME=history-mapped
-DB_PASSWORD=secret
-
-REDIS_HOST=redis
-REDIS_PORT=6379
-
-SESSION_DRIVER=redis
-SESSION_DOMAIN=localhost
-SANCTUM_STATEFUL_DOMAINS=localhost:5173,localhost:5174,localhost:8000
-
-MAIL_MAILER=smtp
-MAIL_HOST=mailpit
-MAIL_PORT=1025
-MAIL_FROM_ADDRESS=hello@history-mapped.test
-MAIL_FROM_NAME="${APP_NAME}"
-```
-
-### 6.3 `web/.env.example`
-
-```env
-VITE_APP_NAME=history-mapped
-VITE_API_BASE_URL=http://localhost:8000
-```
-
-Rules:
-
-- Server secrets live only in `api/.env`.
-- Public browser configuration lives only in `web/.env` and must use the `VITE_` prefix.
-- The root `.env` is for Docker-only configuration, not application secrets.
-
----
-
-## 7. Testing
-
-- **Framework:** PHPUnit v12 (not Pest). Tests live in `api/tests/`.
-- **Test database:** PostgreSQL `history-mapped_test` on the `db` service (configured in `phpunit.xml` via `DB_DATABASE=history-mapped_test`).
-- **Run all tests:** `php artisan test --compact` (inside the `app` container).
-- **Run a single file:** `php artisan test --compact tests/Feature/ExampleTest.php`.
-- **Run by filter:** `php artisan test --compact --filter=testName`.
-- Every code change must be covered by a test. Write unit tests in `tests/Unit/` and feature tests in `tests/Feature/`.
-
----
-
-## 8. Notes
-
-- **Tailwind CSS** is used in the Inertia admin. `web/` will use its own config when developed.
-- **CI** - Run PHP tests, typecheck, lint. If OpenAPI contract review is needed, export the spec and fail on stale diffs.
-- **Deployment** - Build one Laravel image and run it as `app`, `queue`, and `scheduler`; use managed Postgres and Redis; deploy `web/` as static assets behind a CDN.
-- **Future expansion** - If mobile apps or third-party API consumers are introduced, add a separate OAuth2/OIDC strategy instead of changing the first-party SPA auth model.
-
----
-
-## 9. Production Readiness Checklist
-
-- Admin routes are protected by `auth` and `verified` middleware.
-- `/api/v1` remains backward compatible until a deliberate `/api/v2` is introduced.
-- Docker service boundaries remain clear: HTTP in `nginx`, PHP runtime in `app`, jobs in `queue`, schedules in `scheduler`.
-- Test database (`history-mapped_test`) is isolated from the development database (`history-mapped`).
-- All PHP changes are formatted with `vendor/bin/pint --dirty` before committing.
+- Use Docker for Laravel, Composer, pnpm, Vite, queue, and scheduler work.
+- Use repo-root `pnpm` scripts for workspace-level tasks.
+- Use repo-root `py -m pipeline ...` commands for the Python pipeline.
+- Prefer the docs in [../../README.md](../../README.md), [../architecture_overview.md](../architecture_overview.md), and [../../pipeline/README.md](../../pipeline/README.md) over older planning docs when there is a discrepancy.
