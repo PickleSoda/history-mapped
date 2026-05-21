@@ -50,6 +50,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/entities/{entity}/timeline', [EntityTimelineController::class, 'index'])
         ->name('api.v1.entities.timeline.index');
 
+    Route::get('/entities/{entity}/timeline/{timelineEntry}', [EntityTimelineController::class, 'show'])
+        ->name('api.v1.entities.timeline.show');
+
     // Sources
     Route::get('/sources', [SourceController::class, 'index'])
         ->name('api.v1.sources.index');
