@@ -29,6 +29,7 @@ class EntityTimelineEntrySummaryResource extends JsonResource
             'location_entity_id' => $this->location_entity_id,
             'has_geom' => (bool) ($this->has_geom ?? false),
             'has_territory_geom' => (bool) ($this->has_territory_geom ?? false),
+            'geom' => $this->geom,
             'source_table' => $this->source_table,
             'source_id' => $this->source_id,
             'relationship_type' => $this->relationship_type,

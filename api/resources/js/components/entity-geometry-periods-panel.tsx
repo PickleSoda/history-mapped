@@ -7,7 +7,7 @@ import { yearToOhmDate } from '@/lib/ohm-date';
 
 const MapEditor = lazy(() => import('@/components/map-editor'));
 
-type GeometryPeriod = {
+type GeometryPeriodSummary = {
     geometry_period_id: string;
     entity_id: string;
     period_type: string;
@@ -15,6 +15,11 @@ type GeometryPeriod = {
     end_year: number;
     description: string | null;
     provenance_mode: 'manual' | 'derived';
+    has_geom: boolean;
+    has_territory_geom: boolean;
+};
+
+type GeometryPeriodDetail = GeometryPeriodSummary & {
     geom: Record<string, unknown> | null;
     territory_geom: Record<string, unknown> | null;
 };
@@ -31,11 +36,12 @@ type GeometryPeriodPayload = {
 
 type Props = {
     listUrl: string;
+    detailUrlFn?: (periodId: string) => string;
     storeUrl?: string;
     updateUrlFn?: (periodId: string) => string;
     deleteUrlFn?: (periodId: string) => string;
     readOnly?: boolean;
-    onSelectPeriod?: (period: GeometryPeriod | null) => void;
+    onSelectPeriod?: (period: GeometryPeriodDetail | null) => void;
 };
 
 const PERIOD_TYPES = ['territory', 'route', 'spread_zone', 'movement_path', 'presence'] as const;
@@ -62,7 +68,7 @@ function defaultFormState(): GeometryPeriodFormState {
     };
 }
 
-function toFormState(period: GeometryPeriod): GeometryPeriodFormState {
+function toFormState(period: GeometryPeriodDetail): GeometryPeriodFormState {
     return {
         period_type: period.period_type,
         start_year: String(period.start_year),
@@ -123,6 +129,7 @@ function describeGeometry(form: GeometryPeriodFormState): string {
 
 export default function EntityGeometryPeriodsPanel({
     listUrl,
+    detailUrlFn,
     storeUrl,
     updateUrlFn,
     deleteUrlFn,
@@ -130,11 +137,12 @@ export default function EntityGeometryPeriodsPanel({
     onSelectPeriod,
 }: Props) {
     const csrfRef = useRef<string>('');
-    const [periods, setPeriods] = useState<GeometryPeriod[]>([]);
+    const [periods, setPeriods] = useState<GeometryPeriodSummary[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [loadingPeriodId, setLoadingPeriodId] = useState<string | null>(null);
 
     const [createForm, setCreateForm] = useState<GeometryPeriodFormState>(
         defaultFormState,
@@ -164,7 +172,7 @@ export default function EntityGeometryPeriodsPanel({
                 throw new Error(`HTTP ${response.status}`);
             }
 
-            const payload = (await response.json()) as { data: GeometryPeriod[] };
+            const payload = (await response.json()) as { data: GeometryPeriodSummary[] };
             setPeriods(payload.data ?? []);
         } catch {
             setError('Failed to load geometry periods.');
@@ -190,6 +198,35 @@ export default function EntityGeometryPeriodsPanel({
             return a.end_year - b.end_year;
         });
     }, [periods]);
+
+    async function loadPeriodDetail(periodId: string): Promise<GeometryPeriodDetail | null> {
+        if (!detailUrlFn) {
+            return null;
+        }
+
+        setLoadingPeriodId(periodId);
+        setError(null);
+
+        try {
+            const response = await fetch(detailUrlFn(periodId), {
+                headers: { Accept: 'application/json' },
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const payload = (await response.json()) as { data: GeometryPeriodDetail };
+
+            return payload.data;
+        } catch {
+            setError('Failed to load geometry period detail.');
+
+            return null;
+        } finally {
+            setLoadingPeriodId((current) => (current === periodId ? null : current));
+        }
+    }
 
     async function createPeriod() {
         if (!storeUrl) {
@@ -231,7 +268,7 @@ export default function EntityGeometryPeriodsPanel({
         }
     }
 
-    async function updatePeriod(period: GeometryPeriod) {
+    async function updatePeriod(periodId: string) {
         if (!updateUrlFn) {
             return;
         }
@@ -248,7 +285,7 @@ export default function EntityGeometryPeriodsPanel({
         setError(null);
 
         try {
-            const response = await fetch(updateUrlFn(period.geometry_period_id), {
+            const response = await fetch(updateUrlFn(periodId), {
                 method: 'PUT',
                 headers: {
                     Accept: 'application/json',
@@ -269,6 +306,29 @@ export default function EntityGeometryPeriodsPanel({
         } finally {
             setSaving(false);
         }
+    }
+
+    async function beginEditPeriod(period: GeometryPeriodSummary) {
+        const detail = await loadPeriodDetail(period.geometry_period_id);
+        if (!detail) {
+            return;
+        }
+
+        setEditForm(toFormState(detail));
+        setEditingId(detail.geometry_period_id);
+    }
+
+    async function selectPeriod(period: GeometryPeriodSummary) {
+        if (!onSelectPeriod) {
+            return;
+        }
+
+        const detail = await loadPeriodDetail(period.geometry_period_id);
+        if (!detail) {
+            return;
+        }
+
+        onSelectPeriod(detail);
     }
 
     async function deletePeriod(periodId: string) {
@@ -449,23 +509,24 @@ export default function EntityGeometryPeriodsPanel({
                                                     <Button
                                                         type="button"
                                                         size="sm"
-                                                        onClick={() => onSelectPeriod(period)}
+                                                        onClick={() => void selectPeriod(period)}
+                                                        disabled={loadingPeriodId === period.geometry_period_id}
                                                     >
-                                                        Highlight
+                                                        {loadingPeriodId === period.geometry_period_id
+                                                            ? 'Loading…'
+                                                            : 'Highlight'}
                                                     </Button>
                                                 )}
                                                 <Button
                                                     type="button"
                                                     size="sm"
                                                     variant="outline"
-                                                    onClick={() => {
-                                                        setEditForm(toFormState(period));
-                                                        setEditingId(
-                                                            period.geometry_period_id,
-                                                        );
-                                                    }}
+                                                    onClick={() => void beginEditPeriod(period)}
+                                                    disabled={loadingPeriodId === period.geometry_period_id}
                                                 >
-                                                    Edit
+                                                    {loadingPeriodId === period.geometry_period_id
+                                                        ? 'Loading…'
+                                                        : 'Edit'}
                                                 </Button>
                                                 <Button
                                                     type="button"
@@ -488,9 +549,12 @@ export default function EntityGeometryPeriodsPanel({
                                                     type="button"
                                                     size="sm"
                                                     variant="outline"
-                                                    onClick={() => onSelectPeriod(period)}
+                                                    onClick={() => void selectPeriod(period)}
+                                                    disabled={loadingPeriodId === period.geometry_period_id}
                                                 >
-                                                    Highlight
+                                                    {loadingPeriodId === period.geometry_period_id
+                                                        ? 'Loading…'
+                                                        : 'Highlight'}
                                                 </Button>
                                             </div>
                                         )}

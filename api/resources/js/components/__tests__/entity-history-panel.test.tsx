@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, it, beforeAll, afterAll, afterEach, vi, expect } from 'vitest';
 import EntityHistoryPanel from '../entity-history-panel';
 import '@testing-library/jest-dom/vitest';
@@ -84,7 +84,7 @@ describe('EntityHistoryPanel', () => {
         return Promise.reject(new Error('Unknown URL'));
     }
 
-    it('renders timeline items and lazy loads selected entry geometry on click', async () => {
+    it('renders timeline items and uses summary point geometry without an extra detail fetch', async () => {
         fetchMock.mockImplementation((input) =>
             mockFetchImpl(String(input)),
         );
@@ -116,8 +116,12 @@ describe('EntityHistoryPanel', () => {
         const relItem = screen.getByText(/Alliance of 120 CE/i);
         fireEvent.click(relItem);
 
+        await waitFor(() => {
+            expect(fetchMock).toHaveBeenCalledTimes(1);
+        });
+
         expect(fetchMock).toHaveBeenCalledWith(
-            '/api/v1/entities/e1/timeline/timeline-1',
+            '/api/v1/entities/e1/timeline',
             expect.objectContaining({
                 headers: { Accept: 'application/json' },
             }),
@@ -153,16 +157,17 @@ describe('EntityHistoryPanel', () => {
 
         expect(await screen.findByText(/Alliance of 120 CE/i)).toBeInTheDocument();
 
-        const lastCall = historicalMapViewerMock.mock.calls.at(-1);
-        expect(lastCall?.[0]).toEqual(
-            expect.objectContaining({
-                overlayGeometries: expect.arrayContaining([
-                    expect.objectContaining({
-                        type: 'Feature',
-                        geometry: expect.objectContaining({ type: 'Point' }),
-                    }),
-                ]),
-            }),
-        );
+        await waitFor(() => {
+            const calls = historicalMapViewerMock.mock.calls;
+            expect(
+                calls.some((call) =>
+                    Array.isArray(call[0]?.overlayGeometries) &&
+                    call[0].overlayGeometries.some(
+                        (geometry: { type?: string; geometry?: { type?: string } }) =>
+                            geometry?.type === 'Feature' && geometry?.geometry?.type === 'Point',
+                    ),
+                ),
+            ).toBe(true);
+        });
     });
 });

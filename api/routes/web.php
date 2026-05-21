@@ -39,6 +39,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // ── Geometry Periods (JSON, embedded in entity edit/show pages) ─
     Route::get('entities/{entity}/geometry-periods', [EntityGeometryPeriodController::class, 'index'])->name('entities.geometry-periods.index');
+    Route::get('entities/{entity}/geometry-periods/{geometryPeriod}', [EntityGeometryPeriodController::class, 'show'])->name('entities.geometry-periods.show');
     Route::post('entities/{entity}/geometry-periods', [EntityGeometryPeriodController::class, 'store'])->name('entities.geometry-periods.store');
     Route::put('entities/{entity}/geometry-periods/{geometryPeriod}', [EntityGeometryPeriodController::class, 'update'])->name('entities.geometry-periods.update');
     Route::delete('entities/{entity}/geometry-periods/{geometryPeriod}', [EntityGeometryPeriodController::class, 'destroy'])->name('entities.geometry-periods.destroy');

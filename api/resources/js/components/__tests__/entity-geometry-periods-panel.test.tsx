@@ -4,6 +4,27 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest
 import '@testing-library/jest-dom/vitest';
 import EntityGeometryPeriodsPanel from '../entity-geometry-periods-panel';
 
+vi.mock('@/components/map-editor', () => ({
+    default: ({ onChange }: { onChange: (geom: { type: string; coordinates: number[] } | null, territoryGeom: null) => void }) => (
+        <div>
+            <label>
+                Longitude
+                <input
+                    aria-label="Longitude"
+                    onChange={(event) => {
+                        const lon = Number(event.currentTarget.value);
+                        onChange({ type: 'Point', coordinates: [lon, 41.89] }, null);
+                    }}
+                />
+            </label>
+            <label>
+                Latitude
+                <input aria-label="Latitude" />
+            </label>
+        </div>
+    ),
+}));
+
 let fetchMock: ReturnType<typeof vi.fn>;
 
 beforeAll(() => {
@@ -157,6 +178,7 @@ describe('EntityGeometryPeriodsPanel', () => {
         render(
             <EntityGeometryPeriodsPanel
                 listUrl="/entities/e1/geometry-periods"
+                detailUrlFn={(id) => `/entities/e1/geometry-periods/${id}`}
                 storeUrl="/entities/e1/geometry-periods"
                 updateUrlFn={(id) => `/entities/e1/geometry-periods/${id}`}
                 deleteUrlFn={(id) => `/entities/e1/geometry-periods/${id}`}

@@ -292,6 +292,9 @@ export default function EntityEdit({ entity, formOptions }: Props) {
                         <div className="border-t p-4">
                             <EntityGeometryPeriodsPanel
                                 listUrl={entity.geometry_periods_url ?? `/entities/${entity.id}/geometry-periods`}
+                                detailUrlFn={(periodId) =>
+                                    `/entities/${entity.id}/geometry-periods/${periodId}`
+                                }
                                 storeUrl={`/entities/${entity.id}/geometry-periods`}
                                 updateUrlFn={(periodId) =>
                                     `/entities/${entity.id}/geometry-periods/${periodId}`

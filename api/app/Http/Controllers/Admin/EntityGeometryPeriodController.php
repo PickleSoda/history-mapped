@@ -17,12 +17,39 @@ class EntityGeometryPeriodController extends Controller
     public function index(Entity $entity): JsonResponse
     {
         $periods = $entity->geometryPeriods()
+            ->select([
+                'geometry_period_id',
+                'entity_id',
+                'period_type',
+                'start_year',
+                'end_year',
+                'description',
+                'provenance_mode',
+                'relationship_id',
+                'source_event_id',
+                'confidence',
+                'created_at',
+                'updated_at',
+            ])
+            ->selectRaw('geom IS NOT NULL as has_geom')
+            ->selectRaw('territory_geom IS NOT NULL as has_territory_geom')
             ->orderBy('start_year')
             ->orderBy('end_year')
             ->get();
 
         return response()->json([
-            'data' => $periods->map(fn (GeometryPeriod $period) => self::toPayload($period)),
+            'data' => $periods->map(fn (GeometryPeriod $period) => self::toSummaryPayload($period)),
+        ]);
+    }
+
+    public function show(Entity $entity, GeometryPeriod $geometryPeriod): JsonResponse
+    {
+        if ($geometryPeriod->entity_id !== $entity->entity_id) {
+            abort(404);
+        }
+
+        return response()->json([
+            'data' => self::toPayload($geometryPeriod),
         ]);
     }
 
@@ -84,6 +111,29 @@ class EntityGeometryPeriodController extends Controller
             'confidence' => $period->confidence?->value,
             'geom' => $period->geom,
             'territory_geom' => $period->territory_geom,
+            'created_at' => $period->created_at?->toISOString(),
+            'updated_at' => $period->updated_at?->toISOString(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function toSummaryPayload(GeometryPeriod $period): array
+    {
+        return [
+            'geometry_period_id' => $period->geometry_period_id,
+            'entity_id' => $period->entity_id,
+            'period_type' => $period->period_type,
+            'start_year' => $period->start_year,
+            'end_year' => $period->end_year,
+            'description' => $period->description,
+            'provenance_mode' => $period->provenance_mode,
+            'relationship_id' => $period->relationship_id,
+            'source_event_id' => $period->source_event_id,
+            'confidence' => $period->confidence?->value,
+            'has_geom' => (bool) ($period->has_geom ?? false),
+            'has_territory_geom' => (bool) ($period->has_territory_geom ?? false),
             'created_at' => $period->created_at?->toISOString(),
             'updated_at' => $period->updated_at?->toISOString(),
         ];
