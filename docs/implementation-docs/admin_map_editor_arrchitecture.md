@@ -1,177 +1,259 @@
 # history-mapped — Entity Editor & Map UI Architecture
 
-**Version 2.0 — March 2026**
+> Status: current admin implementation in `api/`.
+> This document describes what exists today in the Inertia admin app, not an aspirational phase plan.
 
 ---
 
 ## 1. Scope
 
-This document covers the **entity editor** (create/edit forms) and the **map editing UI** for the admin panel. It does not cover the review queue, pipeline monitoring, user management, or other admin features — those are future work.
+This document covers the admin entity authoring surface that is currently implemented under `api/resources/js` and `api/routes/web.php`:
+
+- entity create and edit pages
+- the shared entity metadata form
+- the embedded map viewer and map editor
+- georef-assisted geometry hydration
+- geometry period CRUD from the edit page
+- relationship editing entry points from the edit page
+
+It does not cover the public `web/` client, the pipeline, or speculative future UX concepts.
 
 ---
 
-## 2. Technology Stack
+## 2. Current Stack
 
-| Layer | Choice | Notes |
+| Layer | Current choice | Notes |
 |---|---|---|
-| Backend framework | Laravel 13 | Inertia server-side rendering |
-| SPA bridge | Inertia.js v2 | No separate API; controllers pass props directly |
-| Auth | Laravel Fortify (session) | Sanctum token layer is for the public REST API only |
-| Frontend | React 19 + TypeScript | Via `@inertiajs/react` |
-| UI components | shadcn/ui + Tailwind v4 | Existing component library |
-| Forms | Inertia `useForm` | Server-side validation errors surfaced via `errors` |
-| Map rendering | MapLibre GL JS | All map interactions |
-| Geometry drawing | Terra Draw (`@watergis/maplibre-gl-terradraw`) | Points, lines, polygons |
+| Backend | Laravel 13 | Session-authenticated admin app |
+| UI transport | Inertia.js v2 | Controllers render React pages directly |
+| Frontend | React 19 + TypeScript | Admin bundle lives in `api/resources/js` |
+| Component system | shadcn/ui + Tailwind CSS | Existing admin UI kit |
+| Entity form state | Inertia `useForm` on create, local React state on edit | Edit page manages geometry outside the form payload |
+| Map rendering | MapLibre GL JS | Shared by viewer and editor |
+| Geometry drawing | `@mapbox/mapbox-gl-draw` on top of MapLibre | Runtime-compatible with local type shims |
+| OHM basemap support | Local style/date helpers | `loadHistoricalBasemapStyle()`, `applyOhmLayerDateFilter()` |
+
+Two statements from older versions of this doc are no longer true:
+
+- MapLibre is already installed and used in the admin app.
+- The editor does not use Terra Draw; it uses Mapbox Draw with MapLibre.
 
 ---
 
-## 3. Entity Form Design
+## 3. Page Structure
 
-### 3.1 Single-table inheritance + JSONB attributes
+### Create page
 
-All 30 entity types share the `entities` table. Type-specific fields live in the JSONB `attributes` column. The form must:
+`entities/create` is currently a metadata-first flow.
 
-1. Always show the **core fields** (name, type, group, temporal range, location, summary)
-2. Conditionally render **type-specific sections** based on `entity_type` selection
+- Renders `EntityForm`
+- Posts to `EntityController@store`
+- Collects `attr_*` inputs into a single `attributes` object before submit
+- Splits `tags` and `alternative_names` comma strings into arrays before submit
+- Does not yet embed the map editor, georef editor, geometry periods panel, or relationship panel
 
-### 3.2 Core fields (all types)
+### Edit page
 
-| Field | Input | Notes |
-|---|---|---|
-| `name` | Text | Required |
-| `entity_type` | Select | Drives conditional rendering; changing type resets type-specific fields |
-| `entity_group` | Derived | Auto-set from `entity_type` via the `EntityType::group()` method; displayed read-only |
-| `summary` | Textarea | |
-| `significance` | Textarea | |
-| `temporal_start` | Text | Integer year string; negative = BCE (e.g. `"-500"`) |
-| `temporal_end` | Text | Integer year string; negative = BCE |
-| `date_raw` | Text | Free-text date as it appears in source |
-| `location_name` | Text | |
-| `tags` | Tag input (comma-separated) | Stored as PG text array |
-| `alternative_names` | Tag input | Stored as PG text array |
-| `impact_score` | Number (0–100) | |
-| `wikidata_id` | Text | Must match `Q\d+` |
-| `verification_status` | Select | Controls publish visibility |
-| `confidence` | Select | Overall confidence level |
-| `confidence_notes` | Textarea | |
+`entities/{entity}/edit` uses the same metadata form and adds three implemented collapsible panels:
 
-### 3.3 Type-specific attribute sections
+1. `Map Editor`
+2. `Geometry Periods`
+3. `Relationships`
 
-Entity type determines which additional `attributes` sub-fields are rendered. The form conditionally shows these sections:
+The edit page keeps geometry in React state so the user can:
 
-| Entity type(s) | Section shown |
-|---|---|
-| `political_entity` | Government type, succession type, diplomatic status |
-| `person` | Role, gender, birth/death year |
-| `military_unit` | Unit subtype, composition, size |
-| `event_battle` | Battle subtype, outcome, forces involved |
-| `event_war` | War subtype, duration type |
-| `event_treaty` | Treaty subtype, parties |
-| `event_rebellion` | Rebellion subtype |
-| `trade_route` | Route subtype, commodities |
-| `epidemic_disease` | Disease subtype, severity |
-| `natural_resource` | Resource category, renewability, strategic value |
-| `cultural_work` | Cultural work subtype |
-| `language` | Language status, language role, writing system |
-| `religious_movement` | Religious movement subtype |
-| `technology` | Technology domain |
-| All others | No type-specific section |
+- hydrate geometry from a georef match
+- preview current and highlighted geometries in the shared map viewer
+- manually edit `geojson` and `territory_geojson`
+- save geometry together with the rest of the entity payload
 
-All type-specific fields are stored in `attributes` as JSON — not top-level columns.
+### Show page
 
-### 3.4 Validation
+The entity detail page is the read-side companion to the edit flow.
 
-Laravel Form Requests handle all server-side validation. Zod is used client-side only for:
-- `temporal_start` / `temporal_end`: must be a valid integer string (can be negative)
-- `wikidata_id`: must match `Q\d+` or be empty
-- `entity_color`: must match `#rrggbb` hex or be empty
-- `impact_score`: must be 0–100
-
-All other validation is server-side only — enum values, required fields, FK existence.
+- Uses `HistoricalMapViewer` and `EntityHistoryPanel`
+- Displays current geometry plus timeline/history context
+- Reads from the same canonical entity detail payload built by `EntityController`
 
 ---
 
-## 4. Map Editing UI
+## 4. Form Contract vs Canonical Storage
 
-### 4.1 Geometry types per entity type
+The admin form still works with a flattened read model, but persistence is now split across canonical tables.
 
-| Geometry | Entity types |
-|---|---|
-| Point | `city`, `person`, `event_battle`, `event_natural_disaster`, `epidemic_disease`, `event_tech_adoption`, `educational_institution`, `extraction_infra`, `infrastructure_monument`, `archaeological_culture` |
-| LineString | `trade_route`, `migration` |
-| Polygon / MultiPolygon | `political_entity`, `dynasty`, `military_unit`, `natural_resource` |
-| Any | All others (editor's discretion) |
+### Fields handled directly in the form payload
 
-Selecting an entity type constrains the available drawing modes in Terra Draw. If a type only allows `Point`, the linestring and polygon tools are disabled.
+Examples:
 
-### 4.2 Two geometry columns
+- `name`
+- `entity_type`
+- `summary`
+- `significance`
+- `impact_score`
+- `wikidata_id`
+- `verification_status`
+- `confidence`
+- `display_priority`
+- `icon_class`
+- `date_method`
+- `date_confidence`
+- `duration_type`
+- `location_method`
+- `location_confidence`
 
-`geom` — point location or primary geometry (where the entity is)
-`territory_geom` — territorial extent polygon (only for polities, regions)
+### Fields exposed as flattened helpers
 
-The map editor exposes two separate drawing layers. `territory_geom` input only appears for entity types where a territory makes sense (`political_entity`, `dynasty`, `military_unit`).
+The form still reads and writes convenience fields such as:
 
-### 4.3 Editing workflow
+- `temporal_start`
+- `temporal_end`
+- `location_name`
+- `tags`
+- `alternative_names`
+- `confidence_notes`
+- `entity_color`
+- `era_label`
+- `date_raw`
 
-**Create:**
-1. Fill core metadata form
-2. Optionally draw geometry on the map panel
-3. Submit — geometry stored via `ST_GeomFromGeoJSON()`
+These are not all first-class `entities` columns anymore.
 
-**Edit:**
-1. Existing geometry rendered as editable layer on load (fetched as GeoJSON from `geom` / `territory_geom` columns)
-2. Editor can drag vertices or redraw
-3. Submit — geometry updated in-place
+### Canonical write targets behind the form
 
-### 4.4 Map panel placement
+The backend actions now persist the admin payload into the normalized model:
 
-The map panel is a **right-side panel** on the edit/create page, visible at `lg:` breakpoint and wider. On smaller viewports it collapses to a tab. The left panel holds the metadata form.
+- `tags` -> `entity_tags`
+- `alternative_names` -> `entity_aliases`
+- temporal range values -> `entity_temporal_ranges` (typically the primary row)
+- location values and base geometry -> `entity_locations` (typically the primary row)
+- time-varying geometry -> `geometry_periods`
+- external map matches -> `entity_geo_refs`
 
-Layout:
-```
-┌─────────────────────┬──────────────────┐
-│  Metadata Form      │  MapLibre map    │
-│  (scrollable)       │  (fixed height)  │
-│                     │  Terra Draw      │
-│                     │  toolbar         │
-└─────────────────────┴──────────────────┘
-```
-
-The map is **not required** — entities can be saved without geometry. The map panel shows a placeholder if the entity type doesn't have a natural geographic component (e.g. `cultural_work`, `language`).
-
-### 4.5 Map implementation notes
-
-- MapLibre is **not yet installed** in the admin app. It must be added before the map panel can be implemented.
-- Terra Draw (`@watergis/maplibre-gl-terradraw`) must also be added.
-- The map panel is a **phase 2** deliverable. Phase 1 is the metadata form (create + edit) without map editing.
-- GeoJSON from Terra Draw is serialized to hidden form fields and submitted with the main form via Inertia `useForm`.
+`attributes` remains the spillover container for type-specific fields and a few presentation helpers that the current controller still surfaces from JSON.
 
 ---
 
-## 5. Route and Controller Structure
+## 5. Map Viewer and Map Editor
 
-```
-GET    /entities/create       → EntityController@create   (entities.create)
-POST   /entities              → EntityController@store    (entities.store)
-GET    /entities/{entity}/edit → EntityController@edit    (entities.edit)
-PUT    /entities/{entity}     → EntityController@update   (entities.update)
-DELETE /entities/{entity}     → EntityController@destroy  (entities.destroy)
-```
+### Shared viewer
 
-The Inertia layer uses the existing `CreateEntityAction` and `UpdateEntityAction`. It does **not** call the REST API — it invokes the actions directly, consistent with the existing pattern.
+`HistoricalMapViewer` is the shared admin map surface.
+
+- Renders the OHM basemap in MapLibre
+- Applies OHM date filtering when a timeframe is available
+- Accepts base geometries and overlay geometries
+- Is used on dashboard, entity show, and entity edit pages
+
+### Embedded editor
+
+`MapEditor` is already live on the edit page.
+
+- Uses MapLibre GL JS directly
+- Mounts `@mapbox/mapbox-gl-draw`
+- Provides separate location and territory editing modes
+- Supports point and line editing for `geom`
+- Supports polygon and multipolygon editing for `territory_geom`
+- Normalizes editor output back to GeoJSON for form submission
+
+### Georef-assisted hydration
+
+The edit page also includes `EntityGeoRefEditor`.
+
+This panel lets an editor attach or choose a geospatial reference and then hydrate base geometry into the working edit state before making manual adjustments.
+
+This is important because the current admin workflow is not purely manual drawing. It is:
+
+1. resolve or attach a georef when possible
+2. hydrate base geometry
+3. preview it in the shared viewer
+4. refine manually if needed
 
 ---
 
-## 6. Key Decisions and Rationale
+## 6. Geometry Periods
 
-**Why not call `/api/v1/entities` from the admin form?**
-The REST API uses token auth (Sanctum) and is designed for external consumers. The Inertia admin layer uses session auth and Inertia Form Requests — a separate code path. Both delegate to the same Action classes. This avoids CSRF complexity and keeps the admin as a traditional server-side app.
+Geometry periods are implemented today and replace the earlier `geometry_snapshots` planning language.
 
-**Why is `entity_group` derived, not user-selected?**
-`EntityType::group()` is a deterministic mapping — the group is an intrinsic property of the type. Showing both as separate fields would allow invalid combinations. The form sets group automatically when the type changes.
+### Admin CRUD surface
 
-**Why store type-specific fields in `attributes` JSONB, not surfaced as columns?**
-The 30 entity types each have different sub-fields. Flattening them into top-level columns would produce a table with ~80+ sparse columns. JSONB is the correct choice for sparse, type-dependent data.
+The edit page mounts `EntityGeometryPeriodsPanel`, which calls dedicated web routes:
 
-**Why is map editing phase 2?**
-MapLibre and Terra Draw are not yet installed. The metadata form provides immediate value and is independently testable. Geometry editing adds significant complexity and should be added once the form layer is stable.
+- `GET /entities/{entity}/geometry-periods`
+- `POST /entities/{entity}/geometry-periods`
+- `PUT /entities/{entity}/geometry-periods/{geometryPeriod}`
+- `DELETE /entities/{entity}/geometry-periods/{geometryPeriod}`
+
+### Current editable fields
+
+The admin request objects and controller support:
+
+- `period_type`
+- `start_year`
+- `end_year`
+- `description`
+- `provenance_mode`
+- `relationship_id`
+- `source_event_id`
+- `confidence`
+- `geom`
+- `territory_geom`
+
+### Provenance rules that matter for docs
+
+- Admin validation currently accepts `manual` and `derived` in the request layer.
+- The database now also allows `ohm_import` for pipeline-imported border geometry.
+- Presence periods require a backing `relationship_id`.
+- Derived periods must point back to a relationship or source event.
+
+### Derived presence periods
+
+Derived presence periods are not created by the geometry period panel itself.
+They are created from relationship workflows when the relationship type supports derivation and the request opts in with `deriveGeometryPeriod=true`.
+
+---
+
+## 7. Routes and Controllers
+
+The admin authoring flow uses session-authenticated web routes, not the public REST API.
+
+### Entity pages
+
+- `GET /entities/create` -> `EntityController@create`
+- `POST /entities` -> `EntityController@store`
+- `GET /entities/{entity}` -> `EntityController@show`
+- `GET /entities/{entity}/edit` -> `EntityController@edit`
+- `PUT /entities/{entity}` -> `EntityController@update`
+- `DELETE /entities/{entity}` -> `EntityController@destroy`
+
+### Geometry periods
+
+- `EntityGeometryPeriodController@index`
+- `EntityGeometryPeriodController@store`
+- `EntityGeometryPeriodController@update`
+- `EntityGeometryPeriodController@destroy`
+
+The public `/api/v1/...` endpoints are for consumer-facing API access and should not be treated as the admin write path.
+
+---
+
+## 8. Current Limitations
+
+The admin editor is live, but a few boundaries are still worth documenting explicitly.
+
+- The create page is still metadata-only; map, georef, geometry-period, and relationship tools are edit-page tools.
+- Some helper fields shown in the form are read-model conveniences backed by normalized tables or JSON attributes rather than dedicated `entities` columns.
+- The map editor still depends on Mapbox Draw typings that reference `mapbox-gl`; the code uses local type shims because runtime rendering is MapLibre.
+
+---
+
+## 9. Historical Notes
+
+Older copies of this document described a phase where map editing had not yet been implemented and Terra Draw still needed to be added. That is now historical context only.
+
+For current implementation truth, use:
+
+- `api/resources/js/pages/entities/create.tsx`
+- `api/resources/js/pages/entities/edit.tsx`
+- `api/resources/js/components/map-editor.tsx`
+- `api/resources/js/components/historical-map-viewer.tsx`
+- `api/app/Http/Controllers/Admin/EntityController.php`
+- `api/app/Http/Controllers/Admin/EntityGeometryPeriodController.php`

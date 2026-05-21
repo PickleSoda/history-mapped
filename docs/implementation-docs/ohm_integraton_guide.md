@@ -1,5 +1,8 @@
 # OpenHistoricalMap Integration Guide
 
+> Status note: technical integration reference, not a claim that every pattern below is live across all clients.
+> Current repo state: OHM/MapLibre integration is implemented in the admin app under `api/resources/js` through `HistoricalMapViewer`, `MapEditor`, and supporting helpers. The public `web/` client does not currently mount an OHM map.
+
 **Historical Atlas Project**  
 *MapLibre GL JS, Vector Tiles, Date Filtering, and Custom Overlays*  
 *From OHM Tile Server to Production Map Application*
@@ -28,7 +31,7 @@ Companion to: Data Pipeline Architecture Document
 
 ## 1. Overview and Architecture Decisions
 
-OpenHistoricalMap (OHM) is the base map layer for the Historical Atlas project. OHM provides vector tiles containing global historical geographic data with temporal metadata, enabling time-filtered map rendering. This guide covers everything needed to integrate OHM into the project stack.
+OpenHistoricalMap (OHM) is the live basemap for the admin map surfaces in `api/` and the intended basemap for richer public clients. OHM provides vector tiles containing global historical geographic data with temporal metadata, enabling time-filtered map rendering. This guide covers the integration patterns used in the repo today as well as the broader reference setup for future map surfaces.
 
 ### 1.1 Why OHM
 

@@ -1,7 +1,16 @@
 # Entity Model Proposal — Strict Write Model + Derived Timeline
 
-Status: Proposal
+Status: Historical proposal with partial adoption
 Date: 2026-04-06
+
+Current live-state note:
+
+- the normalized write model and derived timeline direction in this doc were largely adopted
+- `geometry_periods` is live, and the database now allows `manual`, `derived`, and `ohm_import` provenance modes
+- `source_citations` JSONB is still live; the separate citation tables proposed here are not implemented yet
+- the live model does not currently enforce a citation-count rule for manual geometry periods
+
+Treat the remaining sections as proposal history and design rationale, not as the final word on current implementation details.
 
 ## Why This Proposal
 

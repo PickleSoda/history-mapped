@@ -1,412 +1,248 @@
-# Entity Attributes — Complete Reference
+# Entity Attributes — Current Reference
 
-This document lists every attribute (field) on an entity record, what it contains, and the allowed values where relevant.
-
----
-
-## Identity
-
-### `name`
-**Required.**
-The primary name of the entity, in English or the most widely accepted scholarly transliteration.
-
-- Use the most common scholarly English form, not the local-language form, unless the scholarly community consistently uses the local form.
-- Do not include dates in the name itself. *"Han Dynasty"* not *"Han Dynasty (206 BCE–220 CE)"*.
-- For persons, use the most recognisable form. *"Julius Caesar"* not *"Gaius Julius Caesar"* (the fuller form can be an alternative name).
+> Status: current live model after the normalized entity-model cutover.
+> An entity is no longer a single wide row. The live surface is split across `entities`, normalized companion tables, and a few controller-level helper fields.
 
 ---
 
-### `alternative_names`
-**Optional.** Array of strings.
-Other names this entity is known by: local-language names, transliterations, earlier or later names, names in other scholarly traditions.
+## 1. Canonical `entities` Columns
 
-Storage note: persisted in `entity_aliases` (one row per alias); exposed through API as `alternative_names`.
+These are the current first-class fields on the `entities` table.
 
-*Examples:*
-- `["Qart-hadasht", "Cartagena", "Karchedon"]` (for Carthage)
-- `["Tamerlane", "Timur-i-lang", "Аmir Temur"]` (for Timur)
-
----
-
-### `wikidata_id`
-**Optional.**
-The Wikidata entity identifier, in the form `Q` followed by digits. *e.g. `Q6216` for the Han Dynasty.*
-
-This links the record to the broader Linked Open Data ecosystem and avoids duplicating encyclopaedic content that Wikidata already maintains.
-
----
-
-### `summary`
-**Optional.**
-One to three sentences describing what the entity *is*. Written in the present tense as a definition, not a narrative.
-
-> *"The Han Dynasty was a Chinese imperial dynasty that ruled from 206 BCE to 220 CE, establishing the foundational institutions of Chinese bureaucratic governance."*
-
----
-
-### `significance`
-**Optional.**
-Longer passage explaining why the entity matters and what its historical consequences were. This is the place for interpretive context, causal claims, and discussion of scholarly debates.
-
----
-
-### `tags`
-**Optional.** Array of strings (free-form labels).
-Used for thematic filtering and clustering. Lower-case, underscore-separated.
-
-Storage note: persisted in `entity_tags` (one row per tag); exposed through API as `tags`.
-
-*Common conventions:* `iron_age`, `bronze_age`, `mediterranean`, `steppe`, `nomadic`, `maritime`, `collapse`, `urbanisation`, `religious_conflict`, `trade`, `plague`
-
----
-
-## Classification
-
-### `entity_group`
-**Required.**
-The broad category the entity belongs to.
-
-| Value | Covers |
+| Field | Meaning |
 |---|---|
-| `POLITY` | Political entities, dynasties, persons, armies, social classes, diplomatic agreements |
-| `PLACE` | Cities, monuments, infrastructure, educational institutions |
-| `EVENT` | Wars, battles, treaties, rebellions, natural disasters, migrations, epidemics, legal reforms, technology adoptions |
-| `ECONOMY` | Trade routes, natural resources, currencies |
-| `CULTURE` | Cultural works, intellectual movements, languages, religious movements, legal codes, technologies, archaeological cultures |
+| `entity_id` | UUID primary key |
+| `name` | Primary display name |
+| `entity_type` | Concrete entity type enum |
+| `entity_group` | Top-level group enum |
+| `wikidata_id` | Optional linked-data identifier |
+| `summary` | Short descriptive summary |
+| `significance` | Longer historical significance text |
+| `impact_score` | Numeric prioritization / ranking signal |
+| `attributes` | JSONB spillover for type-specific fields and a few presentation helpers |
+| `verification_status` | Workflow state such as `pipeline_draft`, `needs_review`, `human_verified` |
+| `confidence` | Overall confidence enum |
+| `date_method` | How the canonical date was resolved |
+| `date_confidence` | Confidence in the canonical date |
+| `duration_type` | Point / period / ongoing / uncertain |
+| `location_method` | How the canonical location was resolved |
+| `location_confidence` | Confidence in the canonical location |
+| `display_priority` | Display ordering / importance hint |
+| `icon_class` | Enum used for iconography |
+| `source_citations` | JSONB citation payload still used in the live model |
+| `embedding` | pgvector embedding used for semantic search |
+| `reviewer_id` | Reviewer foreign key |
+| `review_date` | Review timestamp |
+| `created_by` | Import or authoring provenance string |
+| `primary_geo_ref_id` | Optional canonical external georef pointer |
+| `created_at` / `updated_at` | Timestamps |
+
+### What `attributes` is for right now
+
+`attributes` is still part of the live write model. It currently carries:
+
+- type-specific fields that are not worth dedicated columns yet
+- some presentation helpers surfaced by the admin controller, including values such as `date_raw`, `temporal_display_range`, `era_label`, `confidence_notes`, and `entity_color`
+
+It should not be treated as the place for canonical aliases, tags, temporal rows, base locations, or time-varying geometries. Those live in dedicated tables.
 
 ---
 
-### `entity_type`
-**Required.**
-The specific type within the group. Must be consistent with `entity_group`.
+## 2. Canonical Companion Tables
 
-**POLITY types:**
+### `entity_aliases`
 
-| Value | Meaning |
+Canonical storage for alternative names.
+
+| Field | Meaning |
 |---|---|
-| `political_entity` | A state, republic, empire, kingdom, city-state, or other political unit |
-| `dynasty` | A ruling lineage or house |
-| `person` | An individual historical figure |
-| `military_unit` | An army, fleet, corps, or other organised military force |
-| `diplomatic_relationship` | A formal treaty, alliance, or diplomatic arrangement as a standing entity |
-| `social_class` | A defined stratum of society (nobility, peasantry, merchant class, etc.) |
+| `alias_id` | UUID primary key |
+| `entity_id` | Owning entity |
+| `name` | Alias text |
+| `language` | Optional language marker |
+| `source` | Optional provenance note |
+| `is_primary` | Primary alias flag |
 
-**PLACE types:**
+### `entity_tags`
 
-| Value | Meaning |
+Canonical storage for free-form tags.
+
+| Field | Meaning |
 |---|---|
-| `city` | A city, town, settlement, or urban agglomeration |
-| `infrastructure_monument` | A road, wall, bridge, temple, palace, pyramid, or other constructed landmark |
-| `extraction_infra` | A mine, quarry, well, irrigation system, or other resource-extraction installation |
-| `educational_institution` | A school, academy, library, madrasa, or centre of learning |
+| `entity_tag_id` | UUID primary key |
+| `entity_id` | Owning entity |
+| `tag` | One normalized tag string |
 
-**EVENT types:**
+### `entity_temporal_ranges`
 
-| Value | Meaning |
+Canonical storage for entity date ranges.
+
+| Field | Meaning |
 |---|---|
-| `event_war` | A war or prolonged armed conflict |
-| `event_battle` | A single battle or military engagement |
-| `event_treaty` | A peace treaty or formal agreement ending or regulating conflict |
-| `event_rebellion` | A revolt, uprising, or civil war |
-| `event_natural_disaster` | An earthquake, flood, drought, famine, or other natural catastrophe |
-| `event_tech_adoption` | The adoption or diffusion of a technology by a society |
-| `event_legal_reform` | The enactment of a legal code, constitution, or significant legislation |
-| `migration` | A large-scale movement of people |
-| `epidemic_disease` | An epidemic, pandemic, or significant disease event |
+| `temporal_range_id` | UUID primary key |
+| `entity_id` | Owning entity |
+| `range_type` | `primary`, `secondary`, or `disputed` |
+| `start_year` / `end_year` | Normalized integer years |
+| `start_date` / `end_date` | ISO-style source strings preserved for display |
+| `duration_type` | Duration enum value stored with the range |
+| `date_method` | Resolution method for this range |
+| `date_confidence` | Confidence for this range |
+| `is_primary` | Primary range flag |
+| `notes` | Editorial notes |
 
-**ECONOMY types:**
+### `entity_locations`
 
-| Value | Meaning |
+Canonical storage for base locations and base geometry.
+
+| Field | Meaning |
 |---|---|
-| `trade_route` | An overland, maritime, or river trade route or network |
-| `natural_resource` | A deposit of metal, mineral, timber, crop, or other economically significant resource |
-| `currency_monetary_system` | A coin, currency, or monetary system |
+| `location_id` | UUID primary key |
+| `entity_id` | Owning entity |
+| `location_name` | Human-readable location label |
+| `geom` | Base point or line geometry |
+| `territory_geom` | Base polygon / multipolygon geometry |
+| `location_method` | Resolution method |
+| `location_confidence` | Confidence enum |
+| `is_primary` | Primary location flag |
+| `notes` | Editorial notes |
 
-**CULTURE types:**
+### `entity_geo_refs`
 
-| Value | Meaning |
+Canonical storage for external geospatial matches.
+
+| Field | Meaning |
 |---|---|
-| `cultural_work` | A text, artwork, building as cultural object, musical tradition, or other cultural product |
-| `intellectual_movement` | A school of thought, philosophical tradition, or scholarly movement |
-| `archaeological_culture` | A material-culture complex defined archaeologically |
-| `language` | A language or dialect |
-| `religious_text` | A scripture, religious canon, or sacred text |
-| `legal_code` | A law code or body of jurisprudence as a cultural artefact |
-| `religious_movement` | A religion, denomination, sect, or organised religious movement |
-| `technology` | An invention, technique, or technological system |
+| `geo_ref_id` | UUID primary key |
+| `entity_id` | Owning entity |
+| `provider` | `ohm`, `wikidata`, `geonames`, `pleiades`, or `custom` |
+| `external_type` | `node`, `way`, `relation`, `feature`, or `qid` |
+| `external_id` | Provider-native identifier |
+| `match_role` | `primary`, `candidate`, `fallback`, or `rejected` |
+| `retrieval_method` | `overpass`, `nominatim`, `rest`, or `manual` |
+| `temporal_start` / `temporal_end` | Optional textual temporal bounds |
+| `temporal_start_year` / `temporal_end_year` | Normalized year helpers |
+| `external_tags` | Raw provider metadata |
+| `source_meta` | Lookup provenance metadata |
+| `match_score` | Match strength |
+| `is_active` | Active georef flag |
 
----
+### `geometry_periods`
 
-## Time
+Canonical storage for time-varying geometry.
 
-### `temporal_start`
-**Optional (API/read-model field).**
-The year the entity began, as a number. BCE years are negative. Year 1 CE = `1`. Year 1 BCE = `-1`.
-
-Storage note: canonical temporal values are stored in `entity_temporal_ranges` (primary row per entity) and surfaced as `temporal_start` in API responses.
-
-*Note: there is no year 0 in the historical calendar; the system follows the astronomical convention where year 0 = 1 BCE.*
-
----
-
-### `temporal_end`
-**Optional (API/read-model field).**
-The year the entity ended. Leave blank for ongoing entities.
-
-Storage note: canonical temporal values are stored in `entity_temporal_ranges` and surfaced as `temporal_end` in API responses.
-
----
-
-### `date_raw`
-**Optional.**
-The date as it appears in the source you are drawing on, preserved verbatim.
-
-*Examples:* `"264 to 241 BC"`, `"r. 27 BC – AD 14"`, `"fl. 9th century"`, `"c. 1206"`, `"after 1258"`
-
-This is important for traceability — it lets a future researcher check your interpretation against the original source.
-
----
-
-### `temporal_display_range`
-**Optional.**
-A human-readable version of the date range, formatted for display.
-
-*Examples:* `"264–241 BCE"`, `"r. 27 BCE – 14 CE"`, `"c. 9th century"`, `"1206–1368"`
-
----
-
-### `era_label`
-**Optional.**
-A shorthand era name meaningful to historians of the relevant tradition.
-
-*Examples:* `"Late Republic"`, `"Tang Dynasty"`, `"Abbasid Golden Age"`, `"Early Iron Age"`, `"Warring States period"`
-
----
-
-### `duration_type`
-**Optional.**
-Whether the entity is a point event, a period, ongoing, or of uncertain duration.
-
-| Value | Meaning |
+| Field | Meaning |
 |---|---|
-| `point` | Occurred at a single moment or within a single year |
-| `period` | Lasted for a defined span of years |
-| `ongoing` | Has not ended (or had not ended as of the latest known date) |
-| `uncertain` | Duration is not known or cannot be established |
+| `geometry_period_id` | UUID primary key |
+| `entity_id` | Owning entity |
+| `period_type` | `territory`, `route`, `spread_zone`, `movement_path`, or `presence` |
+| `start_year` / `end_year` | Valid year range |
+| `geom` | Time-scoped point or line geometry |
+| `territory_geom` | Time-scoped polygon / multipolygon geometry |
+| `description` | Why this period exists |
+| `provenance_mode` | Live DB supports `manual`, `derived`, and `ohm_import` |
+| `relationship_id` | Optional relationship source |
+| `source_event_id` | Optional event source |
+| `confidence` | Geometry confidence |
+| `created_by` | Provenance string |
 
----
+### `entity_timeline_entries`
 
-### `date_confidence`
-**Optional.**
-How precise and reliable the temporal start/end dates are.
+Derived read model for timelines. This is rebuilt projection data, not hand-authored source of truth.
 
-| Value | Meaning |
+| Field | Meaning |
 |---|---|
-| `high` | Dates are attested in primary sources with year-level precision |
-| `medium` | Dates are established within a decade |
-| `low` | Dates are known only within a century |
-| `unresolved` | Dates are not known or are subject to fundamental scholarly disagreement |
+| `timeline_entry_id` | UUID primary key |
+| `entity_id` | Owning entity |
+| `entry_kind` | Projection kind |
+| `start_year` / `end_year` | Timeline span |
+| `title` / `description` | Read-model text |
+| `location_entity_id` | Optional related place/event pointer |
+| `geom` / `territory_geom` | Projected geometry for map/timeline use |
+| `source_table` / `source_id` | Canonical origin of the row |
+| `relationship_type` | Optional copied relationship metadata |
+| `related_entity_id` / `related_entity_name` | Optional related-entity helpers |
+| `derived_at` | Projection timestamp |
 
 ---
 
-### `date_method`
-**Optional.**
-How the date was determined.
+## 3. Flattened Helper Fields Exposed to the UI
 
-| Value | Meaning |
+The admin controller and some API payloads still surface a flattened entity shape for convenience.
+These fields are live, but they are not all dedicated columns on `entities`.
+
+| Exposed field | Backing store |
 |---|---|
-| `nlp_direct` | Extracted directly from a text by natural language processing |
-| `nlp_approximate` | Approximated from text by NLP |
-| `llm_reign_resolution` | Inferred from a ruler's known reign |
-| `era_table_lookup` | Looked up in the Era Date Lookup reference table |
-| `llm_contextual_inference` | Inferred from surrounding context by a language model |
-| `human_assigned` | Set by a human researcher |
-| `source_database` | Taken directly from an external trusted dataset |
+| `alternative_names` | `entity_aliases` |
+| `tags` | `entity_tags` |
+| `temporal_start` / `temporal_end` | Primary `entity_temporal_ranges` row |
+| `location_name` | Primary `entity_locations` row |
+| `geojson` or `geom` | Primary `entity_locations.geom` |
+| `territory_geojson` or `territory_geom` | Primary `entity_locations.territory_geom` |
+| `date_raw` | Currently surfaced from `attributes` |
+| `temporal_display_range` | Currently surfaced from `attributes` or computed from the primary range |
+| `era_label` | Currently surfaced from `attributes` |
+| `confidence_notes` | Currently surfaced from `attributes` |
+| `entity_color` | Currently surfaced from `attributes` |
+
+This is the main reason older docs drifted: helper fields looked like table columns even after persistence moved to normalized tables.
 
 ---
 
-## Location
+## 4. Relationship Fields Relevant to Entity Pages
 
-## Migration Flags (Current State)
+Relationships are stored in the `relationships` table, not on `entities`.
+The current live fields are:
 
-No migration flags remain in live app configuration. Canonical writes target normalized tables directly, and geometry snapshot compatibility endpoints are removed.
+- `relationship_id`
+- `source_entity_id`
+- `target_entity_id`
+- `relationship_type`
+- `temporal_start`
+- `temporal_end`
+- `start_year`
+- `end_year`
+- `description`
+- `confidence`
+- `source_citations`
+- `derive_geometry_period`
+- `created_at`
+- `created_by`
 
-### `location_name`
-**Optional (API/read-model field).**
-Plain-text description of the location, for human readers. See [for-geodata-contributors.md](./for-geodata-contributors.md) for guidance.
-
-Storage note: canonical location values are stored in `entity_locations` (primary row per entity) and surfaced as `location_name` in API responses.
-
----
-
-### `geom`
-**Optional (API/read-model field).** PostGIS point geometry (history-mappedS 84).
-The primary geographic coordinate of the entity. Longitude before latitude in decimal degrees. See [for-geodata-contributors.md](./for-geodata-contributors.md) for full guidance.
-
-Storage note: canonical point geometry is stored in `entity_locations.geom` (primary row) and may also appear in `geometry_periods` for time-scoped presence/territory facts.
-
----
-
-### `territory_geom`
-**Optional (API/read-model field).** PostGIS geometry (polygon, line, or multipart).
-The spatial extent of the entity. See [for-geodata-contributors.md](./for-geodata-contributors.md) for full guidance.
-
-Storage note: canonical area/route geometry is stored in `entity_locations.territory_geom` and in `geometry_periods` for temporal variants.
+That `derive_geometry_period` flag matters because some relationship types can create derived presence geometry periods.
 
 ---
 
-### `location_confidence`
-**Optional.** Same four values as `date_confidence`: `high`, `medium`, `low`, `unresolved`.
+## 5. Fields That Are Not Live in the Current Model
+
+These names appeared in older docs and diagrams, but they are not current live fields in the canonical model:
+
+- `parent_entity_id`
+- `successor_entity_id`
+- direct `alternative_names` array storage on `entities`
+- direct `tags` array storage on `entities`
+- direct `temporal_start`, `temporal_end`, `geom`, and `territory_geom` columns on `entities` as canonical persistence
+- `confidence_breakdown`
+- `validation_flags`
+- `source_diversity_score`
+- `media_refs`
+- `relationship_summary`
+- `nearby_entity_count`
+- `cluster_id`
+- `embedding_version`
+- `geometry_snapshots`
+
+When you need the live schema, prefer the migrations and models in `api/` over older planning docs.
 
 ---
 
-### `location_method`
-**Optional.**
-How the location was determined. See [for-geodata-contributors.md](./for-geodata-contributors.md) for the full list of values.
+## 6. Practical Reading Guide
 
----
+Use this mental model when working with an entity today:
 
-## Hierarchy and Succession
+1. `entities` holds identity, status, scoring, and shared metadata.
+2. aliases, tags, dates, and base locations live in dedicated companion tables.
+3. time-varying geometry lives in `geometry_periods`.
+4. timeline rows live in `entity_timeline_entries` and can be rebuilt.
+5. some convenience fields in UI payloads are still derived from JSON or companion tables for ease of editing.
 
-### `parent_entity_id`
-**Optional.**
-The UUID of a parent entity, representing a strict part-of or sub-unit relationship.
-
-- The Battle of Cannae is a child of the Second Punic War
-- The Duchy of Burgundy is a child of the Kingdom of France
-- Use this sparingly — complex overlapping hierarchies are better expressed through `part_of` and `contains` relationships
-
----
-
-### `successor_entity_id`
-**Optional.**
-The UUID of the entity that directly replaced this one.
-
-- The Roman Principate is the successor of the Roman Republic
-- The Abbasid Caliphate is the successor of the Umayyad Caliphate
-- Do not use this for gradual transitions; it is for a clear moment of replacement
-
----
-
-## Quantitative and Display Fields
-
-### `impact_score`
-**Optional.** Integer.
-A rough measure of historical significance used for search ranking and map display priority. Higher values surface the entity more prominently. This is not a precise academic judgement — it is a practical ranking signal.
-
-Rough guide: `100` for a world-historical turning point (e.g. the Black Death, the invention of printing), `50` for a significant regional event, `10` for a local or minor entity.
-
----
-
-### `display_priority`
-**Optional.** Integer.
-Controls rendering order when entities overlap on a map. Higher values render on top.
-
----
-
-### `icon_class`
-**Optional.**
-A visual icon associated with the entity type, used in map markers and UI display.
-
-Common values: `crown` (ruler/state), `person` (individual), `sword` (military), `city` (settlement), `scroll` (text/code), `trade_ship` (trade route), `gem` (resource), `coin` (currency), `plague` (epidemic), `earthquake` (disaster), `handshake` (treaty), `temple` (religion).
-
----
-
-### `entity_color`
-**Optional.** Hex colour string, e.g. `#c0392b`.
-Used for map visualisation and timeline display to colour-code the entity's civilisational or cultural sphere.
-
----
-
-## Quality and Provenance
-
-### `confidence`
-**Optional.** `high` / `medium` / `low` / `unresolved`.
-Overall confidence in the entity record as a whole.
-
----
-
-### `confidence_notes`
-**Optional.**
-Free-text notes explaining uncertainty, recording which sources were used, or flagging known problems with the record.
-
----
-
-### `confidence_breakdown`
-**Optional.** JSON object.
-A structured breakdown of confidence by dimension (date, location, type attribution, significance score, etc.).
-
----
-
-### `verification_status`
-**Required.** Default: `pipeline_draft`.
-The review workflow stage of the record. See [for-historians.md](./for-historians.md) for a full explanation of each status.
-
----
-
-### `validation_flags`
-**Optional.** Array of strings.
-Machine-generated flags indicating potential problems. *e.g. `["date_out_of_range", "missing_location", "duplicate_candidate"]`*. These prompt human review.
-
----
-
-### `source_citations`
-**Optional.** JSON array.
-Structured citations supporting the entity record. Each citation records source type, title, author, page, and reliability tier.
-
----
-
-### `source_diversity_score`
-**Optional.** Integer.
-An automated score reflecting how many independent source types support this record. Higher values indicate better corroboration.
-
----
-
-### `media_refs`
-**Optional.** JSON array.
-References to images, maps, or other media associated with the entity.
-
----
-
-## Derived and Computed Fields
-
-These fields are typically populated automatically; human contributors should not need to set them manually.
-
-### `attributes`
-**Optional.** JSON object.
-Type-specific structured data that does not fit the standard columns. The schema varies by `entity_type`. For example, a `person` entity might store birth/death dates, titles, and offices here; a `trade_route` might store cargo types and documented passage points.
-
----
-
-### `relationship_summary`
-**Optional.** JSON object.
-A cached summary of the entity's most important relationships, pre-computed for performance.
-
----
-
-### `nearby_entity_count`
-**Optional.** Integer.
-Number of other entities within a defined radius, pre-computed for map clustering.
-
----
-
-### `cluster_id`
-**Optional.** Integer.
-The cluster this entity belongs to in a spatial or thematic clustering analysis.
-
----
-
-### `embedding` / `embedding_version`
-**Optional.**
-A 1536-dimension vector embedding of the entity's text fields, used for semantic similarity search. Not set by human contributors — generated automatically by the pipeline.
-
----
-
-### `created_by`
-**Optional.**
-Identifier of the pipeline process or contributor that created the record.
-
----
-
-### `created_at` / `updated_at`
-Timestamps set automatically by the system.
+For editing guidance, see `for-historians.md` and `for-geodata-contributors.md`.

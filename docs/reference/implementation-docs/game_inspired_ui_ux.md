@@ -1,5 +1,8 @@
 # Historical Atlas Project — Game-Inspired UI/UX Design Guide
 
+> Status note: design inspiration only.
+> No equivalent game-inspired shell currently exists in `web/`, and the public client is still a minimal bootstrap app. Use this file as a visual/product reference, not as a statement of implemented UI.
+
 > **Version:** 1.0 — March 2026
 > **Companion to:** Data Pipeline Architecture, Entity Specification v2.0, Reference Tables
 > **Purpose:** Visual patterns from Civilization VI & Total War: Rome II applied to the Historical Atlas frontend

@@ -1,5 +1,8 @@
 # history-mapped — Web Implementation Architecture
 
+> Status note: most of this file is still a design reference, not the current `web/` implementation.
+> Current repo state: `web/` is a small React/Vite bootstrap client with `BrowserRouter`, `QueryClientProvider`, and a single home page that calls `GET /api/v1/health`. The richer map-centric architecture described below has not been built in `web/` yet. The live map/editor experience currently lives in the admin app under `api/`.
+
 **Version 1.0 — March 2026**
 
 Companion to: Data Pipeline and Storage Architecture, Foundational Architecture Document
@@ -8,9 +11,9 @@ Companion to: Data Pipeline and Storage Architecture, Foundational Architecture 
 
 ## 1. Purpose and Scope
 
-This document defines the architecture for the customer-facing Historical Atlas web application. It covers the technology stack, rendering strategy, data flow patterns, and feature architecture. It does not cover the admin panel (see companion document) or the data ingestion pipeline (see Data Pipeline Architecture).
+This document captures the target architecture for the customer-facing Historical Atlas web application. It covers the technology stack, rendering strategy, data flow patterns, and feature architecture that the repo was designed toward. It does not cover the admin panel (see companion document) or the data ingestion pipeline (see Data Pipeline Architecture).
 
-The application is an interactive, map-centric tool for exploring historical entities, events, and relationships across time and geography. The primary interface is a full-viewport map with temporal controls, search, and contextual detail panels.
+The live `web/` package does not yet implement that full experience. Today it is a minimal bootstrap client, while the map-centric authoring experience is implemented in the admin app inside `api/`.
 
 ---
 
