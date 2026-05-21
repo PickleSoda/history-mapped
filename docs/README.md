@@ -1,13 +1,33 @@
-# Documentation Structure
+# Documentation Index
 
-- **Implementation docs**: The first place where we draft new features. These are high-level, exploratory, and may include schemas, API contracts, and rationale.
-- **Plans**: Once a feature is greenlit, we add more detailed plans here, including step-by-step implementation details, migration strategies, and technical decisions.
-- **Implementation**: After planning, we implement according to the plans, referencing both the implementation docs and plans as needed.
+This repository has a mix of current runbooks, reference docs, and older planning artifacts. If you want the project as it exists today, start with these documents in this order:
 
-This structure ensures a clear progression from idea to execution, with traceable documentation at each stage.
+1. [../README.md](../README.md)
+2. [architecture_overview.md](architecture_overview.md)
+3. [implementation-docs/setup.md](implementation-docs/setup.md)
+4. [../pipeline/README.md](../pipeline/README.md)
+5. [implementation-docs/data_pipeline_architecture.md](implementation-docs/data_pipeline_architecture.md)
 
-Useful entry points:
+## Folder Guide
 
-- OHM border extraction walkthrough: [docs/implementation-docs/ohm_border_extraction_step_by_step.md](/history-mapped/docs/implementation-docs/ohm_border_extraction_step_by_step.md)
-- MVP deployment (low cost): [docs/implementation-docs/deployment_mvp_low_cost.md](/history-mapped/docs/implementation-docs/deployment_mvp_low_cost.md)
-- Production deployment (optimal): [docs/implementation-docs/deployment_production_optimal.md](/history-mapped/docs/implementation-docs/deployment_production_optimal.md)
+- `implementation-docs/`: current setup guides, runbooks, architectural notes, and deployment docs.
+- `entity-model/`: entity, relationship, timeline, and geometry model reference material.
+- `schemas/`: current payload and contract documentation for pipeline artifacts and API requests.
+- `plans/`: older implementation plans and rollout notes.
+- `superpowers/plans/` and `superpowers/specs/`: design and implementation artifacts created during agent-driven work.
+- `ext/`: external reference material and supporting notes.
+
+## Main Entry Points
+
+- [architecture_overview.md](architecture_overview.md): runtime surfaces, routing, and repository responsibilities.
+- [implementation-docs/setup.md](implementation-docs/setup.md): local setup, Docker services, commands, and route layout.
+- [../pipeline/README.md](../pipeline/README.md): Python pipeline overview and working command entry points.
+- [implementation-docs/data_pipeline_architecture.md](implementation-docs/data_pipeline_architecture.md): detailed scrape, OHM, import, and embedding flow.
+- [implementation-docs/ohm_country_subgraph_runbook.md](implementation-docs/ohm_country_subgraph_runbook.md): current OHM subgraph extraction workflow.
+- [entity-model/README.md](entity-model/README.md): entity model overview and companion references.
+- [schemas/README.md](schemas/README.md): schema-level docs for import and API payloads.
+
+## Notes on Currency
+
+- `plans/` and many files under `superpowers/` capture decisions and implementation history; they are useful for rationale but are not the best source for current runtime behavior.
+- For command syntax, prefer the README files and the command signatures in `api/app/Console/Commands/` and `pipeline/` over older plan docs.

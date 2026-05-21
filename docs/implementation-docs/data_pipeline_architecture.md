@@ -1,826 +1,223 @@
-# Data Pipeline Architecture — v1
+# Data Pipeline Architecture
 
-> **Companion to:** Entity Specification v2.1, Architecture Overview, Reference Tables
-> **Status:** v1 — core scrape-import-embed pipeline
-> **Source directory:** `pipeline/`
+> Source directories: `pipeline/` and `api/app/Console/Commands/`
 
----
+## Overview
 
-## Table of Contents
+The current data pipeline is split into two Python tracks plus a Laravel import layer:
 
-1. [Overview](#1-overview)
-2. [System Design](#2-system-design)
-3. [Python Pipeline](#3-python-pipeline)
-4. [JSONL Schema](#4-jsonl-schema)
-5. [Laravel Import Layer](#5-laravel-import-layer)
-6. [Deduplication Strategy](#6-deduplication-strategy)
-7. [Relationship Resolution](#7-relationship-resolution)
-8. [Embedding Generation](#8-embedding-generation)
-9. [Verification Workflow](#9-verification-workflow)
-10. [Operational Runbook](#10-operational-runbook)
-11. [v2+ Roadmap](#11-v2-roadmap)
-12. [Fallback Architecture: Experimental Inferred Boundary Pipeline](#12-fallback-architecture-experimental-inferred-boundary-pipeline)
+1. `pipeline/wikidata/` for generic Wikidata/Wikipedia scraping, topic graph walks, and deduplication.
+2. `pipeline/ohm_borders/` for staged OpenHistoricalMap borders processing and relation extraction.
+3. Laravel artisan commands for importing generated artifacts, resolving relationship hints, and generating embeddings.
 
----
+The system is intentionally file-based. Python writes JSONL and staged artifacts to disk first, then Laravel imports those artifacts later. This keeps the scrape and import loops decoupled and repeatable.
 
-## 1. Overview
+## Working Directory and Output Rules
 
-The data pipeline populates the entity database from Wikidata's structured knowledge graph and Wikipedia's unstructured text. It is designed as a **two-phase, offline-first process**:
+- Run `py -m pipeline ...` from the repository root.
+- `pipeline/.env` currently sets `OUTPUT_DIR=output`.
+- In the default repo workflow, that means artifacts are written to the repository-level `output/` directory.
+- The top-level `python -m pipeline` entry point does not work from inside the `pipeline/` directory unless you adjust `PYTHONPATH` yourself.
+- `--output-dir` and `--artifact-dir` can override the default paths when needed.
 
-1. **Python scraper** queries Wikidata (SPARQL) and Wikipedia (REST API) → writes JSONL files.
-2. **Laravel import** reads JSONL → creates entities and relationships via queued jobs.
-
-This architecture avoids streaming infrastructure (Kafka, RabbitMQ) in favor of simple file-based data exchange. The JSONL files act as a durable checkpoint: you can re-import, audit, or diff them without re-scraping.
-
-### Design Principles
-
-| Principle | Rationale |
-|-----------|-----------|
-| **Offline-first** | Scraping is slow and rate-limited. Decoupling scrape and import lets you iterate on import logic without re-scraping. |
-| **JSONL as interchange** | Human-readable, `git diff`-able, appendable. One entity per line enables streaming reads. |
-| **Idempotent imports** | Re-running import on the same JSONL file should not create duplicates. `wikidata_id` is the natural dedup key. |
-| **Pipeline-draft status** | All machine-generated data enters as `pipeline_draft` and must pass through verification before reaching `human_verified`. |
-| **Separate embedding pass** | Embeddings are expensive and model-specific. Generating them as a post-import step allows re-embedding when switching models without re-importing. |
-
----
-
-## 2. System Design
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         Python Pipeline                              │
-│                                                                      │
-│  ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐      │
-│  │ Wikidata │    │Wikipedia │    │  Entity  │    │  Dedup   │      │
-│  │ SPARQL   │───▶│ Enricher │───▶│  Mapper  │───▶│          │──┐   │
-│  └──────────┘    └──────────┘    └──────────┘    └──────────┘  │   │
-│                                                                 │   │
-│                                                    ┌────────────┘   │
-│                                                    ▼                │
-│                                               .jsonl files          │
-│                                          pipeline/output/           │
-└──────────────────────────────────────────────────────────────────────┘
-                            │
-                            │  php artisan pipeline:import
-                            ▼
-┌──────────────────────────────────────────────────────────────────────┐
-│                         Laravel Import                               │
-│                                                                      │
-│  ┌──────────────────┐    ┌──────────────────┐    ┌────────────────┐ │
-│  │ImportEntities    │    │ImportEntityJob    │    │ResolveRelation-│ │
-│  │Command           │───▶│(queued per chunk) │───▶│shipsJob        │ │
-│  └──────────────────┘    └──────────────────┘    └────────────────┘ │
-│                                                                      │
-│           ┌──────────────────┐    ┌──────────────────┐              │
-│           │GenerateEmbeddings│    │GenerateEntity     │              │
-│           │Command           │───▶│EmbeddingJob       │              │
-│           └──────────────────┘    └──────────────────┘              │
-│                                                                      │
-│  ┌─────────────────────────────────────────────────────────────┐    │
-│  │        PostgreSQL (entities, relationships, embeddings)      │    │
-│  │        + pipeline_relationship_hints staging table           │    │
-│  └─────────────────────────────────────────────────────────────┘    │
-└──────────────────────────────────────────────────────────────────────┘
-```
-
-### Data Flow Summary
-
-| Stage | Input | Output | Tool |
-|-------|-------|--------|------|
-| 1. Scrape | SPARQL endpoint | Raw Wikidata items (dicts) | `pipeline.scraper.wikidata` |
-| 2. Enrich | Raw items + Wikipedia API | Items with summaries, infobox data | `pipeline.scraper.wikipedia` |
-| 3. Map | Enriched items | JSONL entities matching entity spec | `pipeline.mapper.entity_mapper` |
-| 4. Dedup | Mapped entities | Deduplicated entity list | `pipeline.dedup.deduplicator` |
-| 5. Write | Deduplicated entities | `pipeline/output/{type}.jsonl` | CLI |
-| 6. Import | JSONL files | `entities` + `pipeline_relationship_hints` rows | `pipeline:import` |
-| 7. Resolve | Staging table | `relationships` rows | `ResolveRelationshipsJob` |
-| 8. Embed | Entities without embeddings | `embedding` column filled | `pipeline:embeddings` |
-
----
-
-## 3. Python Pipeline
-
-### Directory Structure
-
-```
-pipeline/
-├── __init__.py
-├── __main__.py          # CLI entry point (click + rich)
-├── config.py            # Settings from .env, entity group registry
-├── requirements.txt     # Python dependencies
-├── .env.example
-├── scraper/
-│   ├── wikidata.py      # SPARQL query builder + result parser
-│   └── wikipedia.py     # Wikipedia REST API + wptools infobox
-├── mapper/
-│   ├── type_configs.py  # Wikidata QID → entity_type mapping for all 30 types
-│   ├── entity_mapper.py # Raw item → JSONL entity
-│   └── relationship_mapper.py  # Wikidata P-properties → 76 relationship types
-├── dedup/
-│   └── deduplicator.py  # 3-layer dedup (QID, fuzzy, DB)
-├── embeddings/
-│   └── generator.py     # OpenAI embedding generation (optional Python-side)
-├── queries/
-│   ├── polity.sparql    # Reference SPARQL for manual testing
-│   ├── place.sparql
-│   ├── event.sparql
-│   ├── economy.sparql
-│   └── culture.sparql
-└── output/
-    └── .gitkeep         # JSONL output directory (gitignored)
-```
-
-### CLI Usage
-
-```bash
-# Install dependencies
-cd pipeline && pip install -r requirements.txt
-
-# Scrape a single type
-python -m pipeline scrape --type political_entity --limit 200 --start-year -3000
-
-# Scrape an entire group
-python -m pipeline scrape --group POLITY --limit 100
-
-# Dedup an existing JSONL file
-python -m pipeline dedup pipeline/output/political_entity.jsonl
-
-# Dedup with DB check (requires DATABASE_URL in .env)
-python -m pipeline dedup pipeline/output/political_entity.jsonl --check-db
-```
-
-### 3.1 Wikidata Scraper (`scraper/wikidata.py`)
-
-Builds SPARQL queries per entity type using configuration from `mapper/type_configs.py`. Each type maps to one or more Wikidata classes (Q-items) and properties (P-items).
-
-**Query structure:**
-
-```sparql
-SELECT ?item ?itemLabel ?coord ?inception ?dissolved ?article WHERE {
-  ?item wdt:P31/wdt:P279* wd:Q3024240 .       # instance of (or subclass of) historical country
-  OPTIONAL { ?item wdt:P625 ?coord . }          # coordinate location
-  OPTIONAL { ?item wdt:P571 ?inception . }      # inception date
-  OPTIONAL { ?item wdt:P576 ?dissolved . }      # dissolved date
-  OPTIONAL { ?article schema:about ?item ;
-             schema:isPartOf <https://en.wikipedia.org/> . }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
-}
-LIMIT 200
-```
-
-**Rate limiting:** 1 request per second to the public SPARQL endpoint. Batch property enrichment uses 50 QIDs per request.
-
-**Coordinate parsing:** Wikidata returns WKT `Point(lon lat)` strings. The scraper parses these into `[lon, lat]` arrays suitable for GeoJSON.
-
-**Date parsing:** `xsd:dateTime` values are parsed to year integers. Negative years indicate BCE dates.
-
-### 3.2 Wikipedia Enricher (`scraper/wikipedia.py`)
-
-For each entity that has a linked Wikipedia article:
-
-1. **TextExtracts API** — fetches the first 3 sentences (plain text, no HTML).
-2. **wptools infobox** — parses structured infobox data for supplementary attributes.
-3. **Redirect collection** — captures redirect titles as `alternative_names`.
-
-Batch API calls: up to 20 titles per request (Wikipedia API limit).
-
-### 3.3 Entity Mapper (`mapper/entity_mapper.py`)
-
-Transforms raw scraped items into the JSONL schema that matches the Entity Specification v2.1. Key transformations:
-
-| Source | Target Field | Logic |
-|--------|-------------|-------|
-| `itemLabel` | `name` | Direct mapping |
-| Redirect titles | `alternative_names` | Collected from Wikipedia redirects |
-| `coord` | `geom` | `{"type": "Point", "coordinates": [lon, lat]}` |
-| `inception` | `temporal_start`, `temporal_start_year` | Year extraction, sign for BCE |
-| `dissolved` | `temporal_end`, `temporal_end_year` | Year extraction |
-| Start/end distance | `duration_type` | `instant` if same year, `period` otherwise |
-| TextExtract | `summary` | First 3 sentences from Wikipedia |
-| Heuristic analysis | `tags` | Era detection (ancient, medieval, etc.) + geographic keywords |
-| Article length + property count | `impact_score` | 0.0–1.0 heuristic estimate |
-| Type config `field_map` | `attributes` | Type-specific JSONB attributes |
-
-**Relationship hints:** The mapper also extracts `_relationship_hints` — an array of objects like:
-
-```json
-{
-  "relationship_type": "capital_of",
-  "target_wikidata_id": "Q220",
-  "target_label": "Rome",
-  "wikidata_property": "P36",
-  "confidence": "high"
-}
-```
-
-These are passed through in the JSONL but stripped by `ImportEntityJob` before entity creation. They're staged in `pipeline_relationship_hints` for later batch resolution.
-
-### 3.4 Type Configuration (`mapper/type_configs.py`)
-
-Maps all 30 entity types to their Wikidata classes and properties. Example:
-
-```python
-"political_entity": {
-    "classes": ["Q3024240", "Q6256", "Q3624078"],  # historical country, country, sovereign state
-    "properties": {
-        "P36": "capital",
-        "P17": "country",
-        "P571": "inception",
-        "P576": "dissolved",
-    },
-    "field_map": {
-        "government_type": "P122",
-        "official_language": "P37",
-    },
-},
-```
-
-### 3.5 Relationship Mapper (`mapper/relationship_mapper.py`)
-
-Maps ~35 Wikidata properties to the 76 history-mapped relationship types. Features:
-
-- **Context disambiguation:** Some Wikidata properties map to different relationship types depending on entity type. E.g., `P710` (participant) → `signed_by` for treaties, `participated_in` otherwise.
-- **Inverse tracking:** Records both the forward relationship and the inverse (e.g., `administered_by` ↔ `administered`).
-- **Symmetric types:** Relationships like `married_to` and `allied_with` are marked symmetric — only one direction needs to be stored.
-
----
-
-## 4. JSONL Schema
-
-Each line in a `.jsonl` file is a JSON object conforming to this schema:
-
-```jsonc
-{
-  // Required
-  "name": "Roman Empire",
-  "entity_type": "political_entity",
-  "entity_group": "POLITY",
-  "wikidata_id": "Q2277",
-
-  // Temporal (nullable)
-  "temporal_start": "27 BCE",
-  "temporal_end": "476 CE",
-  "temporal_start_year": -27,
-  "temporal_end_year": 476,
-  "duration_type": "period",
-
-  // Spatial (nullable)
-  "geom": {
-    "type": "Point",
-    "coordinates": [12.4964, 41.9028]
-  },
-
-  // Content
-  "summary": "The Roman Empire was the post-Republican state...",
-  "significance": null,
-  "alternative_names": ["Imperium Romanum", "Eastern Roman Empire"],
-  "tags": ["ancient", "europe", "mediterranean"],
-
-  // Type-specific
-  "attributes": {
-    "government_type": "autocracy",
-    "official_language": "Latin"
-  },
-
-  // Pipeline metadata
-  "impact_score": 0.92,
-  "sources": [
-    {
-      "source_type": "url",
-      "url": "https://www.wikidata.org/wiki/Q2277",
-      "accessed_at": "2026-03-21"
-    },
-    {
-      "source_type": "url",
-      "url": "https://en.wikipedia.org/wiki/Roman_Empire",
-      "accessed_at": "2026-03-21"
-    }
-  ],
-
-  // Stripped before import (staged separately)
-  "_relationship_hints": [
-    {
-      "relationship_type": "capital_of",
-      "target_wikidata_id": "Q220",
-      "target_label": "Rome",
-      "wikidata_property": "P36",
-      "confidence": "high"
-    }
-  ]
-}
-```
-
-**Conventions:**
-
-- Fields prefixed with `_` are pipeline metadata stripped during import.
-- `wikidata_id` is the primary dedup key across all pipeline operations.
-- `temporal_start_year` / `temporal_end_year` are integers (negative = BCE).
-- `geom` uses GeoJSON geometry format (currently Point; v2 adds Polygon/LineString).
-- `sources` array carries provenance for every entity.
-
----
-
-## 5. Laravel Import Layer
-
-### 5.1 Import Command (`pipeline:import`)
-
-```bash
-# Import a single file
-php artisan pipeline:import pipeline/output/political_entity.jsonl
-
-# Import all JSONL files in the output directory
-php artisan pipeline:import pipeline/output/ --all
-
-# Synchronous mode (for debugging / small batches)
-php artisan pipeline:import pipeline/output/city.jsonl --sync
-
-# Skip dedup check (when you know the file is clean)
-php artisan pipeline:import pipeline/output/city.jsonl --skip-dedup
-
-# Custom batch ID for tracking
-php artisan pipeline:import pipeline/output/ --all --batch-id=v1-initial
-```
-
-**Behavior:**
-
-1. Reads each `.jsonl` file line by line (memory-efficient streaming).
-2. Checks for existing entities by `wikidata_id` or exact `name + entity_type` match.
-3. Dispatches `ImportEntityJob` for each new entity (or processes synchronously with `--sync`).
-4. After all entity jobs complete, dispatches `ResolveRelationshipsJob` to process the staging table.
-
-### 5.2 Import Entity Job
-
-- Validates minimum required fields (`name`, `entity_type`, `entity_group`).
-- Strips `_relationship_hints` and `_infobox` metadata.
-- Forces `verification_status` to `pipeline_draft`.
-- Builds `EntityData` DTO and calls `CreateEntityAction`.
-- Stages relationship hints in `pipeline_relationship_hints` table.
-- Queued with 3 retries, 10-second backoff.
-
-### 5.3 Embedding Command (`pipeline:embeddings`)
-
-```bash
-# Generate embeddings for all entities that don't have one
-php artisan pipeline:embeddings --pending
-
-# Regenerate all embeddings (e.g., after model upgrade)
-php artisan pipeline:embeddings --all --reembed
-
-# Only a specific type
-php artisan pipeline:embeddings --type political_entity
-```
-
-### 5.4 Embedding Job
-
-Builds a canonical text representation of the entity:
-
-```
-[political_entity] Roman Empire (Imperium Romanum; Eastern Roman Empire)
-The Roman Empire was the post-Republican state of ancient Rome.
-Significance: [if available]
-Tags: ancient, europe, mediterranean
-Temporal: 27 BCE – 476 CE
-Location: 41.9028°N, 12.4964°E
-```
-
-Calls OpenAI `text-embedding-3-small` (1536 dimensions) and stores the result vector in the `embedding` column. The same canonical format is used in both the Python `pipeline/embeddings/generator.py` and the PHP `GenerateEntityEmbeddingJob` to ensure consistency.
-
----
-
-## 6. Deduplication Strategy
-
-Deduplication operates at three layers:
-
-### Layer 1: Wikidata ID Exact Match
-
-**Where:** Python pipeline + Laravel import.
-
-If two entities share the same `wikidata_id` (QID), they are the same entity. The first occurrence wins; later occurrences merge their `alternative_names` and `sources`.
-
-### Layer 2: Fuzzy Name + Temporal Overlap
-
-**Where:** Python pipeline (`pipeline/dedup/deduplicator.py`).
-
-For entities without a QID match, the deduplicator applies:
-
-1. **Same `entity_type`** — only compares within the same type.
-2. **Fuzzy name match** — `thefuzz.fuzz.token_sort_ratio(a, b) >= 88`.
-3. **Temporal overlap** — if both entities have temporal data, their year ranges must overlap. Missing dates are treated as "can't disprove overlap" (conservative).
-
-When a fuzzy match is found, names are merged and the entity with more attributes wins.
-
-### Layer 3: Database Check (Optional)
-
-**Where:** Python pipeline with `--check-db` flag.
-
-Queries PostgreSQL using `pg_trgm` trigram similarity:
-
-```sql
-SELECT entity_id, name, entity_type
-FROM entities
-WHERE entity_type = $1
-  AND similarity(name, $2) > 0.6
-ORDER BY similarity(name, $2) DESC
-LIMIT 5;
-```
-
-Results are then verified in Python with `token_sort_ratio >= 88` to avoid false positives from the DB's coarser similarity threshold.
-
-**Requires:** `pg_trgm` extension (already in `docker/db/init-extensions.sql`).
-
-### Import-Time Dedup
-
-The `ImportEntitiesCommand` performs a final check before dispatching jobs:
-
-```php
-// Check by wikidata_id
-$exists = Entity::where('wikidata_id', $data['wikidata_id'])->exists();
-
-// If no wikidata_id, check by exact name + type
-if (!$exists && isset($data['name'])) {
-    $exists = Entity::where('name', $data['name'])
-        ->where('entity_type', $data['entity_type'])
-        ->exists();
-}
-```
-
----
-
-## 7. Relationship Resolution
-
-Relationships cannot be created during entity import because the target entity may not exist yet. The pipeline uses a **two-phase approach**:
-
-### Phase 1: Hint Staging (During Import)
-
-`ImportEntityJob` writes relationship hints to the `pipeline_relationship_hints` table:
-
-| Column | Type | Description |
-|--------|------|-------------|
-| `source_entity_id` | uuid (FK) | The entity that was just imported |
-| `relationship_type` | string | One of the 76 history-mapped relationship types |
-| `target_wikidata_id` | string | QID of the target entity (e.g., `Q220`) |
-| `target_label` | string | Human-readable label for logging |
-| `confidence` | string | `high`, `medium`, or `low` |
-| `wikidata_property` | string | Source Wikidata property (e.g., `P36`) |
-| `batch_id` | string | Groups hints for batch processing |
-| `resolved` | boolean | Set to `true` after processing |
-
-### Phase 2: Batch Resolution (After Import)
-
-`ResolveRelationshipsJob` processes all unresolved hints for a batch:
-
-1. **Lookup target**: `Entity::where('wikidata_id', $hint->target_wikidata_id)->first()`
-2. **Dedup check**: Ensures no existing relationship with the same `(source, target, type)` or `(target, source, type)` for symmetric types.
-3. **Self-reference guard**: Skips hints where source and target resolve to the same entity.
-4. **Create relationship**: Inserts into the `relationships` table with source citations.
-5. **Mark resolved**: Sets `resolved = true` and records a note.
-
-**Symmetric types** (e.g., `married_to`, `allied_with`, `neighbour_of`) are checked bidirectionally — if `A married_to B` already exists, `B married_to A` is skipped.
-
-### Wikidata Property Mapping
-
-~35 Wikidata properties are mapped to history-mapped relationship types in `mapper/relationship_mapper.py`. Examples:
-
-| Wikidata Property | history-mapped Type | Inverse |
-|-------------------|----------------|---------|
-| P36 (capital) | `capital_of` | `has_capital` |
-| P17 (country) | `located_in_territory` | `administered` |
-| P155 (follows) | `succeeded_by` | `preceded_by` |
-| P156 (followed by) | `preceded_by` | `succeeded_by` |
-| P710 (participant) | `participated_in` / `signed_by` | context-dependent |
-| P22 (father) | `parent_of` | `child_of` |
-| P40 (child) | `child_of` | `parent_of` |
-| P26 (spouse) | `married_to` | `married_to` (symmetric) |
-| P530 (diplomatic relation) | `allied_with` | `allied_with` (symmetric) |
-| P127 (owned by) | `patronized` | `patronized_by` |
-| P108 (employer) | `employed_by` | `employed` |
-
----
-
-## 8. Embedding Generation
-
-### Strategy
-
-Embeddings are generated as a **separate post-import pass**, not during scraping. This decision is driven by:
-
-1. **Model flexibility** — re-embed everything when switching from `text-embedding-3-small` to a newer model.
-2. **Update handling** — when an entity's summary or attributes change, its embedding can be regenerated independently.
-3. **Cost control** — embeddings are the most expensive pipeline operation; separating them allows throttling.
-
-### Canonical Text Format
-
-Both the Python (`pipeline/embeddings/generator.py`) and PHP (`GenerateEntityEmbeddingJob.php`) implementations produce identical text for the same entity:
-
-```
-[{entity_type}] {name} ({alternative_names joined by "; "})
-{summary}
-Significance: {significance}
-Tags: {tags joined by ", "}
-Temporal: {temporal_start} – {temporal_end}
-Location: {lat}°N/S, {lon}°E/W
-```
-
-This ensures that embeddings generated in Python (for bulk pre-generation) and PHP (for incremental updates via admin panel) are directly comparable in vector space.
-
-### Storage
-
-- **Column:** `embedding vector(1536)` on the `entities` table.
-- **Index:** HNSW with `vector_cosine_ops` for approximate nearest-neighbor search.
-- **Version tracking:** `embedding_version` column stores the model name/version.
-
-### Search Query
-
-```sql
-SELECT entity_id, name, entity_type,
-       1 - (embedding <=> $1::vector) AS similarity
-FROM entities
-WHERE embedding IS NOT NULL
-ORDER BY embedding <=> $1::vector
-LIMIT 20;
-```
-
----
-
-## 9. Verification Workflow
-
-All pipeline-imported data follows the verification status workflow:
-
-```
-pipeline_draft → auto_validated → needs_review → human_verified
-       │                                              │
-       └──────────── rejected ◄──────────────────────┘
-```
-
-| Status | Meaning |
-|--------|---------|
-| `pipeline_draft` | Machine-generated, not yet validated |
-| `auto_validated` | Passed automated checks (has name, type, temporal data, reasonable coordinates) |
-| `needs_review` | Flagged for human attention (low confidence, missing fields, unusual data) |
-| `human_verified` | Confirmed correct by a human reviewer |
-| `rejected` | Determined to be incorrect or duplicate |
-
-**v1 scope:** All imported entities start as `pipeline_draft`. Auto-validation and the review queue are v2 features.
-
----
-
-## 10. Operational Runbook
-
-### First-Time Setup
-
-```bash
-# 1. Set up Python environment
-cd pipeline
-python -m venv .venv
-.venv/bin/activate        # or .venv\Scripts\activate on Windows
-pip install -r requirements.txt
-cp .env.example .env
-# Edit .env: set OPENAI_API_KEY, adjust rate limits
-
-# 2. Ensure Laravel queue worker is running
-cd ../api
-php artisan queue:work --queue=default --tries=3
-
-# 3. Ensure pg_trgm extension exists (for DB dedup)
-# Already handled by docker/db/init-extensions.sql
-```
-
-### Full Pipeline Run
-
-```bash
-# Step 1: Scrape all groups (conservative limits for v1)
-cd pipeline
-python -m pipeline scrape --group POLITY --limit 200
-python -m pipeline scrape --group PLACE --limit 200
-python -m pipeline scrape --group EVENT --limit 200
-python -m pipeline scrape --group ECONOMY --limit 100
-python -m pipeline scrape --group CULTURE --limit 100
-
-# Step 2: Review JSONL output
-ls -la output/               # Check file sizes
-head -1 output/political_entity.jsonl | python -m json.tool   # Spot check
-
-# Step 3: Import into Laravel
-cd ../api
-php artisan pipeline:import ../pipeline/output/ --all --batch-id=v1-initial
-
-# Step 4: Check import results
-php artisan tinker --execute="echo Entity::count();"
-
-# Step 5: Generate embeddings
-php artisan pipeline:embeddings --pending
-
-# Step 6: Verify embedding coverage
-php artisan tinker --execute="echo Entity::whereNull('embedding')->count();"
-```
-
-### Incremental Updates
-
-```bash
-# Scrape only new political entities from the last 500 years
-python -m pipeline scrape --type political_entity --start-year 1500 --limit 50
-
-# Import (dedup will skip existing entities)
-php artisan pipeline:import ../pipeline/output/political_entity.jsonl
-
-# Generate embeddings for new entities only
-php artisan pipeline:embeddings --pending
-```
-
-### Troubleshooting
-
-| Issue | Cause | Fix |
-|-------|-------|-----|
-| SPARQL timeout | Query too broad | Reduce `--limit`, add `--start-year`/`--end-year` filters |
-| `ImportEntityJob` fails | Missing required fields | Check JSONL line with `jq`. Must have `name`, `entity_type`, `entity_group`. |
-| Duplicate entities after import | `wikidata_id` missing | Run `python -m pipeline dedup` before importing |
-| Embedding job timeout | OpenAI rate limit | Reduce chunk size in `GenerateEmbeddingsCommand` |
-| Relationships not created | Target entity not imported yet | Re-run `ResolveRelationshipsJob` after importing more data |
-
----
-
-## 11. v2+ Roadmap
-
-### v2: LLM Enrichment & Auto-Validation
-
-- **LLM enrichment pass** — Use GPT-4o / Claude to generate `significance` text, resolve fuzzy dates ("mid-3rd century" → year range), and fill missing attributes.
-- **Auto-validation rules** — Automated checks that promote `pipeline_draft` → `auto_validated`:
-  - Has `name` and `entity_type`
-  - Has at least one temporal field
-  - Coordinates are within valid ranges
-  - `summary` length > 50 characters
-  - `wikidata_id` is well-formed (Q + digits)
-- **Review queue UI** — Admin panel page listing `needs_review` entities with inline editing.
-
-### v2: Advanced Geometry
-
-- **Polygons for territories** — Scrape simplified boundary geometries from Wikidata/OpenHistoricalMap for political entities and display on the map.
-- **LineStrings for trade routes** — Approximate route geometries from waypoint sequences.
-- **Geometry periods** — Time-varying geometries stored in canonical `geometry_periods` rows, keyed by year ranges and provenance metadata.
-
-### v3: Scheduled Pipeline & Monitoring
-
-- **Cron-based scraping** — Laravel scheduler triggers Python scraper via `Process::run()`.
-- **Data quality dashboard** — Track coverage per entity type, field completeness, embedding coverage.
-- **Change detection** — Compare Wikidata entity revision IDs to detect upstream changes and trigger re-imports.
-- **Pipeline metrics** — Import rate, failure rate, dedup hit rate, relationship resolution rate.
-
-### v3: Community Contributions
-
-- **CSV/JSONL upload** — Allow researchers to upload entity files through the admin panel.
-- **Wikipedia watchlist integration** — Monitor Wikipedia articles linked to entities and flag changes.
-- **Source quality scoring** — Weight sources by reliability and freshness.
-
----
-
-## 12. Fallback Architecture: Experimental Inferred Boundary Pipeline
-
-> **New in v1.1:** Adds a fully automated, license-safe fallback pipeline for inferred historical boundaries when no OHM geometry is available and no human review is possible. See [Plan 14](../plans/14-experimental-inferred-boundary-fallback-pipeline.md) for full details.
-
-### Overview
-
-When a map view requests a polity boundary for date `t`:
-
-1. Use verified geometry if available.
-2. Else check OHM-derived geometry periods.
-3. Else check inferred-layer snapshots (from fallback pipeline).
-4. If no inferred snapshot passes the confidence threshold, render nothing.
-
-This hybrid abstention model ensures no border is shown rather than a low-confidence or license-unsafe border.
-
-### Fallback Pipeline Flow
+## Current Module Layout
 
 ```text
-OHM / open datasets / terrain / places / text constraints
-      │
-      ▼
-  Compliance gate + provenance manifest
-      │
-      ▼
-    Gap detection stage
-      │
-      ▼
-  Candidate evidence bundle
-      │
-      ▼
-  Inference engines (parallel)
-    - temporal interpolation
-    - influence field growth
-    - constrained Voronoi
-    - text constraint geometry
-    - region occupancy model
-      │
-      ▼
-    Candidate polygon set
-      │
-      ▼
-  Scoring + topology validation
-      │
-      ┌─────┴─────┐
-      ▼           ▼
- publish      abstain / drop
-      │
-      ▼
- inferred_geometry_periods
+pipeline/
+├── __main__.py              # Unified CLI dispatcher
+├── config.py                # Settings, env loading, entity groups
+├── tests/                   # Python verification suite
+├── wikidata/
+│   ├── __main__.py          # scrape / topic / dedup commands
+│   ├── dedup/
+│   ├── embeddings/
+│   ├── mapper/
+│   ├── queries/
+│   ├── resolver/
+│   └── scraper/
+└── ohm_borders/
+    ├── __main__.py
+    ├── artifacts.py
+    ├── enricher.py
+    ├── fetcher.py
+    ├── index_builder.py
+    ├── index_store.py
+    ├── stage_*.py
+    ├── stages.py
+    └── subgraph_extractor.py
 ```
 
-### Hard Constraints
-- **No human review:** All acceptance/rejection is automated.
-- **License-safe only:** No proprietary or unclear-license sources.
-- **Inferred output is not canonical:** Separate storage, explicit metadata (`geometry_origin = inferred`, `confidence_score`, etc.).
+## 1. Wikidata Pipeline
 
-See also: [Plan 14 — Experimental Inferred Boundary Fallback Pipeline](../plans/14-experimental-inferred-boundary-fallback-pipeline.md)
+### Commands
 
----
+| Command | Purpose |
+|---------|---------|
+| `py -m pipeline scrape` | Scrape entities by type or group |
+| `py -m pipeline topic` | BFS graph-walk from a named entity or Wikidata QID |
+| `py -m pipeline dedup` | Deduplicate an existing JSONL file, optionally against the database |
 
-## Appendix A: Configuration Reference
+### Flow
 
-### Python Pipeline (`.env`)
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `WIKIDATA_ENDPOINT` | `https://query.wikidata.org/sparql` | SPARQL endpoint URL |
-| `USER_AGENT` | `history-mappedPipeline/1.0` | HTTP User-Agent header |
-| `OPENAI_API_KEY` | (none) | For Python-side embedding generation |
-| `OUTPUT_DIR` | `pipeline/output` | JSONL output directory |
-| `RATE_LIMIT_CALLS` | `1` | Max requests per rate-limit period |
-| `RATE_LIMIT_PERIOD` | `1` | Seconds per rate-limit period |
-| `DATABASE_URL` | (none) | PostgreSQL connection for DB dedup |
-
-### Laravel (`.env`)
-
-| Variable | Description |
-|----------|-------------|
-| `OPENAI_API_KEY` | For PHP-side embedding generation |
-| `OPENAI_EMBEDDING_MODEL` | Model name (default: `text-embedding-3-small`) |
-
-### Laravel Config (`config/services.php`)
-
-```php
-'openai' => [
-    'api_key' => env('OPENAI_API_KEY'),
-    'embedding_model' => env('OPENAI_EMBEDDING_MODEL', 'text-embedding-3-small'),
-],
+```mermaid
+flowchart LR
+    WD[Wikidata SPARQL] --> Scraper[scraper/wikidata.py]
+    WP[Wikipedia API] --> Wiki[scraper/wikipedia.py]
+    Scraper --> Mapper[mapper/entity_mapper.py]
+    Wiki --> Mapper
+    Mapper --> Hints[mapper/relationship_mapper.py]
+    Mapper --> Dedup[dedup/deduplicator.py]
+    Dedup --> JSONL[output/*.jsonl]
 ```
 
----
+### Output buckets
 
-## Appendix B: Migration Reference
+Common outputs include:
 
-### `pipeline_relationship_hints` Table
+- `output/<entity_type>.jsonl`
+- `output/topic_<slug>.jsonl`
+- `output/topic_<slug>_ref.jsonl`
+- `output/topic_<slug>_untyped.jsonl`
 
-```sql
-CREATE TABLE pipeline_relationship_hints (
-    id              BIGSERIAL PRIMARY KEY,
-    source_entity_id UUID NOT NULL REFERENCES entities(entity_id) ON DELETE CASCADE,
-    relationship_type VARCHAR NOT NULL,
-    target_wikidata_id VARCHAR NOT NULL,
-    target_label     VARCHAR,
-    confidence       VARCHAR DEFAULT 'medium',
-    wikidata_property VARCHAR,
-    batch_id         VARCHAR NOT NULL,
-    resolved         BOOLEAN DEFAULT FALSE,
-    resolution_note  VARCHAR,
-    created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+Reference-table and untyped topic files are intentionally separated so Laravel can skip them during the normal `pipeline:import --all` workflow.
 
-CREATE INDEX idx_prh_batch ON pipeline_relationship_hints (batch_id);
-CREATE INDEX idx_prh_resolved_batch ON pipeline_relationship_hints (resolved, batch_id);
-CREATE INDEX idx_prh_target_wikidata ON pipeline_relationship_hints (target_wikidata_id);
+### Important implementation pieces
+
+- `scraper/wikidata.py`: batched SPARQL queries and property enrichment.
+- `scraper/wikipedia.py`: summary extraction and infobox enrichment.
+- `scraper/topic.py`: BFS graph walk from a seed entity.
+- `mapper/type_configs.py`: entity-type mapping and field configuration.
+- `mapper/relationship_mapper.py`: relationship-hint extraction.
+- `dedup/deduplicator.py`: QID, fuzzy-name, and optional DB-backed deduplication.
+- `resolver/geo_resolver.py`: OHM-oriented geo-resolution helpers used during scrape workflows.
+
+## 2. OHM Borders Pipeline
+
+The OHM pipeline is staged and resumable. Each run is keyed by a `run_id` and writes a structured artifact tree under `output/ohm_borders/<run_id>/`.
+
+### Core commands
+
+| Command | Purpose |
+|---------|---------|
+| `borders build-index` | Build or refresh a reusable SQLite index for a raw OHM payload |
+| `borders extract-subgraph` | Derive a seed-centered OHM subgraph from an indexed global payload |
+| `borders fetch` | Download the Overpass payload and shard raw relations |
+| `borders parse` | Parse raw shards into polity records |
+| `borders enrich` | Attach Wikidata and Wikipedia metadata |
+| `borders build` | Map enriched records into importer-ready entity JSONL |
+| `borders run` | Run fetch, parse, enrich, and build together |
+| `borders relations-scan` | Extract predecessor, successor, and event candidates |
+| `borders relations-enrich` | Enrich relation targets |
+| `borders relations-build` | Emit importer-ready relation entity and hint files |
+| `borders relations-run` | Run the full relation pipeline |
+
+### Artifact layout
+
+```text
+output/ohm_borders/<run_id>/
+├── manifest.json
+├── raw/
+├── parsed/
+├── enriched/
+├── built/
+├── final/
+│   └── ohm_borders.jsonl
+├── relations_candidates/
+├── relations_enriched/
+├── relations_built/
+├── relations_final/
+│   ├── ohm_relation_entities.jsonl
+│   └── ohm_relation_hints.jsonl
+└── subgraph/
+    ├── seed.json
+    ├── graph_edges.jsonl
+    └── closure_report.json
 ```
 
----
+### Typical OHM run order
 
-## Appendix C: Entity Type → Wikidata Class Reference
+```powershell
+py -m pipeline borders run --run-id global-2026-04-15 --parse-workers 8 --enrich-names
+py -m pipeline borders relations-run --run-id global-2026-04-15 --resume
+```
 
-| Entity Type | Primary Wikidata Class | QID |
-|------------|----------------------|-----|
-| `political_entity` | Historical country | Q3024240 |
-| `dynasty` | Dynasty | Q164950 |
-| `person` | Human (filtered: politician) | Q5 |
-| `military_unit` | Military unit | Q176799 |
-| `diplomatic_relationship` | Treaty | Q131569 |
-| `social_class` | Social class | Q187588 |
-| `city` | City | Q515 |
-| `infrastructure_monument` | Monument | Q4989906 |
-| `extraction_infra` | Mine | Q820477 |
-| `educational_institution` | University | Q3918 |
-| `event_war` | War | Q198 |
-| `event_battle` | Battle | Q178561 |
-| `event_treaty` | Treaty | Q131569 |
-| `event_rebellion` | Rebellion | Q124734 |
-| `event_natural_disaster` | Natural disaster | Q8065 |
-| `event_tech_adoption` | Invention | Q15061650 |
-| `event_legal_reform` | Reform | Q327333 |
-| `migration` | Human migration | Q187668 |
-| `epidemic_disease` | Epidemic | Q44512 |
-| `trade_route` | Trade route | Q208736 |
-| `natural_resource` | Natural resource | Q188460 |
-| `currency_monetary_system` | Currency | Q8142 |
-| `cultural_work` | Work of art | Q838948 |
-| `intellectual_movement` | Intellectual movement | Q2198855 |
-| `archaeological_culture` | Archaeological culture | Q465299 |
-| `language` | Language | Q34770 |
-| `religious_text` | Religious text | Q179461 |
-| `legal_code` | Code of law | Q2135540 |
-| `religious_movement` | Religious movement | Q2061186 |
-| `technology` | Technology | Q11016 |
+For subset runs based on a global dump:
+
+```powershell
+py -m pipeline borders build-index --input output/ohm_borders/global-2026-04-14/raw/overpass.json
+py -m pipeline borders extract-subgraph --input output/ohm_borders/global-2026-04-14/raw/overpass.json --seed-name "Roman Empire" --run-id roman-empire-subgraph --resume
+py -m pipeline borders parse --run-id roman-empire-subgraph --resume
+py -m pipeline borders enrich --run-id roman-empire-subgraph --resume --enrich-names
+py -m pipeline borders build --run-id roman-empire-subgraph --resume
+py -m pipeline borders relations-run --run-id roman-empire-subgraph --resume
+```
+
+## 3. Laravel Import Layer
+
+The Laravel app consumes pipeline artifacts through artisan commands under `api/app/Console/Commands/`.
+
+| Command | Input | Purpose |
+|---------|-------|---------|
+| `pipeline:import` | JSONL file or directory | Import generic Wikidata/topic records |
+| `pipeline:import-borders` | `final/ohm_borders.jsonl` | Import OHM country/entity records |
+| `pipeline:import-border-relations` | `relations_final/` directory | Import OHM relation entities and stage hints |
+| `pipeline:embeddings` | Database rows | Generate or refresh pgvector embeddings |
+
+### Important command behavior
+
+- `pipeline:import` supports `--all`, `--sync`, `--force`, `--skip-dedup`, `--skip-relationships`, `--batch-id`, and `--chunk`.
+- `pipeline:import-borders` supports `--sync`, `--force`, and `--batch-id`.
+- `pipeline:import-border-relations` supports `--sync`, `--force`, `--skip-resolve`, and `--batch-id`.
+- `pipeline:embeddings` supports `--pending`, `--all`, `--type`, `--group`, `--reembed`, `--model`, `--chunk`, and `--sync`.
+
+## 4. End-to-End Workflows
+
+### Generic Wikidata/topic import
+
+```powershell
+py -m pipeline topic "Late Bronze Age Collapse"
+
+docker compose -f docker/docker-compose.yml exec app `
+  php artisan pipeline:import /var/www/html/output/topic_late_bronze_age_collapse.jsonl --sync
+
+docker compose -f docker/docker-compose.yml exec app `
+  php artisan pipeline:embeddings --pending --sync
+```
+
+### OHM borders import
+
+```powershell
+py -m pipeline borders run --run-id global-2026-04-15 --parse-workers 8 --enrich-names
+
+docker compose -f docker/docker-compose.yml exec app `
+  php -d memory_limit=1024M artisan pipeline:import-borders `
+  /var/www/html/output/ohm_borders/global-2026-04-15/final/ohm_borders.jsonl `
+  --sync --batch-id=global-2026-04-15
+
+py -m pipeline borders relations-run --run-id global-2026-04-15 --resume
+
+docker compose -f docker/docker-compose.yml exec app `
+  php -d memory_limit=1024M artisan pipeline:import-border-relations `
+  /var/www/html/output/ohm_borders/global-2026-04-15/relations_final `
+  --sync --batch-id=global-2026-04-15
+```
+
+## 5. Operational Notes
+
+- `shapely` must be available in the active Python interpreter for accurate OHM polygon assembly.
+- Country subgraph extraction should read Overpass JSON with `utf-8-sig`; Windows-created fixtures may include a BOM.
+- `DATABASE_URL` is required for DB-backed dedup checks.
+- For Python-side verification, prefer:
+
+```powershell
+py -m pytest pipeline/tests
+```
+
+- The pipeline remains file-based by design: artifacts are durable checkpoints and can be re-imported without re-scraping.
+
+## Related Docs
+
+- [../../pipeline/README.md](../../pipeline/README.md)
+- [../../pipeline/wikidata/README.md](../../pipeline/wikidata/README.md)
+- [../../pipeline/ohm_borders/README.md](../../pipeline/ohm_borders/README.md)
+- [ohm_country_subgraph_runbook.md](ohm_country_subgraph_runbook.md)

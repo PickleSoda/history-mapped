@@ -1,24 +1,26 @@
 # history-mapped
 
-An interactive historical atlas mapping entities, events, and relationships across time and geography. Built on open infrastructure — PostgreSQL/PostGIS/pgvector, MapLibre GL JS, and OpenHistoricalMap.
+An interactive historical atlas and editorial platform for mapping entities, events, relationships, and time-aware geography. The monorepo combines a Laravel backend and admin surface, a separate React customer SPA, and a Python pipeline for Wikidata and OpenHistoricalMap ingestion.
 
 ---
 
 ## Architecture
 
-| Layer | Stack |
-|-------|-------|
-| **API** | Laravel 13, PHP 8.4, PostgreSQL 16 (PostGIS + pgvector) |
-| **Admin Panel** | Inertia.js + React (inside Laravel) |
-| **Web Frontend** | React SPA, MapLibre GL JS, TanStack Query |
-| **Infrastructure** | Docker Compose, Redis, Nginx |
+| Layer | Current Stack |
+|-------|---------------|
+| **API + Admin** | Laravel 13, PHP 8.4 container runtime, Inertia.js + React, PostgreSQL 16 with PostGIS + pgvector |
+| **Customer Web** | React 19, Vite, TanStack Query, Axios |
+| **Data Pipeline** | Python CLI for Wikidata/Wikipedia scraping, topic extraction, and staged OHM borders processing |
+| **Infrastructure** | Docker Compose, Nginx, Redis, Mailpit, CloudBeaver, RedisInsight |
 
-```
+```text
 history-mapped/
-├── api/          # Laravel backend — REST API + Inertia admin panel
-├── web/          # React SPA — customer-facing map interface
-├── docker/       # Docker Compose + Dockerfiles
-└── docs/         # Architecture docs and specs
+├── api/          # Laravel app, REST API, Inertia admin, queue and scheduler code
+├── web/          # Standalone React SPA served by Vite
+├── pipeline/     # Python scrape and OHM processing pipeline
+├── output/       # Generated JSONL files and OHM pipeline artifacts
+├── docker/       # Dockerfiles and docker-compose.yml
+└── docs/         # Architecture, runbooks, schemas, plans, and model docs
 ```
 
 ---
@@ -26,7 +28,8 @@ history-mapped/
 ## Prerequisites
 
 - **Docker Desktop** (or Docker Engine + Compose v2)
-- **pnpm** ≥ 10 (`npm install -g pnpm`)
+- **pnpm** >= 10
+- **Python 3.10+** if you plan to run anything under `pipeline/`
 - **Git**
 
 ---
@@ -37,21 +40,24 @@ history-mapped/
 # 1. Clone the repo
 git clone https://github.com/PickleSoda/history-mapped.git && cd history-mapped
 
-# 2. Copy env file
+# 2. Copy env files
 cp api/.env.example api/.env
 
-# 3. Start all services
+# Optional: only needed if you plan to run the Python pipeline
+cp pipeline/.env.example pipeline/.env
+
+# 3. Start the local stack
 pnpm dev
 ```
 
 This runs `docker compose -f docker/docker-compose.yml up`, which:
-- Installs Composer and pnpm dependencies (one-shot init containers)
-- Starts PostgreSQL 16 with PostGIS + pgvector extensions
-- Starts the Laravel app (PHP-FPM + Nginx), queue worker, and scheduler
-- Starts Vite dev servers for the admin panel and web frontend
-- Starts Redis, Mailpit, CloudBeaver, and RedisInsight
+- installs Composer and pnpm dependencies via one-shot init containers
+- starts PostgreSQL 16 with PostGIS and pgvector
+- starts the Laravel app, Nginx, queue worker, and scheduler
+- starts the Vite dev servers for the admin frontend and customer SPA
+- starts Redis, Mailpit, CloudBeaver, and RedisInsight
 
-If you need to force image rebuilds (including local DB extension compilation), run:
+If you need to rebuild images, run:
 
 ```bash
 pnpm dev:build
@@ -61,20 +67,21 @@ pnpm dev:build
 
 | Service | URL |
 |---------|-----|
-| **API / Admin Panel** | http://localhost:8000 |
-| **Web Frontend** | http://localhost:5173 |
+| **Laravel app / Admin panel** | http://localhost:8000 |
+| **Customer web SPA** | http://localhost:5173 |
 | **Admin Vite HMR** | http://localhost:5174 |
 | **Mailpit** | http://localhost:8025 |
-| **CloudBeaver (DB UI)** | http://localhost:8978 |
+| **CloudBeaver** | http://localhost:8978 |
 | **RedisInsight** | http://localhost:5540 |
+
+The admin UI is served at `http://localhost:8000`. `http://localhost:5174` is the HMR server only.
 
 ### First-Run Setup
 
 After containers are up, run migrations and seed the database:
 
 ```bash
-docker exec history-mapped-app-1 php artisan migrate
-docker exec history-mapped-app-1 php artisan db:seed
+docker compose -f docker/docker-compose.yml exec app php artisan migrate --seed
 ```
 
 ### Stopping
@@ -88,46 +95,74 @@ pnpm dev:down
 ## Common Commands
 
 ```bash
-# Run tests
-docker exec history-mapped-app-1 php artisan test
+# Run the Laravel test suite
+docker compose -f docker/docker-compose.yml exec app php artisan test
 
-# Run a specific test file
-docker exec history-mapped-app-1 php artisan test --filter=EntityControllerTest
+# Run a filtered Laravel test
+docker compose -f docker/docker-compose.yml exec app php artisan test --filter=EntityControllerTest
+
+# Type-check the frontend packages from Docker
+pnpm typecheck
 
 # List API routes
 pnpm api:routes
 
-# Artisan commands
-docker exec history-mapped-app-1 php artisan <command>
+# Run any artisan command
+docker compose -f docker/docker-compose.yml exec app php artisan <command>
 
-# Tinker (Laravel REPL)
-docker exec -it history-mapped-app-1 php artisan tinker
-
-# Fresh migrate + seed
-docker exec history-mapped-app-1 php artisan migrate:fresh --seed
+# Fresh database reset
+docker compose -f docker/docker-compose.yml exec app php artisan migrate:fresh --seed
 ```
+
+---
+
+## Data Pipeline
+
+All `python -m pipeline ...` examples assume your current working directory is the repository root.
+
+```powershell
+py -m venv pipeline/.venv
+.\pipeline\.venv\Scripts\Activate.ps1
+pip install -r pipeline/requirements.txt
+```
+
+Main entry points:
+
+```powershell
+py -m pipeline scrape --type political_entity --limit 100
+py -m pipeline topic "Late Bronze Age Collapse"
+py -m pipeline borders run --run-id global-2026-04-15 --parse-workers 8 --enrich-names
+py -m pipeline borders relations-run --run-id global-2026-04-15 --resume
+```
+
+With the default `pipeline/.env`, pipeline outputs go to the repository-level `output/` directory when commands are run from the repo root.
+
+Pipeline-specific docs:
+- [pipeline/README.md](pipeline/README.md)
+- [pipeline/wikidata/README.md](pipeline/wikidata/README.md)
+- [pipeline/ohm_borders/README.md](pipeline/ohm_borders/README.md)
 
 ## OHM Borders Import Workflow
 
-Use the base OHM borders pipeline first, then the relation pipeline against the same `run_id`.
+Run the country/entity import first, then the relation import for the same `run_id`.
 
-```bash
+```powershell
 # 1. Build importer-ready country/entity output
 py -m pipeline borders run --run-id global-2026-04-15 --parse-workers 8 --enrich-names
 
 # 2. Import country entities into Laravel
-docker compose -f docker/docker-compose.yml exec app \
-  php -d memory_limit=1024M artisan pipeline:import-borders \
-  /var/www/html/output/ohm_borders/global-2026-04-15/final/ohm_borders.jsonl \
+docker compose -f docker/docker-compose.yml exec app `
+  php -d memory_limit=1024M artisan pipeline:import-borders `
+  /var/www/html/output/ohm_borders/global-2026-04-15/final/ohm_borders.jsonl `
   --sync --batch-id=global-2026-04-15
 
 # 3. Build importer-ready relation outputs
 py -m pipeline borders relations-run --run-id global-2026-04-15 --resume
 
 # 4. Import relation entities, stage hints, and resolve relationships
-docker compose -f docker/docker-compose.yml exec app \
-  php -d memory_limit=1024M artisan pipeline:import-border-relations \
-  /var/www/html/output/ohm_borders/global-2026-04-15/relations_final \
+docker compose -f docker/docker-compose.yml exec app `
+  php -d memory_limit=1024M artisan pipeline:import-border-relations `
+  /var/www/html/output/ohm_borders/global-2026-04-15/relations_final `
   --sync --batch-id=global-2026-04-15
 ```
 
@@ -137,19 +172,19 @@ For larger imports, replace the final step with `--skip-resolve`, then run one r
 
 ## Environment Variables
 
-Docker Compose defaults are defined in `docker/docker-compose.yml`. Override via a `.env` file in the project root or by setting env vars.
+Docker Compose defaults are defined in `docker/docker-compose.yml`. Override them via a project-root `.env` file or exported environment variables.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `FORWARD_NGINX_PORT` | `8000` | API / admin panel port |
-| `FORWARD_WEB_PORT` | `5173` | Web frontend port |
+| `FORWARD_NGINX_PORT` | `8000` | Laravel app and admin panel port |
+| `FORWARD_WEB_PORT` | `5173` | Customer web port |
 | `FORWARD_ADMIN_PORT` | `5174` | Admin Vite HMR port |
 | `FORWARD_DB_PORT` | `5432` | PostgreSQL port |
 | `FORWARD_REDIS_PORT` | `6379` | Redis port |
 | `FORWARD_MAILPIT_PORT` | `8025` | Mailpit UI port |
 | `FORWARD_CLOUDBEAVER_PORT` | `8978` | CloudBeaver port |
 | `FORWARD_REDISINSIGHT_PORT` | `5540` | RedisInsight port |
-| `history-mapped_DB_IMAGE` | `history-mapped-db:16-pgvector-v0.8.2` | Optional prebuilt DB image tag (set to a registry image to skip local pgvector compilation) |
+| `HISTORY_MAPPED_DB_IMAGE` | `history-mapped-db:16-pgvector-v0.8.2` | Optional prebuilt DB image tag to skip local pgvector compilation |
 | `POSTGRES_DB` | `history-mapped` | Database name |
 | `POSTGRES_USER` | `history-mapped` | Database user |
 | `POSTGRES_PASSWORD` | `secret` | Database password |
@@ -160,33 +195,42 @@ Docker Compose defaults are defined in `docker/docker-compose.yml`. Override via
 
 | Document | Description |
 |----------|-------------|
-| [docs/setup.md](docs/setup.md) | Full setup guide — repo structure, Docker services, artisan workflows |
-| [docs/architecture_overview.md](docs/architecture_overview.md) | Foundational architecture — three-layer model, tech stack rationale |
-| [docs/entity_specification.md](docs/entity_specification.md) | Entity data model — 30 types, 5 groups, enums, JSONB attribute schemas |
-| [docs/web_implementation_architecture.md](docs/web_implementation_architecture.md) | Web frontend architecture — MapLibre, data fetching, rendering strategy |
-| [docs/game_inspired_ui_ux.md](docs/game_inspired_ui_ux.md) | UI/UX design guide — Civ VI and Total War patterns |
-| [docs/reference_tables.md](docs/reference_tables.md) | Historical periods, regions, calendars, writing systems |
+| [docs/README.md](docs/README.md) | Documentation index and guidance on which docs describe current state |
+| [docs/architecture_overview.md](docs/architecture_overview.md) | Runtime surfaces, routing, and repository architecture |
+| [docs/implementation-docs/setup.md](docs/implementation-docs/setup.md) | Local setup and development workflow |
+| [pipeline/README.md](pipeline/README.md) | Python pipeline overview and command entry points |
+| [docs/implementation-docs/data_pipeline_architecture.md](docs/implementation-docs/data_pipeline_architecture.md) | Detailed scrape, OHM, import, and embedding pipeline architecture |
+| [docs/entity-model/README.md](docs/entity-model/README.md) | Entity model overview and companion references |
+| [docs/schemas/README.md](docs/schemas/README.md) | Pipeline and API schema documentation |
+| [docs/implementation-docs/ohm_country_subgraph_runbook.md](docs/implementation-docs/ohm_country_subgraph_runbook.md) | OHM country subgraph extraction workflow |
 | [docs/TODO.md](docs/TODO.md) | Current task backlog |
-| [docs/plans/](docs/plans/) | Implementation plans for upcoming features |
 
 ---
 
 ## Project Structure Details
 
-### `api/` — Laravel Backend
+### `api/` — Laravel Backend and Admin
 
-- **Actions** (`app/Actions/`) — Domain logic (list, create, update entities)
-- **Builders** (`app/Builders/`) — Custom Eloquent query builders (spatial, temporal, JSONB)
-- **DTOs** (`app/DTOs/`) — Data transfer objects for validation and transformation
-- **Models** (`app/Models/`) — Eloquent models with PostGIS and pgvector casts
-- **Enums** (`app/Enums/`) — PHP-backed enums matching PostgreSQL enum types
+- REST API lives under `/api/v1`
+- Inertia admin UI is served from Laravel at `http://localhost:8000`
+- Admin-side React includes the richer historical map, timeline, relationship, and reference-table tooling
 
-### `web/` — React SPA
+### `web/` — Standalone Customer SPA
 
-- MapLibre GL JS with OpenHistoricalMap base tiles
-- TanStack Query for server state
-- Zustand for UI state
-- shadcn/ui + Tailwind CSS
+- Vite + React 19 app with TanStack Query and Axios
+- Current implementation is a small bootstrap client that checks `GET /api/v1/health`
+- Prepared for cookie-based Laravel auth with `withCredentials: true` and CSRF helper support
+
+### `pipeline/` — Python Ingestion and Processing
+
+- `wikidata/` handles `scrape`, `topic`, and `dedup`
+- `ohm_borders/` handles staged OHM fetch, parse, enrich, build, and relation generation
+- Laravel consumes generated artifacts through `pipeline:import`, `pipeline:import-borders`, `pipeline:import-border-relations`, and `pipeline:embeddings`
+
+### `output/` — Generated Artifacts
+
+- Topic and type-based JSONL output from the Wikidata pipeline
+- `ohm_borders/<run_id>/...` artifacts for staged OHM processing and import
 
 ---
 
