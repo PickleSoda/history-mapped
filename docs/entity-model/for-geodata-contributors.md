@@ -12,6 +12,16 @@ Legacy snapshot-style and legacy entity geometry write paths are removed. New wr
 
 Each entity should have one primary `entity_locations` row (for baseline map placement) and optional `geometry_periods` rows for time-varying geometry.
 
+### Geometry provenance modes
+
+The live system uses three provenance modes for time-varying geometry:
+
+- `manual`: created or edited directly by a human in admin workflows
+- `derived`: created from a relationship-driven presence workflow
+- `ohm_import`: imported from OHM or border-ingest jobs rather than entered by hand
+
+In practice, admin authoring flows currently create `manual` and `derived` periods, while import jobs are what produce `ohm_import` rows.
+
 ### `entity_locations.geom` — The Primary Point Location
 
 This is a **single coordinate** representing the most meaningful geographic position for this entity.

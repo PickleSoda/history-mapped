@@ -1,5 +1,7 @@
 # Entity Model — Overview
 
+Start with the files in this folder for the live canonical model. Historical proposal material has been moved under `docs/archive/entity-model/` so the current model reference stays focused.
+
 The **Entity** is the central building block of the database. Almost everything that can be studied, mapped, or described in world history is represented as an entity: a kingdom, a city, a person, a battle, a trade route, a religious text, a plague.
 
 ## What is an Entity?
@@ -38,5 +40,5 @@ Odoacer               ──[succeeded_by]───►  Western Roman Empire
 | [for-geodata-contributors.md](./for-geodata-contributors.md) | People entering geographic and spatial data — explains location fields, coordinate systems, and territory geometry |
 | [attributes.md](./attributes.md) | Full reference for every attribute (field) on an entity, with allowed values and notes |
 | [relationships.md](./relationships.md) | Full reference for all 76 relationship types with examples |
-| [schema-proposal-strict-write-derived-timeline.md](./schema-proposal-strict-write-derived-timeline.md) | Canonical model reference: strict normalized write model, derived timeline projection, and manual geometry period policy |
+| [../archive/entity-model/schema-proposal-strict-write-derived-timeline.md](../archive/entity-model/schema-proposal-strict-write-derived-timeline.md) | Historical proposal that informed the normalized write model and derived timeline direction |
 | [laravel-implementation-checklist.md](./laravel-implementation-checklist.md) | Current implementation status and remaining cleanup items for the canonical entity model |

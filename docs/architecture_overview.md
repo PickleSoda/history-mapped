@@ -167,4 +167,4 @@ Working conventions:
 | `docs/implementation-docs/setup.md` | Monorepo setup, workspace structure, Docker services, auth model, and contract generation flow |
 | `docs/implementation-docs/entity_specification.md` | Entity types, enums, and field-level data model details |
 | `docs/implementation-docs/reference_tables.md` | Historical periods, regions, and supporting reference data |
-| `docs/implementation-docs/game_inspired_ui_ux.md` | UI direction for the historical atlas frontend |
+| `docs/reference/implementation-docs/game_inspired_ui_ux.md` | Design reference for the intended historical atlas frontend UI direction |

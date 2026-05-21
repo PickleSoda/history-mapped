@@ -3,7 +3,7 @@
 This document reflects the current Laravel status of the canonical entity model rather than the original cutover checklist.
 
 Related spec:
-- [schema-proposal-strict-write-derived-timeline.md](./schema-proposal-strict-write-derived-timeline.md)
+- [../archive/entity-model/schema-proposal-strict-write-derived-timeline.md](../archive/entity-model/schema-proposal-strict-write-derived-timeline.md)
 
 Related plan:
 - [2026-04-06-entity-model-migration.md](../superpowers/plans/2026-04-06-entity-model-migration.md)

@@ -27,7 +27,7 @@ The output of this pipeline is **not canonical territory data**. It is an inferr
 
 ## Dependencies
 - OHM boundary access and date filtering already documented in [../implementation-docs/ohm_integraton_guide.md](../implementation-docs/ohm_integraton_guide.md).
-- Historical geometry snapshot concepts (superseded) in [../implementation-docs/attributes_and_geometry_snapshots.md](../implementation-docs/attributes_and_geometry_snapshots.md).
+- Historical geometry snapshot concepts (superseded) in [../archive/implementation-docs/attributes_and_geometry_snapshots.md](../archive/implementation-docs/attributes_and_geometry_snapshots.md).
 - Existing pipeline architecture in [../implementation-docs/data_pipeline_architecture.md](../implementation-docs/data_pipeline_architecture.md).
 
 ## Why This Exists

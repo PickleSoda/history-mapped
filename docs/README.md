@@ -10,12 +10,43 @@ This repository has a mix of current runbooks, reference docs, and older plannin
 
 ## Folder Guide
 
-- `implementation-docs/`: current setup guides, runbooks, architectural notes, and deployment docs.
-- `entity-model/`: entity, relationship, timeline, and geometry model reference material.
+- `implementation-docs/`: current setup guides, runbooks, deployment docs, and implementation notes that still describe live behavior.
+- `entity-model/`: current entity, relationship, timeline, and geometry model reference material.
+- `reference/`: design references and proposal docs that are still useful, but do not describe the live app as-is.
+- `archive/`: superseded or historical documents kept for decision history.
 - `schemas/`: current payload and contract documentation for pipeline artifacts and API requests.
 - `plans/`: older implementation plans and rollout notes.
 - `superpowers/plans/` and `superpowers/specs/`: design and implementation artifacts created during agent-driven work.
 - `ext/`: external reference material and supporting notes.
+
+## Docs Map
+
+### Current runbooks and live reference
+
+- [architecture_overview.md](architecture_overview.md)
+- [implementation-docs/setup.md](implementation-docs/setup.md)
+- [implementation-docs/data_pipeline_architecture.md](implementation-docs/data_pipeline_architecture.md)
+- [implementation-docs/ohm_country_subgraph_runbook.md](implementation-docs/ohm_country_subgraph_runbook.md)
+- [implementation-docs/reference_tables.md](implementation-docs/reference_tables.md)
+- [entity-model/README.md](entity-model/README.md)
+- [entity-model/attributes.md](entity-model/attributes.md)
+- [entity-model/diagrams.md](entity-model/diagrams.md)
+- [entity-model/for-historians.md](entity-model/for-historians.md)
+- [entity-model/for-geodata-contributors.md](entity-model/for-geodata-contributors.md)
+- [entity-model/laravel-implementation-checklist.md](entity-model/laravel-implementation-checklist.md)
+
+### Design references
+
+- [reference/README.md](reference/README.md)
+- [reference/implementation-docs/web_implementation_architecture.md](reference/implementation-docs/web_implementation_architecture.md)
+- [reference/implementation-docs/game_inspired_ui_ux.md](reference/implementation-docs/game_inspired_ui_ux.md)
+- [reference/implementation-docs/reference-timeline-schema.md](reference/implementation-docs/reference-timeline-schema.md)
+
+### Historical context
+
+- [archive/README.md](archive/README.md)
+- [archive/implementation-docs/attributes_and_geometry_snapshots.md](archive/implementation-docs/attributes_and_geometry_snapshots.md)
+- [archive/entity-model/schema-proposal-strict-write-derived-timeline.md](archive/entity-model/schema-proposal-strict-write-derived-timeline.md)
 
 ## Main Entry Points
 

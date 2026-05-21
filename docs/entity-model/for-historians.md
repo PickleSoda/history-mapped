@@ -10,6 +10,11 @@ This document explains how historical knowledge is structured in this database. 
 
 The platform now uses normalized tables (`entity_temporal_ranges`, `entity_locations`, `entity_aliases`, `entity_tags`) and derived timeline entries as canonical storage. Legacy per-entity temporal/location/geometry columns were removed.
 
+Two practical reading notes for the rest of this guide:
+
+- hierarchy and succession are represented through typed relationships in the live model, not dedicated `parent` or `successor` columns on `entities`
+- examples below sometimes show short display text such as "At Münster"; treat that as UI-generated wording or timeline presentation, not as a stored `geometry_periods.label` column
+
 History is full of things that existed in time and space and that mattered. We call all of them **entities**. An entity can be:
 
 - A **state** — the Achaemenid Empire, the Venetian Republic, the Qing dynasty
@@ -99,15 +104,16 @@ Dates are recorded as **years relative to the Common Era**, where negative numbe
 
 ### Hierarchy and Succession
 
-Entities can have a **parent** and can have **children**. This is for strict part-of or sub-unit relationships:
+The live model does not currently store dedicated **parent** or **successor** fields on the entity row itself.
+Instead, hierarchy and succession claims are captured through the same typed relationship system used for other historical assertions.
 
-- The Battle of Cannae is a **child** of the Second Punic War
-- The Duchy of Burgundy is a **child** of the Kingdom of France (in a given period)
-- The Western Roman Empire and the Eastern Roman Empire are both **children** of the Roman Empire
+This is how to think about it in practice:
 
-The **successor** field records the entity that directly replaced this one:
-- The successor of the Roman Republic is the Roman Principate
-- The successor of the Umayyad Caliphate is the Abbasid Caliphate
+- The Battle of Cannae can be linked to the Second Punic War with a relationship expressing part-of membership.
+- The Duchy of Burgundy can be linked to the Kingdom of France with a relationship expressing political containment or subordination for the relevant period.
+- The Roman Republic can be linked to the Roman Principate through succession-style relationships.
+
+The important idea for historians is unchanged: the database can still represent hierarchy and succession. What changed is the storage strategy. Those claims now live in relationships instead of dedicated entity columns.
 
 ---
 
@@ -139,7 +145,7 @@ A geometry period answers: **"Where was this entity during this period, and why?
 |---|---|---|
 | **Location** | A point, line, or polygon on the map | Münster, or the borders of the Western Roman Empire |
 | **Year range** | When this location was valid | 1648–1648, or 395–476 |
-| **Label** | A short title for the map | "At Münster" |
+| **Display text** | UI text generated from the period, relationship, or timeline projection | "At Münster" |
 | **Description** | Why the entity was there | "Present as French representative for the signing of the Treaty of Westphalia" |
 | **Confidence** | How certain we are | `high`, `medium`, `low` |
 
@@ -155,15 +161,18 @@ A geometry period answers: **"Where was this entity during this period, and why?
 
 #### How you create geometry periods in the application
 
-You do not usually create geometry periods in isolation. They are produced as a natural side effect of the relationships you build.
+You do not usually create geometry periods in isolation. In the live model they are created in two ways:
+
+- manually, when a historian draws a territory or route period
+- derivatively, when a relationship workflow is configured to create a presence period from that relationship
 
 **From the event page (most common):**
 
 1. You open the **Peace of Westphalia** entity
 2. You add a `signed_by` relationship pointing to **Cardinal Mazarin**
-3. The system asks: *"Create a derived presence period for Cardinal Mazarin at this location?"*
-4. You fill in the description: *"Present as French representative for the signing"*
-5. The system creates the derived period — Mazarin now appears on the map at Münster in 1648
+3. If that relationship flow is set to derive geometry, the system creates or updates a presence period using the relationship dates and the related location geometry
+4. You review or refine the description and dates as needed
+5. Mazarin can now appear on the map at Münster in 1648 as a derived presence period linked back to the relationship
 
 You can repeat this for every signatory. Each gets their own derived period with its own description.
 
@@ -300,13 +309,13 @@ Lutheran Church ──[schism_from]───────►  Catholic Church
 
 **Geometry Periods (derived from relationships above):**
 
-When the `signed_by` and `mediated_by` relationships are created on the Peace of Westphalia (located at Münster), the system offers to create derived presence periods:
+When relationship creation is configured to derive presence geometry from the Peace of Westphalia context, the resulting periods can look like this:
 
-| Entity | Location | Year | Label | Description | Via relationship |
-|---|---|---|---|---|---|
-| Holy Roman Empire | Münster | 1648 | At Münster | Imperial delegation present for the signing of the Peace of Westphalia | `signed_by` |
-| Kingdom of France | Münster | 1648 | At Münster | French delegation led by the Duc de Longueville | `signed_by` |
-| Kingdom of Sweden | Osnabrück | 1648 | At Osnabrück | Swedish delegation present for the Treaty of Osnabrück | `signed_by` |
+| Entity | Location | Year | Description | Via relationship |
+|---|---|---|---|---|
+| Holy Roman Empire | Münster | 1648 | Imperial delegation present for the signing of the Peace of Westphalia | `signed_by` |
+| Kingdom of France | Münster | 1648 | French delegation led by the Duc de Longueville | `signed_by` |
+| Kingdom of Sweden | Osnabrück | 1648 | Swedish delegation present for the Treaty of Osnabrück | `signed_by` |
 
 Notice that the Swedish delegation's location can be corrected to **Osnabrück** — the historian fills in the actual location when creating the derived period, rather than blindly copying the treaty's coordinates.
 
@@ -334,11 +343,11 @@ This section explains how historians build timelines by creating entities and re
 
 When you open a person's entity page and scroll to the **Timeline** panel, the application does the following:
 
-1. Queries all relationships where this person is the source or target
-2. Orders them by `start_year`, using the relationship's own temporal data (which may differ from the lifespan of the related entity)
-3. Enriches each entry with the related entity's name, type, and group, plus any geometry period derived from this relationship
-4. Groups entries into named phases where a historian has labelled them (e.g., *Early Life*, *The Gallic Wars*, *Civil War*)
-5. Syncs the map panel so that as you scroll the timeline, the person's location pin animates to each derived geometry period in turn
+1. Fetches projected rows from the entity timeline endpoint backed by `entity_timeline_entries`
+2. Reads year bounds, title, description, relationship badge data, related-entity metadata, and any projected geometry directly from that read model
+3. Orders the entries chronologically in the UI
+4. Uses relationship-derived badges when `relationship_type` is present
+5. Syncs the map panel to the selected or hovered timeline geometry while the OHM timeframe follows the active entry
 
 ```mermaid
 flowchart TD
@@ -346,7 +355,7 @@ flowchart TD
         E["<b>entities</b>\nperson: Julius Caesar · –100 to –44"]
         R["<b>relationships</b>\nsource: Caesar\ntarget: Battle of Alesia\ntype: victorious_at\nstart_year: –52\ndescription: 'Vercingetorix surrenders...'"]
         GP["<b>geometry_periods</b>\nentity: Caesar · start_year: –52\ngeom → Alise-Sainte-Reine, Burgundy\nprovenance_mode: derived\nrelationship_id → relationship above"]
-        TLE["<b>entity_timeline_entries</b>  (materialized)\nlabel: 'Siege of Alesia' · year: –52\nrelated_entity: Battle of Alesia\nrel_type: victorious_at"]
+        TLE["<b>entity_timeline_entries</b>\ntitle: 'Siege of Alesia' · year: –52\nrelated_entity_name: Battle of Alesia\nrelationship_type: victorious_at"]
     end
 
     subgraph UX["Timeline Panel (UX)"]
@@ -365,52 +374,26 @@ flowchart TD
 
 **Key principle:** the timeline is never hand-authored as a separate document. Historians build it by creating entities and relationships. The timeline panel is a different *view* of the same graph, rendered chronologically.
 
-### Timeline UX Migration Status (April 2026)
+### Timeline UX Current Status (April 2026)
 
-The current migration direction is largely correct for the timeline UX.
+The timeline pipeline is live and the main migration goals in this area are already in place.
 
-#### What is already right
+#### What is implemented
 
 - `entity_timeline_entries` is the right read-model table for timeline panels: one indexed read sorted by year, without runtime multi-table joins.
+- `entity_timeline_entries` already carries denormalized relationship fields such as `relationship_type`, `related_entity_id`, and `related_entity_name`.
 - `geometry_periods` separation is correct: relationship-derived presence periods and event-driven territory periods are structurally distinct and enforced by CHECK constraints.
-- Integer year columns in new tables fix BCE sorting issues that occur with text-based temporal fields.
+- `relationships` already maintains normalized `start_year` / `end_year` columns alongside the textual temporal fields.
+- geometry period mutations dispatch targeted timeline rebuild jobs, so period edits are part of the live rebuild path.
 
-#### Three remaining gaps to close
+#### Current practical caveat
 
-1. `entity_timeline_entries` is missing relationship display fields
-
-To render rows like:
-
-`-52 BCE  ·  Siege of Alesia  [victorious_at]  related: Vercingetorix`
-
-the timeline currently needs extra relationship lookups.
-
-Recommended denormalized columns on `entity_timeline_entries`:
-- `relationship_type text`
-- `related_entity_id uuid`
-- `related_entity_name text` (cached display value)
-
-2. `relationships.temporal_start` / `temporal_end` are still text
-
-This creates avoidable parsing and sorting overhead during projection and admin filtering.
-
-Recommended fix:
-- add `start_year integer` and `end_year integer` to `relationships`
-- backfill from existing text temporal fields
-- add composite index for year-range filtering
-
-3. Timeline geometry can become stale after period edits
-
-`geometry_periods` is canonical, but timeline geometry is a denormalized copy.
-If a period is edited and no targeted rebuild runs, timeline map animation may show stale geometry.
-
-Recommended fix:
-- on geometry-period save/delete, enqueue targeted timeline rebuild for the affected entity
-- optionally mark affected timeline rows stale (for example by nulling `derived_at`) until rebuild completes
+`entity_timeline_entries` is still derived data.
+That is the correct design, but it means bulk imports, manual fixes, or debugging work may still require an explicit rebuild command or job when the projected timeline view falls out of sync with canonical tables.
 
 #### Practical takeaway
 
-The model moved from "difficult to render correctly" to "renderable with three fixable gaps." None of these require redesign; they are additive migration steps.
+The model moved from "difficult to render correctly" to a working projected timeline pipeline. The remaining work in this area is operational hardening, not a schema redesign.
 
 | Concern | Before migration | After migration |
 |---|---|---|
@@ -418,10 +401,10 @@ The model moved from "difficult to render correctly" to "renderable with three f
 | Map animation geometry | not coupled to timeline rows | geometry embedded in timeline entries |
 | Presence period provenance | implicit / application-level | enforced with DB CHECK constraints |
 | BCE timeline sorting | incorrect with text lexicographic ordering | integer year columns in canonical normalized tables |
-| Relationship type badge on row | requires relationship join | still requires join (gap until denorm fields are added) |
-| Related entity label on row | requires relationship join | still requires join (gap until denorm fields are added) |
-| Relationship temporal filtering/sorting | text-based and index-unfriendly | still text-based in `relationships` (gap until year columns are added) |
-| Timeline geometry freshness | not applicable in old model | can go stale if rebuild is not triggered on period edits |
+| Relationship type badge on row | requires relationship join | projected into timeline rows |
+| Related entity label on row | requires relationship join | projected into timeline rows |
+| Relationship temporal filtering/sorting | text-based and index-unfriendly | supported by `start_year` / `end_year` helper columns |
+| Timeline geometry freshness | not applicable in old model | rebuilt through targeted timeline jobs when canonical period rows change |
 
 ---
 
