@@ -207,6 +207,7 @@ def test_run_extract_subgraph_stage_writes_subset_artifacts_and_manifest(tmp_pat
         max_depth=1,
         max_nodes=10,
         raw_shard_size=2,
+        build_index_if_missing=True,
     )
 
     manifest = __import__("json").loads((artifact_dir / "manifest.json").read_text(encoding="utf-8"))
@@ -237,6 +238,7 @@ def test_run_extract_subgraph_stage_resume_rejects_parameter_drift(tmp_path) -> 
         max_depth=1,
         max_nodes=10,
         raw_shard_size=2,
+        build_index_if_missing=True,
     )
 
     with pytest.raises(RuntimeError, match="--force"):
@@ -248,6 +250,7 @@ def test_run_extract_subgraph_stage_resume_rejects_parameter_drift(tmp_path) -> 
             max_depth=2,
             max_nodes=10,
             raw_shard_size=2,
+            build_index_if_missing=True,
             resume=True,
         )
 
@@ -264,7 +267,212 @@ def test_run_extract_subgraph_stage_accepts_utf8_bom_input(tmp_path) -> None:
         seed_qid="Q1",
         max_depth=1,
         max_nodes=10,
+        build_index_if_missing=True,
     )
 
     assert result["status"] == "completed"
+
+
+def test_run_extract_subgraph_stage_uses_sqlite_index_when_requested(tmp_path, monkeypatch) -> None:
+    source_path = tmp_path / "global-overpass.json"
+    artifact_dir = tmp_path / "subset-artifacts"
+    index_path = tmp_path / "ohm-index.sqlite3"
+    source_path.write_text(__import__("json").dumps(_fixture_overpass()), encoding="utf-8")
+
+    captured: dict[str, object] = {}
+
+    def fake_build_index(input_path, *, index_path, force=False, stale_timeout_seconds=900):
+        captured["build_index"] = {
+            "input_path": input_path,
+            "index_path": index_path,
+            "force": force,
+            "stale_timeout_seconds": stale_timeout_seconds,
+        }
+        return {"status": "completed", "index_path": index_path}
+
+    def fake_extract_country_subgraph_from_index(
+        resolved_index_path,
+        *,
+        seed_qid=None,
+        seed_name=None,
+        max_depth,
+        max_nodes,
+        auto_select_fuzzy=False,
+    ):
+        captured["extract_country_subgraph_from_index"] = {
+            "index_path": resolved_index_path,
+            "seed_qid": seed_qid,
+            "seed_name": seed_name,
+            "max_depth": max_depth,
+            "max_nodes": max_nodes,
+            "auto_select_fuzzy": auto_select_fuzzy,
+        }
+        return extract_country_subgraph(
+            _fixture_overpass(),
+            seed_qid=seed_qid,
+            seed_name=seed_name,
+            max_depth=max_depth,
+            max_nodes=max_nodes,
+        )
+
+    monkeypatch.setattr("pipeline.ohm_borders.stage_extract_subgraph.build_index", fake_build_index)
+    monkeypatch.setattr(
+        "pipeline.ohm_borders.stage_extract_subgraph.resolve_country_subgraph_seed_from_index",
+        lambda *args, **kwargs: {"wikidata_id": "Q1", "name": "Roman Empire", "relation_ids": [100, 101, 102]},
+    )
+    monkeypatch.setattr(
+        "pipeline.ohm_borders.stage_extract_subgraph.extract_country_subgraph_from_index",
+        fake_extract_country_subgraph_from_index,
+    )
+
+    result = run_extract_subgraph_stage(
+        run_id="roman-subset",
+        artifact_dir=artifact_dir,
+        input_path=source_path,
+        index_path=index_path,
+        seed_qid="Q1",
+        max_depth=1,
+        max_nodes=10,
+        raw_shard_size=2,
+        auto_select_fuzzy=True,
+        build_index_if_missing=True,
+    )
+
+    assert result["status"] == "completed"
+    assert captured["build_index"] == {
+        "input_path": source_path,
+        "index_path": index_path,
+        "force": False,
+        "stale_timeout_seconds": 900,
+    }
+    assert captured["extract_country_subgraph_from_index"] == {
+        "index_path": index_path,
+        "seed_qid": "Q1",
+        "seed_name": None,
+        "max_depth": 1,
+        "max_nodes": 10,
+        "auto_select_fuzzy": True,
+    }
     assert raw_overpass_path(artifact_dir).exists()
+
+
+def test_run_extract_subgraph_stage_discovers_default_sibling_index_path(tmp_path, monkeypatch) -> None:
+    source_path = tmp_path / "global-overpass.json"
+    artifact_dir = tmp_path / "subset-artifacts"
+    default_index_path = tmp_path / "overpass.sqlite3"
+    source_path.write_text(__import__("json").dumps(_fixture_overpass()), encoding="utf-8")
+
+    captured: dict[str, object] = {}
+
+    def fake_build_index(input_path, *, index_path, force=False, stale_timeout_seconds=900):
+        captured["build_index"] = {
+            "input_path": input_path,
+            "index_path": index_path,
+            "force": force,
+            "stale_timeout_seconds": stale_timeout_seconds,
+        }
+        return {"status": "completed", "index_path": index_path}
+
+    def fake_extract_country_subgraph_from_index(
+        resolved_index_path,
+        *,
+        seed_qid=None,
+        seed_name=None,
+        max_depth,
+        max_nodes,
+        auto_select_fuzzy=False,
+    ):
+        captured["extract_country_subgraph_from_index"] = {
+            "index_path": resolved_index_path,
+            "seed_qid": seed_qid,
+            "seed_name": seed_name,
+            "max_depth": max_depth,
+            "max_nodes": max_nodes,
+            "auto_select_fuzzy": auto_select_fuzzy,
+        }
+        return extract_country_subgraph(
+            _fixture_overpass(),
+            seed_qid=seed_qid,
+            seed_name=seed_name,
+            max_depth=max_depth,
+            max_nodes=max_nodes,
+        )
+
+    monkeypatch.setattr("pipeline.ohm_borders.stage_extract_subgraph.build_index", fake_build_index)
+    monkeypatch.setattr(
+        "pipeline.ohm_borders.stage_extract_subgraph.resolve_country_subgraph_seed_from_index",
+        lambda *args, **kwargs: {"wikidata_id": "Q1", "name": "Roman Empire", "relation_ids": [100, 101, 102]},
+    )
+    monkeypatch.setattr(
+        "pipeline.ohm_borders.stage_extract_subgraph.extract_country_subgraph_from_index",
+        fake_extract_country_subgraph_from_index,
+    )
+
+    result = run_extract_subgraph_stage(
+        run_id="roman-subset",
+        artifact_dir=artifact_dir,
+        input_path=source_path,
+        seed_qid="Q1",
+        max_depth=1,
+        max_nodes=10,
+        raw_shard_size=2,
+        build_index_if_missing=True,
+    )
+
+    assert result["status"] == "completed"
+    assert captured["build_index"] == {
+        "input_path": source_path,
+        "index_path": default_index_path,
+        "force": False,
+        "stale_timeout_seconds": 900,
+    }
+    assert captured["extract_country_subgraph_from_index"]["index_path"] == default_index_path
+
+
+def test_run_extract_subgraph_stage_requires_explicit_build_when_index_is_missing(tmp_path) -> None:
+    source_path = tmp_path / "global-overpass.json"
+    artifact_dir = tmp_path / "subset-artifacts"
+    source_path.write_text(__import__("json").dumps(_fixture_overpass()), encoding="utf-8")
+
+    with pytest.raises(RuntimeError, match="build-index"):
+        run_extract_subgraph_stage(
+            run_id="roman-subset",
+            artifact_dir=artifact_dir,
+            input_path=source_path,
+            seed_qid="Q1",
+            max_depth=1,
+            max_nodes=10,
+        )
+
+
+def test_run_extract_subgraph_stage_resume_accepts_equivalent_seed_identity(tmp_path) -> None:
+    source_path = tmp_path / "global-overpass.json"
+    artifact_dir = tmp_path / "subset-artifacts"
+    source_path.write_text(__import__("json").dumps(_fixture_overpass()), encoding="utf-8")
+
+    first_result = run_extract_subgraph_stage(
+        run_id="roman-subset",
+        artifact_dir=artifact_dir,
+        input_path=source_path,
+        seed_qid="Q1",
+        max_depth=1,
+        max_nodes=10,
+        build_index_if_missing=True,
+    )
+    second_result = run_extract_subgraph_stage(
+        run_id="roman-subset",
+        artifact_dir=artifact_dir,
+        input_path=source_path,
+        seed_name="Roman Empire",
+        max_depth=1,
+        max_nodes=10,
+        build_index_if_missing=True,
+        resume=True,
+    )
+
+    seed_record = __import__("json").loads(subgraph_seed_path(artifact_dir).read_text(encoding="utf-8"))
+
+    assert first_result["status"] == "completed"
+    assert second_result["status"] == "skipped"
+    assert seed_record["relation_ids"] == [100, 101, 102]
+    assert seed_record["extraction"]["index_path"].endswith("overpass.sqlite3")

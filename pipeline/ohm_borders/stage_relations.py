@@ -15,7 +15,7 @@ from pipeline.ohm_borders.artifacts import (
     relation_hints_final_path,
     subgraph_closure_report_path,
 )
-from pipeline.ohm_borders.enricher import batch_enrich_qids
+from pipeline.ohm_borders.enricher import batch_enrich_qids, search_qid_by_name
 from pipeline.ohm_borders.relations_enricher import enrich_relation_candidates
 from pipeline.ohm_borders.relations_extractor import extract_relation_candidates
 from pipeline.ohm_borders.subgraph_extractor import validate_bundle_closure
@@ -174,7 +174,7 @@ def run_relations_enrich_stage(
         enriched = enrich_relation_candidates(
             candidates,
             metadata_fetcher=metadata_fetcher,
-            name_searcher=name_searcher,
+            name_searcher=name_searcher or search_qid_by_name,
             wikipedia_enricher=wikipedia_enricher,
         )
 

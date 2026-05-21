@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from unittest.mock import Mock
 
+import pipeline.ohm_borders.stage_relations as stage_relations_module
 from pipeline.ohm_borders.relations_enricher import enrich_relation_candidates
 from pipeline.ohm_borders.stages import run_relations_enrich_stage
 
@@ -211,3 +212,55 @@ def test_run_relations_enrich_stage_writes_enriched_shards(tmp_path: Path) -> No
     assert manifest["relation_stages"]["enrich"]["status"] == "completed"
     assert manifest["summary"]["relation_enriched_shards"] == 1
     assert manifest["summary"]["relation_enriched_candidates"] == 1
+
+
+def test_run_relations_enrich_stage_uses_default_name_searcher_when_target_qid_missing(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    artifact_dir = tmp_path / "artifacts"
+    input_path = artifact_dir / "relations_candidates" / "relations-candidates-00001.jsonl"
+    input_path.parent.mkdir(parents=True, exist_ok=True)
+    input_path.write_text(
+        json.dumps(
+            {
+                "source_ohm_relation_id": "100",
+                "source_wikidata_id": "Q100",
+                "source_name": "Kingdom of Testland",
+                "relationship_type": "resulted_from",
+                "target_wikidata_id": None,
+                "target_label": "Testland Revolution",
+                "source_tag_key": "start_event",
+                "temporal_start": None,
+                "temporal_end": None,
+            }
+        ) + "\n",
+        encoding="utf-8",
+    )
+
+    wikipedia = Mock()
+    wikipedia.enrich_batch.side_effect = lambda items: items
+
+    monkeypatch.setattr(stage_relations_module, "search_qid_by_name", lambda name: "Q120" if name == "Testland Revolution" else None)
+
+    result = run_relations_enrich_stage(
+        run_id="run-001",
+        artifact_dir=artifact_dir,
+        metadata_fetcher=lambda qids: {
+            "Q120": {
+                "name_en": "Testland Revolution",
+                "description": "revolution in Testland",
+                "aliases_en": [],
+                "temporal_start": "1800",
+                "temporal_end": "1800",
+            }
+        },
+        wikipedia_enricher=wikipedia,
+    )
+
+    output_path = artifact_dir / "relations_enriched" / "relations-enriched-00001.json"
+    enriched = json.loads(output_path.read_text(encoding="utf-8"))
+
+    assert result["status"] == "completed"
+    assert enriched[0]["target_wikidata_id"] == "Q120"
+    assert enriched[0]["target_entity"]["wikidata_id"] == "Q120"

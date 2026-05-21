@@ -61,10 +61,20 @@ Relation stages are tracked separately in `manifest.json` under `relation_stages
 
 Use `extract-subgraph` when you already have a global OHM dump and want a smaller country-centered relation graph for downstream parse, enrich, build, and relation stages.
 
+First build or refresh the reusable SQLite index. When `--index-path` is omitted, the default index path is a sibling `overpass.sqlite3` next to the source `overpass.json`.
+
+```powershell
+py -m pipeline borders build-index \
+  --input output/ohm_borders/global-2026-04-14/raw/overpass.json \
+  --index-path output/ohm_borders/indexes/global-2026-04-14.sqlite3
+```
+
 ```powershell
 py -m pipeline borders extract-subgraph \
   --input output/ohm_borders/global-2026-04-14/raw/overpass.json \
+  --index-path output/ohm_borders/indexes/global-2026-04-14.sqlite3 \
   --seed-name "Roman Empire" \
+  --auto-select-fuzzy \
   --run-id roman-empire-subgraph \
   --max-depth 3 \
   --max-nodes 400 \
@@ -86,6 +96,23 @@ output/ohm_borders/<run_id>/subgraph/
 ```
 
 See `docs/implementation-docs/ohm_country_subgraph_runbook.md` for the full first-run and second-run workflow.
+
+`extract-subgraph` now resolves the subgraph from SQLite only. It does not fall back to loading the full raw payload into memory during normal command execution.
+
+Index behavior:
+
+- `build-index` creates or reuses the index explicitly
+- `extract-subgraph` reuses an existing compatible index automatically
+- `extract-subgraph --build-index-if-missing` creates the index only when the expected index file does not exist yet
+- if the source payload changed or the index schema is incompatible, `extract-subgraph` fails fast and tells you to rerun `build-index --force`
+- if Windows file locking prevents replacing an existing index, `build-index --force` leaves the previous completed index untouched and returns retry guidance
+
+Seed lookup behavior:
+
+- `--seed-qid` remains the most deterministic option
+- `--seed-name` first checks exact and normalized exact matches using NFC normalization, casefolding, and whitespace collapse
+- fuzzy suggestions come from a bounded prefix search over indexed names, use the recorded default threshold `0.85`, and return at most 5 ranked candidates
+- `--auto-select-fuzzy` only chooses the top suggestion when it is a clear best match; otherwise extraction fails with suggestions so you can correct the seed explicitly
 
 ## Running the full pipeline
 

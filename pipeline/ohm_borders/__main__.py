@@ -8,6 +8,7 @@ import click
 from rich.console import Console
 
 from pipeline.ohm_borders.fetcher import load_query_text
+from pipeline.ohm_borders.index_builder import build_index
 from pipeline.ohm_borders.stages import (
     default_parallelism,
     run_build_stage,
@@ -22,6 +23,10 @@ from pipeline.ohm_borders.stages import (
 from pipeline.ohm_borders.enricher import enrich_output_jsonl_missing_qids
 
 console = Console(legacy_windows=False)
+
+
+def _default_index_path(input_path: Path) -> Path:
+    return input_path.parent / "overpass.sqlite3"
 
 
 def _configure_logging() -> None:
@@ -167,8 +172,11 @@ def cli(ctx, output, run_id, artifact_dir, query_file, raw_shard_size, parsed_sh
 
 @cli.command("extract-subgraph")
 @click.option("--input", "input_path", required=True, type=click.Path(path_type=Path, exists=True, dir_okay=False), help="Existing global overpass.json to subset")
+@click.option("--index-path", type=click.Path(path_type=Path, dir_okay=False), default=None, help="Optional reusable SQLite index path for subgraph extraction")
 @click.option("--seed-qid", default=None, help="Seed polity Wikidata QID")
 @click.option("--seed-name", default=None, help="Exact OHM seed polity name fallback")
+@click.option("--build-index-if-missing", is_flag=True, help="Build the default or explicit SQLite index before extraction when it does not exist yet")
+@click.option("--auto-select-fuzzy", is_flag=True, help="Allow indexed extraction to auto-select the top fuzzy seed-name match")
 @click.option("--run-id", default=None, help="Deterministic run id for the artifact directory")
 @click.option("--artifact-dir", type=click.Path(path_type=Path, file_okay=False), default=None, help="Explicit artifact directory override")
 @click.option("--max-depth", type=int, required=True, help="Maximum recursive graph depth from the seed")
@@ -176,23 +184,39 @@ def cli(ctx, output, run_id, artifact_dir, query_file, raw_shard_size, parsed_sh
 @click.option("--raw-shard-size", type=int, default=200, show_default=True, help="Relations per extracted raw shard")
 @click.option("--resume", is_flag=True, help="Reuse existing subset artifacts when parameters match")
 @click.option("--force", is_flag=True, help="Overwrite existing subset artifacts")
-def extract_subgraph(input_path, seed_qid, seed_name, run_id, artifact_dir, max_depth, max_nodes, raw_shard_size, resume, force):
+def extract_subgraph(input_path, index_path, seed_qid, seed_name, build_index_if_missing, auto_select_fuzzy, run_id, artifact_dir, max_depth, max_nodes, raw_shard_size, resume, force):
     """Extract a country-centered OHM border subgraph from an existing Overpass payload."""
     result = run_extract_subgraph_stage(
         run_id=run_id,
         artifact_dir=artifact_dir,
         input_path=input_path,
+        index_path=index_path,
         seed_qid=seed_qid,
         seed_name=seed_name,
+        build_index_if_missing=build_index_if_missing,
         max_depth=max_depth,
         max_nodes=max_nodes,
         raw_shard_size=raw_shard_size,
+        auto_select_fuzzy=auto_select_fuzzy,
         resume=resume,
         force=force,
     )
 
     console.print(
         f"Extract subgraph {result['status']}: {result.get('relation_count', 'existing')} relations -> {result['raw_path']}"
+    )
+
+
+@cli.command("build-index")
+@click.option("--input", "input_path", required=True, type=click.Path(path_type=Path, exists=True, dir_okay=False), help="Existing global overpass.json to index")
+@click.option("--index-path", type=click.Path(path_type=Path, dir_okay=False), default=None, help="Optional SQLite index output path; defaults to a sibling overpass.sqlite3")
+@click.option("--force", is_flag=True, help="Rebuild an existing incompatible index")
+def build_index_command(input_path, index_path, force):
+    """Build or reuse the reusable SQLite index for indexed subgraph extraction."""
+    resolved_index_path = index_path or _default_index_path(input_path)
+    result = build_index(input_path, index_path=resolved_index_path, force=force)
+    console.print(
+        f"Build index {result['status']}: {result.get('relation_count', 'existing')} relations -> {result['index_path']}"
     )
 
 
