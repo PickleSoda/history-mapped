@@ -34,8 +34,8 @@ describe('EntityGeometryPeriodsPanel', () => {
             end_year: number;
             description: string | null;
             provenance_mode: string;
-            geom: { type: string; coordinates: number[] } | null;
-            territory_geom: null;
+            has_geom: boolean;
+            has_territory_geom: boolean;
         }> = [
             {
                 geometry_period_id: 'gp-1',
@@ -45,16 +45,35 @@ describe('EntityGeometryPeriodsPanel', () => {
                 end_year: 120,
                 description: 'Initial period',
                 provenance_mode: 'manual',
-                geom: { type: 'Point', coordinates: [12.48, 41.89] },
-                territory_geom: null,
+                has_geom: true,
+                has_territory_geom: false,
             },
         ];
+
+        const detail = {
+            geometry_period_id: 'gp-1',
+            entity_id: 'e1',
+            period_type: 'territory',
+            start_year: 100,
+            end_year: 120,
+            description: 'Initial period',
+            provenance_mode: 'manual',
+            geom: { type: 'Point', coordinates: [12.48, 41.89] },
+            territory_geom: null,
+        };
 
         fetchMock.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
             const url = String(input);
             const method = init?.method ?? 'GET';
 
             if (url.includes('/entities/e1/geometry-periods') && method === 'GET') {
+                if (url.endsWith('/entities/e1/geometry-periods/gp-1')) {
+                    return {
+                        ok: true,
+                        json: async () => ({ data: detail }),
+                    } as Response;
+                }
+
                 return {
                     ok: true,
                     json: async () => ({ data: rows }),
@@ -167,6 +186,16 @@ describe('EntityGeometryPeriodsPanel', () => {
         expect(await screen.findByText(/Created period/i)).toBeInTheDocument();
 
         fireEvent.click(screen.getAllByRole('button', { name: /Edit/i })[0]);
+
+        await waitFor(() => {
+            expect(fetchMock).toHaveBeenCalledWith(
+                '/entities/e1/geometry-periods/gp-1',
+                expect.objectContaining({
+                    headers: { Accept: 'application/json' },
+                }),
+            );
+        });
+
         fireEvent.change(screen.getByLabelText(/Edit description/i), {
             target: { value: 'Updated period' },
         });

@@ -17,19 +17,26 @@ type Props = {
     timelineUrl: string;
 };
 
-type TimelineEntry = {
+type TimelineEntrySummary = {
     id: string;
     entry_kind: string;
     start_year: number | null;
     end_year: number | null;
     title: string;
     description: string | null;
-    geom: GeoJsonLike;
-    territory_geom: GeoJsonLike;
+    has_geom: boolean;
+    has_territory_geom: boolean;
+    source_table: string;
+    source_id: string;
     relationship_type: string | null;
     related_entity_id: string | null;
     related_entity_name: string | null;
     confidence?: ConfidenceLevel | null;
+};
+
+type TimelineEntryDetail = TimelineEntrySummary & {
+    geom: GeoJsonLike;
+    territory_geom: GeoJsonLike;
 };
 
 
@@ -43,7 +50,6 @@ export default function EntityHistoryPanel({
     const [selectedItem, setSelectedItem] = useState<SelectedTimelineItem>(
         null,
     );
-    const [hoveredItem, setHoveredItem] = useState<SelectedTimelineItem>(null);
     const [selectedRange, setSelectedRange] = useState<{
         startYear: number | null;
         endYear: number | null;
@@ -61,7 +67,7 @@ export default function EntityHistoryPanel({
                 throw new Error(`HTTP ${response.status}`);
             }
 
-            return (await response.json()) as { data: TimelineEntry[] };
+            return (await response.json()) as { data: TimelineEntrySummary[] };
         },
     });
 
@@ -69,10 +75,6 @@ export default function EntityHistoryPanel({
         () => timelineQuery.data?.data ?? [],
         [timelineQuery.data?.data],
     );
-    const loading = timelineQuery.isLoading;
-    const loadError = timelineQuery.isError
-        ? 'Failed to load timeline data.'
-        : null;
 
     const activeEntry = useMemo(() => {
         if (selectedItem?.kind !== 'timeline') {
@@ -86,17 +88,43 @@ export default function EntityHistoryPanel({
         );
     }, [timelineEntries, selectedItem]);
 
-    const hoveredEntry = useMemo(() => {
-        if (hoveredItem?.kind !== 'timeline') {
+    const selectedEntryUrl = useMemo(() => {
+        if (!activeEntry) {
             return null;
         }
 
-        return (
-            timelineEntries.find(
-                (entry) => entry.id === hoveredItem.id,
-            ) ?? null
-        );
-    }, [hoveredItem, timelineEntries]);
+        if (!activeEntry.has_geom && !activeEntry.has_territory_geom) {
+            return null;
+        }
+
+        return `${timelineUrl}/${activeEntry.id}`;
+    }, [activeEntry, timelineUrl]);
+
+    const selectedEntryQuery = useQuery({
+        queryKey: ['entity-history', 'timeline-entry', selectedEntryUrl],
+        enabled: Boolean(selectedEntryUrl),
+        queryFn: async () => {
+            const response = await fetch(selectedEntryUrl as string, {
+                headers: { Accept: 'application/json' },
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            return (await response.json()) as { data: TimelineEntryDetail };
+        },
+    });
+
+    const activeEntryDetail = useMemo(
+        () => selectedEntryQuery.data?.data ?? null,
+        [selectedEntryQuery.data?.data],
+    );
+
+    const loading = timelineQuery.isLoading;
+    const loadError = timelineQuery.isError
+        ? 'Failed to load timeline data.'
+        : null;
 
     const timelineItems = useMemo<TimelineItem[]>(() => {
         const entryItems: TimelineItem[] = timelineEntries.map((entry) => ({
@@ -133,7 +161,7 @@ export default function EntityHistoryPanel({
     );
 
     const entryToOverlayGeometries = useCallback(
-        (entry: TimelineEntry, extraProperties: Record<string, unknown> = {}): GeoJsonLike[] => {
+        (entry: TimelineEntryDetail, extraProperties: Record<string, unknown> = {}): GeoJsonLike[] => {
             if (!entry.geom && !entry.territory_geom) {
                 return [];
             }
@@ -158,48 +186,15 @@ export default function EntityHistoryPanel({
     );
 
     const overlayGeometries = useMemo<GeoJsonLike[]>(() => {
-        // If a relationship is selected, show selected geometry and optional hovered preview geometry.
-        if (activeEntry) {
-            const selectedGeometries = entryToOverlayGeometries(
-                activeEntry,
-                {
-                    hover_preview: false,
-                    selected_relationship: true,
-                },
-            );
-
-            if (
-                hoveredEntry &&
-                hoveredEntry.id !== activeEntry.id
-            ) {
-                const previewGeometries = entryToOverlayGeometries(
-                    hoveredEntry,
-                    {
-                        hover_preview: true,
-                        selected_relationship: false,
-                    },
-                );
-
-                return [...selectedGeometries, ...previewGeometries];
-            }
-
-            return selectedGeometries;
+        if (activeEntryDetail) {
+            return entryToOverlayGeometries(activeEntryDetail, {
+                hover_preview: false,
+                selected_relationship: true,
+            });
         }
 
-        // Otherwise, show a deduped overview of related geometry for the selected timeframe.
-        // This reduces visual noise when many relations share the same geometry.
-        const dedupedOverview = dedupeTimelineOverlayGeometries(
-            timelineEntries,
-            entryToOverlayGeometries,
-        );
-
-        return dedupedOverview ? [dedupedOverview] : [null, null];
-    }, [
-        activeEntry,
-        hoveredEntry,
-        entryToOverlayGeometries,
-        timelineEntries,
-    ]);
+        return [];
+    }, [activeEntryDetail, entryToOverlayGeometries]);
 
     // Derive OHM date bounds from selected relationship/entity temporal ranges.
     // Combine active selection bounds with entity temporal bounds for comparison.
@@ -274,9 +269,6 @@ export default function EntityHistoryPanel({
         }
     }, []);
 
-    const hoveredRelationshipId =
-        hoveredItem?.kind === 'timeline' ? hoveredItem.id : null;
-
     return (
         <div className="flex flex-col gap-4 lg:flex-row">
             <div className="rounded-lg border flex flex-col flex-1 min-w-0 h-[820px] overflow-hidden">
@@ -292,7 +284,7 @@ export default function EntityHistoryPanel({
                     baseGeometries={baseGeometries}
                     overlayGeometries={overlayGeometries}
                     overlayRelationship={null}
-                    hoveredRelationshipId={hoveredRelationshipId}
+                    hoveredRelationshipId={null}
                     timeframeDate={timeframeDate}
                     timeframeStartDate={selectedStartDate}
                     timeframeEndDate={selectedEndDate}
@@ -328,9 +320,8 @@ export default function EntityHistoryPanel({
                         loading={loading}
                         loadError={loadError}
                         selectedItem={selectedItem}
-                        onHover={setHoveredItem}
+                        onHover={undefined}
                         onSelect={(item) => {
-                            setHoveredItem(null);
                             setSelectedRange(null);
                             setSelectedItem(item);
                         }}
@@ -439,121 +430,4 @@ function enrichGeoJson(
     }
 
     return null;
-}
-
-function dedupeTimelineOverlayGeometries(
-    entries: TimelineEntry[],
-    toOverlayGeometries: (
-        entry: TimelineEntry,
-        extraProperties?: Record<string, unknown>,
-    ) => GeoJsonLike[],
-): GeoJsonLike {
-    const bucket = new Map<
-        string,
-        {
-            feature: any;
-            relationCount: number;
-            relationIds: Set<string>;
-            relationTypes: Set<string>;
-            relatedNames: Set<string>;
-        }
-    >();
-
-    for (const entry of entries) {
-        const entryGeometries = toOverlayGeometries(entry, {
-            hover_preview: false,
-            selected_relationship: false,
-        });
-        const features = normalizeToFeatureCollection(entryGeometries).features;
-
-        for (const feature of features) {
-            const key = buildOverlayFeatureKey(
-                feature.geometry,
-                entry.start_year,
-                entry.end_year,
-            );
-            const existing = bucket.get(key);
-
-            if (!existing) {
-                bucket.set(key, {
-                    feature: {
-                        ...feature,
-                        properties: {
-                            ...(feature.properties ?? {}),
-                        },
-                    },
-                    relationCount: 1,
-                    relationIds: new Set([entry.id]),
-                    relationTypes: new Set(
-                        entry.relationship_type ? [entry.relationship_type] : [],
-                    ),
-                    relatedNames: new Set(
-                        entry.related_entity_name ? [entry.related_entity_name] : [],
-                    ),
-                });
-
-                continue;
-            }
-
-            existing.relationCount += 1;
-            existing.relationIds.add(entry.id);
-
-            if (entry.relationship_type) {
-                existing.relationTypes.add(entry.relationship_type);
-            }
-
-            if (entry.related_entity_name) {
-                existing.relatedNames.add(entry.related_entity_name);
-            }
-        }
-    }
-
-    const features = Array.from(bucket.values()).map((item) => ({
-        ...item.feature,
-        properties: {
-            ...(item.feature.properties ?? {}),
-            collapsed_relation_count: item.relationCount,
-            collapsed_relation_ids: Array.from(item.relationIds),
-            collapsed_relation_types: Array.from(item.relationTypes),
-            collapsed_related_entity_names: Array.from(item.relatedNames),
-        },
-    }));
-
-    if (features.length === 0) {
-        return null;
-    }
-
-    return {
-        type: 'FeatureCollection',
-        features,
-    };
-}
-
-function buildOverlayFeatureKey(
-    geometry: unknown,
-    startYear: number | null,
-    endYear: number | null,
-): string {
-    return [
-        startYear ?? 'null',
-        endYear ?? 'null',
-        stableJsonStringify(geometry),
-    ].join('|');
-}
-
-function stableJsonStringify(value: unknown): string {
-    if (Array.isArray(value)) {
-        return `[${value.map((item) => stableJsonStringify(item)).join(',')}]`;
-    }
-
-    if (value && typeof value === 'object') {
-        const record = value as Record<string, unknown>;
-        const keys = Object.keys(record).sort();
-
-        return `{${keys
-            .map((key) => `${JSON.stringify(key)}:${stableJsonStringify(record[key])}`)
-            .join(',')}}`;
-    }
-
-    return JSON.stringify(value);
 }

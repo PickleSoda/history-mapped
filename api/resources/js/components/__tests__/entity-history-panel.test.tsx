@@ -5,8 +5,10 @@ import { describe, it, beforeAll, afterAll, afterEach, vi, expect } from 'vitest
 import EntityHistoryPanel from '../entity-history-panel';
 import '@testing-library/jest-dom/vitest';
 
+const historicalMapViewerMock = vi.fn(() => <div data-testid="mock-map-viewer" />);
+
 vi.mock('../historical-map-viewer', () => ({
-    default: () => <div data-testid="mock-map-viewer" />,
+    default: (props: unknown) => historicalMapViewerMock(props),
 }));
 
 let fetchMock: ReturnType<typeof vi.fn>;
@@ -28,6 +30,7 @@ afterAll(() => {
 
 afterEach(() => {
     fetchMock.mockReset();
+    historicalMapViewerMock.mockClear();
 });
 
 describe('EntityHistoryPanel', () => {
@@ -41,8 +44,9 @@ describe('EntityHistoryPanel', () => {
             title: 'Alliance of 120 CE',
             description: 'Rel 1',
             location_entity_id: null,
+            has_geom: true,
+            has_territory_geom: false,
             geom: { type: 'Point', coordinates: [3, 4] },
-            territory_geom: null,
             source_table: 'geometry_periods',
             source_id: 'gp-1',
             relationship_type: 'allied_with',
@@ -54,18 +58,33 @@ describe('EntityHistoryPanel', () => {
         },
     ];
 
+    const timelineEntryDetail = {
+        data: {
+            ...timelineEntries[0],
+            geom: { type: 'Point', coordinates: [3, 4] },
+            territory_geom: null,
+        },
+    };
+
     function mockFetchImpl(url: string) {
-        if (url.includes('/timeline')) {
+        if (url.endsWith('/timeline')) {
             return Promise.resolve({
                 ok: true,
                 json: () => Promise.resolve({ data: timelineEntries }),
             } as Response);
         }
 
+        if (url.endsWith('/timeline/timeline-1')) {
+            return Promise.resolve({
+                ok: true,
+                json: () => Promise.resolve(timelineEntryDetail),
+            } as Response);
+        }
+
         return Promise.reject(new Error('Unknown URL'));
     }
 
-    it('renders timeline items and applies overlays on click', async () => {
+    it('renders timeline items and lazy loads selected entry geometry on click', async () => {
         fetchMock.mockImplementation((input) =>
             mockFetchImpl(String(input)),
         );
@@ -97,9 +116,53 @@ describe('EntityHistoryPanel', () => {
         const relItem = screen.getByText(/Alliance of 120 CE/i);
         fireEvent.click(relItem);
 
-        // No assertion on map overlays (MapLibre is not rendered in jsdom),
-        // but we can check that the timeline selection logic works by checking for selected class
-        // or by checking that the timeline item is still present
+        expect(fetchMock).toHaveBeenCalledWith(
+            '/api/v1/entities/e1/timeline/timeline-1',
+            expect.objectContaining({
+                headers: { Accept: 'application/json' },
+            }),
+        );
+
         expect(screen.getByText(/Alliance of 120 CE/i)).toBeInTheDocument();
+    });
+
+    it('shows timeline point geometries from the summary payload on the map', async () => {
+        fetchMock.mockImplementation((input) =>
+            mockFetchImpl(String(input)),
+        );
+
+        const queryClient = new QueryClient({
+            defaultOptions: {
+                queries: {
+                    retry: false,
+                },
+            },
+        });
+
+        render(
+            <QueryClientProvider client={queryClient}>
+                <EntityHistoryPanel
+                    entityGeojson={{ type: 'FeatureCollection', features: [] }}
+                    entityTerritoryGeojson={{ type: 'FeatureCollection', features: [] }}
+                    entityTemporalStart={null}
+                    entityTemporalEnd={null}
+                    timelineUrl="/api/v1/entities/e1/timeline"
+                />
+            </QueryClientProvider>,
+        );
+
+        expect(await screen.findByText(/Alliance of 120 CE/i)).toBeInTheDocument();
+
+        const lastCall = historicalMapViewerMock.mock.calls.at(-1);
+        expect(lastCall?.[0]).toEqual(
+            expect.objectContaining({
+                overlayGeometries: expect.arrayContaining([
+                    expect.objectContaining({
+                        type: 'Feature',
+                        geometry: expect.objectContaining({ type: 'Point' }),
+                    }),
+                ]),
+            }),
+        );
     });
 });

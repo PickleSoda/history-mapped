@@ -9,6 +9,8 @@ use App\Observers\GeometryPeriodObserver;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -53,5 +55,36 @@ class AppServiceProvider extends ServiceProvider
                 ->uncompromised()
             : null,
         );
+
+        $this->configureViteFallback();
+    }
+
+    /**
+     * Keep local Docker dev working when the Vite dev server is up but the
+     * standard public/hot marker file is missing on the shared volume.
+     */
+    protected function configureViteFallback(): void
+    {
+        if (! app()->isLocal()) {
+            return;
+        }
+
+        if (is_file(public_path('hot')) || is_file(public_path('build/manifest.json'))) {
+            return;
+        }
+
+        $devServerUrl = rtrim((string) env('VITE_ADMIN_DEV_SERVER_URL', 'http://localhost:5174'), '/');
+        if ($devServerUrl === '') {
+            return;
+        }
+
+        $hotFile = storage_path('framework/vite.hot');
+
+        Vite::useHotFile($hotFile);
+
+        if (! is_file($hotFile) || trim((string) File::get($hotFile)) !== $devServerUrl) {
+            File::ensureDirectoryExists(dirname($hotFile));
+            File::put($hotFile, $devServerUrl);
+        }
     }
 }

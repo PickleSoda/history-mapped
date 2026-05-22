@@ -60,7 +60,23 @@ class EntityGeometryPeriodControllerTest extends TestCase
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.entity_id', $this->entity->entity_id)
             ->assertJsonPath('data.0.start_year', 120)
-            ->assertJsonPath('data.0.end_year', 160);
+            ->assertJsonPath('data.0.end_year', 160)
+            ->assertJsonPath('data.0.has_geom', true)
+            ->assertJsonPath('data.0.has_territory_geom', false)
+            ->assertJsonMissingPath('data.0.geom')
+            ->assertJsonMissingPath('data.0.territory_geom');
+    }
+
+    public function test_show_returns_geometry_for_single_period(): void
+    {
+        $periodId = $this->createGeometryPeriod($this->entity, 120, 160);
+
+        $this->actingAs($this->user)
+            ->getJson(route('entities.geometry-periods.show', [$this->entity, $periodId]))
+            ->assertOk()
+            ->assertJsonPath('data.geometry_period_id', $periodId)
+            ->assertJsonPath('data.geom.type', 'Point')
+            ->assertJsonPath('data.territory_geom', null);
     }
 
     public function test_store_creates_geometry_period(): void

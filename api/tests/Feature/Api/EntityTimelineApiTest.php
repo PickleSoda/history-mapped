@@ -73,9 +73,59 @@ class EntityTimelineApiTest extends TestCase
             ->assertJsonPath('data.0.related_entity_name', 'Siege of Alesia')
             ->assertJsonPath('data.0.start_year', -52)
             ->assertJsonPath('data.0.end_year', -52)
-            ->assertJsonPath('data.0.geom.type', 'Point')
+            ->assertJsonPath('data.0.has_geom', true)
+            ->assertJsonPath('data.0.has_territory_geom', false)
+                ->assertJsonPath('data.0.geom.type', 'Point')
             ->assertJsonPath('data.0.source_table', 'geometry_periods')
-            ->assertJsonPath('data.0.source_id', $periodId);
+            ->assertJsonPath('data.0.source_id', $periodId)
+            ->assertJsonMissingPath('data.0.territory_geom');
+    }
+
+    public function test_timeline_entry_endpoint_returns_geometry_for_single_entry(): void
+    {
+        $caesar = Entity::factory()->create(['name' => 'Julius Caesar']);
+        $alesia = Entity::factory()->create(['name' => 'Siege of Alesia']);
+
+        $relationshipId = Str::uuid()->toString();
+
+        DB::table('relationships')->insert([
+            'relationship_id' => $relationshipId,
+            'source_entity_id' => $caesar->entity_id,
+            'target_entity_id' => $alesia->entity_id,
+            'relationship_type' => 'victorious_at',
+            'temporal_start' => '-0052',
+            'temporal_end' => '-0052',
+            'start_year' => -52,
+            'end_year' => -52,
+            'created_by' => 'test',
+            'created_at' => now(),
+        ]);
+
+        $periodId = Str::uuid()->toString();
+
+        DB::statement(
+            "INSERT INTO geometry_periods (
+                geometry_period_id, entity_id, period_type, start_year, end_year,
+                geom, provenance_mode, relationship_id, created_by, created_at, updated_at
+            ) VALUES (
+                ?, ?, 'presence', -52, -52,
+                ST_SetSRID(ST_MakePoint(4.5, 47.5), 4326), 'derived', ?, 'test', NOW(), NOW()
+            )",
+            [$periodId, $caesar->entity_id, $relationshipId],
+        );
+
+        $this->artisan('timeline:rebuild', ['entity_id' => $caesar->entity_id])->assertExitCode(0);
+
+        $timelineEntryId = DB::table('entity_timeline_entries')
+            ->where('entity_id', $caesar->entity_id)
+            ->value('timeline_entry_id');
+
+        $this->getJson(route('api.v1.entities.timeline.show', [$caesar->entity_id, $timelineEntryId]))
+            ->assertOk()
+            ->assertJsonPath('data.id', $timelineEntryId)
+            ->assertJsonPath('data.geom.type', 'Point')
+            ->assertJsonPath('data.territory_geom', null)
+            ->assertJsonPath('data.source_id', $periodId);
     }
 
     public function test_timeline_endpoint_falls_back_to_primary_temporal_range_when_no_geometry_period_exists(): void
