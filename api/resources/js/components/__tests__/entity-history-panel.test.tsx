@@ -170,4 +170,80 @@ describe('EntityHistoryPanel', () => {
             ).toBe(true);
         });
     });
+
+    it('lazy loads detail geometry when a selected entry advertises territory geometry', async () => {
+        const territorySummary = [
+            {
+                ...timelineEntries[0],
+                id: 'timeline-2',
+                title: 'Territorial expansion',
+                has_geom: false,
+                has_territory_geom: true,
+                geom: null,
+            },
+        ];
+
+        const territoryDetail = {
+            data: {
+                ...territorySummary[0],
+                territory_geom: {
+                    type: 'Polygon',
+                    coordinates: [[[3, 4], [4, 4], [4, 5], [3, 5], [3, 4]]],
+                },
+            },
+        };
+
+        fetchMock.mockImplementation((input) => {
+            const url = String(input);
+
+            if (url.endsWith('/timeline')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({ data: territorySummary }),
+                } as Response);
+            }
+
+            if (url.endsWith('/timeline/timeline-2')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve(territoryDetail),
+                } as Response);
+            }
+
+            return Promise.reject(new Error('Unknown URL'));
+        });
+
+        const queryClient = new QueryClient({
+            defaultOptions: {
+                queries: {
+                    retry: false,
+                },
+            },
+        });
+
+        render(
+            <QueryClientProvider client={queryClient}>
+                <EntityHistoryPanel
+                    entityGeojson={{ type: 'FeatureCollection', features: [] }}
+                    entityTerritoryGeojson={{ type: 'FeatureCollection', features: [] }}
+                    entityTemporalStart={null}
+                    entityTemporalEnd={null}
+                    timelineUrl="/api/v1/entities/e1/timeline"
+                />
+            </QueryClientProvider>,
+        );
+
+        expect(await screen.findByText(/Territorial expansion/i)).toBeInTheDocument();
+
+        fireEvent.click(screen.getByText(/Territorial expansion/i));
+
+        await waitFor(() => {
+            expect(fetchMock).toHaveBeenCalledWith(
+                '/api/v1/entities/e1/timeline/timeline-2',
+                expect.objectContaining({
+                    headers: { Accept: 'application/json' },
+                }),
+            );
+        });
+    });
 });

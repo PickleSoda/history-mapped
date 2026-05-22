@@ -6,6 +6,7 @@ namespace Tests\Feature\Feature;
 
 use App\Models\Entity;
 use App\Models\EntityGeoRef;
+use App\Models\EntityLocation;
 use App\Models\GeometryPeriod;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -13,6 +14,17 @@ use Tests\TestCase;
 class ImportBordersCommandTest extends TestCase
 {
     use RefreshDatabase;
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function makePointGeojson(float $lon = 12.48, float $lat = 41.89): array
+    {
+        return [
+            'type' => 'Point',
+            'coordinates' => [$lon, $lat],
+        ];
+    }
 
     /**
      * @param  array<string, mixed>  $overrides
@@ -41,10 +53,7 @@ class ImportBordersCommandTest extends TestCase
                     'end_year' => 1950,
                     'start_date' => '1900',
                     'end_date' => '1950',
-                    'geojson' => [
-                        'type' => 'MultiPolygon',
-                        'coordinates' => [[[[0, 0], [1, 0], [1, 1], [0, 0]]]],
-                    ],
+                    'geojson' => $this->makePointGeojson(),
                     'label' => 'Testland (1900-1950)',
                     'external_tags' => ['name' => 'Testland'],
                 ],
@@ -74,9 +83,20 @@ class ImportBordersCommandTest extends TestCase
         ]);
 
         $geoRefs = EntityGeoRef::query()->where('entity_id', $entity->entity_id)->get();
+        $period = GeometryPeriod::query()->where('entity_id', $entity->entity_id)->firstOrFail();
+        $location = EntityLocation::query()
+            ->where('entity_id', $entity->entity_id)
+            ->where('is_primary', true)
+            ->firstOrFail();
+
         $this->assertCount(2, $geoRefs);
         $this->assertCount(1, $geoRefs->whereNull('geometry_period_id'));
         $this->assertCount(1, $geoRefs->whereNotNull('geometry_period_id'));
+        $this->assertSame('territory', $period->period_type);
+        $this->assertNotNull($period->geom);
+        $this->assertNull($period->territory_geom);
+        $this->assertNotNull($location->geom);
+        $this->assertNull($location->territory_geom);
     }
 
     public function test_command_is_idempotent_for_duplicate_lines(): void
@@ -108,10 +128,7 @@ class ImportBordersCommandTest extends TestCase
                     'external_type' => 'relation',
                     'start_year' => 1800,
                     'end_year' => 1850,
-                    'geojson' => [
-                        'type' => 'MultiPolygon',
-                        'coordinates' => [[[[0, 0], [2, 0], [2, 2], [0, 0]]]],
-                    ],
+                    'geojson' => $this->makePointGeojson(10.0, 20.0),
                     'label' => 'Evolving (1800-1850)',
                     'external_tags' => [],
                 ],
@@ -120,10 +137,7 @@ class ImportBordersCommandTest extends TestCase
                     'external_type' => 'relation',
                     'start_year' => 1850,
                     'end_year' => 1900,
-                    'geojson' => [
-                        'type' => 'MultiPolygon',
-                        'coordinates' => [[[[0, 0], [3, 0], [3, 3], [0, 0]]]],
-                    ],
+                    'geojson' => $this->makePointGeojson(30.0, 40.0),
                     'label' => 'Evolving (1850-1900)',
                     'external_tags' => [],
                 ],
@@ -150,6 +164,8 @@ class ImportBordersCommandTest extends TestCase
         );
         $this->assertCount(2, $geoRefs->whereNotNull('geometry_period_id'));
         $this->assertCount(1, $geoRefs->whereNull('geometry_period_id'));
+        $this->assertTrue($periods->every(fn (GeometryPeriod $period) => $period->geom !== null));
+        $this->assertTrue($periods->every(fn (GeometryPeriod $period) => $period->territory_geom === null));
     }
 
     public function test_command_sorts_geo_ref_temporal_bounds_when_geometry_periods_are_unordered(): void
@@ -167,10 +183,7 @@ class ImportBordersCommandTest extends TestCase
                     'end_year' => 1620,
                     'start_date' => '1620',
                     'end_date' => '1620',
-                    'geojson' => [
-                        'type' => 'MultiPolygon',
-                        'coordinates' => [[[[0, 0], [2, 0], [2, 2], [0, 0]]]],
-                    ],
+                    'geojson' => $this->makePointGeojson(20.0, 20.0),
                     'label' => 'Later stage',
                     'external_tags' => [],
                 ],
@@ -181,10 +194,7 @@ class ImportBordersCommandTest extends TestCase
                     'end_year' => 1619,
                     'start_date' => '1619',
                     'end_date' => '1619',
-                    'geojson' => [
-                        'type' => 'MultiPolygon',
-                        'coordinates' => [[[[0, 0], [3, 0], [3, 3], [0, 0]]]],
-                    ],
+                    'geojson' => $this->makePointGeojson(10.0, 10.0),
                     'label' => 'Earlier stage',
                     'external_tags' => [],
                 ],
@@ -223,10 +233,7 @@ class ImportBordersCommandTest extends TestCase
                     'end_year' => 1363,
                     'start_date' => '1390',
                     'end_date' => '1363',
-                    'geojson' => [
-                        'type' => 'MultiPolygon',
-                        'coordinates' => [[[[0, 0], [2, 0], [2, 2], [0, 0]]]],
-                    ],
+                    'geojson' => $this->makePointGeojson(20.0, 20.0),
                     'label' => 'Republic of Venice (1390-1363)',
                     'external_tags' => [],
                 ],
@@ -237,10 +244,7 @@ class ImportBordersCommandTest extends TestCase
                     'end_year' => 1404,
                     'start_date' => '1391',
                     'end_date' => '1404',
-                    'geojson' => [
-                        'type' => 'MultiPolygon',
-                        'coordinates' => [[[[0, 0], [3, 0], [3, 3], [0, 0]]]],
-                    ],
+                    'geojson' => $this->makePointGeojson(30.0, 30.0),
                     'label' => 'Republic of Venice (1391-1404)',
                     'external_tags' => [],
                 ],
@@ -282,10 +286,7 @@ class ImportBordersCommandTest extends TestCase
                     'end_year' => null,
                     'start_date' => '1991-03-21',
                     'end_date' => null,
-                    'geojson' => [
-                        'type' => 'MultiPolygon',
-                        'coordinates' => [[[[0, 0], [1, 0], [1, 1], [0, 0]]]],
-                    ],
+                    'geojson' => $this->makePointGeojson(),
                     'label' => 'Poland (1991-present)',
                     'external_tags' => ['name' => 'Poland'],
                 ],
@@ -369,10 +370,7 @@ class ImportBordersCommandTest extends TestCase
                     'end_year' => 1991,
                     'start_date' => '1989',
                     'end_date' => '1991',
-                    'geojson' => [
-                        'type' => 'MultiPolygon',
-                        'coordinates' => [[[[0, 0], [1, 0], [1, 1], [0, 0]]]],
-                    ],
+                    'geojson' => $this->makePointGeojson(),
                     'label' => 'Poland (1989-1991)',
                     'external_tags' => ['name' => 'Poland'],
                 ],
@@ -415,10 +413,7 @@ class ImportBordersCommandTest extends TestCase
                     'end_year' => null,
                     'start_date' => '1995',
                     'end_date' => null,
-                    'geojson' => [
-                        'type' => 'MultiPolygon',
-                        'coordinates' => [[[[0, 0], [1, 0], [1, 1], [0, 0]]]],
-                    ],
+                    'geojson' => $this->makePointGeojson(),
                     'label' => 'Poland (1995-present)',
                     'external_tags' => ['name' => 'Poland'],
                 ],

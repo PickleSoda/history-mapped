@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from pipeline.ohm_borders.date_parser import parse_end_year, parse_start_year
+from pipeline.ohm_borders.fetcher import derive_representative_point
 
 
 def _has_valid_stage_range(stage: dict[str, Any]) -> bool:
@@ -97,7 +98,7 @@ def map_polity_to_jsonl(polity: dict[str, Any], wikidata_index: dict[str, dict[s
             "end_year": end_year,
             "start_date": raw_start,
             "end_date": raw_end,
-            "geojson": stage.get("geometry"),
+            "geojson": derive_representative_point(stage.get("geometry")),
             "label": label,
             "external_tags": stage_tags,
         })
