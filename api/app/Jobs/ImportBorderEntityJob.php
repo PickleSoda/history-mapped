@@ -298,6 +298,16 @@ class ImportBorderEntityJob implements ShouldQueue
                 continue;
             }
 
+            if (! $this->isPointGeometry($geojson)) {
+                Log::warning('[Borders] Skipped non-point OHM geometry period during import', [
+                    'entity_id' => $entity->entity_id,
+                    'ohm_relation_id' => $period['ohm_relation_id'] ?? null,
+                    'geometry_type' => $geojson['type'] ?? null,
+                ]);
+
+                continue;
+            }
+
             $startYear = isset($period['start_year']) ? (int) $period['start_year'] : null;
             $endYear = isset($period['end_year']) ? (int) $period['end_year'] : null;
 
@@ -331,7 +341,8 @@ class ImportBorderEntityJob implements ShouldQueue
                 'period_type' => 'territory',
                 'start_year' => $startYear,
                 'end_year' => $endYear,
-                'territory_geom' => $geojson,
+                'geom' => $geojson,
+                'territory_geom' => null,
                 'description' => is_string($description) ? $description : null,
                 'provenance_mode' => 'ohm_import',
                 'confidence' => 'medium',
@@ -345,6 +356,23 @@ class ImportBorderEntityJob implements ShouldQueue
         }
 
         return $persisted;
+    }
+
+    /**
+     * @param  array<string, mixed>  $geojson
+     */
+    private function isPointGeometry(array $geojson): bool
+    {
+        if (($geojson['type'] ?? null) !== 'Point') {
+            return false;
+        }
+
+        $coordinates = $geojson['coordinates'] ?? null;
+
+        return is_array($coordinates)
+            && count($coordinates) >= 2
+            && is_numeric($coordinates[0])
+            && is_numeric($coordinates[1]);
     }
 
     /**

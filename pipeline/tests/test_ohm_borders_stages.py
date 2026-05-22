@@ -588,12 +588,12 @@ def test_build_stage_loads_enrichment_index_and_writes_deterministic_outputs(tmp
                     {
                         "relation_id": 401,
                         "tags": {"start_date": "1390", "end_date": "1363"},
-                        "geometry": {"type": "MultiPolygon", "coordinates": [[[[0, 0], [2, 0], [2, 2], [0, 0]]]]},
+                        "geometry": {"type": "MultiPolygon", "coordinates": [[[[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]]]},
                     },
                     {
                         "relation_id": 402,
                         "tags": {"start_date": "1391", "end_date": "1404"},
-                        "geometry": {"type": "MultiPolygon", "coordinates": [[[[0, 0], [3, 0], [3, 3], [0, 0]]]]},
+                        "geometry": {"type": "MultiPolygon", "coordinates": [[[[0, 0], [3, 0], [3, 3], [0, 3], [0, 0]]]]},
                     },
                 ],
             }
@@ -615,7 +615,7 @@ def test_build_stage_loads_enrichment_index_and_writes_deterministic_outputs(tmp
                     {
                         "relation_id": 100,
                         "tags": {"start_date": "1900", "end_date": "1950"},
-                        "geometry": {"type": "MultiPolygon", "coordinates": [[[[0, 0], [1, 0], [1, 1], [0, 0]]]]},
+                        "geometry": {"type": "MultiPolygon", "coordinates": [[[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]]},
                     }
                 ],
             }
@@ -651,7 +651,7 @@ def test_build_stage_loads_enrichment_index_and_writes_deterministic_outputs(tmp
             "end_year": 1404,
             "start_date": "1391",
             "end_date": "1404",
-            "geojson": {"type": "MultiPolygon", "coordinates": [[[[0, 0], [3, 0], [3, 3], [0, 0]]]]},
+            "geojson": {"type": "Point", "coordinates": [1.5, 1.5]},
             "label": "Republic of Venice (1391-1404)",
             "external_tags": {"start_date": "1391", "end_date": "1404"},
         }
@@ -760,7 +760,7 @@ def test_build_stage_no_enrich_succeeds_with_empty_index(tmp_path: Path) -> None
                     {
                         "relation_id": 100,
                         "tags": {"start_date": "1900", "end_date": "1950"},
-                        "geometry": {"type": "MultiPolygon", "coordinates": [[[[0, 0], [1, 0], [1, 1], [0, 0]]]]},
+                        "geometry": {"type": "MultiPolygon", "coordinates": [[[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]]},
                     }
                 ],
             }
@@ -794,7 +794,7 @@ def test_build_stage_no_enrich_succeeds_with_empty_index(tmp_path: Path) -> None
                     "end_year": 1950,
                     "start_date": "1900",
                     "end_date": "1950",
-                    "geojson": {"type": "MultiPolygon", "coordinates": [[[[0, 0], [1, 0], [1, 1], [0, 0]]]]},
+                    "geojson": {"type": "Point", "coordinates": [0.5, 0.5]},
                     "label": "Testland (EN) (1900-1950)",
                     "external_tags": {"start_date": "1900", "end_date": "1950"},
                 }

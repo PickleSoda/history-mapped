@@ -123,7 +123,8 @@ def test_map_standalone_geometry_period() -> None:
     assert period["ohm_relation_id"] == "100"
     assert period["start_year"] == 1900
     assert period["end_year"] == 1950
-    assert period["geojson"]["type"] == "MultiPolygon"
+    assert period["geojson"]["type"] == "Point"
+    assert len(period["geojson"]["coordinates"]) == 2
 
 
 def test_map_chronology_produces_multiple_periods() -> None:

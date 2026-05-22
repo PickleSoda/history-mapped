@@ -35,6 +35,39 @@
   - Persist OHM-imported geometry periods to `geom` only, not `territory_geom`.
   - Keep the existing representative-point hydration into the primary entity location, now driven by point payloads instead of polygons.
 
+- Modify: `api/app/Http/Api/V1/Controllers/EntityTimelineController.php`
+  - Keep `index` as a summary-only endpoint and `show` as the full-geometry detail endpoint.
+  - Ensure point-only timeline rows can surface cheap summary `geom` data while `territory_geom` stays detail-only.
+
+- Modify: `api/app/Http/Api/V1/Resources/EntityTimelineEntrySummaryResource.php`
+  - Serialize summary-safe timeline fields only.
+  - Normalize the SQL-side summary point alias into the public `geom` field so point-only rows do not require a detail fetch.
+
+- Modify: `api/tests/Feature/Api/EntityTimelineApiTest.php`
+  - Lock the point-first summary/detail timeline contract for imported OHM rows and manually curated polygon rows.
+
+- Modify: `api/resources/js/components/entity-history-panel.tsx`
+  - Reuse summary-point geometry directly.
+  - Lazy-load detail only when a selected entry still needs full territory geometry.
+
+- Modify: `api/resources/js/components/__tests__/entity-history-panel.test.tsx`
+  - Lock no-extra-fetch behavior for point-only timeline summaries and detail fetch behavior for territory cases.
+
+- Modify: `api/app/Http/Controllers/Admin/EntityGeometryPeriodController.php`
+  - Preserve the list/detail split for geometry periods so summary rows stay light and edit views still receive full geometry.
+
+- Modify: `api/tests/Feature/Admin/EntityGeometryPeriodControllerTest.php`
+  - Lock summary omission of heavy geometry and detail availability for edit/manual polygon flows.
+
+- Modify: `api/resources/js/components/entity-geometry-periods-panel.tsx`
+  - Keep the list bound to summary rows and fetch detail on edit or focused selection.
+
+- Modify: `api/resources/js/components/__tests__/entity-geometry-periods-panel.test.tsx`
+  - Lock lazy detail loading before edit so point-only imported periods do not bloat list payloads.
+
+- Verify only: `api/routes/api.php`
+  - Keep both timeline routes public and separate: index for summary, show for detail.
+
 - Modify: `api/tests/Feature/Feature/ImportBordersCommandTest.php`
   - Lock the Laravel import contract so OHM-imported periods become point rows and reverse-lookup georefs still attach correctly.
 
@@ -44,12 +77,17 @@
 - Modify: `pipeline/ohm_borders/README.md`
   - Document the new storage policy: transient OHM polygons in the pipeline, point-only importer output, unchanged georef attachment.
 
+Commit note:
+
+- Exclude: `api/app/Providers/AppServiceProvider.php`
+  - Commit `1bc298c` also added a local Vite fallback there, but that infrastructure change is unrelated to OHM geometry handling and is not part of this plan extension.
+
 ## Explicit Non-Goals For This First Pass
 
 - No database migration.
 - No enum expansion for a new location method.
 - No change to `entity_geo_refs` semantics.
-- No change to manual/admin geometry editing flows.
+- No redesign of manual/admin geometry editing flows; only preservation of the existing summary/detail contract is covered below.
 - No frontend rewrite to highlight OHM features directly from georefs.
 - No removal of `geometry_periods` as a concept.
 
@@ -367,6 +405,161 @@ git add docs/schemas/pipeline-entity-record.md pipeline/ohm_borders/README.md
 git commit -m "docs: describe point-only OHM border import contract"
 ```
 
+### Task 6: Preserve Point-First Timeline Summary And Detail Contracts
+
+**Files:**
+- Modify: `api/app/Http/Api/V1/Controllers/EntityTimelineController.php`
+- Modify: `api/app/Http/Api/V1/Resources/EntityTimelineEntrySummaryResource.php`
+- Modify: `api/tests/Feature/Api/EntityTimelineApiTest.php`
+- Modify: `api/resources/js/components/entity-history-panel.tsx`
+- Modify: `api/resources/js/components/__tests__/entity-history-panel.test.tsx`
+- Verify only: `api/routes/api.php`
+
+- [ ] **Step 1: Extend the failing API and frontend tests around summary-vs-detail geometry**
+
+In `api/tests/Feature/Api/EntityTimelineApiTest.php`, update or add assertions that distinguish the compact summary payload from the full detail payload:
+
+- point-only timeline rows must return `has_geom: true`
+- point-only timeline rows must return `has_territory_geom: false`
+- the index payload must expose `geom.type === "Point"`
+- the index payload must not expose `territory_geom`
+- detail payloads must remain the place where manual polygon geometry is returned
+
+In `api/resources/js/components/__tests__/entity-history-panel.test.tsx`, add or strengthen the two key UI expectations:
+
+- clicking a point-only summary entry must not trigger `/timeline/{id}`
+- clicking a territory-bearing entry must still trigger `/timeline/{id}` so the viewer can load full detail on demand
+
+- [ ] **Step 2: Run the focused timeline tests to verify they fail if the summary/detail contract drifts**
+
+Run:
+
+```powershell
+docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feature/Api/EntityTimelineApiTest.php
+Push-Location api; pnpm vitest run resources/js/components/__tests__/entity-history-panel.test.tsx; Pop-Location
+```
+
+Expected:
+
+- the current summary resource/query alias mismatch should fail fast in the API test because `EntityTimelineController` selects `geom_geojson` while `EntityTimelineEntrySummaryResource` currently reads the public `geom` field
+- any regression that eagerly detail-fetches point-only rows fails in the Vitest suite
+
+- [ ] **Step 3: Align the timeline controller and summary resource with the point-first contract**
+
+Keep `EntityTimelineController::index()` as the light list endpoint and `show()` as the heavy detail endpoint.
+
+The summary endpoint should:
+
+- keep `has_geom` and `has_territory_geom`
+- expose summary point geometry only when it is cheap to inline
+- avoid returning `territory_geom` on the index route
+
+Match the aliasing pattern already used in `EntitySummaryResource`. If the controller selects a summary alias such as `geom_geojson`, the summary resource must normalize that alias back into the public `geom` field rather than relying on the full `geom` attribute to be loaded.
+
+Treat this as a concrete first fix, not just a generic cleanup. The current seam to correct is:
+
+```php
+// controller summary query
+->selectRaw("CASE WHEN geom IS NOT NULL AND ST_GeometryType(geom) = 'ST_Point' THEN ST_AsGeoJSON(geom)::jsonb ELSE NULL END as geom_geojson")
+
+// summary resource public payload
+'geom' => $this->geom_geojson,
+```
+
+Keep `territory_geom` detail-only.
+
+- [ ] **Step 4: Keep `entity-history-panel.tsx` lazy only when full geometry is actually needed**
+
+Preserve this decision tree in the component:
+
+- if the selected summary row already includes point `geom` and has no territory geometry, use it directly and skip the detail fetch
+- if the selected row advertises `has_territory_geom`, fetch `timeline/{id}` and render the returned detail geometry
+- if the selected row has neither geometry flag, do not fetch detail
+
+Do not reintroduce hover-driven geometry fetches or broad overview deduping in this pass.
+
+- [ ] **Step 5: Run the focused timeline tests to verify they pass**
+
+Run:
+
+```powershell
+docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feature/Api/EntityTimelineApiTest.php
+Push-Location api; pnpm vitest run resources/js/components/__tests__/entity-history-panel.test.tsx; Pop-Location
+```
+
+Expected: PASS.
+
+- [ ] **Step 6: Commit the timeline summary/detail checkpoint**
+
+```powershell
+git add api/app/Http/Api/V1/Controllers/EntityTimelineController.php api/app/Http/Api/V1/Resources/EntityTimelineEntrySummaryResource.php api/tests/Feature/Api/EntityTimelineApiTest.php api/resources/js/components/entity-history-panel.tsx api/resources/js/components/__tests__/entity-history-panel.test.tsx
+git commit -m "feat: preserve point-first timeline geometry summaries"
+```
+
+### Task 7: Preserve Geometry-Period Summary And Detail Editing Contracts
+
+**Files:**
+- Modify: `api/app/Http/Controllers/Admin/EntityGeometryPeriodController.php`
+- Modify: `api/tests/Feature/Admin/EntityGeometryPeriodControllerTest.php`
+- Modify: `api/resources/js/components/entity-geometry-periods-panel.tsx`
+- Modify: `api/resources/js/components/__tests__/entity-geometry-periods-panel.test.tsx`
+
+- [ ] **Step 1: Extend the failing admin/controller tests for summary-only lists and lazy detail loading**
+
+In `api/tests/Feature/Admin/EntityGeometryPeriodControllerTest.php`, lock both sides of the contract:
+
+- `index` returns `has_geom` and `has_territory_geom`
+- `index` omits `geom` and `territory_geom`
+- `show` returns the actual geometry payload needed for editing
+- point-only rows continue to report `has_geom: true` and `has_territory_geom: false`
+- manual polygon rows continue to round-trip through `show`, `store`, and `update`
+
+In `api/resources/js/components/__tests__/entity-geometry-periods-panel.test.tsx`, explicitly require the edit flow to fetch `detailUrlFn(id)` before populating the edit form.
+
+- [ ] **Step 2: Run the focused geometry-period tests to verify they fail if the list/detail split regresses**
+
+Run:
+
+```powershell
+docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feature/Admin/EntityGeometryPeriodControllerTest.php
+Push-Location api; pnpm vitest run resources/js/components/__tests__/entity-geometry-periods-panel.test.tsx; Pop-Location
+```
+
+Expected:
+
+- the Laravel test fails if list responses start inlining geometry again or if point flags drift
+- the Vitest case fails if edit mode assumes geometry is already in the list response
+
+- [ ] **Step 3: Preserve the compact controller payload and lazy edit behavior**
+
+Keep `EntityGeometryPeriodController::index()` summary-only and `show()` detail-full.
+
+The controller and component should continue to support this split:
+
+- list rows stay compact for imported OHM point periods and manual polygon periods alike
+- edit mode fetches the selected period detail before hydrating the form
+- point-only imported rows remain editable without requiring list payload geometry
+
+Only widen the payload if a concrete regression forces it; otherwise keep the commit `1bc298c` pattern intact.
+
+- [ ] **Step 4: Run the focused geometry-period tests to verify they pass**
+
+Run:
+
+```powershell
+docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feature/Admin/EntityGeometryPeriodControllerTest.php
+Push-Location api; pnpm vitest run resources/js/components/__tests__/entity-geometry-periods-panel.test.tsx; Pop-Location
+```
+
+Expected: PASS.
+
+- [ ] **Step 5: Commit the geometry-period summary/detail checkpoint**
+
+```powershell
+git add api/app/Http/Controllers/Admin/EntityGeometryPeriodController.php api/tests/Feature/Admin/EntityGeometryPeriodControllerTest.php api/resources/js/components/entity-geometry-periods-panel.tsx api/resources/js/components/__tests__/entity-geometry-periods-panel.test.tsx
+git commit -m "feat: preserve lazy geometry period detail loading"
+```
+
 ---
 
 ## Handoff Notes For The Next Pass
@@ -374,8 +567,8 @@ git commit -m "docs: describe point-only OHM border import contract"
 After this first pass lands, the next migration can decide whether to:
 
 - add an explicit location method for OHM-derived representative points instead of reusing `ohm_nominatim`
-- make map and timeline APIs return OHM feature references alongside local points
-- stop relying on local `geometry_periods` for OHM border overlays entirely and shift polygon rendering to direct OHM tile highlighting
+- make map and timeline APIs return OHM feature references alongside local points where summary/detail contracts are not enough
+- stop relying on local `geometry_periods` for OHM border overlays entirely and shift entity-specific polygon highlighting to direct OHM tile or feature-resolution flows
 - add richer point provenance fields when historians need to distinguish representative-point, Wikidata-point, and capital-point strategies
 
 Those are intentionally deferred so the first pass can remain a narrow, reversible contract change.

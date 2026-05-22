@@ -78,8 +78,48 @@ Import skips records missing any of these.
 
 - `_relationship_hints`: staged for relationship resolution jobs.
 - `_geo_resolution`: consumed by import georef action.
+- `_geometry_periods`: importer-facing temporal geometry payload used by the OHM borders pipeline.
 
 These keys are stripped before constructing Laravel `EntityData`.
+
+## OHM Borders Contract
+
+The OHM borders pipeline uses `_geometry_periods[*].geojson` as its importer-facing spatial field.
+
+In the current first pass, that payload is point-only:
+
+```jsonc
+{
+  "_ohm_relation_id": "100",
+  "_geometry_periods": [
+    {
+      "ohm_relation_id": "100",
+      "external_type": "relation",
+      "start_year": 1900,
+      "end_year": 1950,
+      "start_date": "1900",
+      "end_date": "1950",
+      "geojson": {
+        "type": "Point",
+        "coordinates": [12.48, 41.89]
+      },
+      "label": "Testland (1900-1950)",
+      "external_tags": {
+        "name": "Testland"
+      }
+    }
+  ]
+}
+```
+
+Rationale:
+
+- final JSONL stays lightweight even when OHM source geometry is large
+- OHM feature identity still lives in `entity_geo_refs`
+- representative points still support markers, timeline entries, and reverse lookup
+- `territory_geom` remains available for manual or curated local boundary authoring outside this import path
+
+Full OHM polygons may still exist transiently inside pipeline parse/build stages for representative-point derivation, but they are not persisted through the final OHM border importer contract.
 
 ## Notes
 

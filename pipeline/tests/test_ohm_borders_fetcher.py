@@ -1,4 +1,9 @@
-from pipeline.ohm_borders.fetcher import assemble_geometry, parse_elements, parse_relation_subset
+from pipeline.ohm_borders.fetcher import (
+    assemble_geometry,
+    derive_representative_point,
+    parse_elements,
+    parse_relation_subset,
+)
 
 BOUNDARY_FIXTURE = {
     "elements": [
@@ -100,6 +105,19 @@ CHRONOLOGY_FIXTURE = {
         },
     ]
 }
+
+
+def test_derive_representative_point_returns_point_for_simple_polygon() -> None:
+    point = derive_representative_point(
+        {
+            "type": "Polygon",
+            "coordinates": [
+                [[0.0, 0.0], [4.0, 0.0], [4.0, 4.0], [0.0, 4.0], [0.0, 0.0]],
+            ],
+        }
+    )
+
+    assert point == {"type": "Point", "coordinates": [2.0, 2.0]}
 
 
 def test_parse_elements_standalone() -> None:

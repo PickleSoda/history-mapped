@@ -410,6 +410,90 @@ def _filter_duplicate_rings(rings: list[list[list[float]]]) -> list[list[list[fl
     return filtered
 
 
+def _normalize_ring_coords(coords: Any) -> list[list[float]]:
+    normalized: list[list[float]] = []
+
+    if not isinstance(coords, list):
+        return normalized
+
+    for point in coords:
+        if not isinstance(point, (list, tuple)) or len(point) < 2:
+            continue
+
+        try:
+            normalized.append([float(point[0]), float(point[1])])
+        except (TypeError, ValueError):
+            continue
+
+    if len(normalized) >= 3 and normalized[0] != normalized[-1]:
+        normalized.append(normalized[0])
+
+    return normalized
+
+
+def _largest_outer_ring_from_geometry(geometry: dict[str, Any]) -> list[list[float]] | None:
+    geometry_type = geometry.get("type")
+
+    if geometry_type == "Polygon":
+        polygons = [geometry.get("coordinates", [])]
+    elif geometry_type == "MultiPolygon":
+        polygons = geometry.get("coordinates", [])
+    else:
+        return None
+
+    outer_rings: list[list[list[float]]] = []
+
+    for polygon in polygons:
+        if not isinstance(polygon, list) or not polygon:
+            continue
+
+        ring = _normalize_ring_coords(polygon[0])
+        if len(ring) >= 4:
+            outer_rings.append(ring)
+
+    if not outer_rings:
+        return None
+
+    return max(outer_rings, key=_ring_area)
+
+
+def derive_representative_point(geometry: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not isinstance(geometry, dict):
+        return None
+
+    geometry_type = geometry.get("type")
+    if geometry_type == "Point":
+        coords = geometry.get("coordinates")
+        if not isinstance(coords, (list, tuple)) or len(coords) < 2:
+            return None
+
+        try:
+            return {"type": "Point", "coordinates": [float(coords[0]), float(coords[1])]}
+        except (TypeError, ValueError):
+            return None
+
+    if geometry_type not in {"Polygon", "MultiPolygon"}:
+        return None
+
+    try:
+        from shapely.geometry import shape
+
+        shaped = shape(geometry)
+        if not shaped.is_empty:
+            point = shaped.representative_point()
+            if not point.is_empty:
+                return {"type": "Point", "coordinates": [float(point.x), float(point.y)]}
+    except Exception as exc:  # pragma: no cover - fallback for missing shapely/runtime issues
+        logger.debug("Shapely fallback in derive_representative_point: %s", exc)
+
+    outer_ring = _largest_outer_ring_from_geometry(geometry)
+    if outer_ring is None:
+        return None
+
+    x, y = _ring_centroid(outer_ring)
+    return {"type": "Point", "coordinates": [x, y]}
+
+
 def assemble_geometry(members: list[dict[str, Any]]) -> dict[str, Any] | None:
     """Assemble geometry from member way coordinates.
 

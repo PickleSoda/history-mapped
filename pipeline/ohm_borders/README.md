@@ -168,6 +168,20 @@ py -m pipeline borders enrich-output-names \
 | `--resume` | off | Skip artifacts that already exist |
 | `--force` | off | Overwrite existing artifacts |
 
+## Point-only border import contract
+
+The pipeline still assembles full OHM relation geometry during parsing so it can derive representative points reliably, but built and final OHM border JSONL output is now point-only for stage geometry.
+
+Specifically:
+
+- parsed artifacts may still contain polygon or multipolygon stage geometry
+- built and final OHM border JSONL emit `_geometry_periods[*].geojson` as a representative `Point`
+- Laravel border import persists those OHM-imported `geometry_periods` into `geom`, not `territory_geom`
+- `entity_geo_refs` still carry OHM relation identity for reverse lookup and future tile-driven highlighting
+- locally persisted polygons are intentionally deferred to manual or curated flows rather than this OHM import path
+
+This keeps importer payloads small while preserving time-aware markers and OHM relation linkage.
+
 ## Importing into Laravel
 
 ```powershell
