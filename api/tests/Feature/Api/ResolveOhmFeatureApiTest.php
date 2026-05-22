@@ -140,6 +140,10 @@ class ResolveOhmFeatureApiTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('data.entity.id', $primaryEntity->entity_id)
             ->assertJsonPath('data.geo_ref_id', $primaryGeoRefId)
+            ->assertJsonPath('data.feature_ref.provider', 'ohm')
+            ->assertJsonPath('data.feature_ref.external_type', 'relation')
+            ->assertJsonPath('data.feature_ref.external_id', '1880')
+            ->assertJsonPath('data.feature_ref.target_year', 150)
             ->assertJsonPath('data.resolution_source', 'entity_location')
             ->assertJsonPath('data.geometry.type', 'Polygon');
     }
@@ -169,6 +173,10 @@ class ResolveOhmFeatureApiTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('data.entity.id', $entity->entity_id)
             ->assertJsonPath('data.geo_ref_id', $geoRefId)
+            ->assertJsonPath('data.feature_ref.provider', 'ohm')
+            ->assertJsonPath('data.feature_ref.external_type', 'node')
+            ->assertJsonPath('data.feature_ref.external_id', '999')
+            ->assertJsonPath('data.feature_ref.target_year', 117)
             ->assertJsonPath('data.resolution_source', 'entity_location')
             ->assertJsonPath('data.geometry.type', 'Point');
     }

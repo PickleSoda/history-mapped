@@ -3,6 +3,7 @@ import type { MapLayerMouseEvent } from 'maplibre-gl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MouseEvent } from 'react';
 import type { MutableRefObject } from 'react';
+import { resolveOhmFeature } from '@/actions/App/Http/Api/V1/Controllers/MapResolutionController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -13,6 +14,14 @@ import {
 import type { GeoJsonLike } from '@/lib/geojson';
 import { loadHistoricalBasemapStyle } from '@/lib/map-config';
 import { normalizeOhmDate } from '@/lib/ohm-date';
+import {
+    buildResolveOhmFeaturePayload,
+    buildResolvedOhmSelectionFeature,
+} from '@/lib/ohm-feature-resolution';
+import type {
+    ResolveOhmFeaturePayload,
+    ResolveOhmFeatureResponse,
+} from '@/lib/ohm-feature-resolution';
 import { applyOhmLayerDateFilter } from '@/lib/ohm-layer-date-filter';
 import { cn } from '@/lib/utils';
 import type { Relationship } from '@/types/entity';
@@ -73,6 +82,38 @@ function HistoricalMapViewer({
         () => normalizeToFeatureCollection(overlayGeometries),
         [overlayGeometries],
     );
+    const timeframeHighlightKey = useMemo(
+        () => [timeframeDate ?? '', timeframeStartDate ?? '', timeframeEndDate ?? ''].join('|'),
+        [timeframeDate, timeframeStartDate, timeframeEndDate],
+    );
+    const timeframeHighlightKeyRef = useRef(timeframeHighlightKey);
+    const [ohmHighlightSelection, setOhmHighlightSelection] = useState<{
+        feature: GeoJsonLike;
+        key: string;
+    } | null>(null);
+    const setOhmHighlightFeature = useCallback(
+        (feature: GeoJsonLike) => {
+            setOhmHighlightSelection(
+                feature
+                    ? {
+                          feature,
+                          key: timeframeHighlightKeyRef.current,
+                      }
+                    : null,
+            );
+        },
+        [],
+    );
+    const ohmHighlightData = useMemo(
+        () =>
+            normalizeToFeatureCollection(
+                ohmHighlightSelection?.key === timeframeHighlightKey &&
+                    ohmHighlightSelection.feature
+                    ? [ohmHighlightSelection.feature]
+                    : [],
+            ),
+        [ohmHighlightSelection, timeframeHighlightKey],
+    );
 
     // Stable ref so the map-init closure always reads the latest timeframeDate
     // without being re-run on date changes.
@@ -115,6 +156,9 @@ function HistoricalMapViewer({
         timeframeEndDateRef.current = timeframeEndDate;
     }, [timeframeEndDate]);
     useEffect(() => {
+        timeframeHighlightKeyRef.current = timeframeHighlightKey;
+    }, [timeframeHighlightKey]);
+    useEffect(() => {
         onFeatureHoverRef.current = onFeatureHover;
     }, [onFeatureHover]);
     useEffect(() => {
@@ -147,6 +191,11 @@ function HistoricalMapViewer({
                     });
 
                     map.addSource('overlay-geometry', {
+                        type: 'geojson',
+                        data: { type: 'FeatureCollection', features: [] },
+                    });
+
+                    map.addSource('ohm-highlight', {
                         type: 'geojson',
                         data: { type: 'FeatureCollection', features: [] },
                     });
@@ -219,6 +268,40 @@ function HistoricalMapViewer({
                         },
                     });
 
+                    map.addLayer({
+                        id: 'ohm-highlight-fill',
+                        type: 'fill',
+                        source: 'ohm-highlight',
+                        filter: ['==', ['geometry-type'], 'Polygon'],
+                        paint: {
+                            'fill-color': '#0f766e',
+                            'fill-opacity': 0.16,
+                        },
+                    });
+
+                    map.addLayer({
+                        id: 'ohm-highlight-line',
+                        type: 'line',
+                        source: 'ohm-highlight',
+                        paint: {
+                            'line-color': '#0f766e',
+                            'line-width': 3,
+                        },
+                    });
+
+                    map.addLayer({
+                        id: 'ohm-highlight-point',
+                        type: 'circle',
+                        source: 'ohm-highlight',
+                        filter: ['==', ['geometry-type'], 'Point'],
+                        paint: {
+                            'circle-color': '#0f766e',
+                            'circle-radius': 6,
+                            'circle-stroke-color': '#fff',
+                            'circle-stroke-width': 1.5,
+                        },
+                    });
+
                     setMapReady(true);
                     setTimeout(() => map.resize(), 0);
 
@@ -245,6 +328,7 @@ function HistoricalMapViewer({
                 const unbindOverlayInteractions = bindOverlayInteractionHandlers({
                     map,
                     clearPopupCloseTimer,
+                    clearOhmHighlight: () => setOhmHighlightFeature(null),
                     schedulePopupClose,
                     onFeatureHoverRef,
                     onFeatureClickRef,
@@ -253,9 +337,14 @@ function HistoricalMapViewer({
                     setPopupInfo,
                 });
 
-                const unbindOhmInteractions = bindOhmBasemapInteractionHandlers(
+                const unbindOhmInteractions = bindOhmBasemapInteractionHandlers({
                     map,
-                );
+                    onFeatureClickRef,
+                    timeframeDateRef,
+                    timeframeStartDateRef,
+                    timeframeEndDateRef,
+                    setOhmHighlightFeature,
+                });
 
                 mapRef.current = map;
 
@@ -277,7 +366,7 @@ function HistoricalMapViewer({
                 mapRef.current = null;
             }
         };
-    }, [clearPopupCloseTimer, schedulePopupClose]);
+    }, [clearPopupCloseTimer, schedulePopupClose, setOhmHighlightFeature]);
 
     useEffect(() => {
         const map = mapRef.current;
@@ -413,8 +502,11 @@ function HistoricalMapViewer({
             const overlaySource = map.getSource('overlay-geometry') as
                 | { setData: (data: GeoJSON.FeatureCollection) => void }
                 | undefined;
+            const ohmHighlightSource = map.getSource('ohm-highlight') as
+                | { setData: (data: GeoJSON.FeatureCollection) => void }
+                | undefined;
 
-            if (!baseSource || !overlaySource) {
+            if (!baseSource || !overlaySource || !ohmHighlightSource) {
                 return false;
             }
 
@@ -428,9 +520,14 @@ function HistoricalMapViewer({
                 type: 'FeatureCollection',
                 features: [...overlayData.features],
             };
+            const nextOhmHighlightData: GeoJSON.FeatureCollection = {
+                type: 'FeatureCollection',
+                features: [...ohmHighlightData.features],
+            };
 
             baseSource.setData(nextBaseData);
             overlaySource.setData(nextOverlayData);
+            ohmHighlightSource.setData(nextOhmHighlightData);
 
             if (fitBounds && !hasAutoFitRef.current) {
                 const combinedFeatures = [
@@ -484,6 +581,7 @@ function HistoricalMapViewer({
         fitBoundsKey,
         mapReady,
         onRenderStateChange,
+        ohmHighlightData,
         overlayData,
     ]);
 
@@ -554,7 +652,7 @@ function HistoricalMapViewer({
         <div ref={mapContainerRef} className={cn('h-105 w-full relative', className)}>
             {popupInfo && popupInfo.feature && (
                 <div
-                    className="absolute z-20 min-w-[220px] max-w-xs"
+                    className="absolute z-20 min-w-55 max-w-xs"
                     style={{
                         left: popupInfo.screen.x,
                         top: popupInfo.screen.y - 5,
@@ -633,7 +731,23 @@ function HistoricalMapViewer({
     );
 }
 
-function bindOhmBasemapInteractionHandlers(map: Map): () => void {
+type OhmBasemapInteractionHandlerOptions = {
+    map: Map;
+    onFeatureClickRef: MutableRefObject<((feature: any | null) => void) | undefined>;
+    timeframeDateRef: MutableRefObject<string | null | undefined>;
+    timeframeStartDateRef: MutableRefObject<string | null | undefined>;
+    timeframeEndDateRef: MutableRefObject<string | null | undefined>;
+    setOhmHighlightFeature: (feature: GeoJsonLike) => void;
+};
+
+function bindOhmBasemapInteractionHandlers({
+    map,
+    onFeatureClickRef,
+    timeframeDateRef,
+    timeframeStartDateRef,
+    timeframeEndDateRef,
+    setOhmHighlightFeature,
+}: OhmBasemapInteractionHandlerOptions): () => void {
     const getInteractiveOhmLayerIds = () => {
         const style = map.getStyle();
 
@@ -661,7 +775,7 @@ function bindOhmBasemapInteractionHandlers(map: Map): () => void {
             .map((layer) => layer.id);
 
         const boundaryLayerIds = visibleOhmLayers
-            .filter((layer) => layer.type === 'line')
+            .filter((layer) => layer.type === 'line' || layer.type === 'fill')
             .map((layer) => layer.id);
 
         return {
@@ -844,6 +958,12 @@ function bindOhmBasemapInteractionHandlers(map: Map): () => void {
             return;
         }
 
+        if (isLocalGeometryClick(map, e)) {
+            setOhmHighlightFeature(null);
+
+            return;
+        }
+
         const { labelLayerIds, boundaryLayerIds } = getInteractiveOhmLayerIds();
         const hasLabelLayers = labelLayerIds.length > 0;
         const hasBoundaryLayers = boundaryLayerIds.length > 0;
@@ -875,6 +995,7 @@ function bindOhmBasemapInteractionHandlers(map: Map): () => void {
 
         const uniqueLabelFeatures = dedupByFeature(labelFeatures);
         const uniqueBoundaryFeatures = dedupByFeature(boundaryFeatures);
+        let bestBoundaryFeatures = uniqueBoundaryFeatures;
         let candidateFeatures =
             uniqueLabelFeatures.length > 0
                 ? uniqueLabelFeatures.map((feature) => ({
@@ -914,6 +1035,10 @@ function bindOhmBasemapInteractionHandlers(map: Map): () => void {
             const expandedLabelFeatures = hasLabelLayers
                 ? collectFirstNonEmpty(labelLayerIds, labelFallbackRadii)
                 : [];
+
+            if (expandedBoundaryFeatures.length > 0) {
+                bestBoundaryFeatures = expandedBoundaryFeatures;
+            }
 
             if (expandedBoundaryFeatures.length > 0 && expandedLabelFeatures.length > 0) {
                 const linkedLabels = expandedLabelFeatures.filter((labelFeature) =>
@@ -972,6 +1097,8 @@ function bindOhmBasemapInteractionHandlers(map: Map): () => void {
         }
 
         if (candidateFeatures.length === 0) {
+            setOhmHighlightFeature(null);
+
             return;
         }
 
@@ -1004,6 +1131,45 @@ function bindOhmBasemapInteractionHandlers(map: Map): () => void {
                 feature,
             });
         });
+
+        const selectedCandidate = rankedCandidates[0];
+
+        if (!selectedCandidate) {
+            setOhmHighlightFeature(null);
+
+            return;
+        }
+
+        const highlightFeature =
+            selectedCandidate.source === 'label'
+                ? bestBoundaryFeatures.find((candidate) =>
+                      hasTokenOverlap(selectedCandidate.feature, candidate),
+                  ) ?? selectedCandidate.feature
+                : selectedCandidate.feature;
+        const resolutionPayload =
+            buildResolveOhmFeaturePayload(selectedCandidate.feature, {
+                timeframeDate: timeframeDateRef.current ?? null,
+                timeframeStartDate: timeframeStartDateRef.current ?? null,
+                timeframeEndDate: timeframeEndDateRef.current ?? null,
+            }) ??
+            buildResolveOhmFeaturePayload(highlightFeature, {
+                timeframeDate: timeframeDateRef.current ?? null,
+                timeframeStartDate: timeframeStartDateRef.current ?? null,
+                timeframeEndDate: timeframeEndDateRef.current ?? null,
+            });
+
+        if (!resolutionPayload) {
+            setOhmHighlightFeature(null);
+
+            return;
+        }
+
+        void resolveClickedOhmFeature({
+            feature: highlightFeature,
+            payload: resolutionPayload,
+            onFeatureClick: onFeatureClickRef.current,
+            setOhmHighlightFeature,
+        });
     };
 
     map.on('click', handleClick);
@@ -1019,6 +1185,7 @@ export default HistoricalMapViewer;
 type OverlayInteractionHandlerOptions = {
     map: Map;
     clearPopupCloseTimer: () => void;
+    clearOhmHighlight: () => void;
     schedulePopupClose: () => void;
     onFeatureHoverRef: MutableRefObject<((feature: any | null) => void) | undefined>;
     onFeatureClickRef: MutableRefObject<((feature: any | null) => void) | undefined>;
@@ -1030,6 +1197,7 @@ type OverlayInteractionHandlerOptions = {
 function bindOverlayInteractionHandlers({
     map,
     clearPopupCloseTimer,
+    clearOhmHighlight,
     schedulePopupClose,
     onFeatureHoverRef,
     onFeatureClickRef,
@@ -1071,6 +1239,8 @@ function bindOverlayInteractionHandlers({
     const handleClick = (e: MapLayerMouseEvent) => {
         const feature = e.features?.[0];
 
+        clearOhmHighlight();
+
         if (onFeatureClickRef.current) {
             onFeatureClickRef.current(feature);
         }
@@ -1090,6 +1260,76 @@ function bindOverlayInteractionHandlers({
         map.off('mouseleave', 'overlay-point', handleMouseLeave);
         map.off('click', 'overlay-point', handleClick);
     };
+}
+
+function isLocalGeometryClick(map: Map, event: MapLayerMouseEvent): boolean {
+    const localLayerIds = [
+        'base-fill',
+        'base-line',
+        'base-point',
+        'overlay-fill',
+        'overlay-line',
+        'overlay-point',
+    ].filter((layerId) => Boolean(map.getLayer(layerId)));
+
+    if (localLayerIds.length === 0) {
+        return false;
+    }
+
+    return map.queryRenderedFeatures(event.point, { layers: localLayerIds }).length > 0;
+}
+
+async function resolveClickedOhmFeature({
+    feature,
+    payload,
+    onFeatureClick,
+    setOhmHighlightFeature,
+}: {
+    feature: any;
+    payload: ResolveOhmFeaturePayload;
+    onFeatureClick: ((feature: any | null) => void) | undefined;
+    setOhmHighlightFeature: (feature: GeoJsonLike) => void;
+}): Promise<void> {
+    try {
+        const response = await fetch(resolveOhmFeature().url, {
+            method: resolveOhmFeature().method,
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            setOhmHighlightFeature(null);
+
+            return;
+        }
+
+        const payloadJson = (await response.json()) as {
+            data?: ResolveOhmFeatureResponse;
+        };
+
+        if (!payloadJson.data) {
+            setOhmHighlightFeature(null);
+
+            return;
+        }
+
+        const resolvedFeature = buildResolvedOhmSelectionFeature(
+            feature,
+            payloadJson.data,
+        );
+
+        setOhmHighlightFeature(resolvedFeature as unknown as GeoJsonLike);
+        onFeatureClick?.(resolvedFeature);
+    } catch (error) {
+        console.warn('[HistoricalMapViewer] Failed to resolve OHM feature click', {
+            payload,
+            error,
+        });
+        setOhmHighlightFeature(null);
+    }
 }
 
 function toDisplayLabel(key: string): string {

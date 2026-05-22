@@ -16,6 +16,7 @@ class ResolveOhmFeatureAction
      * @return array{
      *     entity: array{id: string, name: string, entity_type: string|null, entity_group: string|null},
      *     geo_ref_id: string,
+    *     feature_ref: array{provider: string|null, external_type: string|null, external_id: string, geometry_period_id: string|null, target_year: int},
     *     resolution_source: string,
      *     geometry: array<string, mixed>
      * }
@@ -60,6 +61,13 @@ class ResolveOhmFeatureAction
             throw (new ModelNotFoundException)->setModel(EntityGeoRef::class);
         }
 
+        $entityPayload = [
+            'id' => $entity->entity_id,
+            'name' => $entity->name,
+            'entity_type' => $entity->entity_type?->value,
+            'entity_group' => $entity->entity_group?->value,
+        ];
+
         if ($geoRef->geometry_period_id !== null) {
             $linkedPeriod = GeometryPeriod::query()
                 ->where('geometry_period_id', $geoRef->geometry_period_id)
@@ -70,17 +78,13 @@ class ResolveOhmFeatureAction
 
             $linkedPeriodGeometry = $linkedPeriod?->territory_geom ?? $linkedPeriod?->geom;
             if (is_array($linkedPeriodGeometry)) {
-                return [
-                    'entity' => [
-                        'id' => $entity->entity_id,
-                        'name' => $entity->name,
-                        'entity_type' => $entity->entity_type?->value,
-                        'entity_group' => $entity->entity_group?->value,
-                    ],
-                    'geo_ref_id' => $geoRef->geo_ref_id,
-                    'resolution_source' => 'geometry_period',
-                    'geometry' => $linkedPeriodGeometry,
-                ];
+                return $this->buildResponse(
+                    $geoRef,
+                    $entityPayload,
+                    $payload['target_year'],
+                    'geometry_period',
+                    $linkedPeriodGeometry,
+                );
             }
         }
 
@@ -94,17 +98,13 @@ class ResolveOhmFeatureAction
 
         $dateMatchedPeriodGeometry = $dateMatchedPeriod?->territory_geom ?? $dateMatchedPeriod?->geom;
         if (is_array($dateMatchedPeriodGeometry)) {
-            return [
-                'entity' => [
-                    'id' => $entity->entity_id,
-                    'name' => $entity->name,
-                    'entity_type' => $entity->entity_type?->value,
-                    'entity_group' => $entity->entity_group?->value,
-                ],
-                'geo_ref_id' => $geoRef->geo_ref_id,
-                'resolution_source' => 'geometry_period_fallback',
-                'geometry' => $dateMatchedPeriodGeometry,
-            ];
+            return $this->buildResponse(
+                $geoRef,
+                $entityPayload,
+                $payload['target_year'],
+                'geometry_period_fallback',
+                $dateMatchedPeriodGeometry,
+            );
         }
 
         $primaryLocation = $entity->primaryLocation;
@@ -114,16 +114,45 @@ class ResolveOhmFeatureAction
             throw (new ModelNotFoundException)->setModel(EntityGeoRef::class);
         }
 
+        return $this->buildResponse(
+            $geoRef,
+            $entityPayload,
+            $payload['target_year'],
+            'entity_location',
+            $baseGeometry,
+        );
+    }
+
+    /**
+     * @param  array{id: string, name: string, entity_type: string|null, entity_group: string|null}  $entity
+     * @param  array<string, mixed>  $geometry
+     * @return array{
+     *     entity: array{id: string, name: string, entity_type: string|null, entity_group: string|null},
+     *     geo_ref_id: string,
+     *     feature_ref: array{provider: string|null, external_type: string|null, external_id: string, geometry_period_id: string|null, target_year: int},
+     *     resolution_source: string,
+     *     geometry: array<string, mixed>
+     * }
+     */
+    private function buildResponse(
+        EntityGeoRef $geoRef,
+        array $entity,
+        int $targetYear,
+        string $resolutionSource,
+        array $geometry,
+    ): array {
         return [
-            'entity' => [
-                'id' => $entity->entity_id,
-                'name' => $entity->name,
-                'entity_type' => $entity->entity_type?->value,
-                'entity_group' => $entity->entity_group?->value,
-            ],
+            'entity' => $entity,
             'geo_ref_id' => $geoRef->geo_ref_id,
-            'resolution_source' => 'entity_location',
-            'geometry' => $baseGeometry,
+            'feature_ref' => [
+                'provider' => $geoRef->provider?->value,
+                'external_type' => $geoRef->external_type?->value,
+                'external_id' => $geoRef->external_id,
+                'geometry_period_id' => $geoRef->geometry_period_id,
+                'target_year' => $targetYear,
+            ],
+            'resolution_source' => $resolutionSource,
+            'geometry' => $geometry,
         ];
     }
 }

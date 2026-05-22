@@ -102,7 +102,7 @@ These are valid follow-up tasks, but they are intentionally excluded from the mi
 - Modify: `pipeline/tests/test_ohm_borders_mapper.py`
 - Modify: `pipeline/tests/test_ohm_borders_stages.py`
 
-- [ ] **Step 1: Add a focused representative-point helper test in `pipeline/tests/test_ohm_borders_fetcher.py`**
+- [x] **Step 1: Add a focused representative-point helper test in `pipeline/tests/test_ohm_borders_fetcher.py`**
 
 Add a test that feeds a simple polygon or multipolygon GeoJSON into the new helper and expects a point result:
 
@@ -117,7 +117,7 @@ assert point == {"type": "Point", "coordinates": [expected_x, expected_y]}
 
 The assertion should validate point shape and deterministic coordinates, not a polygon echo.
 
-- [ ] **Step 2: Update mapper tests to expect point-only `_geometry_periods[*].geojson`**
+- [x] **Step 2: Update mapper tests to expect point-only `_geometry_periods[*].geojson`**
 
 In `pipeline/tests/test_ohm_borders_mapper.py`, change the existing stage assertions from polygon output to point output. Keep the temporal, label, and `ohm_relation_id` expectations intact.
 
@@ -130,7 +130,7 @@ assert len(period["geojson"]["coordinates"]) == 2
 
 This should fail immediately against the current `MultiPolygon` output and makes the contract change unambiguous.
 
-- [ ] **Step 3: Update staged build tests to expect point-only final JSONL**
+- [x] **Step 3: Update staged build tests to expect point-only final JSONL**
 
 In `pipeline/tests/test_ohm_borders_stages.py`, update the build-stage expectations so the merged `built/` and `final/` JSONL artifacts show point payloads inside `_geometry_periods` instead of polygons.
 
@@ -142,7 +142,7 @@ The staged pipeline should still preserve:
 - labels
 - `external_tags`
 
-- [ ] **Step 4: Run the focused Python tests to verify they fail**
+- [x] **Step 4: Run the focused Python tests to verify they fail**
 
 Run:
 
@@ -168,7 +168,7 @@ git commit -m "test: lock OHM point-only mapper contract"
 - Modify: `pipeline/ohm_borders/fetcher.py`
 - Modify: `pipeline/ohm_borders/mapper.py`
 
-- [ ] **Step 1: Add a representative-point helper to `pipeline/ohm_borders/fetcher.py`**
+- [x] **Step 1: Add a representative-point helper to `pipeline/ohm_borders/fetcher.py`**
 
 Implement a small helper, for example `derive_representative_point(geometry: dict[str, Any]) -> dict[str, Any] | None`, with this behavior:
 
@@ -180,7 +180,7 @@ Implement a small helper, for example `derive_representative_point(geometry: dic
 
 Keep this helper local to the OHM pipeline. Do not broaden it into a generic geospatial abstraction yet.
 
-- [ ] **Step 2: Update `pipeline/ohm_borders/mapper.py` to emit point-only stage payloads**
+- [x] **Step 2: Update `pipeline/ohm_borders/mapper.py` to emit point-only stage payloads**
 
 Replace this stage payload shape:
 
@@ -208,11 +208,11 @@ Preserve the current keys and ordering:
 
 Do not add new top-level `territory_geojson` output in this first pass. The minimal contract change is to keep `_geometry_periods[*].geojson` but make it point-only.
 
-- [ ] **Step 3: Keep transient polygon geometry out of the final JSONL only**
+- [x] **Step 3: Keep transient polygon geometry out of the final JSONL only**
 
 Do not change `parse` artifacts or upstream raw geometry assembly in this pass. The parsed OHM records may still carry stage polygons internally; only the built and final importer-facing JSONL should stop carrying them.
 
-- [ ] **Step 4: Run the focused Python tests to verify they pass**
+- [x] **Step 4: Run the focused Python tests to verify they pass**
 
 Run:
 
@@ -234,7 +234,7 @@ git commit -m "feat: emit point-only OHM border stage geometry"
 **Files:**
 - Modify: `api/tests/Feature/Feature/ImportBordersCommandTest.php`
 
-- [ ] **Step 1: Update fixture records to use point-only `_geometry_periods[*].geojson`**
+- [x] **Step 1: Update fixture records to use point-only `_geometry_periods[*].geojson`**
 
 Replace the existing `MultiPolygon` fixtures in `ImportBordersCommandTest` with point fixtures such as:
 
@@ -247,7 +247,7 @@ Replace the existing `MultiPolygon` fixtures in `ImportBordersCommandTest` with 
 
 Keep the same temporal ranges and relation ids so the importer behavior is compared on equal metadata.
 
-- [ ] **Step 2: Add assertions that imported OHM periods write to `geom`, not `territory_geom`**
+- [x] **Step 2: Add assertions that imported OHM periods write to `geom`, not `territory_geom`**
 
 For every imported OHM geometry period, assert:
 
@@ -267,14 +267,14 @@ $this->assertNull($period->territory_geom);
 $this->assertSame('territory', $period->period_type->value);
 ```
 
-- [ ] **Step 3: Add assertions that the primary entity location remains point-only**
+- [x] **Step 3: Add assertions that the primary entity location remains point-only**
 
 Assert that the importer still hydrates the entity’s primary location from the first available OHM stage, but now as a point:
 
 - `entity_locations.geom` is populated
 - `entity_locations.territory_geom` remains null for this OHM import path
 
-- [ ] **Step 4: Run the focused Laravel test to verify it fails**
+- [x] **Step 4: Run the focused Laravel test to verify it fails**
 
 Run:
 
@@ -298,7 +298,7 @@ git commit -m "test: lock point-only OHM import behavior"
 **Files:**
 - Modify: `api/app/Jobs/ImportBorderEntityJob.php`
 
-- [ ] **Step 1: Change `upsertGeometryPeriods()` to write OHM-imported points into `geom`**
+- [x] **Step 1: Change `upsertGeometryPeriods()` to write OHM-imported points into `geom`**
 
 Update the `GeometryPeriod::query()->create([...])` payload so OHM-imported stages set:
 
@@ -311,13 +311,13 @@ instead of the current `territory_geom => $geojson` behavior.
 
 Do the same for any future update-or-reuse branch in this method if a new branch is introduced during implementation.
 
-- [ ] **Step 2: Add a hard guard against polygon regression in the OHM import path**
+- [x] **Step 2: Add a hard guard against polygon regression in the OHM import path**
 
 Before persisting the stage geometry, verify the payload is a point-like geometry for this path. If the payload is unexpectedly polygonal, either skip it with a targeted log entry or fail fast in the narrowest way the existing import conventions allow.
 
 This keeps the importer honest even if a later mapper change accidentally reintroduces polygons.
 
-- [ ] **Step 3: Keep georef creation and representative-point hydration intact**
+- [x] **Step 3: Keep georef creation and representative-point hydration intact**
 
 Do not change:
 
@@ -327,7 +327,7 @@ Do not change:
 
 Keep `hydrateEntityGeometry()` in place so the primary entity location still gets a base point from the imported OHM stages. Because the mapper now emits point-only stage payloads, the existing hydrator should naturally populate `entity_locations.geom`.
 
-- [ ] **Step 4: Run the focused Laravel test to verify it passes**
+- [x] **Step 4: Run the focused Laravel test to verify it passes**
 
 Run:
 
@@ -350,7 +350,7 @@ git commit -m "feat: store OHM imported geometry periods as points"
 - Modify: `docs/schemas/pipeline-entity-record.md`
 - Modify: `pipeline/ohm_borders/README.md`
 
-- [ ] **Step 1: Update the pipeline entity schema doc**
+- [x] **Step 1: Update the pipeline entity schema doc**
 
 In `docs/schemas/pipeline-entity-record.md`, document that the OHM borders build output keeps `_geometry_periods[*].geojson` as the importer-facing spatial field, but that this first pass now emits a representative `Point` instead of a polygonal OHM border geometry.
 
@@ -363,7 +363,7 @@ Include the rationale, not just the shape change:
 - representative points still support map markers and reverse lookup
 - `territory_geom` stays available for manual or curated local boundary authoring outside this import path
 
-- [ ] **Step 2: Update the OHM borders README**
+- [x] **Step 2: Update the OHM borders README**
 
 In `pipeline/ohm_borders/README.md`, add a short section explaining:
 
@@ -372,7 +372,7 @@ In `pipeline/ohm_borders/README.md`, add a short section explaining:
 - Laravel import still creates `entity_geo_refs` and `geometry_periods`, but OHM-imported periods are point-only in this pass
 - local persisted polygons are intentionally deferred to later curated or tile-driven flows
 
-- [ ] **Step 3: Run the focused Python and Laravel checks together**
+- [x] **Step 3: Run the focused Python and Laravel checks together**
 
 Run:
 
@@ -383,7 +383,7 @@ docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feat
 
 Expected: both commands pass.
 
-- [ ] **Step 4: Run one smoke build plus sync import using an OHM fixture artifact**
+- [x] **Step 4: Run one smoke build plus sync import using an OHM fixture artifact**
 
 Use an existing small fixture-backed run or temporary artifact directory and run:
 
