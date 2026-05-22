@@ -26,6 +26,7 @@ type TimelineEntrySummary = {
     description: string | null;
     has_geom: boolean;
     has_territory_geom: boolean;
+    geom: GeoJsonLike;
     source_table: string;
     source_id: string;
     relationship_type: string | null;
@@ -90,6 +91,10 @@ export default function EntityHistoryPanel({
 
     const selectedEntryUrl = useMemo(() => {
         if (!activeEntry) {
+            return null;
+        }
+
+        if (!activeEntry.has_territory_geom && activeEntry.geom) {
             return null;
         }
 
@@ -161,7 +166,20 @@ export default function EntityHistoryPanel({
     );
 
     const entryToOverlayGeometries = useCallback(
-        (entry: TimelineEntryDetail, extraProperties: Record<string, unknown> = {}): GeoJsonLike[] => {
+        (
+            entry: Pick<
+                TimelineEntrySummary,
+                | 'id'
+                | 'relationship_type'
+                | 'related_entity_name'
+                | 'title'
+                | 'description'
+                | 'start_year'
+                | 'end_year'
+                | 'geom'
+            > & { territory_geom?: GeoJsonLike | null },
+            extraProperties: Record<string, unknown> = {},
+        ): GeoJsonLike[] => {
             if (!entry.geom && !entry.territory_geom) {
                 return [];
             }
@@ -185,16 +203,42 @@ export default function EntityHistoryPanel({
         [],
     );
 
-    const overlayGeometries = useMemo<GeoJsonLike[]>(() => {
+    const selectedEntryOverlay = useMemo(() => {
         if (activeEntryDetail) {
-            return entryToOverlayGeometries(activeEntryDetail, {
+            return activeEntryDetail;
+        }
+
+        if (!activeEntry || !activeEntry.geom) {
+            return null;
+        }
+
+        return {
+            ...activeEntry,
+            territory_geom: null,
+        };
+    }, [activeEntry, activeEntryDetail]);
+
+    const overlayGeometries = useMemo<GeoJsonLike[]>(() => {
+        if (selectedEntryOverlay) {
+            return entryToOverlayGeometries(selectedEntryOverlay, {
                 hover_preview: false,
                 selected_relationship: true,
             });
         }
 
-        return [];
-    }, [activeEntryDetail, entryToOverlayGeometries]);
+        return timelineEntries.flatMap((entry) =>
+            entryToOverlayGeometries(
+                {
+                    ...entry,
+                    territory_geom: null,
+                },
+                {
+                    hover_preview: false,
+                    selected_relationship: false,
+                },
+            ),
+        );
+    }, [entryToOverlayGeometries, selectedEntryOverlay, timelineEntries]);
 
     // Derive OHM date bounds from selected relationship/entity temporal ranges.
     // Combine active selection bounds with entity temporal bounds for comparison.

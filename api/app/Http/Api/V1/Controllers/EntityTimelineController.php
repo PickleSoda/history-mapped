@@ -41,6 +41,7 @@ class EntityTimelineController extends Controller
             ])
             ->selectRaw('geom IS NOT NULL as has_geom')
             ->selectRaw('territory_geom IS NOT NULL as has_territory_geom')
+            ->selectRaw("CASE WHEN geom IS NOT NULL AND ST_GeometryType(geom) = 'ST_Point' THEN ST_AsGeoJSON(geom)::jsonb ELSE NULL END as geom_geojson")
             ->orderBy('start_year')
             ->orderBy('end_year')
             ->orderBy('created_at')
