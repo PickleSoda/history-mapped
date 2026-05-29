@@ -1,6 +1,6 @@
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
-from pipeline.ohm_borders.enricher import batch_enrich_qids, _build_sparql_query
+from pipeline.ohm_borders.enricher import _build_sparql_query, batch_enrich_qids, search_qid_by_name
 
 
 def test_build_sparql_query_includes_qids() -> None:
@@ -43,3 +43,25 @@ def test_batch_size_splits_large_list() -> None:
         mock_q.return_value = []
         batch_enrich_qids(qids, batch_size=50)
         assert mock_q.call_count == 3
+
+
+def test_search_qid_by_name_accepts_string_match_text_payload() -> None:
+    response = Mock()
+    response.raise_for_status.return_value = None
+    response.json.return_value = {
+        "search": [
+            {
+                "id": "Q12548",
+                "label": "Holy Roman Empire",
+                "description": "historical polity in Central Europe",
+                "match": {
+                    "type": "label",
+                    "language": "en",
+                    "text": "Holy Roman Empire",
+                },
+            }
+        ]
+    }
+
+    with patch("pipeline.ohm_borders.enricher.requests.get", return_value=response):
+        assert search_qid_by_name("Holy Roman Empire") == "Q12548"

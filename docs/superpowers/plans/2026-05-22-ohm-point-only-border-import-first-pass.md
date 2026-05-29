@@ -415,7 +415,7 @@ git commit -m "docs: describe point-only OHM border import contract"
 - Modify: `api/resources/js/components/__tests__/entity-history-panel.test.tsx`
 - Verify only: `api/routes/api.php`
 
-- [ ] **Step 1: Extend the failing API and frontend tests around summary-vs-detail geometry**
+- [x] **Step 1: Extend the failing API and frontend tests around summary-vs-detail geometry**
 
 In `api/tests/Feature/Api/EntityTimelineApiTest.php`, update or add assertions that distinguish the compact summary payload from the full detail payload:
 
@@ -430,7 +430,7 @@ In `api/resources/js/components/__tests__/entity-history-panel.test.tsx`, add or
 - clicking a point-only summary entry must not trigger `/timeline/{id}`
 - clicking a territory-bearing entry must still trigger `/timeline/{id}` so the viewer can load full detail on demand
 
-- [ ] **Step 2: Run the focused timeline tests to verify they fail if the summary/detail contract drifts**
+- [x] **Step 2: Run the focused timeline tests to verify they fail if the summary/detail contract drifts**
 
 Run:
 
@@ -444,7 +444,7 @@ Expected:
 - the current summary resource/query alias mismatch should fail fast in the API test because `EntityTimelineController` selects `geom_geojson` while `EntityTimelineEntrySummaryResource` currently reads the public `geom` field
 - any regression that eagerly detail-fetches point-only rows fails in the Vitest suite
 
-- [ ] **Step 3: Align the timeline controller and summary resource with the point-first contract**
+- [x] **Step 3: Align the timeline controller and summary resource with the point-first contract**
 
 Keep `EntityTimelineController::index()` as the light list endpoint and `show()` as the heavy detail endpoint.
 
@@ -468,7 +468,7 @@ Treat this as a concrete first fix, not just a generic cleanup. The current seam
 
 Keep `territory_geom` detail-only.
 
-- [ ] **Step 4: Keep `entity-history-panel.tsx` lazy only when full geometry is actually needed**
+- [x] **Step 4: Keep `entity-history-panel.tsx` lazy only when full geometry is actually needed**
 
 Preserve this decision tree in the component:
 
@@ -478,7 +478,7 @@ Preserve this decision tree in the component:
 
 Do not reintroduce hover-driven geometry fetches or broad overview deduping in this pass.
 
-- [ ] **Step 5: Run the focused timeline tests to verify they pass**
+- [x] **Step 5: Run the focused timeline tests to verify they pass**
 
 Run:
 
@@ -504,7 +504,7 @@ git commit -m "feat: preserve point-first timeline geometry summaries"
 - Modify: `api/resources/js/components/entity-geometry-periods-panel.tsx`
 - Modify: `api/resources/js/components/__tests__/entity-geometry-periods-panel.test.tsx`
 
-- [ ] **Step 1: Extend the failing admin/controller tests for summary-only lists and lazy detail loading**
+- [x] **Step 1: Extend the failing admin/controller tests for summary-only lists and lazy detail loading**
 
 In `api/tests/Feature/Admin/EntityGeometryPeriodControllerTest.php`, lock both sides of the contract:
 
@@ -516,7 +516,7 @@ In `api/tests/Feature/Admin/EntityGeometryPeriodControllerTest.php`, lock both s
 
 In `api/resources/js/components/__tests__/entity-geometry-periods-panel.test.tsx`, explicitly require the edit flow to fetch `detailUrlFn(id)` before populating the edit form.
 
-- [ ] **Step 2: Run the focused geometry-period tests to verify they fail if the list/detail split regresses**
+- [x] **Step 2: Run the focused geometry-period tests to verify they fail if the list/detail split regresses**
 
 Run:
 
@@ -530,7 +530,7 @@ Expected:
 - the Laravel test fails if list responses start inlining geometry again or if point flags drift
 - the Vitest case fails if edit mode assumes geometry is already in the list response
 
-- [ ] **Step 3: Preserve the compact controller payload and lazy edit behavior**
+- [x] **Step 3: Preserve the compact controller payload and lazy edit behavior**
 
 Keep `EntityGeometryPeriodController::index()` summary-only and `show()` detail-full.
 
@@ -542,7 +542,7 @@ The controller and component should continue to support this split:
 
 Only widen the payload if a concrete regression forces it; otherwise keep the commit `1bc298c` pattern intact.
 
-- [ ] **Step 4: Run the focused geometry-period tests to verify they pass**
+- [x] **Step 4: Run the focused geometry-period tests to verify they pass**
 
 Run:
 
