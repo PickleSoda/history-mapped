@@ -18,6 +18,12 @@ class EntityTimelineEntrySummaryResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $geom = $this->geom_geojson ?? $this->geom;
+
+        if (is_string($geom)) {
+            $geom = json_decode($geom, true) ?? $geom;
+        }
+
         return [
             'id' => $this->timeline_entry_id,
             'entity_id' => $this->entity_id,
@@ -29,7 +35,7 @@ class EntityTimelineEntrySummaryResource extends JsonResource
             'location_entity_id' => $this->location_entity_id,
             'has_geom' => (bool) ($this->has_geom ?? false),
             'has_territory_geom' => (bool) ($this->has_territory_geom ?? false),
-            'geom' => $this->geom,
+            'geom' => $geom,
             'source_table' => $this->source_table,
             'source_id' => $this->source_id,
             'relationship_type' => $this->relationship_type,

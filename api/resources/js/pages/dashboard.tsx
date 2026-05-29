@@ -1,7 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
 import { CalendarDays, ExternalLink, MapPinned } from 'lucide-react';
-import { startTransition, useDeferredValue, useMemo, useState } from 'react';
+import { startTransition, useEffect, useState } from 'react';
 import HistoricalMapViewer from '@/components/historical-map-viewer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,22 +43,39 @@ type EntityApiResponse = {
     data: EntityDetail;
 };
 
+const DEFAULT_DASHBOARD_YEAR = 100;
+const YEAR_STORAGE_KEY = 'historical-dashboard:selected-year';
+
 export default function Dashboard() {
-    const [yearInput, setYearInput] = useState('100');
+    const [yearInput, setYearInput] = useState(String(DEFAULT_DASHBOARD_YEAR));
+    const [selectedYear, setSelectedYear] = useState<number | null>(null);
     const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
 
-    const deferredYearInput = useDeferredValue(yearInput);
-    const year = useMemo(() => clampYear(deferredYearInput), [deferredYearInput]);
+    useEffect(() => {
+        const initialYear = getInitialDashboardYear();
+
+        setYearInput(String(initialYear));
+        setSelectedYear(initialYear);
+    }, []);
+
+    useEffect(() => {
+        if (typeof window === 'undefined' || selectedYear === null) {
+            return;
+        }
+
+        window.sessionStorage.setItem(YEAR_STORAGE_KEY, String(selectedYear));
+    }, [selectedYear]);
+
+    const activeYear = selectedYear ?? DEFAULT_DASHBOARD_YEAR;
 
     const mapQuery = useQuery({
-        queryKey: ['dashboard-map', year],
+        queryKey: ['dashboard-map', activeYear],
+        enabled: selectedYear !== null,
         placeholderData: (previousData) => previousData,
         queryFn: async () => {
             const url = `/api/v1/entities/map/year?${new URLSearchParams({
-                year: String(year),
+                year: String(activeYear),
             }).toString()}`;
-
-            console.log('[Dashboard] Fetching map data:', { year, url });
 
             const response = await fetch(url, {
                 headers: { Accept: 'application/json' },
@@ -68,15 +85,7 @@ export default function Dashboard() {
                 throw new Error(`Failed to load map data (${response.status})`);
             }
 
-            const data = (await response.json()) as MapResponse;
-            console.log('[Dashboard] Map data received:', {
-                year,
-                featureCount: data.features?.length ?? 0,
-                features: data.features?.slice(0, 2) ?? [],
-                sampleGeometry: data.features?.[0]?.geometry ?? null,
-            });
-            
-            return data;
+            return (await response.json()) as MapResponse;
         },
     });
 
@@ -142,8 +151,13 @@ export default function Dashboard() {
                                     type="number"
                                     value={yearInput}
                                     onChange={(event) => {
-                                        setYearInput(event.target.value);
+                                        const nextInput = event.target.value;
+                                        const nextYear = clampYear(nextInput);
+
+                                        setYearInput(nextInput);
+
                                         startTransition(() => {
+                                            setSelectedYear(nextYear);
                                             setSelectedEntityId(null);
                                         });
                                     }}
@@ -152,7 +166,7 @@ export default function Dashboard() {
                             </label>
                             <div className="grid gap-2 text-sm text-stone-600 dark:text-stone-300">
                                 <div>
-                                    Showing <span className="font-semibold text-stone-900 dark:text-stone-100">{mapFeatures.length}</span> mapped entities for <span className="font-semibold text-stone-900 dark:text-stone-100">{formatYearLabel(year)}</span>.
+                                    Showing <span className="font-semibold text-stone-900 dark:text-stone-100">{mapFeatures.length}</span> mapped entities for <span className="font-semibold text-stone-900 dark:text-stone-100">{formatYearLabel(activeYear)}</span>.
                                 </div>
                                 <div className="text-xs uppercase tracking-[0.18em] text-stone-500 dark:text-stone-400">
                                     Global extent • debounced live refresh
@@ -188,24 +202,18 @@ export default function Dashboard() {
                                 </div>
                             </div>
                         ) : mapFeatures.length > 0 ? (
-                            <>
-                                {console.log('[Dashboard] Rendering map with features:', { year, count: mapFeatures.length, fitBoundsKey: year, dataVersion: mapQuery.dataUpdatedAt })}
-                                <HistoricalMapViewer
-                                    className="h-[calc(100vh-18rem)]"
-                                    baseGeometries={mapFeatures as unknown as GeoJsonLike[]}
-                                    timeframeDate={yearToTimeframe(year)}
-                                    fitBoundsKey={year}
-                                    dataVersion={mapQuery.dataUpdatedAt}
-                                    onFeatureClick={handleFeatureClick}
-                                />
-                            </>
+                            <HistoricalMapViewer
+                                className="h-[calc(100vh-18rem)]"
+                                baseGeometries={mapFeatures as unknown as GeoJsonLike[]}
+                                timeframeDate={yearToTimeframe(activeYear)}
+                                fitBoundsKey={activeYear}
+                                dataVersion={mapQuery.dataUpdatedAt}
+                                onFeatureClick={handleFeatureClick}
+                            />
                         ) : (
-                            <>
-                                {console.log('[Dashboard] No features to render:', { year, mapData: mapQuery.data, mapFeaturesLength: mapFeatures.length })}
-                                <div className="flex h-[calc(100vh-18rem)] items-center justify-center px-8 text-center text-sm text-muted-foreground">
-                                    No mapped entities are active in {formatYearLabel(year)}.
-                                </div>
-                            </>
+                            <div className="flex h-[calc(100vh-18rem)] items-center justify-center px-8 text-center text-sm text-muted-foreground">
+                                No mapped entities are active in {formatYearLabel(activeYear)}.
+                            </div>
                         )}
                     </div>
 
@@ -217,7 +225,7 @@ export default function Dashboard() {
 
                         <div className="flex-1 overflow-y-auto p-4">
                             {selectedEntityId === null ? (
-                                <EmptySelectionState year={year} featureCount={mapFeatures.length} />
+                                <EmptySelectionState year={activeYear} featureCount={mapFeatures.length} />
                             ) : selectedEntityQuery.isLoading ? (
                                 <div className="space-y-3 rounded-2xl border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
                                     <div className="h-4 w-2/3 animate-pulse rounded bg-stone-200 dark:bg-stone-800" />
@@ -321,10 +329,20 @@ function clampYear(value: string): number {
     const parsed = Number.parseInt(value, 10);
 
     if (!Number.isFinite(parsed)) {
-        return 1000;
+        return DEFAULT_DASHBOARD_YEAR;
     }
 
     return Math.min(3000, Math.max(-3000, parsed));
+}
+
+function getInitialDashboardYear(): number {
+    if (typeof window === 'undefined') {
+        return DEFAULT_DASHBOARD_YEAR;
+    }
+
+    const storedYear = window.sessionStorage.getItem(YEAR_STORAGE_KEY);
+
+    return clampYear(storedYear ?? String(DEFAULT_DASHBOARD_YEAR));
 }
 
 function yearToTimeframe(year: number): string {

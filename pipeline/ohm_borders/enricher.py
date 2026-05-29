@@ -86,6 +86,18 @@ def batch_enrich_qids(qids: list[str], batch_size: int = 50) -> dict[str, dict[s
     return results
 
 
+def _extract_match_confidence(match_data: Any) -> float:
+    if not isinstance(match_data, dict):
+        return 0.0
+
+    text_data = match_data.get("text")
+    if not isinstance(text_data, dict):
+        return 0.0
+
+    confidence = text_data.get("confidence", 0)
+    return float(confidence) if isinstance(confidence, (int, float)) else 0.0
+
+
 def search_qid_by_name(name: str, min_score: float = 0.0, debug: bool = False) -> str | None:
     """Search Wikidata by name and return the best matching QID.
     
@@ -130,8 +142,7 @@ def search_qid_by_name(name: str, min_score: float = 0.0, debug: bool = False) -
     # Log top 3 candidates for visibility
     for i, r in enumerate(results[:3], 1):
         desc = r.get("description", "")
-        match = r.get("match", {})
-        score = match.get("text", {}).get("confidence", 0) if isinstance(match, dict) else 0
+        score = _extract_match_confidence(r.get("match"))
         qid = r.get("id", "")
         if debug or i == 1:
             logger.info(
@@ -153,7 +164,7 @@ def search_qid_by_name(name: str, min_score: float = 0.0, debug: bool = False) -
     # Check score threshold if provided
     match_data = top_match.get("match", {})
     if isinstance(match_data, dict):
-        score = match_data.get("text", {}).get("confidence", 0) if isinstance(match_data.get("text"), dict) else 0
+        score = _extract_match_confidence(match_data)
         if score < min_score:
             logger.debug(
                 "Wikidata match for %r below threshold: %s (score=%.2f < %.2f)",

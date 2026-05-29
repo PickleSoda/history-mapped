@@ -1205,6 +1205,16 @@ function bindOverlayInteractionHandlers({
     popupHoveredRef,
     setPopupInfo,
 }: OverlayInteractionHandlerOptions): () => void {
+    const pointLayerIds = ['base-point', 'overlay-point'];
+    const clickableLayerIds = [
+        'base-fill',
+        'base-line',
+        'base-point',
+        'overlay-fill',
+        'overlay-line',
+        'overlay-point',
+    ];
+
     const handleMouseEnter = (e: MapLayerMouseEvent) => {
         pointHoveredRef.current = true;
         clearPopupCloseTimer();
@@ -1251,14 +1261,24 @@ function bindOverlayInteractionHandlers({
         setPopupInfo(null);
     };
 
-    map.on('mouseenter', 'overlay-point', handleMouseEnter);
-    map.on('mouseleave', 'overlay-point', handleMouseLeave);
-    map.on('click', 'overlay-point', handleClick);
+    for (const layerId of pointLayerIds) {
+        map.on('mouseenter', layerId, handleMouseEnter);
+        map.on('mouseleave', layerId, handleMouseLeave);
+    }
+
+    for (const layerId of clickableLayerIds) {
+        map.on('click', layerId, handleClick);
+    }
 
     return () => {
-        map.off('mouseenter', 'overlay-point', handleMouseEnter);
-        map.off('mouseleave', 'overlay-point', handleMouseLeave);
-        map.off('click', 'overlay-point', handleClick);
+        for (const layerId of pointLayerIds) {
+            map.off('mouseenter', layerId, handleMouseEnter);
+            map.off('mouseleave', layerId, handleMouseLeave);
+        }
+
+        for (const layerId of clickableLayerIds) {
+            map.off('click', layerId, handleClick);
+        }
     };
 }
 
