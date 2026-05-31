@@ -1,0 +1,383 @@
+from __future__ import annotations
+
+import json
+import sqlite3
+from pathlib import Path
+from typing import Any
+
+import click
+from rich.console import Console
+
+from pipeline.ohm_collections.collection_builder import build_collection_artifacts
+from pipeline.ohm_collections.egypt_rules import evaluate_candidate
+from pipeline.ohm_collections.point_resolver import resolve_best_point
+from pipeline.ohm_collections.xml_index_builder import build_index
+from pipeline.ohm_borders.relations_enricher import enrich_relation_candidates
+from pipeline.ohm_borders.relations_extractor import extract_relation_candidates
+
+console = Console(legacy_windows=False)
+
+
+def _default_output_root(run_id: str) -> Path:
+    return Path("output") / "ohm_collections" / run_id
+
+
+def run_egypt_build(
+    *,
+    xml_index_path: Path,
+    ohm_index_path: Path | None,
+    run_id: str,
+    output_root: Path | None,
+    resume: bool,
+    force: bool,
+) -> dict[str, object]:
+    del ohm_index_path
+
+    resolved_output_root = output_root or _default_output_root(run_id)
+    manifest_path = resolved_output_root / "manifest.json"
+    if resume and manifest_path.exists() and not force:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        return {
+            "status": "skipped",
+            "output_root": resolved_output_root,
+            "manifest_path": manifest_path,
+            "manifest": manifest,
+        }
+
+    included_candidates: list[dict[str, Any]] = []
+    excluded_candidates: list[dict[str, Any]] = []
+
+    for candidate in _load_index_candidates(xml_index_path):
+        decision = evaluate_candidate(candidate)
+        candidate["decision"] = {
+            "reasons": decision["reasons"],
+            "ambiguity": decision["ambiguity"],
+        }
+        candidate["point_resolution"] = resolve_best_point(
+            xml_index_path,
+            object_type=str(candidate["_ohm_object_type"]),
+            object_id=int(candidate["_ohm_object_id"]),
+        )
+        candidate["fallback_geojson"] = None
+
+        if decision["include"]:
+            if _is_relation_backed_polity(candidate):
+                candidate["border_record"] = _border_record_for_candidate(candidate)
+            included_candidates.append(candidate)
+        else:
+            excluded_candidates.append(candidate)
+
+    manifest = build_collection_artifacts(
+        included_candidates,
+        output_root=resolved_output_root,
+        excluded_candidates=excluded_candidates,
+    )
+    manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    return {
+        "status": "completed",
+        "output_root": resolved_output_root,
+        "manifest_path": manifest_path,
+        "manifest": manifest,
+    }
+
+
+def run_egypt_relations(
+    *,
+    run_id: str,
+    output_root: Path | None,
+    resume: bool,
+    force: bool,
+) -> dict[str, object]:
+    resolved_output_root = output_root or _default_output_root(run_id)
+    relations_dir = resolved_output_root / "relations_final"
+    entities_path = relations_dir / "ohm_relation_entities.jsonl"
+    hints_path = relations_dir / "ohm_relation_hints.jsonl"
+
+    if resume and entities_path.exists() and hints_path.exists() and not force:
+        return {
+            "status": "skipped",
+            "entities_path": entities_path,
+            "hints_path": hints_path,
+            "entity_count": 0,
+            "hint_count": 0,
+        }
+
+    relations_dir.mkdir(parents=True, exist_ok=True)
+    included_records = _read_jsonl_records(resolved_output_root / "reports" / "included.jsonl")
+    relation_candidates: list[dict[str, Any]] = []
+    for record in included_records:
+        relation_candidates.extend(_relation_candidates_for_included_record(record))
+
+    enriched_candidates = enrich_relation_candidates(relation_candidates) if relation_candidates else []
+
+    entity_records: dict[tuple[str | None, str | None], dict[str, Any]] = {}
+    hint_records: dict[tuple[str, str | None, str | None, str | None, str | None], dict[str, Any]] = {}
+
+    for record in enriched_candidates:
+        target_entity = record.get("target_entity") or {}
+        entity_key = (str(target_entity.get("wikidata_id") or "") or None, str(target_entity.get("name") or "") or None)
+        if entity_key not in entity_records:
+            entity_records[entity_key] = target_entity
+
+        hint_key = (
+            str(record.get("source_wikidata_id") or ""),
+            _string_or_none(record.get("target_wikidata_id")),
+            _string_or_none(record.get("relationship_type")),
+            _string_or_none(record.get("temporal_start")),
+            _string_or_none(record.get("temporal_end")),
+        )
+        hint_records[hint_key] = {
+            "source_wikidata_id": record.get("source_wikidata_id"),
+            "source_name": record.get("source_name"),
+            "relationship_type": record.get("relationship_type"),
+            "target_wikidata_id": record.get("target_wikidata_id"),
+            "target_label": record.get("target_label"),
+            "temporal_start": record.get("temporal_start"),
+            "temporal_end": record.get("temporal_end"),
+            "confidence": "medium",
+            "source": record.get("source"),
+        }
+
+    relation_entities = sorted(
+        entity_records.values(),
+        key=lambda record: (str(record.get("wikidata_id") or ""), str(record.get("name") or "")),
+    )
+    relation_hints = sorted(
+        hint_records.values(),
+        key=lambda record: (
+            str(record.get("source_wikidata_id") or ""),
+            str(record.get("relationship_type") or ""),
+            str(record.get("target_wikidata_id") or ""),
+            str(record.get("target_label") or ""),
+        ),
+    )
+
+    _write_jsonl_records(entities_path, relation_entities)
+    _write_jsonl_records(hints_path, relation_hints)
+    return {
+        "status": "completed",
+        "entities_path": entities_path,
+        "hints_path": hints_path,
+        "entity_count": len(relation_entities),
+        "hint_count": len(relation_hints),
+    }
+
+
+def _load_index_candidates(xml_index_path: Path) -> list[dict[str, Any]]:
+    with sqlite3.connect(xml_index_path) as connection:
+        object_rows = connection.execute(
+            """
+            SELECT object_type, object_id, name, wikidata_id, raw_tags_json
+            FROM objects
+            ORDER BY object_type, object_id
+            """
+        ).fetchall()
+        alias_rows = connection.execute(
+            """
+            SELECT object_type, object_id, alias_value
+            FROM object_aliases
+            ORDER BY object_type, object_id, alias_key, alias_value
+            """
+        ).fetchall()
+
+    aliases_by_object: dict[tuple[str, int], list[str]] = {}
+    for object_type, object_id, alias_value in alias_rows:
+        aliases_by_object.setdefault((str(object_type), int(object_id)), []).append(str(alias_value))
+
+    candidates: list[dict[str, Any]] = []
+    for object_type, object_id, name, wikidata_id, raw_tags_json in object_rows:
+        raw_tags = json.loads(raw_tags_json)
+        alternative_names = aliases_by_object.get((str(object_type), int(object_id)), [])
+        if not name and not alternative_names and not wikidata_id:
+            continue
+
+        candidates.append(
+            {
+                "name": name,
+                "wikidata_id": wikidata_id,
+                "raw_tags": raw_tags,
+                "alternative_names": alternative_names,
+                "entity_types": _infer_entity_types(str(object_type), name, raw_tags),
+                "summary": None,
+                "_ohm_object_type": str(object_type),
+                "_ohm_object_id": int(object_id),
+            }
+        )
+
+    return candidates
+
+
+def _infer_entity_types(object_type: str, name: Any, raw_tags: dict[str, Any]) -> list[str]:
+    normalized_name = str(name or "").strip().casefold()
+    if "battle" in normalized_name:
+        return ["battle"]
+    if "war" in normalized_name:
+        return ["war"]
+    if "period" in normalized_name:
+        return ["historical_period"]
+    if raw_tags.get("type") == "boundary" or raw_tags.get("boundary") == "administrative":
+        return ["political_entity"]
+    if raw_tags.get("historic") in {"city", "town", "settlement"}:
+        return ["city"]
+    if object_type == "relation":
+        return ["political_entity"]
+    return ["place"]
+
+
+def _is_relation_backed_polity(candidate: dict[str, Any]) -> bool:
+    raw_tags = candidate.get("raw_tags") or {}
+    return bool(
+        candidate.get("_ohm_object_type") == "relation"
+        and isinstance(raw_tags, dict)
+        and (raw_tags.get("type") == "boundary" or raw_tags.get("boundary") == "administrative")
+    )
+
+
+def _border_record_for_candidate(candidate: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "name": candidate.get("name"),
+        "entity_type": "political_entity",
+        "entity_group": "POLITY",
+        "wikidata_id": candidate.get("wikidata_id"),
+        "_ohm_relation_id": str(candidate.get("_ohm_object_id")),
+        "_geometry_periods": [],
+    }
+
+
+def _relation_candidates_for_included_record(record: dict[str, Any]) -> list[dict[str, Any]]:
+    raw_tags = record.get("raw_tags") or {}
+    wikidata_id = raw_tags.get("wikidata")
+    if not isinstance(raw_tags, dict) or not isinstance(wikidata_id, str) or not wikidata_id.strip():
+        return []
+
+    source_record = {
+        "relation_id": record.get("_ohm_object_id"),
+        "tags": raw_tags,
+        "stages": [],
+    }
+    return extract_relation_candidates(source_record)
+
+
+def _string_or_none(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    trimmed = value.strip()
+    return trimmed or None
+
+
+def _read_jsonl_records(path: Path) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+
+    records: list[dict[str, Any]] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        records.append(json.loads(line))
+    return records
+
+
+def _write_jsonl_records(path: Path, records: list[dict[str, Any]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as handle:
+        for record in records:
+            handle.write(json.dumps(record, ensure_ascii=False))
+            handle.write("\n")
+
+
+@click.group()
+def cli() -> None:
+    """OHM historical collection workflow."""
+
+
+@cli.command("build-xml-index")
+@click.option(
+    "--input",
+    "input_path",
+    required=True,
+    type=click.Path(path_type=Path, exists=True, dir_okay=False),
+    help="XML source file to stream into the SQLite index.",
+)
+@click.option(
+    "--index-path",
+    required=True,
+    type=click.Path(path_type=Path, dir_okay=False),
+    help="SQLite index output path.",
+)
+@click.option("--force", is_flag=True, help="Rebuild an incompatible existing XML index.")
+def build_xml_index_command(input_path: Path, index_path: Path, force: bool) -> None:
+    result = build_index(input_path, index_path=index_path, force=force)
+    console.print(f"Build XML index {result['status']}: {result['index_path']}")
+
+
+@cli.command("egypt-build")
+@click.option(
+    "--xml-index-path",
+    required=True,
+    type=click.Path(path_type=Path, exists=True, dir_okay=False),
+    help="Previously built OHM XML SQLite index.",
+)
+@click.option(
+    "--ohm-index-path",
+    required=False,
+    type=click.Path(path_type=Path, exists=True, dir_okay=False),
+    default=None,
+    help="Optional OHM border SQLite index.",
+)
+@click.option("--run-id", required=True, help="Deterministic collection run id.")
+@click.option(
+    "--output-root",
+    type=click.Path(path_type=Path, file_okay=False),
+    default=None,
+    help="Optional explicit output directory override.",
+)
+@click.option("--resume", is_flag=True, help="Reuse compatible completed collection artifacts.")
+@click.option("--force", is_flag=True, help="Overwrite stale collection artifacts.")
+def egypt_build_command(
+    xml_index_path: Path,
+    ohm_index_path: Path | None,
+    run_id: str,
+    output_root: Path | None,
+    resume: bool,
+    force: bool,
+) -> None:
+    result = run_egypt_build(
+        xml_index_path=xml_index_path,
+        ohm_index_path=ohm_index_path,
+        run_id=run_id,
+        output_root=output_root,
+        resume=resume,
+        force=force,
+    )
+    console.print(f"Egypt build {result['status']}: {result['manifest_path']}")
+
+
+@cli.command("egypt-relations-run")
+@click.option("--run-id", required=True, help="Deterministic collection run id.")
+@click.option(
+    "--output-root",
+    type=click.Path(path_type=Path, file_okay=False),
+    default=None,
+    help="Optional explicit output directory override.",
+)
+@click.option("--resume", is_flag=True, help="Reuse compatible relation artifacts.")
+@click.option("--force", is_flag=True, help="Overwrite stale relation artifacts.")
+def egypt_relations_run_command(
+    run_id: str,
+    output_root: Path | None,
+    resume: bool,
+    force: bool,
+) -> None:
+    result = run_egypt_relations(
+        run_id=run_id,
+        output_root=output_root,
+        resume=resume,
+        force=force,
+    )
+    console.print(
+        f"Egypt relations {result['status']}: {result['entities_path']} | {result['hints_path']}"
+    )
+
+
+if __name__ == "__main__":
+    cli()
