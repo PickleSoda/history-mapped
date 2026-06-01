@@ -14,6 +14,25 @@ class MapEntitiesThresholdTest extends TestCase
 {
     use RefreshDatabase;
 
+    private function setPrimaryLocation(Entity $entity, float $lng = 10.5, float $lat = 40.5): void
+    {
+        DB::statement(
+            "INSERT INTO entity_locations (
+                location_id, entity_id, location_name, geom,
+                location_method, location_confidence, is_primary, created_at, updated_at
+            ) VALUES (
+                gen_random_uuid(), ?, NULL,
+                ST_SetSRID(ST_Point(?, ?), 4326),
+                'human_assigned'::location_resolution_method,
+                'high'::confidence_level,
+                true,
+                NOW(),
+                NOW()
+            )",
+            [$entity->entity_id, $lng, $lat],
+        );
+    }
+
     /**
      * Insert a geometry period so that it is returned by the map endpoint.
      */
@@ -264,6 +283,29 @@ class MapEntitiesThresholdTest extends TestCase
         $ids = array_column($response->json('features'), 'id');
 
         $this->assertContains($imported->entity_id, $ids);
+    }
+
+    public function test_map_excludes_entities_without_geometry_periods(): void
+    {
+        $fallbackOnly = Entity::factory()
+            ->verified()
+            ->withTemporalRange('900', '1100')
+            ->create();
+
+        $this->setPrimaryLocation($fallbackOnly);
+
+        $response = $this->getJson(route('api.v1.entities.map', [
+            'bbox_min_lng' => 0,
+            'bbox_min_lat' => 30,
+            'bbox_max_lng' => 30,
+            'bbox_max_lat' => 50,
+            'year' => 1000,
+        ]));
+
+        $response->assertOk();
+        $ids = array_column($response->json('features'), 'id');
+
+        $this->assertNotContains($fallbackOnly->entity_id, $ids);
     }
 
     public function test_map_bbox_matches_entities_with_geometry_period_territory_only(): void

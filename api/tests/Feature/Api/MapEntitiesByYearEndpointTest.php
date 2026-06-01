@@ -13,6 +13,25 @@ class MapEntitiesByYearEndpointTest extends TestCase
 {
     use RefreshDatabase;
 
+    private function setPrimaryLocation(Entity $entity, float $lng = 10.5, float $lat = 40.5): void
+    {
+        DB::statement(
+            "INSERT INTO entity_locations (
+                location_id, entity_id, location_name, geom,
+                location_method, location_confidence, is_primary, created_at, updated_at
+            ) VALUES (
+                gen_random_uuid(), ?, NULL,
+                ST_SetSRID(ST_Point(?, ?), 4326),
+                'human_assigned'::location_resolution_method,
+                'high'::confidence_level,
+                true,
+                NOW(),
+                NOW()
+            )",
+            [$entity->entity_id, $lng, $lat],
+        );
+    }
+
     private function setGeometryPeriod(
         Entity $entity,
         int $startYear,
@@ -92,5 +111,24 @@ class MapEntitiesByYearEndpointTest extends TestCase
 
         $this->assertContains($high->entity_id, $ids);
         $this->assertNotContains($low->entity_id, $ids);
+    }
+
+    public function test_year_only_endpoint_excludes_entities_without_geometry_periods(): void
+    {
+        $fallbackOnly = Entity::factory()
+            ->verified()
+            ->withTemporalRange('900', '1100')
+            ->create();
+
+        $this->setPrimaryLocation($fallbackOnly);
+
+        $response = $this->getJson(route('api.v1.entities.map.year', [
+            'year' => 1000,
+        ]));
+
+        $response->assertOk();
+        $ids = array_column($response->json('features'), 'id');
+
+        $this->assertNotContains($fallbackOnly->entity_id, $ids);
     }
 }

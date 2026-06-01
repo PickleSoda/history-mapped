@@ -650,6 +650,187 @@
 			"type": "shell",
 			"command": "docker compose -f docker/docker-compose.yml exec db psql -U history-mapped -d history-mapped -c 'select entity_id, name, wikidata_id, verification_status from entities where wikidata_id = ''Q29223'';' ; docker compose -f docker/docker-compose.yml exec db psql -U history-mapped -d history-mapped -c 'select count(*) as hint_refs from pipeline_relationship_hints where target_wikidata_id = ''Q29223'';'",
 			"group": "build"
+		},
+		{
+			"label": "Diagnose Ancient Egypt Relations",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec db psql -X -P pager=off -U history-mapped -d history-mapped -c 'select entity_id, name, wikidata_id, verification_status, entity_type, entity_group, created_at from entities where entity_id = ''51e50b5d-f12c-4149-be65-4018d9261c8b'';'; docker compose -f docker/docker-compose.yml exec db psql -X -P pager=off -U history-mapped -d history-mapped -c 'select count(*) as relationship_count from relationships where source_entity_id = ''51e50b5d-f12c-4149-be65-4018d9261c8b'' or target_entity_id = ''51e50b5d-f12c-4149-be65-4018d9261c8b'';'; docker compose -f docker/docker-compose.yml exec db psql -X -P pager=off -U history-mapped -d history-mapped -c 'select count(*) as hint_count from pipeline_relationship_hints where source_entity_id = ''51e50b5d-f12c-4149-be65-4018d9261c8b'' or target_wikidata_id = (select wikidata_id from entities where entity_id = ''51e50b5d-f12c-4149-be65-4018d9261c8b'');';",
+			"group": "build"
+		},
+		{
+			"label": "Start Docker Services",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml up -d",
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Diagnose Ancient Egypt Relations v2",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec db psql -X -P pager=off -U history-mapped -d history-mapped -c 'select entity_id, name, wikidata_id, verification_status, entity_type, entity_group, created_at from entities where entity_id = ''51e50b5d-f12c-4149-be65-4018d9261c8b'';'; docker compose -f docker/docker-compose.yml exec db psql -X -P pager=off -U history-mapped -d history-mapped -c 'select count(*) as relationship_count from relationships where source_entity_id = ''51e50b5d-f12c-4149-be65-4018d9261c8b'' or target_entity_id = ''51e50b5d-f12c-4149-be65-4018d9261c8b'';'; docker compose -f docker/docker-compose.yml exec db psql -X -P pager=off -U history-mapped -d history-mapped -c 'select count(*) as hint_count from pipeline_relationship_hints where source_entity_id = ''51e50b5d-f12c-4149-be65-4018d9261c8b'' or target_wikidata_id = (select wikidata_id from entities where entity_id = ''51e50b5d-f12c-4149-be65-4018d9261c8b'');';",
+			"group": "build"
+		},
+		{
+			"label": "Inspect Ancient Egypt Duplicates",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec db psql -X -P pager=off -U history-mapped -d history-mapped -c 'select entity_id, name, wikidata_id, verification_status, created_at, (select count(*) from relationships r where r.source_entity_id = e.entity_id or r.target_entity_id = e.entity_id) as relationship_count from entities e where e.name = ''Ancient Egypt'' or e.wikidata_id = ''Q11768'' order by created_at asc;'; docker compose -f docker/docker-compose.yml exec db psql -X -P pager=off -U history-mapped -d history-mapped -c 'select e.name as source_name, e.wikidata_id as source_qid, h.target_wikidata_id, h.target_label, h.relationship_type, h.resolved, h.resolution_note, h.batch_id from pipeline_relationship_hints h join entities e on e.entity_id = h.source_entity_id where h.target_label = ''Ancient Egypt'' or h.target_wikidata_id = ''Q11768'' order by h.created_at desc;';",
+			"group": "build"
+		},
+		{
+			"label": "Compare Ancient Egypt Duplicate Rows",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec db psql -X -P pager=off -U history-mapped -d history-mapped -c 'select e.entity_id, e.name, e.wikidata_id, e.verification_status, (select count(*) from entity_locations l where l.entity_id = e.entity_id) as location_count, (select count(*) from entity_temporal_ranges tr where tr.entity_id = e.entity_id) as temporal_count, (select count(*) from geometry_periods gp where gp.entity_id = e.entity_id) as geom_period_count, (select count(*) from relationships r where r.source_entity_id = e.entity_id or r.target_entity_id = e.entity_id) as relationship_count from entities e where e.entity_id in (''51e50b5d-f12c-4149-be65-4018d9261c8b'',''7f520c3c-06e2-4a5c-9d7e-c81eba07dbf8'') order by e.created_at asc;';",
+			"group": "build"
+		},
+		{
+			"label": "Run missing QID regression test",
+			"type": "shell",
+			"command": "py -m pytest pipeline/tests/test_ohm_collections_cli.py -k enriches_missing_qids_before_writing_entity_records -q",
+			"group": "build"
+		},
+		{
+			"label": "Run collections build tests",
+			"type": "shell",
+			"command": "py -m pytest pipeline/tests/test_ohm_collections_cli.py -k \"assembles_candidates_from_the_xml_index or enriches_missing_qids_before_writing_entity_records\" -q",
+			"group": "build"
+		},
+		{
+			"label": "Run collections build tests v2",
+			"type": "shell",
+			"command": "py -m pytest pipeline/tests/test_ohm_collections_cli.py -k 'assembles_candidates_from_the_xml_index or enriches_missing_qids_before_writing_entity_records' -q",
+			"group": "build"
+		},
+		{
+			"label": "Run collections build tests v3",
+			"type": "shell",
+			"command": "py -m pytest pipeline/tests/test_ohm_collections_cli.py -k 'assembles_candidates_from_the_xml_index or enriches_missing_qids_before_writing_entity_records' -q",
+			"group": "build"
+		},
+		{
+			"label": "Debug run_egypt_build output",
+			"type": "shell",
+			"command": "py api/storage/app/debug_run_egypt_build.py",
+			"group": "build"
+		},
+		{
+			"label": "Debug run_egypt_build output v2",
+			"type": "shell",
+			"command": "$env:PYTHONPATH='.'; py api/storage/app/debug_run_egypt_build.py",
+			"group": "build"
+		},
+		{
+			"label": "Run missing QID fix tests",
+			"type": "shell",
+			"command": "py -m pytest pipeline/tests/test_ohm_collections_cli.py -k enriches_missing_qids_before_writing_entity_records -q; py -m pytest pipeline/tests/test_ohm_collections_entity_enricher.py -q",
+			"group": "build"
+		},
+		{
+			"label": "Rebuild Egypt collection artifacts",
+			"type": "shell",
+			"command": "$env:PYTHONPATH='.'; py -m pipeline collections egypt-build --xml-index-path output/ohm_collections/map-egypt-clean.xml.sqlite --run-id map-egypt-clean --output-root output/ohm_collections/map-egypt-clean --force",
+			"group": "build"
+		},
+		{
+			"label": "Run missing name enrichment regression",
+			"type": "shell",
+			"command": "py -m pytest pipeline/tests/test_ohm_collections_entity_enricher.py -k normalizes_missing_name_before_geo_resolution -q",
+			"group": "build"
+		},
+		{
+			"label": "Run enrichment regressions",
+			"type": "shell",
+			"command": "py -m pytest pipeline/tests/test_ohm_collections_entity_enricher.py -k normalizes_missing_name_before_geo_resolution -q; py -m pytest pipeline/tests/test_ohm_collections_cli.py -k enriches_missing_qids_before_writing_entity_records -q; py -m pytest pipeline/tests/test_ohm_collections_entity_enricher.py -q",
+			"group": "build"
+		},
+		{
+			"label": "Rebuild Egypt collection artifacts v2",
+			"type": "shell",
+			"command": "$env:PYTHONPATH='.'; py -m pipeline collections egypt-build --xml-index-path output/ohm_collections/map-egypt-clean.xml.sqlite --run-id map-egypt-clean --output-root output/ohm_collections/map-egypt-clean --force",
+			"group": "build"
+		},
+		{
+			"label": "Run search mismatch regression",
+			"type": "shell",
+			"command": "py -m pytest pipeline/tests/test_ohm_borders_enricher.py -k rejects_non_exact_top_label_matches -q",
+			"group": "build"
+		},
+		{
+			"label": "Run search and collections regressions",
+			"type": "shell",
+			"command": "py -m pytest pipeline/tests/test_ohm_borders_enricher.py -k 'accepts_string_match_text_payload or rejects_non_exact_top_label_matches' -q; py -m pytest pipeline/tests/test_ohm_collections_entity_enricher.py -q; py -m pytest pipeline/tests/test_ohm_collections_cli.py -k enriches_missing_qids_before_writing_entity_records -q",
+			"group": "build"
+		},
+		{
+			"label": "Rebuild Egypt collection artifacts v3",
+			"type": "shell",
+			"command": "$env:PYTHONPATH='.'; py -m pipeline collections egypt-build --xml-index-path output/ohm_collections/map-egypt-clean.xml.sqlite --run-id map-egypt-clean --output-root output/ohm_collections/map-egypt-clean --force",
+			"group": "build"
+		},
+		{
+			"label": "Rebuild Egypt relation artifacts",
+			"type": "shell",
+			"command": "$env:PYTHONPATH='.'; py -m pipeline collections egypt-relations-run --run-id map-egypt-clean --output-root output/ohm_collections/map-egypt-clean --force",
+			"group": "build"
+		},
+		{
+			"label": "Stage fixed Egypt artifacts",
+			"type": "shell",
+			"command": "Copy-Item \"output/ohm_collections/map-egypt-clean/entities_final/egypt_collection.jsonl\" \"api/storage/app/pipeline/egypt-patch/egypt_collection.jsonl\" -Force; Copy-Item \"output/ohm_collections/map-egypt-clean/relations_final/ohm_relation_entities.jsonl\" \"api/storage/app/pipeline/egypt-patch/ohm_relation_entities.jsonl\" -Force; Copy-Item \"output/ohm_collections/map-egypt-clean/relations_final/ohm_relation_hints.jsonl\" \"api/storage/app/pipeline/egypt-patch/ohm_relation_hints.jsonl\" -Force",
+			"group": "build"
+		},
+		{
+			"label": "Import fixed Egypt entities",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec app php artisan pipeline:import storage/app/pipeline/egypt-patch/egypt_collection.jsonl --sync --force --batch-id=egypt-fix-20260601 --skip-relationships",
+			"group": "build"
+		},
+		{
+			"label": "Import fixed Egypt relations",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec app php artisan pipeline:import-border-relations storage/app/pipeline/egypt-patch --sync --force --batch-id=egypt-rel-fix-20260601",
+			"group": "build"
+		},
+		{
+			"label": "Inspect Ancient Egypt after fixed import",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec db psql -X -P pager=off -U history-mapped -d history-mapped -c 'select e.entity_id, e.name, e.wikidata_id, e.verification_status, (select count(*) from entity_locations l where l.entity_id = e.entity_id) as location_count, (select count(*) from entity_temporal_ranges tr where tr.entity_id = e.entity_id) as temporal_count, (select count(*) from relationships r where r.source_entity_id = e.entity_id or r.target_entity_id = e.entity_id) as relationship_count from entities e where e.name = ''Ancient Egypt'' or e.wikidata_id = ''Q11768'' order by e.created_at asc;';",
+			"group": "build"
+		},
+		{
+			"label": "Compare Ancient Egypt child rows",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec db psql -X -P pager=off -U history-mapped -d history-mapped -c 'select entity_id, location_name, is_primary, st_astext(geom) as geom_wkt from entity_locations where entity_id in (''51e50b5d-f12c-4149-be65-4018d9261c8b'',''7f520c3c-06e2-4a5c-9d7e-c81eba07dbf8'') order by entity_id, location_id;'; docker compose -f docker/docker-compose.yml exec db psql -X -P pager=off -U history-mapped -d history-mapped -c 'select entity_id, range_type, start_year, end_year, start_date, end_date, is_primary from entity_temporal_ranges where entity_id in (''51e50b5d-f12c-4149-be65-4018d9261c8b'',''7f520c3c-06e2-4a5c-9d7e-c81eba07dbf8'') order by entity_id, temporal_range_id;';",
+			"group": "build"
+		},
+		{
+			"label": "Merge Ancient Egypt duplicate rows",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec db psql -X -P pager=off -U history-mapped -d history-mapped -c \"begin; update entities set wikidata_id = null where entity_id = '7f520c3c-06e2-4a5c-9d7e-c81eba07dbf8'; update relationships set source_entity_id = '51e50b5d-f12c-4149-be65-4018d9261c8b' where source_entity_id = '7f520c3c-06e2-4a5c-9d7e-c81eba07dbf8'; update relationships set target_entity_id = '51e50b5d-f12c-4149-be65-4018d9261c8b' where target_entity_id = '7f520c3c-06e2-4a5c-9d7e-c81eba07dbf8'; update pipeline_relationship_hints set source_entity_id = '51e50b5d-f12c-4149-be65-4018d9261c8b' where source_entity_id = '7f520c3c-06e2-4a5c-9d7e-c81eba07dbf8'; delete from entity_locations where entity_id = '7f520c3c-06e2-4a5c-9d7e-c81eba07dbf8'; delete from entity_temporal_ranges where entity_id = '7f520c3c-06e2-4a5c-9d7e-c81eba07dbf8'; delete from entities where entity_id = '7f520c3c-06e2-4a5c-9d7e-c81eba07dbf8'; update entities set wikidata_id = 'Q11768', impact_score = 97, source_citations = '[{\"source\":\"wikidata\",\"wikidata_id\":\"Q11768\"}]'::jsonb, updated_at = now() where entity_id = '51e50b5d-f12c-4149-be65-4018d9261c8b'; commit;\"",
+			"group": "build"
+		},
+		{
+			"label": "Merge Ancient Egypt duplicate rows v2",
+			"type": "shell",
+			"command": "Get-Content \"api/storage/app/merge_ancient_egypt.sql\" | docker compose -f docker/docker-compose.yml exec -T db psql -X -P pager=off -U history-mapped -d history-mapped",
+			"group": "build"
+		},
+		{
+			"label": "Verify Ancient Egypt merged entity",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec db psql -X -P pager=off -U history-mapped -d history-mapped -c 'select e.entity_id, e.name, e.wikidata_id, e.verification_status, e.impact_score, (select count(*) from entity_locations l where l.entity_id = e.entity_id) as location_count, (select count(*) from entity_temporal_ranges tr where tr.entity_id = e.entity_id) as temporal_count, (select count(*) from relationships r where r.source_entity_id = e.entity_id or r.target_entity_id = e.entity_id) as relationship_count from entities e where e.entity_id = ''51e50b5d-f12c-4149-be65-4018d9261c8b'';'; docker compose -f docker/docker-compose.yml exec db psql -X -P pager=off -U history-mapped -d history-mapped -c 'select count(*) as duplicate_q11768_rows from entities where wikidata_id = ''Q11768'';'; docker compose -f docker/docker-compose.yml exec db psql -X -P pager=off -U history-mapped -d history-mapped -c 'select relationship_type, count(*) from relationships where source_entity_id = ''51e50b5d-f12c-4149-be65-4018d9261c8b'' or target_entity_id = ''51e50b5d-f12c-4149-be65-4018d9261c8b'' group by relationship_type order by relationship_type;';",
+			"group": "build"
+		},
+		{
+			"label": "Clean debug artifacts",
+			"type": "shell",
+			"command": "Remove-Item -Force \"api/storage/app/tmp_ancient_egypt_queries.sql\",\"api/storage/app/tmp_ancient_egypt_qid.sql\",\"api/storage/app/tmp_tables.sql\",\"api/storage/app/tmp_qid_candidates.sql\",\"api/storage/app/tmp_source_hints.sql\",\"api/storage/app/tmp_ancient_egypt_entity.txt\",\"api/storage/app/tmp_ancient_egypt_relationships.txt\",\"api/storage/app/tmp_ancient_egypt_hints.txt\",\"api/storage/app/debug_run_egypt_build.py\",\"api/storage/app/merge_ancient_egypt.sql\" -ErrorAction SilentlyContinue; Remove-Item -Recurse -Force \"api/storage/app/debug_run_egypt_build_tmp\" -ErrorAction SilentlyContinue",
+			"group": "build"
+		},
+		{
+			"label": "Git diff stat",
+			"type": "shell",
+			"command": "git diff --stat -- pipeline/ohm_collections/__main__.py pipeline/ohm_collections/entity_enricher.py pipeline/ohm_borders/enricher.py pipeline/tests/test_ohm_collections_cli.py pipeline/tests/test_ohm_collections_entity_enricher.py pipeline/tests/test_ohm_borders_enricher.py",
+			"group": "build"
 		}
 	]
 }

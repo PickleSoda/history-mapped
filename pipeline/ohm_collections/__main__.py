@@ -3,13 +3,14 @@ from __future__ import annotations
 import json
 import sqlite3
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import click
 import requests
 from rich.console import Console
 
 from pipeline.ohm_collections.collection_builder import build_collection_artifacts
+from pipeline.ohm_collections.entity_enricher import enrich_candidate
 from pipeline.ohm_collections.egypt_rules import evaluate_candidate
 from pipeline.ohm_collections.point_resolver import resolve_best_point
 from pipeline.ohm_collections.xml_index_builder import build_index
@@ -43,6 +44,7 @@ def run_egypt_build(
     output_root: Path | None,
     resume: bool,
     force: bool,
+    candidate_enricher: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
 ) -> dict[str, object]:
     del ohm_index_path
 
@@ -74,6 +76,8 @@ def run_egypt_build(
         candidate["fallback_geojson"] = None
 
         if decision["include"]:
+            if candidate_enricher is not None:
+                candidate = candidate_enricher(candidate)
             if _is_relation_backed_polity(candidate):
                 candidate["border_record"] = _border_record_for_candidate(candidate)
             included_candidates.append(candidate)
@@ -541,6 +545,7 @@ def egypt_build_command(
         output_root=output_root,
         resume=resume,
         force=force,
+        candidate_enricher=enrich_candidate,
     )
     console.print(f"Egypt build {result['status']}: {result['manifest_path']}")
 
