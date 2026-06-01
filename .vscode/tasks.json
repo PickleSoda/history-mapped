@@ -1,0 +1,655 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "pytest ohm collections transfer",
+			"type": "shell",
+			"command": "py",
+			"args": [
+				"-m",
+				"pytest",
+				"pipeline/tests/test_ohm_collections_xml_index_store.py",
+				"pipeline/tests/test_ohm_collections_xml_index_builder.py",
+				"pipeline/tests/test_ohm_collections_xml_lookup.py",
+				"pipeline/tests/test_ohm_collections_point_resolver.py",
+				"pipeline/tests/test_ohm_collections_egypt_rules.py",
+				"pipeline/tests/test_ohm_collections_entity_enricher.py",
+				"pipeline/tests/test_ohm_collections_builder.py",
+				"pipeline/tests/test_ohm_collections_cli.py",
+				"-q"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "regenerate egypt collection outputs",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"$ErrorActionPreference='Stop'; py -m pipeline collections build-xml-index --input output/map.xml --index-path output/ohm_collections/egypt-historical-real.sqlite3 --force; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; py -m pipeline collections egypt-build --xml-index-path output/ohm_collections/egypt-historical-real.sqlite3 --ohm-index-path output/ohm_borders/indexes/global-2026-04-14.sqlite3 --run-id egypt-historical-collection-real --force; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; py -m pipeline collections egypt-relations-run --run-id egypt-historical-collection-real --force; exit $LASTEXITCODE"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "regenerate egypt collection outputs",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"py -m pipeline collections build-xml-index --input output/map.xml --index-path output/ohm_collections/egypt-historical-real.sqlite3 --force; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; py -m pipeline collections egypt-build --xml-index-path output/ohm_collections/egypt-historical-real.sqlite3 --ohm-index-path output/ohm_borders/indexes/global-2026-04-14.sqlite3 --run-id egypt-historical-collection-real --force; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; py -m pipeline collections egypt-relations-run --run-id egypt-historical-collection-real --force; exit $LASTEXITCODE"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "check egypt build pid",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Process -Id 24324 | Select-Object Id, ProcessName"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect egypt build process",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Process -Id 24324 | Select-Object Id, ProcessName, CPU, StartTime, Responding, WorkingSet"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "cleanup partial egypt xml build",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Stop-Process -Id 24324 -Force; Remove-Item output/ohm_collections/egypt-historical-real.sqlite3.lock -ErrorAction SilentlyContinue; Remove-Item output/ohm_collections/egypt-historical-real.sqlite3.tmp.24324 -ErrorAction SilentlyContinue; Remove-Item output/ohm_collections/egypt-historical-real.sqlite3.tmp.24324-journal -ErrorAction SilentlyContinue"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "build egypt xml index main",
+			"type": "shell",
+			"command": "py",
+			"args": [
+				"-m",
+				"pipeline",
+				"collections",
+				"build-xml-index",
+				"--input",
+				"output/map.xml",
+				"--index-path",
+				"output/ohm_collections/egypt-historical-real.sqlite3",
+				"--force"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect active xml build process",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Process -Id 27108 | Select-Object Id, ProcessName, CPU, StartTime, Responding, WorkingSet"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect xml build cpu drift",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Process -Id 27108 | Select-Object Id, CPU, StartTime, WorkingSet"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect temp sqlite progress",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Item output/ohm_collections/egypt-historical-real.sqlite3.tmp.27108 | Select-Object Length, LastWriteTime"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect temp sqlite progress 2",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Item output/ohm_collections/egypt-historical-real.sqlite3.tmp.27108 | Select-Object Length, LastWriteTime"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect temp sqlite progress 3",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Item output/ohm_collections/egypt-historical-real.sqlite3.tmp.27108 | Select-Object Length, LastWriteTime"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect temp sqlite progress 4",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Item output/ohm_collections/egypt-historical-real.sqlite3.tmp.27108 | Select-Object Length, LastWriteTime"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect temp sqlite progress 5",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Item output/ohm_collections/egypt-historical-real.sqlite3.tmp.27108 | Select-Object Length, LastWriteTime"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect temp sqlite progress 6",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Item output/ohm_collections/egypt-historical-real.sqlite3.tmp.27108 | Select-Object Length, LastWriteTime"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "finish egypt collection outputs after index",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Wait-Process -Id 27108; py -m pipeline collections egypt-build --xml-index-path output/ohm_collections/egypt-historical-real.sqlite3 --ohm-index-path output/ohm_borders/indexes/global-2026-04-14.sqlite3 --run-id egypt-historical-collection-real --force; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; py -m pipeline collections egypt-relations-run --run-id egypt-historical-collection-real --force; exit $LASTEXITCODE"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "check xml index pid finished",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Process -Id 27108 | Select-Object Id, ProcessName"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect live python commands",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-CimInstance Win32_Process | Where-Object { $_.Name -match '^python(\\.exe)?$|^py(\\.exe)?$' } | Select-Object ProcessId, Name, CommandLine"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect live python commands 2",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-CimInstance Win32_Process | Where-Object { $_.Name -in @('python.exe','py.exe','python','py') } | Select-Object ProcessId, Name, CommandLine"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect live python commands 3",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-CimInstance Win32_Process | Where-Object { $_.Name -eq \"python.exe\" -or $_.Name -eq \"py.exe\" -or $_.Name -eq \"python\" -or $_.Name -eq \"py\" } | Select-Object ProcessId, Name, CommandLine"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "check for live python process",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Process python -ErrorAction SilentlyContinue | Select-Object Id, ProcessName"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect live python metadata",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Process python -ErrorAction SilentlyContinue | Select-Object Id, CPU, StartTime, WorkingSet"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect live python metadata list",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Process python -ErrorAction SilentlyContinue | Format-List Id,CPU,StartTime,WorkingSet"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect live python metadata list 2",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Process python -ErrorAction SilentlyContinue | Format-List Id,CPU,StartTime,WorkingSet"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect live python metadata list 3",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Process python -ErrorAction SilentlyContinue | Format-List Id,CPU,StartTime,WorkingSet"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "check follow-up python still alive",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Process python -ErrorAction SilentlyContinue | Format-List Id,CPU,StartTime,WorkingSet"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect python command line via wmic",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"wmic process where processid=15888 get commandline"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect current python command lines",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"wmic process where \"name='python.exe'\" get processid,commandline"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect egypt-build pid again",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"wmic process where processid=15888 get commandline"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect egypt-build cpu drift",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Process -Id 15888 -ErrorAction SilentlyContinue | Format-List Id,CPU,StartTime,WorkingSet"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect egypt-build cpu drift 2",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Process -Id 15888 -ErrorAction SilentlyContinue | Format-List Id,CPU,StartTime,WorkingSet"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect egypt-build cpu drift 3",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Process -Id 15888 -ErrorAction SilentlyContinue | Format-List Id,CPU,StartTime,WorkingSet"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect egypt-build cpu drift 4",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Process -Id 15888 -ErrorAction SilentlyContinue | Format-List Id,CPU,StartTime,WorkingSet"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect egypt-build cpu drift 5",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Process -Id 15888 -ErrorAction SilentlyContinue | Format-List Id,CPU,StartTime,WorkingSet"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect egypt-build cpu drift 6",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Process -Id 15888 -ErrorAction SilentlyContinue | Format-List Id,CPU,StartTime,WorkingSet"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect egypt-build cpu drift 7",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Process -Id 15888 -ErrorAction SilentlyContinue | Format-List Id,CPU,StartTime,WorkingSet"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect egypt-build cpu drift 8",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Process -Id 15888 -ErrorAction SilentlyContinue | Format-List Id,CPU,StartTime,WorkingSet"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect egypt output counts",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"$root='output/ohm_collections/egypt-historical-collection-real'; $files=@('borders_final/ohm_borders.jsonl','entities_final/egypt_collection.jsonl','relations_final/ohm_relation_entities.jsonl','relations_final/ohm_relation_hints.jsonl','reports/included.jsonl','reports/excluded.jsonl'); foreach ($file in $files) { $path=Join-Path $root $file; if (Test-Path $path) { $count=(Get-Content $path | Measure-Object -Line).Lines; Write-Output ($file + '|' + $count) } else { Write-Output ($file + '|MISSING') } }"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect egypt output counts",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"$root=\"output/ohm_collections/egypt-historical-collection-real\"; $files=@(\"borders_final/ohm_borders.jsonl\",\"entities_final/egypt_collection.jsonl\",\"relations_final/ohm_relation_entities.jsonl\",\"relations_final/ohm_relation_hints.jsonl\",\"reports/included.jsonl\",\"reports/excluded.jsonl\"); foreach ($file in $files) { $path=Join-Path $root $file; if (Test-Path $path) { $count=(Get-Content $path | Measure-Object -Line).Lines; Write-Output ($file + \"|\" + $count) } else { Write-Output ($file + \"|MISSING\") } }"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect egypt output counts cmd",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"if exist \"output\\ohm_collections\\egypt-historical-collection-real\\borders_final\\ohm_borders.jsonl\" (for /f %C in ('find /v /c \"\" ^< \"output\\ohm_collections\\egypt-historical-collection-real\\borders_final\\ohm_borders.jsonl\"') do @echo borders_final/ohm_borders.jsonl^|%C) else @echo borders_final/ohm_borders.jsonl^|MISSING & if exist \"output\\ohm_collections\\egypt-historical-collection-real\\entities_final\\egypt_collection.jsonl\" (for /f %C in ('find /v /c \"\" ^< \"output\\ohm_collections\\egypt-historical-collection-real\\entities_final\\egypt_collection.jsonl\"') do @echo entities_final/egypt_collection.jsonl^|%C) else @echo entities_final/egypt_collection.jsonl^|MISSING & if exist \"output\\ohm_collections\\egypt-historical-collection-real\\relations_final\\ohm_relation_entities.jsonl\" (for /f %C in ('find /v /c \"\" ^< \"output\\ohm_collections\\egypt-historical-collection-real\\relations_final\\ohm_relation_entities.jsonl\"') do @echo relations_final/ohm_relation_entities.jsonl^|%C) else @echo relations_final/ohm_relation_entities.jsonl^|MISSING & if exist \"output\\ohm_collections\\egypt-historical-collection-real\\relations_final\\ohm_relation_hints.jsonl\" (for /f %C in ('find /v /c \"\" ^< \"output\\ohm_collections\\egypt-historical-collection-real\\relations_final\\ohm_relation_hints.jsonl\"') do @echo relations_final/ohm_relation_hints.jsonl^|%C) else @echo relations_final/ohm_relation_hints.jsonl^|MISSING & if exist \"output\\ohm_collections\\egypt-historical-collection-real\\reports\\included.jsonl\" (for /f %C in ('find /v /c \"\" ^< \"output\\ohm_collections\\egypt-historical-collection-real\\reports\\included.jsonl\"') do @echo reports/included.jsonl^|%C) else @echo reports/included.jsonl^|MISSING & if exist \"output\\ohm_collections\\egypt-historical-collection-real\\reports\\excluded.jsonl\" (for /f %C in ('find /v /c \"\" ^< \"output\\ohm_collections\\egypt-historical-collection-real\\reports\\excluded.jsonl\"') do @echo reports/excluded.jsonl^|%C) else @echo reports/excluded.jsonl^|MISSING"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect egypt output counts python",
+			"type": "shell",
+			"command": "py",
+			"args": [
+				"-c",
+				"from pathlib import Path\nroot = Path('output/ohm_collections/egypt-historical-collection-real')\nfiles = [\n    'borders_final/ohm_borders.jsonl',\n    'entities_final/egypt_collection.jsonl',\n    'relations_final/ohm_relation_entities.jsonl',\n    'relations_final/ohm_relation_hints.jsonl',\n    'reports/included.jsonl',\n    'reports/excluded.jsonl',\n]\nfor rel in files:\n    path = root / rel\n    if path.exists():\n        with path.open('r', encoding='utf-8') as handle:\n            count = sum(1 for _ in handle)\n        print(f'{rel}|{count}')\n    else:\n        print(f'{rel}|MISSING')"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "inspect egypt output counts python",
+			"type": "shell",
+			"command": "py",
+			"args": [
+				"-c",
+				"from pathlib import Path\nroot = Path(\"output/ohm_collections/egypt-historical-collection-real\")\nfiles = [\n    \"borders_final/ohm_borders.jsonl\",\n    \"entities_final/egypt_collection.jsonl\",\n    \"relations_final/ohm_relation_entities.jsonl\",\n    \"relations_final/ohm_relation_hints.jsonl\",\n    \"reports/included.jsonl\",\n    \"reports/excluded.jsonl\",\n]\nfor rel in files:\n    path = root / rel\n    if path.exists():\n        with path.open(\"r\", encoding=\"utf-8\") as handle:\n            count = sum(1 for _ in handle)\n        print(f\"{rel}|{count}\")\n    else:\n        print(f\"{rel}|MISSING\")"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "Regenerate Egypt Collection Artifacts",
+			"type": "shell",
+			"command": "py -m pipeline collections egypt-build --xml-index-path output/ohm_collections/map-egypt-clean.xml.sqlite --ohm-index-path output/ohm_borders/indexes/global-2026-04-14.sqlite3 --run-id map-egypt-clean --force; py -m pipeline collections egypt-relations-run --run-id map-egypt-clean --force",
+			"group": "build"
+		},
+		{
+			"label": "Regenerate Egypt Collection Artifacts",
+			"type": "shell",
+			"command": "py -m pipeline collections egypt-build --xml-index-path output/ohm_collections/map-egypt-clean.xml.sqlite --ohm-index-path output/ohm_borders/indexes/global-2026-04-14.sqlite3 --run-id map-egypt-clean --force; py -m pipeline collections egypt-relations-run --run-id map-egypt-clean --force",
+			"group": "build"
+		},
+		{
+			"label": "Regenerate Egypt Collection Artifacts",
+			"type": "shell",
+			"command": "py -m pipeline collections egypt-build --xml-index-path output/ohm_collections/map-egypt-clean.xml.sqlite --ohm-index-path output/ohm_borders/indexes/global-2026-04-14.sqlite3 --run-id map-egypt-clean --force; py -m pipeline collections egypt-relations-run --run-id map-egypt-clean --force",
+			"group": "build"
+		},
+		{
+			"label": "Import Egypt Entities Patched",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec app php artisan pipeline:import output/ohm_collections/map-egypt-clean/entities_final/egypt_collection.jsonl --sync --force --batch-id=egypt-patch-20260531 --skip-relationships",
+			"group": "build"
+		},
+		{
+			"label": "Import Egypt Entities Patched",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec app php artisan pipeline:import ../output/ohm_collections/map-egypt-clean/entities_final/egypt_collection.jsonl --sync --force --batch-id=egypt-patch-20260531 --skip-relationships",
+			"group": "build"
+		},
+		{
+			"label": "Import Egypt Entities Patched v2",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec app php artisan pipeline:import ../output/ohm_collections/map-egypt-clean/entities_final/egypt_collection.jsonl --sync --force --batch-id=egypt-patch-20260531 --skip-relationships",
+			"group": "build"
+		},
+		{
+			"label": "Stage Egypt Import Files",
+			"type": "shell",
+			"command": "New-Item -ItemType Directory -Force api/storage/app/pipeline/egypt-patch | Out-Null; Copy-Item output/ohm_collections/map-egypt-clean/entities_final/egypt_collection.jsonl api/storage/app/pipeline/egypt-patch/egypt_collection.jsonl -Force; Copy-Item output/ohm_collections/map-egypt-clean/relations_final/ohm_relation_entities.jsonl api/storage/app/pipeline/egypt-patch/ohm_relation_entities.jsonl -Force; Copy-Item output/ohm_collections/map-egypt-clean/relations_final/ohm_relation_hints.jsonl api/storage/app/pipeline/egypt-patch/ohm_relation_hints.jsonl -Force",
+			"group": "build"
+		},
+		{
+			"label": "Import Egypt Entities Staged",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec app php artisan pipeline:import storage/app/pipeline/egypt-patch/egypt_collection.jsonl --sync --force --batch-id=egypt-patch-20260531 --skip-relationships",
+			"group": "build"
+		},
+		{
+			"label": "Import Egypt Entities Staged v3",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec app php artisan pipeline:import storage/app/pipeline/egypt-patch/egypt_collection.jsonl --sync --force --batch-id=egypt-patch-20260531b --skip-relationships",
+			"group": "build"
+		},
+		{
+			"label": "Import Egypt Entities Staged v4",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec app php artisan pipeline:import storage/app/pipeline/egypt-patch/egypt_collection.jsonl --sync --force --batch-id=egypt-patch-20260531c --skip-relationships",
+			"group": "build"
+		},
+		{
+			"label": "Find relations import command",
+			"type": "shell",
+			"command": "rg -n \"import-border-relations|pipeline:import-border-relations|border-relations\" api",
+			"group": "build"
+		},
+		{
+			"label": "Import Egypt Border Relations",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec app php artisan pipeline:import-border-relations api/storage/app/pipeline/egypt-patch --sync --force --batch-id=egypt-rel-20260531",
+			"group": "build"
+		},
+		{
+			"label": "Import Egypt Border Relations v2",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec app php artisan pipeline:import-border-relations storage/app/pipeline/egypt-patch --sync --force --batch-id=egypt-rel-20260531",
+			"group": "build"
+		},
+		{
+			"label": "Verify Egypt Import Stats",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec app php artisan tinker --execute=\"echo 'geometry_periods=' . DB::table('geometry_periods')->where('created_by','pipeline:egypt-patch-20260531c')->count() . PHP_EOL; echo 'temporal_ranges=' . DB::table('entity_temporal_ranges')->where('source_import','pipeline:egypt-patch-20260531c')->count() . PHP_EOL; echo 'hints=' . DB::table('pipeline_relationship_hints')->where('batch_id','egypt-rel-20260531')->count() . PHP_EOL; echo 'resolved_hints=' . DB::table('pipeline_relationship_hints')->where('batch_id','egypt-rel-20260531')->where('resolved',true)->count() . PHP_EOL;\"",
+			"group": "build"
+		},
+		{
+			"label": "Verify Egypt Import Stats SQL",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec db psql -U history-mapped -d history-mapped -c \"select 'geometry_periods' as metric, count(*) as total from geometry_periods where created_by = 'pipeline:egypt-patch-20260531c' union all select 'temporal_ranges', count(*) from entity_temporal_ranges where source_import = 'pipeline:egypt-patch-20260531c' union all select 'hints', count(*) from pipeline_relationship_hints where batch_id = 'egypt-rel-20260531' union all select 'resolved_hints', count(*) from pipeline_relationship_hints where batch_id = 'egypt-rel-20260531' and resolved = true;\"",
+			"group": "build"
+		},
+		{
+			"label": "Count geometry periods batch",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec db psql -U history-mapped -d history-mapped -c 'select count(*) from geometry_periods where created_by = ''pipeline:egypt-patch-20260531c'';'",
+			"group": "build"
+		},
+		{
+			"label": "Count temporal ranges batch",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec db psql -U history-mapped -d history-mapped -c 'select count(*) from entity_temporal_ranges where source_import = ''pipeline:egypt-patch-20260531c'';'",
+			"group": "build"
+		},
+		{
+			"label": "Count relationship hints batch",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec db psql -U history-mapped -d history-mapped -c 'select count(*) from pipeline_relationship_hints where batch_id = ''egypt-rel-20260531'';'",
+			"group": "build"
+		},
+		{
+			"label": "Count resolved relationship hints",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec db psql -U history-mapped -d history-mapped -c 'select count(*) from pipeline_relationship_hints where batch_id = ''egypt-rel-20260531'' and resolved = true;'",
+			"group": "build"
+		},
+		{
+			"label": "Describe entity_temporal_ranges",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec db psql -U history-mapped -d history-mapped -c '\\d entity_temporal_ranges'",
+			"group": "build"
+		},
+		{
+			"label": "Columns entity temporal ranges",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec db psql -U history-mapped -d history-mapped -c \"select column_name from information_schema.columns where table_name = 'entity_temporal_ranges' order by ordinal_position;\"",
+			"group": "build"
+		},
+		{
+			"label": "Columns entity temporal ranges v2",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec db psql -U history-mapped -d history-mapped -c 'select column_name from information_schema.columns where table_name = ''entity_temporal_ranges'' order by ordinal_position;'",
+			"group": "build"
+		},
+		{
+			"label": "Columns entities",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec db psql -U history-mapped -d history-mapped -c 'select column_name from information_schema.columns where table_name = ''entities'' order by ordinal_position;'",
+			"group": "build"
+		},
+		{
+			"label": "Check entities fields exist",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec db psql -U history-mapped -d history-mapped -c 'select column_name from information_schema.columns where table_name = ''entities'' and column_name in (''temporal_start'',''temporal_end'',''location_name'',''impact_score'',''wikidata_id'',''name'');'",
+			"group": "build"
+		},
+		{
+			"label": "Columns entity locations",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec db psql -U history-mapped -d history-mapped -c 'select column_name from information_schema.columns where table_name = ''entity_locations'' order by ordinal_position;'",
+			"group": "build"
+		},
+		{
+			"label": "Sample imported entity data",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec db psql -U history-mapped -d history-mapped -c \"select e.name, e.impact_score, tr.start_date, tr.end_date, tr.start_year, tr.end_year from entities e left join entity_temporal_ranges tr on tr.entity_id = e.entity_id and tr.is_primary = true where e.name in ('Memphis','Abydos','Thebes') order by e.name;\"",
+			"group": "build"
+		},
+		{
+			"label": "Sample imported entity data v2",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec db psql -U history-mapped -d history-mapped -c 'select e.name, e.impact_score, tr.start_date, tr.end_date, tr.start_year, tr.end_year from entities e left join entity_temporal_ranges tr on tr.entity_id = e.entity_id and tr.is_primary = true where e.name in (''Memphis'',''Abydos'',''Thebes'') order by e.name;'",
+			"group": "build"
+		},
+		{
+			"label": "Sample imported location names",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec db psql -U history-mapped -d history-mapped -c 'select e.name, l.location_name from entities e join entity_locations l on l.entity_id = e.entity_id and l.is_primary = true where e.name in (''Memphis'',''Abydos'',''Thebes'') order by e.name;'",
+			"group": "build"
+		},
+		{
+			"label": "Git diff summary",
+			"type": "shell",
+			"command": "git -C . diff -- api/app/Jobs/ImportEntityJob.php",
+			"group": "build"
+		},
+		{
+			"label": "Inspect Q29223 entity and hints",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec db psql -U history-mapped -d history-mapped -c 'select entity_id, name, wikidata_id, verification_status from entities where wikidata_id = ''Q29223'';' ; docker compose -f docker/docker-compose.yml exec db psql -U history-mapped -d history-mapped -c 'select count(*) as hint_refs from pipeline_relationship_hints where target_wikidata_id = ''Q29223'';'",
+			"group": "build"
+		}
+	]
+}

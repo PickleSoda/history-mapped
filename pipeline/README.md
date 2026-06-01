@@ -52,6 +52,16 @@ py -m pipeline borders relations-run --run-id global-2026-04-15 --resume
 
 See [ohm_borders/README.md](ohm_borders/README.md) for stage breakdown, subgraph extraction, and Laravel import steps.
 
+### OHM historical collections
+
+```powershell
+py -m pipeline collections build-xml-index --input output/map.xml --index-path output/ohm_collections/map.sqlite3 --force
+py -m pipeline collections egypt-build --xml-index-path output/ohm_collections/map.sqlite3 --ohm-index-path output/ohm_borders/indexes/global-2026-04-14.sqlite3 --run-id egypt-historical-collection --force
+py -m pipeline collections egypt-relations-run --run-id egypt-historical-collection --resume
+```
+
+See [../docs/implementation-docs/ohm-egypt-collection-runbook.md](../docs/implementation-docs/ohm-egypt-collection-runbook.md) for the streaming XML index workflow, point precedence rules, and Laravel import steps.
+
 ### Laravel-side import and embeddings
 
 ```bash
