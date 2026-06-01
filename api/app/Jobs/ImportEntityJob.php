@@ -9,6 +9,8 @@ use App\Actions\Entity\CreateEntityAction;
 use App\Actions\Entity\UpdateEntityAction;
 use App\DTOs\EntityData;
 use App\Models\Entity;
+use App\Models\EntityTemporalRange;
+use App\Models\GeometryPeriod;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -67,6 +69,8 @@ class ImportEntityJob implements ShouldQueue
                 unset($entityRecord['attributes']['_infobox']);
             }
 
+            $entityRecord = $this->normalizePipelineRecord($entityRecord);
+
             // ── Ensure pipeline_draft status ────────────────────────────
             $entityRecord['verification_status'] = 'pipeline_draft';
 
@@ -101,6 +105,8 @@ class ImportEntityJob implements ShouldQueue
                 }
 
                 $this->importGeoResolution($entity, $geoResolution);
+                $this->syncTemporalRangeFromRecord($entity, $entityRecord);
+                $this->ensureGeometryPeriodFromPrimaryLocation($entity, $entityRecord);
             } else {
                 $action = app(CreateEntityAction::class);
                 $entity = $action($entityData, "pipeline:{$this->batchId}");
@@ -112,6 +118,8 @@ class ImportEntityJob implements ShouldQueue
                 }
 
                 $this->importGeoResolution($entity, $geoResolution);
+                $this->syncTemporalRangeFromRecord($entity, $entityRecord);
+                $this->ensureGeometryPeriodFromPrimaryLocation($entity, $entityRecord);
             }
 
         } catch (\Throwable $e) {
@@ -221,5 +229,187 @@ class ImportEntityJob implements ShouldQueue
                 'name' => $entity->name,
             ]);
         }
+    }
+
+    /**
+     * @param  array<string, mixed>  $record
+     * @return array<string, mixed>
+     */
+    private function normalizePipelineRecord(array $record): array
+    {
+        if (($record['location_name'] ?? null) === null && is_string($record['name'] ?? null) && trim((string) $record['name']) !== '') {
+            $record['location_name'] = trim((string) $record['name']);
+        }
+
+        if (($record['temporal_start'] ?? null) === null) {
+            $record['temporal_start'] = $record['attributes']['start_date'] ?? null;
+        }
+
+        if (($record['temporal_end'] ?? null) === null) {
+            $record['temporal_end'] = $record['attributes']['end_date'] ?? null;
+        }
+
+        if (($record['impact_score'] ?? null) === null) {
+            $record['impact_score'] = $this->deriveImpactScore($record);
+        }
+
+        return $record;
+    }
+
+    /**
+     * @param  array<string, mixed>  $record
+     */
+    private function deriveImpactScore(array $record): int
+    {
+        $baseByType = [
+            'political_entity' => 80,
+            'event_war' => 76,
+            'event_battle' => 74,
+            'dynasty' => 72,
+            'city' => 64,
+            'infrastructure_monument' => 58,
+        ];
+
+        $entityType = is_string($record['entity_type'] ?? null) ? $record['entity_type'] : '';
+        $score = $baseByType[$entityType] ?? 52;
+
+        if (is_string($record['wikidata_id'] ?? null) && $record['wikidata_id'] !== '') {
+            $score += 8;
+        }
+
+        if (is_string($record['summary'] ?? null) && trim($record['summary']) !== '') {
+            $score += 4;
+        }
+
+        if (($record['temporal_start'] ?? null) !== null) {
+            $score += 4;
+        }
+
+        if (($record['temporal_end'] ?? null) !== null) {
+            $score += 2;
+        }
+
+        if (is_array($record['geojson'] ?? null)) {
+            $score += 4;
+        }
+
+        return max(1, min(100, $score));
+    }
+
+    /**
+     * @param  array<string, mixed>  $record
+     */
+    private function syncTemporalRangeFromRecord(Entity $entity, array $record): void
+    {
+        $temporalStart = $record['temporal_start'] ?? null;
+        $temporalEnd = $record['temporal_end'] ?? null;
+
+        if ($temporalStart === null && $temporalEnd === null) {
+            return;
+        }
+
+        $startYear = $this->parseYear($temporalStart);
+        $endYear = $this->parseYear($temporalEnd);
+
+        EntityTemporalRange::query()->updateOrCreate(
+            [
+                'entity_id' => $entity->entity_id,
+                'is_primary' => true,
+            ],
+            [
+                'range_type' => 'primary',
+                'start_year' => $startYear,
+                'end_year' => $endYear,
+                'start_date' => $this->stringOrNull($temporalStart),
+                'end_date' => $this->stringOrNull($temporalEnd),
+            ],
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $record
+     */
+    private function ensureGeometryPeriodFromPrimaryLocation(Entity $entity, array $record): void
+    {
+        $entity = Entity::query()->with(['primaryLocation', 'primaryTemporalRange'])->find($entity->entity_id) ?? $entity;
+
+        $primaryLocation = $entity->primaryLocation;
+        if ($primaryLocation === null) {
+            return;
+        }
+
+        $geom = $primaryLocation->geom;
+        $territoryGeom = $primaryLocation->territory_geom;
+        if (! is_array($geom) && ! is_array($territoryGeom)) {
+            return;
+        }
+
+        $primaryRange = $entity->primaryTemporalRange;
+        $startYear = $primaryRange?->start_year ?? $this->parseYear($record['temporal_start'] ?? null);
+        $endYear = $primaryRange?->end_year ?? $this->parseYear($record['temporal_end'] ?? null);
+
+        if ($startYear === null) {
+            return;
+        }
+
+        $alreadyExists = GeometryPeriod::query()
+            ->where('entity_id', $entity->entity_id)
+            ->where('start_year', $startYear)
+            ->when(
+                $endYear !== null,
+                fn ($query) => $query->where('end_year', $endYear),
+                fn ($query) => $query->whereNull('end_year'),
+            )
+            ->whereIn('provenance_mode', ['pipeline_import', 'ohm_import', 'manual'])
+            ->exists();
+
+        if ($alreadyExists) {
+            return;
+        }
+
+        GeometryPeriod::query()->create([
+            'entity_id' => $entity->entity_id,
+            'period_type' => 'territory',
+            'start_year' => $startYear,
+            'end_year' => $endYear,
+            'geom' => is_array($geom) ? $geom : null,
+            'territory_geom' => is_array($territoryGeom) ? $territoryGeom : null,
+            'description' => 'Auto-generated from imported primary location',
+            'provenance_mode' => 'ohm_import',
+            'confidence' => 'medium',
+            'created_by' => "pipeline:{$this->batchId}",
+        ]);
+    }
+
+    private function parseYear(mixed $value): ?int
+    {
+        if (is_int($value)) {
+            return $value;
+        }
+
+        if (! is_string($value) || trim($value) === '') {
+            return null;
+        }
+
+        if (preg_match('/^-?\d+/', trim($value), $matches) !== 1) {
+            return null;
+        }
+
+        return (int) $matches[0];
+    }
+
+    private function stringOrNull(mixed $value): ?string
+    {
+        if (is_string($value)) {
+            $trimmed = trim($value);
+
+            return $trimmed === '' ? null : $trimmed;
+        }
+
+        if (is_int($value) || is_float($value)) {
+            return (string) $value;
+        }
+
+        return null;
     }
 }
