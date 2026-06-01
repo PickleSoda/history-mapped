@@ -32,7 +32,11 @@ def enrich_candidate(
         metadata = metadata_enricher([wikidata_id]).get(wikidata_id, {})
         enriched = _merge_metadata(enriched, metadata)
 
-    geo_resolution = geo_resolver(enriched)
+    geo_resolution_input = {
+        **enriched,
+        "name": _normalize_optional_string(enriched.get("name")) or "",
+    }
+    geo_resolution = geo_resolver(geo_resolution_input)
     enriched["_geo_resolution"] = geo_resolution
     geometry = geo_resolution.get("geometry") if isinstance(geo_resolution, dict) else None
     enriched["fallback_geojson"] = geometry if isinstance(geometry, dict) else None

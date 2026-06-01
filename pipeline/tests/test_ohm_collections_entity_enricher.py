@@ -78,3 +78,30 @@ def test_enrich_candidate_resolves_missing_qid_by_name_and_uses_geo_fallback_geo
     assert enriched["_wikidata_match_source"] == "name_search"
     assert enriched["fallback_geojson"] == {"type": "Point", "coordinates": [36.0, 34.5]}
     assert enriched["_geo_resolution"]["status"] == "matched"
+
+
+def test_enrich_candidate_normalizes_missing_name_before_geo_resolution() -> None:
+    candidate = {
+        "name": None,
+        "wikidata_id": "Q123",
+        "entity_types": ["political_entity"],
+    }
+
+    def fake_metadata_enricher(qids: list[str]) -> dict[str, dict]:
+        assert qids == ["Q123"]
+        return {"Q123": {}}
+
+    def fake_geo_resolver(entity: dict) -> dict:
+        assert entity["name"] == ""
+        return {"status": "no_match", "provenance": {"reason": "missing_name"}}
+
+    enriched = enrich_candidate(
+        candidate,
+        metadata_enricher=fake_metadata_enricher,
+        geo_resolver=fake_geo_resolver,
+    )
+
+    assert enriched["name"] is None
+    assert enriched["wikidata_id"] == "Q123"
+    assert enriched["fallback_geojson"] is None
+    assert enriched["_geo_resolution"]["status"] == "no_match"

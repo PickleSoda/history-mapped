@@ -98,6 +98,34 @@ def _extract_match_confidence(match_data: Any) -> float:
     return float(confidence) if isinstance(confidence, (int, float)) else 0.0
 
 
+def _extract_match_text(match_data: Any) -> str | None:
+    if not isinstance(match_data, dict):
+        return None
+
+    text_data = match_data.get("text")
+    if isinstance(text_data, str):
+        return text_data
+
+    if not isinstance(text_data, dict):
+        return None
+
+    for key in ("value", "text"):
+        value = text_data.get(key)
+        if isinstance(value, str) and value.strip():
+            return value
+
+    return None
+
+
+def _normalize_search_text(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+
+    collapsed = re.sub(r"[^\w]+", " ", value.casefold()).strip()
+    normalized = re.sub(r"\s+", " ", collapsed)
+    return normalized or None
+
+
 def search_qid_by_name(name: str, min_score: float = 0.0, debug: bool = False) -> str | None:
     """Search Wikidata by name and return the best matching QID.
     
@@ -160,6 +188,8 @@ def search_qid_by_name(name: str, min_score: float = 0.0, debug: bool = False) -
     
     if not isinstance(qid, str) or not qid:
         return None
+
+    search_term_normalized = _normalize_search_text(search_term)
     
     # Check score threshold if provided
     match_data = top_match.get("match", {})
@@ -174,6 +204,18 @@ def search_qid_by_name(name: str, min_score: float = 0.0, debug: bool = False) -
                 min_score,
             )
             return None
+
+    candidate_label = _normalize_search_text(top_match.get("label"))
+    candidate_match_text = _normalize_search_text(_extract_match_text(match_data))
+    if search_term_normalized not in {candidate_label, candidate_match_text}:
+        logger.debug(
+            "Rejecting fuzzy Wikidata search result for %r: %s (%r / %r)",
+            search_term,
+            qid,
+            top_match.get("label"),
+            _extract_match_text(match_data),
+        )
+        return None
     
     logger.info("Resolved %r -> %s", search_term, qid)
     return qid

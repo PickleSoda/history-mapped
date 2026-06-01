@@ -136,7 +136,7 @@ export default function Dashboard() {
                                     Trace entities across a single historical year.
                                 </h1>
                                 <p className="max-w-2xl text-sm leading-6 text-stone-600 dark:text-stone-300">
-                                    The map renders every entity active in the selected year, preferring year-specific geometry periods when available and falling back to base geometry otherwise.
+                                    The map renders entities active in the selected year when they have a matching geometry period for map display.
                                 </p>
                             </div>
                         </div>

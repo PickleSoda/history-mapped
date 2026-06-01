@@ -65,3 +65,25 @@ def test_search_qid_by_name_accepts_string_match_text_payload() -> None:
 
     with patch("pipeline.ohm_borders.enricher.requests.get", return_value=response):
         assert search_qid_by_name("Holy Roman Empire") == "Q12548"
+
+
+def test_search_qid_by_name_rejects_non_exact_top_label_matches() -> None:
+    response = Mock()
+    response.raise_for_status.return_value = None
+    response.json.return_value = {
+        "search": [
+            {
+                "id": "Q608855",
+                "label": "Kemeten",
+                "description": "municipality in Oberwart District, Burgenland, Austria",
+                "match": {
+                    "type": "label",
+                    "language": "en",
+                    "text": "Kemeten",
+                },
+            }
+        ]
+    }
+
+    with patch("pipeline.ohm_borders.enricher.requests.get", return_value=response):
+        assert search_qid_by_name("Kemet") is None

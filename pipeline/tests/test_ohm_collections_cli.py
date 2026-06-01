@@ -194,6 +194,60 @@ def test_run_egypt_build_assembles_candidates_from_the_xml_index(tmp_path: Path)
     ]
 
 
+def test_run_egypt_build_enriches_missing_qids_before_writing_entity_records(tmp_path: Path) -> None:
+    source_path = tmp_path / "map.xml"
+    source_path.write_text(
+        """<?xml version='1.0' encoding='UTF-8'?>
+<osm version="0.6" generator="pytest">
+  <relation id="300">
+    <tag k="name" v="Ancient Egypt" />
+  </relation>
+</osm>
+""",
+        encoding="utf-8",
+    )
+    xml_index_path = tmp_path / "map.sqlite3"
+    output_root = tmp_path / "egypt-run"
+
+    build_index(source_path, index_path=xml_index_path, force=True)
+
+    def fake_enrich_candidate(candidate: dict) -> dict:
+        return {
+            **candidate,
+            "wikidata_id": "Q11768",
+            "summary": "Ancient Egyptian civilization.",
+            "alternative_names": ["Kemet"],
+            "_wikidata_match_source": "name_search",
+            "_geo_resolution": {"status": "no_match"},
+            "fallback_geojson": None,
+        }
+
+    result = collections_main_module.run_egypt_build(
+        xml_index_path=xml_index_path,
+        ohm_index_path=None,
+        run_id="egypt-run",
+        output_root=output_root,
+        resume=False,
+        force=True,
+        candidate_enricher=fake_enrich_candidate,
+    )
+
+    entity_records = _read_jsonl(output_root / "entities_final" / "egypt_collection.jsonl")
+
+    assert result["status"] == "completed"
+    assert [
+        (record["name"], record["wikidata_id"], record["summary"], record.get("source_citations"))
+        for record in entity_records
+    ] == [
+        (
+            "Ancient Egypt",
+            "Q11768",
+            "Ancient Egyptian civilization.",
+            [{"source": "wikidata", "wikidata_id": "Q11768"}],
+        ),
+    ]
+
+
 def test_run_egypt_relations_generates_relation_entity_contract_files(tmp_path: Path, monkeypatch) -> None:
     output_root = tmp_path / "egypt-run"
     borders_dir = output_root / "borders_final"
