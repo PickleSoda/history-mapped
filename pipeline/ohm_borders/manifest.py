@@ -22,6 +22,9 @@ def _empty_stage() -> dict[str, Any]:
     }
 
 
+EVENT_STAGE_NAMES = ("scan", "enrich", "build")
+
+
 def create_manifest(run_id: str, artifact_dir: str | Path, options: dict[str, Any] | None = None) -> dict[str, Any]:
     if not run_id.strip():
         raise ValueError("run_id must not be empty")
@@ -33,6 +36,7 @@ def create_manifest(run_id: str, artifact_dir: str | Path, options: dict[str, An
         "summary": {},
         "stages": {stage_name: _empty_stage() for stage_name in STAGE_NAMES},
         "relation_stages": {stage_name: _empty_stage() for stage_name in RELATION_STAGE_NAMES},
+        "event_stages": {stage_name: _empty_stage() for stage_name in EVENT_STAGE_NAMES},
     }
 
 
