@@ -1,6 +1,8 @@
 # Egypt Wikidata Fallback Design
 
-> **Status (as of 2026-06-01):** DESIGN SPEC ONLY. No implementation plan or code exists yet. This spec was created after real-data runs showed the OHM-first Egypt collection matching too many incidental entities (e.g. `British Empire`). It needs a corresponding implementation plan before work begins.
+> **Date:** 2026-06-02
+> **Status:** Approved
+> **Related plans:** `2026-05-30-egypt-historical-collection.md`, `2026-06-02-egypt-wikidata-fallback.md`
 
 **Context**
 
