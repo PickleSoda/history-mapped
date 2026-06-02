@@ -201,8 +201,40 @@ class ResolveRelationshipsJobTest extends TestCase
 
         $this->assertDatabaseHas('pipeline_relationship_hints', [
             'id' => $id,
-            'resolved' => true,
+            'resolved' => false,
             'resolution_note' => 'target_not_found',
+        ]);
+    }
+
+    public function test_target_not_found_is_retryable(): void
+    {
+        $source = Entity::factory()->create(['wikidata_id' => 'Q100']);
+        $id = $this->seedHint($source, 'Q200', 'part_of');
+
+        $this->runJob();
+
+        $this->assertDatabaseHas('pipeline_relationship_hints', [
+            'id' => $id,
+            'resolved' => false,
+            'resolution_note' => 'target_not_found',
+        ]);
+
+        // Import the missing target
+        $target = Entity::factory()->create(['wikidata_id' => 'Q200']);
+
+        // Re-run the job
+        $this->runJob();
+
+        $this->assertDatabaseHas('relationships', [
+            'source_entity_id' => $source->entity_id,
+            'target_entity_id' => $target->entity_id,
+            'relationship_type' => 'part_of',
+        ]);
+
+        $this->assertDatabaseHas('pipeline_relationship_hints', [
+            'id' => $id,
+            'resolved' => true,
+            'resolution_note' => 'created',
         ]);
     }
 

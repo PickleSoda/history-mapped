@@ -162,6 +162,8 @@ The Laravel app consumes pipeline artifacts through artisan commands under `api/
 | `pipeline:import-borders` | `final/ohm_borders.jsonl` | Import OHM country/entity records |
 | `pipeline:import-border-relations` | `relations_final/` directory | Import OHM relation entities and stage hints |
 | `pipeline:embeddings` | Database rows | Generate or refresh pgvector embeddings |
+| `pipeline:resolve-relationships` | batch ID (optional) | Resolve pipeline relationship hints into relationships |
+| `pipeline:report-relationship-hints` | batch ID (optional) | Report hint status and retryable samples |
 
 ### Important command behavior
 
@@ -169,6 +171,28 @@ The Laravel app consumes pipeline artifacts through artisan commands under `api/
 - `pipeline:import-borders` supports `--sync`, `--force`, and `--batch-id`.
 - `pipeline:import-border-relations` supports `--sync`, `--force`, `--skip-resolve`, and `--batch-id`.
 - `pipeline:embeddings` supports `--pending`, `--all`, `--type`, `--group`, `--reembed`, `--model`, `--chunk`, and `--sync`.
+
+### Relationship resolution
+
+After importing entities, resolve relationship hints:
+
+```powershell
+# Resolve all unresolved hints across all batches
+docker compose -f docker/docker-compose.yml exec app `
+  php artisan pipeline:resolve-relationships
+
+# Resolve one specific batch
+docker compose -f docker/docker-compose.yml exec app `
+  php artisan pipeline:resolve-relationships pipeline-20260530-120000
+
+# Dry-run to preview counts without creating relationships
+docker compose -f docker/docker-compose.yml exec app `
+  php artisan pipeline:resolve-relationships --dry-run
+
+# Report hint status
+docker compose -f docker/docker-compose.yml exec app `
+  php artisan pipeline:report-relationship-hints
+```
 
 ## 4. End-to-End Workflows
 

@@ -262,12 +262,38 @@ class ResolveRelationshipsJob implements ShouldQueue
 
     /**
      * Mark a single hint row as resolved with the given note.
+     *
+     * Only terminal outcomes set resolved=true. target_not_found remains
+     * unresolved so it can be retried when the target entity is imported later.
      */
     private function markHint(int $hintId, string $note): void
     {
+        $isTerminal = !in_array($note, ['target_not_found'], true);
+
         DB::table('pipeline_relationship_hints')
             ->where('id', $hintId)
-            ->update(['resolved' => true, 'resolution_note' => $note]);
+            ->update([
+                'resolved' => $isTerminal,
+                'resolution_note' => $note,
+            ]);
+    }
+
+    /**
+     * Resolve hints for all unresolved batches.
+     *
+     * Used by the pipeline:resolve-relationships command when no batch ID is provided.
+     */
+    public function resolveAll(CreateRelationshipAction $createRelationship): void
+    {
+        $batchIds = DB::table('pipeline_relationship_hints')
+            ->where('resolved', false)
+            ->distinct()
+            ->pluck('batch_id');
+
+        foreach ($batchIds as $batchId) {
+            Log::info("[Pipeline] Resolving batch: {$batchId}");
+            (new self($batchId))->handle($createRelationship);
+        }
     }
 
     /**
