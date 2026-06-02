@@ -113,7 +113,7 @@ Validation run (Dockerized app + PostgreSQL):
 - Create: `api/database/migrations/xxxx_xx_xx_xxxxxx_create_citations_and_link_tables.php`
 - Test: `api/tests/Feature/Feature/EntityModelSchemaTest.php`
 
-- [ ] **Step 1: Write failing schema tests for the new tables and constraints**
+- [x] **Step 1: Write failing schema tests for the new tables and constraints**
 
 Example assertions:
 ```php
@@ -124,12 +124,12 @@ expect(Schema::hasColumns('geometry_periods', [
 ]))->toBeTrue();
 ```
 
-- [ ] **Step 2: Run the focused schema test to verify failure**
+- [x] **Step 2: Run the focused schema test to verify failure**
 
 Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelSchemaTest.php`
 Expected: FAIL because the tables do not exist yet.
 
-- [ ] **Step 3: Create migrations with hard DB constraints**
+- [x] **Step 3: Create migrations with hard DB constraints**
 
 Required constraints:
 - `geometry_periods.start_year <= end_year`
@@ -138,7 +138,7 @@ Required constraints:
 - derived rows require `relationship_id` or `source_event_id`
 - `period_type='presence'` requires `relationship_id`
 
-- [ ] **Step 4: Run migrations and rerun schema test**
+- [x] **Step 4: Run migrations and rerun schema test**
 
 Run: `docker compose exec app php artisan migrate`
 Run: `docker compose exec app php artisan test api/tests/Feature/Feature/EntityModelSchemaTest.php`
@@ -561,7 +561,7 @@ Rules:
 Run: `docker compose exec app php artisan test api/tests/Feature/Api/EntityTimelineApiTest.php api/tests/Feature/Api/MapEntitiesThresholdTest.php api/tests/Feature/Api/EntityDetailGeometrySnapshotsCountTest.php`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add api/app/Http/Api/V1/Controllers api/app/Http/Api/V1/Resources api/app/Http/Controllers/Admin api/routes/api.php api/routes/web.php api/resources/js/routes api/resources/js/actions api/tests/Feature/Api

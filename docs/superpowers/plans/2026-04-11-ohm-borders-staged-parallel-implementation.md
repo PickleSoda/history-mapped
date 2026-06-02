@@ -1,6 +1,8 @@
 # OHM Borders Staged Parallel Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **Status (as of 2026-06-01):** COMPLETED. Artifact/manifest infrastructure, staged fetch/parse/enrich/build commands, and the compatible top-level `borders run` interface are all implemented and tested.
+>
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Replace the single-pass OHM borders command with a staged, shard-based, resumable workflow that preserves the existing Laravel import contract.
 
@@ -17,7 +19,7 @@
 - Create: `pipeline/ohm_borders/manifest.py`
 - Test: `pipeline/tests/test_ohm_borders_artifacts.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add tests covering:
 - deterministic artifact directory calculation from `run_id`
@@ -25,19 +27,19 @@ Add tests covering:
 - manifest creation with the documented top-level shape
 - atomic manifest update behavior via temp-file replacement semantics
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `py -m pytest pipeline/tests/test_ohm_borders_artifacts.py -v`
 Expected: FAIL because artifact and manifest helpers do not exist yet.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Implement:
 - path helpers for `raw/`, `parsed/`, `enriched/`, `built/`, `final/`
 - deterministic shard naming helpers
 - manifest load/create/update helpers using temp-file then `os.replace`
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `py -m pytest pipeline/tests/test_ohm_borders_artifacts.py -v`
 Expected: PASS
@@ -50,7 +52,7 @@ Expected: PASS
 - Create: `pipeline/ohm_borders/stages.py`
 - Test: `pipeline/tests/test_ohm_borders_stages.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add tests covering:
 - `fetch` writing `raw/overpass.json` and manifest counters
@@ -58,12 +60,12 @@ Add tests covering:
 - `fetch --resume` skipping when `raw/overpass.json` already exists unless `--force` is set
 - `parse --resume` skipping existing completed shards unless `--force` is set
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `py -m pytest pipeline/tests/test_ohm_borders_stages.py -k "fetch or parse" -v`
 Expected: FAIL because the staged command flow does not exist.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Implement:
 - stage functions for `fetch` and `parse`
@@ -73,7 +75,7 @@ Implement:
 - CLI option wiring for `--run-id`, `--artifact-dir`, `--query-file`, `--parsed-shard-size`, `--parse-workers`, `--resume`, and `--force`
 - CLI registration for `borders fetch` and `borders parse`
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `py -m pytest pipeline/tests/test_ohm_borders_stages.py -k "fetch or parse" -v`
 Expected: PASS
@@ -88,7 +90,7 @@ Expected: PASS
 - Test: `pipeline/tests/test_ohm_borders_stages.py`
 - Test: `pipeline/tests/test_ohm_borders_mapper.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add tests covering:
 - enrichment shard planning from parsed shard inputs
@@ -99,12 +101,12 @@ Add tests covering:
 - build emitting deterministic built shard outputs and merged final JSONL
 - existing regression that malformed reversed stage periods are dropped during build
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `py -m pytest pipeline/tests/test_ohm_borders_stages.py -k "enrich or build" -v`
 Expected: FAIL because enrich/build stages are not implemented.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Implement:
 - enrichment batching over unique QIDs from parsed shards
@@ -114,7 +116,7 @@ Implement:
 - build stage that merges parsed shards with the enrichment index and writes both shard outputs and `final/ohm_borders.jsonl`
 - CLI option wiring for `--enrich-batch-size`, `--enrich-workers`, `--resume`, `--force`, and `--no-enrich`
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `py -m pytest pipeline/tests/test_ohm_borders_stages.py -k "enrich or build" -v`
 Expected: PASS
@@ -125,7 +127,7 @@ Expected: PASS
 - Modify: `pipeline/__main__.py`
 - Test: `pipeline/tests/test_ohm_borders_cli.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add tests covering:
 - `py -m pipeline borders run` executing the full staged workflow
@@ -133,19 +135,19 @@ Add tests covering:
 - `--no-enrich`, `--resume`, and `--force` wiring to the staged runner
 - option propagation from `run` into fetch/parse/enrich/build for `--run-id`, `--artifact-dir`, worker counts, and shard sizes
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `py -m pytest pipeline/tests/test_ohm_borders_cli.py -v`
 Expected: FAIL because the compatibility shim does not exist.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Implement:
 - `borders` as a Click group with `fetch`, `parse`, `enrich`, `build`, `run`
 - compatibility path for the old one-shot invocation
 - Rich console summaries per stage and final run summary
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `py -m pytest pipeline/tests/test_ohm_borders_cli.py -v`
 Expected: PASS
@@ -162,7 +164,7 @@ Expected: PASS
 - Test: `pipeline/tests/test_ohm_borders_stages.py`
 - Test: `pipeline/tests/test_ohm_borders_cli.py`
 
-- [ ] **Step 1: Update docs**
+- [x] **Step 1: Update docs**
 
 Document:
 - staged command examples
@@ -170,17 +172,17 @@ Document:
 - resume and force behavior
 - throughput-oriented default worker settings
 
-- [ ] **Step 2: Run the full OHM Python test slice**
+- [x] **Step 2: Run the full OHM Python test slice**
 
 Run: `py -m pytest pipeline/tests/test_ohm_borders_date_parser.py pipeline/tests/test_ohm_borders_fetcher.py pipeline/tests/test_ohm_borders_enricher.py pipeline/tests/test_ohm_borders_mapper.py pipeline/tests/test_ohm_borders_artifacts.py pipeline/tests/test_ohm_borders_stages.py pipeline/tests/test_ohm_borders_cli.py`
 Expected: PASS
 
-- [ ] **Step 3: Spot-check Laravel importer compatibility**
+- [x] **Step 3: Spot-check Laravel importer compatibility**
 
 Run: `docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feature/Feature/ImportBordersCommandTest.php`
 Expected: PASS
 
-- [ ] **Step 4: Manual smoke test**
+- [x] **Step 4: Manual smoke test**
 
 Run a small staged borders flow into a temporary artifact directory and verify:
 - raw fetch artifact exists

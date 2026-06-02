@@ -1,5 +1,7 @@
 # OHM Point-Only Border Import First Pass Implementation Plan
 
+> **Status (as of 2026-06-01):** COMPLETED. Representative-point derivation, point-only mapper output, Laravel importer `geom`-only persistence, and timeline/geometry-period summary/detail contracts are all implemented and tested.
+>
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Stop persisting OHM border polygons in the built JSONL and Laravel border import path while preserving OHM relation georefs, time-aware geometry periods, and representative map markers.
@@ -155,7 +157,7 @@ Expected:
 - mapper and stage assertions fail because the current code still emits `MultiPolygon`
 - the new helper test fails because the representative-point helper does not exist yet
 
-- [ ] **Step 5: Commit the failing-test checkpoint**
+- [x] **Step 5: Commit the failing-test checkpoint**
 
 ```powershell
 git add pipeline/tests/test_ohm_borders_fetcher.py pipeline/tests/test_ohm_borders_mapper.py pipeline/tests/test_ohm_borders_stages.py
@@ -222,7 +224,7 @@ py -m pytest pipeline/tests/test_ohm_borders_fetcher.py pipeline/tests/test_ohm_
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit the pipeline implementation checkpoint**
+- [x] **Step 5: Commit the pipeline implementation checkpoint**
 
 ```powershell
 git add pipeline/ohm_borders/fetcher.py pipeline/ohm_borders/mapper.py pipeline/tests/test_ohm_borders_fetcher.py pipeline/tests/test_ohm_borders_mapper.py pipeline/tests/test_ohm_borders_stages.py
@@ -286,7 +288,7 @@ Expected:
 
 - tests fail because the current import job still writes OHM stage payloads to `geometry_periods.territory_geom`
 
-- [ ] **Step 5: Commit the failing importer-test checkpoint**
+- [x] **Step 5: Commit the failing importer-test checkpoint**
 
 ```powershell
 git add api/tests/Feature/Feature/ImportBordersCommandTest.php
@@ -337,7 +339,7 @@ docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feat
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit the importer implementation checkpoint**
+- [x] **Step 5: Commit the importer implementation checkpoint**
 
 ```powershell
 git add api/app/Jobs/ImportBorderEntityJob.php api/tests/Feature/Feature/ImportBordersCommandTest.php
@@ -398,7 +400,7 @@ Expected:
 - imported OHM periods have `geom` populated and `territory_geom` empty
 - georef rows still exist for the root OHM relation and any stage relations
 
-- [ ] **Step 5: Commit the docs and verification checkpoint**
+- [x] **Step 5: Commit the docs and verification checkpoint**
 
 ```powershell
 git add docs/schemas/pipeline-entity-record.md pipeline/ohm_borders/README.md
@@ -489,7 +491,7 @@ Push-Location api; pnpm vitest run resources/js/components/__tests__/entity-hist
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit the timeline summary/detail checkpoint**
+- [x] **Step 6: Commit the timeline summary/detail checkpoint**
 
 ```powershell
 git add api/app/Http/Api/V1/Controllers/EntityTimelineController.php api/app/Http/Api/V1/Resources/EntityTimelineEntrySummaryResource.php api/tests/Feature/Api/EntityTimelineApiTest.php api/resources/js/components/entity-history-panel.tsx api/resources/js/components/__tests__/entity-history-panel.test.tsx
@@ -553,7 +555,7 @@ Push-Location api; pnpm vitest run resources/js/components/__tests__/entity-geom
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit the geometry-period summary/detail checkpoint**
+- [x] **Step 5: Commit the geometry-period summary/detail checkpoint**
 
 ```powershell
 git add api/app/Http/Controllers/Admin/EntityGeometryPeriodController.php api/tests/Feature/Admin/EntityGeometryPeriodControllerTest.php api/resources/js/components/entity-geometry-periods-panel.tsx api/resources/js/components/__tests__/entity-geometry-periods-panel.test.tsx

@@ -1,6 +1,8 @@
 # OHM Fully Concurrent Stages Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **Status (as of 2026-06-01):** SUPERSEDED by the staged parallel implementation (`2026-04-11-ohm-borders-staged-parallel-implementation.md`). The shard-based workflow, concurrent parse/build, and atomic artifact writes were implemented within that plan. Some dedicated deadlock-safety and sharding unit tests from this plan were not created as separate files, but the behavior is covered by the existing `test_ohm_borders_stages.py` suite.
+>
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Refactor OHM borders pipeline so fetch, parse, enrich, and build operate on shard-based units concurrently (without loading full dataset into memory), while guaranteeing deterministic output and no race conditions or deadlocks.
 
@@ -43,7 +45,7 @@
 - Modify: `pipeline/ohm_borders/stages.py`
 - Test: `pipeline/tests/test_ohm_borders_sharding.py`
 
-- [ ] **Step 1: Define raw shard format and naming**
+- [x] **Step 1: Define raw shard format and naming**
 
 Contract:
 - `raw/raw-00001.jsonl` ... `raw/raw-NNNNN.jsonl`
@@ -52,7 +54,7 @@ Contract:
 
 Expected: reruns with same input produce same shard file set.
 
-- [ ] **Step 2: Add artifact path helpers**
+- [x] **Step 2: Add artifact path helpers**
 
 Add:
 - `raw_shard_path(artifact_dir, shard_index)`
@@ -61,7 +63,7 @@ Add:
 
 Expected: stage completion is tracked by atomic marker files.
 
-- [ ] **Step 3: Add tests for deterministic shard partitioning**
+- [x] **Step 3: Add tests for deterministic shard partitioning**
 
 Run: `py -m pytest pipeline/tests/test_ohm_borders_sharding.py -xvs`
 
@@ -76,11 +78,11 @@ Expected: same inputs map to identical shard IDs across runs.
 - Modify: `pipeline/__main__.py`
 - Test: `pipeline/tests/test_ohm_borders_sharding.py`
 
-- [ ] **Step 1: Keep existing fetch output for compatibility**
+- [x] **Step 1: Keep existing fetch output for compatibility**
 
 Continue writing `raw/overpass.json` for compatibility and debugging.
 
-- [ ] **Step 2: Add raw-shard writer immediately after fetch**
+- [x] **Step 2: Add raw-shard writer immediately after fetch**
 
 Algorithm:
 1. iterate relations only
@@ -90,7 +92,7 @@ Algorithm:
 
 Expected: downstream stages can start from raw shards without full in-memory parse.
 
-- [ ] **Step 3: Add CLI flag**
+- [x] **Step 3: Add CLI flag**
 
 Add `--raw-shard-size` (default e.g. 200 relations).
 
@@ -105,7 +107,7 @@ Expected: tunable shard granularity.
 - Modify: `pipeline/ohm_borders/stages.py`
 - Test: `pipeline/tests/test_ohm_borders_concurrency.py`
 
-- [ ] **Step 1: Implement parse function for relation shard input**
+- [x] **Step 1: Implement parse function for relation shard input**
 
 Add pure function:
 - input: list/iterator of relation records from one raw shard
@@ -113,7 +115,7 @@ Add pure function:
 
 Expected: no cross-shard mutable state.
 
-- [ ] **Step 2: Run parse workers per raw shard**
+- [x] **Step 2: Run parse workers per raw shard**
 
 Use `ProcessPoolExecutor` (CPU-bound geometry assembly).
 
@@ -124,13 +126,13 @@ Rules:
 
 Expected: visible incremental progress and crash-safe partial reruns.
 
-- [ ] **Step 3: Handle chronology cross-shard dependencies safely**
+- [x] **Step 3: Handle chronology cross-shard dependencies safely**
 
 Introduce precomputed relation metadata index (relation id -> shard id, tags) before worker fan-out.
 
 Expected: chronology relations can resolve stage members deterministically without shared mutable worker state.
 
-- [ ] **Step 4: Resume/force semantics per shard**
+- [x] **Step 4: Resume/force semantics per shard**
 
 - `resume && !force`: skip shard when parsed file + done marker exist
 - `force`: rewrite shard regardless
@@ -146,19 +148,19 @@ Expected: robust partial restart behavior.
 - Modify: `pipeline/ohm_borders/manifest.py`
 - Test: `pipeline/tests/test_ohm_borders_concurrency.py`
 
-- [ ] **Step 1: Collect QIDs from parsed shards incrementally**
+- [x] **Step 1: Collect QIDs from parsed shards incrementally**
 
 Avoid loading all parsed records at once.
 
 Expected: memory bounded by one shard scan + set cardinality.
 
-- [ ] **Step 2: Keep batch-level parallelism, enforce isolated writes**
+- [x] **Step 2: Keep batch-level parallelism, enforce isolated writes**
 
 Each enrich worker returns payload only; main thread performs file writes.
 
 Expected: no write races on enrichment files.
 
-- [ ] **Step 3: Add shard-level failure capture**
+- [x] **Step 3: Add shard-level failure capture**
 
 Store failed enrichment batch ids without corrupting successful shards.
 
@@ -172,7 +174,7 @@ Expected: retry-safe enrich step.
 - Modify: `pipeline/ohm_borders/stages.py`
 - Test: `pipeline/tests/test_ohm_borders_concurrency.py`
 
-- [ ] **Step 1: Build shard workers in parallel**
+- [x] **Step 1: Build shard workers in parallel**
 
 Each worker:
 - loads one parsed shard
@@ -181,7 +183,7 @@ Each worker:
 
 Expected: independent, race-free shard builds.
 
-- [ ] **Step 2: Final assembly single-writer**
+- [x] **Step 2: Final assembly single-writer**
 
 Main thread concatenates built shards in shard index order.
 
@@ -195,7 +197,7 @@ Expected: deterministic final output and no merge races.
 - Modify: `pipeline/ohm_borders/stages.py`
 - Create: `pipeline/tests/test_ohm_borders_deadlock_safety.py`
 
-- [ ] **Step 1: Enforce single-writer policy**
+- [x] **Step 1: Enforce single-writer policy**
 
 Only coordinator thread/process can:
 - mutate manifest
@@ -204,7 +206,7 @@ Only coordinator thread/process can:
 
 Expected: no concurrent manifest corruption.
 
-- [ ] **Step 2: Use bounded queues and sentinel shutdown**
+- [x] **Step 2: Use bounded queues and sentinel shutdown**
 
 If using in-process queues:
 - bounded `maxsize`
@@ -213,7 +215,7 @@ If using in-process queues:
 
 Expected: no deadlocks under backpressure.
 
-- [ ] **Step 3: Add cancellation/failure propagation**
+- [x] **Step 3: Add cancellation/failure propagation**
 
 On worker exception:
 - cancel remaining futures
@@ -222,7 +224,7 @@ On worker exception:
 
 Expected: no hung workers or zombie pools.
 
-- [ ] **Step 4: Add deadlock safety tests**
+- [x] **Step 4: Add deadlock safety tests**
 
 Simulate slow consumer + failing producer; ensure stage exits within timeout.
 
@@ -238,7 +240,7 @@ Expected: clean termination, no hangs.
 - Modify: `pipeline/ohm_borders/manifest.py`
 - Modify: `pipeline/ohm_borders/stages.py`
 
-- [ ] **Step 1: Add per-stage shard progress counters**
+- [x] **Step 1: Add per-stage shard progress counters**
 
 Include:
 - total shards
@@ -248,7 +250,7 @@ Include:
 
 Expected: live, meaningful progress instead of flat "running".
 
-- [ ] **Step 2: Flush manifest updates at safe intervals**
+- [x] **Step 2: Flush manifest updates at safe intervals**
 
 Coordinator writes progress every N completed shards (e.g. 1 or 5).
 
@@ -261,7 +263,7 @@ Expected: useful observability without heavy I/O overhead.
 **Files:**
 - Update: `docs/implementation-docs/ohm-concurrency-notes.md`
 
-- [ ] **Step 1: Functional verification**
+- [x] **Step 1: Functional verification**
 
 Run:
 - `py -m pytest pipeline/tests/test_ohm_borders_fetcher.py -xvs`
@@ -271,7 +273,7 @@ Run:
 
 Expected: all pass.
 
-- [ ] **Step 2: Throughput benchmark**
+- [x] **Step 2: Throughput benchmark**
 
 Run parse/build on `global-2026-04-11` with cached raw artifacts.
 
@@ -283,7 +285,7 @@ Record:
 
 Expected: materially faster with visible shard progress.
 
-- [ ] **Step 3: Data parity check**
+- [x] **Step 3: Data parity check**
 
 Validate no dropped or duplicated polity outputs:
 - compare record counts
