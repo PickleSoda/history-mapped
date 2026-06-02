@@ -1,5 +1,7 @@
 # Egypt Wikidata Fallback Design
 
+> **Status (as of 2026-06-01):** DESIGN SPEC ONLY. No implementation plan or code exists yet. This spec was created after real-data runs showed the OHM-first Egypt collection matching too many incidental entities (e.g. `British Empire`). It needs a corresponding implementation plan before work begins.
+
 **Context**
 
 The current Egypt historical collection workflow was designed around OHM-first discovery. In practice, the local OHM XML export and the existing OHM/Overpass-derived indexes are not surfacing the Egypt entities the operator actually needs. The recent real-data run demonstrates the failure mode clearly: the collection mostly matched `British Empire` records whose metadata mentions Egypt events, rather than Egypt entities themselves.

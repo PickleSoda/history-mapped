@@ -1,5 +1,7 @@
 # Event Relationship Pipeline Stabilization Implementation Plan
 
+> **Status (as of 2026-06-01):** Partially completed. Relationship mapping is unified (`relationship_mapper.py`), `ResolveRelationshipsJob` supports retryable missing-target behavior, and timeline/event-hub regressions are covered. Standalone `pipeline:resolve-relationships` and `pipeline:report-relationship-hints` commands are **not yet implemented**, and the end-to-end `PipelineEventHubImportTest` does not exist.
+>
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make multi-entity events import and render reliably by formalizing the event-as-hub relationship model, fixing batch relationship resolution, and making unresolved relationship hints visible and retryable.
@@ -52,6 +54,8 @@ Battle example for target behavior:
 ---
 
 ### Task 1: Write the Event-Hub Modeling Spec
+
+> **Status:** NOT IMPLEMENTED. The dedicated `event-relationship-ingestion-rules.md` doc does not exist, and the event-hub examples/terminology have not been added to the historian or architecture docs.
 
 **Files:**
 - Modify: `docs/entity-model/for-historians.md`
@@ -128,6 +132,8 @@ git commit -m "docs: define event-centered relationship ingestion model"
 
 ### Task 2: Make Relationship Resolution Retryable and Batch-Safe
 
+> **Status:** Partially completed. `ResolveRelationshipsJob` now supports retryable missing-target semantics and preserves unresolved embedded hints. The standalone `pipeline:resolve-relationships` command and its test do **not** exist.
+
 **Files:**
 - Modify: `api/app/Console/Commands/ImportEntitiesCommand.php`
 - Create: `api/app/Console/Commands/ResolvePipelineRelationshipsCommand.php`
@@ -135,7 +141,7 @@ git commit -m "docs: define event-centered relationship ingestion model"
 - Test: `api/tests/Feature/Feature/ResolveRelationshipsJobTest.php`
 - Test: create `api/tests/Feature/Feature/ResolvePipelineRelationshipsCommandTest.php`
 
-- [ ] **Step 1: Write the failing staging-table retryability tests**
+- [x] **Step 1: Write the failing staging-table retryability tests**
 
 Add coverage for:
 
@@ -152,16 +158,16 @@ $this->assertDatabaseHas('pipeline_relationship_hints', [
 ]);
 ```
 
-- [ ] **Step 2: Write the failing fallback-path retryability test**
+- [x] **Step 2: Write the failing fallback-path retryability test**
 
 Add coverage for the embedded-hint fallback path so unresolved hints are not deleted from entity attributes when the target is still missing.
 
-- [ ] **Step 3: Run the focused resolver tests to verify failure**
+- [x] **Step 3: Run the focused resolver tests to verify failure**
 
 Run: `docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feature/Feature/ResolveRelationshipsJobTest.php`
 Expected: FAIL because `target_not_found` is currently terminal and the fallback path deletes unresolved embedded hints.
 
-- [ ] **Step 4: Change staging-table resolution semantics in `ResolveRelationshipsJob`**
+- [x] **Step 4: Change staging-table resolution semantics in `ResolveRelationshipsJob`**
 
 Implement these rules:
 
@@ -170,7 +176,7 @@ Implement these rules:
 - only final invalid states such as `unknown_type` and `self_reference` should be terminal
 - successful creation and true dedup should remain terminal
 
-- [ ] **Step 5: Change fallback attribute resolution semantics in `ResolveRelationshipsJob`**
+- [x] **Step 5: Change fallback attribute resolution semantics in `ResolveRelationshipsJob`**
 
 Implement these rules for the embedded-hint path:
 
@@ -179,6 +185,8 @@ Implement these rules for the embedded-hint path:
 - add code comments explaining why retryability matters here
 
 - [ ] **Step 6: Write the failing command test for explicit batch resolution**
+
+> *Not implemented: no `ResolvePipelineRelationshipsCommandTest.php` exists.*
 
 Cover this contract:
 
@@ -192,6 +200,8 @@ Run: `docker compose -f docker/docker-compose.yml exec app php artisan test test
 Expected: FAIL because the command does not exist yet.
 
 - [ ] **Step 8: Add explicit batch-finalization command flow**
+
+> *Not implemented: no `ResolvePipelineRelationshipsCommand` exists.*
 
 Implement this behavior:
 
@@ -218,6 +228,8 @@ git commit -m "fix: make pipeline relationship resolution retryable and explicit
 
 ### Task 3: Unify Relationship Mapping Logic
 
+> **Status:** COMPLETED. `relationship_mapper.py` is the single source of truth; `entity_mapper.py` consumes it. Tests exist and pass.
+
 **Files:**
 - Modify: `pipeline/requirements.txt`
 - Create: `pipeline/tests/__init__.py`
@@ -226,14 +238,14 @@ git commit -m "fix: make pipeline relationship resolution retryable and explicit
 - Test: create `pipeline/tests/test_relationship_mapper.py`
 - Test: create `pipeline/tests/test_entity_mapper_relationship_hints.py`
 
-- [ ] **Step 1: Add the Python test harness dependency and test package stub**
+- [x] **Step 1: Add the Python test harness dependency and test package stub**
 
 Make these preparatory changes:
 
 - add `pytest>=8.0.0` to `pipeline/requirements.txt`
 - create `pipeline/tests/__init__.py`
 
-- [ ] **Step 2: Write the failing Python tests for mapping behavior**
+- [x] **Step 2: Write the failing Python tests for mapping behavior**
 
 Add coverage for:
 
@@ -250,16 +262,16 @@ def test_treaty_participants_map_to_signed_by():
 	assert get_relationship_type("P710", source_entity_type="event_treaty") == "signed_by"
 ```
 
-- [ ] **Step 3: Install pipeline test dependencies**
+- [x] **Step 3: Install pipeline test dependencies**
 
 - Run: `Set-Location pipeline; pip install -r requirements.txt`
 
-- [ ] **Step 4: Run the mapper tests to verify failure**
+- [x] **Step 4: Run the mapper tests to verify failure**
 
 Run: `Set-Location pipeline; pytest tests/test_relationship_mapper.py tests/test_entity_mapper_relationship_hints.py -q`
 Expected: FAIL because `entity_mapper.py` currently maintains its own inline property map.
 
-- [ ] **Step 5: Refactor `entity_mapper.py` to consume shared mapping helpers**
+- [x] **Step 5: Refactor `entity_mapper.py` to consume shared mapping helpers**
 
 Requirements:
 
@@ -268,12 +280,12 @@ Requirements:
 - preserve current JSONL `_relationship_hints` shape unless an explicit migration is required
 - document any intentionally unsupported properties
 
-- [ ] **Step 6: Rerun Python mapping tests**
+- [x] **Step 6: Rerun Python mapping tests**
 
 Run: `Set-Location pipeline; pytest tests/test_relationship_mapper.py tests/test_entity_mapper_relationship_hints.py -q`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add pipeline/requirements.txt pipeline/tests/__init__.py pipeline/mapper/entity_mapper.py pipeline/mapper/relationship_mapper.py pipeline/tests/test_relationship_mapper.py pipeline/tests/test_entity_mapper_relationship_hints.py
@@ -281,6 +293,8 @@ git commit -m "refactor: unify pipeline relationship mapping"
 ```
 
 ### Task 4: Add Reviewable Unresolved-Hint Reporting
+
+> **Status:** NOT IMPLEMENTED. No `ReportPipelineRelationshipHintsCommand` or corresponding test exists.
 
 **Files:**
 - Modify: `api/app/Jobs/ResolveRelationshipsJob.php`
@@ -335,25 +349,27 @@ git commit -m "feat: report unresolved pipeline relationship hints"
 
 ### Task 5: Add Regression Coverage for Event-Derived Presence and Timeline Projection
 
+> **Status:** COMPLETED. Timeline and relationship tests lock the event-hub semantics and prevent `participated_in` from auto-creating geometry periods.
+
 **Files:**
 - Modify: `api/app/Builders/EntityTimelineEntryBuilder.php`
 - Test: `api/tests/Feature/Api/EntityTimelineApiTest.php`
 - Test: `api/tests/Feature/Admin/RelationshipControllerTest.php`
 
-- [ ] **Step 1: Add the non-auto presence regression test**
+- [x] **Step 1: Add the non-auto presence regression test**
 
 Extend `RelationshipControllerTest.php` so `participated_in` explicitly behaves like other non-auto relationship types and does not create `geometry_periods`.
 
-- [ ] **Step 2: Add the event-hub timeline regression test**
+- [x] **Step 2: Add the event-hub timeline regression test**
 
 Extend `EntityTimelineApiTest.php` with a battle-cluster scenario that asserts relationship type and related event name are still denormalized correctly.
 
-- [ ] **Step 3: Run the focused relationship and timeline tests**
+- [x] **Step 3: Run the focused relationship and timeline tests**
 
 Run: `docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feature/Api/EntityTimelineApiTest.php tests/Feature/Admin/RelationshipControllerTest.php`
 Expected: either FAIL on the new event-hub regression scenario or PASS and confirm no code change is needed.
 
-- [ ] **Step 4: If the new regression test fails, update timeline-entry denormalization only**
+- [x] **Step 4: If the new regression test fails, update timeline-entry denormalization only**
 
 Allowed code-change scope:
 
@@ -361,12 +377,12 @@ Allowed code-change scope:
 - fix only event-hub timeline denormalization gaps exposed by the new test
 - do not widen auto-presence to generic `participated_in`
 
-- [ ] **Step 5: Rerun focused tests**
+- [x] **Step 5: Rerun focused tests**
 
 Run: `docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feature/Api/EntityTimelineApiTest.php tests/Feature/Admin/RelationshipControllerTest.php`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add api/app/Builders/EntityTimelineEntryBuilder.php api/tests/Feature/Api/EntityTimelineApiTest.php api/tests/Feature/Admin/RelationshipControllerTest.php
@@ -374,6 +390,8 @@ git commit -m "test: lock event-derived presence and timeline semantics"
 ```
 
 ### Task 6: Add an End-to-End Multi-Entity Event Import Verification Test
+
+> **Status:** NOT IMPLEMENTED. `PipelineEventHubImportTest.php` does not exist.
 
 **Files:**
 - Test: create `api/tests/Feature/Feature/PipelineEventHubImportTest.php`
@@ -409,17 +427,17 @@ git commit -m "test: verify end-to-end event hub pipeline import"
 
 ## Validation Sequence
 
-- [ ] `Set-Location pipeline; pip install -r requirements.txt`
-- [ ] `Set-Location pipeline; pytest tests/test_relationship_mapper.py tests/test_entity_mapper_relationship_hints.py -q`
-- [ ] `docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feature/Feature/ResolveRelationshipsJobTest.php`
-- [ ] `docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feature/Feature/ResolvePipelineRelationshipsCommandTest.php`
-- [ ] `docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feature/Feature/ReportPipelineRelationshipHintsCommandTest.php`
-- [ ] `docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feature/Api/EntityTimelineApiTest.php tests/Feature/Admin/RelationshipControllerTest.php`
-- [ ] `docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feature/Feature/PipelineEventHubImportTest.php`
+- [x] `Set-Location pipeline; pip install -r requirements.txt`
+- [x] `Set-Location pipeline; pytest tests/test_relationship_mapper.py tests/test_entity_mapper_relationship_hints.py -q`
+- [x] `docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feature/Feature/ResolveRelationshipsJobTest.php`
+- [ ] `docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feature/Feature/ResolvePipelineRelationshipsCommandTest.php` *(command does not exist)*
+- [ ] `docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feature/Feature/ReportPipelineRelationshipHintsCommandTest.php` *(command does not exist)*
+- [x] `docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feature/Api/EntityTimelineApiTest.php tests/Feature/Admin/RelationshipControllerTest.php`
+- [ ] `docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feature/Feature/PipelineEventHubImportTest.php` *(test does not exist)*
 
 Recommended final sweep:
 
-- [ ] `docker compose -f docker/docker-compose.yml exec app php artisan test`
+- [x] `docker compose -f docker/docker-compose.yml exec app php artisan test`
 
 ---
 

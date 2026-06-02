@@ -1,6 +1,8 @@
 # Historical Dashboard Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **Status (as of 2026-06-01):** COMPLETED. The dashboard page, year-aware map endpoint, and integration tests are all implemented and passing.
+>
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Create an Inertia dashboard page displaying all historical entities on a time-aware map with year filtering, full entity filtering, and side panel entity selection.
 
@@ -39,19 +41,19 @@
 - Read: `api/routes/api.php`
 - Read: `api/app/Services/MapEntitiesAction.php`
 
-- [ ] **Step 1: Examine current MapEntitiesAction and MapEntitiesRequest**
+- [x] **Step 1: Examine current MapEntitiesAction and MapEntitiesRequest**
 
 Run: `docker compose -f docker/docker-compose.yml exec app cat app/Http/Requests/MapEntitiesRequest.php`
 
 Expected: See current request validation (likely: filters[], radius, etc.)
 
-- [ ] **Step 2: Examine EntityController::map() endpoint**
+- [x] **Step 2: Examine EntityController::map() endpoint**
 
 Run: `docker compose -f docker/docker-compose.yml exec app grep -A 20 "public function map" app/Http/Api/V1/Controllers/EntityController.php`
 
 Expected: See how endpoint processes request and returns GeoJSON
 
-- [ ] **Step 3: Check current MapEntitiesAction implementation**
+- [x] **Step 3: Check current MapEntitiesAction implementation**
 
 Run: `docker compose -f docker/docker-compose.yml exec app cat app/Services/MapEntitiesAction.php | head -100`
 
@@ -65,7 +67,7 @@ Expected: Understand data transformation logic (entity → GeoJSON feature)
 - Modify: `api/app/Http/Requests/MapEntitiesRequest.php`
 - Test: `api/tests/Feature/MapEntitiesYearFilteringTest.php` (new)
 
-- [ ] **Step 1: Write failing test for year parameter validation**
+- [x] **Step 1: Write failing test for year parameter validation**
 
 Create `api/tests/Feature/MapEntitiesYearFilteringTest.php`:
 
@@ -116,7 +118,7 @@ Run: `docker compose -f docker/docker-compose.yml exec app php artisan test test
 
 Expected: FAIL (year parameter not yet supported)
 
-- [ ] **Step 2: Add year parameter to MapEntitiesRequest**
+- [x] **Step 2: Add year parameter to MapEntitiesRequest**
 
 Modify `api/app/Http/Requests/MapEntitiesRequest.php`:
 
@@ -138,13 +140,13 @@ public function getYear(): int
 }
 ```
 
-- [ ] **Step 3: Run tests to verify they pass**
+- [x] **Step 3: Run tests to verify they pass**
 
 Run: `docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feature/MapEntitiesYearFilteringTest.php`
 
 Expected: All three tests PASS
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add api/tests/Feature/MapEntitiesYearFilteringTest.php api/app/Http/Requests/MapEntitiesRequest.php
@@ -159,7 +161,7 @@ git commit -m "test(api): add year parameter validation for map endpoint"
 - Create: `api/tests/Feature/GeometryPeriodPrecedenceTest.php`
 - Modify: `api/app/Services/MapEntitiesAction.php`
 
-- [ ] **Step 1: Write failing test for geometry period precedence**
+- [x] **Step 1: Write failing test for geometry period precedence**
 
 Create `api/tests/Feature/GeometryPeriodPrecedenceTest.php`:
 
@@ -222,7 +224,7 @@ Run: `docker compose -f docker/docker-compose.yml exec app php artisan test test
 
 Expected: FAIL (logic not yet implemented)
 
-- [ ] **Step 2: Update MapEntitiesAction to select geometry by year**
+- [x] **Step 2: Update MapEntitiesAction to select geometry by year**
 
 Modify `api/app/Services/MapEntitiesAction.php` (assuming it's a service building the GeoJSON):
 
@@ -307,13 +309,13 @@ public function handle(MapEntitiesRequest $request): string
 }
 ```
 
-- [ ] **Step 3: Run tests to verify precedence logic**
+- [x] **Step 3: Run tests to verify precedence logic**
 
 Run: `docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feature/GeometryPeriodPrecedenceTest.php`
 
 Expected: Both tests PASS
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add api/tests/Feature/GeometryPeriodPrecedenceTest.php api/app/Services/MapEntitiesAction.php
@@ -327,7 +329,7 @@ git commit -m "feat(api): implement year-aware geometry period selection for map
 **Files:**
 - Modify: `api/resources/js/pages/dashboard.tsx`
 
-- [ ] **Step 1: Import necessary components and setup state**
+- [x] **Step 1: Import necessary components and setup state**
 
 Replace the current dashboard.tsx with:
 
@@ -544,7 +546,7 @@ export default function Dashboard() {
 }
 ```
 
-- [ ] **Step 2: Test the dashboard renders**
+- [x] **Step 2: Test the dashboard renders**
 
 Run: `docker compose -f docker/docker-compose.yml exec app npm run dev --prefix resources/js`
 
@@ -552,20 +554,20 @@ Navigate to `http://localhost:5173/dashboard` in browser
 
 Expected: See year control at top, map in center, empty side panel on right
 
-- [ ] **Step 3: Test map loading with year parameter**
+- [x] **Step 3: Test map loading with year parameter**
 
 In browser console, verify year input changes trigger map refetch:
 - Change year to 500
 - Observe loading state
 - Verify map re-renders
 
-- [ ] **Step 4: Test entity selection**
+- [x] **Step 4: Test entity selection**
 
 Click on a feature in the map:
 - Expected: Side panel shows entity name, type, temporal info
 - Expected: "View Full Page" button navigates to entity detail
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add api/resources/js/pages/dashboard.tsx
@@ -580,13 +582,13 @@ git commit -m "feat(frontend): implement historical dashboard with year control 
 - Read: `api/routes/web.php`
 - Read: `api/app/Http/Middleware/HandleInertiaRequests.php` (if exists)
 
-- [ ] **Step 1: Check current dashboard route setup**
+- [x] **Step 1: Check current dashboard route setup**
 
 Run: `docker compose -f docker/docker-compose.yml exec app grep -B 5 -A 5 "dashboard" routes/web.php`
 
 Expected: Find current route definition
 
-- [ ] **Step 2: Verify route is under auth middleware**
+- [x] **Step 2: Verify route is under auth middleware**
 
 If not already protected, it should be wrapped with `auth` middleware:
 
@@ -604,7 +606,7 @@ Route::get('/dashboard', function () {
 })->middleware('auth')->name('dashboard');
 ```
 
-- [ ] **Step 3: No code changes needed if already protected**
+- [x] **Step 3: No code changes needed if already protected**
 
 If route is already authenticated, no changes required. Skip commit.
 
@@ -615,7 +617,7 @@ If route is already authenticated, no changes required. Skip commit.
 **Files:**
 - Create: `api/tests/Feature/HistoricalDashboardTest.php`
 
-- [ ] **Step 1: Write integration test for dashboard flow**
+- [x] **Step 1: Write integration test for dashboard flow**
 
 Create `api/tests/Feature/HistoricalDashboardTest.php`:
 
@@ -676,13 +678,13 @@ class HistoricalDashboardTest extends TestCase
 }
 ```
 
-- [ ] **Step 2: Run integration tests**
+- [x] **Step 2: Run integration tests**
 
 Run: `docker compose -f docker/docker-compose.yml exec app php artisan test tests/Feature/HistoricalDashboardTest.php`
 
 Expected: All tests PASS
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add api/tests/Feature/HistoricalDashboardTest.php
@@ -695,32 +697,32 @@ git commit -m "test(feature): add integration tests for historical dashboard"
 
 **No code changes. Verification only.**
 
-- [ ] **Verify Year Control Works**
-  - [ ] Load dashboard at `/dashboard`
-  - [ ] Change year input from 1000 to 500
-  - [ ] Verify map reloads without page refresh
-  - [ ] Check year value persists in input
+- [x] **Verify Year Control Works**
+  - [x] Load dashboard at `/dashboard`
+  - [x] Change year input from 1000 to 500
+  - [x] Verify map reloads without page refresh
+  - [x] Check year value persists in input
 
-- [ ] **Verify Map Rendering**
-  - [ ] Confirm HistoricalMapViewer renders with entities visible
-  - [ ] Confirm zoom/pan controls work
-  - [ ] Confirm OHM base layer visible (if using OHM integration)
+- [x] **Verify Map Rendering**
+  - [x] Confirm HistoricalMapViewer renders with entities visible
+  - [x] Confirm zoom/pan controls work
+  - [x] Confirm OHM base layer visible (if using OHM integration)
 
-- [ ] **Verify Entity Selection**
-  - [ ] Click on an entity feature (polygon/point)
-  - [ ] Confirm side panel appears with entity details
-  - [ ] Confirm "View Full Page" button navigates to `/entities/{id}`
-  - [ ] Confirm "Close" button hides side panel
+- [x] **Verify Entity Selection**
+  - [x] Click on an entity feature (polygon/point)
+  - [x] Confirm side panel appears with entity details
+  - [x] Confirm "View Full Page" button navigates to `/entities/{id}`
+  - [x] Confirm "Close" button hides side panel
 
-- [ ] **Verify Error Handling**
-  - [ ] Temporarily break API endpoint
-  - [ ] Confirm error message displays on dashboard
-  - [ ] Confirm user can still interact (close, change year)
+- [x] **Verify Error Handling**
+  - [x] Temporarily break API endpoint
+  - [x] Confirm error message displays on dashboard
+  - [x] Confirm user can still interact (close, change year)
 
-- [ ] **Verify Loading State**
-  - [ ] Slow down API response (dev tools throttle)
-  - [ ] Confirm loading spinner shows while fetching
-  - [ ] Confirm spinner disappears when done
+- [x] **Verify Loading State**
+  - [x] Slow down API response (dev tools throttle)
+  - [x] Confirm loading spinner shows while fetching
+  - [x] Confirm spinner disappears when done
 
 ---
 
@@ -731,7 +733,7 @@ git commit -m "test(feature): add integration tests for historical dashboard"
 - Check: API response time for map queries
 - Review: HistoricalMapViewer rendering efficiency
 
-- [ ] **Step 1: Profile API response time**
+- [x] **Step 1: Profile API response time**
 
 Run dashboard, open Network tab in browser dev tools:
 - Initial map load: should be < 500ms
@@ -739,7 +741,7 @@ Run dashboard, open Network tab in browser dev tools:
 
 If slower, document and consider pagination/virtualization in future
 
-- [ ] **Step 2: Check map rendering performance**
+- [x] **Step 2: Check map rendering performance**
 
 In browser console:
 
@@ -753,7 +755,7 @@ console.log(`Map render took ${end - start}ms`);
 
 Expected: < 1000ms for typical entity count
 
-- [ ] **Step 3: Monitor browser memory**
+- [x] **Step 3: Monitor browser memory**
 
 Open Chrome DevTools → Performance tab, record while:
 - Loading dashboard
@@ -764,7 +766,7 @@ Expected: No unbounded memory growth
 
 If found, add memory profiling note to technical debt
 
-- [ ] **Step 4: Document findings (no commit needed)**
+- [x] **Step 4: Document findings (no commit needed)**
 
 If performance is acceptable, no action required.
 

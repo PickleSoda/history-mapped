@@ -1,5 +1,7 @@
 # OHM Border Event Extraction Implementation Plan
 
+> **Status (as of 2026-06-01):** NOT IMPLEMENTED. No event extractor, event enricher, or event-stage CLI commands exist. This plan is awaiting execution.
+>
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add a separate post-processing pipeline that reads existing OHM border run artifacts and extracts normalized start/end event references without re-querying OpenHistoricalMap.
