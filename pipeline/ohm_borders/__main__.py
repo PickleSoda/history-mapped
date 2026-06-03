@@ -418,5 +418,73 @@ def enrich_output_names(input_path, output_path, enrich_batch_size):
     )
 
 
+@cli.command("events-scan")
+@click.option("--run-id", default=None, help="Deterministic run id for the artifact directory")
+@click.option("--artifact-dir", type=click.Path(path_type=Path, file_okay=False), default=None, help="Explicit artifact directory override")
+@click.option("--candidate-shard-size", type=int, default=500, show_default=True, help="Event references per candidate shard")
+@click.option("--resume", is_flag=True, help="Skip writing event scan shards that already exist")
+@click.option("--force", is_flag=True, help="Overwrite existing event scan shards")
+def events_scan(run_id, artifact_dir, candidate_shard_size, resume, force):
+    """Extract event references from parsed OHM border shards."""
+    from pipeline.ohm_borders.stage_events import run_event_scan_stage
+    from pipeline.ohm_borders.stage_common import resolve_artifact_dir
+
+    resolved_artifact_dir = resolve_artifact_dir(run_id, artifact_dir)
+    result = run_event_scan_stage(
+        run_id=run_id,
+        artifact_dir=resolved_artifact_dir,
+        candidate_shard_size=candidate_shard_size,
+    )
+    console.print(f"Events scan {result['status']}: {result['reference_count']} references")
+
+
+@cli.command("events-enrich")
+@click.option("--run-id", default=None, help="Deterministic run id for the artifact directory")
+@click.option("--artifact-dir", type=click.Path(path_type=Path, file_okay=False), default=None, help="Explicit artifact directory override")
+@click.option("--event-enrich-batch-size", type=int, default=50, show_default=True, help="Unique Wikidata QIDs per enrichment shard")
+@click.option("--event-enrich-workers", type=int, default=4, show_default=True, help="Bounded worker count for event enrichment")
+@click.option("--resume", is_flag=True, help="Skip writing event enrich shards that already exist")
+@click.option("--force", is_flag=True, help="Overwrite existing event enrich shards")
+def events_enrich(run_id, artifact_dir, event_enrich_batch_size, event_enrich_workers, resume, force):
+    """Enrich event references with Wikidata metadata."""
+    console.print("Event enrichment not yet fully implemented.")
+
+
+@cli.command("events-build")
+@click.option("--run-id", default=None, help="Deterministic run id for the artifact directory")
+@click.option("--artifact-dir", type=click.Path(path_type=Path, file_okay=False), default=None, help="Explicit artifact directory override")
+@click.option("--resume", is_flag=True, help="Skip writing final event outputs that already exist")
+@click.option("--force", is_flag=True, help="Overwrite existing final event outputs")
+def events_build(run_id, artifact_dir, resume, force):
+    """Build final event reference and match files."""
+    from pipeline.ohm_borders.stage_events import run_event_build_stage
+    from pipeline.ohm_borders.stage_common import resolve_artifact_dir
+
+    resolved_artifact_dir = resolve_artifact_dir(run_id, artifact_dir)
+    result = run_event_build_stage(run_id=run_id, artifact_dir=resolved_artifact_dir)
+    console.print(f"Events build {result['status']}")
+
+
+@cli.command("events-run")
+@click.option("--run-id", default=None, help="Deterministic run id for the artifact directory")
+@click.option("--artifact-dir", type=click.Path(path_type=Path, file_okay=False), default=None, help="Explicit artifact directory override")
+@click.option("--candidate-shard-size", type=int, default=500, show_default=True, help="Event references per candidate shard")
+@click.option("--event-enrich-batch-size", type=int, default=50, show_default=True, help="Unique Wikidata QIDs per enrichment shard")
+@click.option("--event-enrich-workers", type=int, default=4, show_default=True, help="Bounded worker count for event enrichment")
+@click.option("--resume", is_flag=True, help="Skip writing existing event stage artifacts when possible")
+@click.option("--force", is_flag=True, help="Overwrite existing event stage artifacts")
+def events_run(run_id, artifact_dir, candidate_shard_size, event_enrich_batch_size, event_enrich_workers, resume, force):
+    """Run the full event extraction workflow."""
+    from pipeline.ohm_borders.stage_events import run_event_scan_stage, run_event_build_stage
+    from pipeline.ohm_borders.stage_common import resolve_artifact_dir
+
+    resolved_artifact_dir = resolve_artifact_dir(run_id, artifact_dir)
+    run_event_scan_stage(run_id=run_id, artifact_dir=resolved_artifact_dir, candidate_shard_size=candidate_shard_size)
+    console.print("Events scan complete.")
+    console.print("Events enrich complete (placeholder).")
+    run_event_build_stage(run_id=run_id, artifact_dir=resolved_artifact_dir)
+    console.print("Events build complete.")
+
+
 if __name__ == "__main__":
     cli()

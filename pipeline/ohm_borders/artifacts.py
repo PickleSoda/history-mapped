@@ -104,6 +104,34 @@ def relation_hints_final_path(artifact_dir: str | Path) -> Path:
     return relation_final_dir(artifact_dir) / "ohm_relation_hints.jsonl"
 
 
+def event_candidates_dir(artifact_dir: str | Path) -> Path:
+    return Path(artifact_dir) / "events" / "candidates"
+
+
+def event_candidate_shard_path(artifact_dir: str | Path, shard_index: int) -> Path:
+    return event_candidates_dir(artifact_dir) / f"event-candidates-{shard_index:05d}.jsonl"
+
+
+def event_enriched_dir(artifact_dir: str | Path) -> Path:
+    return Path(artifact_dir) / "events" / "enriched"
+
+
+def event_enriched_shard_path(artifact_dir: str | Path, shard_index: int) -> Path:
+    return event_enriched_dir(artifact_dir) / f"event-enriched-{shard_index:05d}.json"
+
+
+def event_final_dir(artifact_dir: str | Path) -> Path:
+    return Path(artifact_dir) / "events" / "final"
+
+
+def event_final_refs_path(artifact_dir: str | Path) -> Path:
+    return event_final_dir(artifact_dir) / "ohm_border_event_refs.jsonl"
+
+
+def event_final_matches_path(artifact_dir: str | Path) -> Path:
+    return event_final_dir(artifact_dir) / "ohm_border_event_matches.jsonl"
+
+
 def subgraph_seed_path(artifact_dir: str | Path) -> Path:
     return subgraph_dir(artifact_dir) / "seed.json"
 
@@ -129,5 +157,8 @@ def ensure_artifact_dirs(artifact_dir: str | Path) -> None:
         relation_enriched_dir(artifact_dir),
         relation_built_dir(artifact_dir),
         relation_final_dir(artifact_dir),
+        event_candidates_dir(artifact_dir),
+        event_enriched_dir(artifact_dir),
+        event_final_dir(artifact_dir),
     ):
         directory.mkdir(parents=True, exist_ok=True)

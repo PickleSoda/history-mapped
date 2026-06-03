@@ -134,10 +134,28 @@ py -m pipeline borders run --run-id global-2026-04-15 --parse-workers 8 --enrich
 
 # 5. Build relation outputs after country entities exist
 py -m pipeline borders relations-run --run-id global-2026-04-15 --resume
+
+# 6. Extract event references from parsed shards
+py -m pipeline borders events-run --run-id global-2026-04-15 --resume
 ```
 
 To resume after an interruption, pass `--resume` to any stage — already-written shards are skipped.  
 If Wikidata enrichment is not needed, skip the enrich step and go straight from parse to build.
+
+## Event extraction
+
+After `build` completes, extract event references from parsed shards:
+
+```powershell
+py -m pipeline borders events-run --run-id run-001
+```
+
+This writes:
+- `events/candidates/*.jsonl` — extracted event references
+- `events/final/ohm_border_event_refs.jsonl` — enriched event records
+- `events/final/ohm_border_event_matches.jsonl` — match audit
+
+Event references are extracted from `start_event`, `end_event`, and their `:wikidata` variants on both root polity tags and stage tags.
 
 ## Name-based enrichment
 
