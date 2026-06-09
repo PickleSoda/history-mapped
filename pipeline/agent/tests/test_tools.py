@@ -91,3 +91,21 @@ def test_ohm_geometry(mock_resolve):
     geo = resolve_ohm_geometry("test.db", "node", 123)
     assert geo is not None
     assert geo["type"] == "Point"
+
+
+from pipeline.agent.tools.app_api import build_artisan_command, run_artisan_command
+
+
+def test_build_import_command():
+    cmd = build_artisan_command("pipeline:import", "/tmp/test.jsonl", sync=True, batch_id="run_123")
+    assert "pipeline:import" in cmd
+    assert "/tmp/test.jsonl" in cmd
+    assert "--sync" in cmd
+    assert "--batch-id=run_123" in cmd
+    assert cmd[0] == "docker"
+
+
+def test_build_borders_command():
+    cmd = build_artisan_command("pipeline:import-borders", "/tmp/borders.jsonl", sync=True)
+    assert "pipeline:import-borders" in cmd
+    assert "--sync" in cmd
