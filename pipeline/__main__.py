@@ -25,6 +25,7 @@ from rich.console import Console
 from pipeline.wikidata.__main__ import cli as wikidata_cli
 from pipeline.ohm_borders.__main__ import cli as ohm_cli
 from pipeline.ohm_collections.__main__ import cli as collections_cli
+from pipeline.agent.__main__ import agent as agent_command
 from pipeline.ohm_borders.fetcher import load_query_text
 from pipeline.ohm_borders.stages import (
     default_parallelism,
@@ -74,6 +75,7 @@ cli.add_command(wikidata_scrape_impl, name="scrape")
 cli.add_command(wikidata_dedup_impl, name="dedup")
 cli.add_command(wikidata_topic_impl, name="topic")
 cli.add_command(collections_cli, name="collections")
+cli.add_command(agent_command, name="agent")
 
 
 # === OHM BORDERS SUBCOMMANDS (legacy) ===
