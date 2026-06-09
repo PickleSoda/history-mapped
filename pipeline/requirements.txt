@@ -28,6 +28,14 @@ click>=8.1.0
 # Geometry assembly for OHM rings
 shapely>=2.0.0
 
+# Agentic pipeline
+langgraph>=0.2.0
+langchain>=0.2.0
+langchain-openai>=0.1.0
+
+# Test mocking
+responses>=0.25.0
+
 # Rate limiting
 ratelimit>=2.2.1
 
