@@ -17,6 +17,17 @@ from pipeline.ohm_collections.xml_index_builder import build_index
 from pipeline.ohm_borders.relations_enricher import enrich_relation_candidates
 from pipeline.ohm_borders.relations_extractor import extract_relation_candidates
 from pipeline.wikidata.mapper.relationship_mapper import get_relationship_type
+from pipeline.wikidata.collections.egypt_seed_set import load_seed_set
+from pipeline.wikidata.collections.egypt_fallback import (
+    fetch_seed_entities,
+    apply_bounded_expansion,
+    build_collection_artifacts as build_egypt_collection_artifacts,
+)
+from pipeline.wikidata.collections.artifacts import collection_artifact_dir
+from pipeline.wikidata.collections.resolve_pending import (
+    resolve_pending_targets,
+    write_resolved_entities,
+)
 
 console = Console(legacy_windows=False)
 
@@ -575,6 +586,124 @@ def egypt_relations_run_command(
     console.print(
         f"Egypt relations {result['status']}: {result['entities_path']} | {result['hints_path']}"
     )
+
+
+@cli.command("egypt-wikidata-build")
+@click.option("--run-id", required=True, help="Deterministic collection run id.")
+@click.option(
+    "--output-root",
+    type=click.Path(path_type=Path, file_okay=False),
+    default=None,
+    help="Optional explicit output directory override.",
+)
+@click.option(
+    "--seed-file",
+    type=click.Path(path_type=Path, exists=True, dir_okay=False),
+    default=None,
+    help="Path to custom seed JSON file.",
+)
+@click.option("--no-expansion", is_flag=True, help="Run exact-seed-only mode.")
+@click.option("--resume", is_flag=True, help="Reuse compatible completed collection artifacts.")
+@click.option("--force", is_flag=True, help="Overwrite stale collection artifacts.")
+def egypt_wikidata_build_command(
+    run_id: str,
+    output_root: Path | None,
+    seed_file: Path | None,
+    no_expansion: bool,
+    resume: bool,
+    force: bool,
+) -> None:
+    artifact_dir = collection_artifact_dir(run_id, base_dir=output_root)
+
+    if resume and not force and (artifact_dir / "manifest.json").exists():
+        console.print(f"Run {run_id} already exists. Use --force to rebuild.")
+        return
+
+    seeds = load_seed_set(path=seed_file)
+    console.print(f"Loaded {len(seeds)} seed(s).")
+
+    records = fetch_seed_entities(seeds)
+    console.print(f"Fetched {len(records)} seed entity/ies.")
+
+    excluded: list[dict[str, Any]] = []
+
+    if not no_expansion:
+        # Collect expansion QIDs from claims of included seeds
+        expansion_qids: list[str] = []
+        for record in records:
+            hints = record.get("_relationship_hints", [])
+            for hint in hints:
+                target_qid = hint.get("target_wikidata_id")
+                if target_qid and target_qid.startswith("Q"):
+                    expansion_qids.append(target_qid)
+        # Deduplicate
+        expansion_qids = list(dict.fromkeys(expansion_qids))
+        expanded = apply_bounded_expansion(records, expansion_qids)
+        console.print(f"Expanded to {len(expanded)} additional entity/ies.")
+        records.extend(expanded)
+
+    build_egypt_collection_artifacts(artifact_dir, records, seeds, excluded)
+    console.print(f"Wrote {len(records)} entity/ies to {artifact_dir}.")
+
+
+@cli.command("egypt-resolve-targets")
+@click.option("--batch-id", default=None, help="Resolve targets only for this batch; omit for all unresolved.")
+@click.option("--run-id", required=True, help="Deterministic output run id.")
+@click.option(
+    "--output-root",
+    type=click.Path(path_type=Path, file_okay=False),
+    default=None,
+    help="Optional explicit output directory override.",
+)
+@click.option(
+    "--targets-file",
+    type=click.Path(path_type=Path, exists=True, dir_okay=False),
+    default=None,
+    help="Text file with one QID per line (alternative to DB query).",
+)
+@click.option("--limit", type=int, default=500, show_default=True, help="Max targets to resolve.")
+@click.option("--no-egypt-filter", is_flag=True, help="Skip Egypt domain filter.")
+@click.option("--resume", is_flag=True, help="Reuse compatible completed collection artifacts.")
+@click.option("--force", is_flag=True, help="Overwrite stale collection artifacts.")
+def egypt_resolve_targets_command(
+    batch_id: str | None,
+    run_id: str,
+    output_root: Path | None,
+    targets_file: Path | None,
+    limit: int,
+    no_egypt_filter: bool,
+    resume: bool,
+    force: bool,
+) -> None:
+    artifact_dir = collection_artifact_dir(run_id, base_dir=output_root)
+
+    if resume and not force and (artifact_dir / "manifest.json").exists():
+        console.print(f"Run {run_id} already exists. Use --force to rebuild.")
+        return
+
+    result = resolve_pending_targets(
+        batch_id=batch_id,
+        limit=limit,
+        egypt_only=not no_egypt_filter,
+        targets_file=targets_file,
+    )
+
+    if result["status"] == "empty":
+        console.print("No unresolved targets found.")
+        return
+
+    console.print(f"Resolved {result['entity_count']} entities from {result['fetched_count']} fetched.")
+    if result["skipped_egypt"] > 0:
+        console.print(f"  Skipped {result['skipped_egypt']} non-Egypt entities.")
+    if result["skipped_map"] > 0:
+        console.print(f"  Skipped {result['skipped_map']} unmappable entities.")
+
+    write_resolved_entities(
+        artifact_dir,
+        result["records"],
+        batch_id=batch_id,
+    )
+    console.print(f"Wrote {result['entity_count']} entities to {artifact_dir}.")
 
 
 if __name__ == "__main__":

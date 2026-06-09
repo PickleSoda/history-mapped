@@ -218,9 +218,14 @@ class EntityMapper:
         end = raw.get("dissolution") or raw.get("end_time")
         point = raw.get("point_in_time")
 
+        # For persons: use birth_date as start, death_date as end
+        if not start and not end:
+            start = raw.get("birth_date")
+            end = raw.get("death_date")
+
         if not start and point:
             start = point
-        if not end and point and not raw.get("dissolution") and not raw.get("end_time"):
+        if not end and point and not raw.get("dissolution") and not raw.get("end_time") and not raw.get("death_date"):
             end = point
 
         if start and end and start == end:
@@ -423,6 +428,7 @@ class EntityMapper:
             "P22":   "child_of",          # father (reverse: parent_of)
             "P25":   "child_of",          # mother (reverse: parent_of)
             "P26":   "married_to",        # spouse
+            "P39":   "rules",             # position held (pharaoh, king, etc.)
             "P40":   "parent_of",         # child
             "P607":  "participated_in",   # conflict
             "P1344": "participated_in",   # participant of
