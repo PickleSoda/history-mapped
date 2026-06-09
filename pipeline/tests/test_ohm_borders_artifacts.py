@@ -55,7 +55,7 @@ def test_create_manifest_matches_documented_top_level_shape(tmp_path: Path) -> N
         options={"parse_workers": 4, "parsed_shard_size": 100},
     )
 
-    assert list(manifest.keys()) == ["run_id", "artifact_dir", "options", "summary", "stages", "relation_stages"]
+    assert list(manifest.keys()) == ["run_id", "artifact_dir", "options", "summary", "stages", "relation_stages", "event_stages"]
     assert manifest["run_id"] == "20260411-120000"
     assert manifest["artifact_dir"] == str(artifact_dir)
     assert manifest["options"] == {"parse_workers": 4, "parsed_shard_size": 100}

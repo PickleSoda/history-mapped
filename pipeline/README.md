@@ -62,6 +62,24 @@ py -m pipeline collections egypt-relations-run --run-id egypt-historical-collect
 
 See [../docs/implementation-docs/ohm-egypt-collection-runbook.md](../docs/implementation-docs/ohm-egypt-collection-runbook.md) for the streaming XML index workflow, point precedence rules, and Laravel import steps.
 
+### Egypt Wikidata fallback
+
+When OHM discovery is incomplete, build Egypt entities directly from Wikidata:
+
+```powershell
+py -m pipeline collections egypt-wikidata-build --run-id egypt-wikidata-2026 --force
+```
+
+Options:
+- `--no-expansion` — import only the curated seed set
+- `--seed-file <path>` — use a custom seed definition
+- `--output-root <path>` — override the default output directory
+
+Import the result:
+```bash
+docker compose -f docker/docker-compose.yml exec app php artisan pipeline:import storage/app/imports/egypt-wikidata-2026/entities_final/egypt_collection.jsonl --sync --force --batch-id=egypt-wikidata-2026
+```
+
 ### Laravel-side import and embeddings
 
 ```bash
