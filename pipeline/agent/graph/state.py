@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TypedDict, Any
 
+from pipeline.agent.schemas.chronicle import Chronicle
 from pipeline.agent.schemas.entities import ParsedEvent, CandidateEntity, EnrichedCandidate
 from pipeline.agent.schemas.relations import CandidateRelation, CommittedChange
 from pipeline.agent.schemas.proposals import ProposedDiff
@@ -20,3 +21,4 @@ class AgentRunState(TypedDict):
     committed: list[CommittedChange]
     audit_log: list[AuditEvent]
     errors: list[PipelineError]
+    chronicle: Chronicle | None

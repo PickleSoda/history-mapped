@@ -8,3 +8,8 @@ def test_state_is_typed_dict():
     assert "run_id" in hints
     assert "raw_input" in hints
     assert "parsed_events" in hints
+
+
+def test_state_has_chronicle_field():
+    hints = get_type_hints(AgentRunState)
+    assert "chronicle" in hints
