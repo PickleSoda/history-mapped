@@ -56,10 +56,19 @@ def build_workflow() -> StateGraph:
     return workflow.compile()
 
 
-def run_agent(raw_input: str, run_id: str) -> AgentRunState:
+def run_agent(raw_input: str, run_id: str, title: str | None = None, create_chronicle: bool = True) -> AgentRunState:
     """Run the full agent pipeline on a raw text input.
 
-    Returns the final state dict with all artifacts and audit log.
+    Parameters
+    ----------
+    raw_input: The historical text to process.
+    run_id: Unique identifier for this run.
+    title: Optional chronicle title (defaults to derived from input).
+    create_chronicle: Whether to build a chronicle from the events.
+
+    Returns
+    -------
+    The final state dict with all artifacts and audit log.
     """
     workflow = build_workflow()
     initial_state: AgentRunState = {
@@ -75,6 +84,8 @@ def run_agent(raw_input: str, run_id: str) -> AgentRunState:
         "chronicle": None,
         "audit_log": [],
         "errors": [],
+        "title": title,
+        "create_chronicle": create_chronicle,
     }
     result = workflow.invoke(initial_state)
     return result
