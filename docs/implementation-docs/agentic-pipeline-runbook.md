@@ -227,6 +227,34 @@ OPENAI_API_KEY=not-needed
 
 The LLM layer is provider-agnostic via `pipeline/agent/llm.py:create_llm()`, which wraps `langchain_openai.ChatOpenAI` with configurable `base_url`, `model`, and `api_key`.
 
+### Model Fallback Chains
+
+Each LLM node has a primary model and an ordered fallback chain. If the primary model fails (rate limit, timeout, 5xx, etc.), the pipeline automatically retries and then falls back to the next model in the chain.
+
+**Default fallback chains** (configured in `pipeline/agent/config.py`):
+
+| Node | Primary | Fallback 1 | Fallback 2 | Fallback 3 |
+|------|---------|------------|------------|------------|
+| `parse_sequence` | `gpt-4o-mini` | `openai/gpt-oss-20b:free` | `google/gemma-4-26b-a4b-it:free` | `deepseek/deepseek-v3.1-terminus` |
+| `extract_candidates` | `gpt-4o-mini` | `google/gemma-4-31b-it:free` | `openai/gpt-oss-120b:free` | `deepseek/deepseek-v3.1-terminus` |
+| `generate_content` | `gpt-4o` | `deepseek/deepseek-v3.1-terminus` | `google/gemini-2.5-flash` | `x-ai/grok-4.20` |
+
+Customize by editing `MODEL_FALLBACKS` in `pipeline/agent/config.py`:
+
+```python
+MODEL_FALLBACKS: dict[str, list[str]] = {
+    "parse_model": [
+        "openai/gpt-oss-20b:free",
+        "google/gemma-4-26b-a4b-it:free",
+        "deepseek/deepseek-v3.1-terminus",
+    ],
+    "extract_model": [...],
+    "generate_model": [...],
+}
+```
+
+To disable fallbacks, pass an empty dict or set `model_fallbacks={}` when constructing `AgentConfig`.
+
 ---
 
 ## Testing
@@ -291,6 +319,7 @@ pipeline/agent/
     ├── test_schemas.py
     ├── test_state.py
     ├── test_config.py
+    ├── test_llm.py           # LLM factory + fallback chain tests
     ├── test_tools.py
     ├── test_nodes_llm.py
     ├── test_nodes_lookup.py
