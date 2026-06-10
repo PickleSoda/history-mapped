@@ -48,12 +48,12 @@ A Chronicle is a narrative sequence (e.g. "Alexander the Great").
 | Column | Type | Notes |
 |--------|------|-------|
 | `chronicle_id` | UUID PK | |
-| `title` | text | Human-readable title |
-| `slug` | text | URL-safe, unique |
+| `title` | text | Human-readable title. Auto-generated from first event label if not provided; CLI `--title` overrides. |
+| `slug` | text | URL-safe, unique. Generated from title via `Str::slug` + numeric suffix on collision (e.g. `alexander-the-great-2`). |
 | `source_type` | enum | `video_transcript`, `article`, `book_excerpt`, `manual` |
-| `source_reference` | text | File path, URL, YouTube ID, etc. |
+| `source_reference` | text | File path, URL, YouTube ID, etc. Not unique — multiple chronicles may reference the same source. |
 | `status` | enum | `draft`, `published`, `archived` |
-| `metadata` | jsonb | Duration, word count, language, etc. |
+| `metadata` | jsonb | Duration, word count, language, orphan_entry_count, etc. |
 | `created_by` | text | `agent_pipeline` or user ID |
 | `timestamps` | | `created_at`, `updated_at` |
 
@@ -139,6 +139,7 @@ For each ParsedEvent:
   5. Assign sequence_order by event temporal_start
   ↓
 Write Chronicle + ChronicleEntry[] to DB
+  (Duplicate chronicles allowed — `source_reference` is not unique)
   ↓
 API serves chronicle with resolved relationships + entities
 ```
@@ -309,8 +310,14 @@ When ready to add curation:
 
 ---
 
-## 10. Open Questions
+## 10. Resolved Decisions
 
-1. **Chronicle title generation:** Auto-generate from the first event label, or require user input at CLI time?
-2. **Event-to-relationship matching heuristic:** What if multiple relationships match an event? (proposal: pick highest-confidence `participated_in` or `fought_at` type; fallback to first committed)
-3. **Orphan entries:** If an event has no resolvable relationship and no temporal entities, should it be skipped or created with `null` timestamp?
+1. **Chronicle title generation:** Auto-generate from the first event label by default. CLI `--title` overrides. If first event has no label, use the source filename.
+2. **Event-to-relationship matching heuristic:**
+   - Prefer relationships with types in this order: `participated_in`, `fought_at`, `caused`, `resulted_from`, `rules`, `governed_by`, `allied_with`, `at_war_with`
+   - Tie-breaker: highest `confidence` value on the relationship
+   - Second tie-breaker: relationship with the most participant entities
+   - Fallback: temporal-nearest relationship (smallest year distance to event date)
+   - If still tied, pick the first committed relationship in the batch
+3. **Orphan entries:** Create with `null` timestamp. Increment `metadata.orphan_entry_count` on the Chronicle. Do not skip — the narrative may still be valuable even if temporal anchors are missing.
+4. **Duplicate chronicles:** `source_reference` is **not unique**. Re-running the same transcript creates a new Chronicle. Future: add deduplication by hash of normalized transcript content.
