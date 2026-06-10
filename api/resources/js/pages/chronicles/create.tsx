@@ -1,4 +1,5 @@
 import { Head, router } from '@inertiajs/react';
+import { Plus, Trash2, GripVertical } from 'lucide-react';
 import { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { BreadcrumbItem, ChronicleFormData } from '@/types';
+import type { BreadcrumbItem, ChronicleEntryFormData, ChronicleFormData } from '@/types';
 import { store } from '@/routes/chronicles';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -23,6 +24,7 @@ export default function ChronicleCreate() {
         source_reference: '',
         status: 'draft',
         metadata: '{}',
+        entries: [],
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [processing, setProcessing] = useState(false);
@@ -38,6 +40,39 @@ export default function ChronicleCreate() {
                 .slice(0, 80);
             setData((prev) => ({ ...prev, slug }));
         }
+    }
+
+    function handleEntryChange(index: number, field: keyof ChronicleEntryFormData, value: string | string[]) {
+        setData((prev) => ({
+            ...prev,
+            entries: prev.entries?.map((entry, i) =>
+                i === index ? { ...entry, [field]: value } : entry,
+            ) ?? [],
+        }));
+    }
+
+    function addEntry() {
+        setData((prev) => ({
+            ...prev,
+            entries: [
+                ...(prev.entries ?? []),
+                {
+                    sequence_order: prev.entries?.length ?? 0,
+                    narrative_text: '',
+                    notes: '',
+                    source_evidence: '',
+                    primary_relationship_id: null,
+                    secondary_entity_ids: [],
+                },
+            ],
+        }));
+    }
+
+    function removeEntry(index: number) {
+        setData((prev) => ({
+            ...prev,
+            entries: prev.entries?.filter((_, i) => i !== index) ?? [],
+        }));
     }
 
     function handleSubmit(e: React.FormEvent) {
@@ -156,6 +191,83 @@ export default function ChronicleCreate() {
                         />
                         {errors.metadata && (
                             <p className="text-sm text-destructive">{errors.metadata}</p>
+                        )}
+                    </div>
+
+                    {/* Entries Management */}
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-lg font-semibold">Entries</h3>
+                            <Button type="button" variant="outline" size="sm" onClick={addEntry}>
+                                <Plus className="mr-1.5 size-4" />
+                                Add Entry
+                            </Button>
+                        </div>
+
+                        {!data.entries || data.entries.length === 0 ? (
+                            <div className="rounded-lg border p-4 text-center text-sm text-muted-foreground">
+                                No entries yet. Click "Add Entry" to create one.
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {data.entries.map((entry, index) => (
+                                    <div key={index} className="rounded-lg border p-4">
+                                        <div className="mb-3 flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <GripVertical className="size-4 text-muted-foreground" />
+                                                <span className="text-sm font-medium">
+                                                    Entry #{index + 1}
+                                                </span>
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => removeEntry(index)}
+                                            >
+                                                <Trash2 className="size-4" />
+                                            </Button>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <div className="space-y-1">
+                                                <Label>Narrative Text *</Label>
+                                                <Textarea
+                                                    value={entry.narrative_text}
+                                                    onChange={(e) =>
+                                                        handleEntryChange(index, 'narrative_text', e.target.value)
+                                                    }
+                                                    placeholder="Describe the historical event..."
+                                                    rows={3}
+                                                />
+                                            </div>
+
+                                            <div className="space-y-1">
+                                                <Label>Notes</Label>
+                                                <Textarea
+                                                    value={entry.notes ?? ''}
+                                                    onChange={(e) =>
+                                                        handleEntryChange(index, 'notes', e.target.value)
+                                                    }
+                                                    placeholder="Additional context or analysis..."
+                                                    rows={2}
+                                                />
+                                            </div>
+
+                                            <div className="space-y-1">
+                                                <Label>Source Evidence</Label>
+                                                <Input
+                                                    value={entry.source_evidence ?? ''}
+                                                    onChange={(e) =>
+                                                        handleEntryChange(index, 'source_evidence', e.target.value)
+                                                    }
+                                                    placeholder="e.g. Appian 2.41 or medieval chronicle"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         )}
                     </div>
 
