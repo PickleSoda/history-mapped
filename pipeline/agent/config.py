@@ -10,6 +10,7 @@ class AgentConfig:
     extract_model: str = "gpt-4o-mini"
     generate_model: str = "gpt-4o"
     openai_api_key: str | None = None
+    llm_base_url: str | None = None
     auto_commit_threshold: float = 0.95
     output_dir: str = "output/agent_runs"
     ohm_index_path: str = "output/ohm_collections/global/index.db"
@@ -17,6 +18,8 @@ class AgentConfig:
     def __post_init__(self):
         if self.openai_api_key is None:
             self.openai_api_key = os.getenv("OPENAI_API_KEY")
+        if self.llm_base_url is None:
+            self.llm_base_url = os.getenv("LLM_BASE_URL")
 
 
 ENTITY_RISK_POLICIES: dict[str, dict] = {

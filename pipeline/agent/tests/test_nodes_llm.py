@@ -26,7 +26,7 @@ def make_base_state() -> AgentRunState:
     }
 
 
-@patch("pipeline.agent.graph.nodes.parse_sequence.ChatOpenAI")
+@patch("pipeline.agent.llm.ChatOpenAI")
 def test_parse_sequence_returns_events(mock_chat):
     mock_llm = MagicMock()
     mock_llm.invoke.return_value = MagicMock(
@@ -53,7 +53,7 @@ def test_parse_sequence_returns_events(mock_chat):
     assert len(new_state["audit_log"]) == 1
 
 
-@patch("pipeline.agent.graph.nodes.extract_candidates.ChatOpenAI")
+@patch("pipeline.agent.llm.ChatOpenAI")
 def test_extract_candidates(mock_chat):
     mock_llm = MagicMock()
     with open("pipeline/agent/tests/fixtures/llm_responses/extract_candidates.json") as f:
@@ -73,7 +73,7 @@ def test_extract_candidates(mock_chat):
     assert len(new_state["candidate_relations"]) == 2
 
 
-@patch("pipeline.agent.graph.nodes.generate_content.ChatOpenAI")
+@patch("pipeline.agent.llm.ChatOpenAI")
 def test_generate_content(mock_chat):
     mock_llm = MagicMock()
     with open("pipeline/agent/tests/fixtures/llm_responses/generate_content.json") as f:

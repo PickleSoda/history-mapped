@@ -10,16 +10,14 @@ def test_build_workflow_compiles():
     assert workflow is not None
 
 
-@patch("pipeline.agent.graph.nodes.parse_sequence.ChatOpenAI")
-@patch("pipeline.agent.graph.nodes.extract_candidates.ChatOpenAI")
-@patch("pipeline.agent.graph.nodes.generate_content.ChatOpenAI")
+@patch("pipeline.agent.llm.ChatOpenAI")
 @patch("pipeline.agent.graph.nodes.db_lookup.search_entity_by_name")
 @patch("pipeline.agent.graph.nodes.resolve_wikidata.search_wikidata_by_name")
 @patch("pipeline.agent.graph.nodes.resolve_wikidata.enrich_wikidata_entities")
 @patch("pipeline.agent.graph.nodes.resolve_ohm.search_ohm_by_wikidata_id")
 @patch("pipeline.agent.graph.nodes.resolve_ohm.search_ohm_by_name")
 @patch("pipeline.agent.graph.nodes.commit_writer.run_artisan_command")
-def test_run_agent_end_to_end(mock_run, mock_ohm_name, mock_ohm, mock_enrich, mock_wd, mock_db, mock_gen, mock_ext, mock_parse):
+def test_run_agent_end_to_end(mock_run, mock_ohm_name, mock_ohm, mock_enrich, mock_wd, mock_db, mock_chat):
     """End-to-end test with all external dependencies mocked."""
     mock_llm = MagicMock()
 
@@ -43,9 +41,7 @@ def test_run_agent_end_to_end(mock_run, mock_ohm_name, mock_ohm, mock_enrich, mo
             }))
 
     mock_llm.invoke.side_effect = side_effect
-    mock_parse.return_value = mock_llm
-    mock_ext.return_value = mock_llm
-    mock_gen.return_value = mock_llm
+    mock_chat.return_value = mock_llm
 
     mock_db.return_value = []
     mock_wd.return_value = [{"qid": "Q405", "label": "David IV of Georgia", "description": "King of Georgia"}]

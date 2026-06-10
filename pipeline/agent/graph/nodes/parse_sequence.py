@@ -4,9 +4,9 @@ import json
 from datetime import datetime, timezone
 
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_openai import ChatOpenAI
 
 from pipeline.agent.config import AgentConfig
+from pipeline.agent.llm import create_llm
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.entities import ParsedEvent
 from pipeline.agent.schemas.validation import AuditEvent, PipelineError
@@ -28,7 +28,7 @@ Output strictly as JSON matching this schema:
 
 def parse_sequence(state: AgentRunState) -> AgentRunState:
     cfg = AgentConfig()
-    llm = ChatOpenAI(model=cfg.parse_model, api_key=cfg.openai_api_key)
+    llm = create_llm(cfg.parse_model, cfg.openai_api_key, cfg.llm_base_url)
     messages = [SystemMessage(content=_PROMPT), HumanMessage(content=state["raw_input"])]
     response = llm.invoke(messages)
     content = response.content if hasattr(response, "content") else str(response)
