@@ -48,3 +48,20 @@ def test_wikidata_enrich(mock_query):
     results = enrich_wikidata_entities(["Q405"])
     assert "Q405" in results
     assert results["Q405"]["label"] == "David IV"
+
+
+from pipeline.agent.tools.wikipedia import fetch_wikipedia_summary
+
+
+@patch("pipeline.agent.tools.wikipedia.requests.get")
+def test_wikipedia_fetch(mock_get):
+    mock_get.return_value = MagicMock(
+        json=lambda: {
+            "query": {"pages": {"1": {"extract": "David IV was a king.", "title": "David IV of Georgia"}}}
+        },
+        raise_for_status=lambda: None,
+    )
+    result = fetch_wikipedia_summary("David IV of Georgia")
+    assert result is not None
+    assert "king" in result.get("extract", "").lower()
+    assert result["url"] == "https://en.wikipedia.org/wiki/David_IV_of_Georgia"
