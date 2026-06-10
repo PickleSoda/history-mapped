@@ -59,6 +59,16 @@ class ChronicleController extends Controller
                 'search' => $filters['search'] ?? '',
                 'status' => $filters['status'] ?? '',
             ],
+            'filterOptions' => [
+                'statuses' => array_map(
+                    fn (ChronicleStatus $s) => ['value' => $s->value, 'label' => ucfirst($s->value)],
+                    ChronicleStatus::cases(),
+                ),
+                'sourceTypes' => array_map(
+                    fn (SourceType $s) => ['value' => $s->value, 'label' => str_replace('_', ' ', ucfirst($s->value))],
+                    SourceType::cases(),
+                ),
+            ],
         ]);
     }
 
