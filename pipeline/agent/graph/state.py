@@ -22,3 +22,5 @@ class AgentRunState(TypedDict):
     audit_log: list[AuditEvent]
     errors: list[PipelineError]
     chronicle: Chronicle | None
+    title: str | None
+    create_chronicle: bool
