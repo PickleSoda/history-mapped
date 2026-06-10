@@ -5,17 +5,30 @@ Supports any OpenAI-compatible API endpoint, including:
 - OpenRouter
 - Local models (Ollama, vLLM, LM Studio, etc.)
 
+Also supports model-level fallback chains so a primary model can degrade to
+alternates on rate-limit or availability errors.
+
 Usage:
-    from pipeline.agent.llm import create_llm
+    from pipeline.agent.llm import create_llm, create_llm_with_fallbacks
     from pipeline.agent.config import AgentConfig
 
     cfg = AgentConfig()
     llm = create_llm(cfg.parse_model, cfg.openai_api_key, cfg.llm_base_url)
+    # or with automatic fallback chain
+    llm = create_llm_with_fallbacks("parse_model", cfg)
 """
 
 from __future__ import annotations
 
+import logging
+from typing import Any
+
+from langchain_core.messages import BaseMessage
 from langchain_openai import ChatOpenAI
+
+from pipeline.agent.config import AgentConfig
+
+logger = logging.getLogger(__name__)
 
 
 def create_llm(
@@ -51,3 +64,91 @@ def create_llm(
         kwargs["base_url"] = base_url
 
     return ChatOpenAI(**kwargs)
+
+
+class FallbackLLM:
+    """Wrapper that tries a primary LLM and falls back through a chain of alternatives.
+
+    Retries on transient errors (rate limits, timeouts, 5xx).
+    Falls back to the next model in the chain on persistent failures.
+    """
+
+    def __init__(
+        self,
+        primary_model: str,
+        fallback_models: list[str],
+        api_key: str | None,
+        base_url: str | None = None,
+        temperature: float = 0.0,
+        max_retries_per_model: int = 2,
+    ):
+        self._primary_model = primary_model
+        self._fallback_models = fallback_models
+        self._api_key = api_key
+        self._base_url = base_url
+        self._temperature = temperature
+        self._max_retries = max_retries_per_model
+        self._primary_llm = self._create_llm(primary_model)
+
+    def _create_llm(self, model: str) -> ChatOpenAI:
+        return create_llm(
+            model=model,
+            api_key=self._api_key,
+            base_url=self._base_url,
+            temperature=self._temperature,
+        )
+
+    def invoke(self, messages: list[Any], **kwargs: Any) -> BaseMessage:
+        """Invoke the LLM, falling back through the chain on failure."""
+        models = [self._primary_model, *self._fallback_models]
+        last_error: Exception | None = None
+
+        for model in models:
+            llm = self._create_llm(model) if model != self._primary_model else self._primary_llm
+            for attempt in range(1, self._max_retries + 1):
+                try:
+                    result = llm.invoke(messages, **kwargs)
+                    if model != self._primary_model:
+                        logger.info("Fallback succeeded: model=%s", model)
+                    return result
+                except Exception as exc:
+                    last_error = exc
+                    logger.warning(
+                        "LLM attempt %d/%d failed for model=%s: %s",
+                        attempt,
+                        self._max_retries,
+                        model,
+                        exc,
+                    )
+
+        raise last_error or RuntimeError("All LLM models exhausted")
+
+
+def create_llm_with_fallbacks(
+    model_key: str,
+    cfg: AgentConfig,
+    temperature: float = 0.0,
+) -> FallbackLLM:
+    """Create a FallbackLLM for the given model key.
+
+    Reads the primary model and fallback chain from config.
+
+    Parameters
+    ----------
+    model_key: One of "parse_model", "extract_model", "generate_model".
+    cfg: AgentConfig instance.
+    temperature: Sampling temperature.
+
+    Returns
+    -------
+    FallbackLLM configured with primary + fallback chain.
+    """
+    primary = getattr(cfg, model_key)
+    fallbacks = cfg.model_fallbacks.get(model_key, []) if cfg.model_fallbacks else []
+    return FallbackLLM(
+        primary_model=primary,
+        fallback_models=fallbacks,
+        api_key=cfg.openai_api_key,
+        base_url=cfg.llm_base_url,
+        temperature=temperature,
+    )

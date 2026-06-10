@@ -4,6 +4,25 @@ import os
 from dataclasses import dataclass
 
 
+MODEL_FALLBACKS: dict[str, list[str]] = {
+    "parse_model": [
+        "openai/gpt-oss-20b:free",
+        "google/gemma-4-26b-a4b-it:free",
+        "deepseek/deepseek-v3.1-terminus",
+    ],
+    "extract_model": [
+        "google/gemma-4-31b-it:free",
+        "openai/gpt-oss-120b:free",
+        "deepseek/deepseek-v3.1-terminus",
+    ],
+    "generate_model": [
+        "deepseek/deepseek-v3.1-terminus",
+        "google/gemini-2.5-flash",
+        "x-ai/grok-4.20",
+    ],
+}
+
+
 @dataclass
 class AgentConfig:
     parse_model: str = "gpt-4o-mini"
@@ -11,6 +30,7 @@ class AgentConfig:
     generate_model: str = "gpt-4o"
     openai_api_key: str | None = None
     llm_base_url: str | None = None
+    model_fallbacks: dict[str, list[str]] | None = None
     auto_commit_threshold: float = 0.95
     output_dir: str = "output/agent_runs"
     ohm_index_path: str = "output/ohm_collections/global/index.db"
@@ -20,6 +40,8 @@ class AgentConfig:
             self.openai_api_key = os.getenv("OPENAI_API_KEY")
         if self.llm_base_url is None:
             self.llm_base_url = os.getenv("LLM_BASE_URL")
+        if self.model_fallbacks is None:
+            self.model_fallbacks = MODEL_FALLBACKS
 
 
 ENTITY_RISK_POLICIES: dict[str, dict] = {
