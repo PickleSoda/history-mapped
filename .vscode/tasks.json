@@ -831,6 +831,17 @@
 			"type": "shell",
 			"command": "git diff --stat -- pipeline/ohm_collections/__main__.py pipeline/ohm_collections/entity_enricher.py pipeline/ohm_borders/enricher.py pipeline/tests/test_ohm_collections_cli.py pipeline/tests/test_ohm_collections_entity_enricher.py pipeline/tests/test_ohm_borders_enricher.py",
 			"group": "build"
+		},
+		{
+			"label": "Verify chronicle_entry_entities columns",
+			"type": "shell",
+			"command": "docker compose -f docker/docker-compose.yml exec app php artisan migrate:status | Select-String \"chronicle_entry_entities\""
+		},
+		{
+			"label": "Run chronicle_writer tests",
+			"type": "shell",
+			"command": "& c:\\Users\\Achi\\Code\\FL\\WG\\pipeline\\.venv\\Scripts\\python.exe -m pytest pipeline/agent/tests/test_chronicle_writer.py -v",
+			"args": []
 		}
 	]
 }
