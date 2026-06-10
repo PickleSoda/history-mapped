@@ -60,6 +60,13 @@ Route::prefix('v1')->group(function () {
     Route::get('/sources/{source}', [SourceController::class, 'show'])
         ->name('api.v1.sources.show');
 
+    // Chronicles
+    Route::get('/chronicles', [\App\Http\Controllers\Api\V1\ChronicleController::class, 'index'])
+        ->name('api.v1.chronicles.index');
+
+    Route::get('/chronicles/{slug}', [\App\Http\Controllers\Api\V1\ChronicleController::class, 'show'])
+        ->name('api.v1.chronicles.show');
+
     // Reference Tables (cached)
     Route::get('/reference', [ReferenceController::class, 'index'])
         ->name('api.v1.reference.index');
