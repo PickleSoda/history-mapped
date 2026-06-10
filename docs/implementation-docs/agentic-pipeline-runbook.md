@@ -113,12 +113,12 @@ Deterministic wrappers around existing pipeline modules:
 
 | # | Node | Type | Description |
 |---|------|------|-------------|
-| 1 | `parse_sequence` | LLM (`gpt-4o-mini`) | Converts raw text into `ParsedEvent[]` with labels, dates, and mentioned entities |
-| 2 | `extract_candidates` | LLM (`gpt-4o-mini`) | Extracts `CandidateEntity[]` and `CandidateRelation[]` from parsed events |
+| 1 | `parse_sequence` | LLM (via `create_llm()`) | Converts raw text into `ParsedEvent[]` with labels, dates, and mentioned entities |
+| 2 | `extract_candidates` | LLM (via `create_llm()`) | Extracts `CandidateEntity[]` and `CandidateRelation[]` from parsed events |
 | 3 | `db_lookup` | Deterministic | Queries PostgreSQL for existing entities by name, alias, or Wikidata ID |
 | 4 | `resolve_wikidata` | Deterministic | Searches Wikidata via SPARQL and enriches candidates with QIDs, dates, coordinates |
 | 5 | `resolve_ohm` | Deterministic | Searches the OHM SQLite index by QID or name; resolves best-point geometry |
-| 6 | `generate_content` | LLM (`gpt-4o`) | Writes 1–2 sentence summaries and directional relation descriptions from `style_guide.md` |
+| 6 | `generate_content` | LLM (via `create_llm()`) | Writes 1–2 sentence summaries and directional relation descriptions from `style_guide.md` |
 | 7 | `validate` | Deterministic | Checks entity/relation types against allow-lists, applies confidence penalties for missing geometry or Wikidata |
 | 8 | `build_diff` | Deterministic | Sorts validated candidates into `create_entities`, `create_relations`, `review_items`, `blocked_items` |
 | 9 | `approval_gate` | Deterministic | Auto-commits items above risk-level-specific thresholds; flags everything else for review |
@@ -181,10 +181,51 @@ Configured in `pipeline/agent/config.py`.
 Add to `pipeline/.env`:
 
 ```dotenv
+# OpenAI (default)
 OPENAI_API_KEY=sk-...
+
+# Or OpenRouter / any OpenAI-compatible provider
+LLM_BASE_URL=https://openrouter.ai/api/v1
+OPENAI_API_KEY=sk-or-v1-...
 ```
 
-The agent reads `OPENAI_API_KEY` from the environment. Model names and thresholds are configured in `pipeline/agent/config.py` and can be overridden there.
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `OPENAI_API_KEY` | Yes | — | API key for the LLM provider |
+| `LLM_BASE_URL` | No | OpenAI default | Custom base URL for OpenAI-compatible endpoints |
+
+### Provider examples
+
+**OpenRouter** — access 100+ models through a single endpoint:
+```dotenv
+LLM_BASE_URL=https://openrouter.ai/api/v1
+OPENAI_API_KEY=sk-or-v1-...
+```
+Then override model names in `pipeline/agent/config.py`:
+```python
+parse_model: str = "anthropic/claude-3.5-sonnet"
+extract_model: str = "anthropic/claude-3.5-sonnet"
+generate_model: str = "anthropic/claude-3-opus"
+```
+
+**Ollama (local)**:
+```dotenv
+LLM_BASE_URL=http://localhost:11434/v1
+OPENAI_API_KEY=ollama  # Ollama ignores this, but LangChain requires a non-empty string
+```
+```python
+parse_model: str = "llama3.1"
+extract_model: str = "llama3.1"
+generate_model: str = "llama3.1"
+```
+
+**vLLM / LM Studio / other local servers**:
+```dotenv
+LLM_BASE_URL=http://localhost:8000/v1
+OPENAI_API_KEY=not-needed
+```
+
+The LLM layer is provider-agnostic via `pipeline/agent/llm.py:create_llm()`, which wraps `langchain_openai.ChatOpenAI` with configurable `base_url`, `model`, and `api_key`.
 
 ---
 
@@ -212,6 +253,7 @@ pipeline/agent/
 ├── __init__.py
 ├── __main__.py              # CLI: py -m pipeline agent --input …
 ├── config.py                # AgentConfig + risk policies
+├── llm.py                   # Provider-agnostic LLM factory (OpenAI, OpenRouter, Ollama, etc.)
 ├── style_guide.md           # Content generation prose rules
 ├── graph/
 │   ├── __init__.py
