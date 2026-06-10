@@ -13,6 +13,8 @@ from pipeline.agent.graph.nodes.validate import validate
 from pipeline.agent.graph.nodes.build_diff import build_diff
 from pipeline.agent.graph.nodes.approval_gate import approval_gate
 from pipeline.agent.graph.nodes.commit_writer import commit_writer
+from pipeline.agent.graph.nodes.chronicle_builder import chronicle_builder
+from pipeline.agent.graph.nodes.chronicle_writer import chronicle_writer
 from pipeline.agent.graph.nodes.audit_logger import audit_logger
 
 
@@ -31,6 +33,8 @@ def build_workflow() -> StateGraph:
     workflow.add_node("build_diff", build_diff)
     workflow.add_node("approval_gate", approval_gate)
     workflow.add_node("commit_writer", commit_writer)
+    workflow.add_node("chronicle_builder", chronicle_builder)
+    workflow.add_node("chronicle_writer", chronicle_writer)
     workflow.add_node("audit_logger", audit_logger)
 
     # Define edges
@@ -44,7 +48,9 @@ def build_workflow() -> StateGraph:
     workflow.add_edge("validate", "build_diff")
     workflow.add_edge("build_diff", "approval_gate")
     workflow.add_edge("approval_gate", "commit_writer")
-    workflow.add_edge("commit_writer", "audit_logger")
+    workflow.add_edge("commit_writer", "chronicle_builder")
+    workflow.add_edge("chronicle_builder", "chronicle_writer")
+    workflow.add_edge("chronicle_writer", "audit_logger")
     workflow.add_edge("audit_logger", END)
 
     return workflow.compile()
@@ -66,6 +72,7 @@ def run_agent(raw_input: str, run_id: str) -> AgentRunState:
         "validation_results": [],
         "proposed_diff": None,
         "committed": [],
+        "chronicle": None,
         "audit_log": [],
         "errors": [],
     }
