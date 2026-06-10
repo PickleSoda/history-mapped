@@ -26,6 +26,8 @@ cp pipeline/.env.example pipeline/.env
 
 **Phase 1 — Python pipeline → JSONL and OHM artifacts.** The pipeline scrapes Wikidata/Wikipedia, builds topic files, and runs staged OHM borders processing. With the default `pipeline/.env`, artifacts are written to the repository-level `output/` directory when commands are run from the repo root.
 
+**Phase 1.5 — Agentic enrichment → structured proposals.** The `pipeline agent` command accepts raw historical text (transcripts, articles, book excerpts) and runs an 11-node LangGraph workflow that parses events, extracts entities and relations, resolves them against Wikidata and OpenHistoricalMap, generates flowing summaries, validates proposals against risk policies, and writes importer-ready JSONL artifacts. High-confidence items are auto-committed; the rest are flagged for review.
+
 **Phase 2 — Laravel import → PostgreSQL.** Artisan commands read the generated files and create entities, stage relationship hints, resolve relationships, and generate embeddings.
 
 ## Typical Commands
@@ -61,6 +63,26 @@ py -m pipeline collections egypt-relations-run --run-id egypt-historical-collect
 ```
 
 See [../docs/implementation-docs/ohm-egypt-collection-runbook.md](../docs/implementation-docs/ohm-egypt-collection-runbook.md) for the streaming XML index workflow, point precedence rules, and Laravel import steps.
+
+### Agentic enrichment (historical text → entities)
+
+Turn raw historical text into structured, validated entity and relation proposals:
+
+```powershell
+py -m pipeline agent --input transcript.txt --run-id demo_001
+```
+
+The agent writes artifacts to `output/agent_runs/<run_id>/`:
+
+- `entities_to_create.jsonl` — importer-ready entity records
+- `relations_to_create.jsonl` — importer-ready relation records  
+- `manifest.json` — full audit trail with decisions and confidence scores
+
+Options:
+- `--input PATH` — path to raw historical text (required)
+- `--run-id TEXT` — deterministic ID for the artifact directory
+
+The pipeline uses an 11-node LangGraph workflow (LLM parsing, Wikidata/OHM resolution, policy-based validation, risk-aware approval) and invokes existing Laravel artisan commands for the final import. See the [agentic pipeline runbook](../docs/implementation-docs/agentic-pipeline-runbook.md) for full usage, architecture, and testing.
 
 ### Egypt Wikidata fallback
 
@@ -121,14 +143,32 @@ pipeline/
 │   ├── queries/
 │   ├── resolver/
 │   └── scraper/
-└── ohm_borders/          # staged OHM borders and relations pipeline
-    ├── README.md
-    ├── artifacts.py
-    ├── enricher.py
-    ├── fetcher.py
-    ├── index_builder.py
-    ├── stage_*.py
-    └── subgraph_extractor.py
+├── ohm_borders/          # staged OHM borders and relations pipeline
+│   ├── README.md
+│   ├── artifacts.py
+│   ├── enricher.py
+│   ├── fetcher.py
+│   ├── index_builder.py
+│   ├── stage_*.py
+│   └── subgraph_extractor.py
+├── ohm_collections/      # OHM XML index + historical collections
+│   ├── __main__.py
+│   ├── xml_lookup.py
+│   ├── point_resolver.py
+│   └── entity_enricher.py
+└── agent/                # LangGraph agentic enrichment pipeline
+    ├── __main__.py       # CLI: py -m pipeline agent --input …
+    ├── config.py         # AgentConfig + risk policies
+    ├── style_guide.md    # Content generation prose rules
+    ├── graph/
+    │   ├── state.py      # AgentRunState TypedDict
+    │   ├── workflow.py   # StateGraph builder
+    │   └── nodes/        # 12 LangGraph nodes
+    ├── tools/            # DB, Wikidata, Wikipedia, OHM, artisan wrappers
+    ├── schemas/          # Pydantic models
+    ├── deepagents/       # Post-MVP research agent stubs
+    └── tests/            # 31 tests across schemas, nodes, tools, graph
 ```
 
-See [../docs/implementation-docs/data_pipeline_architecture.md](../docs/implementation-docs/data_pipeline_architecture.md) for the current end-to-end pipeline architecture.
+See [../docs/implementation-docs/data_pipeline_architecture.md](../docs/implementation-docs/data_pipeline_architecture.md) for the current end-to-end pipeline architecture.  
+See [../docs/implementation-docs/agentic-pipeline-runbook.md](../docs/implementation-docs/agentic-pipeline-runbook.md) for the agentic pipeline in detail.
