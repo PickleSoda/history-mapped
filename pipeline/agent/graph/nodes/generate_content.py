@@ -5,9 +5,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from langchain_core.messages import HumanMessage
-from langchain_openai import ChatOpenAI
 
 from pipeline.agent.config import AgentConfig
+from pipeline.agent.llm import create_llm
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.validation import AuditEvent, PipelineError
 
@@ -22,7 +22,7 @@ def _load_style_guide() -> str:
 
 def generate_content(state: AgentRunState) -> AgentRunState:
     cfg = AgentConfig()
-    llm = ChatOpenAI(model=cfg.generate_model, api_key=cfg.openai_api_key)
+    llm = create_llm(cfg.generate_model, cfg.openai_api_key, cfg.llm_base_url)
     style_guide = _load_style_guide()
     entities_context = json.dumps(
         [
