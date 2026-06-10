@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from pipeline.agent.config import AgentConfig
-from pipeline.agent.llm import create_llm
+from pipeline.agent.llm import create_llm_with_fallbacks
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.entities import CandidateEntity
 from pipeline.agent.schemas.relations import CandidateRelation
@@ -40,7 +40,7 @@ Output strictly as JSON:
 
 def extract_candidates(state: AgentRunState) -> AgentRunState:
     cfg = AgentConfig()
-    llm = create_llm(cfg.extract_model, cfg.openai_api_key, cfg.llm_base_url)
+    llm = create_llm_with_fallbacks("extract_model", cfg)
     events_json = json.dumps([e.model_dump() for e in state["parsed_events"]], default=str)
     messages = [SystemMessage(content=_PROMPT), HumanMessage(content=events_json)]
     response = llm.invoke(messages)
