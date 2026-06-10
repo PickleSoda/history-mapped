@@ -33,6 +33,7 @@ class AgentConfig:
     model_fallbacks: dict[str, list[str]] | None = None
     auto_commit_threshold: float = 0.95
     output_dir: str = "output/agent_runs"
+    chronicle_output_dir: str = "output/agent_runs"
     ohm_index_path: str = "output/ohm_collections/global/index.db"
 
     def __post_init__(self):
