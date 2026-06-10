@@ -3,3 +3,4 @@ export type * from './entity';
 export type * from './navigation';
 export type * from './reference';
 export type * from './ui';
+export type * from './chronicle';
