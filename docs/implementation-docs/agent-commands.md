@@ -111,6 +111,45 @@ py -m pytest pipeline/agent/tests/test_nodes_llm.py -v
 
 ---
 
+## LangGraph Development UI
+
+For local development with visual debugging and hot reloading, use the LangGraph CLI.
+
+### Installation
+
+```powershell
+# Install langgraph-cli with in-memory server support
+py -m pip install "langgraph-cli[inmem]"
+
+# Or with uv (recommended for faster installs)
+uv pip install "langgraph-cli[inmem]"
+```
+
+### Running the Development Server
+
+```powershell
+# Start the local LangGraph server (hot reloading enabled)
+langgraph dev
+```
+
+The server runs on `http://localhost:2024` with no Docker required.
+
+### Opening Studio
+
+Navigate to LangSmith Studio with your local server as the backend:
+
+```
+https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024
+```
+
+**Features:**
+- Visual workflow graph with node execution tracing
+- Real-time state inspection during runs
+- Hot reloading when code changes
+- Local state storage (no external dependencies)
+
+---
+
 ## Workflow Overview
 
 ```text
@@ -119,6 +158,7 @@ Raw historical text
 ┌─────────────────────────────────────────────────────────────┐
 │  LangGraph Orchestrator  (pipeline/agent/graph/)            │
 │  ─────────────────────                                     │
+│  preprocess_transcript → LLM: clean transcripts, fix OCR     │
 │  parse_sequence      → LLM: raw text → structured events    │
 │  extract_candidates  → LLM: events → entities/relations     │
 │  db_lookup           → Check existing PostgreSQL entities   │

@@ -32,6 +32,9 @@ def parse_sequence(state: AgentRunState) -> AgentRunState:
     messages = [SystemMessage(content=_PROMPT), HumanMessage(content=state["raw_input"])]
     response = llm.invoke(messages)
     content = response.content if hasattr(response, "content") else str(response)
+    # Strip markdown code fences if present
+    if content.strip().startswith("```json"):
+        content = content.strip().removeprefix("```json").removesuffix("```").strip()
     try:
         data = json.loads(content)
         events = [ParsedEvent(**e) for e in data.get("events", [])]

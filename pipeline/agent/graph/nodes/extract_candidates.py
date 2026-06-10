@@ -45,6 +45,9 @@ def extract_candidates(state: AgentRunState) -> AgentRunState:
     messages = [SystemMessage(content=_PROMPT), HumanMessage(content=events_json)]
     response = llm.invoke(messages)
     content = response.content if hasattr(response, "content") else str(response)
+    # Strip markdown code fences if present
+    if content.strip().startswith("```json"):
+        content = content.strip().removeprefix("```json").removesuffix("```").strip()
     try:
         data = json.loads(content)
         entities = [CandidateEntity(**e) for e in data.get("candidate_entities", [])]

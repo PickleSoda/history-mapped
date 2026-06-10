@@ -3,6 +3,7 @@ from __future__ import annotations
 from langgraph.graph import StateGraph, END
 
 from pipeline.agent.graph.state import AgentRunState
+from pipeline.agent.graph.nodes.preprocess_transcript import preprocess_transcript
 from pipeline.agent.graph.nodes.parse_sequence import parse_sequence
 from pipeline.agent.graph.nodes.extract_candidates import extract_candidates
 from pipeline.agent.graph.nodes.db_lookup import db_lookup
@@ -23,6 +24,7 @@ def build_workflow() -> StateGraph:
     workflow = StateGraph(AgentRunState)
 
     # Register all nodes
+    workflow.add_node("preprocess_transcript", preprocess_transcript)
     workflow.add_node("parse_sequence", parse_sequence)
     workflow.add_node("extract_candidates", extract_candidates)
     workflow.add_node("db_lookup", db_lookup)
@@ -38,7 +40,8 @@ def build_workflow() -> StateGraph:
     workflow.add_node("audit_logger", audit_logger)
 
     # Define edges
-    workflow.set_entry_point("parse_sequence")
+    workflow.set_entry_point("preprocess_transcript")
+    workflow.add_edge("preprocess_transcript", "parse_sequence")
     workflow.add_edge("parse_sequence", "extract_candidates")
     workflow.add_edge("extract_candidates", "db_lookup")
     workflow.add_edge("db_lookup", "resolve_wikidata")
@@ -74,6 +77,7 @@ def run_agent(raw_input: str, run_id: str, title: str | None = None, create_chro
     initial_state: AgentRunState = {
         "run_id": run_id,
         "raw_input": raw_input,
+        "date_hints": [],
         "parsed_events": [],
         "candidate_entities": [],
         "candidate_relations": [],

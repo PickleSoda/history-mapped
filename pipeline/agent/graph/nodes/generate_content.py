@@ -53,6 +53,9 @@ def generate_content(state: AgentRunState) -> AgentRunState:
     prompt = f"""You are a historical content writer. Write concise, flowing summaries and descriptions.\n\nStyle Guide:\n{style_guide}\n\nEntities:\n{entities_context}\n\nRelations:\n{relations_context}\n\nOutput strictly as JSON:\n{{"summaries": {{"Entity Label": "Summary text...", ...}}, "relation_descriptions": {{"Source Label|relationship_type|Target Label": "Description text...", ...}}}}\n"""
     response = llm.invoke([HumanMessage(content=prompt)])
     content = response.content if hasattr(response, "content") else str(response)
+    # Strip markdown code fences if present
+    if content.strip().startswith("```json"):
+        content = content.strip().removeprefix("```json").removesuffix("```").strip()
     try:
         data = json.loads(content)
         summaries = data.get("summaries", {})
