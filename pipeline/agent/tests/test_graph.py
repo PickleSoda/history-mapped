@@ -8,6 +8,10 @@ from pipeline.agent.graph.state import AgentRunState
 def test_build_workflow_compiles():
     workflow = build_workflow()
     assert workflow is not None
+    graph = workflow.get_graph()
+    nodes = {n for n in graph.nodes}
+    assert "chronicle_builder" in nodes
+    assert "chronicle_writer" in nodes
 
 
 @patch("pipeline.agent.llm.ChatOpenAI")
