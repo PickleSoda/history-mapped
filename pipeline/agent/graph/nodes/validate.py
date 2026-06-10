@@ -7,15 +7,17 @@ from datetime import datetime, timezone
 
 ALLOWED_ENTITY_TYPES = set(ENTITY_RISK_POLICIES.keys()) | {
     "military_unit", "diplomatic_relationship", "social_class",
-    "extraction_infra", "educational_institution", "event_rebellion",
-    "event_natural_disaster", "event_tech_adoption", "event_legal_reform",
-    "migration", "epidemic_disease", "natural_resource",
-    "intellectual_movement", "religious_text", "legal_code", "technology",
+    "infrastructure_monument", "extraction_infra", "educational_institution",
+    "event_rebellion", "event_natural_disaster", "event_tech_adoption", "event_legal_reform",
+    "migration", "epidemic_disease",
+    "natural_resource", "currency_monetary_system",
+    "intellectual_movement", "religious_text", "legal_code", "religious_movement", "language", "technology",
 }
 
 ALLOWED_RELATION_TYPES = set(RELATION_RISK_POLICIES.keys()) | {
     "contains", "capital_of", "split_from", "merged_into",
-    "resided_in", "founded", "authored", "commissioned",
+    "vassal_of", "suzerain_of",
+    "resided_in", "commanded", "founded", "authored", "commissioned",
     "married_to", "parent_of", "child_of", "sibling_of",
     "mentor_of", "student_of", "assassinated_by", "member_of_dynasty", "patron_of",
     "defeated_at", "victorious_at", "stationed_at", "recruited_from", "commanded_by",
@@ -24,7 +26,9 @@ ALLOWED_RELATION_TYPES = set(RELATION_RISK_POLICIES.keys()) | {
     "adheres_to", "official_religion_of", "persecuted_by",
     "influenced_by", "inspired", "schism_from", "translated_into",
     "located_at", "built_by", "destroyed_by", "restored_by",
-    "contributed_to", "enabled", "prevented",
+    "contributed_to", "enabled", "prevented", "weakened", "strengthened",
+    "invented", "adopted", "taught_at", "spread_to", "required_by", "replaced_by",
+    "signed_by", "violated_by", "guaranteed_by", "mediated_by", "enforced_by",
 }
 
 

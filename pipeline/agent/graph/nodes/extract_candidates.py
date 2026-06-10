@@ -14,9 +14,24 @@ from pipeline.agent.schemas.validation import AuditEvent, PipelineError
 
 _PROMPT = """You are a historical entity extractor. Given a list of events, extract all candidate entities and relations.
 
-Allowed entity types: person, political_entity, dynasty, city, event_battle, event_war, event_treaty, trade_route, cultural_work, archaeological_culture, language, religious_movement, infrastructure_monument, currency_monetary_system, natural_resource.
+Allowed entity types (grouped by domain):
 
-Allowed relation types: participated_in, fought_at, rules, governed_by, part_of, contains, capital_of, born_in, died_in, preceded_by, succeeded_by, caused, resulted_from, at_war_with, allied_with, trades_with.
+POLITY — political_entity, dynasty, person, military_unit, diplomatic_relationship, social_class
+PLACE — city, infrastructure_monument, extraction_infra, educational_institution
+EVENT — event_war, event_battle, event_treaty, event_rebellion, event_natural_disaster, event_tech_adoption, event_legal_reform, migration, epidemic_disease
+ECONOMY — trade_route, natural_resource, currency_monetary_system
+CULTURE — cultural_work, intellectual_movement, archaeological_culture, language, religious_text, legal_code, religious_movement, technology
+
+Allowed relation types (grouped by domain):
+
+Political — rules, governed_by, vassal_of, suzerain_of, allied_with, at_war_with, succeeded_by, preceded_by, part_of, contains, capital_of, split_from, merged_into
+Person — born_in, died_in, resided_in, commanded, founded, authored, commissioned, married_to, parent_of, child_of, sibling_of, mentor_of, student_of, assassinated_by, member_of_dynasty, patron_of
+Military — participated_in, fought_at, defeated_at, victorious_at, stationed_at, recruited_from, commanded_by
+Economic — trades_with, connects, produces, extracts, supplies, controlled_by, passes_through, minted_by, used_currency
+Religious/Cultural — adheres_to, official_religion_of, persecuted_by, influenced_by, inspired, schism_from, translated_into, located_at, built_by, destroyed_by, restored_by
+Causal — caused, resulted_from, contributed_to, enabled, prevented, weakened, strengthened
+Knowledge — invented, adopted, taught_at, spread_to, required_by, replaced_by
+Diplomatic — signed_by, violated_by, guaranteed_by, mediated_by, enforced_by
 
 Output strictly as JSON:
 {"candidate_entities": [{"label": "...", "entity_type": "...", "start_date": "...", "end_date": "...", "source_event": "...", "aliases": []}], "candidate_relations": [{"source_label": "...", "target_label": "...", "relationship_type": "...", "start_date": "...", "end_date": "...", "source_event": "..."}]}
