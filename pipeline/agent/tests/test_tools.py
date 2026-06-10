@@ -65,3 +65,29 @@ def test_wikipedia_fetch(mock_get):
     assert result is not None
     assert "king" in result.get("extract", "").lower()
     assert result["url"] == "https://en.wikipedia.org/wiki/David_IV_of_Georgia"
+
+
+from pipeline.agent.tools.ohm import search_ohm_by_name, search_ohm_by_wikidata_id, resolve_ohm_geometry
+
+
+@patch("pipeline.agent.tools.ohm.find_objects_by_name")
+def test_ohm_search_name(mock_find):
+    mock_find.return_value = [{"object_type": "node", "object_id": 123, "name": "Didgori"}]
+    results = search_ohm_by_name("Didgori", "test.db")
+    assert len(results) == 1
+    assert results[0]["name"] == "Didgori"
+
+
+@patch("pipeline.agent.tools.ohm.find_objects_by_wikidata_id")
+def test_ohm_search_qid(mock_find):
+    mock_find.return_value = [{"object_type": "way", "object_id": 456, "wikidata_id": "Q12345"}]
+    results = search_ohm_by_wikidata_id("Q12345", "test.db")
+    assert len(results) == 1
+
+
+@patch("pipeline.agent.tools.ohm.resolve_best_point")
+def test_ohm_geometry(mock_resolve):
+    mock_resolve.return_value = {"type": "Point", "coordinates": [44.5, 41.7]}
+    geo = resolve_ohm_geometry("test.db", "node", 123)
+    assert geo is not None
+    assert geo["type"] == "Point"
