@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\Reference\ReligiousTraditionController;
 use App\Http\Controllers\Admin\Reference\SourceTypeDefinitionController;
 use App\Http\Controllers\Admin\Reference\WritingSystemController;
 use App\Http\Controllers\Admin\RelationshipController;
+use App\Http\Controllers\Web\ChronicleController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -55,6 +56,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('reference/measurement-units', [MeasurementUnitController::class, 'index'])->name('reference.measurement-units.index');
     Route::get('reference/language-families', [LanguageFamilyController::class, 'index'])->name('reference.language-families.index');
     Route::get('reference/source-type-definitions', [SourceTypeDefinitionController::class, 'index'])->name('reference.source-type-definitions.index');
+
+    // ── Chronicles ─────────────────────────────────────────────
+    Route::get('/chronicles', [ChronicleController::class, 'index'])->name('chronicles.index');
+    Route::get('/chronicles/create', [ChronicleController::class, 'create'])->name('chronicles.create');
+    Route::post('/chronicles', [ChronicleController::class, 'store'])->name('chronicles.store');
+    Route::get('/chronicles/{slug}', [ChronicleController::class, 'show'])->name('chronicles.show');
+    Route::get('/chronicles/{slug}/edit', [ChronicleController::class, 'edit'])->name('chronicles.edit');
+    Route::put('/chronicles/{slug}', [ChronicleController::class, 'update'])->name('chronicles.update');
+    Route::delete('/chronicles/{slug}', [ChronicleController::class, 'destroy'])->name('chronicles.destroy');
 });
 
 require __DIR__.'/settings.php';

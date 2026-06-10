@@ -1,0 +1,72 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Actions\Chronicle;
+
+use App\DTOs\ChronicleData;
+use App\Models\Chronicle;
+use App\Models\ChronicleEntry;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+
+class UpdateChronicleAction
+{
+    public function __invoke(Chronicle $chronicle, ChronicleData $data): Chronicle
+    {
+        return DB::transaction(function () use ($chronicle, $data): Chronicle {
+            $modelData = $data->toModelArray();
+
+            // Remove fields that shouldn't be mass-updated
+            unset($modelData['chronicle_id'], $modelData['created_by']);
+
+            // Auto-regenerate slug from title if title changed and slug not explicitly provided
+            if ($data->slug === null && $chronicle->title !== $data->title) {
+                $modelData['slug'] = Str::slug($data->title);
+            }
+
+            $chronicle->update($modelData);
+
+            // Replace entries: delete existing and recreate
+            if ($data->entries !== null) {
+                ChronicleEntry::where('chronicle_id', $chronicle->chronicle_id)->delete();
+                $this->syncEntries($chronicle, $data->entries);
+            }
+
+            return $chronicle->fresh();
+        });
+    }
+
+    /**
+     * Sync chronicle entries from DTO entries array.
+     *
+     * @param  list<array<string, mixed>>  $entriesData
+     */
+    private function syncEntries(Chronicle $chronicle, array $entriesData): void
+    {
+        foreach ($entriesData as $entryData) {
+            $entryId = (string) Str::uuid();
+
+            $entry = ChronicleEntry::create([
+                'entry_id' => $entryId,
+                'chronicle_id' => $chronicle->chronicle_id,
+                'sequence_order' => $entryData['sequence_order'] ?? 0,
+                'primary_relationship_id' => $entryData['primary_relationship_id'] ?? null,
+                'narrative_text' => $entryData['narrative_text'] ?? null,
+                'notes' => $entryData['notes'] ?? null,
+                'source_evidence' => $entryData['source_evidence'] ?? null,
+            ]);
+
+            if (!empty($entryData['secondary_entity_ids']) && is_array($entryData['secondary_entity_ids'])) {
+                $pivotData = [];
+                foreach ($entryData['secondary_entity_ids'] as $index => $entityId) {
+                    $pivotData[$entityId] = [
+                        'role' => $entryData['secondary_roles'][$index] ?? 'mentioned',
+                        'sequence_in_entry' => $index,
+                    ];
+                }
+                $entry->secondaryEntities()->attach($pivotData);
+            }
+        }
+    }
+}
