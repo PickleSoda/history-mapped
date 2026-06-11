@@ -64,6 +64,16 @@ export type ChronicleFilters = {
     page: number;
 };
 
+export type ChronicleEntryFormData = {
+    entry_id?: string;
+    sequence_order: number;
+    narrative_text: string;
+    notes: string | null;
+    source_evidence: string | null;
+    primary_relationship_id: string | null;
+    secondary_entity_ids: string[];
+};
+
 export type ChronicleFormData = {
     title: string;
     slug: string;
@@ -71,4 +81,5 @@ export type ChronicleFormData = {
     source_reference: string;
     status: string;
     metadata: string;
+    entries: ChronicleEntryFormData[];
 };
