@@ -26,10 +26,11 @@ def _generate_slug(title: str) -> str:
     return slug[:80]
 
 
-def _find_primary_relationship(event, candidate_relations, committed):
+def _find_primary_relationship(event, candidate_relations, committed, relation_id_map):
     """Find the best-matching relationship for an event.
     
     Requires BOTH source and target entities to be mentioned in the event.
+    Uses relation_id_map to return real DB IDs.
     """
     mentioned = set(e.lower() for e in event.mentioned_entities)
     candidates = []
@@ -51,6 +52,12 @@ def _find_primary_relationship(event, candidate_relations, committed):
 
     candidates.sort(key=lambda x: x[0])
     best = candidates[0][1]
+    rel_key = f"{best.source_label}|{best.relationship_type}|{best.target_label}"
+
+    # Use relation_id_map first, then fall back to iterating committed
+    db_id = relation_id_map.get(rel_key)
+    if db_id:
+        return db_id
 
     for commit in committed:
         # Handle both dict and Pydantic model access
@@ -62,14 +69,18 @@ def _find_primary_relationship(event, candidate_relations, committed):
         ):
             return commit_record.get("relationship_id")
 
-    return None
+    # Fallback: return the synthetic key
+    return rel_key
 
 
-def _collect_secondary_entities(event, primary_rel_id, enriched_entities):
-    """Collect entities mentioned in the event but not in the primary relationship."""
+def _collect_secondary_entities(event, primary_rel_id, enriched_entities, entity_id_map):
+    """Collect entities mentioned in the event, resolved to DB IDs."""
     mentioned = set(e.lower() for e in event.mentioned_entities)
     return [
-        ChronicleEntryEntity(entity_id=e.candidate.label, role="participant")
+        ChronicleEntryEntity(
+            entity_id=entity_id_map.get(e.candidate.label, e.candidate.label),
+            role="participant",
+        )
         for e in enriched_entities
         if e.candidate.label.lower() in mentioned
     ]
@@ -101,6 +112,7 @@ def chronicle_builder(state: AgentRunState) -> AgentRunState:
             event,
             state["candidate_relations"],
             state["committed"],
+            state["relation_id_map"],
         )
 
         if primary_rel_id is None:
@@ -110,6 +122,7 @@ def chronicle_builder(state: AgentRunState) -> AgentRunState:
             event,
             primary_rel_id,
             state["enriched_entities"],
+            state["entity_id_map"],
         )
 
         entries.append(

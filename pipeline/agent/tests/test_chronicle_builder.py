@@ -72,3 +72,47 @@ def test_chronicle_builder_no_events():
     new_state = chronicle_builder(state)
     assert new_state["chronicle"] is None
     assert any(a.action == "no_events" for a in new_state["audit_log"])
+
+
+def test_chronicle_builder_uses_entity_id_map():
+    """Secondary entities should use DB IDs from entity_id_map."""
+    state: AgentRunState = {
+        "run_id": "test_3",
+        "raw_input": "David IV defeated Ilghazi at Didgori.",
+        "date_hints": [],
+        "parsed_events": [
+            ParsedEvent(
+                label="Battle of Didgori",
+                description="David IV defeated Ilghazi at Didgori.",
+                start_date="1121-08-12",
+                mentioned_entities=["David IV", "Ilghazi"],
+            )
+        ],
+        "candidate_entities": [
+            CandidateEntity(label="David IV", entity_type="person"),
+            CandidateEntity(label="Ilghazi", entity_type="person"),
+        ],
+        "candidate_relations": [
+            CandidateRelation(
+                source_label="David IV",
+                target_label="Battle of Didgori",
+                relationship_type="participated_in",
+            )
+        ],
+        "enriched_entities": [
+            EnrichedCandidate(candidate=CandidateEntity(label="David IV", entity_type="person")),
+            EnrichedCandidate(candidate=CandidateEntity(label="Ilghazi", entity_type="person")),
+        ],
+        "validation_results": [],
+        "proposed_diff": None,
+        "committed": [],
+        "audit_log": [],
+        "errors": [],
+        "entity_id_map": {"David IV": "ent_david_001", "Ilghazi": "ent_ilghazi_001"},
+        "relation_id_map": {},
+    }
+    result = chronicle_builder(state)
+    entry = result["chronicle"].entries[0]
+    entity_ids = [e.entity_id for e in entry.secondary_entities]
+    assert "ent_david_001" in entity_ids
+    assert "ent_ilghazi_001" in entity_ids
