@@ -56,7 +56,13 @@ def extract_candidates(state: AgentRunState) -> AgentRunState:
     try:
         data = json.loads(content)
         entities = [CandidateEntity(**e) for e in data.get("candidate_entities", [])]
-        relations = [CandidateRelation(**r) for r in data.get("candidate_relations", [])]
+        raw_relations = data.get("candidate_relations", [])
+        relations = []
+        for r in raw_relations:
+            if not r.get("source_label") or not r.get("target_label"):
+                logger.warning("Skipping relation with null source/target: %s", r)
+                continue
+            relations.append(CandidateRelation(**r))
     except (json.JSONDecodeError, TypeError) as exc:
         state["errors"].append(
             PipelineError(
