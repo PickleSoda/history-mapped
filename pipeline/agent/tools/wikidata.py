@@ -65,32 +65,29 @@ def search_wikidata_by_name(name: str, limit: int = 5) -> list[dict[str, Any]]:
 
 
 def enrich_wikidata_entities(qids: list[str]) -> dict[str, dict[str, Any]]:
-    """Fetch Wikidata records via the REST EntityData endpoint (batch).
+    """Fetch Wikidata records via the REST EntityData endpoint.
 
-    Fetches all QIDs in a single request. ~200ms total regardless of QID count.
-    Returns a dict mapping qid → {label, description, coordinates, start_date, end_date}.
+    Fetches each QID individually (~200ms each). Top-priority properties:
+    P571 (inception), P569 (date of birth), P585 (point in time) for start_date,
+    P576 (dissolved), P570 (date of death) for end_date, P625 (coordinate location).
     """
     if not qids:
         return {}
 
-    qid_list = ",".join(qids)
-    url = f"{WIKIDATA_ENTITY_API}/{qid_list}.json"
-    try:
-        t0 = time.time()
-        response = requests.get(
-            url,
-            headers={"User-Agent": settings.wikidata_user_agent},
-            timeout=15,
-        )
-        response.raise_for_status()
-        data = response.json()
-        entities = data.get("entities", {})
-        elapsed = time.time() - t0
+    results: dict[str, dict[str, Any]] = {}
+    for qid in qids:
+        url = f"{WIKIDATA_ENTITY_API}/{qid}.json"
+        try:
+            t0 = time.time()
+            response = requests.get(
+                url,
+                headers={"User-Agent": settings.wikidata_user_agent},
+                timeout=10,
+            )
+            response.raise_for_status()
+            entity = response.json().get("entities", {}).get(qid, {})
+            elapsed = time.time() - t0
 
-        results: dict[str, dict[str, Any]] = {}
-        for qid, entity in entities.items():
-            if qid == '-1':
-                continue
             labels = entity.get("labels", {})
             descriptions = entity.get("descriptions", {})
             claims = entity.get("claims", {})
@@ -107,39 +104,25 @@ def enrich_wikidata_entities(qids: list[str]) -> dict[str, dict[str, Any]]:
                 except (KeyError, IndexError, TypeError):
                     pass
 
-            # Inception date (P571) — for polities, events, organizations
+            # Start date: try P571 (inception) → P569 (birth) → P585 (point in time)
             start_date = None
-            if "P571" in claims:
-                try:
-                    start_date = claims["P571"][0]["mainsnak"]["datavalue"]["value"]["time"]
-                except (KeyError, IndexError, TypeError):
-                    pass
-            # Date of birth (P569) — for persons
-            if not start_date and "P569" in claims:
-                try:
-                    start_date = claims["P569"][0]["mainsnak"]["datavalue"]["value"]["time"]
-                except (KeyError, IndexError, TypeError):
-                    pass
-            # Point in time (P585) — for events
-            if not start_date and "P585" in claims:
-                try:
-                    start_date = claims["P585"][0]["mainsnak"]["datavalue"]["value"]["time"]
-                except (KeyError, IndexError, TypeError):
-                    pass
+            for prop in ("P571", "P569", "P585"):
+                if prop in claims:
+                    try:
+                        start_date = claims[prop][0]["mainsnak"]["datavalue"]["value"]["time"]
+                        break
+                    except (KeyError, IndexError, TypeError):
+                        pass
 
-            # Dissolved date (P576) — for polities, organizations
+            # End date: try P576 (dissolved) → P570 (death)
             end_date = None
-            if "P576" in claims:
-                try:
-                    end_date = claims["P576"][0]["mainsnak"]["datavalue"]["value"]["time"]
-                except (KeyError, IndexError, TypeError):
-                    pass
-            # Date of death (P570) — for persons
-            if not end_date and "P570" in claims:
-                try:
-                    end_date = claims["P570"][0]["mainsnak"]["datavalue"]["value"]["time"]
-                except (KeyError, IndexError, TypeError):
-                    pass
+            for prop in ("P576", "P570"):
+                if prop in claims:
+                    try:
+                        end_date = claims[prop][0]["mainsnak"]["datavalue"]["value"]["time"]
+                        break
+                    except (KeyError, IndexError, TypeError):
+                        pass
 
             results[qid] = {
                 "label": label,
@@ -148,10 +131,10 @@ def enrich_wikidata_entities(qids: list[str]) -> dict[str, dict[str, Any]]:
                 "start_date": start_date,
                 "end_date": end_date,
             }
+            logger.info("Wikidata enrich: %s → %s (%.1fs)", qid, label, elapsed)
 
-        logger.info("Wikidata enrich: %d/%d resolved (%.1fs)", len(results), len(qids), elapsed)
-        return results
+        except RequestException as exc:
+            logger.warning("Wikidata enrich error for %s: %s", qid, exc)
 
-    except RequestException as exc:
-        logger.warning("Wikidata enrich batch error for %s: %s", qid_list, exc)
-        return {}
+    logger.info("Wikidata enrich: %d/%d resolved", len(results), len(qids))
+    return results
