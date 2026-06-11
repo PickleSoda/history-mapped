@@ -6,6 +6,9 @@ from datetime import datetime, timezone
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.chronicle import Chronicle, ChronicleEntry, ChronicleEntryEntity
 from pipeline.agent.schemas.validation import AuditEvent
+from pipeline.agent.logging import get_logger
+
+logger = get_logger(__name__)
 
 _RELATIONSHIP_TYPE_PRIORITY = [
     "participated_in",

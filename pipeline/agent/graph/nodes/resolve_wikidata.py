@@ -5,12 +5,18 @@ from datetime import datetime, timezone
 from requests.exceptions import RequestException
 
 from pipeline.agent.graph.state import AgentRunState
+from pipeline.agent.logging import get_logger
 from pipeline.agent.schemas.validation import AuditEvent, PipelineError
 from pipeline.agent.tools.wikidata import search_wikidata_by_name, enrich_wikidata_entities
 
+logger = get_logger(__name__)
+
 
 def resolve_wikidata(state: AgentRunState) -> AgentRunState:
-    for enriched in state["enriched_entities"]:
+    entity_count = len(state["enriched_entities"])
+    logger.info("Wikidata resolution: %d entities", entity_count)
+    for i, enriched in enumerate(state["enriched_entities"]):
+        logger.info("  [%d/%d] %s (type=%s)", i + 1, entity_count, enriched.candidate.label, enriched.candidate.entity_type)
         try:
             if enriched.candidate.wikidata_id:
                 qid = enriched.candidate.wikidata_id

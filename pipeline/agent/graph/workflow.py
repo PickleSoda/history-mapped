@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from langgraph.graph import StateGraph, END
 
+from pipeline.agent.logging import get_logger
 from pipeline.agent.graph.state import AgentRunState
+
+logger = get_logger(__name__)
 from pipeline.agent.graph.nodes.preprocess_transcript import preprocess_transcript
 from pipeline.agent.graph.nodes.parse_sequence import parse_sequence
 from pipeline.agent.graph.nodes.extract_candidates import extract_candidates
@@ -97,4 +100,7 @@ def run_agent(raw_input: str, run_id: str, title: str | None = None, create_chro
         "relation_id_map": {},
     }
     result = workflow.invoke(initial_state)
+    logger.info("Workflow complete: run_id=%s errors=%d committed=%d chronicle=%s",
+                run_id, len(result.get("errors", [])), len(result.get("committed", [])),
+                result.get("chronicle") is not None)
     return result

@@ -10,7 +10,10 @@ from pipeline.agent.llm import create_llm_with_fallbacks
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.entities import CandidateEntity
 from pipeline.agent.schemas.relations import CandidateRelation
+from pipeline.agent.logging import get_logger
 from pipeline.agent.schemas.validation import AuditEvent, PipelineError
+
+logger = get_logger(__name__)
 
 _PROMPT = """You are a historical entity extractor. Given a list of events, extract all candidate entities and relations.
 
@@ -42,9 +45,11 @@ def extract_candidates(state: AgentRunState) -> AgentRunState:
     cfg = AgentConfig()
     llm = create_llm_with_fallbacks("extract_model", cfg)
     events_json = json.dumps([e.model_dump() for e in state["parsed_events"]], default=str)
+    logger.info("LLM call: extract_candidates (model=%s, events=%d)", cfg.extract_model, len(state["parsed_events"]))
     messages = [SystemMessage(content=_PROMPT), HumanMessage(content=events_json)]
     response = llm.invoke(messages)
     content = response.content if hasattr(response, "content") else str(response)
+    logger.info("LLM response: %d chars", len(content))
     # Strip markdown code fences if present
     if content.strip().startswith("```json"):
         content = content.strip().removeprefix("```json").removesuffix("```").strip()

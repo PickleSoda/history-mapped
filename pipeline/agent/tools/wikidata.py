@@ -6,13 +6,17 @@ from typing import Any
 import requests
 from requests.exceptions import RequestException
 
+from pipeline.agent.logging import get_logger
 from pipeline.config import settings
+
+logger = get_logger(__name__)
 
 
 def _query_sparql(query: str, max_retries: int = 2) -> dict[str, Any]:
     """Run a SPARQL query against Wikidata with retry logic."""
     for attempt in range(max_retries + 1):
         try:
+            t0 = time.time()
             response = requests.get(
                 settings.wikidata_endpoint,
                 params={"query": query, "format": "json"},
@@ -20,12 +24,18 @@ def _query_sparql(query: str, max_retries: int = 2) -> dict[str, Any]:
                 timeout=30,
             )
             response.raise_for_status()
+            elapsed = time.time() - t0
+            logger.info("Wikidata SPARQL OK (%.1fs)", elapsed)
             return response.json()
         except RequestException as exc:
+            elapsed = time.time() - t0 if 't0' in locals() else 0.0
             if attempt < max_retries:
-                time.sleep(2 ** attempt)  # exponential backoff
+                logger.warning("Wikidata SPARQL attempt %d/%d failed (%.1fs): %s — retrying",
+                               attempt + 1, max_retries + 1, elapsed, exc)
+                time.sleep(2 ** attempt)
                 continue
-            # Return empty result to allow pipeline to continue
+            logger.warning("Wikidata SPARQL FAILED after %d attempts (%.1fs): %s",
+                           max_retries + 1, elapsed, exc)
             return {"results": {"bindings": []}}
 
 

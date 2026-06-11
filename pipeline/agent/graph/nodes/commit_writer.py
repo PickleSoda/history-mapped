@@ -7,7 +7,10 @@ from pipeline.agent.config import AgentConfig
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.relations import CommittedChange
 from pipeline.agent.schemas.validation import AuditEvent
+from pipeline.agent.logging import get_logger
 from pipeline.agent.tools.app_api import build_artisan_command, run_artisan_command
+
+logger = get_logger(__name__)
 
 # Maps entity_type → entity_group for Laravel EntityGroup enum
 ENTITY_TYPE_TO_GROUP: dict[str, str] = {
@@ -99,7 +102,10 @@ def commit_writer(state: AgentRunState) -> AgentRunState:
             f.write(json.dumps(record, default=str) + "\n")
     if entity_records:
         cmd = build_artisan_command("pipeline:import", str(entity_path), sync=True, batch_id=state["run_id"])
+        logger.info("Docker import entities (%d records): %s", len(entity_records), " ".join(cmd))
         result = run_artisan_command(cmd)
+        logger.info("Docker import entities result: returncode=%d stdout=%s stderr=%s",
+                    result["returncode"], result["stdout"][:200], result["stderr"][:200])
         state["committed"].append(CommittedChange(
             change_type="entity",
             record={"path": str(entity_path), "count": len(entity_records), "result": result},
@@ -109,7 +115,10 @@ def commit_writer(state: AgentRunState) -> AgentRunState:
     if relation_records:
         rel_dir = output_root
         cmd = build_artisan_command("pipeline:import-borders", str(rel_dir), sync=True, batch_id=state["run_id"])
+        logger.info("Docker import relations (%d records): %s", len(relation_records), " ".join(cmd))
         result = run_artisan_command(cmd)
+        logger.info("Docker import relations result: returncode=%d stdout=%s stderr=%s",
+                    result["returncode"], result["stdout"][:200], result["stderr"][:200])
         # Store each relation with its details for chronicle_builder to find
         for rel in diff.create_relations:
             state["committed"].append(CommittedChange(
