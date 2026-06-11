@@ -35,18 +35,19 @@ def _wikidata_get(params: dict[str, str], timeout: int = 10) -> dict[str, Any] |
         return None
 
 
-def search_wikidata_by_name(name: str, limit: int = 5) -> list[dict[str, Any]]:
+def search_wikidata_by_name(name: str, limit: int = 10) -> list[dict[str, Any]]:
     """Search Wikidata by label via wbsearchentities API.
 
-    Each match contains: qid, label, description.
-    Fast REST endpoint (~200ms), works when SPARQL is blocked.
+    Fetches up to `limit` results. Each match contains:
+    qid, label, description, aliases, match_type (label/alias).
+    Fast REST endpoint (~200ms).
     """
     data = _wikidata_get({
         "action": "wbsearchentities",
         "search": name,
         "language": "en",
         "format": "json",
-        "limit": str(limit),
+        "limit": str(min(limit, 50)),
     })
     if not data:
         return []
@@ -55,13 +56,115 @@ def search_wikidata_by_name(name: str, limit: int = 5) -> list[dict[str, Any]]:
     for item in data.get("search", []):
         qid = item.get("id", "")
         if qid:
+            match_info = item.get("match", {})
             results.append({
                 "qid": qid,
                 "label": item.get("label", ""),
                 "description": item.get("description", ""),
+                "aliases": item.get("aliases", []),
+                "match_type": match_info.get("type", ""),
             })
     logger.info("Wikidata search: '%s' → %d results", name, len(results))
     return results
+
+
+def _rank_candidates(
+    candidates: list[dict[str, Any]],
+    entity_label: str,
+    entity_type: str,
+) -> list[dict[str, Any]]:
+    """Score and rank Wikidata candidates by relevance.
+
+    Scoring factors (max 1.0):
+    - Label exact match (case-insensitive): +0.5
+    - Label starts with entity_label: +0.3
+    - Entity label is substring of label: +0.2
+    - Match type is 'label' (not alias): +0.1
+    - Description contains entity_type keywords: +0.2
+    - Description mentions ancient/historical: +0.1
+    - Penalty for modern places (-0.15) when type is city/place
+
+    Returns candidates sorted by score descending, with 'score' key added.
+    """
+    name_lower = entity_label.lower()
+
+    # Keywords that indicate the right kind of entity by type
+    type_keywords: dict[str, list[str]] = {
+        "person": ["king", "queen", "ruler", "emperor", "pharaoh", "conqueror",
+                    "general", "commander", "prince", "princess", "noble",
+                    "politician", "statesman", "monarch", "macedon", "macedonia",
+                    "greek", "persian"],
+        "city": ["city", "town", "ancient city", "settlement", "municipality",
+                 "capital", "port", "polis", "metropolis"],
+        "political_entity": ["empire", "kingdom", "state", "dynasty", "republic",
+                             "civilization", "country", "nation", "polity"],
+        "event_battle": ["battle", "war", "conflict", "siege", "campaign", "fight"],
+        "event_war": ["war", "conflict", "campaign", "military"],
+        "military_unit": ["army", "military", "force", "legion", "regiment", "unit"],
+        "place": ["region", "area", "land", "territory", "province", "valley",
+                  "peninsula", "river", "sea", "ancient"],
+    }
+    keywords = type_keywords.get(entity_type, [])
+
+    # Penalty keywords that suggest modern/irrelevant matches
+    modern_penalties = ["united states", "county", "texas", "mississippi",
+                        "town in", "city in", "male given name", "surname",
+                        "disambiguation"]
+
+    scored = []
+    for c in candidates:
+        score = 0.0
+        label = c.get("label", "")
+        desc = c.get("description", "")
+        match_type = c.get("match_type", "")
+
+        # Exact label match — best signal
+        if label.lower() == name_lower:
+            score += 0.5
+        # Label starts with our search term
+        elif label.lower().startswith(name_lower):
+            score += 0.3
+        # Our search term is in the label
+        elif name_lower in label.lower():
+            score += 0.2
+        # Our search term is an alias
+        elif any(name_lower == a.lower() for a in c.get("aliases", [])):
+            score += 0.15
+
+        # Match type is 'label' (explicit, not alias)
+        if match_type == "label":
+            score += 0.1
+
+        # Description contains keywords relevant to entity_type
+        if desc:
+            desc_lower = desc.lower()
+            for kw in keywords:
+                if kw in desc_lower:
+                    score += 0.2
+                    break
+
+        # Description mentions ancient/historical
+        if desc and any(w in desc_lower for w in ["ancient", "historical", "classical"]):
+            score += 0.15
+
+        # Penalty for modern/irrelevant descriptions
+        if desc:
+            desc_lower = desc.lower()
+            for p in modern_penalties:
+                if p in desc_lower:
+                    score -= 0.15
+                    break
+
+        # Bonus: label is single word and matches exactly (for city/place names)
+        if entity_type in ("city", "place") and label.lower() == name_lower and not desc:
+            score -= 0.1  # No description = too generic
+
+        capped = max(0.0, min(score, 1.0))
+        c["score"] = round(capped, 3)
+        scored.append(c)
+
+    scored.sort(key=lambda x: x["score"], reverse=True)
+    return scored
 
 
 def enrich_wikidata_entities(qids: list[str]) -> dict[str, dict[str, Any]]:
