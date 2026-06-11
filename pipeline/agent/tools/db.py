@@ -95,3 +95,39 @@ def search_entity_by_wikidata_id(wikidata_id: str) -> list[dict[str, Any]]:
         return []
     finally:
         conn.close()
+
+
+def search_relationship_by_labels(
+    source_label: str,
+    target_label: str,
+    relationship_type: str,
+) -> list[dict[str, Any]]:
+    """Search for a relationship by source/target labels and type.
+
+    Returns list with relationship_id if found, or empty list.
+    """
+    conn = _get_db_connection()
+    if conn is None:
+        return []
+
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT r.id, r.source_id, r.target_id, r.relationship_type
+                FROM relationships r
+                JOIN entities src ON r.source_id = src.entity_id
+                JOIN entities tgt ON r.target_id = tgt.entity_id
+                WHERE src.name = %s AND tgt.name = %s AND r.relationship_type = %s
+                LIMIT 1
+                """,
+                (source_label, target_label, relationship_type),
+            )
+            row = cursor.fetchone()
+            if row:
+                return [{"relationship_id": row[0], "source_id": row[1], "target_id": row[2], "relationship_type": row[3]}]
+            return []
+    except Exception:
+        return []
+    finally:
+        conn.close()
