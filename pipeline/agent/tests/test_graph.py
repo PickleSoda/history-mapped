@@ -66,3 +66,7 @@ def test_run_agent_end_to_end(mock_run, mock_ohm_name, mock_ohm, mock_enrich, mo
     assert result["run_id"] == "e2e_test_1"
     assert len(result["parsed_events"]) == 1
     assert len(result["audit_log"]) > 0
+    assert "entity_id_map" in result
+    assert "relation_id_map" in result
+    assert isinstance(result["entity_id_map"], dict)
+    assert isinstance(result["relation_id_map"], dict)
