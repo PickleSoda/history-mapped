@@ -12,6 +12,7 @@ from pipeline.agent.schemas.validation import ValidationResult, PipelineError, A
 class AgentRunState(TypedDict):
     run_id: str
     raw_input: str
+    date_hints: list[dict[str, str]]
     parsed_events: list[ParsedEvent]
     candidate_entities: list[CandidateEntity]
     candidate_relations: list[CandidateRelation]

@@ -29,15 +29,23 @@ def test_run_agent_end_to_end(mock_run, mock_ohm_name, mock_ohm, mock_enrich, mo
 
     def side_effect(*args, **kwargs):
         call_count[0] += 1
+        # Call 1: preprocess_transcript (returns cleaned text)
         if call_count[0] == 1:
+            return MagicMock(content=json.dumps({
+                "cleaned_text": "In 1121, David IV defeated Ilghazi at Didgori."
+            }))
+        # Call 2: parse_sequence
+        elif call_count[0] == 2:
             return MagicMock(content=json.dumps({
                 "events": [{"label": "Battle of Didgori", "description": "David IV defeats Ilghazi.", "start_date": "1121-08-12", "end_date": "1121-08-12", "mentioned_entities": ["David IV", "Ilghazi"], "date_uncertain": False}]
             }))
-        elif call_count[0] == 2:
+        # Call 3: extract_candidates
+        elif call_count[0] == 3:
             return MagicMock(content=json.dumps({
                 "candidate_entities": [{"label": "David IV of Georgia", "entity_type": "person", "aliases": ["David IV"]}, {"label": "Battle of Didgori", "entity_type": "event_battle", "start_date": "1121-08-12", "end_date": "1121-08-12"}],
                 "candidate_relations": [{"source_label": "David IV of Georgia", "target_label": "Battle of Didgori", "relationship_type": "participated_in", "start_date": "1121-08-12", "end_date": "1121-08-12"}]
             }))
+        # Call 4: generate_content
         else:
             return MagicMock(content=json.dumps({
                 "summaries": {"David IV of Georgia": "Ruled Georgia from 1089 to 1125."},
