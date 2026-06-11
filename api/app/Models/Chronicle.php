@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'chronicle_id', 'title', 'slug', 'source_type', 'source_reference',
-    'status', 'metadata', 'created_by', 'created_at', 'updated_at',
+    'status', 'start_year', 'end_year', 'impact_score', 'approximate_location', 'metadata', 'created_by', 'created_at', 'updated_at',
 ])]
 class Chronicle extends Model
 {
@@ -29,6 +29,10 @@ class Chronicle extends Model
         return [
             'status' => ChronicleStatus::class,
             'source_type' => SourceType::class,
+            'start_year' => 'integer',
+            'end_year' => 'integer',
+            'impact_score' => 'integer',
+            'approximate_location' => 'json',
             'metadata' => 'json',
         ];
     }
