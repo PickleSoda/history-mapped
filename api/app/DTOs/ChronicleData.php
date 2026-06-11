@@ -22,6 +22,10 @@ readonly class ChronicleData
         public ?SourceType $sourceType = null,
         public ?string $sourceReference = null,
         public ChronicleStatus $status = ChronicleStatus::Draft,
+        public ?int $startYear = null,
+        public ?int $endYear = null,
+        public ?int $impactScore = null,
+        public ?array $approximateLocation = null,
         public ?array $metadata = null,
         public ?array $entries = null,
     ) {}
@@ -39,6 +43,10 @@ readonly class ChronicleData
             sourceType: isset($validated['source_type']) ? SourceType::from($validated['source_type']) : null,
             sourceReference: $validated['source_reference'] ?? null,
             status: isset($validated['status']) ? ChronicleStatus::from($validated['status']) : ChronicleStatus::Draft,
+            startYear: isset($validated['start_year']) ? (int) $validated['start_year'] : null,
+            endYear: isset($validated['end_year']) ? (int) $validated['end_year'] : null,
+            impactScore: isset($validated['impact_score']) ? (int) $validated['impact_score'] : null,
+            approximateLocation: $validated['approximate_location'] ?? null,
             metadata: $validated['metadata'] ?? null,
             entries: $validated['entries'] ?? null,
         );
@@ -66,6 +74,22 @@ readonly class ChronicleData
 
         if ($this->sourceReference !== null) {
             $data['source_reference'] = $this->sourceReference;
+        }
+
+        if ($this->startYear !== null) {
+            $data['start_year'] = $this->startYear;
+        }
+
+        if ($this->endYear !== null) {
+            $data['end_year'] = $this->endYear;
+        }
+
+        if ($this->impactScore !== null) {
+            $data['impact_score'] = $this->impactScore;
+        }
+
+        if ($this->approximateLocation !== null) {
+            $data['approximate_location'] = $this->approximateLocation;
         }
 
         if ($this->metadata !== null) {
