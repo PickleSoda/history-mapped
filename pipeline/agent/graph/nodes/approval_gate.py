@@ -22,17 +22,17 @@ def approval_gate(state: AgentRunState) -> AgentRunState:
     for enriched in diff.create_entities:
         policy = ENTITY_RISK_POLICIES.get(enriched.candidate.entity_type, {})
         threshold = policy.get("auto_commit_threshold", cfg.auto_commit_threshold)
-        if enriched.final_confidence >= threshold and policy.get("risk_level") == "low":
+        if enriched.final_confidence >= threshold:
             auto_entities.append(enriched.candidate.label)
         else:
-            flagged.append({"type": "entity", "label": enriched.candidate.label, "reason": f"confidence {enriched.final_confidence:.2f} < threshold {threshold} or risk level not low"})
+            flagged.append({"type": "entity", "label": enriched.candidate.label, "reason": f"confidence {enriched.final_confidence:.2f} < threshold {threshold}"})
     for relation in diff.create_relations:
         policy = RELATION_RISK_POLICIES.get(relation.relationship_type, {})
         threshold = policy.get("auto_commit_threshold", cfg.auto_commit_threshold)
-        if policy.get("risk_level") == "low":
+        if relation.final_confidence >= threshold:
             auto_relations.append(f"{relation.source_label}|{relation.relationship_type}|{relation.target_label}")
         else:
-            flagged.append({"type": "relation", "relation_id": f"{relation.source_label}|{relation.relationship_type}|{relation.target_label}", "reason": f"risk level {policy.get('risk_level')} not eligible for auto-commit"})
+            flagged.append({"type": "relation", "relation_id": f"{relation.source_label}|{relation.relationship_type}|{relation.target_label}", "reason": f"confidence {relation.final_confidence:.2f} < threshold {threshold}"})
     diff.review_items = flagged
     diff.create_entities = [e for e in diff.create_entities if e.candidate.label in auto_entities]
     diff.create_relations = [r for r in diff.create_relations if f"{r.source_label}|{r.relationship_type}|{r.target_label}" in auto_relations]

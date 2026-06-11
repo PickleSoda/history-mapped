@@ -27,14 +27,18 @@ def _generate_slug(title: str) -> str:
 
 
 def _find_primary_relationship(event, candidate_relations, committed):
-    """Find the best-matching relationship for an event."""
+    """Find the best-matching relationship for an event.
+    
+    Requires BOTH source and target entities to be mentioned in the event.
+    """
     mentioned = set(e.lower() for e in event.mentioned_entities)
     candidates = []
 
     for rel in candidate_relations:
         src_match = rel.source_label.lower() in mentioned
         tgt_match = rel.target_label.lower() in mentioned
-        if src_match or tgt_match:
+        # Require BOTH entities to be mentioned in the event
+        if src_match and tgt_match:
             priority = (
                 _RELATIONSHIP_TYPE_PRIORITY.index(rel.relationship_type)
                 if rel.relationship_type in _RELATIONSHIP_TYPE_PRIORITY
@@ -63,9 +67,11 @@ def _find_primary_relationship(event, candidate_relations, committed):
 
 def _collect_secondary_entities(event, primary_rel_id, enriched_entities):
     """Collect entities mentioned in the event but not in the primary relationship."""
+    mentioned = set(e.lower() for e in event.mentioned_entities)
     return [
         ChronicleEntryEntity(entity_id=e.candidate.label, role="participant")
         for e in enriched_entities
+        if e.candidate.label.lower() in mentioned
     ]
 
 
