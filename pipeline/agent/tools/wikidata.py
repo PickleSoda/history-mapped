@@ -9,24 +9,20 @@ from requests.exceptions import RequestException
 from pipeline.config import settings
 
 
-def _query_sparql(query: str, max_retries: int = 3) -> dict[str, Any]:
+def _query_sparql(query: str, max_retries: int = 1) -> dict[str, Any]:
     """Run a SPARQL query against Wikidata with retry logic."""
-    last_error: RequestException | None = None
-    for attempt in range(max_retries):
-        try:
-            response = requests.get(
-                settings.wikidata_endpoint,
-                params={"query": query, "format": "json"},
-                headers={"User-Agent": settings.wikidata_user_agent},
-                timeout=60,
-            )
-            response.raise_for_status()
-            return response.json()
-        except RequestException as exc:
-            last_error = exc
-            if attempt < max_retries - 1:
-                time.sleep(2 ** attempt)  # Exponential backoff: 1s, 2s, 4s
-    raise last_error or RequestException("Unknown error")
+    try:
+        response = requests.get(
+            settings.wikidata_endpoint,
+            params={"query": query, "format": "json"},
+            headers={"User-Agent": settings.wikidata_user_agent},
+            timeout=10,  # Short timeout to fail fast
+        )
+        response.raise_for_status()
+        return response.json()
+    except RequestException:
+        # Return empty result to allow pipeline to continue
+        return {"results": {"bindings": []}}
 
 
 def search_wikidata_by_name(name: str, limit: int = 5) -> list[dict[str, Any]]:

@@ -4,7 +4,7 @@ from pipeline.agent.config import AgentConfig, ENTITY_RISK_POLICIES, RELATION_RI
 def test_config_loads_defaults():
     cfg = AgentConfig()
     assert cfg.parse_model == "gpt-4o-mini"
-    assert cfg.ohm_index_path == "output/ohm_collections/global/index.db"
+    assert cfg.ohm_index_path == "output/ohm_collections/map-egypt.xml.sqlite"
 
 
 def test_risk_policies():

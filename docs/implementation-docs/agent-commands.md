@@ -125,6 +125,8 @@ py -m pip install "langgraph-cli[inmem]"
 uv pip install "langgraph-cli[inmem]"
 ```
 
+> **Note:** The in-mem server requires Python 3.11 or higher. If you're on Python 3.10, either upgrade Python or use Docker mode below.
+
 ### Running the Development Server
 
 ```powershell
@@ -133,6 +135,17 @@ langgraph dev
 ```
 
 The server runs on `http://localhost:2024` with no Docker required.
+
+### Docker Mode (Python 3.10 Compatible)
+
+If you're on Python 3.10, use Docker mode instead:
+
+```powershell
+# Requires Docker Desktop
+langgraph dev --wait
+```
+
+This runs the server in a container with Python 3.11+.
 
 ### Opening Studio
 

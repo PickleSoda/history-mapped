@@ -59,9 +59,11 @@ def test_resolve_wikidata(mock_search, mock_enrich):
     assert new_state["enriched_entities"][0].wikidata_match.get("qid") == "Q405"
 
 
+@patch("pipeline.agent.graph.nodes.resolve_ohm.Path")
 @patch("pipeline.agent.graph.nodes.resolve_ohm.resolve_ohm_geometry")
 @patch("pipeline.agent.graph.nodes.resolve_ohm.search_ohm_by_wikidata_id")
-def test_resolve_ohm(mock_search, mock_geo):
+def test_resolve_ohm(mock_search, mock_geo, mock_path):
+    mock_path.return_value.exists.return_value = True
     mock_search.return_value = [{"object_type": "node", "object_id": 123, "name": "Didgori"}]
     mock_geo.return_value = {"type": "Point", "coordinates": [44.5, 41.8]}
     state = make_base_state()
