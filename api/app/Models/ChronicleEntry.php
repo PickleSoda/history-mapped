@@ -11,8 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 #[Fillable([
-    'entry_id', 'chronicle_id', 'sequence_order', 'primary_relationship_id',
-    'narrative_text', 'notes', 'source_evidence', 'generated_by',
+    'entry_id', 'chronicle_id', 'sequence_order', 'start_year', 'end_year', 'impact_score', 'approximate_location',
+    'primary_relationship_id', 'narrative_text', 'notes', 'source_evidence', 'generated_by',
 ])]
 class ChronicleEntry extends Model
 {
@@ -27,6 +27,10 @@ class ChronicleEntry extends Model
     {
         return [
             'sequence_order' => 'integer',
+            'start_year' => 'integer',
+            'end_year' => 'integer',
+            'impact_score' => 'integer',
+            'approximate_location' => 'json',
         ];
     }
 
