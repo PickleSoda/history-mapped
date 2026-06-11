@@ -9,7 +9,10 @@ from langchain_core.messages import HumanMessage
 from pipeline.agent.config import AgentConfig
 from pipeline.agent.llm import create_llm_with_fallbacks
 from pipeline.agent.graph.state import AgentRunState
+from pipeline.agent.logging import get_logger
 from pipeline.agent.schemas.validation import AuditEvent, PipelineError
+
+logger = get_logger(__name__)
 
 _STYLE_GUIDE_PATH = Path(__file__).parent.parent.parent / "style_guide.md"
 
@@ -24,6 +27,8 @@ def generate_content(state: AgentRunState) -> AgentRunState:
     cfg = AgentConfig()
     llm = create_llm_with_fallbacks("generate_model", cfg)
     style_guide = _load_style_guide()
+    logger.info("LLM call: generate_content (model=%s, entities=%d, relations=%d)",
+                cfg.generate_model, len(state["enriched_entities"]), len(state["candidate_relations"]))
     entities_context = json.dumps(
         [
             {

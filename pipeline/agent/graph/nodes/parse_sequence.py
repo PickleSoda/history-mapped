@@ -9,7 +9,10 @@ from pipeline.agent.config import AgentConfig
 from pipeline.agent.llm import create_llm_with_fallbacks
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.entities import ParsedEvent
+from pipeline.agent.logging import get_logger
 from pipeline.agent.schemas.validation import AuditEvent, PipelineError
+
+logger = get_logger(__name__)
 
 _PROMPT = """You are a historical event parser. Convert the provided historical text into a structured list of events.
 
@@ -29,9 +32,11 @@ Output strictly as JSON matching this schema:
 def parse_sequence(state: AgentRunState) -> AgentRunState:
     cfg = AgentConfig()
     llm = create_llm_with_fallbacks("parse_model", cfg)
+    logger.info("LLM call: parse_sequence (model=%s)", cfg.parse_model)
     messages = [SystemMessage(content=_PROMPT), HumanMessage(content=state["raw_input"])]
     response = llm.invoke(messages)
     content = response.content if hasattr(response, "content") else str(response)
+    logger.info("LLM response: %d chars", len(content))
     # Strip markdown code fences if present
     if content.strip().startswith("```json"):
         content = content.strip().removeprefix("```json").removesuffix("```").strip()

@@ -8,6 +8,9 @@ from pipeline.agent.config import AgentConfig
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.relations import CommittedChange
 from pipeline.agent.schemas.validation import AuditEvent
+from pipeline.agent.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def chronicle_writer(state: AgentRunState) -> AgentRunState:

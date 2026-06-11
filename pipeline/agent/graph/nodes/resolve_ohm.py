@@ -5,6 +5,7 @@ from pathlib import Path
 
 from pipeline.agent.config import AgentConfig
 from pipeline.agent.graph.state import AgentRunState
+from pipeline.agent.logging import get_logger
 from pipeline.agent.schemas.validation import AuditEvent, PipelineError
 from pipeline.agent.tools.ohm import (
     search_ohm_by_wikidata_id,
@@ -12,12 +13,16 @@ from pipeline.agent.tools.ohm import (
     resolve_ohm_geometry,
 )
 
+logger = get_logger(__name__)
+
 
 def resolve_ohm(state: AgentRunState) -> AgentRunState:
     cfg = AgentConfig()
     ohm_index_path = Path(cfg.ohm_index_path).resolve()
+    logger.info("OHM resolution: index=%s", ohm_index_path)
     # Skip if index doesn't exist
     if not ohm_index_path.exists():
+        logger.info("OHM index not found at %s, skipping", ohm_index_path)
         state["audit_log"].append(
             AuditEvent(
                 timestamp=datetime.now(timezone.utc).isoformat(),
@@ -27,10 +32,14 @@ def resolve_ohm(state: AgentRunState) -> AgentRunState:
             )
         )
         return state
-    for enriched in state["enriched_entities"]:
+    entity_count = len(state["enriched_entities"])
+    logger.info("OHM resolution: %d entities", entity_count)
+    for i, enriched in enumerate(state["enriched_entities"]):
+        logger.info("  [%d/%d] %s — searching OHM", i + 1, entity_count, enriched.candidate.label)
         match = None
         qid = enriched.wikidata_match.get("qid") if enriched.wikidata_match else None
         if qid:
+            logger.info("    by QID: %s", qid)
             match = search_ohm_by_wikidata_id(qid, ohm_index_path)
         if not match:
             match = search_ohm_by_name(enriched.candidate.label, ohm_index_path)

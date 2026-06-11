@@ -4,7 +4,10 @@ from datetime import datetime, timezone
 
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.validation import AuditEvent
+from pipeline.agent.logging import get_logger
 from pipeline.agent.tools.db import search_entity_by_name, search_relationship_by_labels
+
+logger = get_logger(__name__)
 
 
 def resolve_entity_ids(state: AgentRunState) -> AgentRunState:

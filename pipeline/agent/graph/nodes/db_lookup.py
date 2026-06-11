@@ -4,13 +4,17 @@ from datetime import datetime, timezone
 
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.entities import EnrichedCandidate
+from pipeline.agent.logging import get_logger
 from pipeline.agent.schemas.validation import AuditEvent
 from pipeline.agent.tools.db import search_entity_by_name, search_entity_by_wikidata_id
+
+logger = get_logger(__name__)
 
 
 def db_lookup(state: AgentRunState) -> AgentRunState:
     enriched: list[EnrichedCandidate] = []
     for candidate in state["candidate_entities"]:
+        logger.info("DB lookup: %s (type=%s)", candidate.label, candidate.entity_type)
         matches = search_entity_by_name(candidate.label, entity_type=candidate.entity_type)
         existing = matches[0] if matches else None
         if candidate.wikidata_id and not existing:

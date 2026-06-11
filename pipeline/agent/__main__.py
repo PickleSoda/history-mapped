@@ -23,7 +23,12 @@ def agent(input_path: Path, run_id: str | None, title: str | None, create_chroni
     raw_text = input_path.read_text(encoding="utf-8")
     run_id = run_id or f"agent_{input_path.stem}"
 
+    # Configure structured logging
+    from pipeline.agent.logging import configure_logging
+    configure_logging()
+
     click.echo(f"Starting agent run: {run_id}")
+    click.echo(f"Input: {input_path} ({len(raw_text)} chars)")
     result = run_agent(raw_text, run_id=run_id, title=title, create_chronicle=create_chronicle)
 
     click.echo(f"Parsed events: {len(result['parsed_events'])}")

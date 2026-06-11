@@ -19,7 +19,10 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from pipeline.agent.config import AgentConfig
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.llm import create_llm
+from pipeline.agent.logging import get_logger
 from pipeline.agent.schemas.validation import AuditEvent, PipelineError
+
+logger = get_logger(__name__)
 
 _PROMPT = """You are a historical transcript cleaner. Clean up the provided text for downstream entity extraction.
 
@@ -37,13 +40,12 @@ Output strictly as JSON:
 
 
 def preprocess_transcript(state: AgentRunState) -> AgentRunState:
-    """Clean and structure raw transcript text.
-
-    This node runs before parse_sequence to improve LLM parsing accuracy.
-    If the LLM fails or returns empty, the original text is preserved.
-    """
+    """Clean and structure raw transcript text."""
     cfg = AgentConfig()
     llm = create_llm(cfg.parse_model, cfg.openai_api_key, cfg.llm_base_url)
+
+    logger.info("LLM call: preprocess_transcript (model=%s, input=%d chars)",
+                cfg.parse_model, len(state["raw_input"]))
 
     messages = [
         SystemMessage(content=_PROMPT),
@@ -52,6 +54,7 @@ def preprocess_transcript(state: AgentRunState) -> AgentRunState:
 
     response = llm.invoke(messages)
     content = response.content if hasattr(response, "content") else str(response)
+    logger.info("LLM response: %d chars", len(content))
     # Strip markdown code fences if present
     if content.strip().startswith("```json"):
         content = content.strip().removeprefix("```json").removesuffix("```").strip()
