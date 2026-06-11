@@ -49,12 +49,14 @@ def _find_primary_relationship(event, candidate_relations, committed):
     best = candidates[0][1]
 
     for commit in committed:
+        # Handle both dict and Pydantic model access
+        commit_record = commit.record if hasattr(commit, "record") else commit
         if (
-            commit.get("source_label") == best.source_label
-            and commit.get("target_label") == best.target_label
-            and commit.get("relationship_type") == best.relationship_type
+            commit_record.get("source_label") == best.source_label
+            and commit_record.get("target_label") == best.target_label
+            and commit_record.get("relationship_type") == best.relationship_type
         ):
-            return commit.get("relationship_id")
+            return commit_record.get("relationship_id")
 
     return None
 

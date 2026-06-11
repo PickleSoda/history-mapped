@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from pathlib import Path
 
 from pipeline.agent.config import AgentConfig
 from pipeline.agent.graph.state import AgentRunState
-from pipeline.agent.schemas.validation import AuditEvent
+from pipeline.agent.schemas.validation import AuditEvent, PipelineError
 from pipeline.agent.tools.ohm import (
     search_ohm_by_wikidata_id,
     search_ohm_by_name,
@@ -14,7 +15,18 @@ from pipeline.agent.tools.ohm import (
 
 def resolve_ohm(state: AgentRunState) -> AgentRunState:
     cfg = AgentConfig()
-    ohm_index_path = cfg.ohm_index_path
+    ohm_index_path = Path(cfg.ohm_index_path).resolve()
+    # Skip if index doesn't exist
+    if not ohm_index_path.exists():
+        state["audit_log"].append(
+            AuditEvent(
+                timestamp=datetime.now(timezone.utc).isoformat(),
+                node="resolve_ohm",
+                action="ohm_index_missing",
+                output_summary=f"OHM index not found at {ohm_index_path}, skipping geometry resolution",
+            )
+        )
+        return state
     for enriched in state["enriched_entities"]:
         match = None
         qid = enriched.wikidata_match.get("qid") if enriched.wikidata_match else None

@@ -34,7 +34,7 @@ class AgentConfig:
     auto_commit_threshold: float = 0.95
     output_dir: str = "output/agent_runs"
     chronicle_output_dir: str = "output/agent_runs"
-    ohm_index_path: str = "output/ohm_collections/global/index.db"
+    ohm_index_path: str = "output/ohm_collections/map-egypt.xml.sqlite"
 
     def __post_init__(self):
         if self.openai_api_key is None:
