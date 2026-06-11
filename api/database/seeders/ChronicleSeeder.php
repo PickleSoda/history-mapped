@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Enums\EntityGroup;
+use App\Enums\EntityType;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -190,11 +192,24 @@ class ChronicleSeeder extends Seeder
         }
 
         $id = Str::uuid()->toString();
+        
+        $entityType = match($type) {
+            'person' => EntityType::Person->value,
+            'event' => EntityType::EventBattle->value,
+            default => EntityType::PoliticalEntity->value,
+        };
+        
+        $entityGroup = match($type) {
+            'person' => EntityGroup::Polity->value,
+            'event' => EntityGroup::Event->value,
+            default => EntityGroup::Polity->value,
+        };
+
         DB::table('entities')->insert([
             'entity_id' => $id,
             'name' => $name,
-            'entity_type' => $type,
-            'entity_group' => $type === 'person' ? 'POLITY' : 'EVENT',
+            'entity_type' => $entityType,
+            'entity_group' => $entityGroup,
             'verification_status' => 'pipeline_draft',
             'created_by' => 'seeder',
             'created_at' => now(),
