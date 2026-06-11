@@ -90,6 +90,8 @@ def run_agent(raw_input: str, run_id: str, title: str | None = None, create_chro
         "errors": [],
         "title": title,
         "create_chronicle": create_chronicle,
+        "entity_id_map": {},
+        "relation_id_map": {},
     }
     result = workflow.invoke(initial_state)
     return result

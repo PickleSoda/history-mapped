@@ -25,3 +25,5 @@ class AgentRunState(TypedDict):
     chronicle: Chronicle | None
     title: str | None
     create_chronicle: bool
+    entity_id_map: dict[str, str]
+    relation_id_map: dict[str, str]

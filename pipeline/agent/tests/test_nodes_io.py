@@ -24,6 +24,8 @@ def make_base_state() -> AgentRunState:
         "committed": [],
         "audit_log": [],
         "errors": [],
+        "entity_id_map": {},
+        "relation_id_map": {},
     }
 
 

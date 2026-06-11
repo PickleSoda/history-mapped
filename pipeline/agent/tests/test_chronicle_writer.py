@@ -24,6 +24,8 @@ def test_chronicle_writer_writes_jsonl(tmp_path, monkeypatch):
         "committed": [],
         "audit_log": [],
         "errors": [],
+        "entity_id_map": {},
+        "relation_id_map": {},
         "chronicle": Chronicle(
             title="Test Chronicle",
             slug="test-chronicle",
@@ -56,6 +58,8 @@ def test_chronicle_writer_no_chronicle():
         "committed": [],
         "audit_log": [],
         "errors": [],
+        "entity_id_map": {},
+        "relation_id_map": {},
     }
     new_state = chronicle_writer(state)
     assert new_state == state

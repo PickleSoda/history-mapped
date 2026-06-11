@@ -44,6 +44,8 @@ def test_chronicle_builder_creates_chronicle():
         ],
         "audit_log": [],
         "errors": [],
+        "entity_id_map": {},
+        "relation_id_map": {},
     }
     new_state = chronicle_builder(state)
     assert new_state["chronicle"] is not None
@@ -64,6 +66,8 @@ def test_chronicle_builder_no_events():
         "committed": [],
         "audit_log": [],
         "errors": [],
+        "entity_id_map": {},
+        "relation_id_map": {},
     }
     new_state = chronicle_builder(state)
     assert new_state["chronicle"] is None
