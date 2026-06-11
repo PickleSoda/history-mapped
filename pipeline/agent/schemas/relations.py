@@ -12,6 +12,7 @@ class CandidateRelation(BaseModel):
     source_event: str | None = None
     description: str | None = None
     confidence: float = 0.0
+    final_confidence: float = 0.0
 
 
 class CommittedChange(BaseModel):
