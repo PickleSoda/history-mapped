@@ -3,6 +3,7 @@ from unittest.mock import patch, MagicMock
 
 from pipeline.agent.tools.db import search_entity_by_name
 from pipeline.agent.tools.wikidata import search_wikidata_by_name, enrich_wikidata_entities
+from pipeline.agent.tools.db import search_relationship_by_labels
 
 
 @patch("pipeline.agent.tools.db._get_db_connection")
@@ -109,3 +110,9 @@ def test_build_borders_command():
     cmd = build_artisan_command("pipeline:import-borders", "/tmp/borders.jsonl", sync=True)
     assert "pipeline:import-borders" in cmd
     assert "--sync" in cmd
+
+
+def test_search_relationship_by_labels_returns_empty_on_no_db():
+    """Should return [] when DATABASE_URL is not set."""
+    result = search_relationship_by_labels("Alexander", "Darius", "fought_at")
+    assert result == []
