@@ -11,89 +11,129 @@ from pipeline.config import settings
 
 logger = get_logger(__name__)
 
+# Wikidata REST APIs (preferred over SPARQL — faster and not blocked on some networks)
+WIKIDATA_API = "https://www.wikidata.org/w/api.php"
+WIKIDATA_ENTITY_API = "https://www.wikidata.org/wiki/Special:EntityData"
 
-def _query_sparql(query: str, max_retries: int = 2) -> dict[str, Any]:
-    """Run a SPARQL query against Wikidata with retry logic."""
-    for attempt in range(max_retries + 1):
-        try:
-            t0 = time.time()
-            response = requests.get(
-                settings.wikidata_endpoint,
-                params={"query": query, "format": "json"},
-                headers={"User-Agent": settings.wikidata_user_agent},
-                timeout=30,
-            )
-            response.raise_for_status()
-            elapsed = time.time() - t0
-            logger.info("Wikidata SPARQL OK (%.1fs)", elapsed)
-            return response.json()
-        except RequestException as exc:
-            elapsed = time.time() - t0 if 't0' in locals() else 0.0
-            if attempt < max_retries:
-                logger.warning("Wikidata SPARQL attempt %d/%d failed (%.1fs): %s — retrying",
-                               attempt + 1, max_retries + 1, elapsed, exc)
-                time.sleep(2 ** attempt)
-                continue
-            logger.warning("Wikidata SPARQL FAILED after %d attempts (%.1fs): %s",
-                           max_retries + 1, elapsed, exc)
-            return {"results": {"bindings": []}}
+
+def _wikidata_get(params: dict[str, str], timeout: int = 10) -> dict[str, Any] | None:
+    """Make a GET request to the Wikidata action API."""
+    try:
+        t0 = time.time()
+        response = requests.get(
+            WIKIDATA_API,
+            params=params,
+            headers={"User-Agent": settings.wikidata_user_agent},
+            timeout=timeout,
+        )
+        response.raise_for_status()
+        elapsed = time.time() - t0
+        logger.info("Wikidata API OK (%.1fs): %s", elapsed, params.get("action", ""))
+        return response.json()
+    except RequestException as exc:
+        logger.warning("Wikidata API error: %s — %s", params.get("action", ""), exc)
+        return None
 
 
 def search_wikidata_by_name(name: str, limit: int = 5) -> list[dict[str, Any]]:
-    """Search Wikidata by label, return candidate matches.
+    """Search Wikidata by label via wbsearchentities API.
 
     Each match contains: qid, label, description.
+    Fast REST endpoint (~200ms), works when SPARQL is blocked.
     """
-    query = f"""
-    SELECT ?item ?itemLabel ?itemDescription WHERE {{
-      SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en". }}
-      ?item rdfs:label ?itemLabel.
-      FILTER(CONTAINS(LCASE(?itemLabel), LCASE("{name}")))
-    }}
-    LIMIT {limit}
-    """
-    data = _query_sparql(query)
+    data = _wikidata_get({
+        "action": "wbsearchentities",
+        "search": name,
+        "language": "en",
+        "format": "json",
+        "limit": str(limit),
+    })
+    if not data:
+        return []
+
     results = []
-    for binding in data.get("results", {}).get("bindings", []):
-        item_url = binding.get("item", {}).get("value", "")
-        qid = item_url.split("/")[-1] if "/entity/" in item_url else ""
-        results.append({
-            "qid": qid,
-            "label": binding.get("itemLabel", {}).get("value", ""),
-            "description": binding.get("itemDescription", {}).get("value", ""),
-        })
+    for item in data.get("search", []):
+        qid = item.get("id", "")
+        if qid:
+            results.append({
+                "qid": qid,
+                "label": item.get("label", ""),
+                "description": item.get("description", ""),
+            })
+    logger.info("Wikidata search: '%s' → %d results", name, len(results))
     return results
 
 
 def enrich_wikidata_entities(qids: list[str]) -> dict[str, dict[str, Any]]:
-    """Fetch basic Wikidata records for a list of QIDs.
+    """Fetch Wikidata records via the REST EntityData endpoint.
 
-    Returns a dict mapping qid → {label, description, aliases, coordinates, start_date, end_date}.
+    Fast REST endpoint (~200ms per QID), works when SPARQL is blocked.
+    Returns a dict mapping qid → {label, description, coordinates, start_date, end_date}.
     """
     if not qids:
         return {}
 
-    qid_values = " ".join(f"wd:{q}" for q in qids)
-    query = f"""
-    SELECT ?item ?itemLabel ?itemDescription ?coord ?inception ?dissolved WHERE {{
-      VALUES ?item {{ {qid_values} }}
-      SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en". }}
-      OPTIONAL {{ ?item wdt:P625 ?coord. }}
-      OPTIONAL {{ ?item wdt:P571 ?inception. }}
-      OPTIONAL {{ ?item wdt:P576 ?dissolved. }}
-    }}
-    """
-    data = _query_sparql(query)
-    results = {}
-    for binding in data.get("results", {}).get("bindings", []):
-        item_url = binding.get("item", {}).get("value", "")
-        qid = item_url.split("/")[-1] if "/entity/" in item_url else ""
-        if qid:
+    results: dict[str, dict[str, Any]] = {}
+    for qid in qids:
+        url = f"{WIKIDATA_ENTITY_API}/{qid}.json"
+        try:
+            t0 = time.time()
+            response = requests.get(
+                url,
+                headers={"User-Agent": settings.wikidata_user_agent},
+                timeout=10,
+            )
+            response.raise_for_status()
+            data = response.json()
+            entity = data.get("entities", {}).get(qid, {})
+            elapsed = time.time() - t0
+
+            labels = entity.get("labels", {})
+            descriptions = entity.get("descriptions", {})
+            claims = entity.get("claims", {})
+
+            # Extract label
+            label = labels.get("en", {}).get("value", "") if labels else ""
+
+            # Extract description
+            description = descriptions.get("en", {}).get("value", "") if descriptions else ""
+
+            # Extract coordinates (P625)
+            coordinates = None
+            if "P625" in claims:
+                try:
+                    coords = claims["P625"][0]["mainsnak"]["datavalue"]["value"]
+                    coordinates = f"Point({coords['longitude']} {coords['latitude']})"
+                except (KeyError, IndexError, TypeError):
+                    pass
+
+            # Extract inception date (P571)
+            start_date = None
+            if "P571" in claims:
+                try:
+                    start_date = claims["P571"][0]["mainsnak"]["datavalue"]["value"]["time"]
+                except (KeyError, IndexError, TypeError):
+                    pass
+
+            # Extract dissolved date (P576)
+            end_date = None
+            if "P576" in claims:
+                try:
+                    end_date = claims["P576"][0]["mainsnak"]["datavalue"]["value"]["time"]
+                except (KeyError, IndexError, TypeError):
+                    pass
+
             results[qid] = {
-                "label": binding.get("itemLabel", {}).get("value", ""),
-                "description": binding.get("itemDescription", {}).get("value", ""),
-                "coordinates": binding.get("coord", {}).get("value"),
-                "start_date": binding.get("inception", {}).get("value"),
-                "end_date": binding.get("dissolved", {}).get("value"),
+                "label": label,
+                "description": description,
+                "coordinates": coordinates,
+                "start_date": start_date,
+                "end_date": end_date,
             }
+            logger.info("Wikidata enrich: %s → %s (%.1fs)", qid, label, elapsed)
+
+        except RequestException as exc:
+            logger.warning("Wikidata enrich error for %s: %s", qid, exc)
+
+    logger.info("Wikidata enrich: %d/%d resolved", len(results), len(qids))
     return results

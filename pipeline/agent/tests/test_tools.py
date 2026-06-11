@@ -22,14 +22,12 @@ def test_db_search_returns_list(mock_conn):
     assert results[0]["wikidata_id"] == "Q405"
 
 
-@patch("pipeline.agent.tools.wikidata._query_sparql")
-def test_wikidata_search(mock_query):
-    mock_query.return_value = {
-        "results": {
-            "bindings": [
-                {"item": {"value": "http://www.wikidata.org/entity/Q405"}, "itemLabel": {"value": "David IV of Georgia"}, "itemDescription": {"value": "King of Georgia"}}
-            ]
-        }
+@patch("pipeline.agent.tools.wikidata._wikidata_get")
+def test_wikidata_search(mock_get):
+    mock_get.return_value = {
+        "search": [
+            {"id": "Q405", "label": "David IV of Georgia", "description": "King of Georgia"}
+        ]
     }
     results = search_wikidata_by_name("David IV of Georgia")
     assert isinstance(results, list)
@@ -37,15 +35,20 @@ def test_wikidata_search(mock_query):
     assert results[0]["qid"] == "Q405"
 
 
-@patch("pipeline.agent.tools.wikidata._query_sparql")
-def test_wikidata_enrich(mock_query):
-    mock_query.return_value = {
-        "results": {
-            "bindings": [
-                {"item": {"value": "http://www.wikidata.org/entity/Q405"}, "itemLabel": {"value": "David IV"}, "itemDescription": {"value": "King"}}
-            ]
-        }
-    }
+@patch("pipeline.agent.tools.wikidata.requests.get")
+def test_wikidata_enrich(mock_get):
+    mock_get.return_value = MagicMock(
+        json=lambda: {
+            "entities": {
+                "Q405": {
+                    "labels": {"en": {"value": "David IV"}},
+                    "descriptions": {"en": {"value": "King"}},
+                    "claims": {},
+                }
+            }
+        },
+        raise_for_status=lambda: None,
+    )
     results = enrich_wikidata_entities(["Q405"])
     assert "Q405" in results
     assert results["Q405"]["label"] == "David IV"
