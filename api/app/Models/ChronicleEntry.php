@@ -31,6 +31,7 @@ class ChronicleEntry extends Model
             'end_year' => 'integer',
             'impact_score' => 'integer',
             'approximate_location' => 'json',
+            'source_evidence' => 'array',
         ];
     }
 
