@@ -207,6 +207,10 @@ class ImportChroniclesCommand extends Command
             $chronicle->source_type = $data['source_type'] ?? 'video_transcript';
             $chronicle->source_reference = $data['source_reference'] ?? null;
             $chronicle->status = $data['status'] ?? 'draft';
+            $chronicle->start_year = $data['start_year'] ?? null;
+            $chronicle->end_year = $data['end_year'] ?? null;
+            $chronicle->impact_score = $data['impact_score'] ?? null;
+            $chronicle->approximate_location = $data['approximate_location'] ?? null;
             $chronicle->metadata = $data['metadata'] ?? [];
             $chronicle->save();
 
@@ -229,6 +233,10 @@ class ImportChroniclesCommand extends Command
         $chronicle->title = $data['title'] ?? $chronicle->title;
         $chronicle->source_type = $data['source_type'] ?? $chronicle->source_type;
         $chronicle->source_reference = $data['source_reference'] ?? $chronicle->source_reference;
+        $chronicle->start_year = $data['start_year'] ?? $chronicle->start_year;
+        $chronicle->end_year = $data['end_year'] ?? $chronicle->end_year;
+        $chronicle->impact_score = $data['impact_score'] ?? $chronicle->impact_score;
+        $chronicle->approximate_location = $data['approximate_location'] ?? $chronicle->approximate_location;
         $chronicle->metadata = $data['metadata'] ?? $chronicle->metadata;
         $chronicle->save();
 
@@ -250,6 +258,10 @@ class ImportChroniclesCommand extends Command
             $entry->primary_relationship_id = $entryData['primary_relationship_id'] ?? null;
             $entry->narrative_text = $entryData['narrative_text'] ?? '';
             $entry->notes = $entryData['notes'] ?? null;
+            $entry->start_year = $entryData['start_year'] ?? null;
+            $entry->end_year = $entryData['end_year'] ?? null;
+            $entry->impact_score = $entryData['impact_score'] ?? null;
+            $entry->approximate_location = $entryData['approximate_location'] ?? null;
             $entry->source_evidence = $entryData['source_evidence'] ?? null;
             $entry->save();
 
