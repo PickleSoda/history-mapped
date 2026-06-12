@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import operator
-from typing import TypedDict, Any, Annotated
+from typing import TypedDict, Any
 
 from pipeline.agent.schemas.chronicle import Chronicle
 from pipeline.agent.schemas.entities import ParsedEvent, CandidateEntity, EnrichedCandidate
@@ -20,9 +19,15 @@ class AgentRunState(TypedDict):
     enriched_entities: list[EnrichedCandidate]
     validation_results: list[ValidationResult]
     proposed_diff: ProposedDiff | None
-    committed: Annotated[list[CommittedChange], operator.add]
-    audit_log: Annotated[list[AuditEvent], operator.add]
-    errors: Annotated[list[PipelineError], operator.add]
+    # NOTE: These three are accumulators. The graph is strictly linear and every
+    # node mutates the carried-forward state in place and returns the FULL state,
+    # so the default "replace" channel semantics already accumulate correctly.
+    # Do NOT add an operator.add reducer here — combined with full-state returns
+    # it concatenates the already-accumulated list onto itself at every node,
+    # doubling it per node (exponential blow-up). See test_state_reducers.py.
+    committed: list[CommittedChange]
+    audit_log: list[AuditEvent]
+    errors: list[PipelineError]
     chronicle: Chronicle | None
     title: str | None
     create_chronicle: bool
