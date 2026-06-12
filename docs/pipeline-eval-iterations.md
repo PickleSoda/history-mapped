@@ -90,8 +90,10 @@ iter3's "signed integer" prompt made the LLM emit **CE** dates as negative
 - `commit_writer._consistent_dates` drops an end that precedes the start, at the
   single choke point feeding both Laravel temporal-range inserts.
 
-Result: the long-failing Sumerians transcript imports cleanly (`rc=0`); BCE
-entities with markers store correctly (`Uruk -3200`, `Lagash -2500..-2000`).
+Result: **all 7 transcripts now exit `rc=0`** (both remaining import failures —
+Sumerians and Biggest Empires — cleared). Final capstone run (`iter4_dates`):
+126 entities, 45 relationships, 7 chronicles, 0 failed runs, overlap consistent.
+BCE entities with markers store correctly (`Uruk -3200`, `Lagash -2500..-2000`).
 
 ## Known limitations / follow-ups
 
