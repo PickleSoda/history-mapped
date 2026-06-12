@@ -50,6 +50,25 @@ prevents drift. Matches the geo-ref `one_active_primary_per_entity` pattern.
 **Decision:** Trim `display_priority`/`icon_class`/`period_type`/`geometry_period_id` from the map payload (grep shows the
 map render doesn't use them); keep behind a debug flag only if a consumer is later found. → **Sub-project A.**
 
+### D19 — Store country/territory border polygons in the DB, or render them from the OHM layer?
+**Decision:** **Do not store border polygons** — render them from the OHM basemap layer (which the viewer already loads
+with date filtering); the DB keeps only app-owned geometry (representative point, presence points, hand-drawn non-OHM
+shapes) plus the `entity_geo_refs` pointer to the OHM feature. → **Sub-project A** (map query *and* the Laravel import/backfill storage changes — plan Phase 7).
+**Rationale:** The borders on screen already come from the OHM basemap; a stored `territory_geom` is a redundant overlay
+and the dominant payload/storage cost. `geometry_periods.territory_geom` is null for OHM imports (points-only) — the
+polygon only arrives via backfill copying `entity_locations.territory_geom`, so two targeted changes remove it.
+**Implementing changes:**
+- **A (map query):** emit the OHM ref (`provider`/`external_type`/`external_id`) in feature `properties` and serialize the
+  **point** for OHM-linked entities (plan A, Task 9b); the client highlights the OHM basemap feature instead of a stored polygon.
+- **A storage side (plan Phase 7, Laravel import/backfill — *not* the agent):** stop hydrating OHM polygons into
+  `entity_locations.territory_geom` (`HydrateEntityGeometryFromGeoRefAction` → point only), stop
+  `BackfillGeometryPeriodsAction` copying `territory_geom`, and an optional one-time migration to null OHM-derived
+  `territory_geom`, all behind a reversible `borders.store_polygons` flag.
+**Consumer impact (traced):** map render (A), timeline projection + history panel (follow-up), click resolver (folded into
+A's `ResolveOhmFeatureAction` rewrite), entity detail/admin editors (show the OHM link for OHM entities; app-owned shapes
+keep their editor).
+**Owner sign-off:** confirm no workflow needs an *editable* stored border for OHM countries (the OHM link replaces it).
+
 ---
 
 ## Pipeline

@@ -57,6 +57,18 @@ with `dateRangeFromISODate`'s `\d{1,4}` regex (the two currently disagree). Choo
 `RebuildEntityTimelineJob` for the affected entity id(s), guarded by a "suppress during bulk import" flag the importers set
 (then one batch rebuild at the end), or per-entity debouncing — to avoid rebuild storms.
 
+**OHM-linked timeline highlight (borders-from-OHM follow-up).** Under the borders-from-OHM policy (decision D19), OHM-linked
+entities no longer carry a stored `territory_geom` on their timeline entries, so the entity history panel must **highlight
+the OHM basemap feature** rather than render a stored polygon overlay:
+- The timeline read model exposes the entity's active OHM reference on its rows — `ProjectEntityTimelineAction` projects
+  the `ohm` geo-ref `external_id` (and provider/type) onto `entity_timeline_entries` (a new nullable column or via a
+  joined read in the timeline resource), so the panel knows which OHM feature to highlight.
+- `entity-history-panel.tsx`: when an active entry has an `ohm_external_id` and no `territory_geom`, drive the OHM-layer
+  highlight (the same mechanism the dashboard map uses with the `ohm_external_id` feature property) instead of pushing a
+  polygon into the overlay source; it still renders point `geom` markers for app-owned geometry.
+This mirrors the dashboard map change (plan A, Task 9b) so OHM borders are highlighted consistently across the map and the
+history panel.
+
 ## 5. Data flow
 
 Timeline projection: canonical tables → `ProjectEntityTimelineAction` (now crash-safe on open-start) → `entity_timeline_entries`.
