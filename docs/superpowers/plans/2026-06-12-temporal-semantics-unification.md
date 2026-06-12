@@ -66,13 +66,29 @@
 - [ ] **Step 4: Run → PASS.**
 - [ ] **Step 5: Commit** `feat(api): relationship/location timeline observers with bulk-import suppression`
 
+## Task 5: OHM-linked timeline entries highlight the OHM feature (borders-from-OHM follow-up)
+
+**Files:** Create `api/database/migrations/2026_06_12_000004_timeline_ohm_ref.php`; Modify `api/app/Actions/Timeline/ProjectEntityTimelineAction.php`, `api/app/Http/Api/V1/Resources/EntityTimelineEntryResource.php`, `api/resources/js/components/entity-history-panel.tsx`; Test `TimelineOhmRefTest.php` (new), `entity-history-panel.test.tsx`
+
+> Spec §4.1 (OHM-linked timeline highlight) / decision D19. Mirrors plan A Task 9b so OHM borders highlight consistently across the dashboard map and the history panel. Do **after** plan A Task 9b (defines the `ohm_external_id` feature-property contract the panel reuses).
+
+- [ ] **Step 1: Write the failing tests** — (a) a rebuilt timeline entry for an OHM-linked entity carries its `ohm_external_id` in the read model / resource; (b) `entity-history-panel` highlights the OHM feature (calls the OHM-highlight path) when an active entry has `ohm_external_id` and null `territory_geom`, instead of pushing a polygon into the overlay source.
+- [ ] **Step 2: Run → FAIL.**
+- [ ] **Step 3: Implement** —
+  - Migration: add nullable `ohm_external_id` (+ `ohm_provider`/`ohm_external_type`) to `entity_timeline_entries`.
+  - `ProjectEntityTimelineAction`: project the entity's active `ohm` geo-ref `external_id` onto the inserted rows (join `entity_geo_refs` where provider=ohm, is_active). (Alternative if a column is undesirable: expose it via a join in `EntityTimelineEntryResource` instead — pick one and keep it consistent.)
+  - `EntityTimelineEntryResource`: include `ohm_external_id` (+ provider/type).
+  - `entity-history-panel.tsx`: when an active entry has `ohm_external_id` and no `territory_geom`, call the shared OHM-highlight helper (same mechanism the dashboard map uses with the `ohm_external_id` property) rather than enriching a polygon into the overlay; keep rendering point `geom` markers for app-owned geometry.
+- [ ] **Step 4: Run → PASS.**
+- [ ] **Step 5: Commit** `feat: OHM-linked timeline entries highlight the OHM basemap feature`
+
 ---
 
 ## Self-review (coverage)
 
-- LC-3 → T1. FE-1 → T2. open-ended semantics + MQ-7 (etr index) → T3. timeline freshness → T4. The geometry-period
-  `int4range` predicate (MQ-7) is implemented in sub-project A; this plan covers the `entity_temporal_ranges` sibling.
-  All spec requirements mapped.
+- LC-3 → T1. FE-1 → T2. open-ended semantics + MQ-7 (etr index) → T3. timeline freshness → T4. OHM-linked timeline
+  highlight (D19) → T5. The geometry-period `int4range` predicate (MQ-7) is implemented in sub-project A; this plan covers
+  the `entity_temporal_ranges` sibling. All spec requirements mapped.
 
 ## Execution handoff
 
