@@ -6,14 +6,25 @@ namespace App\Http\Requests\Web;
 
 use App\Enums\ChronicleStatus;
 use App\Enums\SourceType;
+use App\Models\Chronicle;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateChronicleRequest extends FormRequest
 {
+    private ?Chronicle $chronicle = null;
+
     public function authorize(): bool
     {
         return $this->user() !== null;
+    }
+
+    private function getChronicle(): Chronicle
+    {
+        if ($this->chronicle === null) {
+            $this->chronicle = Chronicle::where('slug', $this->route('slug'))->firstOrFail();
+        }
+        return $this->chronicle;
     }
 
     /**
@@ -21,9 +32,17 @@ class UpdateChronicleRequest extends FormRequest
      */
     public function rules(): array
     {
+        $chronicle = $this->getChronicle();
+
         return [
             'title' => ['sometimes', 'string', 'max:500'],
-            'slug' => ['sometimes', 'nullable', 'string', 'max:255', 'unique:chronicles,slug,' . $this->route('chronicle')],
+            'slug' => [
+                'sometimes',
+                'nullable',
+                'string',
+                'max:255',
+                Rule::unique('chronicles', 'slug')->ignore($chronicle->chronicle_id, 'chronicle_id'),
+            ],
             'source_type' => ['sometimes', 'nullable', 'string', Rule::enum(SourceType::class)],
             'source_reference' => ['sometimes', 'nullable', 'string', 'max:2000'],
             'status' => ['sometimes', 'nullable', 'string', Rule::enum(ChronicleStatus::class)],
