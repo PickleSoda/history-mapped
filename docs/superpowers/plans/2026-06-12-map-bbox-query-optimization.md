@@ -129,6 +129,22 @@
 - [ ] **Step 4: Run → PASS.**
 - [ ] **Step 5: Commit** `fix(api): trim map feature properties and emit entity_color`
 
+### Task 9b: Borders-from-OHM — emit the OHM ref + serialize point for OHM-linked entities
+
+**Files:** Modify both map actions (projection + properties); Test `MapEntitiesOhmRefTest.php` (new)
+
+> Spec §3.1. This task covers only the **map-query projection**. The storage-side changes (stop hydrating OHM polygons into `entity_locations.territory_geom`, stop backfill copying `territory_geom`, optional cleanup migration) are **Phase 7** of this plan / decision D19.
+
+- [ ] **Step 1: Write the failing test** — for an entity with an active `ohm`/`relation` geo-ref, the map feature `properties` include `ohm_provider`/`ohm_external_type`/`ohm_external_id`, and its `geometry` is the **point** (`geom`), not a polygon.
+- [ ] **Step 2: Run → FAIL.**
+- [ ] **Step 3: Implement** — `LEFT JOIN LATERAL` the entity's active `ohm` geo-ref (provider=ohm, is_active) into the map query; add `ohm_external_id` (+ provider/type) to the projection and the `properties` map. For rows that have an OHM ref, serialize `ST_AsGeoJSON(geom, …)` (point) rather than `COALESCE(territory_geom, geom)`; non-OHM rows keep `COALESCE(...)` so app-owned polygons still render. Keep the geometry-presence guard so an OHM entity with no stored point is still emitted (geometry may be null + an OHM ref present).
+- [ ] **Step 4: Run → PASS.**
+- [ ] **Step 5: Commit** `feat(api): emit OHM feature ref and serialize point for OHM-linked map entities`
+
+> **Note for Task 7 (simplification):** with borders-from-OHM, country polygons are no longer serialized, so zoom-keyed simplification now applies only to retained **app-owned** polygons — keep Task 7 but treat it as lower priority than this task for payload reduction.
+
+> **Frontend follow-up (sub-project A Phase 4 / a viewer ticket):** use the new `ohm_external_id` property to highlight the matching OHM basemap feature on selection instead of drawing a stored polygon overlay.
+
 ---
 
 ## Phase 4 — Frontend repoint
@@ -193,9 +209,43 @@
 
 ---
 
+## Phase 7 — Borders-from-OHM storage policy (Laravel import/backfill)
+
+> Spec §3.1 / decision D19. These are the **storage-side** companion changes to Task 9b: stop the heavy border polygons from ever being stored. They live in the Laravel OHM-borders import path (not the Python agent).
+
+### Task 15: Hydrate only points from OHM geo-refs
+
+**Files:** Modify `api/app/Actions/EntityGeoRef/HydrateEntityGeometryFromGeoRefAction.php:25-28`; Test `HydrateEntityGeometryTest.php` (new/extend)
+
+- [ ] **Step 1: Write the failing test** — hydrating from a Polygon OHM geojson leaves `entity_locations.territory_geom` null (only point `geom` is set); a Point still hydrates `geom`.
+- [ ] **Step 2: Run → FAIL** (today Polygon → `territory_geom`).
+- [ ] **Step 3: Implement** — when `type ∈ {Polygon, MultiPolygon}`, skip the territory write (or derive a representative `ST_PointOnSurface` into `geom`); keep the geo-ref link intact. Gate behind a config flag `borders.store_polygons=false` so the behavior is reversible.
+- [ ] **Step 4: Run → PASS.**
+- [ ] **Step 5: Commit** `feat(api): stop hydrating OHM border polygons into entity_locations (borders-from-OHM)`
+
+### Task 16: Backfill produces point/presence geometry only
+
+**Files:** Modify `api/app/Actions/Entity/BackfillGeometryPeriodsAction.php:65,93,159,173`; Test `BackfillGeometryPeriodsTest.php`
+
+- [ ] **Step 1: Write the failing test** — backfilling an entity whose primary location has a `territory_geom` produces periods with `territory_geom` null (point-only) when `borders.store_polygons=false`.
+- [ ] **Step 2: Run → FAIL.**
+- [ ] **Step 3: Implement** — pass `null` for `territory_geom` in the created periods when the flag is off (keep `geom`); leave the flag-on path unchanged for app-owned data.
+- [ ] **Step 4: Run → PASS.**
+- [ ] **Step 5: Commit** `feat(api): backfill stops copying border polygons into geometry_periods`
+
+### Task 17: Optional cleanup migration — null OHM-derived territory polygons
+
+**Files:** Create `api/database/migrations/2026_06_12_000003_null_ohm_territory_geom.php`; Test `MapIndexMigrationTest.php` (extend)
+
+- [ ] **Step 1: Write the migration** — for entities with an active `ohm` geo-ref, set `entity_locations.territory_geom = NULL` and `geometry_periods.territory_geom = NULL` (keep `geom`); reversible-safe `down()` is a no-op with a logged warning (the polygons came from OHM and can be re-hydrated).
+- [ ] **Step 2: Run on a test DB** — `... artisan migrate`; assert storage drops and OHM-linked entities still have a point.
+- [ ] **Step 3: Commit** `chore(api): null OHM-derived stored territory polygons (reclaim storage)`
+
+---
+
 ## Self-review (coverage)
 
-- LC-1 → T1. MQ-1 → T2. MQ-13 → T3. MQ-15/16 → T4. indexes → T5. MQ-7 → T6. MQ-6 → T7. MQ-9/17 → T8. MQ-8 → T9. FE (abort/debounce/mount) → T10/T11. MQ-3/11 → T12. MQ-4/14 → T13. caching → T14. MQ-18 (`include_territories`) → fold into T9 (implement or drop the rule). MQ-19 (backfill ping-pong) → tracked in plan 10 P12, **not** in this plan (batch path, separate). MVT + SRID → **deferred** (separate future spec). **All in-scope spec items mapped.**
+- LC-1 → T1. MQ-1 → T2. MQ-13 → T3. MQ-15/16 → T4. indexes → T5. MQ-7 → T6. MQ-6 → T7. MQ-9/17 → T8. MQ-8 → T9. borders-from-OHM map query → T9b; storage side → T15–T17 (D19). FE (abort/debounce/mount) → T10/T11. MQ-3/11 → T12. MQ-4/14 → T13. caching → T14. MQ-18 (`include_territories`) → fold into T9 (implement or drop the rule). MQ-19 (backfill ping-pong) → tracked in plan 10 P12, **not** in this plan (batch path, separate). MVT + SRID → **deferred** (separate future spec). **All in-scope spec items mapped.**
 
 ## Execution handoff
 

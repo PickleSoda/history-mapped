@@ -56,7 +56,7 @@ class UpdateChronicleAction
                 'impact_score' => $entryData['impact_score'] ?? null,
                 'approximate_location' => $entryData['approximate_location'] ?? null,
                 'primary_relationship_id' => $entryData['primary_relationship_id'] ?? null,
-                'narrative_text' => $entryData['narrative_text'] ?? null,
+                'narrative_text' => $entryData['narrative_text'] ?? '',
                 'notes' => $entryData['notes'] ?? null,
                 'source_evidence' => $entryData['source_evidence'] ?? null,
             ]);
