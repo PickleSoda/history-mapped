@@ -311,6 +311,16 @@ class ImportEntityJob implements ShouldQueue
         $startYear = $this->parseYear($temporalStart);
         $endYear = $this->parseYear($temporalEnd);
 
+        // Defensive: a BCE year the pipeline emitted unsigned (e.g. "4000-01-01"
+        // meaning 4000 BCE) can leave start_year > end_year and trip the
+        // etr_valid_year_range check constraint, failing the whole entity import.
+        // Drop the inconsistent end rather than losing the record.
+        if ($startYear !== null && $endYear !== null && $startYear > $endYear) {
+            Log::warning("[Pipeline] Dropping inconsistent temporal_end for {$entity->name}: start_year {$startYear} > end_year {$endYear}");
+            $endYear = null;
+            $temporalEnd = null;
+        }
+
         EntityTemporalRange::query()->updateOrCreate(
             [
                 'entity_id' => $entity->entity_id,

@@ -6,13 +6,16 @@ from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.log_config import get_logger
 from pipeline.agent.schemas.validation import AuditEvent
 from pipeline.agent.tools.wikidata import search_wikidata_by_name, enrich_wikidata_entities, _rank_candidates
+from pipeline.agent.tools.disambiguation import context_era, era_year, rerank_by_era, is_ambiguous
 
 logger = get_logger(__name__)
 
 
 def resolve_wikidata(state: AgentRunState) -> AgentRunState:
     entity_count = len(state["enriched_entities"])
-    logger.info("Wikidata resolution: %d entities", entity_count)
+    # Transcript-wide era, used as a fallback when an entity has no date of its own.
+    context_era_year = context_era(state["parsed_events"])
+    logger.info("Wikidata resolution: %d entities (context era=%s)", entity_count, context_era_year)
     for i, enriched in enumerate(state["enriched_entities"]):
         logger.info("  [%d/%d] %s (type=%s)", i + 1, entity_count, enriched.candidate.label, enriched.candidate.entity_type)
 
@@ -44,6 +47,22 @@ def resolve_wikidata(state: AgentRunState) -> AgentRunState:
                 continue
 
             ranked = _rank_candidates(results, enriched.candidate.label, enriched.candidate.entity_type)
+            # Era-aware tie-break: when the top label-matched candidates are close
+            # (e.g. "Philip II of Macedon" vs "Philip II of Spain"), enrich the
+            # leaders' dates and prefer the one nearest the entity's era. Bounded
+            # to the ambiguous cases so we don't enrich on every clear match.
+            if is_ambiguous(ranked):
+                target_era = (
+                    era_year(enriched.candidate.start_date)
+                    or era_year(enriched.candidate.end_date)
+                    or context_era_year
+                )
+                if target_era is not None:
+                    leaders = ranked[:5]
+                    dates_by_qid = enrich_wikidata_entities([c["qid"] for c in leaders])
+                    rerank_by_era(ranked, target_era, dates_by_qid)
+                    logger.info("    → era rerank (era=%s) top: %s", target_era,
+                                [(c["qid"], c["label"], c.get("score", 0)) for c in ranked[:3]])
             logger.info("    → search='%s' top: %s", search_name,
                         [(c["qid"], c["label"], c.get("score", 0)) for c in ranked[:3]])
 

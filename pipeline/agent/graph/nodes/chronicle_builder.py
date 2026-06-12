@@ -11,10 +11,16 @@ from pipeline.agent.log_config import get_logger
 logger = get_logger(__name__)
 
 _RELATIONSHIP_TYPE_PRIORITY = [
+    "victorious_at",
+    "defeated_at",
     "participated_in",
     "fought_at",
+    "founded",
+    "succeeded_by",
+    "assassinated_by",
     "caused",
     "resulted_from",
+    "commanded",
     "rules",
     "governed_by",
     "allied_with",
@@ -36,33 +42,37 @@ def _find_primary_relationship(event, candidate_relations, committed, relation_i
     Uses relation_id_map to return real DB IDs.
     """
     mentioned = set(e.lower() for e in event.mentioned_entities)
-    candidates = []
 
+    def _priority(rel) -> int:
+        return (
+            _RELATIONSHIP_TYPE_PRIORITY.index(rel.relationship_type)
+            if rel.relationship_type in _RELATIONSHIP_TYPE_PRIORITY
+            else 999
+        )
+
+    both: list = []         # source AND target named in the event
+    source_only: list = []  # only the source named — covers event-anchored
+                            # relations (e.g. "Alexander victorious_at Battle of
+                            # Issus") where the battle event isn't in the entry's
+                            # mentioned_entities, which would otherwise orphan it.
     for rel in candidate_relations:
         src_match = rel.source_label.lower() in mentioned
         tgt_match = rel.target_label.lower() in mentioned
-        # Require BOTH entities to be mentioned in the event
         if src_match and tgt_match:
-            priority = (
-                _RELATIONSHIP_TYPE_PRIORITY.index(rel.relationship_type)
-                if rel.relationship_type in _RELATIONSHIP_TYPE_PRIORITY
-                else 999
-            )
-            candidates.append((priority, rel))
+            both.append(rel)
+        elif src_match:
+            source_only.append(rel)
 
-    if not candidates:
-        return None
+    # Prefer fully-grounded relations; fall back to source-grounded ones. Walk in
+    # priority order and return the first that resolved to a real DB UUID — never
+    # a synthetic "src|type|tgt" string (that is not a UUID -> 22P02 on import).
+    for rel in sorted(both, key=_priority) + sorted(source_only, key=_priority):
+        rel_key = f"{rel.source_label}|{rel.relationship_type}|{rel.target_label}"
+        db_id = relation_id_map.get(rel_key)
+        if db_id:
+            return db_id
 
-    candidates.sort(key=lambda x: x[0])
-    best = candidates[0][1]
-    rel_key = f"{best.source_label}|{best.relationship_type}|{best.target_label}"
-
-    # Real DB relationship_id (a UUID), resolved by resolve_entity_ids querying
-    # the relationships table by source/target/type. If the relation did not
-    # persist (e.g. an entity was missing) the key is absent — leave the entry
-    # orphaned (None) rather than emitting a synthetic "src|type|tgt" string,
-    # which is not a UUID and raised SQLSTATE 22P02 on chronicle import.
-    return relation_id_map.get(rel_key)
+    return None
 
 
 def _collect_secondary_entities(event, primary_rel_id, enriched_entities, entity_id_map):
