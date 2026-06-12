@@ -35,6 +35,47 @@ and the map-click resolver does 4–10 round trips per click.
 - **OR-bbox:** fix to a single `COALESCE(territory_geom, geom)` expression + functional GiST index.
 - **one-primary invariant:** enforce with partial `UNIQUE` indexes (after a dedup audit).
 - **antimeridian:** include longitude normalization + two-envelope OR in the bbox work.
+- **Borders from OHM (geometry storage policy):** country/territory **border polygons are not stored in the DB** — they
+  are rendered by the OHM basemap layer (which the viewer already loads with date filtering). The DB stores only the
+  lightweight, app-owned geometry (a representative point per entity, presence points, and hand-drawn non-OHM shapes) plus
+  the `entity_geo_refs` pointer to the OHM feature. See §3.1.
+
+## 3.1 Borders-from-OHM geometry policy
+
+**Rationale.** The borders a user sees on the map already come from the OHM **basemap** (`loadHistoricalBasemapStyle` +
+`applyOhmLayerDateFilter`). A stored `territory_geom` polygon is a redundant translucent overlay on top of that, and it is
+the dominant payload + storage cost. Since every OHM-imported entity already has an `entity_geo_refs` row linking it to its
+OHM relation id, the client can render/highlight the border from the OHM layer without the DB holding the polygon.
+
+**What changes (storage side):**
+- **Stop hydrating OHM polygons into `entity_locations.territory_geom`** — `HydrateEntityGeometryFromGeoRefAction` should
+  hydrate only point geometry (representative point); polygons are left to the OHM layer (the geo-ref link is retained).
+- **Stop `BackfillGeometryPeriodsAction` copying `territory_geom`** into periods — backfill produces point/presence
+  geometry only.
+- Optional one-time cleanup: null out OHM-derived `territory_geom` (where an `ohm` geo-ref exists) to reclaim storage.
+- **Keep** `territory_geom` for genuinely app-owned shapes (hand-drawn polygons in the admin editor, non-OHM entities).
+
+**What changes (map query, this sub-project):**
+- The map projection emits each feature's **OHM reference** (`provider`, `external_type`, `external_id` from the
+  entity's active `ohm` geo-ref) in `properties`, so the client can drive selection/highlight on the OHM vector layer.
+- For OHM-linked entities the query serializes the **point** (`geom`), not a polygon, so the GeoJSON payload is tiny;
+  `COALESCE(territory_geom, geom)` still serves the (now rare) app-owned polygons.
+- This makes the zoom-simplification work (P2) largely irrelevant for countries — the bigger payload win is **not
+  serializing border polygons at all** — so simplification drops in priority and applies only to retained app-owned polygons.
+
+**Downstream consumers affected (traced; handled here or flagged as follow-ups):**
+- **Map render** — adjusted in this sub-project (emit point + OHM ref; territory-first ordering becomes a no-op for OHM entities).
+- **Timeline projection / history panel** — territory periods lose their polygon; the panel should highlight the OHM
+  feature for OHM-linked entities (follow-up, tracked in sub-project E's timeline work / a dedicated ticket).
+- **Click resolver** — highlight the clicked OHM feature itself rather than a stored polygon (folded into the
+  `ResolveOhmFeatureAction` rewrite, Task 12 of the plan).
+- **Entity detail / admin editors** — for OHM-linked entities, show the OHM link, not an editable polygon; the geo-ref
+  editor already supports this. App-owned shapes keep their editor.
+
+**Plan split:** the map-query projection change (emit the OHM ref + serialize point for OHM entities) is plan Task 9b; the
+**storage-side** changes (`HydrateEntityGeometryFromGeoRefAction` → point-only, `BackfillGeometryPeriodsAction` → no
+territory copy, optional cleanup migration) are this sub-project's plan **Phase 7** (Laravel import/backfill — *not* the
+Python agent). Both are recorded in decision D19.
 
 ## 4. Architecture
 
