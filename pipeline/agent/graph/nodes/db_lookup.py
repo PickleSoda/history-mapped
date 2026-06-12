@@ -24,6 +24,7 @@ def db_lookup(state: AgentRunState) -> AgentRunState:
             EnrichedCandidate(
                 candidate=candidate,
                 wikidata_match={"existing_entity": existing} if existing else None,
+                existing_entity=existing is not None,
             )
         )
     state["enriched_entities"] = enriched
