@@ -134,7 +134,7 @@ Canonical storage for time-varying geometry.
 |---|---|
 | `geometry_period_id` | UUID primary key |
 | `entity_id` | Owning entity |
-| `period_type` | `territory`, `route`, `spread_zone`, `movement_path`, or `presence` |
+| `period_type` | Free-text `text` column. By convention `territory`, `route`, `spread_zone`, `movement_path`, or `presence`, but this list is **not** DB-enforced — the only constraint is `period_type <> 'presence' OR relationship_id IS NOT NULL` (a presence period must reference a relationship) |
 | `start_year` / `end_year` | Valid year range |
 | `geom` | Time-scoped point or line geometry |
 | `territory_geom` | Time-scoped polygon / multipolygon geometry |
@@ -235,7 +235,61 @@ When you need the live schema, prefer the migrations and models in `api/` over o
 
 ---
 
-## 6. Practical Reading Guide
+## 6. Chronicle Subsystem (added June 2026)
+
+Chronicles are an ordered narrative layer over entities and relationships — a sequence of entries, each tied to a
+primary relationship and a set of secondary entities. They are stored in three tables and are **not** part of the
+`entities` row. (Migrations `2026_06_10_000001..3` create the tables; `2026_06_11_000001..2` add the temporal/impact/location columns.)
+
+### `chronicles`
+
+| Field | Meaning |
+|---|---|
+| `chronicle_id` | UUID primary key |
+| `title` | Chronicle title |
+| `slug` | Unique URL slug (auto-generated from title) |
+| `source_type` | Enum: `video_transcript`, `article`, `book_excerpt`, `manual` |
+| `source_reference` | Optional source pointer |
+| `status` | Enum: `draft`, `published`, `archived` |
+| `start_year` / `end_year` | Integer span (added 2026_06_11) |
+| `impact_score` | Numeric ranking signal (added 2026_06_11) |
+| `approximate_location` | JSON location hint (added 2026_06_11) |
+| `metadata` | JSON spillover |
+
+There is **no** `description` column.
+
+### `chronicle_entries`
+
+| Field | Meaning |
+|---|---|
+| `entry_id` | UUID primary key |
+| `chronicle_id` | Owning chronicle |
+| `sequence_order` | Integer ordering within the chronicle |
+| `narrative_text` | Entry prose (**NOT NULL** in the DB) |
+| `notes` | Editorial notes |
+| `source_evidence` | `text` column, **no cast** (the pipeline writes a string such as `event:0`) |
+| `primary_relationship_id` | UUID FK → `relationships` (nullable) |
+| `start_year` / `end_year` | Integer span (added 2026_06_11) |
+| `impact_score` | Numeric signal (added 2026_06_11) |
+| `approximate_location` | JSON location hint (added 2026_06_11) |
+
+A `getTimestampAttribute` accessor derives a display timestamp from the primary relationship or earliest secondary
+entity, but only when those relations are eager-loaded.
+
+### `chronicle_entry_entities` (pivot)
+
+Many-to-many between entries and entities. Composite PK `(entry_id, entity_id)`, `withPivot('role', 'sequence_in_entry')`
+(role default `mentioned`), FK to `entities` is `RESTRICT` on delete.
+
+> **Known drift / bugs (see [../plans/12-bug-report.md](../plans/12-bug-report.md)):** the June-11 temporal/impact/location
+> fields are persisted by the DTO/action but are stripped by the Web FormRequests and omitted by every serializer, so they
+> are currently unreachable over HTTP (LC-6). `source_evidence` is validated as an array but the column is text (LC-4), and
+> `narrative_text` is NOT NULL while the validator allows null (LC-5). The agent pipeline writes `chronicle.json` but does
+> not import it (PP-4).
+
+---
+
+## 7. Practical Reading Guide
 
 Use this mental model when working with an entity today:
 
