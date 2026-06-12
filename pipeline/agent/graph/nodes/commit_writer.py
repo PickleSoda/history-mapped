@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any
 from datetime import datetime, timezone
 from pipeline.agent.config import AgentConfig
+from pipeline.agent.date_utils import normalize_historical_date
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.relations import CommittedChange
 from pipeline.agent.schemas.validation import AuditEvent, PipelineError
@@ -82,8 +83,8 @@ def _entity_to_jsonl_record(enriched) -> dict[str, Any]:
         "entity_group": _entity_type_to_group(enriched.candidate.entity_type),
         "summary": enriched.summary or "",
         "wikidata_id": enriched.wikidata_match.get("qid") if enriched.wikidata_match else None,
-        "temporal_start": enriched.candidate.start_date,
-        "temporal_end": enriched.candidate.end_date,
+        "temporal_start": normalize_historical_date(enriched.candidate.start_date),
+        "temporal_end": normalize_historical_date(enriched.candidate.end_date),
         "alternative_names": enriched.candidate.aliases,
         "geojson": _extract_geojson(enriched.geometry),
         "source_citations": {"created_by": "historical-agent-pipeline", "confidence": enriched.final_confidence},
@@ -96,8 +97,8 @@ def _relation_to_jsonl_record(relation) -> dict[str, Any]:
         "source_name": relation.source_label,
         "target_name": relation.target_label,
         "relationship_type": relation.relationship_type,
-        "start_date": relation.start_date,
-        "end_date": relation.end_date,
+        "start_date": normalize_historical_date(relation.start_date),
+        "end_date": normalize_historical_date(relation.end_date),
         "description": relation.description,
         "source_citations": {"created_by": "historical-agent-pipeline"},
     }

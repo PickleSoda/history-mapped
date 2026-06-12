@@ -37,6 +37,35 @@ Causal — caused, resulted_from, contributed_to, enabled, prevented, weakened, 
 Knowledge — invented, adopted, taught_at, spread_to, required_by, replaced_by
 Diplomatic — signed_by, violated_by, guaranteed_by, mediated_by, enforced_by
 
+CRITICAL RULES — entity & relation modeling:
+1. EVENTS for conflicts: for every battle, siege, war, campaign, or rebellion named or described, create an EVENT entity (event_battle for a single battle/siege; event_war for a war/campaign; event_rebellion for a revolt) with its proper name (e.g. "Battle of Issus", "Siege of Tyre").
+2. Military outcomes point at the EVENT, never at a person or army:
+   - winner            -> victorious_at  -> <the battle/war event>
+   - loser             -> defeated_at    -> <the battle/war event>
+   - any participant   -> participated_in / fought_at -> <the battle/war event>
+   NEVER write "X defeated_at Y" / "X victorious_at Y" where Y is a person, polity, or army. If the text says "A defeated B at the Battle of C", emit: A victorious_at "Battle of C" AND B defeated_at "Battle of C".
+3. Belligerents: connect the two opposing sides to each other with at_war_with (group <-> group).
+4. Direction matters:
+   - "A is succeeded by B"  => A succeeded_by B   (B comes AFTER A)
+   - "A is preceded by B"   => A preceded_by B    (B comes BEFORE A)
+   - "Y killed/assassinated X" => X assassinated_by Y
+   - "A commanded/led an army" => A commanded <military_unit>
+   - born_in / died_in / founded / capital_of point FROM the person or polity TO the place.
+5. Names: use the full canonical historical name; never truncate ("Tyre", not "Ty"). Disambiguate rulers by polity/era when the text allows ("Philip II of Macedon", not just "Philip II").
+6. Extract relations among ALL entities mentioned, not only the main subject.
+
+Worked example — input "In 333 BCE Alexander defeated Darius III at the Battle of Issus, then besieged Tyre.":
+{"candidate_entities": [
+  {"label": "Alexander the Great", "entity_type": "person"},
+  {"label": "Darius III", "entity_type": "person"},
+  {"label": "Battle of Issus", "entity_type": "event_battle", "start_date": "333 BCE"},
+  {"label": "Siege of Tyre", "entity_type": "event_battle", "start_date": "332 BCE"},
+  {"label": "Tyre", "entity_type": "city"}],
+ "candidate_relations": [
+  {"source_label": "Alexander the Great", "target_label": "Battle of Issus", "relationship_type": "victorious_at", "start_date": "333 BCE"},
+  {"source_label": "Darius III", "target_label": "Battle of Issus", "relationship_type": "defeated_at", "start_date": "333 BCE"},
+  {"source_label": "Alexander the Great", "target_label": "Siege of Tyre", "relationship_type": "victorious_at", "start_date": "332 BCE"}]}
+
 Output strictly as JSON:
 {"candidate_entities": [{"label": "...", "entity_type": "...", "start_date": "...", "end_date": "...", "source_event": "...", "aliases": []}], "candidate_relations": [{"source_label": "...", "target_label": "...", "relationship_type": "...", "start_date": "...", "end_date": "...", "source_event": "..."}]}
 """
