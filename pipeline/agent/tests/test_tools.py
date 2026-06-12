@@ -98,10 +98,16 @@ def test_build_borders_command():
     assert "--sync" in cmd
 
 
-def test_search_relationship_by_labels_raises_on_no_db():
-    """Should raise DbUnavailable when DATABASE_URL is not set or connection fails."""
+def test_search_relationship_by_labels_raises_on_no_db(monkeypatch):
+    """Should raise DbUnavailable when no DB connection is available.
+
+    Patches the connection factory so the result is deterministic regardless of
+    whether a reachable DATABASE_URL happens to be loaded in the test process.
+    """
     import pytest
+    import pipeline.agent.tools.db as dbmod
     from pipeline.agent.tools.db import DbUnavailable
+    monkeypatch.setattr(dbmod, "_get_db_connection", lambda: None)
     with pytest.raises(DbUnavailable):
         search_relationship_by_labels("Alexander", "Darius", "fought_at")
 

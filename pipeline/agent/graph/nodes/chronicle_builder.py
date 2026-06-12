@@ -57,23 +57,12 @@ def _find_primary_relationship(event, candidate_relations, committed, relation_i
     best = candidates[0][1]
     rel_key = f"{best.source_label}|{best.relationship_type}|{best.target_label}"
 
-    # Use relation_id_map first, then fall back to iterating committed
-    db_id = relation_id_map.get(rel_key)
-    if db_id:
-        return db_id
-
-    for commit in committed:
-        # Handle both dict and Pydantic model access
-        commit_record = commit.record if hasattr(commit, "record") else commit
-        if (
-            commit_record.get("source_label") == best.source_label
-            and commit_record.get("target_label") == best.target_label
-            and commit_record.get("relationship_type") == best.relationship_type
-        ):
-            return commit_record.get("relationship_id")
-
-    # Fallback: return the synthetic key
-    return rel_key
+    # Real DB relationship_id (a UUID), resolved by resolve_entity_ids querying
+    # the relationships table by source/target/type. If the relation did not
+    # persist (e.g. an entity was missing) the key is absent — leave the entry
+    # orphaned (None) rather than emitting a synthetic "src|type|tgt" string,
+    # which is not a UUID and raised SQLSTATE 22P02 on chronicle import.
+    return relation_id_map.get(rel_key)
 
 
 def _collect_secondary_entities(event, primary_rel_id, enriched_entities, entity_id_map):

@@ -51,6 +51,15 @@ class ImportEntitiesCommand extends Command
         'ref_measurement_unit',
     ];
 
+    /**
+     * Names of records that threw during synchronous import. Drives the
+     * non-zero exit code and the machine-readable IMPORT_SUMMARY line so the
+     * pipeline can tell real success from per-record failure.
+     *
+     * @var list<string>
+     */
+    private array $failedNames = [];
+
     public function handle(): int
     {
         $path = $this->argument('path');
@@ -138,7 +147,8 @@ class ImportEntitiesCommand extends Command
         }
 
         $this->newLine();
-        $this->info("Total: {$totalImported} imported, {$totalSkipped} skipped");
+        $failedCount = count($this->failedNames);
+        $this->info("Total: {$totalImported} imported, {$totalSkipped} skipped, {$failedCount} failed");
 
         // Dispatch relationship resolution
         if (! $this->option('skip-relationships')) {
@@ -150,7 +160,17 @@ class ImportEntitiesCommand extends Command
             }
         }
 
-        return self::SUCCESS;
+        // Machine-readable summary for the pipeline to detect partial failure.
+        // The returncode alone was insufficient: per-record errors were caught
+        // and the command still exited 0, so the pipeline reported false success.
+        $this->line('IMPORT_SUMMARY '.json_encode([
+            'imported' => $totalImported,
+            'skipped' => $totalSkipped,
+            'failed' => $failedCount,
+            'failed_names' => array_values($this->failedNames),
+        ]));
+
+        return $failedCount > 0 ? self::FAILURE : self::SUCCESS;
     }
 
     /**
@@ -285,7 +305,9 @@ class ImportEntitiesCommand extends Command
             $job = new ImportEntityJob($record, $batchId, $force);
             $job->handle();
         } catch (\Throwable $e) {
-            $this->error("  Failed to import {$record['name']}: {$e->getMessage()}");
+            $name = is_string($record['name'] ?? null) ? $record['name'] : 'unknown';
+            $this->failedNames[] = $name;
+            $this->error("  Failed to import {$name}: {$e->getMessage()}");
         }
     }
 }
