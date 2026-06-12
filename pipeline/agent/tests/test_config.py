@@ -22,3 +22,17 @@ def test_config_accepts_custom_base_url():
     assert cfg.parse_model == "meta-llama/llama-3.1-70b-instruct"
     assert cfg.llm_base_url == "https://openrouter.ai/api/v1"
     assert cfg.openai_api_key == "sk-test"
+
+
+def test_output_dir_is_container_visible():
+    """Test that output_dir resolves to container-visible path for artisan commands."""
+    cfg = AgentConfig()
+    # Must resolve under the mounted api/storage path so `docker compose exec app` can see it.
+    assert cfg.output_dir.endswith("storage/app/pipeline/agent_runs")
+
+
+def test_container_output_dir_returns_absolute_container_path():
+    """Test that container_output_dir returns the in-container absolute path."""
+    cfg = AgentConfig()
+    container_path = cfg.container_output_dir
+    assert container_path == "/var/www/html/storage/app/pipeline/agent_runs"

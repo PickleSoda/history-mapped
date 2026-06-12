@@ -13,6 +13,8 @@ class CandidateRelation(BaseModel):
     description: str | None = None
     confidence: float = 0.0
     final_confidence: float = 0.0
+    source_wikidata_id: str | None = None
+    target_wikidata_id: str | None = None
 
 
 class CommittedChange(BaseModel):

@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.entities import EnrichedCandidate
-from pipeline.agent.logging import get_logger
+from pipeline.agent.log_config import get_logger
 from pipeline.agent.schemas.validation import AuditEvent
 from pipeline.agent.tools.db import search_entity_by_name, search_entity_by_wikidata_id
 

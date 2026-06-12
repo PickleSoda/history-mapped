@@ -34,3 +34,4 @@ class EnrichedCandidate(BaseModel):
     system_confidence: float = 0.0
     final_confidence: float = 0.0
     validation_errors: list[str] = Field(default_factory=list)
+    existing_entity: bool = False  # Set by db_lookup when entity already exists

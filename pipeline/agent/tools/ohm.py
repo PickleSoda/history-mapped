@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from pipeline.agent.logging import get_logger
+from pipeline.agent.log_config import get_logger
 from pipeline.ohm_collections.xml_lookup import (
     find_objects_by_name,
     find_objects_by_wikidata_id,

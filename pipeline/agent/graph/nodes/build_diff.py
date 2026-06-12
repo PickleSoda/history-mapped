@@ -3,7 +3,7 @@ from __future__ import annotations
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.proposals import ProposedDiff
 from pipeline.agent.schemas.validation import AuditEvent
-from pipeline.agent.logging import get_logger
+from pipeline.agent.log_config import get_logger
 from datetime import datetime, timezone
 
 logger = get_logger(__name__)

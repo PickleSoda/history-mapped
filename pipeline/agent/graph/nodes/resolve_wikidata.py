@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from pipeline.agent.graph.state import AgentRunState
-from pipeline.agent.logging import get_logger
+from pipeline.agent.log_config import get_logger
 from pipeline.agent.schemas.validation import AuditEvent
 from pipeline.agent.tools.wikidata import search_wikidata_by_name, enrich_wikidata_entities, _rank_candidates
 

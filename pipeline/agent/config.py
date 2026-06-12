@@ -32,9 +32,10 @@ class AgentConfig:
     llm_base_url: str | None = None
     model_fallbacks: dict[str, list[str]] | None = None
     auto_commit_threshold: float = 0.95
-    output_dir: str = "output/agent_runs"
-    chronicle_output_dir: str = "output/agent_runs"
+    output_dir: str = "api/storage/app/pipeline/agent_runs"
+    chronicle_output_dir: str = "api/storage/app/pipeline/agent_runs"
     ohm_index_path: str = "output/ohm_collections/map-egypt.xml.sqlite"
+    artisan_timeout: int = 300
 
     def __post_init__(self):
         if self.openai_api_key is None:
@@ -43,6 +44,15 @@ class AgentConfig:
             self.llm_base_url = os.getenv("LLM_BASE_URL")
         if self.model_fallbacks is None:
             self.model_fallbacks = MODEL_FALLBACKS
+        # Allow override via environment variable
+        env_output = os.getenv("AGENT_OUTPUT_DIR")
+        if env_output:
+            self.output_dir = env_output
+
+    @property
+    def container_output_dir(self) -> str:
+        """Return the in-container absolute path for artisan commands."""
+        return "/var/www/html/storage/app/pipeline/agent_runs"
 
 
 ENTITY_RISK_POLICIES: dict[str, dict] = {
