@@ -57,6 +57,7 @@ class ImportChroniclesCommand extends Command
         $totalChronicles = 0;
         $totalEntries = 0;
         $totalSkipped = 0;
+        $totalFailed = 0;
 
         foreach ($files as $file) {
             $this->components->twoColumnDetail(basename($file), 'Processing...');
@@ -90,15 +91,17 @@ class ImportChroniclesCommand extends Command
             } catch (\Throwable $e) {
                 $this->error("  Failed to import {$file}: {$e->getMessage()}");
                 Log::error('Chronicle import failed', ['file' => $file, 'error' => $e->getMessage()]);
-                $totalSkipped++;
+                $totalFailed++;
             }
         }
 
         $this->newLine();
-        $this->info("Chronicles: {$totalChronicles} imported, {$totalSkipped} skipped");
+        $this->info("Chronicles: {$totalChronicles} imported, {$totalSkipped} skipped, {$totalFailed} failed");
         $this->info("Total entries imported: {$totalEntries}");
 
-        return self::SUCCESS;
+        // Non-zero exit on real failure so the pipeline does not report false
+        // success (e.g. an invalid-UUID primary_relationship_id raising 22P02).
+        return $totalFailed > 0 ? self::FAILURE : self::SUCCESS;
     }
 
     /**

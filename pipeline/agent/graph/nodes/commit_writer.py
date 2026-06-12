@@ -56,6 +56,25 @@ def _entity_type_to_group(entity_type: str) -> str:
     return ENTITY_TYPE_TO_GROUP.get(entity_type, "POLITY")
 
 
+def _extract_geojson(geometry: Any) -> dict[str, Any] | None:
+    """Return a bare GeoJSON geometry suitable for PostGIS ST_GeomFromGeoJSON.
+
+    resolve_ohm stores the point resolver's wrapper object
+    ({"status": ..., "geometry_source": ..., "point": {GeoJSON}}) on
+    ``enriched.geometry``. Laravel feeds the ``geojson`` field straight into a
+    PostGIS geometry column, which rejects the wrapper ("unknown GeoJSON type").
+    Unwrap to the inner geometry; tolerate an already-bare geometry too.
+    """
+    if not isinstance(geometry, dict):
+        return None
+    point = geometry.get("point")
+    if isinstance(point, dict) and point.get("type") and "coordinates" in point:
+        return point
+    if geometry.get("type") and "coordinates" in geometry:
+        return geometry
+    return None
+
+
 def _entity_to_jsonl_record(enriched) -> dict[str, Any]:
     return {
         "name": enriched.candidate.label,
@@ -66,27 +85,13 @@ def _entity_to_jsonl_record(enriched) -> dict[str, Any]:
         "temporal_start": enriched.candidate.start_date,
         "temporal_end": enriched.candidate.end_date,
         "alternative_names": enriched.candidate.aliases,
-        "geojson": enriched.geometry,
+        "geojson": _extract_geojson(enriched.geometry),
         "source_citations": {"created_by": "historical-agent-pipeline", "confidence": enriched.final_confidence},
     }
 
 
-def _relation_to_hint_record(relation) -> dict[str, Any]:
-    """Convert a CandidateRelation to the hint schema for pipeline_relationship_hints table."""
-    return {
-        "source_wikidata_id": relation.source_wikidata_id,
-        "source": relation.source_label,
-        "relationship_type": relation.relationship_type,
-        "target_wikidata_id": relation.target_wikidata_id,
-        "target_label": relation.target_label,
-        "temporal_start": relation.start_date,
-        "temporal_end": relation.end_date,
-        "confidence": "medium",
-        "wikidata_property": None,
-    }
-
-
 def _relation_to_jsonl_record(relation) -> dict[str, Any]:
+    """Name-keyed relation record consumed by `php artisan pipeline:import-relations`."""
     return {
         "source_name": relation.source_label,
         "target_name": relation.target_label,
@@ -115,23 +120,11 @@ def commit_writer(state: AgentRunState) -> AgentRunState:
         for record in entity_records:
             f.write(json.dumps(record, default=str) + "\n")
 
-    relation_records = [_relation_to_hint_record(r) for r in diff.create_relations]
-    # Write both entity hints and relation hints for the relationship-hint importer
-    relation_entities_path = output_root / "ohm_relation_entities.jsonl"
-    relation_hints_path = output_root / "ohm_relation_hints.jsonl"
-
-    # For relations, we need to write entity hints for source entities
-    # Extract unique source entities from relations
-    source_entities = {}
-    for rel in diff.create_relations:
-        if rel.source_wikidata_id and rel.source_label not in source_entities:
-            source_entities[rel.source_label] = rel.source_wikidata_id
-
-    with relation_entities_path.open("w", encoding="utf-8") as f:
-        for label, qid in source_entities.items():
-            f.write(json.dumps({"name": label, "wikidata_id": qid, "entity_type": "person"}, default=str) + "\n")
-
-    with relation_hints_path.open("w", encoding="utf-8") as f:
+    # Name-keyed relations: the agent rarely has a Wikidata QID for both ends,
+    # so we resolve relations by entity name (see pipeline:import-relations).
+    relation_records = [_relation_to_jsonl_record(r) for r in diff.create_relations]
+    relations_path = output_root / "relations.jsonl"
+    with relations_path.open("w", encoding="utf-8") as f:
         for record in relation_records:
             f.write(json.dumps(record, default=str) + "\n")
 
@@ -168,15 +161,19 @@ def commit_writer(state: AgentRunState) -> AgentRunState:
             ))
 
     if relation_records:
-        # Use container-visible absolute path for the directory
-        container_rel_dir = f"{container_path}/{state['run_id']}"
-        cmd = build_artisan_command("pipeline:import-border-relations", container_rel_dir, sync=True, batch_id=state["run_id"])
+        container_relations_path = f"{container_path}/{state['run_id']}/relations.jsonl"
+        # NB: no sync=True — pipeline:import-relations runs inline and has no --sync flag.
+        cmd = build_artisan_command("pipeline:import-relations", container_relations_path, batch_id=state["run_id"])
         logger.info("Docker import relations (%d records): %s", len(relation_records), " ".join(cmd))
         result = run_artisan_command(cmd)
         logger.info("Docker import relations result: returncode=%d stdout=%s stderr=%s",
                     result["returncode"], result["stdout"][:200], result["stderr"][:200])
 
-        # Gate on returncode - only record committed if successful
+        # Gate on returncode - only record committed if the import did not fault.
+        # Real relationship_id values are resolved from the DB by resolve_entity_ids
+        # (querying by source/target/type), so we deliberately do NOT fabricate a
+        # synthetic "src|type|tgt" id here — that string used to leak into the
+        # chronicle's primary_relationship_id (a uuid column) and raise 22P02.
         if result["returncode"] == 0:
             for rel in diff.create_relations:
                 state["committed"].append(CommittedChange(
@@ -185,10 +182,8 @@ def commit_writer(state: AgentRunState) -> AgentRunState:
                         "source_label": rel.source_label,
                         "target_label": rel.target_label,
                         "relationship_type": rel.relationship_type,
-                        "relationship_id": f"{rel.source_label}|{rel.relationship_type}|{rel.target_label}",
-                        "path": str(relation_hints_path),
+                        "path": str(relations_path),
                         "count": len(relation_records),
-                        "result": result,
                     },
                     committed_at=datetime.now(timezone.utc).isoformat(),
                     batch_id=state["run_id"],

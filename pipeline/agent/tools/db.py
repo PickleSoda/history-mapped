@@ -51,10 +51,10 @@ def ensure_schema() -> None:
             # Check relationships table has required columns
             cursor.execute("""
                 SELECT column_name FROM information_schema.columns
-                WHERE table_name = 'relationships' AND column_name IN ('source_id', 'target_id', 'relationship_type')
+                WHERE table_name = 'relationships' AND column_name IN ('source_entity_id', 'target_entity_id', 'relationship_type')
             """)
             cols = {row[0] for row in cursor.fetchall()}
-            if not {"source_id", "target_id", "relationship_type"}.issubset(cols):
+            if not {"source_entity_id", "target_entity_id", "relationship_type"}.issubset(cols):
                 raise DbUnavailable("relationships missing required columns")
     except psycopg.Error as e:
         raise DbUnavailable(f"Schema check failed: {e}") from e
@@ -162,10 +162,10 @@ def search_relationship_by_labels(
         with conn.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT r.id, r.source_id, r.target_id, r.relationship_type
+                SELECT r.relationship_id, r.source_entity_id, r.target_entity_id, r.relationship_type
                 FROM relationships r
-                JOIN entities src ON r.source_id = src.entity_id
-                JOIN entities tgt ON r.target_id = tgt.entity_id
+                JOIN entities src ON r.source_entity_id = src.entity_id
+                JOIN entities tgt ON r.target_entity_id = tgt.entity_id
                 WHERE src.name = %s AND tgt.name = %s AND r.relationship_type = %s
                 LIMIT 1
                 """,
@@ -173,7 +173,7 @@ def search_relationship_by_labels(
             )
             row = cursor.fetchone()
             if row:
-                return [{"relationship_id": row[0], "source_id": row[1], "target_id": row[2], "relationship_type": row[3]}]
+                return [{"relationship_id": row[0], "source_entity_id": row[1], "target_entity_id": row[2], "relationship_type": row[3]}]
             return []
     except psycopg.Error as e:
         logger.warning("DB query failed for search_relationship_by_labels: %s", e)
