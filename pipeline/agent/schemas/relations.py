@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CandidateRelation(BaseModel):
+    # Coerce numeric year fields (start_date: -331) emitted by the LLM to strings.
+    model_config = ConfigDict(coerce_numbers_to_str=True)
+
     source_label: str
     target_label: str
     relationship_type: str

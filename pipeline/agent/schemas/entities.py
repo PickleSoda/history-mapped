@@ -1,10 +1,16 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Any
+
+# LLMs emit year fields as JSON numbers (start_date: -331) as often as strings;
+# coerce them so a bare integer doesn't raise a ValidationError and sink the node.
+_COERCE = ConfigDict(coerce_numbers_to_str=True)
 
 
 class ParsedEvent(BaseModel):
+    model_config = _COERCE
+
     label: str
     description: str | None = None
     start_date: str | None = None
@@ -14,6 +20,8 @@ class ParsedEvent(BaseModel):
 
 
 class CandidateEntity(BaseModel):
+    model_config = _COERCE
+
     label: str
     entity_type: str
     start_date: str | None = None
