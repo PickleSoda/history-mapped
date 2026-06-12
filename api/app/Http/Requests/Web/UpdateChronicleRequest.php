@@ -46,6 +46,10 @@ class UpdateChronicleRequest extends FormRequest
             'source_type' => ['sometimes', 'nullable', 'string', Rule::enum(SourceType::class)],
             'source_reference' => ['sometimes', 'nullable', 'string', 'max:2000'],
             'status' => ['sometimes', 'nullable', 'string', Rule::enum(ChronicleStatus::class)],
+            'start_year' => ['sometimes', 'nullable', 'integer'],
+            'end_year' => ['sometimes', 'nullable', 'integer'],
+            'impact_score' => ['sometimes', 'nullable', 'integer'],
+            'approximate_location' => ['sometimes', 'nullable', 'array'],
             'metadata' => ['sometimes', 'nullable', 'array'],
             'entries' => ['sometimes', 'nullable', 'array'],
             'entries.*.sequence_order' => ['sometimes', 'integer', 'min:0'],
@@ -55,6 +59,10 @@ class UpdateChronicleRequest extends FormRequest
             'entries.*.primary_relationship_id' => ['sometimes', 'nullable', 'string', 'uuid'],
             'entries.*.secondary_entity_ids' => ['sometimes', 'nullable', 'array'],
             'entries.*.secondary_entity_ids.*' => ['string', 'uuid'],
+            'entries.*.start_year' => ['sometimes', 'nullable', 'integer'],
+            'entries.*.end_year' => ['sometimes', 'nullable', 'integer'],
+            'entries.*.impact_score' => ['sometimes', 'nullable', 'integer'],
+            'entries.*.approximate_location' => ['sometimes', 'nullable', 'array'],
         ];
     }
 }

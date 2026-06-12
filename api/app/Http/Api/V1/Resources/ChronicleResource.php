@@ -20,6 +20,10 @@ class ChronicleResource extends JsonResource
             'source_type' => $this->source_type?->value,
             'source_reference' => $this->source_reference,
             'status' => $this->status?->value,
+            'start_year' => $this->start_year,
+            'end_year' => $this->end_year,
+            'impact_score' => $this->impact_score,
+            'approximate_location' => $this->approximate_location,
             'metadata' => $this->metadata,
             'entry_count' => $this->whenCounted('entries'),
             'entries' => $this->when(
