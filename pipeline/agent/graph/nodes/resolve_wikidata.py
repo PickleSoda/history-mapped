@@ -25,6 +25,11 @@ def resolve_wikidata(state: AgentRunState) -> AgentRunState:
             logger.info("    → pre-assigned QID=%s label=%s", qid, enriched.wikidata_match.get("label", ""))
             continue
 
+        # Skip if db_lookup already found an existing entity in the DB
+        if enriched.existing_entity:
+            logger.info("    → existing entity in DB, skipping Wikidata lookup")
+            continue
+
         # Search Wikidata with smart candidate ranking
         search_names = [enriched.candidate.label]
         # For single-word city/place names, try "Ancient" prefix as fallback

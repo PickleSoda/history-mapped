@@ -24,28 +24,30 @@ from pipeline.agent.graph.nodes.resolve_entity_ids import resolve_entity_ids
 from pipeline.agent.graph.nodes.chronicle_builder import chronicle_builder
 from pipeline.agent.graph.nodes.chronicle_writer import chronicle_writer
 from pipeline.agent.graph.nodes.audit_logger import audit_logger
+from pipeline.agent.graph.node_wrapper import with_error_capture
+from langgraph.checkpoint.memory import MemorySaver
 
 
 def build_workflow() -> StateGraph:
     """Build and return the compiled agent workflow graph."""
     workflow = StateGraph(AgentRunState)
 
-    # Register all nodes
-    workflow.add_node("preprocess_transcript", preprocess_transcript)
-    workflow.add_node("parse_sequence", parse_sequence)
-    workflow.add_node("extract_candidates", extract_candidates)
-    workflow.add_node("db_lookup", db_lookup)
-    workflow.add_node("resolve_wikidata", resolve_wikidata)
-    workflow.add_node("resolve_ohm", resolve_ohm)
-    workflow.add_node("generate_content", generate_content)
-    workflow.add_node("validate", validate)
-    workflow.add_node("build_diff", build_diff)
-    workflow.add_node("approval_gate", approval_gate)
-    workflow.add_node("commit_writer", commit_writer)
-    workflow.add_node("resolve_entity_ids", resolve_entity_ids)
-    workflow.add_node("chronicle_builder", chronicle_builder)
-    workflow.add_node("chronicle_writer", chronicle_writer)
-    workflow.add_node("audit_logger", audit_logger)
+    # Register all nodes with error capture wrapper
+    workflow.add_node("preprocess_transcript", with_error_capture(preprocess_transcript))
+    workflow.add_node("parse_sequence", with_error_capture(parse_sequence))
+    workflow.add_node("extract_candidates", with_error_capture(extract_candidates))
+    workflow.add_node("db_lookup", with_error_capture(db_lookup))
+    workflow.add_node("resolve_wikidata", with_error_capture(resolve_wikidata))
+    workflow.add_node("resolve_ohm", with_error_capture(resolve_ohm))
+    workflow.add_node("generate_content", with_error_capture(generate_content))
+    workflow.add_node("validate", with_error_capture(validate))
+    workflow.add_node("build_diff", with_error_capture(build_diff))
+    workflow.add_node("approval_gate", with_error_capture(approval_gate))
+    workflow.add_node("commit_writer", with_error_capture(commit_writer))
+    workflow.add_node("resolve_entity_ids", with_error_capture(resolve_entity_ids))
+    workflow.add_node("chronicle_builder", with_error_capture(chronicle_builder))
+    workflow.add_node("chronicle_writer", with_error_capture(chronicle_writer))
+    workflow.add_node("audit_logger", with_error_capture(audit_logger))
 
     # Define edges
     workflow.set_entry_point("preprocess_transcript")
@@ -65,7 +67,9 @@ def build_workflow() -> StateGraph:
     workflow.add_edge("chronicle_writer", "audit_logger")
     workflow.add_edge("audit_logger", END)
 
-    return workflow.compile()
+    # Compile with checkpointer for resumability
+    checkpointer = MemorySaver()
+    return workflow.compile(checkpointer=checkpointer)
 
 
 def run_agent(raw_input: str, run_id: str, title: str | None = None, create_chronicle: bool = True) -> AgentRunState:
@@ -132,7 +136,7 @@ def run_agent(raw_input: str, run_id: str, title: str | None = None, create_chro
         "entity_id_map": {},
         "relation_id_map": {},
     }
-    result = workflow.invoke(initial_state)
+    result = workflow.invoke(initial_state, config={"configurable": {"thread_id": run_id}})
     logger.info("Workflow complete: run_id=%s errors=%d committed=%d chronicle=%s",
                 run_id, len(result.get("errors", [])), len(result.get("committed", [])),
                 result.get("chronicle") is not None)
