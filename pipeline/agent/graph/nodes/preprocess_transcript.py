@@ -18,6 +18,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 from pipeline.agent.config import AgentConfig
 from pipeline.agent.graph.state import AgentRunState
+from pipeline.agent.json_utils import parse_llm_json
 from pipeline.agent.llm import create_llm
 from pipeline.agent.log_config import get_logger
 from pipeline.agent.schemas.validation import AuditEvent, PipelineError
@@ -55,12 +56,8 @@ def preprocess_transcript(state: AgentRunState) -> AgentRunState:
     response = llm.invoke(messages)
     content = response.content if hasattr(response, "content") else str(response)
     logger.info("LLM response: %d chars", len(content))
-    # Strip markdown code fences if present
-    if content.strip().startswith("```json"):
-        content = content.strip().removeprefix("```json").removesuffix("```").strip()
-
     try:
-        data = json.loads(content)
+        data = parse_llm_json(content)
         cleaned = data.get("cleaned_text", "").strip()
         if cleaned:
             state["raw_input"] = cleaned

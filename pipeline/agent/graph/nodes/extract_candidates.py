@@ -10,6 +10,7 @@ from pipeline.agent.llm import create_llm_with_fallbacks
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.entities import CandidateEntity
 from pipeline.agent.schemas.relations import CandidateRelation
+from pipeline.agent.json_utils import parse_llm_json
 from pipeline.agent.log_config import get_logger
 from pipeline.agent.schemas.validation import AuditEvent, PipelineError
 
@@ -50,11 +51,8 @@ def extract_candidates(state: AgentRunState) -> AgentRunState:
     response = llm.invoke(messages)
     content = response.content if hasattr(response, "content") else str(response)
     logger.info("LLM response: %d chars", len(content))
-    # Strip markdown code fences if present
-    if content.strip().startswith("```json"):
-        content = content.strip().removeprefix("```json").removesuffix("```").strip()
     try:
-        data = json.loads(content)
+        data = parse_llm_json(content)
         entities = [CandidateEntity(**e) for e in data.get("candidate_entities", [])]
         raw_relations = data.get("candidate_relations", [])
         relations = []

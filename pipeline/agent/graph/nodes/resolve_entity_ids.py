@@ -30,7 +30,9 @@ def resolve_entity_ids(state: AgentRunState) -> AgentRunState:
                 try:
                     matches = search_entity_by_wikidata_id(wikidata_id)
                     if matches:
-                        entity_id_map[name] = matches[0]["entity_id"]
+                        # psycopg returns uuid columns as uuid.UUID; the chronicle
+                        # schema expects plain strings, so coerce here at the source.
+                        entity_id_map[name] = str(matches[0]["entity_id"])
                         continue
                 except DbUnavailable as e:
                     logger.warning("DB unavailable during wikidata lookup: %s", e)
@@ -40,7 +42,7 @@ def resolve_entity_ids(state: AgentRunState) -> AgentRunState:
                     matches = search_entity_by_name(name, entity_type if entity_type else None)
                     for match in matches:
                         if match.get("name", "").lower() == name.lower():
-                            entity_id_map[name] = match["entity_id"]
+                            entity_id_map[name] = str(match["entity_id"])
                             break
                 except DbUnavailable as e:
                     logger.warning("DB unavailable during name lookup: %s", e)
@@ -53,7 +55,7 @@ def resolve_entity_ids(state: AgentRunState) -> AgentRunState:
                 try:
                     matches = search_relationship_by_labels(src, tgt, rtype)
                     for match in matches:
-                        relation_id_map[rel_key] = match["relationship_id"]
+                        relation_id_map[rel_key] = str(match["relationship_id"])
                         break
                 except DbUnavailable as e:
                     logger.warning("DB unavailable during relation lookup: %s", e)

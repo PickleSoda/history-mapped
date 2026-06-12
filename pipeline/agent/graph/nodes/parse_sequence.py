@@ -9,6 +9,7 @@ from pipeline.agent.config import AgentConfig
 from pipeline.agent.llm import create_llm_with_fallbacks
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.entities import ParsedEvent
+from pipeline.agent.json_utils import parse_llm_json
 from pipeline.agent.log_config import get_logger
 from pipeline.agent.schemas.validation import AuditEvent, PipelineError
 
@@ -37,11 +38,8 @@ def parse_sequence(state: AgentRunState) -> AgentRunState:
     response = llm.invoke(messages)
     content = response.content if hasattr(response, "content") else str(response)
     logger.info("LLM response: %d chars", len(content))
-    # Strip markdown code fences if present
-    if content.strip().startswith("```json"):
-        content = content.strip().removeprefix("```json").removesuffix("```").strip()
     try:
-        data = json.loads(content)
+        data = parse_llm_json(content)
         events = [ParsedEvent(**e) for e in data.get("events", [])]
     except (json.JSONDecodeError, TypeError) as exc:
         state["errors"].append(
