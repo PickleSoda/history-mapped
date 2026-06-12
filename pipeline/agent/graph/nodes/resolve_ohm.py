@@ -5,7 +5,7 @@ from pathlib import Path
 
 from pipeline.agent.config import AgentConfig
 from pipeline.agent.graph.state import AgentRunState
-from pipeline.agent.logging import get_logger
+from pipeline.agent.log_config import get_logger
 from pipeline.agent.schemas.validation import AuditEvent, PipelineError
 from pipeline.agent.tools.ohm import (
     search_ohm_by_wikidata_id,

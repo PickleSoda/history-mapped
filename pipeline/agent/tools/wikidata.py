@@ -6,7 +6,7 @@ from typing import Any
 import requests
 from requests.exceptions import RequestException
 
-from pipeline.agent.logging import get_logger
+from pipeline.agent.log_config import get_logger
 from pipeline.config import settings
 
 logger = get_logger(__name__)

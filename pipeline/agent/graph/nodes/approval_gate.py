@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from pipeline.agent.config import ENTITY_RISK_POLICIES, RELATION_RISK_POLICIES, AgentConfig
 from pipeline.agent.graph.state import AgentRunState
-from pipeline.agent.schemas.validation import AuditEvent
-from pipeline.agent.logging import get_logger
+from pipeline.agent.schemas.validation import AuditEvent, PipelineError
+from pipeline.agent.log_config import get_logger
 from datetime import datetime, timezone
 
 logger = get_logger(__name__)
@@ -13,11 +13,11 @@ def approval_gate(state: AgentRunState) -> AgentRunState:
     cfg = AgentConfig()
     diff = state["proposed_diff"]
     if diff is None:
-        state["errors"].append({
-            "node": "approval_gate",
-            "error_type": "missing_diff",
-            "message": "No proposed diff available",
-        })
+        state["errors"].append(PipelineError(
+            node="approval_gate",
+            error_type="missing_diff",
+            message="No proposed diff available",
+        ))
         return state
     auto_entities = []
     auto_relations = []

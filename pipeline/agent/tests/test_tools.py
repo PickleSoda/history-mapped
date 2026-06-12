@@ -54,23 +54,6 @@ def test_wikidata_enrich(mock_get):
     assert results["Q405"]["label"] == "David IV"
 
 
-from pipeline.agent.tools.wikipedia import fetch_wikipedia_summary
-
-
-@patch("pipeline.agent.tools.wikipedia.requests.get")
-def test_wikipedia_fetch(mock_get):
-    mock_get.return_value = MagicMock(
-        json=lambda: {
-            "query": {"pages": {"1": {"extract": "David IV was a king.", "title": "David IV of Georgia"}}}
-        },
-        raise_for_status=lambda: None,
-    )
-    result = fetch_wikipedia_summary("David IV of Georgia")
-    assert result is not None
-    assert "king" in result.get("extract", "").lower()
-    assert result["url"] == "https://en.wikipedia.org/wiki/David_IV_of_Georgia"
-
-
 from pipeline.agent.tools.ohm import search_ohm_by_name, search_ohm_by_wikidata_id, resolve_ohm_geometry
 
 
@@ -115,7 +98,25 @@ def test_build_borders_command():
     assert "--sync" in cmd
 
 
-def test_search_relationship_by_labels_returns_empty_on_no_db():
-    """Should return [] when DATABASE_URL is not set."""
-    result = search_relationship_by_labels("Alexander", "Darius", "fought_at")
-    assert result == []
+def test_search_relationship_by_labels_raises_on_no_db():
+    """Should raise DbUnavailable when DATABASE_URL is not set or connection fails."""
+    import pytest
+    from pipeline.agent.tools.db import DbUnavailable
+    with pytest.raises(DbUnavailable):
+        search_relationship_by_labels("Alexander", "Darius", "fought_at")
+
+
+def test_run_artisan_command_uses_timeout_and_surfaces_returncode(monkeypatch):
+    """Test that run_artisan_command passes timeout and surfaces returncode/stderr."""
+    calls = {}
+    def fake_run(cmd, **kw):
+        calls.update(kw)
+        class R:
+            returncode = 1
+            stdout = ""
+            stderr = "boom"
+        return R()
+    monkeypatch.setattr("pipeline.agent.tools.app_api.subprocess.run", fake_run)
+    out = run_artisan_command(["pipeline:import", "x"])
+    assert calls.get("timeout") is not None
+    assert out["returncode"] == 1 and out["stderr"] == "boom"

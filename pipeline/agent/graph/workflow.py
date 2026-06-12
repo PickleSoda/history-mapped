@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from langgraph.graph import StateGraph, END
 
-from pipeline.agent.logging import get_logger
+from pipeline.agent.log_config import get_logger
+from pipeline.agent.config import AgentConfig
 from pipeline.agent.graph.state import AgentRunState
 
 logger = get_logger(__name__)
@@ -79,7 +82,19 @@ def run_agent(raw_input: str, run_id: str, title: str | None = None, create_chro
     -------
     The final state dict with all artifacts and audit log.
     """
+    cfg = AgentConfig()
     workflow = build_workflow()
+
+    # Check for idempotency - if manifest exists with no errors, short-circuit
+    output_root = Path(cfg.output_dir) / run_id
+    manifest_path = output_root / "manifest.json"
+    if manifest_path.exists():
+        with open(manifest_path) as f:
+            manifest = json.load(f)
+        if manifest.get("errors_count", 0) == 0:
+            logger.info("Run %s already completed successfully, skipping", run_id)
+            return manifest
+
     initial_state: AgentRunState = {
         "run_id": run_id,
         "raw_input": raw_input,
@@ -99,7 +114,7 @@ def run_agent(raw_input: str, run_id: str, title: str | None = None, create_chro
         "entity_id_map": {},
         "relation_id_map": {},
     }
-    result = workflow.invoke(initial_state)
+    result = workflow.invoke(initial_state, config={"configurable": {"thread_id": run_id}})
     logger.info("Workflow complete: run_id=%s errors=%d committed=%d chronicle=%s",
                 run_id, len(result.get("errors", [])), len(result.get("committed", [])),
                 result.get("chronicle") is not None)

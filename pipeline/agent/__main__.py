@@ -24,7 +24,7 @@ def agent(input_path: Path, run_id: str | None, title: str | None, create_chroni
     run_id = run_id or f"agent_{input_path.stem}"
 
     # Configure structured logging
-    from pipeline.agent.logging import configure_logging
+    from pipeline.agent.log_config import configure_logging
     configure_logging()
 
     click.echo(f"Starting agent run: {run_id}")

@@ -3,7 +3,7 @@ from __future__ import annotations
 from pipeline.agent.config import ENTITY_RISK_POLICIES, RELATION_RISK_POLICIES
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.validation import ValidationResult, AuditEvent
-from pipeline.agent.logging import get_logger
+from pipeline.agent.log_config import get_logger
 from datetime import datetime, timezone
 
 logger = get_logger(__name__)

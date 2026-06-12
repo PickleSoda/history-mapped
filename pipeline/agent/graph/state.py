@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TypedDict, Any
+import operator
+from typing import TypedDict, Any, Annotated
 
 from pipeline.agent.schemas.chronicle import Chronicle
 from pipeline.agent.schemas.entities import ParsedEvent, CandidateEntity, EnrichedCandidate
@@ -19,9 +20,9 @@ class AgentRunState(TypedDict):
     enriched_entities: list[EnrichedCandidate]
     validation_results: list[ValidationResult]
     proposed_diff: ProposedDiff | None
-    committed: list[CommittedChange]
-    audit_log: list[AuditEvent]
-    errors: list[PipelineError]
+    committed: Annotated[list[CommittedChange], operator.add]
+    audit_log: Annotated[list[AuditEvent], operator.add]
+    errors: Annotated[list[PipelineError], operator.add]
     chronicle: Chronicle | None
     title: str | None
     create_chronicle: bool
