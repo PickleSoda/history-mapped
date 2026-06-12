@@ -62,6 +62,15 @@ def test_run_agent_end_to_end(mock_run, mock_ohm_name, mock_ohm, mock_enrich, mo
     mock_ohm_name.return_value = []
     mock_run.return_value = {"returncode": 0, "stdout": "OK", "stderr": ""}
 
+    # Clean up any previous run manifest so idempotency guard doesn't short-circuit
+    import shutil
+    from pathlib import Path
+    from pipeline.agent.config import AgentConfig
+    cfg = AgentConfig()
+    prev_run_dir = Path(cfg.output_dir) / "e2e_test_1"
+    if prev_run_dir.exists():
+        shutil.rmtree(prev_run_dir)
+
     result = run_agent("In 1121, David IV defeated Ilghazi at Didgori.", run_id="e2e_test_1")
     assert result["run_id"] == "e2e_test_1"
     assert len(result["parsed_events"]) == 1

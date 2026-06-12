@@ -93,7 +93,25 @@ def run_agent(raw_input: str, run_id: str, title: str | None = None, create_chro
             manifest = json.load(f)
         if manifest.get("errors_count", 0) == 0:
             logger.info("Run %s already completed successfully, skipping", run_id)
-            return manifest
+            # Return a minimal valid state so callers can check result keys
+            return {
+                "run_id": run_id,
+                "raw_input": raw_input,
+                "parsed_events": [],
+                "candidate_entities": [],
+                "candidate_relations": [],
+                "enriched_entities": [],
+                "validation_results": [],
+                "proposed_diff": None,
+                "committed": [],
+                "chronicle": None,
+                "audit_log": [],
+                "errors": [],
+                "title": title,
+                "create_chronicle": create_chronicle,
+                "entity_id_map": {},
+                "relation_id_map": {},
+            }
 
     initial_state: AgentRunState = {
         "run_id": run_id,
@@ -114,7 +132,7 @@ def run_agent(raw_input: str, run_id: str, title: str | None = None, create_chro
         "entity_id_map": {},
         "relation_id_map": {},
     }
-    result = workflow.invoke(initial_state, config={"configurable": {"thread_id": run_id}})
+    result = workflow.invoke(initial_state)
     logger.info("Workflow complete: run_id=%s errors=%d committed=%d chronicle=%s",
                 run_id, len(result.get("errors", [])), len(result.get("committed", [])),
                 result.get("chronicle") is not None)

@@ -46,24 +46,26 @@ class ImportChroniclesCommandTest extends TestCase
         File::ensureDirectoryExists(dirname($fixturePath));
         File::put($fixturePath, json_encode($fixtureData, JSON_PRETTY_PRINT));
 
-        $this->artisan('chronicles:import', ['path' => $fixturePath, '--force' => true])
-            ->assertExitCode(0);
+        try {
+            $this->artisan('chronicles:import', ['path' => $fixturePath, '--force' => true])
+                ->assertExitCode(0);
 
-        $chronicle = Chronicle::where('slug', 'test-chronicle')->first();
-        $this->assertNotNull($chronicle);
-        $this->assertEquals(-1200, $chronicle->start_year);
-        $this->assertEquals(-1100, $chronicle->end_year);
-        $this->assertEquals(8, $chronicle->impact_score);
-        $this->assertEquals(['lat' => 30.0, 'lng' => 31.0], $chronicle->approximate_location);
+            $chronicle = Chronicle::where('slug', 'test-chronicle')->first();
+            $this->assertNotNull($chronicle);
+            $this->assertEquals(-1200, $chronicle->start_year);
+            $this->assertEquals(-1100, $chronicle->end_year);
+            $this->assertEquals(8, $chronicle->impact_score);
+            $this->assertEquals(['lat' => 30.0, 'lng' => 31.0], $chronicle->approximate_location);
 
-        $entry = ChronicleEntry::where('chronicle_id', $chronicle->chronicle_id)->first();
-        $this->assertNotNull($entry);
-        $this->assertEquals(-1150, $entry->start_year);
-        $this->assertEquals(-1140, $entry->end_year);
-        $this->assertEquals(5, $entry->impact_score);
-        $this->assertEquals(['lat' => 30.5, 'lng' => 31.5], $entry->approximate_location);
-        $this->assertEquals(['event:0'], $entry->source_evidence);
-
-        File::delete($fixturePath);
+            $entry = ChronicleEntry::where('chronicle_id', $chronicle->chronicle_id)->first();
+            $this->assertNotNull($entry);
+            $this->assertEquals(-1150, $entry->start_year);
+            $this->assertEquals(-1140, $entry->end_year);
+            $this->assertEquals(5, $entry->impact_score);
+            $this->assertEquals(['lat' => 30.5, 'lng' => 31.5], $entry->approximate_location);
+            $this->assertEquals(['event:0'], $entry->source_evidence);
+        } finally {
+            File::delete($fixturePath);
+        }
     }
 }
