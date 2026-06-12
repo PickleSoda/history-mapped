@@ -78,8 +78,13 @@ loads demo entity/relationship/chronicle fixtures.)
 1. Run `--label iterN`, read `report.md`.
 2. Apply a focused change (e.g. disambiguation, relationship semantics).
 3. Re-run `--label iterN+1`.
-4. Diff the two `report.json` files (or the markdown) to confirm the metric moved
-   the right way without regressing others.
+4. Diff the two iterations:
+   ```bash
+   py -m pipeline.agent.eval.compare iterN iterN+1
+   ```
+   prints a metric-delta table (entities, relationships, event-range violations,
+   orphans, overlap consistency, …) with `[better]`/`[worse]` markers and writes
+   `comparison_vs_<iterN>.md` under the newer run's folder.
 
 > Don't edit pipeline node modules while a run is in flight — the harness spawns
 > a fresh `py -m pipeline agent` subprocess per transcript, so mid-run edits make
