@@ -51,4 +51,26 @@ class ChronicleNarrativeRequiredTest extends TestCase
 
         $response->assertSessionHasErrors(['entries.0.narrative_text']);
     }
+
+    public function test_store_chronicle_with_narrative_text_succeeds(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $response = $this->post(route('chronicles.store'), [
+            'title' => 'Test Chronicle',
+            'source_type' => 'video_transcript',
+            'entries' => [
+                [
+                    'sequence_order' => 1,
+                    'narrative_text' => 'This is a valid narrative text for the chronicle entry.',
+                ]
+            ]
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('chronicles', [
+            'title' => 'Test Chronicle',
+        ]);
+    }
 }
