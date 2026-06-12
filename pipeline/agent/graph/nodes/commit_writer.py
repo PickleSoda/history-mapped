@@ -5,6 +5,7 @@ from typing import Any
 from datetime import datetime, timezone
 from pipeline.agent.config import AgentConfig
 from pipeline.agent.date_utils import normalize_historical_date
+from pipeline.agent.tools.disambiguation import era_year
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.relations import CommittedChange
 from pipeline.agent.schemas.validation import AuditEvent, PipelineError
@@ -76,15 +77,32 @@ def _extract_geojson(geometry: Any) -> dict[str, Any] | None:
     return None
 
 
+def _consistent_dates(start: Any, end: Any) -> tuple[Any, Any]:
+    """Normalize a (start, end) date pair and drop the end if it precedes the
+    start. The DB enforces start_year <= end_year and rejects the whole entity
+    otherwise — a real risk because the LLM sometimes mis-signs a year (e.g. a
+    CE date emitted negative). Dropping the bad end keeps the record importable.
+    """
+    start = normalize_historical_date(start)
+    end = normalize_historical_date(end)
+    start_year, end_year = era_year(start), era_year(end)
+    if start_year is not None and end_year is not None and start_year > end_year:
+        end = None
+    return start, end
+
+
 def _entity_to_jsonl_record(enriched) -> dict[str, Any]:
+    temporal_start, temporal_end = _consistent_dates(
+        enriched.candidate.start_date, enriched.candidate.end_date
+    )
     return {
         "name": enriched.candidate.label,
         "entity_type": enriched.candidate.entity_type,
         "entity_group": _entity_type_to_group(enriched.candidate.entity_type),
         "summary": enriched.summary or "",
         "wikidata_id": enriched.wikidata_match.get("qid") if enriched.wikidata_match else None,
-        "temporal_start": normalize_historical_date(enriched.candidate.start_date),
-        "temporal_end": normalize_historical_date(enriched.candidate.end_date),
+        "temporal_start": temporal_start,
+        "temporal_end": temporal_end,
         "alternative_names": enriched.candidate.aliases,
         "geojson": _extract_geojson(enriched.geometry),
         "source_citations": {"created_by": "historical-agent-pipeline", "confidence": enriched.final_confidence},
@@ -93,12 +111,13 @@ def _entity_to_jsonl_record(enriched) -> dict[str, Any]:
 
 def _relation_to_jsonl_record(relation) -> dict[str, Any]:
     """Name-keyed relation record consumed by `php artisan pipeline:import-relations`."""
+    start_date, end_date = _consistent_dates(relation.start_date, relation.end_date)
     return {
         "source_name": relation.source_label,
         "target_name": relation.target_label,
         "relationship_type": relation.relationship_type,
-        "start_date": normalize_historical_date(relation.start_date),
-        "end_date": normalize_historical_date(relation.end_date),
+        "start_date": start_date,
+        "end_date": end_date,
         "description": relation.description,
         "source_citations": {"created_by": "historical-agent-pipeline"},
     }

@@ -53,7 +53,7 @@ CRITICAL RULES — entity & relation modeling:
    - born_in / died_in / founded / capital_of point FROM the person or polity TO the place.
 5. Names: use the full canonical historical name; never truncate ("Tyre", not "Ty"). Disambiguate rulers by polity/era when the text allows ("Philip II of Macedon", not just "Philip II").
 6. Extract relations among ALL entities mentioned, not only the main subject.
-7. Dates: write each year as a signed-integer STRING value — BCE negative, CE positive ("323 BCE" => "-323"; "2112 BCE" => "-2112"; "476 CE" => "476"). Put the earlier year first so start_date <= end_date. Do NOT use ISO calendar strings like "4000-01-01" for ancient years; "4000 BCE" is "-4000".
+7. Dates: ALWAYS include an explicit era marker — write "323 BCE", "527 CE", "4000 BCE". Never emit a bare number or an ISO calendar string (e.g. "4000-01-01") for ancient years, and never put a minus sign on a CE year. Put the earlier year first so start_date is on or before end_date.
 
 Worked example — input "In 333 BCE Alexander defeated Darius III at the Battle of Issus, then besieged Tyre.":
 {"candidate_entities": [
