@@ -6,9 +6,11 @@ history-mapped is a monorepo with three active product and engineering surfaces:
 
 - `api/`: the primary Laravel application, serving the REST API, auth flows, background jobs, and the Inertia-based admin/editor UI.
 - `web/`: a standalone React SPA served by Vite. Today it is a thin bootstrap client wired to the Laravel health endpoint.
-- `pipeline/`: a Python ingestion pipeline for Wikidata/Wikipedia scraping and staged OpenHistoricalMap borders processing.
+- `pipeline/`: a Python pipeline with three tracks — Wikidata/Wikipedia scraping, staged OpenHistoricalMap borders processing, and a **LangGraph agentic pipeline** (`pipeline/agent/`) that turns raw historical text into validated entity/relation/chronicle proposals.
 
 The Laravel app is the richest implemented surface today. The standalone `web/` package is already connected to the backend but remains intentionally small, while the MapLibre-based historical map and geometry editing tooling currently lives in the admin code inside `api/resources/js`.
+
+> The LangGraph agentic pipeline is an MVP: it produces artifacts and is test-covered with mocked LLMs, but its database-commit path has known critical defects (it currently writes nothing to the DB on a real run). See [implementation-docs/agentic-pipeline-runbook.md](implementation-docs/agentic-pipeline-runbook.md) and [plans/12-bug-report.md](plans/12-bug-report.md) before relying on it.
 
 ## Runtime Surfaces
 
@@ -58,7 +60,7 @@ graph TB
 |------|---------------------|--------------|
 | **`api/`** | Backend application and admin/editor surface | Laravel app code, Inertia React admin, `routes/web.php`, `routes/api.php`, `routes/settings.php`, queue jobs, models, actions |
 | **`web/`** | Standalone customer-facing SPA | React 19 + Vite app, TanStack Query, Axios, `src/pages/home.tsx`, `src/lib/api.ts` |
-| **`pipeline/`** | Offline ingestion and artifact generation | `wikidata/`, `ohm_borders/`, `tests/`, `config.py`, `__main__.py` |
+| **`pipeline/`** | Offline ingestion, artifact generation, and agentic extraction | `wikidata/`, `ohm_borders/`, `ohm_collections/`, `agent/` (LangGraph), `tests/`, `config.py`, `__main__.py` |
 | **`output/`** | Generated pipeline artifacts | Topic JSONL files and `ohm_borders/<run_id>/...` stage output |
 | **`docker/`** | Local container orchestration | Dockerfiles plus `docker/docker-compose.yml` |
 | **`docs/`** | Architecture, runbooks, schemas, plans | Setup docs, pipeline docs, model docs, implementation plans |
@@ -69,8 +71,8 @@ graph TB
 
 | File | Responsibility |
 |------|----------------|
-| **`api/routes/web.php`** | Welcome page, authenticated admin pages, entity screens, reference-table pages, geometry-period routes, relationship routes |
-| **`api/routes/api.php`** | Versioned `/api/v1` JSON API, including health check, public read endpoints, and Sanctum-protected write endpoints |
+| **`api/routes/web.php`** | Welcome page, authenticated admin pages, entity screens, reference-table pages, geometry-period routes, relationship routes, Chronicle CRUD pages (`chronicles.*`) |
+| **`api/routes/api.php`** | Versioned `/api/v1` JSON API: health check; public map reads (`entities/map`, `entities/map/year`, `map/resolve-ohm-feature`); entity/source/timeline/geo-reference reads; public Chronicle reads (`chronicles`, `chronicles/{slug}`); and Sanctum-protected writes |
 | **`api/routes/settings.php`** | Profile, security, and appearance routes for authenticated users |
 | **`api/routes/console.php`** | Console route definitions |
 
@@ -94,10 +96,12 @@ Laravel Fortify provides the auth endpoints; there is no separate `routes/auth.p
 
 The ingestion architecture is file-based rather than streaming-based.
 
-1. Python commands under `pipeline/` scrape or assemble source data.
-2. The pipeline writes JSONL files and staged OHM artifacts into `output/`.
+1. Python commands under `pipeline/` scrape or assemble source data. Three tracks exist: Wikidata/Wikipedia scraping (`pipeline/wikidata/`), staged OHM borders (`pipeline/ohm_borders/`, `pipeline/ohm_collections/`), and the **LangGraph agentic pipeline** (`pipeline/agent/`) that extracts entity/relation/chronicle proposals from raw historical text.
+2. The pipeline writes JSONL files and staged artifacts into `output/` (the agent writes to `output/agent_runs/<run_id>/`).
 3. Laravel artisan commands import those artifacts into PostgreSQL.
 4. Queue jobs and follow-up commands resolve relationship hints and generate embeddings.
+
+> **Caveat (agentic track):** the agent's commit node shells out to artisan importers but currently passes a host path the app container cannot see and never checks the return code, so on a real run it persists nothing while reporting success; chronicles are written to disk but not imported. Treat the agentic write path as not-yet-working — see [plans/11-agentic-pipeline-improvements.md](plans/11-agentic-pipeline-improvements.md).
 
 ```mermaid
 flowchart LR
@@ -118,6 +122,7 @@ Current Laravel-side import commands:
 | **`pipeline:import-borders`** | Import OHM country/entity JSONL output |
 | **`pipeline:import-border-relations`** | Import OHM relation entities and stage relation hints |
 | **`pipeline:embeddings`** | Generate or refresh pgvector embeddings |
+| **`chronicles:import`** | Import agent-produced `chronicle.json` into `chronicles`/`chronicle_entries` (not yet invoked by the agent — see caveat above) |
 
 ## Local Development Topology
 
@@ -167,4 +172,10 @@ Working conventions:
 | `docs/implementation-docs/setup.md` | Monorepo setup, workspace structure, Docker services, auth model, and contract generation flow |
 | `docs/implementation-docs/entity_specification.md` | Entity types, enums, and field-level data model details |
 | `docs/implementation-docs/reference_tables.md` | Historical periods, regions, and supporting reference data |
+| `docs/entity-model/` | Canonical entity/relationship/chronicle data model reference |
+| `docs/implementation-docs/agentic-pipeline-runbook.md` | LangGraph agentic pipeline node reference and run instructions |
+| `docs/implementation-docs/data_pipeline_architecture.md` | All three pipeline tracks and the Laravel import layer |
+| `docs/plans/10-map-query-optimization.md` | Map bbox query optimization plan (headline) |
+| `docs/plans/11-agentic-pipeline-improvements.md` | Agentic pipeline reliability/idempotency/observability plan |
+| `docs/plans/12-bug-report.md` | Consolidated, severity-ranked audit bug report |
 | `docs/reference/implementation-docs/game_inspired_ui_ux.md` | Design reference for the intended historical atlas frontend UI direction |

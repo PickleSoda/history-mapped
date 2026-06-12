@@ -32,6 +32,13 @@ Romulus Augustulus    ──[rules]──────────►  Western Ro
 Odoacer               ──[succeeded_by]───►  Western Roman Empire
 ```
 
+## Chronicles
+
+On top of entities and relationships there is a **Chronicle** layer (added June 2026): an ordered sequence of narrative
+entries, each tied to a primary relationship and a set of secondary entities. Chronicles live in their own tables
+(`chronicles`, `chronicle_entries`, `chronicle_entry_entities`) and are documented in [attributes.md](./attributes.md) §6
+and [diagrams.md](./diagrams.md) §6.
+
 ## Documents in This Folder
 
 | File | Audience |

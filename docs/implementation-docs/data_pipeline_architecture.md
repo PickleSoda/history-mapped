@@ -4,11 +4,12 @@
 
 ## Overview
 
-The current data pipeline is split into two Python tracks plus a Laravel import layer:
+The current data pipeline is split into three Python tracks plus a Laravel import layer:
 
 1. `pipeline/wikidata/` for generic Wikidata/Wikipedia scraping, topic graph walks, and deduplication.
-2. `pipeline/ohm_borders/` for staged OpenHistoricalMap borders processing and relation extraction.
-3. Laravel artisan commands for importing generated artifacts, resolving relationship hints, and generating embeddings.
+2. `pipeline/ohm_borders/` (and `pipeline/ohm_collections/`) for staged OpenHistoricalMap borders processing and relation extraction.
+3. `pipeline/agent/` — a **LangGraph agentic pipeline** that turns raw historical text into validated entity/relation/chronicle proposals (see §3.5 and the [agentic-pipeline-runbook.md](agentic-pipeline-runbook.md)).
+4. Laravel artisan commands for importing generated artifacts, resolving relationship hints, generating embeddings, and importing chronicles.
 
 The system is intentionally file-based. Python writes JSONL and staged artifacts to disk first, then Laravel imports those artifacts later. This keeps the scrape and import loops decoupled and repeatable.
 
@@ -35,16 +36,24 @@ pipeline/
 │   ├── queries/
 │   ├── resolver/
 │   └── scraper/
-└── ohm_borders/
-    ├── __main__.py
-    ├── artifacts.py
-    ├── enricher.py
-    ├── fetcher.py
-    ├── index_builder.py
-    ├── index_store.py
-    ├── stage_*.py
-    ├── stages.py
-    └── subgraph_extractor.py
+├── ohm_borders/
+│   ├── __main__.py
+│   ├── artifacts.py
+│   ├── enricher.py
+│   ├── fetcher.py
+│   ├── index_builder.py
+│   ├── index_store.py
+│   ├── stage_*.py
+│   ├── stages.py
+│   └── subgraph_extractor.py
+├── ohm_collections/         # Curated OHM collection runs (e.g. Egypt)
+└── agent/                   # LangGraph agentic pipeline (see §3.5)
+    ├── __main__.py          # CLI: py -m pipeline agent --input … --run-id …
+    ├── config.py            # AgentConfig + risk policies + MODEL_FALLBACKS
+    ├── llm.py               # create_llm / create_llm_with_fallbacks
+    ├── graph/               # state.py, workflow.py, nodes/ (15-node linear graph)
+    ├── tools/               # db, wikidata (REST), ohm, wikipedia, app_api
+    └── schemas/             # entities, relations, proposals, validation, chronicle
 ```
 
 ## 1. Wikidata Pipeline
@@ -152,6 +161,29 @@ py -m pipeline borders build --run-id roman-empire-subgraph --resume
 py -m pipeline borders relations-run --run-id roman-empire-subgraph --resume
 ```
 
+## 3.5. Agentic Pipeline (`pipeline/agent/`)
+
+A LangGraph workflow that turns raw historical text (transcripts, articles, book excerpts) into validated
+entity/relation/chronicle proposals. Unlike the scrape tracks, it is invoked per input document:
+
+```powershell
+py -m pipeline agent --input transcript.txt --run-id my_run
+```
+
+It runs a strictly linear 15-node graph (preprocess → parse → extract → db_lookup → resolve_wikidata (REST) →
+resolve_ohm → generate → validate → build_diff → approval_gate → commit_writer → resolve_entity_ids → chronicle_builder
+→ chronicle_writer → audit_logger) and writes `output/agent_runs/<run_id>/`:
+`manifest.json`, `entities_to_create.jsonl`, `relations_to_create.jsonl`, `chronicle.json`.
+
+`commit_writer` shells out to `pipeline:import` / `pipeline:import-borders`, and `chronicle.json` is imported by
+`chronicles:import`. Full node reference and run instructions: [agentic-pipeline-runbook.md](agentic-pipeline-runbook.md).
+
+> ⚠️ **Known issues:** the agent's commit path currently passes a host path the app container can't see, ignores artisan
+> return codes, sends relations to the wrong importer, and never invokes `chronicles:import` — so on a real run it
+> persists nothing while reporting success. The JSONL/manifest artifacts are correct; the DB-commit half is not yet
+> working. See [../plans/11-agentic-pipeline-improvements.md](../plans/11-agentic-pipeline-improvements.md) and
+> [../plans/12-bug-report.md](../plans/12-bug-report.md).
+
 ## 3. Laravel Import Layer
 
 The Laravel app consumes pipeline artifacts through artisan commands under `api/app/Console/Commands/`.
@@ -164,6 +196,7 @@ The Laravel app consumes pipeline artifacts through artisan commands under `api/
 | `pipeline:embeddings` | Database rows | Generate or refresh pgvector embeddings |
 | `pipeline:resolve-relationships` | batch ID (optional) | Resolve pipeline relationship hints into relationships |
 | `pipeline:report-relationship-hints` | batch ID (optional) | Report hint status and retryable samples |
+| `chronicles:import` | `chronicle.json` file | Import agent-produced chronicles into `chronicles`/`chronicle_entries` (`{path} {--all} {--force} {--dry-run} {--sync}`) |
 
 ### Important command behavior
 

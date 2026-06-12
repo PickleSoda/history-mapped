@@ -268,7 +268,63 @@ They currently include:
 
 ---
 
-## 6. What Changed From Older Diagrams
+## 6. Chronicle Subsystem
+
+Chronicles (added June 2026) are an ordered narrative layer over entities and relationships. They live in their own
+tables and are not part of the `entities` row. See [attributes.md](./attributes.md) §6 for field-level detail.
+
+```mermaid
+erDiagram
+    chronicles {
+        uuid chronicle_id PK
+        text title
+        text slug
+        source_type source_type
+        text source_reference
+        chronicle_status status
+        integer start_year
+        integer end_year
+        integer impact_score
+        jsonb approximate_location
+        jsonb metadata
+    }
+
+    chronicle_entries {
+        uuid entry_id PK
+        uuid chronicle_id FK
+        integer sequence_order
+        text narrative_text
+        text notes
+        text source_evidence
+        uuid primary_relationship_id FK
+        integer start_year
+        integer end_year
+        integer impact_score
+        jsonb approximate_location
+    }
+
+    chronicle_entry_entities {
+        uuid entry_id PK,FK
+        uuid entity_id PK,FK
+        text role
+        integer sequence_in_entry
+    }
+
+    chronicles ||--o{ chronicle_entries : entries
+    chronicle_entries ||--o{ chronicle_entry_entities : secondary_entities
+    chronicle_entries ||--o| relationships : primary_relationship
+    chronicle_entry_entities }o--|| entities : references
+```
+
+### Notes
+
+- `chronicle_entries.primary_relationship_id` is a `uuid` FK to `relationships`.
+- `chronicle_entry_entities` is the many-to-many pivot (composite PK), with a `role` (default `mentioned`).
+- There is no `chronicles.description` column.
+
+---
+
+## 7. What Changed From Older Diagrams
 
 The following older ideas are not part of the live canonical schema and should not be copied into new docs:
 
