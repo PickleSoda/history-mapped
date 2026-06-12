@@ -233,6 +233,7 @@ class ImportChroniclesCommand extends Command
         $chronicle->title = $data['title'] ?? $chronicle->title;
         $chronicle->source_type = $data['source_type'] ?? $chronicle->source_type;
         $chronicle->source_reference = $data['source_reference'] ?? $chronicle->source_reference;
+        $chronicle->status = $data['status'] ?? $chronicle->status;
         $chronicle->start_year = $data['start_year'] ?? $chronicle->start_year;
         $chronicle->end_year = $data['end_year'] ?? $chronicle->end_year;
         $chronicle->impact_score = $data['impact_score'] ?? $chronicle->impact_score;
