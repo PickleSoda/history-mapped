@@ -49,7 +49,7 @@ class UpdateChronicleRequest extends FormRequest
             'metadata' => ['sometimes', 'nullable', 'array'],
             'entries' => ['sometimes', 'nullable', 'array'],
             'entries.*.sequence_order' => ['sometimes', 'integer', 'min:0'],
-            'entries.*.narrative_text' => ['sometimes', 'nullable', 'string', 'max:10000'],
+            'entries.*.narrative_text' => ['required', 'string', 'max:10000'],
             'entries.*.notes' => ['sometimes', 'nullable', 'string', 'max:5000'],
             'entries.*.source_evidence' => ['sometimes', 'nullable', 'array'],
             'entries.*.primary_relationship_id' => ['sometimes', 'nullable', 'string', 'uuid'],
