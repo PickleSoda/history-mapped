@@ -36,7 +36,9 @@ class ListEntitiesAction
             $query->ofTypes($filters->types);
         }
 
-        if ($filters->group !== null) {
+        if ($filters->groups !== null && $filters->groups !== []) {
+            $query->ofGroups($filters->groups);
+        } elseif ($filters->group !== null) {
             $query->ofGroup($filters->group);
         }
 

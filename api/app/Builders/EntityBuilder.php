@@ -47,6 +47,19 @@ class EntityBuilder extends Builder
         ));
     }
 
+    /**
+     * Filter by multiple entity groups (OR).
+     *
+     * @param  list<EntityGroup>  $groups
+     */
+    public function ofGroups(array $groups): self
+    {
+        return $this->whereIn('entity_group', array_map(
+            fn (EntityGroup $g): string => $g->value,
+            $groups,
+        ));
+    }
+
     // ── Verification / Confidence ────────────────────────────
 
     public function verified(): self
@@ -203,7 +216,7 @@ class EntityBuilder extends Builder
      */
     public function nameLike(string $term): self
     {
-        return $this->where('name', 'ILIKE', '%' . $term . '%');
+        return $this->where('name', 'ILIKE', '%'.$term.'%');
     }
 
     // ── Attribute (JSONB) Queries ─────────────────────────────
@@ -298,37 +311,36 @@ class EntityBuilder extends Builder
 
     private static function primaryTemporalStartYearSql(): string
     {
-        return "(SELECT etr.start_year FROM entity_temporal_ranges etr WHERE etr.entity_id = entities.entity_id AND etr.is_primary = true ORDER BY etr.updated_at DESC NULLS LAST, etr.created_at DESC NULLS LAST LIMIT 1)";
+        return '(SELECT etr.start_year FROM entity_temporal_ranges etr WHERE etr.entity_id = entities.entity_id AND etr.is_primary = true ORDER BY etr.updated_at DESC NULLS LAST, etr.created_at DESC NULLS LAST LIMIT 1)';
     }
 
     private static function primaryTemporalEndYearSql(): string
     {
-        return "(SELECT etr.end_year FROM entity_temporal_ranges etr WHERE etr.entity_id = entities.entity_id AND etr.is_primary = true ORDER BY etr.updated_at DESC NULLS LAST, etr.created_at DESC NULLS LAST LIMIT 1)";
+        return '(SELECT etr.end_year FROM entity_temporal_ranges etr WHERE etr.entity_id = entities.entity_id AND etr.is_primary = true ORDER BY etr.updated_at DESC NULLS LAST, etr.created_at DESC NULLS LAST LIMIT 1)';
     }
 
     private static function primaryTemporalStartDateSql(): string
     {
-        return "(SELECT etr.start_date FROM entity_temporal_ranges etr WHERE etr.entity_id = entities.entity_id AND etr.is_primary = true ORDER BY etr.updated_at DESC NULLS LAST, etr.created_at DESC NULLS LAST LIMIT 1)";
+        return '(SELECT etr.start_date FROM entity_temporal_ranges etr WHERE etr.entity_id = entities.entity_id AND etr.is_primary = true ORDER BY etr.updated_at DESC NULLS LAST, etr.created_at DESC NULLS LAST LIMIT 1)';
     }
 
     private static function primaryTemporalEndDateSql(): string
     {
-        return "(SELECT etr.end_date FROM entity_temporal_ranges etr WHERE etr.entity_id = entities.entity_id AND etr.is_primary = true ORDER BY etr.updated_at DESC NULLS LAST, etr.created_at DESC NULLS LAST LIMIT 1)";
+        return '(SELECT etr.end_date FROM entity_temporal_ranges etr WHERE etr.entity_id = entities.entity_id AND etr.is_primary = true ORDER BY etr.updated_at DESC NULLS LAST, etr.created_at DESC NULLS LAST LIMIT 1)';
     }
 
     private static function primaryLocationNameSql(): string
     {
-        return "(SELECT el.location_name FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true ORDER BY el.updated_at DESC NULLS LAST, el.created_at DESC NULLS LAST LIMIT 1)";
+        return '(SELECT el.location_name FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true ORDER BY el.updated_at DESC NULLS LAST, el.created_at DESC NULLS LAST LIMIT 1)';
     }
 
     private static function primaryLocationGeomSql(): string
     {
-        return "(SELECT el.geom FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true ORDER BY el.updated_at DESC NULLS LAST, el.created_at DESC NULLS LAST LIMIT 1)";
+        return '(SELECT el.geom FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true ORDER BY el.updated_at DESC NULLS LAST, el.created_at DESC NULLS LAST LIMIT 1)';
     }
 
     private static function primaryLocationTerritorySql(): string
     {
-        return "(SELECT el.territory_geom FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true ORDER BY el.updated_at DESC NULLS LAST, el.created_at DESC NULLS LAST LIMIT 1)";
+        return '(SELECT el.territory_geom FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true ORDER BY el.updated_at DESC NULLS LAST, el.created_at DESC NULLS LAST LIMIT 1)';
     }
-
 }

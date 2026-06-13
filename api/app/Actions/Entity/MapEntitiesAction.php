@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Actions\Entity;
 
 use App\Enums\ConfidenceLevel;
+use App\Enums\EntityGroup;
 use App\Enums\EntityType;
 use App\Enums\VerificationStatus;
 use App\Services\ZoomImpactThreshold;
-use Illuminate\Support\LazyCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\LazyCollection;
 
 /**
  * Retrieve map border features from geometry periods.
@@ -106,6 +107,17 @@ class MapEntitiesAction
             $query->where('entities.confidence', '>=', ConfidenceLevel::from($filters['min_confidence'])->value);
         }
 
+        // Optional entity-group filter (multi-group `groups[]` or single `group`).
+        if (isset($filters['groups']) && is_array($filters['groups'])) {
+            $groupValues = array_map(
+                fn (string $g): string => EntityGroup::from($g)->value,
+                $filters['groups'],
+            );
+            $query->whereIn('entities.entity_group', $groupValues);
+        } elseif (isset($filters['group'])) {
+            $query->where('entities.entity_group', EntityGroup::from($filters['group'])->value);
+        }
+
         // Optional temporal range filter (overrides single-year filter when provided)
         if (isset($filters['temporal_start'], $filters['temporal_end'])) {
             $query->where('geometry_periods.start_year', '<=', (int) $filters['temporal_end'])
@@ -188,5 +200,4 @@ class MapEntitiesAction
             ? (int) $filters['year']
             : 1000;
     }
-
 }

@@ -114,6 +114,16 @@ coordinates (Byzantine Empire at 31N, 31E) or no geometry at all.
   Mesopotamia — no Egypt clustering.
 - Scope held to polities: extending to cities matched modern namesakes
   (Rome → Rome OH), so place geocoding was dropped (follow-up below).
+- **Approximate-point fallback**: when OHM has no feature for a polity (Persian
+  Empire, Nabataean Kingdom), fall back to an approximate point from the
+  entity's Wikidata coordinate (P625) so it still appears on the map
+  (verified: Persian `Point(53 33)`, Nabataean `Point(35.44 30.33)`).
+- Storage stores a **representative point + OHM geo-ref id**, never the boundary
+  polygon (the polygon renders from the OHM basemap). Embedding polygons blew
+  PHP's memory limit on import — fixed.
+- Guards: a known large era mismatch vetoes a perfect name match to a wrong-era
+  namesake ("Egypt" vs the 1843 US village "Egypt"); OHM canonical names in
+  non-Latin script (cuneiform Achaemenid) are not adopted as display names.
 
 ## Known limitations / follow-ups
 

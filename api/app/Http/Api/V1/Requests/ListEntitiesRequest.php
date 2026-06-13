@@ -36,6 +36,8 @@ class ListEntitiesRequest extends FormRequest
             'types' => ['sometimes', 'array', 'max:30'],
             'types.*' => ['string', Rule::enum(EntityType::class)],
             'group' => ['sometimes', 'string', Rule::enum(EntityGroup::class)],
+            'groups' => ['sometimes', 'array', 'max:5'],
+            'groups.*' => ['string', Rule::enum(EntityGroup::class)],
 
             // Verification
             'status' => ['sometimes', 'string', Rule::enum(VerificationStatus::class)],
