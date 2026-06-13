@@ -61,20 +61,50 @@ def test_resolve_wikidata(mock_search, mock_enrich):
     assert new_state["enriched_entities"][0].wikidata_match.get("qid") == "Q405"
 
 
-@patch("pipeline.agent.graph.nodes.resolve_ohm.Path")
-@patch("pipeline.agent.graph.nodes.resolve_ohm.resolve_ohm_geometry")
-@patch("pipeline.agent.graph.nodes.resolve_ohm.search_ohm_by_wikidata_id")
-def test_resolve_ohm(mock_search, mock_geo, mock_path):
-    mock_path.return_value.exists.return_value = True
-    mock_search.return_value = [{"object_type": "node", "object_id": 123, "name": "Didgori"}]
-    mock_geo.return_value = {"type": "Point", "coordinates": [44.5, 41.8]}
+@patch("pipeline.agent.graph.nodes.resolve_ohm.resolve_polity")
+def test_resolve_ohm_place_attaches_geometry_without_rename(mock_resolve):
+    mock_resolve.return_value = {
+        "name": "Didgori (battlefield)",
+        "external_id": "123",
+        "external_type": "node",
+        "wikidata_id": None,
+        "match_score": 0.9,
+        "manifest": {"status": "matched", "geo_ref": {"external_id": "123"}},
+    }
     state = make_base_state()
     state["candidate_entities"] = []
     state["enriched_entities"] = [
         EnrichedCandidate(
             candidate=CandidateEntity(label="Didgori", entity_type="infrastructure_monument"),
-            wikidata_match={"qid": "Q12345"},
         )
     ]
     new_state = resolve_ohm(state)
-    assert new_state["enriched_entities"][0].ohm_match is not None
+    enriched = new_state["enriched_entities"][0]
+    assert enriched.ohm_match is not None
+    assert enriched.geo_resolution["status"] == "matched"
+    assert enriched.candidate.label == "Didgori"  # place type: geometry only, no rename
+
+
+@patch("pipeline.agent.graph.nodes.resolve_ohm.resolve_polity")
+def test_resolve_ohm_polity_adopts_ohm_identity(mock_resolve):
+    mock_resolve.return_value = {
+        "name": "Imperium Romanum Orientale",
+        "external_id": "2882342",
+        "external_type": "relation",
+        "wikidata_id": "Q12544",
+        "match_score": 1.0,
+        "manifest": {"status": "matched", "geo_ref": {"external_id": "2882342"}},
+    }
+    state = make_base_state()
+    state["candidate_entities"] = []
+    state["enriched_entities"] = [
+        EnrichedCandidate(
+            candidate=CandidateEntity(label="Byzantine Empire", entity_type="political_entity"),
+        )
+    ]
+    new_state = resolve_ohm(state)
+    enriched = new_state["enriched_entities"][0]
+    assert enriched.candidate.label == "Imperium Romanum Orientale"  # polity: OHM name adopted
+    assert "Byzantine Empire" in enriched.candidate.aliases
+    assert enriched.wikidata_match.get("qid") == "Q12544"
+    assert enriched.geo_resolution is not None
