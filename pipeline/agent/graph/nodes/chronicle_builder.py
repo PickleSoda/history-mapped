@@ -104,7 +104,11 @@ def chronicle_builder(state: AgentRunState) -> AgentRunState:
         )
         return state
 
-    title = events[0].label if events[0].label else "Untitled Chronicle"
+    # Prefer the transcript's own title. Falling back to the first event's label
+    # mis-titles survey transcripts (e.g. a "Biggest Empires Throughout History"
+    # transcript became "Rise of the New Kingdom of Egypt" — its first event —
+    # so later entities like Adolf Hitler showed up under an Egypt chronicle).
+    title = (state.get("title") or "").strip() or (events[0].label or "").strip() or "Untitled Chronicle"
     slug = _generate_slug(title)
 
     entries = []

@@ -13,10 +13,13 @@ from pipeline.agent.date_utils import normalize_historical_date
         ("2095 BC", "-2095"),
         ("334 bce", "-334"),
         ("c. 1200 BCE", "-1200"),
-        ("1453 CE", "1453 CE"),   # CE untouched; trigger reads 1453
+        ("1453 CE", "1453"),                                 # strip CE marker
+        ("1933 CE", "1933"),
+        ("476 AD", "476"),                                   # strip AD marker
         ("1453", "1453"),
-        ("-0334-01-01T00:00:00Z", "-0334-01-01T00:00:00Z"),  # already signed ISO
-        ("+0476-01-01T00:00:00Z", "0476-01-01T00:00:00Z"),   # strip leading +
+        ("1945-04-30T00:00:00Z", "1945-04-30"),              # strip ISO time
+        ("-0334-01-01T00:00:00Z", "-0334-01-01"),            # signed ISO, time dropped
+        ("+0476-01-01T00:00:00Z", "0476-01-01"),             # strip leading + and time
         ("1453-05-29", "1453-05-29"),
         (None, None),
         ("", ""),
