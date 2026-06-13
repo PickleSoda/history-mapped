@@ -95,10 +95,21 @@ def _entity_to_jsonl_record(enriched) -> dict[str, Any]:
     temporal_start, temporal_end = _consistent_dates(
         enriched.candidate.start_date, enriched.candidate.end_date
     )
+    group = _entity_type_to_group(enriched.candidate.entity_type)
+    # Events are bounded: a battle/siege/war that has only one date is a
+    # point-in-time, not an open-ended span. Collapse a single bound to a point
+    # (start == end) so it doesn't render as "ongoing to the present". Only
+    # genuinely open-ended entities (a city, a still-extant institution) keep a
+    # null end.
+    if group == "EVENT":
+        if temporal_start and not temporal_end:
+            temporal_end = temporal_start
+        elif temporal_end and not temporal_start:
+            temporal_start = temporal_end
     record: dict[str, Any] = {
         "name": enriched.candidate.label,
         "entity_type": enriched.candidate.entity_type,
-        "entity_group": _entity_type_to_group(enriched.candidate.entity_type),
+        "entity_group": group,
         "summary": enriched.summary or "",
         "wikidata_id": enriched.wikidata_match.get("qid") if enriched.wikidata_match else None,
         "temporal_start": temporal_start,
