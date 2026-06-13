@@ -7,7 +7,7 @@ from pipeline.agent.log_config import get_logger
 from pipeline.agent.schemas.entities import CandidateEntity
 from pipeline.agent.schemas.validation import AuditEvent
 from pipeline.agent.tools.disambiguation import context_era, era_year
-from pipeline.agent.tools.ohm_polity_resolver import resolve_polity
+from pipeline.agent.tools.ohm_polity_resolver import resolve_polity, build_wikidata_point_manifest
 
 logger = get_logger(__name__)
 
@@ -22,9 +22,17 @@ _POLITY_TYPES = {"political_entity", "dynasty"}
 
 
 def _adopt_ohm_name(candidate: CandidateEntity, ohm_name: str | None) -> None:
-    """Adopt OHM's canonical name, preserving the transcript's name as an alias."""
+    """Adopt OHM's canonical name, preserving the transcript's name as an alias.
+
+    Skips non-Latin-script canonicals (e.g. OHM's Old-Persian/cuneiform 𐎧𐏁𐏂 for
+    the Achaemenids) — those make poor display names; we still take OHM's id +
+    geometry, just keep the readable transcript name.
+    """
     original = candidate.label
     canonical = (ohm_name or "").strip()
+    ascii_letters = sum(1 for ch in canonical if ch.isascii() and ch.isalpha())
+    if ascii_letters < 2:
+        return
     if canonical and canonical.lower() != original.lower():
         if original and original not in candidate.aliases:
             candidate.aliases.append(original)
@@ -44,6 +52,7 @@ def resolve_ohm(state: AgentRunState) -> AgentRunState:
     logger.info("OHM resolution: %d entities (context era=%s)", len(entities), context_era_year)
 
     resolved = 0
+    fallback_points = 0
     for i, enriched in enumerate(entities):
         if enriched.candidate.entity_type not in _POLITY_TYPES:
             continue
@@ -61,31 +70,45 @@ def resolve_ohm(state: AgentRunState) -> AgentRunState:
             logger.warning("OHM resolve failed for %s: %s", enriched.candidate.label, exc)
             result = None
 
-        if not result:
+        if result:
+            enriched.geo_resolution = result["manifest"]
+            enriched.ohm_match = {
+                "object_type": result["external_type"],
+                "object_id": result["external_id"],
+            }
+            _adopt_ohm_name(enriched.candidate, result.get("name"))
+            if not enriched.wikidata_match and result.get("wikidata_id"):
+                enriched.wikidata_match = {"qid": result["wikidata_id"]}
+            resolved += 1
+            logger.info(
+                "  [%d/%d] %s -> OHM %s/%s (score=%.2f)",
+                i + 1, len(entities), enriched.candidate.label,
+                result["external_type"], result["external_id"], result.get("match_score", 0.0),
+            )
             continue
 
-        enriched.geo_resolution = result["manifest"]
-        enriched.ohm_match = {
-            "object_type": result["external_type"],
-            "object_id": result["external_id"],
-        }
-        _adopt_ohm_name(enriched.candidate, result.get("name"))
-        if not enriched.wikidata_match and result.get("wikidata_id"):
-            enriched.wikidata_match = {"qid": result["wikidata_id"]}
-        resolved += 1
-
-        logger.info(
-            "  [%d/%d] %s -> OHM %s/%s (score=%.2f, identity-adopted)",
-            i + 1, len(entities), enriched.candidate.label,
-            result["external_type"], result["external_id"], result.get("match_score", 0.0),
-        )
+        # OHM has no feature for this polity (e.g. Persian Empire, Nabataean
+        # Kingdom) — fall back to an approximate point from the entity's Wikidata
+        # coordinate so it still appears on the map.
+        coords = enriched.wikidata_match.get("coordinates") if enriched.wikidata_match else None
+        fallback = build_wikidata_point_manifest(qid, coords)
+        if fallback:
+            enriched.geo_resolution = fallback
+            fallback_points += 1
+            logger.info(
+                "  [%d/%d] %s -> approximate point (wikidata %s, OHM had no feature)",
+                i + 1, len(entities), enriched.candidate.label, qid,
+            )
 
     state["audit_log"].append(
         AuditEvent(
             timestamp=datetime.now(timezone.utc).isoformat(),
             node="resolve_ohm",
             action="ohm_resolved",
-            output_summary=f"OHM-resolved {resolved}/{len(entities)} polity/place entities",
+            output_summary=(
+                f"OHM-resolved {resolved} polities; "
+                f"{fallback_points} approximate-point fallbacks (of {len(entities)} entities)"
+            ),
         )
     )
     return state

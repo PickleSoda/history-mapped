@@ -102,3 +102,45 @@ def test_resolve_ohm_polity_adopts_ohm_identity(mock_resolve):
     assert "Byzantine Empire" in enriched.candidate.aliases
     assert enriched.wikidata_match.get("qid") == "Q12544"
     assert enriched.geo_resolution is not None
+
+
+@patch("pipeline.agent.graph.nodes.resolve_ohm.resolve_polity")
+def test_resolve_ohm_falls_back_to_wikidata_point(mock_resolve):
+    # OHM has no feature (Persian Empire, Nabataean Kingdom) -> approximate point.
+    mock_resolve.return_value = None
+    state = make_base_state()
+    state["candidate_entities"] = []
+    state["enriched_entities"] = [
+        EnrichedCandidate(
+            candidate=CandidateEntity(label="Nabataean Kingdom", entity_type="political_entity"),
+            wikidata_match={"qid": "Q11029653", "coordinates": "Point(35.44 30.33)"},
+        )
+    ]
+    new_state = resolve_ohm(state)
+    enriched = new_state["enriched_entities"][0]
+    assert enriched.geo_resolution is not None
+    assert enriched.geo_resolution["provenance"]["resolver"] == "wikidata_coords"
+    assert enriched.geo_resolution["geometry"]["coordinates"] == [35.44, 30.33]
+    assert enriched.candidate.label == "Nabataean Kingdom"  # fallback never renames
+
+
+@patch("pipeline.agent.graph.nodes.resolve_ohm.resolve_polity")
+def test_resolve_ohm_keeps_readable_name_over_non_latin_ohm_name(mock_resolve):
+    # OHM's Achaemenid feature is named in cuneiform; keep the readable name.
+    mock_resolve.return_value = {
+        "name": "\U000103a7\U000103c2\U000103c2",  # cuneiform glyphs
+        "external_id": "2099900308", "external_type": "node",
+        "wikidata_id": None, "match_score": 0.6,
+        "manifest": {"status": "matched", "geo_ref": {"external_id": "2099900308"}},
+    }
+    state = make_base_state()
+    state["candidate_entities"] = []
+    state["enriched_entities"] = [
+        EnrichedCandidate(
+            candidate=CandidateEntity(label="Achaemenid Dynasty", entity_type="dynasty"),
+        )
+    ]
+    new_state = resolve_ohm(state)
+    enriched = new_state["enriched_entities"][0]
+    assert enriched.candidate.label == "Achaemenid Dynasty"  # non-Latin name not adopted
+    assert enriched.geo_resolution is not None  # geometry/id still attached
