@@ -1,53 +1,32 @@
-/** Typed endpoints for search, period highlights, and timeline density. */
-import {
-  DensitySchema,
-  HighlightsSchema,
-  SearchResultsSchema,
-  type Density,
-  type Highlights,
-  type SearchResults,
-} from '@/lib/schemas/search';
-import { serializeBbox, serializeTime } from '@/lib/url/serialize';
-import type { EntityGroup, Scope, TimeState } from '@/types/atlas';
+/**
+ * Search reuses the list endpoint (GET /entities?search=). Highlights and
+ * density have no backend endpoint yet — they are deferred to their build-order
+ * steps (timeline / highlights). The stubs throw so an accidental call is loud;
+ * the hooks keep them disabled.
+ */
+import { EntityListSchema, type EntityList } from '@/lib/schemas/entity';
+import type { Scope } from '@/types/atlas';
 import { api } from './client';
+import { listParams } from './params';
 
 export async function search(
-  q: string,
-  filters: { groups: EntityGroup[]; time: TimeState },
-  signal?: AbortSignal,
-): Promise<SearchResults> {
-  const { data } = await api.get('/api/v1/atlas/search', {
-    signal,
-    params: {
-      q,
-      groups: filters.groups.join(','),
-      t: serializeTime(filters.time),
-    },
-  });
-  return SearchResultsSchema.parse(data);
-}
-
-export async function highlights(
-  time: TimeState,
-  signal?: AbortSignal,
-): Promise<Highlights> {
-  const { data } = await api.get('/api/v1/atlas/highlights', {
-    signal,
-    params: { t: serializeTime(time) },
-  });
-  return HighlightsSchema.parse(data);
-}
-
-export async function timelineDensity(
   scope: Scope,
+  q: string,
   signal?: AbortSignal,
-): Promise<Density> {
-  const { data } = await api.get('/api/v1/atlas/density', {
+): Promise<EntityList> {
+  const { data } = await api.get('/api/v1/entities', {
     signal,
-    params: {
-      bbox: serializeBbox(scope.bbox),
-      groups: scope.groups.join(','),
-    },
+    params: listParams(scope, { search: q, sort: 'relevance' }),
   });
-  return DensitySchema.parse(data);
+  return EntityListSchema.parse(data);
+}
+
+/** Deferred — no /highlights endpoint yet (period-banner build step). */
+export async function highlights(): Promise<never> {
+  throw new Error('highlights endpoint not implemented (deferred)');
+}
+
+/** Deferred — no /density endpoint yet (timeline build step). */
+export async function timelineDensity(): Promise<never> {
+  throw new Error('density endpoint not implemented (deferred)');
 }

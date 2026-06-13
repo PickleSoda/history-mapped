@@ -1,28 +1,26 @@
-/** Zod schema for a chronicle (guided tour) — fetched whole, one request. */
+/** Zod schema for GET /chronicles/{slug} (ChronicleResource + entries). */
 import { z } from 'zod';
-import { parseBbox } from '@/lib/url/serialize';
-import type { Bbox } from '@/types/atlas';
 
-const BboxFromStringSchema = z
-  .string()
-  .transform((s) => parseBbox(s))
-  .pipe(z.custom<Bbox>((v) => v !== null, 'invalid bbox'));
-
-export const ChronicleStepSchema = z.object({
-  index: z.number(),
-  title: z.string(),
-  beat: z.string(),
-  /** Type-prefixed entity id this step focuses. */
-  sel: z.string().nullable().default(null),
-  /** Derived scope for the step: the camera + timeline are driven from these. */
-  bbox: BboxFromStringSchema,
-  year: z.number(),
+/** One chronicle entry (ChronicleEntryResource) — a step in the tour. */
+export const ChronicleEntrySchema = z.object({
+  entry_id: z.string(),
+  sequence_order: z.number(),
+  start_year: z.number().nullable().default(null),
+  end_year: z.number().nullable().default(null),
+  impact_score: z.number().nullable().default(null),
+  approximate_location: z.unknown().nullable().default(null),
+  narrative_text: z.string().nullable().default(null),
 });
-export type ChronicleStep = z.infer<typeof ChronicleStepSchema>;
+export type ChronicleEntry = z.infer<typeof ChronicleEntrySchema>;
 
 export const ChronicleSchema = z.object({
-  id: z.string(),
+  chronicle_id: z.string(),
   title: z.string(),
-  steps: z.array(ChronicleStepSchema),
+  slug: z.string(),
+  start_year: z.number().nullable().default(null),
+  end_year: z.number().nullable().default(null),
+  impact_score: z.number().nullable().default(null),
+  approximate_location: z.unknown().nullable().default(null),
+  entries: z.array(ChronicleEntrySchema).default([]),
 });
 export type Chronicle = z.infer<typeof ChronicleSchema>;
