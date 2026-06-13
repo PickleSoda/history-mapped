@@ -95,7 +95,38 @@ Sumerians and Biggest Empires — cleared). Final capstone run (`iter4_dates`):
 126 entities, 45 relationships, 7 chronicles, 0 failed runs, overlap consistent.
 BCE entities with markers store correctly (`Uruk -3200`, `Lagash -2500..-2000`).
 
+### Iterations 5-6 — OHM-first polity resolution + Egypt-coordinate bug
+
+`resolve_ohm` used a hardcoded **Egypt-only** local index
+(`map-egypt.xml.sqlite`), so non-Egyptian polities either got Nile-delta
+coordinates (Byzantine Empire at 31N, 31E) or no geometry at all.
+
+- New `ohm_polity_resolver`: hybrid resolver — one live OHM Nominatim call per
+  unique name, cached to SQLite; ranks candidates by **era overlap** with the
+  entity's era + name similarity + wikidata-id match, accepting OHM's
+  contextually-relevant feature even when its canonical name differs.
+- `resolve_ohm` (scoped to `political_entity`/`dynasty`): adopts OHM's canonical
+  name + id (transcript name → alias, fill wikidata from OHM), emits a
+  `_geo_resolution` manifest → `entity_geo_refs` + geometry. Egypt index retired.
+- Verified: Roman Empire → OHM `relation/2849540` "Imperium Romanum" (Q2277);
+  Byzantine → "Imperium Romanum Orientale" (Q12544); Qing, Macedonia, British
+  Empire resolved; Byzantium now at Istanbul, Susa/Uruk/Lagash in
+  Mesopotamia — no Egypt clustering.
+- Scope held to polities: extending to cities matched modern namesakes
+  (Rome → Rome OH), so place geocoding was dropped (follow-up below).
+
 ## Known limitations / follow-ups
+
+- **OHM coverage of polities is uneven.** Major/long-lived states resolve well
+  (Roman, Byzantine, Ottoman, British, Qing), but many ancient polities are
+  simply absent from OHM — direct Overpass lookup by wikidata QID returns 0
+  relations for Persian Empire (Q83311), Achaemenid Dynasty (Q13527812), Gothic
+  Kingdom (Q3446291), Nabataean Kingdom (Q11029653). The resolver correctly
+  *declines* these rather than mis-placing them; the ceiling is OHM's data, not
+  the matcher.
+- **Era-aware place geocoding** (cities/monuments): out of scope for now because
+  bare city names collide with modern namesakes in Nominatim (Rome OH, Gaza IA).
+  Needs an era/region filter before it can be safely enabled.
 
 - **Unmarked deep-BCE dates**: when the LLM emits a bare `2100` (no "BCE"),
   deterministic code can't infer the era, so it stores positive (wrong era). The
