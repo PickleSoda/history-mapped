@@ -62,9 +62,9 @@ def test_resolve_wikidata(mock_search, mock_enrich):
 
 
 @patch("pipeline.agent.graph.nodes.resolve_ohm.resolve_polity")
-def test_resolve_ohm_skips_non_polity(mock_resolve):
-    # Scope is polities only — a city/monument must not be OHM-resolved (avoids
-    # modern-namesake mismatches like Rome OH for ancient Rome).
+def test_resolve_ohm_skips_place_types(mock_resolve):
+    # City/monument places are out of scope (modern-namesake mismatches like
+    # Rome OH); they must not be OHM-resolved.
     state = make_base_state()
     state["candidate_entities"] = []
     state["enriched_entities"] = [
@@ -77,6 +77,26 @@ def test_resolve_ohm_skips_non_polity(mock_resolve):
     assert enriched.geo_resolution is None
     assert enriched.ohm_match is None
     mock_resolve.assert_not_called()
+
+
+@patch("pipeline.agent.graph.nodes.resolve_ohm.resolve_polity")
+def test_resolve_ohm_event_always_gets_a_point(mock_resolve):
+    # Events (wars/battles) must land a point: OHM-less here, so the Wikidata
+    # coordinate fallback applies — and the event keeps its own name.
+    mock_resolve.return_value = None
+    state = make_base_state()
+    state["candidate_entities"] = []
+    state["enriched_entities"] = [
+        EnrichedCandidate(
+            candidate=CandidateEntity(label="Franco-Prussian War", entity_type="event_war"),
+            wikidata_match={"qid": "Q156311", "coordinates": "Point(2 48)"},
+        )
+    ]
+    new_state = resolve_ohm(state)
+    enriched = new_state["enriched_entities"][0]
+    assert enriched.geo_resolution is not None
+    assert enriched.geo_resolution["geometry"]["coordinates"] == [2.0, 48.0]
+    assert enriched.candidate.label == "Franco-Prussian War"  # event name preserved
 
 
 @patch("pipeline.agent.graph.nodes.resolve_ohm.resolve_polity")

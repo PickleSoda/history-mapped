@@ -11,14 +11,29 @@ from pipeline.agent.tools.ohm_polity_resolver import resolve_polity, build_wikid
 
 logger = get_logger(__name__)
 
-# Countries & polities only: OHM is authoritative for identity — adopt OHM's
-# canonical name + id (the transcript's name becomes an alias).
-#
-# Scope is deliberately limited to polities. Bare city names (Rome, Gaza,
-# Babylon) collide with modern same-named towns in OHM Nominatim and resolve to
-# the wrong place (Rome OH, Gaza IA) without an era/identity anchor — worse than
-# no geometry. Era-aware place geocoding is a separate follow-up.
+# Polities: OHM is authoritative for IDENTITY — adopt OHM's canonical name + id
+# (the transcript's name becomes an alias).
 _POLITY_TYPES = {"political_entity", "dynasty"}
+
+# Events (wars, battles, sieges, …): GEOMETRY only — keep the event's name, but
+# always try to put a point down (a war/battle must be locatable on the map).
+# OHM Nominatim first, then the Wikidata-coordinate fallback.
+_EVENT_TYPES = {
+    "event_war",
+    "event_battle",
+    "event_treaty",
+    "event_rebellion",
+    "event_natural_disaster",
+    "event_tech_adoption",
+    "event_legal_reform",
+    "migration",
+    "epidemic_disease",
+}
+
+# Bare city/place names (Rome, Gaza, Babylon) collide with modern same-named
+# towns in OHM Nominatim (Rome OH, Gaza IA) without an identity anchor, so they
+# are deliberately excluded here — era-aware place geocoding is a follow-up.
+_GEO_TYPES = _POLITY_TYPES | _EVENT_TYPES
 
 
 def _adopt_ohm_name(candidate: CandidateEntity, ohm_name: str | None) -> None:
@@ -40,12 +55,15 @@ def _adopt_ohm_name(candidate: CandidateEntity, ohm_name: str | None) -> None:
 
 
 def resolve_ohm(state: AgentRunState) -> AgentRunState:
-    """Resolve polities/places to OpenHistoricalMap via live Nominatim.
+    """Resolve polities + events to OpenHistoricalMap via live Nominatim.
 
-    Polities adopt OHM's canonical name + id (OHM-first identity); places take
-    geometry only. Each match is attached as a `_geo_resolution` manifest for the
-    Laravel geo-ref importer. (Replaces the old Egypt-only local index, which
-    placed e.g. the Byzantine Empire at Nile-delta coordinates.)
+    Polities adopt OHM's canonical name + id (OHM-first identity); events take
+    geometry only (keep their own name). When OHM has no feature, fall back to
+    the entity's Wikidata coordinate so a point is still produced — events
+    especially (a war/battle must be locatable). Each match is attached as a
+    `_geo_resolution` manifest for the Laravel geo-ref importer. (Replaces the
+    old Egypt-only local index, which placed the Byzantine Empire in the Nile
+    delta.)
     """
     context_era_year = context_era(state["parsed_events"])
     entities = state["enriched_entities"]
@@ -54,9 +72,11 @@ def resolve_ohm(state: AgentRunState) -> AgentRunState:
     resolved = 0
     fallback_points = 0
     for i, enriched in enumerate(entities):
-        if enriched.candidate.entity_type not in _POLITY_TYPES:
+        entity_type = enriched.candidate.entity_type
+        if entity_type not in _GEO_TYPES:
             continue
 
+        is_polity = entity_type in _POLITY_TYPES
         era = (
             era_year(enriched.candidate.start_date)
             or era_year(enriched.candidate.end_date)
@@ -76,9 +96,11 @@ def resolve_ohm(state: AgentRunState) -> AgentRunState:
                 "object_type": result["external_type"],
                 "object_id": result["external_id"],
             }
-            _adopt_ohm_name(enriched.candidate, result.get("name"))
-            if not enriched.wikidata_match and result.get("wikidata_id"):
-                enriched.wikidata_match = {"qid": result["wikidata_id"]}
+            # Identity adoption is polities-only; events keep their own name.
+            if is_polity:
+                _adopt_ohm_name(enriched.candidate, result.get("name"))
+                if not enriched.wikidata_match and result.get("wikidata_id"):
+                    enriched.wikidata_match = {"qid": result["wikidata_id"]}
             resolved += 1
             logger.info(
                 "  [%d/%d] %s -> OHM %s/%s (score=%.2f)",
@@ -87,16 +109,17 @@ def resolve_ohm(state: AgentRunState) -> AgentRunState:
             )
             continue
 
-        # OHM has no feature for this polity (e.g. Persian Empire, Nabataean
-        # Kingdom) — fall back to an approximate point from the entity's Wikidata
-        # coordinate so it still appears on the map.
+        # No OHM feature — fall back to an approximate point from the entity's
+        # Wikidata coordinate so it still lands on the map. This is what makes
+        # events (Sack of Rome, Franco-Prussian War) and OHM-less polities
+        # (Persian Empire, Nabataean Kingdom) always get a point when possible.
         coords = enriched.wikidata_match.get("coordinates") if enriched.wikidata_match else None
         fallback = build_wikidata_point_manifest(qid, coords)
         if fallback:
             enriched.geo_resolution = fallback
             fallback_points += 1
             logger.info(
-                "  [%d/%d] %s -> approximate point (wikidata %s, OHM had no feature)",
+                "  [%d/%d] %s -> approximate point (wikidata %s, no OHM feature)",
                 i + 1, len(entities), enriched.candidate.label, qid,
             )
 
@@ -106,7 +129,7 @@ def resolve_ohm(state: AgentRunState) -> AgentRunState:
             node="resolve_ohm",
             action="ohm_resolved",
             output_summary=(
-                f"OHM-resolved {resolved} polities; "
+                f"OHM-resolved {resolved} (polities+events); "
                 f"{fallback_points} approximate-point fallbacks (of {len(entities)} entities)"
             ),
         )
