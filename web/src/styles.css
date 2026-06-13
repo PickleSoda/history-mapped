@@ -2,12 +2,32 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
     --font-heading: var(--font-sans);
     --font-sans: 'Geist Variable', sans-serif;
+    --font-mono: 'Geist Mono Variable', ui-monospace, monospace;
+
+    /* Five entity groups — accent + soft background */
+    --color-polity: var(--g-polity);
+    --color-polity-soft: var(--g-polity-bg);
+    --color-place: var(--g-place);
+    --color-place-soft: var(--g-place-bg);
+    --color-event: var(--g-event);
+    --color-event-soft: var(--g-event-bg);
+    --color-economy: var(--g-economy);
+    --color-economy-soft: var(--g-economy-bg);
+    --color-culture: var(--g-culture);
+    --color-culture-soft: var(--g-culture-bg);
+
+    /* Cartographic basemap */
+    --color-map-water: var(--map-water);
+    --color-map-land: var(--map-land);
+    --color-map-coast: var(--map-coast);
+    --color-map-grid: var(--map-grid);
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -81,6 +101,24 @@
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
+
+    /* Entity-group accents (muted cartographic) */
+    --g-polity: #b4543f;
+    --g-place: #2f7d6b;
+    --g-event: #b07d23;
+    --g-economy: #3f6db4;
+    --g-culture: #7a57ad;
+    --g-polity-bg: #f7ece9;
+    --g-place-bg: #e7f1ee;
+    --g-event-bg: #f6efe0;
+    --g-economy-bg: #e9eff8;
+    --g-culture-bg: #f1ebf7;
+
+    /* Basemap */
+    --map-water: #eef1f4;
+    --map-land: #e2e7ec;
+    --map-coast: #c5ccd5;
+    --map-grid: #e6eaef;
 }
 
 .dark {
@@ -115,6 +153,24 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
+
+    /* Entity-group accents (brightened for dark) */
+    --g-polity: #cf6b53;
+    --g-place: #46a08a;
+    --g-event: #cba04a;
+    --g-economy: #5a8ad6;
+    --g-culture: #a07bd0;
+    --g-polity-bg: #2a1d19;
+    --g-place-bg: #142420;
+    --g-event-bg: #28220f;
+    --g-economy-bg: #15202e;
+    --g-culture-bg: #221a2b;
+
+    /* Basemap */
+    --map-water: #111116;
+    --map-land: #1b1b21;
+    --map-coast: #34343d;
+    --map-grid: #19191f;
 }
 
 @layer base {

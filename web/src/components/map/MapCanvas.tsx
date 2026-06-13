@@ -1,5 +1,6 @@
 import type { FeatureCollection } from 'geojson';
-import maplibregl, { GeoJSONSource } from 'maplibre-gl';
+import type { GeoJSONSource } from 'maplibre-gl';
+import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useEffect, useRef } from 'react';
 import { useEntitiesInView, useMapInstance, useViewport } from '@/hooks';
@@ -11,6 +12,26 @@ const CIRCLE_LAYER = 'entities-circles';
 const EMPTY_FC: FeatureCollection = { type: 'FeatureCollection', features: [] };
 const BASEMAP_STYLE = 'https://demotiles.maplibre.org/style.json';
 const MOVE_DEBOUNCE_MS = 250;
+
+/**
+ * Resolve the active theme's group palette into a maplibre `match` expression
+ * keyed on the feature's UPPERCASE entity_group, so the map tracks the theme.
+ */
+function groupColorExpression(): maplibregl.ExpressionSpecification {
+  const root = getComputedStyle(document.documentElement);
+  const c = (name: string, fallback: string) =>
+    root.getPropertyValue(name).trim() || fallback;
+  return [
+    'match',
+    ['get', 'entity_group'],
+    'POLITY', c('--g-polity', '#b4543f'),
+    'PLACE', c('--g-place', '#2f7d6b'),
+    'EVENT', c('--g-event', '#b07d23'),
+    'ECONOMY', c('--g-economy', '#3f6db4'),
+    'CULTURE', c('--g-culture', '#7a57ad'),
+    c('--muted-foreground', '#71717a'),
+  ];
+}
 
 /**
  * The persistent map (spec §6). It mounts ONCE and is never re-rendered to move
@@ -48,20 +69,22 @@ export function MapCanvas() {
     map.on('load', () => {
       map.addSource(SOURCE_ID, { type: 'geojson', data: EMPTY_FC });
 
+      const groupColor = groupColorExpression();
+
       // Polygon territories: fill + outline.
       map.addLayer({
         id: FILL_LAYER,
         type: 'fill',
         source: SOURCE_ID,
         filter: ['match', ['geometry-type'], ['Polygon', 'MultiPolygon'], true, false],
-        paint: { 'fill-color': '#2563eb', 'fill-opacity': 0.15 },
+        paint: { 'fill-color': groupColor, 'fill-opacity': 0.15 },
       });
       map.addLayer({
         id: LINE_LAYER,
         type: 'line',
         source: SOURCE_ID,
         filter: ['match', ['geometry-type'], ['Polygon', 'MultiPolygon'], true, false],
-        paint: { 'line-color': '#2563eb', 'line-width': 1 },
+        paint: { 'line-color': groupColor, 'line-width': 1 },
       });
       // Point entities.
       map.addLayer({
@@ -71,7 +94,7 @@ export function MapCanvas() {
         filter: ['match', ['geometry-type'], ['Point', 'MultiPoint'], true, false],
         paint: {
           'circle-radius': 5,
-          'circle-color': '#2563eb',
+          'circle-color': groupColor,
           'circle-stroke-width': 1,
           'circle-stroke-color': '#ffffff',
         },
