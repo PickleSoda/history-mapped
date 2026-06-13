@@ -5,25 +5,27 @@ import { TopBar } from '@/components/atlas/TopBar';
 import { MapCanvas } from '@/components/map/MapCanvas';
 
 /**
- * The persistent shell (spec §7). The map mounts once and never unmounts.
- * Left: the collapsible browse/chronicles sidebar. Right: the detail panel,
- * which only appears when an entity is selected (?sel=).
+ * The persistent shell (spec §7). The map fills the whole body and never
+ * resizes — the sidebars are OVERLAID on top of it (rather than shrinking it),
+ * so collapsing/opening a panel doesn't trigger a map re-render. The viewport
+ * bbox therefore extends under the panels, which is acceptable.
  */
 export function AtlasLayout() {
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-background text-foreground">
       <TopBar />
 
-      <div className="flex min-h-0 flex-1">
-        <LeftSidebar />
+      <div className="relative min-h-0 flex-1 overflow-hidden">
+        {/* Full-bleed persistent map */}
+        <MapCanvas />
 
-        {/* Persistent map */}
-        <main className="relative min-w-0 flex-1">
-          <MapCanvas />
-        </main>
-
-        {/* Detail — present only when an entity is selected */}
-        <DetailPanel />
+        {/* Sidebars float over the map */}
+        <div className="absolute inset-y-0 left-0 z-10">
+          <LeftSidebar />
+        </div>
+        <div className="absolute inset-y-0 right-0 z-10">
+          <DetailPanel />
+        </div>
       </div>
 
       {/* Timeline spine */}

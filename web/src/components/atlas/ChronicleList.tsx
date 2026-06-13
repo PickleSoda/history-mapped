@@ -1,5 +1,5 @@
 import { ScrollText } from 'lucide-react';
-import { useChronicleList } from '@/hooks';
+import { useChronicleList, useChronicleNav } from '@/hooks';
 import { formatYear } from '@/lib/format';
 import type { ChronicleSummary } from '@/lib/schemas/chronicle';
 
@@ -11,8 +11,13 @@ function rangeLabel(c: ChronicleSummary): string | null {
 }
 
 function ChronicleRow({ c }: { c: ChronicleSummary }) {
+  const { enter } = useChronicleNav();
   return (
-    <div className="rounded-lg border bg-card px-3 py-2.5">
+    <button
+      type="button"
+      onClick={() => enter(c.slug)}
+      className="w-full rounded-lg border bg-card px-3 py-2.5 text-left transition-colors hover:bg-muted/50"
+    >
       <div className="flex items-start gap-2">
         <ScrollText size={15} className="mt-0.5 flex-none text-muted-foreground" />
         <div className="min-w-0 flex-1">
@@ -28,7 +33,7 @@ function ChronicleRow({ c }: { c: ChronicleSummary }) {
           </div>
         </div>
       </div>
-    </div>
+    </button>
   );
 }
 

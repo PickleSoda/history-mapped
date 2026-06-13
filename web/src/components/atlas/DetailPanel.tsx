@@ -2,6 +2,7 @@ import { Clock, FileText, MapPin, ScrollText, X } from 'lucide-react';
 import { useMemo } from 'react';
 import { GroupBadge, GroupDot } from '@/components/atlas/GroupBadge';
 import {
+  useChronicleNav,
   useEntity,
   useEntityChronicles,
   useEntityConnections,
@@ -59,9 +60,10 @@ function RelationshipTimeline({
 }: {
   rels: Relationship[];
   selfId: string;
-  relChronicle: Map<string, string>;
+  relChronicle: Map<string, { title: string; slug: string }>;
 }) {
   const { select } = useSelection();
+  const { enter } = useChronicleNav();
   const sorted = useMemo(
     () => [...rels].sort((a, b) => relStart(a) - relStart(b)),
     [rels],
@@ -110,9 +112,14 @@ function RelationshipTimeline({
                 {other && <GroupBadge group={other.entity_group} />}
               </button>
               {chronicle && (
-                <span className="ml-1.5 mt-1 inline-flex items-center gap-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
-                  <ScrollText size={11} /> {chronicle}
-                </span>
+                <button
+                  type="button"
+                  onClick={() => enter(chronicle.slug)}
+                  className="ml-1.5 mt-1 inline-flex items-center gap-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground"
+                  title="Open chronicle"
+                >
+                  <ScrollText size={11} /> {chronicle.title}
+                </button>
               )}
             </div>
           );
@@ -129,16 +136,17 @@ function RelationshipTimeline({
  */
 export function DetailPanel() {
   const { sel, clear } = useSelection();
+  const { enter } = useChronicleNav();
   const { data: entity, isLoading, isError } = useEntity(sel);
   const { data: connections } = useEntityConnections(sel);
   const { data: chronicles } = useEntityChronicles(sel);
 
-  // relationship id → chronicle title (first match wins).
+  // relationship id → chronicle (first match wins).
   const relChronicle = useMemo(() => {
-    const m = new Map<string, string>();
+    const m = new Map<string, { title: string; slug: string }>();
     chronicles?.data.forEach((c) =>
       c.relationship_ids.forEach((rid) => {
-        if (!m.has(rid)) m.set(rid, c.title);
+        if (!m.has(rid)) m.set(rid, { title: c.title, slug: c.slug });
       }),
     );
     return m;
@@ -147,7 +155,7 @@ export function DetailPanel() {
   if (!sel) return null;
 
   return (
-    <aside className="flex w-[380px] max-w-[90vw] flex-none flex-col overflow-y-auto border-l bg-card">
+    <aside className="flex h-full w-[380px] max-w-[90vw] flex-none flex-col overflow-y-auto border-l bg-card">
       {/* Bar */}
       <div className="flex items-center justify-between px-3 py-2.5">
         <span className="px-1.5 text-xs font-medium text-muted-foreground">Detail</span>
@@ -196,13 +204,15 @@ export function DetailPanel() {
             {chronicles && chronicles.data.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {chronicles.data.map((c) => (
-                  <span
+                  <button
                     key={c.chronicle_id}
-                    className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-[11px]"
-                    title="Appears in this chronicle"
+                    type="button"
+                    onClick={() => enter(c.slug)}
+                    className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-[11px] hover:bg-muted/70"
+                    title="Open this chronicle"
                   >
                     <ScrollText size={12} /> {c.title}
-                  </span>
+                  </button>
                 ))}
               </div>
             )}
