@@ -1,8 +1,17 @@
+import { ChroniclePlayer } from '@/components/atlas/ChroniclePlayer';
+import { CommandPalette } from '@/components/atlas/CommandPalette';
 import { DetailPanel } from '@/components/atlas/DetailPanel';
 import { LeftSidebar } from '@/components/atlas/LeftSidebar';
 import { Timeline } from '@/components/atlas/Timeline';
 import { TopBar } from '@/components/atlas/TopBar';
 import { MapCanvas } from '@/components/map/MapCanvas';
+import { useChronicleNav } from '@/hooks';
+
+/** The right panel hosts the chronicle tour OR the entity detail — never both. */
+function RightPanel() {
+  const { isActive } = useChronicleNav();
+  return isActive ? <ChroniclePlayer /> : <DetailPanel />;
+}
 
 /**
  * The persistent shell (spec §7). The map fills the whole body and never
@@ -24,7 +33,7 @@ export function AtlasLayout() {
           <LeftSidebar />
         </div>
         <div className="absolute inset-y-0 right-0 z-10">
-          <DetailPanel />
+          <RightPanel />
         </div>
       </div>
 
@@ -32,6 +41,8 @@ export function AtlasLayout() {
       <div className="h-14 flex-none border-t bg-card">
         <Timeline />
       </div>
+
+      <CommandPalette />
     </div>
   );
 }

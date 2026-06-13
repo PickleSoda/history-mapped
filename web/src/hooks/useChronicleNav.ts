@@ -1,6 +1,7 @@
 import { useQueryStates } from 'nuqs';
 import { useCallback } from 'react';
 import { parseAsChronicle, parseAsStep } from '@/lib/url/params';
+import { useSelection } from './useSelection';
 
 /**
  * Chronicle navigation <-> URL `chron` + `step`. Both written with `push` so
@@ -16,10 +17,16 @@ export function useChronicleNav() {
     },
     { history: 'push' },
   );
+  const { clear: clearSelection } = useSelection();
 
+  // Entering a chronicle closes any open entity — the right panel shows the
+  // tour OR the detail, never both.
   const enter = useCallback(
-    (id: string) => set({ chron: id, step: 0 }),
-    [set],
+    (id: string) => {
+      clearSelection();
+      set({ chron: id, step: 0 });
+    },
+    [set, clearSelection],
   );
   const exit = useCallback(() => set({ chron: null, step: null }), [set]);
   const goto = useCallback((index: number) => set({ step: index }), [set]);
