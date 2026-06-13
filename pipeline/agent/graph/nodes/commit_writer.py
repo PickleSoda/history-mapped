@@ -95,7 +95,7 @@ def _entity_to_jsonl_record(enriched) -> dict[str, Any]:
     temporal_start, temporal_end = _consistent_dates(
         enriched.candidate.start_date, enriched.candidate.end_date
     )
-    return {
+    record: dict[str, Any] = {
         "name": enriched.candidate.label,
         "entity_type": enriched.candidate.entity_type,
         "entity_group": _entity_type_to_group(enriched.candidate.entity_type),
@@ -107,6 +107,11 @@ def _entity_to_jsonl_record(enriched) -> dict[str, Any]:
         "geojson": _extract_geojson(enriched.geometry),
         "source_citations": {"created_by": "historical-agent-pipeline", "confidence": enriched.final_confidence},
     }
+    # OHM geo-ref manifest → entity_geo_refs + geometry hydration (Laravel side).
+    geo_resolution = getattr(enriched, "geo_resolution", None)
+    if geo_resolution:
+        record["_geo_resolution"] = geo_resolution
+    return record
 
 
 def _relation_to_jsonl_record(relation) -> dict[str, Any]:

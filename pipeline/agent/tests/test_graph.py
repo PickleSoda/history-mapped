@@ -18,10 +18,9 @@ def test_build_workflow_compiles():
 @patch("pipeline.agent.graph.nodes.db_lookup.search_entity_by_name")
 @patch("pipeline.agent.graph.nodes.resolve_wikidata.search_wikidata_by_name")
 @patch("pipeline.agent.graph.nodes.resolve_wikidata.enrich_wikidata_entities")
-@patch("pipeline.agent.graph.nodes.resolve_ohm.search_ohm_by_wikidata_id")
-@patch("pipeline.agent.graph.nodes.resolve_ohm.search_ohm_by_name")
+@patch("pipeline.agent.graph.nodes.resolve_ohm.resolve_polity")
 @patch("pipeline.agent.graph.nodes.commit_writer.run_artisan_command")
-def test_run_agent_end_to_end(mock_run, mock_ohm_name, mock_ohm, mock_enrich, mock_wd, mock_db, mock_chat):
+def test_run_agent_end_to_end(mock_run, mock_resolve_polity, mock_enrich, mock_wd, mock_db, mock_chat):
     """End-to-end test with all external dependencies mocked."""
     mock_llm = MagicMock()
 
@@ -58,8 +57,7 @@ def test_run_agent_end_to_end(mock_run, mock_ohm_name, mock_ohm, mock_enrich, mo
     mock_db.return_value = []
     mock_wd.return_value = [{"qid": "Q405", "label": "David IV of Georgia", "description": "King of Georgia"}]
     mock_enrich.return_value = {"Q405": {"label": "David IV of Georgia", "description": "King of Georgia"}}
-    mock_ohm.return_value = []
-    mock_ohm_name.return_value = []
+    mock_resolve_polity.return_value = None
     mock_run.return_value = {"returncode": 0, "stdout": "OK", "stderr": ""}
 
     # Clean up any previous run manifest so idempotency guard doesn't short-circuit

@@ -38,6 +38,8 @@ class EnrichedCandidate(BaseModel):
     wikipedia_url: str | None = None
     ohm_match: dict[str, Any] | None = None
     geometry: dict[str, Any] | None = None
+    # `_geo_resolution` manifest (OHM Nominatim) for the Laravel geo-ref importer.
+    geo_resolution: dict[str, Any] | None = None
     summary: str | None = None
     system_confidence: float = 0.0
     final_confidence: float = 0.0
