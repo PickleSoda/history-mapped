@@ -31,6 +31,9 @@ class UpdateChronicleAction
             if ($data->entries !== null) {
                 ChronicleEntry::where('chronicle_id', $chronicle->chronicle_id)->delete();
                 $this->syncEntries($chronicle, $data->entries);
+                // Fill derived impact_score / approximate_location (+ aggregate to
+                // the chronicle) from the freshly-attached relationships + entities.
+                app(EnrichChronicleMetadataAction::class)($chronicle);
             }
 
             return $chronicle->fresh();

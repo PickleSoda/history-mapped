@@ -1,0 +1,178 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Actions\Chronicle;
+
+use App\Models\Chronicle;
+use App\Models\ChronicleEntry;
+use App\Models\Entity;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * Populate derived chronicle/entry fields from the entries' resolved
+ * relationships and entities.
+ *
+ * Runs after entries (and their secondary entities) are persisted, so the
+ * authoritative entity impact scores and locations are available:
+ *  - entry.impact_score        = max impact of the entry's involved entities
+ *  - entry.approximate_location = {lat,lon} of the highest-impact involved entity
+ *  - entry.start_year/end_year  = kept (pipeline event dates) or backfilled from
+ *                                 the primary relationship
+ *  - chronicle.*                = aggregate (min start, max end, max impact, and
+ *                                 the location of its most significant entry)
+ *
+ * Existing (non-null) values are preserved; this only fills gaps + aggregates.
+ */
+class EnrichChronicleMetadataAction
+{
+    public function __invoke(Chronicle $chronicle): void
+    {
+        $chronicle->load([
+            'entries.secondaryEntities',
+            'entries.primaryRelationship.sourceEntity',
+            'entries.primaryRelationship.targetEntity',
+        ]);
+
+        $points = $this->entityPoints($this->allEntityIds($chronicle));
+
+        $start = null;
+        $end = null;
+        $impact = null;
+        $location = null;
+        $locationImpact = -1;
+
+        foreach ($chronicle->entries as $entry) {
+            $entities = $this->involvedEntities($entry);
+
+            $entryImpact = $entities->max('impact_score');
+            [$relStart, $relEnd] = $this->relationshipYears($entry);
+            $entryLocation = $this->representativePoint($entities, $points);
+
+            $entry->forceFill([
+                'start_year' => $entry->start_year ?? $relStart,
+                'end_year' => $entry->end_year ?? $relEnd,
+                'impact_score' => $entryImpact ?? $entry->impact_score,
+                'approximate_location' => $entryLocation ?? $entry->approximate_location,
+            ])->save();
+
+            if ($entry->start_year !== null) {
+                $start = $start === null ? $entry->start_year : min($start, $entry->start_year);
+            }
+            if ($entry->end_year !== null) {
+                $end = $end === null ? $entry->end_year : max($end, $entry->end_year);
+            }
+            if ($entryImpact !== null) {
+                $impact = $impact === null ? $entryImpact : max($impact, $entryImpact);
+            }
+            if ($entryLocation !== null && (int) ($entryImpact ?? 0) > $locationImpact) {
+                $locationImpact = (int) ($entryImpact ?? 0);
+                $location = $entryLocation;
+            }
+        }
+
+        $chronicle->forceFill([
+            'start_year' => $chronicle->start_year ?? $start,
+            'end_year' => $chronicle->end_year ?? $end,
+            'impact_score' => $impact ?? $chronicle->impact_score,
+            'approximate_location' => $location ?? $chronicle->approximate_location,
+        ])->save();
+    }
+
+    /**
+     * Secondary entities + the primary relationship's two endpoints, deduped.
+     *
+     * @return Collection<int, Entity>
+     */
+    private function involvedEntities(ChronicleEntry $entry): Collection
+    {
+        $entities = $entry->secondaryEntities->all();
+
+        $relationship = $entry->primaryRelationship;
+        if ($relationship?->sourceEntity) {
+            $entities[] = $relationship->sourceEntity;
+        }
+        if ($relationship?->targetEntity) {
+            $entities[] = $relationship->targetEntity;
+        }
+
+        return collect($entities)->unique('entity_id')->values();
+    }
+
+    /**
+     * @return array{0: int|null, 1: int|null}
+     */
+    private function relationshipYears(ChronicleEntry $entry): array
+    {
+        $relationship = $entry->primaryRelationship;
+
+        return [$relationship?->start_year, $relationship?->end_year];
+    }
+
+    /**
+     * @param  Collection<int, Entity>  $entities
+     * @param  array<string, array{lat: float, lon: float}>  $points
+     * @return array{lat: float, lon: float}|null
+     */
+    private function representativePoint(Collection $entities, array $points): ?array
+    {
+        $ordered = $entities->sortByDesc(fn (Entity $entity): int => (int) ($entity->impact_score ?? 0));
+
+        foreach ($ordered as $entity) {
+            if (isset($points[$entity->entity_id])) {
+                return $points[$entity->entity_id];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function allEntityIds(Chronicle $chronicle): array
+    {
+        $ids = [];
+        foreach ($chronicle->entries as $entry) {
+            foreach ($this->involvedEntities($entry) as $entity) {
+                $ids[] = $entity->entity_id;
+            }
+        }
+
+        return array_values(array_unique($ids));
+    }
+
+    /**
+     * Representative point per entity: its primary location point, or the
+     * centroid of its territory polygon as a fallback.
+     *
+     * @param  list<string>  $entityIds
+     * @return array<string, array{lat: float, lon: float}>
+     */
+    private function entityPoints(array $entityIds): array
+    {
+        if (empty($entityIds)) {
+            return [];
+        }
+
+        $rows = DB::table('entity_locations')
+            ->whereIn('entity_id', $entityIds)
+            ->where('is_primary', true)
+            ->whereRaw('(geom IS NOT NULL OR territory_geom IS NOT NULL)')
+            ->selectRaw('entity_id,
+                ST_Y(COALESCE(geom, ST_Centroid(territory_geom))) as lat,
+                ST_X(COALESCE(geom, ST_Centroid(territory_geom))) as lon')
+            ->get();
+
+        $map = [];
+        foreach ($rows as $row) {
+            $map[$row->entity_id] = [
+                'lat' => round((float) $row->lat, 5),
+                'lon' => round((float) $row->lon, 5),
+            ];
+        }
+
+        return $map;
+    }
+}

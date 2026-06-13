@@ -127,7 +127,8 @@ class ChronicleController extends Controller
     public function edit(string $slug): Response
     {
         $chronicle = Chronicle::with([
-            'entries.primaryRelationship',
+            'entries.primaryRelationship.sourceEntity',
+            'entries.primaryRelationship.targetEntity',
             'entries.secondaryEntities',
         ])
             ->where('slug', $slug)
@@ -210,10 +211,19 @@ class ChronicleController extends Controller
                     'notes' => $entry->notes,
                     'source_evidence' => $entry->source_evidence,
                     'primary_relationship_id' => $entry->primary_relationship_id,
+                    'primary_relationship' => $entry->relationLoaded('primaryRelationship') && $entry->primaryRelationship
+                        ? [
+                            'relationship_id' => $entry->primaryRelationship->relationship_id,
+                            'relationship_type' => $entry->primaryRelationship->relationship_type?->value,
+                            'source_name' => $entry->primaryRelationship->relationLoaded('sourceEntity') ? $entry->primaryRelationship->sourceEntity?->name : null,
+                            'target_name' => $entry->primaryRelationship->relationLoaded('targetEntity') ? $entry->primaryRelationship->targetEntity?->name : null,
+                        ]
+                        : null,
                     'secondary_entities' => $entry->relationLoaded('secondaryEntities')
                         ? $entry->secondaryEntities->map(fn ($e) => [
                             'entity_id' => $e->entity_id,
                             'name' => $e->name,
+                            'entity_type' => $e->entity_type?->value,
                             'role' => $e->pivot->role,
                         ])
                         : [],

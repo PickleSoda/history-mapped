@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Actions\Chronicle\EnrichChronicleMetadataAction;
 use App\Models\Chronicle;
 use App\Models\ChronicleEntry;
 use Illuminate\Console\Command;
@@ -218,6 +219,10 @@ class ImportChroniclesCommand extends Command
             $chronicle->save();
 
             $entriesImported = $this->importEntries($chronicle, $data['entries'] ?? []);
+
+            // Derive impact_score / approximate_location (and backfill years)
+            // from the now-attached relationships + entities.
+            app(EnrichChronicleMetadataAction::class)($chronicle);
 
             $status = $existing ? 'updated' : 'created';
 

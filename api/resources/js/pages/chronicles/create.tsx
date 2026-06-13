@@ -1,20 +1,22 @@
 import { Head, router } from '@inertiajs/react';
 import { Plus, Trash2, GripVertical } from 'lucide-react';
 import { useState } from 'react';
-import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { BreadcrumbItem, ChronicleEntryFormData, ChronicleFormData } from '@/types';
+import { Textarea } from '@/components/ui/textarea';
+import AppLayout from '@/layouts/app-layout';
 import { store } from '@/routes/chronicles';
+import type { BreadcrumbItem, ChronicleEntryFormData, ChronicleFormData } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: 'Chronicles', href: '/chronicles' },
     { title: 'New Chronicle', href: '/chronicles/create' },
 ];
+
+type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
 export default function ChronicleCreate() {
     const [data, setData] = useState<ChronicleFormData>({
@@ -31,6 +33,7 @@ export default function ChronicleCreate() {
 
     function handleChange(field: keyof ChronicleFormData, value: string) {
         setData((prev) => ({ ...prev, [field]: value }));
+
         // Auto-generate slug from title
         if (field === 'title') {
             const slug = value
@@ -62,7 +65,8 @@ export default function ChronicleCreate() {
                     notes: '',
                     source_evidence: '',
                     primary_relationship_id: null,
-                    secondary_entity_ids: [],
+                    primary_relationship_label: null,
+                    secondary_entities: [],
                 },
             ],
         }));
@@ -77,11 +81,40 @@ export default function ChronicleCreate() {
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        setProcessing(true);
         setErrors({});
 
-        router.post(store.url(), data, {
-            onError: (errors) => setErrors(errors),
+        let metadata: Record<string, JsonValue> = {};
+
+        try {
+            metadata = data.metadata.trim() ? JSON.parse(data.metadata) : {};
+        } catch {
+            setErrors({ metadata: 'Invalid JSON.' });
+
+            return;
+        }
+
+        setProcessing(true);
+
+        const payload = {
+            title: data.title,
+            slug: data.slug,
+            source_type: data.source_type,
+            source_reference: data.source_reference,
+            status: data.status,
+            metadata,
+            entries: data.entries.map((entry, i) => ({
+                sequence_order: i,
+                narrative_text: entry.narrative_text,
+                notes: entry.notes,
+                source_evidence: entry.source_evidence,
+                primary_relationship_id: entry.primary_relationship_id,
+                secondary_entity_ids: entry.secondary_entities.map((s) => s.entity_id),
+                secondary_roles: entry.secondary_entities.map((s) => s.role),
+            })),
+        };
+
+        router.post(store.url(), payload, {
+            onError: (formErrors) => setErrors(formErrors),
             onFinish: () => setProcessing(false),
         });
     }
