@@ -68,6 +68,8 @@ def run_transcript(transcript: Path, run_id: str) -> dict[str, Any]:
     cmd = [
         sys.executable, "-m", "pipeline", "agent",
         "--input", str(transcript), "--run-id", run_id,
+        # Title the chronicle after the transcript, not its first event.
+        "--title", transcript.stem.strip(),
     ]
     started = datetime.now(timezone.utc)
     proc = subprocess.run(cmd, cwd=str(REPO_ROOT), capture_output=True, text=True, timeout=1800)

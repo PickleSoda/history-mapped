@@ -15,7 +15,8 @@ def test_keeps_valid_bce_range():
 
 
 def test_keeps_valid_ce_range():
-    assert _consistent_dates("527 CE", "565 CE") == ("527 CE", "565 CE")
+    # CE markers are stripped to a clean year by normalize_historical_date.
+    assert _consistent_dates("527 CE", "565 CE") == ("527", "565")
 
 
 def test_passes_through_nones_and_singletons():
