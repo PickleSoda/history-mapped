@@ -25,6 +25,8 @@ readonly class EntityFilterData
         public ?EntityType $type = null,
         public ?array $types = null,
         public ?EntityGroup $group = null,
+        /** @var list<EntityGroup>|null */
+        public ?array $groups = null,
         public ?VerificationStatus $status = null,
         public ?ConfidenceLevel $minConfidence = null,
         public ?string $tag = null,
@@ -67,6 +69,10 @@ readonly class EntityFilterData
                 $validated['types'],
             ) : null,
             group: isset($validated['group']) ? EntityGroup::from($validated['group']) : null,
+            groups: isset($validated['groups']) ? array_map(
+                fn (string $g): EntityGroup => EntityGroup::from($g),
+                $validated['groups'],
+            ) : null,
             status: isset($validated['status']) ? VerificationStatus::from($validated['status']) : null,
             minConfidence: isset($validated['min_confidence']) ? ConfidenceLevel::from($validated['min_confidence']) : null,
             tag: $validated['tag'] ?? null,

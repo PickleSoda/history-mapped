@@ -18,6 +18,8 @@ import sqlite3
 from pathlib import Path
 from typing import Any
 
+_POINT_WKT_RE = re.compile(r"point\(\s*(-?[\d.]+)\s+(-?[\d.]+)\s*\)", re.IGNORECASE)
+
 from pipeline.agent.log_config import get_logger
 from pipeline.agent.tools.disambiguation import era_year
 from pipeline.wikidata.resolver.ohm_client import search_by_name, _normalize_name
@@ -89,6 +91,13 @@ def relevance(candidate: dict[str, Any], query: str, target_era: int | None,
     if entity_wikidata and wd and wd == entity_wikidata:
         return 1.0
 
+    # Veto a known, large era mismatch: a perfect name match to a wrong-era
+    # namesake (ancient "Egypt" vs the 1843 US village "Egypt") must not win on
+    # the name alone. Only applies when both eras are known.
+    dist = _era_distance(target_era, *_candidate_era(candidate))
+    if dist is not None and dist > 600:
+        return round(0.1 * name_sim, 3)
+
     return round(0.55 * name_sim + 0.45 * _era_fit(target_era, candidate), 3)
 
 
@@ -130,10 +139,56 @@ def build_manifest(candidate: dict[str, Any], query: str, candidate_count: int) 
             "reason": "ohm_first_polity",
         },
     }
-    geojson = candidate.get("geojson")
-    if isinstance(geojson, dict) and geojson.get("type") and geojson.get("coordinates"):
-        manifest["geometry"] = geojson
+    # Store a small representative POINT (Nominatim's lat/lon), not the full
+    # boundary polygon. Per the borders-from-OHM decision the polygon is rendered
+    # from the OHM basemap via the geo-ref id; embedding it here bloated the JSONL
+    # enough to exhaust PHP's memory limit on import.
+    sm = candidate.get("source_meta") or {}
+    lat, lon = sm.get("lat"), sm.get("lon")
+    try:
+        if lat is not None and lon is not None:
+            manifest["geometry"] = {"type": "Point", "coordinates": [float(lon), float(lat)]}
+    except (TypeError, ValueError):
+        pass
     return manifest
+
+
+def parse_point_wkt(value: Any) -> tuple[float, float] | None:
+    """Parse a Wikidata-style 'Point(lon lat)' string into (lon, lat)."""
+    if not isinstance(value, str):
+        return None
+    m = _POINT_WKT_RE.search(value)
+    if not m:
+        return None
+    return float(m.group(1)), float(m.group(2))
+
+
+def build_wikidata_point_manifest(qid: str | None, coords_wkt: Any) -> dict[str, Any] | None:
+    """Approximate-point fallback when OHM has no feature for a polity.
+
+    Uses the entity's Wikidata coordinate (P625) so the polity still gets an
+    approximate location on the map. Persisted as a wikidata geo-ref (fallback
+    role) — not an OHM border.
+    """
+    lonlat = parse_point_wkt(coords_wkt)
+    if not qid or not lonlat:
+        return None
+    lon, lat = lonlat
+    return {
+        "status": "matched",
+        "geo_ref": {
+            "provider": "wikidata",
+            "external_type": "qid",
+            "external_id": str(qid),
+            "match_role": "fallback",
+            "retrieval_method": "rest",
+            "match_score": 0.5,
+            "external_tags": {},
+            "source_meta": {"source": "wikidata_p625"},
+        },
+        "provenance": {"resolver": "wikidata_coords", "reason": "ohm_miss_approximate_point"},
+        "geometry": {"type": "Point", "coordinates": [lon, lat]},
+    }
 
 
 # ── cache (hybrid) ───────────────────────────────────────────────────────────
@@ -168,6 +223,10 @@ def _cached_search(name: str, location_name: str | None, cache_path: Path) -> li
             pass
 
     candidates = search_by_name(name, location_name)
+    # Drop the bulky boundary polygon up front — we only use id/name/era/tags and
+    # the representative point in source_meta. Keeps the cache and JSONL small.
+    for c in candidates:
+        c.pop("geojson", None)
 
     if conn is not None:
         try:
