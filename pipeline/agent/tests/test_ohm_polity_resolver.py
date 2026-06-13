@@ -8,16 +8,14 @@ BYZANTINE = [
     {
         "external_type": "relation", "external_id": "2882342",
         "display_name": "Imperium Romanum Orientale", "match_label": "Imperium Romanum Orientale",
-        "geojson": {"type": "Polygon", "coordinates": [[[0, 0], [1, 0], [1, 1], [0, 0]]]},
         "external_tags": {"start_date": "0752", "end_date": "0798", "wikidata": "Q12544"},
-        "source_meta": {},
+        "source_meta": {"lat": "41.0", "lon": "29.0"},
     },
     {
         "external_type": "relation", "external_id": "2850428",
         "display_name": "late Byzantium", "match_label": "Imperium Romanum Orientale",
-        "geojson": {"type": "Polygon", "coordinates": [[[0, 0], [1, 0], [1, 1], [0, 0]]]},
         "external_tags": {"start_date": "1354", "end_date": "1453", "wikidata": "Q12544"},
-        "source_meta": {},
+        "source_meta": {"lat": "41.0", "lon": "29.0"},
     },
 ]
 
@@ -55,7 +53,18 @@ def test_build_manifest_shape():
     assert m["geo_ref"]["external_type"] == "relation"
     assert m["geo_ref"]["external_id"] == "2882342"
     assert m["geo_ref"]["retrieval_method"] == "nominatim"
-    assert m["geometry"]["type"] == "Polygon"
+    # A representative point (from Nominatim lat/lon), not the boundary polygon.
+    assert m["geometry"] == {"type": "Point", "coordinates": [29.0, 41.0]}
+
+
+def test_relevance_vetoes_wrong_era_namesake():
+    # "Egypt" (ancient) vs an 1843 US village named Egypt — exact name, far era.
+    village = {
+        "external_type": "node", "external_id": "1", "match_label": "Egypt",
+        "display_name": "Egypt, United States",
+        "external_tags": {"start_date": "1843"}, "source_meta": {},
+    }
+    assert r.relevance(village, "Egypt", -1000) < r._ACCEPT_THRESHOLD
 
 
 def test_resolve_polity_adopts_ohm_identity(tmp_path, monkeypatch):

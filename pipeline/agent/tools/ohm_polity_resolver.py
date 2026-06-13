@@ -91,6 +91,13 @@ def relevance(candidate: dict[str, Any], query: str, target_era: int | None,
     if entity_wikidata and wd and wd == entity_wikidata:
         return 1.0
 
+    # Veto a known, large era mismatch: a perfect name match to a wrong-era
+    # namesake (ancient "Egypt" vs the 1843 US village "Egypt") must not win on
+    # the name alone. Only applies when both eras are known.
+    dist = _era_distance(target_era, *_candidate_era(candidate))
+    if dist is not None and dist > 600:
+        return round(0.1 * name_sim, 3)
+
     return round(0.55 * name_sim + 0.45 * _era_fit(target_era, candidate), 3)
 
 
@@ -132,9 +139,17 @@ def build_manifest(candidate: dict[str, Any], query: str, candidate_count: int) 
             "reason": "ohm_first_polity",
         },
     }
-    geojson = candidate.get("geojson")
-    if isinstance(geojson, dict) and geojson.get("type") and geojson.get("coordinates"):
-        manifest["geometry"] = geojson
+    # Store a small representative POINT (Nominatim's lat/lon), not the full
+    # boundary polygon. Per the borders-from-OHM decision the polygon is rendered
+    # from the OHM basemap via the geo-ref id; embedding it here bloated the JSONL
+    # enough to exhaust PHP's memory limit on import.
+    sm = candidate.get("source_meta") or {}
+    lat, lon = sm.get("lat"), sm.get("lon")
+    try:
+        if lat is not None and lon is not None:
+            manifest["geometry"] = {"type": "Point", "coordinates": [float(lon), float(lat)]}
+    except (TypeError, ValueError):
+        pass
     return manifest
 
 
@@ -208,6 +223,10 @@ def _cached_search(name: str, location_name: str | None, cache_path: Path) -> li
             pass
 
     candidates = search_by_name(name, location_name)
+    # Drop the bulky boundary polygon up front — we only use id/name/era/tags and
+    # the representative point in source_meta. Keeps the cache and JSONL small.
+    for c in candidates:
+        c.pop("geojson", None)
 
     if conn is not None:
         try:
