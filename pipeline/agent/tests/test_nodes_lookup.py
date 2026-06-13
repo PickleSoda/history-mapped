@@ -62,15 +62,9 @@ def test_resolve_wikidata(mock_search, mock_enrich):
 
 
 @patch("pipeline.agent.graph.nodes.resolve_ohm.resolve_polity")
-def test_resolve_ohm_place_attaches_geometry_without_rename(mock_resolve):
-    mock_resolve.return_value = {
-        "name": "Didgori (battlefield)",
-        "external_id": "123",
-        "external_type": "node",
-        "wikidata_id": None,
-        "match_score": 0.9,
-        "manifest": {"status": "matched", "geo_ref": {"external_id": "123"}},
-    }
+def test_resolve_ohm_skips_non_polity(mock_resolve):
+    # Scope is polities only — a city/monument must not be OHM-resolved (avoids
+    # modern-namesake mismatches like Rome OH for ancient Rome).
     state = make_base_state()
     state["candidate_entities"] = []
     state["enriched_entities"] = [
@@ -80,9 +74,9 @@ def test_resolve_ohm_place_attaches_geometry_without_rename(mock_resolve):
     ]
     new_state = resolve_ohm(state)
     enriched = new_state["enriched_entities"][0]
-    assert enriched.ohm_match is not None
-    assert enriched.geo_resolution["status"] == "matched"
-    assert enriched.candidate.label == "Didgori"  # place type: geometry only, no rename
+    assert enriched.geo_resolution is None
+    assert enriched.ohm_match is None
+    mock_resolve.assert_not_called()
 
 
 @patch("pipeline.agent.graph.nodes.resolve_ohm.resolve_polity")
