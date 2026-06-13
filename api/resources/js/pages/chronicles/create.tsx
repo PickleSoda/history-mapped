@@ -66,6 +66,7 @@ export default function ChronicleCreate() {
                     source_evidence: '',
                     primary_relationship_id: null,
                     primary_relationship_label: null,
+                    new_relationship: null,
                     secondary_entities: [],
                 },
             ],

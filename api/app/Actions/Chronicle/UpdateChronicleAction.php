@@ -7,6 +7,7 @@ namespace App\Actions\Chronicle;
 use App\DTOs\ChronicleData;
 use App\Models\Chronicle;
 use App\Models\ChronicleEntry;
+use App\Models\EntityRelationship;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -58,7 +59,7 @@ class UpdateChronicleAction
                 'end_year' => $entryData['end_year'] ?? null,
                 'impact_score' => $entryData['impact_score'] ?? null,
                 'approximate_location' => $entryData['approximate_location'] ?? null,
-                'primary_relationship_id' => $entryData['primary_relationship_id'] ?? null,
+                'primary_relationship_id' => $this->resolvePrimaryRelationshipId($entryData),
                 'narrative_text' => $entryData['narrative_text'] ?? '',
                 'notes' => $entryData['notes'] ?? null,
                 'source_evidence' => $entryData['source_evidence'] ?? null,
@@ -75,5 +76,52 @@ class UpdateChronicleAction
                 $entry->secondaryEntities()->attach($pivotData);
             }
         }
+    }
+
+    /**
+     * Resolve an entry's primary relationship.
+     *
+     * An explicit primary_relationship_id wins. Otherwise, if the entry carries
+     * a `new_relationship` spec (source/target/type — the chronicle editor's way
+     * of authoring relationships), find-or-create that relationship and use its
+     * id, so editing a chronicle can generate real relationship rows.
+     *
+     * @param  array<string, mixed>  $entryData
+     */
+    private function resolvePrimaryRelationshipId(array $entryData): ?string
+    {
+        $existing = $entryData['primary_relationship_id'] ?? null;
+        if (is_string($existing) && $existing !== '') {
+            return $existing;
+        }
+
+        $spec = $entryData['new_relationship'] ?? null;
+        if (! is_array($spec)) {
+            return null;
+        }
+
+        $source = $spec['source_entity_id'] ?? null;
+        $target = $spec['target_entity_id'] ?? null;
+        $type = $spec['relationship_type'] ?? null;
+        if (! is_string($source) || ! is_string($target) || ! is_string($type) || $source === '' || $target === '' || $type === '') {
+            return null;
+        }
+
+        $relationship = EntityRelationship::query()
+            ->where('source_entity_id', $source)
+            ->where('target_entity_id', $target)
+            ->where('relationship_type', $type)
+            ->first();
+
+        if ($relationship === null) {
+            $relationship = EntityRelationship::create([
+                'source_entity_id' => $source,
+                'target_entity_id' => $target,
+                'relationship_type' => $type,
+                'created_by' => 'chronicle-admin',
+            ]);
+        }
+
+        return $relationship->relationship_id;
     }
 }
