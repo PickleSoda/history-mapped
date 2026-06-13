@@ -60,13 +60,19 @@ function Prominence({ score }: { score: number | null }) {
   );
 }
 
+/** Number → "490 BCE"; date string → returned as-is; null → null. */
+function yearText(v: number | string | null): string | null {
+  if (v == null) return null;
+  return typeof v === 'number' ? formatYear(v) : v;
+}
+
 function spanLabel(e: EntitySummary): string {
-  if (e.temporal_start != null || e.temporal_end != null) {
-    const s = e.temporal_start != null ? formatYear(e.temporal_start) : '?';
-    const end = e.temporal_end != null ? formatYear(e.temporal_end) : '';
-    return end ? `${s} – ${end}` : s;
-  }
-  return e.era_label ?? '—';
+  if (e.temporal_display_range) return e.temporal_display_range;
+  if (e.era_label) return e.era_label;
+  const s = yearText(e.temporal_start);
+  const end = yearText(e.temporal_end);
+  if (s && end) return `${s} – ${end}`;
+  return s ?? end ?? '—';
 }
 
 function ListRow({ e }: { e: EntitySummary }) {

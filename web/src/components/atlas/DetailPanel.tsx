@@ -20,6 +20,7 @@ function yearText(v: number | string | null): string | null {
 }
 
 function temporalText(d: EntityDetail): string | null {
+  if (d.temporal_display_range) return d.temporal_display_range;
   const s = yearText(d.temporal_start);
   const e = yearText(d.temporal_end);
   if (s && e) return `${s} – ${e}`;

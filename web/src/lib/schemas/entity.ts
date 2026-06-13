@@ -11,11 +11,13 @@
 import { z } from 'zod';
 import { ENTITY_GROUPS } from '@/types/atlas';
 
-/** Map the backend's UPPERCASE group to the frontend lowercase token. */
+/** Map the backend's UPPERCASE group to the frontend lowercase token. Tolerant:
+ *  an unexpected/null group falls back rather than failing the whole response. */
 export const GroupFromApi = z
   .string()
   .transform((v) => v.toLowerCase())
-  .pipe(z.enum(ENTITY_GROUPS));
+  .pipe(z.enum(ENTITY_GROUPS))
+  .catch('polity');
 
 /** One row of the "notable here" list / search results (EntitySummaryResource). */
 export const EntitySummarySchema = z.object({
@@ -25,8 +27,11 @@ export const EntitySummarySchema = z.object({
   entity_group: GroupFromApi,
   summary: z.string().nullable().default(null),
   impact_score: z.number().nullable().default(null),
-  temporal_start: z.number().nullable().default(null),
-  temporal_end: z.number().nullable().default(null),
+  /** Backend returns these as DATE strings (or null), not year numbers. */
+  temporal_start: z.union([z.number(), z.string()]).nullable().default(null),
+  temporal_end: z.union([z.number(), z.string()]).nullable().default(null),
+  /** Pre-formatted display range, when available. */
+  temporal_display_range: z.string().nullable().default(null),
   era_label: z.string().nullable().default(null),
   location_name: z.string().nullable().default(null),
   /** GeoJSON point geometry or null (unplaced). */
@@ -62,9 +67,12 @@ export const EntityDetailSchema = z.object({
   summary: z.string().nullable().default(null),
   significance: z.string().nullable().default(null),
   impact_score: z.number().nullable().default(null),
-  attributes: z.record(z.string(), z.unknown()).default({}),
+  // Backend sends `[]` (a JSON array) when an entity has no attributes, which a
+  // strict record() would reject — tolerate it.
+  attributes: z.record(z.string(), z.unknown()).catch({}),
   temporal_start: z.union([z.number(), z.string()]).nullable().default(null),
   temporal_end: z.union([z.number(), z.string()]).nullable().default(null),
+  temporal_display_range: z.string().nullable().default(null),
   era_label: z.string().nullable().default(null),
   location_name: z.string().nullable().default(null),
   /** GeoJSON geometry or null ("not placed"). */
