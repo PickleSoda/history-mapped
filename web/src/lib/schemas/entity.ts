@@ -73,7 +73,8 @@ export const EntityDetailSchema = z.object({
 });
 export type EntityDetail = z.infer<typeof EntityDetailSchema>;
 
-/** One relationship (RelationshipResource). */
+/** One relationship (RelationshipResource). The endpoint eager-loads both
+ *  related entities, so the summaries are present. */
 export const RelationshipSchema = z.object({
   id: z.string(),
   source_entity_id: z.string(),
@@ -82,6 +83,8 @@ export const RelationshipSchema = z.object({
   temporal_start: z.number().nullable().default(null),
   temporal_end: z.number().nullable().default(null),
   description: z.string().nullable().default(null),
+  source_entity: EntitySummarySchema.optional(),
+  target_entity: EntitySummarySchema.optional(),
 });
 export type Relationship = z.infer<typeof RelationshipSchema>;
 
