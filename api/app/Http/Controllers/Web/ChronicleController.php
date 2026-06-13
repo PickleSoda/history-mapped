@@ -10,6 +10,7 @@ use App\Actions\Chronicle\ListChroniclesAction;
 use App\Actions\Chronicle\UpdateChronicleAction;
 use App\DTOs\ChronicleData;
 use App\Enums\ChronicleStatus;
+use App\Enums\RelationshipType;
 use App\Enums\SourceType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Web\StoreChronicleRequest;
@@ -143,6 +144,10 @@ class ChronicleController extends Controller
             'sourceTypes' => array_map(
                 fn (SourceType $s) => ['value' => $s->value, 'label' => str_replace('_', ' ', ucfirst($s->value))],
                 SourceType::cases(),
+            ),
+            'relationshipTypes' => array_map(
+                fn (RelationshipType $t): string => $t->value,
+                RelationshipType::cases(),
             ),
         ]);
     }

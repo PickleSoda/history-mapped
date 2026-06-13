@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Web;
 
 use App\Enums\ChronicleStatus;
+use App\Enums\RelationshipType;
 use App\Enums\SourceType;
 use App\Models\Chronicle;
 use Illuminate\Foundation\Http\FormRequest;
@@ -63,6 +64,11 @@ class UpdateChronicleRequest extends FormRequest
             'entries.*.secondary_entity_ids.*' => ['string', 'uuid'],
             'entries.*.secondary_roles' => ['sometimes', 'nullable', 'array'],
             'entries.*.secondary_roles.*' => ['string', 'max:50'],
+            // Authoring a relationship from a chronicle entry (source/type/target).
+            'entries.*.new_relationship' => ['sometimes', 'nullable', 'array'],
+            'entries.*.new_relationship.source_entity_id' => ['sometimes', 'nullable', 'string', 'uuid'],
+            'entries.*.new_relationship.target_entity_id' => ['sometimes', 'nullable', 'string', 'uuid'],
+            'entries.*.new_relationship.relationship_type' => ['sometimes', 'nullable', Rule::enum(RelationshipType::class)],
             'entries.*.start_year' => ['sometimes', 'nullable', 'integer', 'min:-10000', 'max:10000'],
             'entries.*.end_year' => ['sometimes', 'nullable', 'integer', 'min:-10000', 'max:10000'],
             'entries.*.impact_score' => ['sometimes', 'nullable', 'integer', 'min:0', 'max:100'],

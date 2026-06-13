@@ -19,6 +19,7 @@ import type {
     BreadcrumbItem,
     ChronicleDetail,
     ChronicleEntryFormData,
+    ChronicleEntryNewRelationship,
     ChronicleEntrySecondaryForm,
     ChronicleFormData,
 } from '@/types';
@@ -35,6 +36,7 @@ type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string
 
 type Props = {
     chronicle: ChronicleDetail;
+    relationshipTypes: string[];
 };
 
 type EntitySearchResult = {
@@ -126,7 +128,7 @@ function EntityPicker({ onAdd }: { onAdd: (entity: EntitySearchResult) => void }
     );
 }
 
-export default function ChronicleEdit({ chronicle }: Props) {
+export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
     const [data, setData] = useState<ChronicleFormData>({
         title: chronicle.title ?? '',
         slug: chronicle.slug ?? '',
@@ -147,6 +149,7 @@ export default function ChronicleEdit({ chronicle }: Props) {
                 primary_relationship_label: e.primary_relationship
                     ? `${e.primary_relationship.source_name ?? '?'} —${(e.primary_relationship.relationship_type ?? 'related').replace(/_/g, ' ')}→ ${e.primary_relationship.target_name ?? '?'}`
                     : null,
+                new_relationship: null,
                 secondary_entities: (e.secondary_entities ?? []).map((s) => ({
                     entity_id: s.entity_id,
                     name: s.name,
@@ -185,6 +188,7 @@ export default function ChronicleEdit({ chronicle }: Props) {
                     source_evidence: '',
                     primary_relationship_id: null,
                     primary_relationship_label: null,
+                    new_relationship: null,
                     secondary_entities: [],
                 },
             ],
@@ -245,6 +249,25 @@ export default function ChronicleEdit({ chronicle }: Props) {
         }));
     }
 
+    function setRelationshipField(index: number, field: keyof ChronicleEntryNewRelationship, value: string) {
+        setData((prev) => ({
+            ...prev,
+            entries: prev.entries.map((entry, i) => {
+                if (i !== index) {
+                    return entry;
+                }
+
+                const base = entry.new_relationship ?? {
+                    source_entity_id: '',
+                    target_entity_id: '',
+                    relationship_type: '',
+                };
+
+                return { ...entry, new_relationship: { ...base, [field]: value } };
+            }),
+        }));
+    }
+
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         setErrors({});
@@ -278,6 +301,13 @@ export default function ChronicleEdit({ chronicle }: Props) {
                 primary_relationship_id: entry.primary_relationship_id,
                 secondary_entity_ids: entry.secondary_entities.map((s) => s.entity_id),
                 secondary_roles: entry.secondary_entities.map((s) => s.role),
+                new_relationship:
+                    entry.new_relationship &&
+                    entry.new_relationship.source_entity_id &&
+                    entry.new_relationship.target_entity_id &&
+                    entry.new_relationship.relationship_type
+                        ? entry.new_relationship
+                        : null,
             })),
         };
 
@@ -446,7 +476,7 @@ export default function ChronicleEdit({ chronicle }: Props) {
                                                 />
                                             </div>
 
-                                            {/* Primary relationship */}
+                                            {/* Primary relationship — author one from the entry's entities */}
                                             <div className="space-y-1">
                                                 <Label>Primary Relationship</Label>
                                                 {entry.primary_relationship_id ? (
@@ -466,9 +496,58 @@ export default function ChronicleEdit({ chronicle }: Props) {
                                                             <X className="size-4" />
                                                         </Button>
                                                     </div>
+                                                ) : entry.secondary_entities.length >= 2 ? (
+                                                    <div className="grid grid-cols-3 gap-2">
+                                                        <Select
+                                                            value={entry.new_relationship?.source_entity_id ?? ''}
+                                                            onValueChange={(v) => setRelationshipField(index, 'source_entity_id', v)}
+                                                        >
+                                                            <SelectTrigger className="text-xs">
+                                                                <SelectValue placeholder="Source" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {entry.secondary_entities.map((s) => (
+                                                                    <SelectItem key={s.entity_id} value={s.entity_id}>
+                                                                        {s.name}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <Select
+                                                            value={entry.new_relationship?.relationship_type ?? ''}
+                                                            onValueChange={(v) => setRelationshipField(index, 'relationship_type', v)}
+                                                        >
+                                                            <SelectTrigger className="text-xs">
+                                                                <SelectValue placeholder="Type" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {relationshipTypes.map((t) => (
+                                                                    <SelectItem key={t} value={t}>
+                                                                        {t.replace(/_/g, ' ')}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <Select
+                                                            value={entry.new_relationship?.target_entity_id ?? ''}
+                                                            onValueChange={(v) => setRelationshipField(index, 'target_entity_id', v)}
+                                                        >
+                                                            <SelectTrigger className="text-xs">
+                                                                <SelectValue placeholder="Target" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {entry.secondary_entities.map((s) => (
+                                                                    <SelectItem key={s.entity_id} value={s.entity_id}>
+                                                                        {s.name}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
                                                 ) : (
                                                     <p className="text-xs text-muted-foreground">
-                                                        None. (Relationships are set by the pipeline; clear here to detach.)
+                                                        Add at least two entities below, then pick source → type → target to
+                                                        create the relationship on save.
                                                     </p>
                                                 )}
                                             </div>

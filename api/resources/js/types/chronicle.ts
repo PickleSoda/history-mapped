@@ -88,6 +88,12 @@ export type ChronicleEntrySecondaryForm = {
     role: string;
 };
 
+export type ChronicleEntryNewRelationship = {
+    source_entity_id: string;
+    target_entity_id: string;
+    relationship_type: string;
+};
+
 export type ChronicleEntryFormData = {
     entry_id?: string;
     sequence_order: number;
@@ -96,6 +102,7 @@ export type ChronicleEntryFormData = {
     source_evidence: string | null;
     primary_relationship_id: string | null;
     primary_relationship_label: string | null;
+    new_relationship: ChronicleEntryNewRelationship | null;
     secondary_entities: ChronicleEntrySecondaryForm[];
 };
 
