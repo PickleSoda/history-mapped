@@ -1,4 +1,4 @@
-import { ChevronLeft, Clock, FileText, MapPin } from 'lucide-react';
+import { Clock, FileText, MapPin, X } from 'lucide-react';
 import { GroupBadge, GroupDot } from '@/components/atlas/GroupBadge';
 import { useEntity, useEntityConnections, useSelection } from '@/hooks';
 import { formatYear } from '@/lib/format';
@@ -69,15 +69,19 @@ export function DetailPanel() {
   if (!sel) return null;
 
   return (
-    <div className="absolute inset-0 z-10 flex flex-col overflow-y-auto bg-card">
+    <aside className="flex w-[380px] max-w-[90vw] flex-none flex-col overflow-y-auto border-l bg-card">
       {/* Bar */}
       <div className="flex items-center justify-between px-3 py-2.5">
+        <span className="px-1.5 text-xs font-medium text-muted-foreground">
+          Detail
+        </span>
         <button
           type="button"
           onClick={clear}
-          className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[13px] text-muted-foreground hover:bg-muted"
+          className="grid size-7 place-items-center rounded-md text-muted-foreground hover:bg-muted"
+          aria-label="Close detail"
         >
-          <ChevronLeft size={15} /> Back
+          <X size={16} />
         </button>
       </div>
 
@@ -170,6 +174,6 @@ export function DetailPanel() {
           </div>
         </>
       )}
-    </div>
+    </aside>
   );
 }

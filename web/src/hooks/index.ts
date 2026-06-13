@@ -18,6 +18,7 @@ export { useEntityList } from './useEntityList';
 export { useEntity, useEntityConnections } from './useEntity';
 export { useSearch, useHighlights, useTimelineDensity } from './useDiscovery';
 export { useChronicle } from './useChronicle';
+export { useChronicleList } from './useChronicleList';
 export { usePrefetchEntity } from './usePrefetchEntity';
 
 // Ephemeral / imperative

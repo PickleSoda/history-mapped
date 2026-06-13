@@ -1,7 +1,22 @@
-/** GET /chronicles/{slug} — the whole tour (ChronicleResource + entries). */
-import { ChronicleSchema, type Chronicle } from '@/lib/schemas/chronicle';
+/** Typed chronicle endpoints. */
+import {
+  ChronicleListSchema,
+  ChronicleSchema,
+} from '@/lib/schemas/chronicle';
+import type { Chronicle, ChronicleList } from '@/lib/schemas/chronicle';
 import { api } from './client';
 
+/** GET /chronicles — paginated listing for the Chronicles tab. */
+export async function chronicleList(signal?: AbortSignal): Promise<ChronicleList> {
+  const { data } = await api.get('/api/v1/chronicles', {
+    signal,
+    params: { per_page: 50 },
+  });
+  return ChronicleListSchema.parse(data);
+}
+
+/** GET /chronicles/{slug} — the whole tour. Laravel wraps the single resource
+ *  in a `data` envelope, so unwrap before parsing. */
 export async function chronicle(
   slug: string,
   signal?: AbortSignal,
@@ -10,5 +25,6 @@ export async function chronicle(
     `/api/v1/chronicles/${encodeURIComponent(slug)}`,
     { signal },
   );
-  return ChronicleSchema.parse(data);
+  const payload = (data as { data?: unknown }).data ?? data;
+  return ChronicleSchema.parse(payload);
 }
