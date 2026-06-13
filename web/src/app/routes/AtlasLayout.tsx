@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router-dom';
+import { DetailPanel } from '@/components/atlas/DetailPanel';
 import { Timeline } from '@/components/atlas/Timeline';
 import { TopBar } from '@/components/atlas/TopBar';
 import { MapCanvas } from '@/components/map/MapCanvas';
@@ -19,9 +20,12 @@ export function AtlasLayout() {
           <MapCanvas />
         </main>
 
-        {/* Side panel — child route content */}
-        <aside className="w-[360px] max-w-[90vw] flex-none overflow-y-auto border-l bg-card">
-          <Outlet />
+        {/* Side panel — child route content, with the selection overlay on top */}
+        <aside className="relative w-[360px] max-w-[90vw] flex-none border-l bg-card">
+          <div className="h-full overflow-y-auto">
+            <Outlet />
+          </div>
+          <DetailPanel />
         </aside>
       </div>
 
