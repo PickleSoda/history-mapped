@@ -24,3 +24,30 @@ export const ChronicleSchema = z.object({
   entries: z.array(ChronicleEntrySchema).default([]),
 });
 export type Chronicle = z.infer<typeof ChronicleSchema>;
+
+/** Lightweight chronicle row for the listing (GET /chronicles). */
+export const ChronicleSummarySchema = z.object({
+  chronicle_id: z.string(),
+  title: z.string(),
+  slug: z.string(),
+  start_year: z.number().nullable().default(null),
+  end_year: z.number().nullable().default(null),
+  impact_score: z.number().nullable().default(null),
+  entry_count: z.number().nullable().default(null),
+  status: z.string().nullable().default(null),
+});
+export type ChronicleSummary = z.infer<typeof ChronicleSummarySchema>;
+
+const PaginatorMetaSchema = z.object({
+  current_page: z.number(),
+  last_page: z.number(),
+  per_page: z.number(),
+  total: z.number(),
+});
+
+/** GET /chronicles — paginated ChronicleResource collection. */
+export const ChronicleListSchema = z.object({
+  data: z.array(ChronicleSummarySchema),
+  meta: PaginatorMetaSchema,
+});
+export type ChronicleList = z.infer<typeof ChronicleListSchema>;

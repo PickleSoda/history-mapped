@@ -1,4 +1,4 @@
-import { ChevronRight, Clock, MapPin, Search, Sparkles } from 'lucide-react';
+import { Clock, MapPin, Search, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { GroupBadge, GroupDot } from '@/components/atlas/GroupBadge';
 import {
@@ -102,12 +102,8 @@ function ListRow({ e }: { e: EntitySummary }) {
   );
 }
 
-/**
- * "Notable here" list (spec §6). Reads GET /entities ranked by impact for the
- * current scope, with a live filter-within-view, group filter chips, and the
- * scope note. One fetch feeds the list; the map reads its own FeatureCollection.
- */
-export function BrowsePanel() {
+/** "Notable here" entities tab — ranked list with filter chips and scope note. */
+export function BrowseTab() {
   const { data, isLoading, isError } = useEntityList({ sort: 'impact' });
   const { time } = useTimeState();
   const [filter, setFilter] = useState('');
@@ -157,20 +153,11 @@ export function BrowsePanel() {
         <p className="px-4 py-2 text-sm text-destructive">Could not load entities.</p>
       )}
 
-      <div className="space-y-0.5 px-2">
+      <div className="space-y-0.5 px-2 pb-3">
         {items.map((e) => (
           <ListRow key={e.id} e={e} />
         ))}
       </div>
-
-      {data && data.meta.total > items.length && (
-        <button
-          type="button"
-          className="mx-2 mb-3 mt-1 flex items-center justify-center gap-1 rounded-md px-2 py-2 text-xs font-medium text-muted-foreground hover:bg-muted"
-        >
-          Show all {data.meta.total} in scope <ChevronRight size={14} />
-        </button>
-      )}
     </div>
   );
 }
