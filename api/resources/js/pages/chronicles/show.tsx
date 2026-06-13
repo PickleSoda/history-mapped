@@ -25,6 +25,25 @@ const statusColors: Record<string, string> = {
     archived: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
 };
 
+function formatYear(year: number | null | undefined): string | null {
+    if (year === null || year === undefined) {
+        return null;
+    }
+
+    return year < 0 ? `${Math.abs(year)} BCE` : `${year} CE`;
+}
+
+function formatYearRange(start: number | null | undefined, end: number | null | undefined): string | null {
+    const s = formatYear(start);
+    const e = formatYear(end);
+
+    if (s && e) {
+        return s === e ? s : `${s} – ${e}`;
+    }
+
+    return s ?? e;
+}
+
 export default function ChronicleShow({ chronicle }: Props) {
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [deleting, setDeleting] = useState(false);
@@ -65,6 +84,19 @@ export default function ChronicleShow({ chronicle }: Props) {
                             {chronicle.status && (
                                 <Badge className={statusColors[chronicle.status] || ''}>
                                     {chronicle.status}
+                                </Badge>
+                            )}
+                            {formatYearRange(chronicle.start_year, chronicle.end_year) && (
+                                <Badge variant="outline">
+                                    {formatYearRange(chronicle.start_year, chronicle.end_year)}
+                                </Badge>
+                            )}
+                            {chronicle.impact_score !== null && chronicle.impact_score !== undefined && (
+                                <Badge variant="outline">Impact {chronicle.impact_score}</Badge>
+                            )}
+                            {chronicle.approximate_location && (
+                                <Badge variant="outline">
+                                    {chronicle.approximate_location.lat.toFixed(1)}, {chronicle.approximate_location.lon.toFixed(1)}
                                 </Badge>
                             )}
                         </div>
@@ -115,9 +147,14 @@ export default function ChronicleShow({ chronicle }: Props) {
                                         <span className="text-sm font-semibold">
                                             #{entry.sequence_order + 1}
                                         </span>
-                                        {entry.timestamp && (
+                                        {formatYearRange(entry.start_year, entry.end_year) && (
                                             <Badge variant="outline" className="text-xs">
-                                                {entry.timestamp}
+                                                {formatYearRange(entry.start_year, entry.end_year)}
+                                            </Badge>
+                                        )}
+                                        {entry.impact_score !== null && entry.impact_score !== undefined && (
+                                            <Badge variant="outline" className="text-xs">
+                                                Impact {entry.impact_score}
                                             </Badge>
                                         )}
                                     </div>
@@ -126,6 +163,20 @@ export default function ChronicleShow({ chronicle }: Props) {
                                 <p className="mb-3 text-sm leading-relaxed">
                                     {entry.narrative_text}
                                 </p>
+
+                                {/* Primary relationship */}
+                                {entry.primary_relationship && (
+                                    <div className="mb-2 flex flex-wrap items-center gap-1.5 text-xs">
+                                        <span className="font-semibold text-muted-foreground">Relationship:</span>
+                                        <Badge variant="outline">
+                                            {entry.primary_relationship.source_name ?? '?'}
+                                            <span className="mx-1 opacity-70">
+                                                —{entry.primary_relationship.relationship_type?.replace(/_/g, ' ') ?? 'related'}→
+                                            </span>
+                                            {entry.primary_relationship.target_name ?? '?'}
+                                        </Badge>
+                                    </div>
+                                )}
 
                                 {entry.notes && (
                                     <p className="mb-2 text-xs text-muted-foreground italic">

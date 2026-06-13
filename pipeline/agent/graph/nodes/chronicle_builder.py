@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.chronicle import Chronicle, ChronicleEntry, ChronicleEntryEntity
 from pipeline.agent.schemas.validation import AuditEvent
+from pipeline.agent.tools.disambiguation import era_year
 from pipeline.agent.log_config import get_logger
 
 logger = get_logger(__name__)
@@ -108,6 +109,7 @@ def chronicle_builder(state: AgentRunState) -> AgentRunState:
 
     entries = []
     orphan_count = 0
+    dropped_count = 0
 
     for i, event in enumerate(events):
         primary_rel_id = _find_primary_relationship(
@@ -117,9 +119,6 @@ def chronicle_builder(state: AgentRunState) -> AgentRunState:
             state["relation_id_map"],
         )
 
-        if primary_rel_id is None:
-            orphan_count += 1
-
         secondary = _collect_secondary_entities(
             event,
             primary_rel_id,
@@ -127,24 +126,47 @@ def chronicle_builder(state: AgentRunState) -> AgentRunState:
             state["entity_id_map"],
         )
 
+        # An entry with neither a resolved relationship nor any attached entity is
+        # not anchored to anything — drop it rather than emit an irrelevant entry.
+        if primary_rel_id is None and not secondary:
+            dropped_count += 1
+            continue
+
+        if primary_rel_id is None:
+            orphan_count += 1
+
+        start_year = era_year(event.start_date)
+        end_year = era_year(event.end_date) or start_year
+
         entries.append(
             ChronicleEntry(
-                sequence_order=i,
+                sequence_order=len(entries),
                 primary_relationship_id=primary_rel_id,
                 narrative_text=event.description or "",
                 source_evidence=f"event:{i}",
+                start_year=start_year,
+                end_year=end_year,
                 secondary_entities=secondary,
             )
         )
+
+    # Chronicle temporal span = min/max across its entries.
+    years = [e.start_year for e in entries if e.start_year is not None]
+    years += [e.end_year for e in entries if e.end_year is not None]
+    chronicle_start = min(years) if years else None
+    chronicle_end = max(years) if years else None
 
     chronicle = Chronicle(
         title=title,
         slug=slug,
         source_type="video_transcript",
         source_reference=state["raw_input"][:200],
+        start_year=chronicle_start,
+        end_year=chronicle_end,
         metadata={
             "event_count": len(events),
             "orphan_entry_count": orphan_count,
+            "dropped_entry_count": dropped_count,
             "generated_at": datetime.now(timezone.utc).isoformat(),
         },
         entries=entries,
@@ -156,7 +178,7 @@ def chronicle_builder(state: AgentRunState) -> AgentRunState:
             timestamp=datetime.now(timezone.utc).isoformat(),
             node="chronicle_builder",
             action="chronicle_built",
-            output_summary=f"Built chronicle with {len(entries)} entries ({orphan_count} orphans)",
+            output_summary=f"Built chronicle with {len(entries)} entries ({orphan_count} orphans, {dropped_count} dropped as unanchored)",
         )
     )
     return state
