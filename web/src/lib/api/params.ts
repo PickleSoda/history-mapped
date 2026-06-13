@@ -7,11 +7,29 @@
  * - groups are UPPERCASE enum values; omitted = all groups
  * - map ranking uses `zoom_level` -> impact threshold
  */
-import { ENTITY_GROUPS, type EntityGroup, type Scope } from '@/types/atlas';
+import { ENTITY_GROUPS } from '@/types/atlas';
+import type { EntityGroup, Scope } from '@/types/atlas';
 
 type Params = Record<string, string | number | string[]>;
 
+/**
+ * TEMP (dev): the dataset is small and many entities have no point, so viewport
+ * + time filtering hides them. Fetch globally for now and flip these back on
+ * once the dataset grows.
+ */
+const FILTER_BY_VIEWPORT = false; // bbox on the map + list
+const FILTER_LIST_BY_TIME = false; // exists_at / temporal range on the list
+
+/** Whole-world bbox — the map endpoint requires a bbox even when unfiltered. */
+const WORLD_BBOX: Params = {
+  bbox_min_lng: -180,
+  bbox_min_lat: -85,
+  bbox_max_lng: 180,
+  bbox_max_lat: 85,
+};
+
 function bboxParams(scope: Scope): Params {
+  if (!FILTER_BY_VIEWPORT) return WORLD_BBOX;
   return {
     bbox_min_lng: scope.bbox.w,
     bbox_min_lat: scope.bbox.s,
@@ -59,17 +77,22 @@ export interface ListOptions {
 /** Params for GET /entities (ranked "notable here" list + search). */
 export function listParams(scope: Scope, opts: ListOptions = {}): Params {
   const params: Params = {
-    ...bboxParams(scope),
     sort: opts.sort ?? (opts.search ? 'relevance' : 'impact'),
     per_page: opts.perPage ?? 50,
     page: opts.page ?? 1,
   };
 
-  if (scope.time.kind === 'instant') {
-    params.exists_at = scope.time.year;
-  } else {
-    params.temporal_start = scope.time.start;
-    params.temporal_end = scope.time.end;
+  // Omit bbox entirely when unfiltered — even a world bbox runs on the geometry
+  // column and would exclude unplaced entities.
+  if (FILTER_BY_VIEWPORT) Object.assign(params, bboxParams(scope));
+
+  if (FILTER_LIST_BY_TIME) {
+    if (scope.time.kind === 'instant') {
+      params.exists_at = scope.time.year;
+    } else {
+      params.temporal_start = scope.time.start;
+      params.temporal_end = scope.time.end;
+    }
   }
 
   const groups = groupValues(scope.groups);

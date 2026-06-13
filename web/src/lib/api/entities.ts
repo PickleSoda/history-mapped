@@ -2,15 +2,18 @@
 import {
   EntityDetailSchema,
   EntityListSchema,
-  RelationshipsSchema,
-  type EntityDetail,
-  type EntityList,
-  type Relationships,
+  RelationshipsSchema
+  
+  
+  
 } from '@/lib/schemas/entity';
-import { asFeatureCollection, type MapFeatureCollection } from '@/lib/schemas/map';
+import type {EntityDetail, EntityList, Relationships} from '@/lib/schemas/entity';
+import { asFeatureCollection  } from '@/lib/schemas/map';
+import type {MapFeatureCollection} from '@/lib/schemas/map';
 import type { Scope } from '@/types/atlas';
 import { api } from './client';
-import { listParams, mapParams, type ListOptions } from './params';
+import { listParams, mapParams  } from './params';
+import type {ListOptions} from './params';
 
 /**
  * GET /entities/map — the viewport query. Returns a GeoJSON FeatureCollection
@@ -45,7 +48,8 @@ export async function entityList(
   return EntityListSchema.parse(data);
 }
 
-/** GET /entities/{id} — full detail for the selected entity. */
+/** GET /entities/{id} — full detail for the selected entity. Laravel wraps a
+ *  single resource in a `data` envelope, so unwrap before parsing. */
 export async function entity(
   id: string,
   signal?: AbortSignal,
@@ -53,7 +57,8 @@ export async function entity(
   const { data } = await api.get(`/api/v1/entities/${encodeURIComponent(id)}`, {
     signal,
   });
-  return EntityDetailSchema.parse(data);
+  const payload = (data as { data?: unknown }).data ?? data;
+  return EntityDetailSchema.parse(payload);
 }
 
 /** GET /entities/{id}/relationships — related-entities list. */

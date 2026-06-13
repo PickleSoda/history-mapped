@@ -29,7 +29,9 @@ function groupColorExpression(): maplibregl.ExpressionSpecification {
     'EVENT', c('--g-event', '#b07d23'),
     'ECONOMY', c('--g-economy', '#3f6db4'),
     'CULTURE', c('--g-culture', '#7a57ad'),
-    c('--muted-foreground', '#71717a'),
+    // Literal hex default — maplibre cannot parse the oklch() theme tokens, so
+    // never feed it --muted-foreground / other oklch vars here.
+    '#71717a',
   ];
 }
 
