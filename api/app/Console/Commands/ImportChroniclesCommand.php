@@ -286,7 +286,8 @@ class ImportChroniclesCommand extends Command
     /**
      * Sync secondary entities for a chronicle entry.
      *
-     * Looks up entities by name (since the pipeline stores labels).
+     * The pipeline now resolves entity_id to a real UUID (falling back to the
+     * label when unresolved), so look up by entity_id first, then by name.
      * Skips entities that don't exist in the DB (with a warning).
      */
     private function syncSecondaryEntities(ChronicleEntry $entry, array $secondaryEntities): void
@@ -294,22 +295,32 @@ class ImportChroniclesCommand extends Command
         $pivotData = [];
 
         foreach ($secondaryEntities as $sec) {
-            $label = $sec['entity_id'] ?? null; // In pipeline output, this is the label/name
+            $ref = $sec['entity_id'] ?? null; // a UUID (resolved) or a name (fallback)
             $role = $sec['role'] ?? 'participant';
             $sequence = $sec['sequence_in_entry'] ?? null;
 
-            if (! $label) {
+            if (! is_string($ref) || $ref === '') {
                 continue;
             }
 
-            // Look up entity by name
-            $entity = DB::table('entities')
-                ->where('name', $label)
-                ->orWhere('name', 'ilike', $label)  // Case-insensitive fallback
-                ->first();
+            $entity = null;
+
+            // Resolved entity_id → direct lookup (guarded so a name doesn't hit
+            // the uuid column and raise a 22P02 invalid-uuid error).
+            if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $ref)) {
+                $entity = DB::table('entities')->where('entity_id', $ref)->first();
+            }
+
+            // Fall back to a name match (case-insensitive).
+            if (! $entity) {
+                $entity = DB::table('entities')
+                    ->where('name', $ref)
+                    ->orWhere('name', 'ilike', $ref)
+                    ->first();
+            }
 
             if (! $entity) {
-                $this->warn("  Entity not found: {$label} (skipping secondary entity)");
+                $this->warn("  Entity not found: {$ref} (skipping secondary entity)");
 
                 continue;
             }
