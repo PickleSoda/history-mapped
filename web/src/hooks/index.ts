@@ -14,6 +14,7 @@ export { useScope } from './useScope';
 
 // Server-cache
 export { useEntitiesInView } from './useEntitiesInView';
+export { useEntityList } from './useEntityList';
 export { useEntity, useEntityConnections } from './useEntity';
 export { useSearch, useHighlights, useTimelineDensity } from './useDiscovery';
 export { useChronicle } from './useChronicle';

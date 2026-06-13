@@ -20,9 +20,9 @@ export function ChroniclePlayer() {
       {data && (
         <>
           <p className="mt-1 text-xs text-neutral-400">
-            Step {step + 1} / {data.steps.length}
+            Step {step + 1} / {data.entries.length}
           </p>
-          <p className="mt-3 text-sm">{data.steps[step]?.beat}</p>
+          <p className="mt-3 text-sm">{data.entries[step]?.narrative_text}</p>
           <div className="mt-4 flex gap-2">
             <button type="button" onClick={prev} className="text-sm underline">
               Prev
