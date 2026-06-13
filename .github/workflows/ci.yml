@@ -1,0 +1,214 @@
+name: CI
+
+# Mirrors the "Pull Request" and "Main Branch Build" pipelines described in
+# docs/implementation-docs/deployment_*.md.
+#
+#   pull_request  -> lint + typecheck + build + test  (no publish)
+#   push to main  -> all of the above, then build & push container images
+#
+# The `images` job builds docker/api/Dockerfile.prod (multi-stage, --no-dev,
+# compiled assets, opcache) and pushes to GHCR tagged with the commit SHA.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# One run per branch; cancel superseded runs.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PNPM_VERSION: "10.6.3"   # keep in sync with package.json "packageManager"
+  NODE_VERSION: "20"
+  PHP_VERSION: "8.4"       # keep in sync with docker/api/Dockerfile
+
+jobs:
+  # ───────────────────────────────────────────────────────────────────────────
+  # Frontend: the pnpm workspace (web SPA + api Inertia admin UI).
+  # One install covers both packages.
+  # ───────────────────────────────────────────────────────────────────────────
+  frontend:
+    name: Frontend (lint · types · build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # --- web SPA ---------------------------------------------------------
+      - name: web · lint
+        run: pnpm --filter @history-mapped/web lint
+
+      - name: web · typecheck
+        run: pnpm --filter @history-mapped/web run types:check
+
+      - name: web · build
+        run: pnpm --filter @history-mapped/web build
+
+      - name: Upload web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist-${{ github.sha }}
+          path: web/dist
+          if-no-files-found: error
+          retention-days: 7
+
+      # --- api Inertia admin UI -------------------------------------------
+      - name: admin · lint
+        run: pnpm --filter @history-mapped/api run lint:check
+
+      - name: admin · format
+        run: pnpm --filter @history-mapped/api run format:check
+
+      - name: admin · typecheck
+        run: pnpm --filter @history-mapped/api run types:check
+
+      - name: admin · unit tests (vitest)
+        run: pnpm --filter @history-mapped/api exec vitest run --passWithNoTests
+        # NOTE: `vite build` for the admin UI is intentionally NOT run here —
+        # the Wayfinder plugin needs a live PHP app. It is exercised inside the
+        # production image build instead (once that Dockerfile exists).
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # API: Laravel + PHP. Tests run against the real PostGIS + pgvector image,
+  # because phpunit.xml uses the pgsql connection and the schema needs both
+  # extensions — a vanilla `postgres` service container will not work.
+  # ───────────────────────────────────────────────────────────────────────────
+  api:
+    name: API (pint · migrate · phpunit)
+    runs-on: ubuntu-latest
+
+    env:
+      # Override the container hostname baked into phpunit.xml (`db` -> CI host).
+      # PHPUnit <env> entries do not force-override real OS env vars, so these win.
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: "5432"
+      DB_DATABASE: history-mapped_test
+      DB_USERNAME: history-mapped
+      DB_PASSWORD: secret
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build PostGIS + pgvector image
+        run: docker build -t history-mapped-db:ci -f docker/db/Dockerfile docker
+
+      - name: Start database
+        run: |
+          docker run -d --name hm-db \
+            -e POSTGRES_DB="$DB_DATABASE" \
+            -e POSTGRES_USER="$DB_USERNAME" \
+            -e POSTGRES_PASSWORD="$DB_PASSWORD" \
+            -v "${{ github.workspace }}/docker/db/init-extensions.sql:/docker-entrypoint-initdb.d/10-extensions.sql:ro" \
+            -p 5432:5432 \
+            history-mapped-db:ci
+
+      - name: Wait for database
+        run: |
+          for i in $(seq 1 30); do
+            if docker exec hm-db pg_isready -U "$DB_USERNAME" -d "$DB_DATABASE" >/dev/null 2>&1; then
+              echo "database ready"; exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::database did not become ready"; docker logs hm-db; exit 1
+
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: bcmath, exif, gd, intl, pcntl, pdo_pgsql, redis, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer/files
+          key: composer-${{ runner.os }}-${{ hashFiles('api/composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Install dependencies
+        working-directory: api
+        run: composer install --no-interaction --prefer-dist --no-progress --optimize-autoloader
+
+      - name: Prepare environment
+        working-directory: api
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Lint (Pint)
+        working-directory: api
+        run: ./vendor/bin/pint --test
+
+      - name: Run migrations
+        working-directory: api
+        run: php artisan migrate --force
+
+      - name: Tests
+        working-directory: api
+        run: php artisan test
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Container images — main branch only. Builds the production API image and
+  # pushes it to GHCR tagged with the commit SHA (immutable) + latest.
+  # ───────────────────────────────────────────────────────────────────────────
+  images:
+    name: Build & push images
+    if: github.ref == 'refs/heads/main'
+    needs: [frontend, api]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/api/Dockerfile.prod
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/api:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/api:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Scan API image (Trivy)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ghcr.io/${{ github.repository }}/api:${{ github.sha }}
+          format: sarif
+          output: trivy-api.sarif
+          severity: HIGH,CRITICAL
+          exit-code: "0"   # report-only at first; flip to "1" to gate merges
