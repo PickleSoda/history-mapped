@@ -2,8 +2,13 @@
 import {
   ChronicleListSchema,
   ChronicleSchema,
+  EntityChroniclesSchema,
 } from '@/lib/schemas/chronicle';
-import type { Chronicle, ChronicleList } from '@/lib/schemas/chronicle';
+import type {
+  Chronicle,
+  ChronicleList,
+  EntityChronicles,
+} from '@/lib/schemas/chronicle';
 import { api } from './client';
 
 /** GET /chronicles — paginated listing for the Chronicles tab. */
@@ -13,6 +18,18 @@ export async function chronicleList(signal?: AbortSignal): Promise<ChronicleList
     params: { per_page: 50 },
   });
   return ChronicleListSchema.parse(data);
+}
+
+/** GET /entities/{id}/chronicles — chronicles the entity appears in. */
+export async function entityChronicles(
+  id: string,
+  signal?: AbortSignal,
+): Promise<EntityChronicles> {
+  const { data } = await api.get(
+    `/api/v1/entities/${encodeURIComponent(id)}/chronicles`,
+    { signal },
+  );
+  return EntityChroniclesSchema.parse(data);
 }
 
 /** GET /chronicles/{slug} — the whole tour. Laravel wraps the single resource
