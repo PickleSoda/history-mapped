@@ -137,6 +137,28 @@ coordinates (Byzantine Empire at 31N, 31E) or no geometry at all.
 - **Era-aware place geocoding** (cities/monuments): out of scope for now because
   bare city names collide with modern namesakes in Nominatim (Rome OH, Gaza IA).
   Needs an era/region filter before it can be safely enabled.
+- **Events: Wikidata-coordinate-first** — events now always try to get a point
+  (OHM Nominatim → Wikidata-coordinate fallback), so e.g. the Franco-Prussian War
+  lands in N. France. But OHM name-search can match a wrong same-named feature
+  that still passes the era check (World War I → a US memorial in Montana). For
+  events, the Wikidata P625 coordinate is usually the authoritative location and
+  should be preferred over an OHM name match; events with no Wikidata coordinate
+  (Opium War) still get no point.
+
+## Chronicle data + admin (post-OHM)
+
+- Pipeline sets entry/chronicle `start_year`/`end_year` from event dates and
+  drops entries anchored to neither a relationship nor an entity.
+- `EnrichChronicleMetadataAction` (run on import + admin update) derives entry
+  `impact_score` (max of involved entities) + `approximate_location` ({lat,lon}
+  of the highest-impact located entity) and aggregates them to the chronicle.
+- Secondary entities attach by resolved UUID (the pipeline writes UUIDs), not
+  just by name — previously 0 attached, leaving entries unanchored and locations
+  null.
+- Admin: the chronicle detail page renders each entry's primary relationship +
+  the year/impact/location fields; the edit page now preserves relations/entities
+  (it had been wiping them on save) and lets you see/add (entity search)/remove
+  secondary entities with roles and clear the primary relationship.
 
 - **Unmarked deep-BCE dates**: when the LLM emits a bare `2100` (no "BCE"),
   deterministic code can't infer the era, so it stores positive (wrong era). The
