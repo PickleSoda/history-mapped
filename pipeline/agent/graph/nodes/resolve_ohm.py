@@ -11,11 +11,14 @@ from pipeline.agent.tools.ohm_polity_resolver import resolve_polity
 
 logger = get_logger(__name__)
 
-# Countries & polities: OHM is authoritative for identity — adopt OHM's
+# Countries & polities only: OHM is authoritative for identity — adopt OHM's
 # canonical name + id (the transcript's name becomes an alias).
+#
+# Scope is deliberately limited to polities. Bare city names (Rome, Gaza,
+# Babylon) collide with modern same-named towns in OHM Nominatim and resolve to
+# the wrong place (Rome OH, Gaza IA) without an era/identity anchor — worse than
+# no geometry. Era-aware place geocoding is a separate follow-up.
 _POLITY_TYPES = {"political_entity", "dynasty"}
-# Settlements / monuments: take OHM geometry + geo-ref, but keep the LLM's name.
-_PLACE_TYPES = {"city", "infrastructure_monument", "extraction_infra", "educational_institution"}
 
 
 def _adopt_ohm_name(candidate: CandidateEntity, ohm_name: str | None) -> None:
@@ -42,10 +45,7 @@ def resolve_ohm(state: AgentRunState) -> AgentRunState:
 
     resolved = 0
     for i, enriched in enumerate(entities):
-        entity_type = enriched.candidate.entity_type
-        is_polity = entity_type in _POLITY_TYPES
-        is_place = entity_type in _PLACE_TYPES
-        if not (is_polity or is_place):
+        if enriched.candidate.entity_type not in _POLITY_TYPES:
             continue
 
         era = (
@@ -69,18 +69,15 @@ def resolve_ohm(state: AgentRunState) -> AgentRunState:
             "object_type": result["external_type"],
             "object_id": result["external_id"],
         }
+        _adopt_ohm_name(enriched.candidate, result.get("name"))
+        if not enriched.wikidata_match and result.get("wikidata_id"):
+            enriched.wikidata_match = {"qid": result["wikidata_id"]}
         resolved += 1
 
-        if is_polity:
-            _adopt_ohm_name(enriched.candidate, result.get("name"))
-            if not enriched.wikidata_match and result.get("wikidata_id"):
-                enriched.wikidata_match = {"qid": result["wikidata_id"]}
-
         logger.info(
-            "  [%d/%d] %s -> OHM %s/%s (score=%.2f%s)",
+            "  [%d/%d] %s -> OHM %s/%s (score=%.2f, identity-adopted)",
             i + 1, len(entities), enriched.candidate.label,
-            result["external_type"], result["external_id"],
-            result.get("match_score", 0.0), ", identity-adopted" if is_polity else "",
+            result["external_type"], result["external_id"], result.get("match_score", 0.0),
         )
 
     state["audit_log"].append(
