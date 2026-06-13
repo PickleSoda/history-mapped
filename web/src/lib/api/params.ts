@@ -56,13 +56,7 @@ export interface ListOptions {
   search?: string;
 }
 
-/**
- * Params for GET /entities (ranked "notable here" list + search).
- *
- * NOTE: the list endpoint only supports a single `group`, so partial
- * multi-group selection is not filtered here (only applied when exactly one
- * group is active). Multi-group list filtering is a future backend addition.
- */
+/** Params for GET /entities (ranked "notable here" list + search). */
 export function listParams(scope: Scope, opts: ListOptions = {}): Params {
   const params: Params = {
     ...bboxParams(scope),
@@ -78,7 +72,8 @@ export function listParams(scope: Scope, opts: ListOptions = {}): Params {
     params.temporal_end = scope.time.end;
   }
 
-  if (scope.groups.length === 1) params.group = scope.groups[0].toUpperCase();
+  const groups = groupValues(scope.groups);
+  if (groups) params.groups = groups;
   if (opts.search) params.search = opts.search;
 
   return params;
