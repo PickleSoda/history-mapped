@@ -1,5 +1,14 @@
 /** Zod schema for GET /chronicles/{slug} (ChronicleResource + entries). */
 import { z } from 'zod';
+import { RelationshipSchema } from './entity';
+
+/** A secondary entity referenced by a chronicle entry. */
+const SecondaryEntitySchema = z.object({
+  entity_id: z.string(),
+  name: z.string(),
+  entity_type: z.string().nullable().default(null),
+  role: z.string().nullable().default(null),
+});
 
 /** One chronicle entry (ChronicleEntryResource) — a step in the tour. */
 export const ChronicleEntrySchema = z.object({
@@ -10,6 +19,8 @@ export const ChronicleEntrySchema = z.object({
   impact_score: z.number().nullable().default(null),
   approximate_location: z.unknown().nullable().default(null),
   narrative_text: z.string().nullable().default(null),
+  primary_relationship: RelationshipSchema.nullable().optional(),
+  secondary_entities: z.array(SecondaryEntitySchema).optional(),
 });
 export type ChronicleEntry = z.infer<typeof ChronicleEntrySchema>;
 
