@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Api\V1\Controllers\EntityChronicleController;
 use App\Http\Api\V1\Controllers\EntityController;
 use App\Http\Api\V1\Controllers\EntityGeoRefController;
 use App\Http\Api\V1\Controllers\EntityRelationshipController;
@@ -7,6 +8,7 @@ use App\Http\Api\V1\Controllers\EntityTimelineController;
 use App\Http\Api\V1\Controllers\MapResolutionController;
 use App\Http\Api\V1\Controllers\ReferenceController;
 use App\Http\Api\V1\Controllers\SourceController;
+use App\Http\Controllers\Api\V1\ChronicleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -47,6 +49,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/entities/{entity}/relationships', [EntityRelationshipController::class, 'index'])
         ->name('api.v1.entities.relationships.index');
 
+    Route::get('/entities/{entity}/chronicles', [EntityChronicleController::class, 'index'])
+        ->name('api.v1.entities.chronicles.index');
+
     Route::get('/entities/{entity}/timeline', [EntityTimelineController::class, 'index'])
         ->name('api.v1.entities.timeline.index');
 
@@ -61,10 +66,10 @@ Route::prefix('v1')->group(function () {
         ->name('api.v1.sources.show');
 
     // Chronicles
-    Route::get('/chronicles', [\App\Http\Controllers\Api\V1\ChronicleController::class, 'index'])
+    Route::get('/chronicles', [ChronicleController::class, 'index'])
         ->name('api.v1.chronicles.index');
 
-    Route::get('/chronicles/{slug}', [\App\Http\Controllers\Api\V1\ChronicleController::class, 'show'])
+    Route::get('/chronicles/{slug}', [ChronicleController::class, 'show'])
         ->name('api.v1.chronicles.show');
 
     // Reference Tables (cached)

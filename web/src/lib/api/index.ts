@@ -5,5 +5,5 @@
 export { api, getCsrfCookie } from './client';
 export { entitiesInView, entityList, entity, entityConnections } from './entities';
 export { search, highlights, timelineDensity } from './discovery';
-export { chronicle, chronicleList } from './chronicles';
+export { chronicle, chronicleList, entityChronicles } from './chronicles';
 export { mapParams, listParams, type ListOptions } from './params';

@@ -51,3 +51,18 @@ export const ChronicleListSchema = z.object({
   meta: PaginatorMetaSchema,
 });
 export type ChronicleList = z.infer<typeof ChronicleListSchema>;
+
+/** One chronicle an entity belongs to (GET /entities/{id}/chronicles). Carries
+ *  the relationship ids it uses so rows can be flagged as "in a chronicle". */
+export const EntityChronicleRefSchema = z.object({
+  chronicle_id: z.string(),
+  title: z.string(),
+  slug: z.string(),
+  relationship_ids: z.array(z.string()).default([]),
+});
+export type EntityChronicleRef = z.infer<typeof EntityChronicleRefSchema>;
+
+export const EntityChroniclesSchema = z.object({
+  data: z.array(EntityChronicleRefSchema),
+});
+export type EntityChronicles = z.infer<typeof EntityChroniclesSchema>;
