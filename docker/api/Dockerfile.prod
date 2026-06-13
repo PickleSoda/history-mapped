@@ -1,0 +1,118 @@
+# syntax=docker/dockerfile:1.7
+#
+# Production image for the Laravel API (also used by the queue & scheduler
+# services — they just override the command).
+#
+# Build from the REPO ROOT so the pnpm workspace is in context:
+#   docker build -f docker/api/Dockerfile.prod -t history-mapped/api:<sha> .
+#
+# Release-time steps (migrations, `artisan optimize`) are intentionally NOT
+# baked in — run them as a one-off deploy job against the live environment so
+# multiple replicas never race `migrate --force`. See the deployment docs.
+
+###############################################################################
+# Stage 0 — shared PHP base with the runtime extensions the app needs.
+# Pinned to 8.4 to match composer.json ("php": "^8.4") and CI.
+###############################################################################
+FROM php:8.4-fpm-bookworm AS php-base
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git \
+        libfreetype6-dev \
+        libicu-dev \
+        libjpeg62-turbo-dev \
+        libonig-dev \
+        libpng-dev \
+        libpq-dev \
+        libxml2-dev \
+        libzip-dev \
+        unzip \
+        zip \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j"$(nproc)" \
+        bcmath \
+        exif \
+        gd \
+        intl \
+        pcntl \
+        pdo_pgsql \
+        zip \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && rm -rf /var/lib/apt/lists/*
+
+###############################################################################
+# Stage 1 — build: composer deps + compiled frontend assets.
+# The Wayfinder Vite plugin boots Laravel during `vite build`, so this stage
+# needs PHP + vendor + a (throwaway) APP_KEY alongside Node/pnpm.
+###############################################################################
+FROM php-base AS build
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Node 20 + pnpm (pinned to the workspace packageManager version).
+COPY --from=node:20-bookworm-slim /usr/local/bin/node /usr/local/bin/node
+COPY --from=node:20-bookworm-slim /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+    && ln -sf /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx \
+    && corepack enable \
+    && corepack prepare pnpm@10.6.3 --activate
+
+WORKDIR /app
+
+# 1) PHP deps first (best layer caching). No scripts/autoload until source lands.
+COPY api/composer.json api/composer.lock ./api/
+RUN cd api && composer install \
+        --no-dev --no-scripts --no-autoloader \
+        --prefer-dist --no-interaction --no-progress
+
+# 2) JS deps — copy only the workspace manifests so installs cache well.
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY api/package.json ./api/
+COPY web/package.json ./web/
+RUN pnpm install --frozen-lockfile --filter @history-mapped/api...
+
+# 3) Application source.
+COPY api/ ./api/
+
+# 4) Finish the autoloader + package discovery, then build assets.
+#    The throwaway .env (with a build-only key) is removed before the runtime
+#    copy so no secret is shipped in the image.
+RUN cd api \
+    && cp .env.example .env \
+    && php artisan key:generate \
+    && composer dump-autoload --no-dev --optimize \
+    && pnpm --filter @history-mapped/api build \
+    && rm -f .env \
+    && rm -rf node_modules /app/node_modules /app/web/node_modules
+
+###############################################################################
+# Stage 2 — runtime: slim php-fpm with only the built application.
+###############################################################################
+FROM php-base AS runtime
+
+# Production opcache tuning.
+RUN { \
+        echo 'opcache.enable=1'; \
+        echo 'opcache.enable_cli=0'; \
+        echo 'opcache.memory_consumption=256'; \
+        echo 'opcache.interned_strings_buffer=16'; \
+        echo 'opcache.max_accelerated_files=20000'; \
+        echo 'opcache.validate_timestamps=0'; \
+    } > /usr/local/etc/php/conf.d/opcache.ini
+
+WORKDIR /var/www/html
+
+# Built application: vendor (no-dev) + compiled public/build assets.
+COPY --from=build --chown=www-data:www-data /app/api/ ./
+
+# Laravel needs these writable at runtime.
+RUN chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R ug+rwX storage bootstrap/cache
+
+USER www-data
+
+EXPOSE 9000
+
+# Overridden by the queue/scheduler services with their own artisan commands.
+CMD ["php-fpm"]

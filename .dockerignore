@@ -1,0 +1,23 @@
+# Keep build contexts lean and reproducible: dependencies and build outputs are
+# regenerated inside the image, never copied from the host.
+**/node_modules
+**/vendor
+**/dist
+api/public/build
+api/public/hot
+api/storage/*.key
+**/.env
+**/.env.*
+!**/.env.example
+
+# VCS / tooling / local cruft
+.git
+.github
+.gitnexus
+.claude
+**/.DS_Store
+*.log
+
+# Docs & host-only files
+docs
+**/*.md
