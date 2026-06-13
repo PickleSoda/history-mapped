@@ -2,40 +2,44 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { highlights, search, timelineDensity } from '@/lib/api';
 import { qk } from '@/lib/query/queryKeys';
 import type { TimeState } from '@/types/atlas';
-import { useFilters } from './useFilters';
 import { useScope } from './useScope';
-import { useTimeState } from './useTimeState';
 
 /**
- * Command-palette search. Scoped to current filters + time so results are
- * relevant. Debounce the input into `q` at the call site (~200ms);
+ * Command-palette search (GET /entities?search=). Scoped to the current
+ * viewport + time. Debounce the input into `q` at the call site (~200ms);
  * `keepPreviousData` stops flicker between keystrokes.
  */
 export function useSearch(q: string | null) {
-  const { groups } = useFilters();
-  const { time } = useTimeState();
+  const scope = useScope();
   return useQuery({
-    queryKey: qk.search(q ?? '', { groups, time }),
-    queryFn: ({ signal }) => search(q as string, { groups, time }, signal),
+    queryKey: qk.search(q ?? '', scope),
+    queryFn: ({ signal }) => search(scope, q as string, signal),
     enabled: !!q,
     placeholderData: keepPreviousData,
   });
 }
 
-/** "What's new/peaked this period" banner cards for a given time. */
+/**
+ * Period-highlights banner. DEFERRED — no backend endpoint yet; the hook stays
+ * disabled so nothing fires until the highlights build step adds /highlights.
+ */
 export function useHighlights(time: TimeState) {
   return useQuery({
     queryKey: qk.highlights(time),
-    queryFn: ({ signal }) => highlights(time, signal),
+    queryFn: () => highlights(),
+    enabled: false,
   });
 }
 
-/** Histogram bars under the scrubber, keyed on bbox + groups (not time). */
+/**
+ * Timeline density histogram. DEFERRED — no backend endpoint yet; disabled
+ * until the timeline build step adds /density.
+ */
 export function useTimelineDensity() {
   const scope = useScope();
   return useQuery({
     queryKey: qk.density(scope),
-    queryFn: ({ signal }) => timelineDensity(scope, signal),
-    placeholderData: keepPreviousData,
+    queryFn: () => timelineDensity(),
+    enabled: false,
   });
 }

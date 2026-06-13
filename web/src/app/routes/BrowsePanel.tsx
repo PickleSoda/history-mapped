@@ -1,12 +1,12 @@
-import { useEntitiesInView, useSelection } from '@/hooks';
+import { useEntityList, useSelection } from '@/hooks';
 
 /**
- * "Notable here" list (spec §6). Reads the SAME viewport query as the map — one
- * fetch feeds both. Rows will be memoized + virtualized in the UI pass; this is
- * the wired-up scaffold proving the data path end to end.
+ * "Notable here" list (spec §6). Reads GET /entities (ranked by impact,
+ * paginated, with a real total). Rows will be memoized + virtualized in the UI
+ * pass; this is the wired-up scaffold proving the data path end to end.
  */
 export function BrowsePanel() {
-  const { data, isLoading, isError } = useEntitiesInView();
+  const { data, isLoading, isError } = useEntityList({ sort: 'impact' });
   const { select } = useSelection();
 
   return (
@@ -20,9 +20,9 @@ export function BrowsePanel() {
 
       {data && (
         <>
-          <p className="mt-1 text-xs text-neutral-400">{data.total} in view</p>
+          <p className="mt-1 text-xs text-neutral-400">{data.meta.total} in view</p>
           <ul className="mt-3 space-y-1">
-            {data.items.map((e) => (
+            {data.data.map((e) => (
               <li key={e.id}>
                 <button
                   type="button"
@@ -31,7 +31,7 @@ export function BrowsePanel() {
                 >
                   <span className="font-medium">{e.name}</span>
                   <span className="ml-2 text-xs uppercase text-neutral-400">
-                    {e.group}
+                    {e.entity_group}
                   </span>
                 </button>
               </li>

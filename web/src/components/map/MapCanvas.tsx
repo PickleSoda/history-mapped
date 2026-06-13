@@ -1,29 +1,16 @@
-import type { FeatureCollection, Point } from 'geojson';
+import type { FeatureCollection } from 'geojson';
 import maplibregl, { GeoJSONSource } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useEffect, useRef } from 'react';
 import { useEntitiesInView, useMapInstance, useViewport } from '@/hooks';
-import type { EntitySummary } from '@/lib/schemas/entity';
 
 const SOURCE_ID = 'entities';
-const LAYER_ID = 'entities-circles';
+const FILL_LAYER = 'entities-fill';
+const LINE_LAYER = 'entities-line';
+const CIRCLE_LAYER = 'entities-circles';
+const EMPTY_FC: FeatureCollection = { type: 'FeatureCollection', features: [] };
 const BASEMAP_STYLE = 'https://demotiles.maplibre.org/style.json';
 const MOVE_DEBOUNCE_MS = 250;
-
-/** Build a point FeatureCollection from placed entities (skips null geometry). */
-function toFeatureCollection(items: EntitySummary[]): FeatureCollection<Point> {
-  return {
-    type: 'FeatureCollection',
-    features: items
-      .filter((e): e is EntitySummary & { point: [number, number] } => e.point !== null)
-      .map((e) => ({
-        type: 'Feature',
-        id: e.id,
-        geometry: { type: 'Point', coordinates: e.point },
-        properties: { id: e.id, group: e.group, name: e.name },
-      })),
-  };
-}
 
 /**
  * The persistent map (spec §6). It mounts ONCE and is never re-rendered to move
@@ -59,14 +46,29 @@ export function MapCanvas() {
     mapRef.current = map;
 
     map.on('load', () => {
-      map.addSource(SOURCE_ID, {
-        type: 'geojson',
-        data: { type: 'FeatureCollection', features: [] },
+      map.addSource(SOURCE_ID, { type: 'geojson', data: EMPTY_FC });
+
+      // Polygon territories: fill + outline.
+      map.addLayer({
+        id: FILL_LAYER,
+        type: 'fill',
+        source: SOURCE_ID,
+        filter: ['match', ['geometry-type'], ['Polygon', 'MultiPolygon'], true, false],
+        paint: { 'fill-color': '#2563eb', 'fill-opacity': 0.15 },
       });
       map.addLayer({
-        id: LAYER_ID,
+        id: LINE_LAYER,
+        type: 'line',
+        source: SOURCE_ID,
+        filter: ['match', ['geometry-type'], ['Polygon', 'MultiPolygon'], true, false],
+        paint: { 'line-color': '#2563eb', 'line-width': 1 },
+      });
+      // Point entities.
+      map.addLayer({
+        id: CIRCLE_LAYER,
         type: 'circle',
         source: SOURCE_ID,
+        filter: ['match', ['geometry-type'], ['Point', 'MultiPoint'], true, false],
         paint: {
           'circle-radius': 5,
           'circle-color': '#2563eb',
@@ -107,7 +109,10 @@ export function MapCanvas() {
     const map = mapRef.current;
     if (!map || !data) return;
     const source = map.getSource(SOURCE_ID) as GeoJSONSource | undefined;
-    source?.setData(toFeatureCollection(data.items));
+    // The endpoint already returns a GeoJSON FeatureCollection — pass it straight
+    // through (no client-side reserialization). Map features always carry
+    // geometry, so the null-geometry case in the type never occurs here.
+    source?.setData(data as FeatureCollection);
   }, [data]);
 
   return <div ref={containerRef} className="absolute inset-0 h-full w-full" />;
