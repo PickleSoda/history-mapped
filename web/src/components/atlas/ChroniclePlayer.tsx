@@ -69,7 +69,7 @@ export function ChroniclePlayer() {
   }, [current?.entry_id, current?.start_year, setInstant]);
 
   return (
-    <aside className="flex h-full w-[340px] max-w-[85vw] flex-none flex-col border-r bg-card">
+    <aside className="flex h-full w-[380px] max-w-[90vw] flex-none flex-col border-l bg-card">
       <div className="flex items-center justify-between border-b px-3 py-2">
         <button
           type="button"

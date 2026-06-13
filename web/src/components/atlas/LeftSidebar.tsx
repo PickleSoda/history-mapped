@@ -1,10 +1,8 @@
 import { List, PanelLeftClose, ScrollText } from 'lucide-react';
 import { useState } from 'react';
-import { useChronicleNav } from '@/hooks';
 import { cn } from '@/lib/utils';
 import { BrowseTab } from './BrowseTab';
 import { ChronicleList } from './ChronicleList';
-import { ChroniclePlayer } from './ChroniclePlayer';
 
 type Tab = 'entities' | 'chronicles';
 
@@ -72,15 +70,11 @@ function RailIcon({
 export function LeftSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [tab, setTab] = useState<Tab>('entities');
-  const { isActive } = useChronicleNav();
 
   const openTab = (t: Tab) => {
     setTab(t);
     setCollapsed(false);
   };
-
-  // A running chronicle tour takes over the left sidebar.
-  if (isActive) return <ChroniclePlayer />;
 
   return (
     <aside

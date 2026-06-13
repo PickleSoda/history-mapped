@@ -17,6 +17,7 @@ export { useEntitiesInView } from './useEntitiesInView';
 export { useEntityList } from './useEntityList';
 export { useEntity, useEntityConnections } from './useEntity';
 export { useSearch, useHighlights, useTimelineDensity } from './useDiscovery';
+export { useEntitySearch } from './useEntitySearch';
 export { useChronicle } from './useChronicle';
 export { useChronicleList } from './useChronicleList';
 export { useEntityChronicles } from './useEntityChronicles';

@@ -8,7 +8,7 @@ import {
   Search,
   SlidersHorizontal,
 } from 'lucide-react';
-import { useSearchQuery, useTimeState, useView } from '@/hooks';
+import { useCommandPalette, useTimeState, useView } from '@/hooks';
 import { formatTime } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import type { ViewMode } from '@/types/atlas';
@@ -66,7 +66,7 @@ function ViewToggle() {
 }
 
 export function TopBar() {
-  const { open } = useSearchQuery();
+  const { setOpen } = useCommandPalette();
 
   return (
     <header className="flex h-[54px] flex-none items-center gap-3.5 border-b bg-card px-4">
@@ -85,7 +85,7 @@ export function TopBar() {
       <div className="flex flex-1 items-center justify-center gap-3.5">
         <button
           type="button"
-          onClick={() => open('')}
+          onClick={() => setOpen(true)}
           className="mx-auto flex h-[38px] w-full max-w-[520px] items-center gap-2.5 rounded-lg border bg-muted/50 px-3 text-[13px] text-muted-foreground transition-colors hover:bg-muted"
         >
           <Search size={15} />
