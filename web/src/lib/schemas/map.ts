@@ -10,7 +10,7 @@
 import type { Feature, FeatureCollection, Geometry } from 'geojson';
 import type { EntityGroup } from '@/types/atlas';
 
-/** Properties carried on each map feature (see MapEntitiesAction). */
+/** Properties carried on each map feature (see MapEntitiesAction — trimmed, MQ-8). */
 export interface MapFeatureProperties {
   id: string;
   name: string;
@@ -18,12 +18,10 @@ export interface MapFeatureProperties {
   /** Backend emits UPPERCASE; consumers lowercase as needed. */
   entity_group: string;
   impact_score: number | null;
-  display_priority: number | null;
-  icon_class: string | null;
-  period_type: string | null;
-  geometry_period_id: string | null;
   start_year: number | null;
   end_year: number | null;
+  /** attributes->>'entity_color' (hex) or null. */
+  entity_color: string | null;
 }
 
 export type MapFeature = Feature<Geometry | null, MapFeatureProperties>;

@@ -216,7 +216,7 @@ class MapEntitiesThresholdTest extends TestCase
         $this->assertCount(90, $response->json('features'));
     }
 
-    public function test_map_returns_border_period_type_in_feature_properties(): void
+    public function test_map_feature_properties_are_trimmed(): void
     {
         $entity = Entity::factory()->verified()->create(['impact_score' => 90]);
         $this->setGeometryPeriod($entity, -100, -50, 'territory');
@@ -235,7 +235,9 @@ class MapEntitiesThresholdTest extends TestCase
             ->firstWhere('id', $entity->entity_id);
 
         $this->assertNotNull($feature);
-        $this->assertSame('territory', $feature['properties']['period_type'] ?? null);
+        // Trimmed payload (MQ-8): period_type and other heavy props are dropped.
+        $this->assertArrayNotHasKey('period_type', $feature['properties']);
+        $this->assertArrayNotHasKey('geometry_period_id', $feature['properties']);
         $response->assertJsonMissingPath('territories');
     }
 
