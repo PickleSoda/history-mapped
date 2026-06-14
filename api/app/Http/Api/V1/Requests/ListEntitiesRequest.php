@@ -62,9 +62,6 @@ class ListEntitiesRequest extends FormRequest
             'temporal_end' => ['sometimes', 'integer'],
             'exists_at' => ['sometimes', 'integer'],
 
-            // Hierarchy
-            'parent_id' => ['sometimes', 'uuid'],
-
             // Sorting
             'sort' => ['sometimes', 'string', Rule::in([
                 'relevance', 'impact', 'recent', 'chronological', 'distance', 'name',

@@ -85,10 +85,6 @@ class EntityResource extends JsonResource
                 $this->relationLoaded('incomingRelationships'),
                 fn () => RelationshipResource::collection($this->incomingRelationships),
             ),
-            'children' => $this->when(
-                $this->relationLoaded('children'),
-                fn () => EntitySummaryResource::collection($this->children),
-            ),
             // Timestamps
             'created_by' => $this->created_by,
             'created_at' => $this->created_at?->toISOString(),

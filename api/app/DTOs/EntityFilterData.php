@@ -43,8 +43,6 @@ readonly class EntityFilterData
         public ?int $temporalStart = null,
         public ?int $temporalEnd = null,
         public ?int $existsAt = null,
-        // Hierarchy
-        public ?string $parentId = null,
         // Sorting
         public string $sort = 'relevance',
         // Pagination
@@ -86,7 +84,6 @@ readonly class EntityFilterData
             temporalStart: isset($validated['temporal_start']) ? (int) $validated['temporal_start'] : null,
             temporalEnd: isset($validated['temporal_end']) ? (int) $validated['temporal_end'] : null,
             existsAt: isset($validated['exists_at']) ? (int) $validated['exists_at'] : null,
-            parentId: $validated['parent_id'] ?? null,
             sort: $validated['sort'] ?? 'relevance',
             perPage: isset($validated['per_page']) ? (int) $validated['per_page'] : 25,
             page: isset($validated['page']) ? (int) $validated['page'] : 1,
