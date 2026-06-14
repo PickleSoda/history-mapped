@@ -1,5 +1,7 @@
 # Phase 5 — OHM Change Requests + Contribution Pipeline
 
+> **Status: ⬜ Not started** — as of 2026-06-15. See [STATUS.md](STATUS.md).
+
 ## Objective
 Enable users to draft, review, and eventually submit change requests to OpenHistoricalMap from within the application with traceability and governance.
 

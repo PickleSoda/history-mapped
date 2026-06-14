@@ -1,5 +1,7 @@
 # Plan 04 - Entity Data Model
 
+> **Status: ✅ Executed** — verified 2026-06-15 against the codebase. See [STATUS.md](STATUS.md).
+
 > Retroactive plan doc — implementation was completed before this document was written.
 
 ## Goal

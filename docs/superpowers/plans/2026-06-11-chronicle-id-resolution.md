@@ -1,5 +1,7 @@
 # Chronicle ID Resolution Implementation Plan
 
+> **Status: ✅ Executed** — verified 2026-06-15 against the codebase. See [STATUS.md](../../plans/STATUS.md).
+>
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Restructure the agent pipeline so entities/relations are committed to the DB before the chronicle is built, and chronicle entries reference real DB entity IDs instead of string labels.

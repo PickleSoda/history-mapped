@@ -1,5 +1,7 @@
 # Phase 0 — Stabilize Geometry Rendering Pipeline
 
+> **Status: ✅ Executed** — verified 2026-06-15 against the codebase. See [STATUS.md](STATUS.md).
+
 ## Objective
 Ensure geometry and territory data reliably render immediately after load/save in all relevant admin surfaces.
 

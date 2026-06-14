@@ -1,6 +1,6 @@
 # Entity Show/Edit CRUD Alignment Implementation Plan
 
-> **Status (as of 2026-06-01):** Partially completed. Geometry-period CRUD, timeline API integration, and UI panels are implemented. Hierarchy controls (`parent_entity_id`, `successor_entity_id`) are **not yet implemented**.
+> **Status: 🟡 Partial** — verified 2026-06-15; remaining work tracked in [STATUS.md](../../plans/STATUS.md).
 >
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 

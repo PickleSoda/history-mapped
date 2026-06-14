@@ -1,5 +1,7 @@
 # 14 — Experimental Inferred Boundary Fallback Pipeline
 
+> **Status: ⬜ Not started** — as of 2026-06-15. See [STATUS.md](STATUS.md).
+
 ## Objective
 Design an experimental, license-safe pipeline that generates **machine-inferred historical boundary layers** when OpenHistoricalMap (OHM) has no usable boundary geometry for a polity and **no human review** is available.
 

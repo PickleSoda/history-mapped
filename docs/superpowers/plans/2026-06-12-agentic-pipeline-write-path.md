@@ -1,5 +1,7 @@
 # Agentic Pipeline — Write-Path & Reliability — Implementation Plan
 
+> **Status: 🟡 Partial** — verified 2026-06-15; remaining work tracked in [STATUS.md](../../plans/STATUS.md).
+>
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make the LangGraph agent actually persist entities, relations, and chronicles to Postgres (today it writes nothing while reporting success), and make runs observable, idempotent, resumable, and crash-tolerant.

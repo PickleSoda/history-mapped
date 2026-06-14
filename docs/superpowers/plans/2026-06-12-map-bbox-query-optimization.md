@@ -1,5 +1,7 @@
 # Map Bounding-Box Query Optimization — Implementation Plan
 
+> **Status: 🟡 Partial** — verified 2026-06-15; remaining work tracked in [STATUS.md](../../plans/STATUS.md).
+>
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make the live map fetch only the viewport at zoom-appropriate resolution via one correct set-based query, fix the map-path correctness bugs, and collapse the map-click resolver to a single statement.

@@ -1,5 +1,7 @@
 # Confidence Scoring Rework — Implementation Plan
 
+> **Status: ⬜ Not started** — as of 2026-06-15. See [STATUS.md](../../plans/STATUS.md).
+>
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Replace the flat 0.95 confidence floor with evidence-based scoring, recalibrate auto-commit thresholds, and hard-block high-risk entity types that lack a Wikidata match — so auto-commit requires real corroboration.

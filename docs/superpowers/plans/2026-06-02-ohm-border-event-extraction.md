@@ -1,5 +1,7 @@
 # OHM Border Event Extraction Implementation Plan
 
+> **Status: 🟡 Partial** — verified 2026-06-15; remaining work tracked in [STATUS.md](../../plans/STATUS.md).
+>
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Extract normalized start/end event references from existing OHM border parsed artifacts, enrich them with Wikidata, and emit durable event-reference JSONL outputs.

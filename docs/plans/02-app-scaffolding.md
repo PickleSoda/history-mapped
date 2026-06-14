@@ -1,5 +1,7 @@
 # Plan 02 - App Scaffolding
 
+> **Status: ✅ Executed** — verified 2026-06-15 against the codebase. See [STATUS.md](STATUS.md).
+
 ## Goal
 
 Scaffold the two applications defined by the setup guide: the Laravel 11 app with an Inertia React admin and the customer-facing Vite React app.

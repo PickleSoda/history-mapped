@@ -1,5 +1,7 @@
 # 07 — Geoshape Territory Auto-Population
 
+> **Status: ✅ Executed** — verified 2026-06-15 against the codebase. See [STATUS.md](STATUS.md).
+
 ## Objective
 
 Automatically populate `territory_geom` for entities when Wikidata provides geoshape data (`P3896`), without requiring manual map editing during pipeline imports.

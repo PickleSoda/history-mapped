@@ -1,6 +1,6 @@
 # Map Query Optimization Plan
 
-> **Status:** Plan / not yet implemented
+> **Status: 🟡 Partial** — verified 2026-06-15; remaining work tracked in [STATUS.md](STATUS.md).
 > **Date:** 2026-06-12
 > **Scope:** The geospatial + temporal query that fetches entities for map display.
 > **Audit basis:** Read-only GitNexus-guided audit of `api/routes/api.php`, the V1 `EntityController`,

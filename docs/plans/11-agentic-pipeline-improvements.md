@@ -1,6 +1,6 @@
 # Agentic Pipeline Improvement Plan
 
-> **Status:** Plan / not yet implemented
+> **Status: 🟡 Partial** — verified 2026-06-15; remaining work tracked in [STATUS.md](STATUS.md).
 > **Date:** 2026-06-12
 > **Scope:** `pipeline/agent/` — the LangGraph entity/relation/chronicle pipeline (`langgraph.json` → `build_workflow`).
 > **Audit basis:** Read-only GitNexus-guided audit of `graph/workflow.py`, `graph/state.py`, all `graph/nodes/*`,

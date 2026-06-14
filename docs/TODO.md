@@ -1,5 +1,7 @@
 # TODO
 
+> For verified per-plan execution status (✅/🟡/⬜ across the whole `plans/` set), see [plans/STATUS.md](plans/STATUS.md). This file tracks finer-grained task items within the programs below.
+
 ## OHM Integration Program
 
 ### Queue (Execution Order)
