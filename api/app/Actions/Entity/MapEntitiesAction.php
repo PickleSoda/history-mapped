@@ -104,7 +104,10 @@ class MapEntitiesAction
         }
 
         if (isset($filters['min_confidence'])) {
-            $query->where('entities.confidence', '>=', ConfidenceLevel::from($filters['min_confidence'])->value);
+            $query->whereIn(
+                'entities.confidence',
+                ConfidenceLevel::atLeast(ConfidenceLevel::from($filters['min_confidence'])),
+            );
         }
 
         // Optional entity-group filter (multi-group `groups[]` or single `group`).
