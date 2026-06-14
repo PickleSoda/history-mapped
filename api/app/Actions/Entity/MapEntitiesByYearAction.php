@@ -7,8 +7,8 @@ namespace App\Actions\Entity;
 use App\Enums\ConfidenceLevel;
 use App\Enums\EntityType;
 use App\Enums\VerificationStatus;
-use Illuminate\Support\LazyCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\LazyCollection;
 
 class MapEntitiesByYearAction
 {
@@ -83,7 +83,10 @@ class MapEntitiesByYearAction
         }
 
         if (isset($filters['min_confidence'])) {
-            $query->where('entities.confidence', '>=', ConfidenceLevel::from($filters['min_confidence'])->value);
+            $query->whereIn(
+                'entities.confidence',
+                ConfidenceLevel::atLeast(ConfidenceLevel::from($filters['min_confidence'])),
+            );
         }
 
         if (isset($filters['min_impact']) && $filters['min_impact'] !== null) {
