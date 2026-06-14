@@ -20,7 +20,7 @@ class EntityGeoRefApiTest extends TestCase
     {
         parent::setUp();
 
-        $this->user = User::factory()->create();
+        $this->user = $this->userWithRole('admin');
     }
 
     public function test_index_returns_geography_references_for_entity(): void

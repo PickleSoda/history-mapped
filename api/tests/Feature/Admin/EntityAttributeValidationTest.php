@@ -6,6 +6,7 @@ namespace Tests\Feature\Admin;
 
 use App\Enums\EntityGroup;
 use App\Enums\EntityType;
+use App\Models\Entity;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -23,7 +24,7 @@ class EntityAttributeValidationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
+        $this->user = $this->userWithRole('admin');
     }
 
     // ── store: enum attributes accept valid values ────────────────────────────
@@ -193,7 +194,7 @@ class EntityAttributeValidationTest extends TestCase
 
     public function test_update_rejects_invalid_war_subtype(): void
     {
-        $entity = \App\Models\Entity::factory()->create([
+        $entity = Entity::factory()->create([
             'entity_type' => EntityType::EventWar->value,
             'entity_group' => EntityGroup::Event->value,
         ]);
@@ -212,7 +213,7 @@ class EntityAttributeValidationTest extends TestCase
 
     public function test_update_accepts_valid_language_attributes(): void
     {
-        $entity = \App\Models\Entity::factory()->create([
+        $entity = Entity::factory()->create([
             'entity_type' => EntityType::Language->value,
             'entity_group' => EntityGroup::Culture->value,
         ]);
@@ -235,7 +236,7 @@ class EntityAttributeValidationTest extends TestCase
 
     public function test_update_rejects_invalid_language_status(): void
     {
-        $entity = \App\Models\Entity::factory()->create([
+        $entity = Entity::factory()->create([
             'entity_type' => EntityType::Language->value,
             'entity_group' => EntityGroup::Culture->value,
         ]);

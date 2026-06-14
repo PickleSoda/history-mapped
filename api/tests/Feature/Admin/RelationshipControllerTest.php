@@ -24,7 +24,7 @@ class RelationshipControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
+        $this->user = $this->userWithRole('admin');
         $this->source = Entity::factory()->create();
         $this->target = Entity::factory()->create();
     }

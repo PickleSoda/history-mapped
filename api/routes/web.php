@@ -24,26 +24,34 @@ Route::inertia('/', 'welcome', [
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
 
+    // Read-only pages are open to any authenticated, verified user.
+    // Write verbs are permission-gated; `admin` bypasses via Gate::before.
     Route::get('entities', [EntityController::class, 'index'])->name('entities.index');
     Route::get('entities/create', [EntityController::class, 'create'])->name('entities.create');
-    Route::post('entities', [EntityController::class, 'store'])->name('entities.store');
     Route::get('entities/{entity}', [EntityController::class, 'show'])->name('entities.show');
     Route::get('entities/{entity}/edit', [EntityController::class, 'edit'])->name('entities.edit');
-    Route::put('entities/{entity}', [EntityController::class, 'update'])->name('entities.update');
-    Route::delete('entities/{entity}', [EntityController::class, 'destroy'])->name('entities.destroy');
+    Route::middleware('permission:entities.write')->group(function () {
+        Route::post('entities', [EntityController::class, 'store'])->name('entities.store');
+        Route::put('entities/{entity}', [EntityController::class, 'update'])->name('entities.update');
+        Route::delete('entities/{entity}', [EntityController::class, 'destroy'])->name('entities.destroy');
+    });
 
     // ── Relationships (JSON, embedded in entity edit/show pages) ─────────
     Route::get('entities/{entity}/relationships', [RelationshipController::class, 'index'])->name('entities.relationships.index');
-    Route::post('entities/{entity}/relationships', [RelationshipController::class, 'store'])->name('entities.relationships.store');
-    Route::put('entities/{entity}/relationships/{relationship}', [RelationshipController::class, 'update'])->name('entities.relationships.update');
-    Route::delete('entities/{entity}/relationships/{relationship}', [RelationshipController::class, 'destroy'])->name('entities.relationships.destroy');
+    Route::middleware('permission:relationships.write')->group(function () {
+        Route::post('entities/{entity}/relationships', [RelationshipController::class, 'store'])->name('entities.relationships.store');
+        Route::put('entities/{entity}/relationships/{relationship}', [RelationshipController::class, 'update'])->name('entities.relationships.update');
+        Route::delete('entities/{entity}/relationships/{relationship}', [RelationshipController::class, 'destroy'])->name('entities.relationships.destroy');
+    });
 
     // ── Geometry Periods (JSON, embedded in entity edit/show pages) ─
     Route::get('entities/{entity}/geometry-periods', [EntityGeometryPeriodController::class, 'index'])->name('entities.geometry-periods.index');
     Route::get('entities/{entity}/geometry-periods/{geometryPeriod}', [EntityGeometryPeriodController::class, 'show'])->name('entities.geometry-periods.show');
-    Route::post('entities/{entity}/geometry-periods', [EntityGeometryPeriodController::class, 'store'])->name('entities.geometry-periods.store');
-    Route::put('entities/{entity}/geometry-periods/{geometryPeriod}', [EntityGeometryPeriodController::class, 'update'])->name('entities.geometry-periods.update');
-    Route::delete('entities/{entity}/geometry-periods/{geometryPeriod}', [EntityGeometryPeriodController::class, 'destroy'])->name('entities.geometry-periods.destroy');
+    Route::middleware('permission:geometry.write')->group(function () {
+        Route::post('entities/{entity}/geometry-periods', [EntityGeometryPeriodController::class, 'store'])->name('entities.geometry-periods.store');
+        Route::put('entities/{entity}/geometry-periods/{geometryPeriod}', [EntityGeometryPeriodController::class, 'update'])->name('entities.geometry-periods.update');
+        Route::delete('entities/{entity}/geometry-periods/{geometryPeriod}', [EntityGeometryPeriodController::class, 'destroy'])->name('entities.geometry-periods.destroy');
+    });
 
     // ── Reference Tables ─────────────────────────────────────────────
     Route::get('reference/geographic-regions', [GeographicRegionController::class, 'index'])->name('reference.geographic-regions.index');
@@ -60,11 +68,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ── Chronicles ─────────────────────────────────────────────
     Route::get('/chronicles', [ChronicleController::class, 'index'])->name('chronicles.index');
     Route::get('/chronicles/create', [ChronicleController::class, 'create'])->name('chronicles.create');
-    Route::post('/chronicles', [ChronicleController::class, 'store'])->name('chronicles.store');
     Route::get('/chronicles/{slug}', [ChronicleController::class, 'show'])->name('chronicles.show');
     Route::get('/chronicles/{slug}/edit', [ChronicleController::class, 'edit'])->name('chronicles.edit');
-    Route::put('/chronicles/{slug}', [ChronicleController::class, 'update'])->name('chronicles.update');
-    Route::delete('/chronicles/{slug}', [ChronicleController::class, 'destroy'])->name('chronicles.destroy');
+    Route::middleware('permission:chronicles.write')->group(function () {
+        Route::post('/chronicles', [ChronicleController::class, 'store'])->name('chronicles.store');
+        Route::put('/chronicles/{slug}', [ChronicleController::class, 'update'])->name('chronicles.update');
+        Route::delete('/chronicles/{slug}', [ChronicleController::class, 'destroy'])->name('chronicles.destroy');
+    });
 });
 
 require __DIR__.'/settings.php';

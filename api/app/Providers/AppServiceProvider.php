@@ -6,6 +6,7 @@ use App\Models\EntityLocation;
 use App\Models\EntityRelationship;
 use App\Models\EntityTemporalRange;
 use App\Models\GeometryPeriod;
+use App\Models\User;
 use App\Observers\EntityLocationObserver;
 use App\Observers\EntityRelationshipObserver;
 use App\Observers\EntityTemporalRangeObserver;
@@ -14,6 +15,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -39,6 +41,19 @@ class AppServiceProvider extends ServiceProvider
         EntityLocation::observe(EntityLocationObserver::class);
 
         $this->configureDefaults();
+        $this->configureAuthorization();
+    }
+
+    /**
+     * Authorization defaults.
+     *
+     * The `admin` role is a super-user: it passes every permission/ability check.
+     * All other authorization is permission-based (see PermissionSeeder) and is
+     * applied only to write routes — public `/api/v1` GET reads stay open.
+     */
+    protected function configureAuthorization(): void
+    {
+        Gate::before(fn (User $user) => $user->hasRole('admin') ? true : null);
     }
 
     /**

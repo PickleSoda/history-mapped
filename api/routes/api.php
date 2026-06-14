@@ -42,9 +42,6 @@ Route::prefix('v1')->group(function () {
     Route::get('/entities/{entity}/geography-references/search', [EntityGeoRefController::class, 'search'])
         ->name('api.v1.entities.geography-references.search');
 
-    Route::post('/map/resolve-ohm-feature', [MapResolutionController::class, 'resolveOhmFeature'])
-        ->name('api.v1.map.resolve-ohm-feature');
-
     // Entity Relationships
     Route::get('/entities/{entity}/relationships', [EntityRelationshipController::class, 'index'])
         ->name('api.v1.entities.relationships.index');
@@ -80,40 +77,56 @@ Route::prefix('v1')->group(function () {
         ->name('api.v1.reference.show');
 
     // ── Authenticated Write Endpoints ────────────────────────
+    // Reads above are public; every write is permission-gated. The `admin` role
+    // bypasses all permission checks via a Gate::before super-user rule.
     Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/user', fn (Request $request) => $request->user())
             ->name('api.v1.user');
 
         // Entities CRUD
-        Route::post('/entities', [EntityController::class, 'store'])
-            ->name('api.v1.entities.store');
+        Route::middleware('permission:entities.write')->group(function () {
+            Route::post('/entities', [EntityController::class, 'store'])
+                ->name('api.v1.entities.store');
 
-        Route::put('/entities/{entity}', [EntityController::class, 'update'])
-            ->name('api.v1.entities.update');
+            Route::put('/entities/{entity}', [EntityController::class, 'update'])
+                ->name('api.v1.entities.update');
 
-        Route::delete('/entities/{entity}', [EntityController::class, 'destroy'])
-            ->name('api.v1.entities.destroy');
+            Route::delete('/entities/{entity}', [EntityController::class, 'destroy'])
+                ->name('api.v1.entities.destroy');
+        });
 
-        Route::post('/entities/{entity}/geography-references', [EntityGeoRefController::class, 'store'])
-            ->name('api.v1.entities.geography-references.store');
+        // Geometry / geo-references + OHM feature resolution (editorial geodata tool)
+        Route::middleware('permission:geometry.write')->group(function () {
+            Route::post('/entities/{entity}/geography-references', [EntityGeoRefController::class, 'store'])
+                ->name('api.v1.entities.geography-references.store');
 
-        Route::delete('/entities/{entity}/geography-references/{ref}', [EntityGeoRefController::class, 'destroy'])
-            ->name('api.v1.entities.geography-references.destroy');
+            Route::delete('/entities/{entity}/geography-references/{ref}', [EntityGeoRefController::class, 'destroy'])
+                ->name('api.v1.entities.geography-references.destroy');
+
+            Route::post('/map/resolve-ohm-feature', [MapResolutionController::class, 'resolveOhmFeature'])
+                ->name('api.v1.map.resolve-ohm-feature');
+        });
 
         // Entity Relationships (write)
-        Route::post('/entities/{entity}/relationships', [EntityRelationshipController::class, 'store'])
-            ->name('api.v1.entities.relationships.store');
+        Route::middleware('permission:relationships.write')->group(function () {
+            Route::post('/entities/{entity}/relationships', [EntityRelationshipController::class, 'store'])
+                ->name('api.v1.entities.relationships.store');
 
-        Route::delete('/entities/{entity}/relationships/{relationship}', [EntityRelationshipController::class, 'destroy'])
-            ->name('api.v1.entities.relationships.destroy');
+            Route::delete('/entities/{entity}/relationships/{relationship}', [EntityRelationshipController::class, 'destroy'])
+                ->name('api.v1.entities.relationships.destroy');
+        });
 
         // Sources (write)
-        Route::post('/sources', [SourceController::class, 'store'])
-            ->name('api.v1.sources.store');
+        Route::middleware('permission:sources.write')->group(function () {
+            Route::post('/sources', [SourceController::class, 'store'])
+                ->name('api.v1.sources.store');
+        });
 
-        // Reference cache management (admin)
-        Route::post('/reference/cache/clear', [ReferenceController::class, 'clearCache'])
-            ->name('api.v1.reference.cache.clear');
+        // Reference cache management
+        Route::middleware('permission:reference.manage')->group(function () {
+            Route::post('/reference/cache/clear', [ReferenceController::class, 'clearCache'])
+                ->name('api.v1.reference.cache.clear');
+        });
     });
 });
