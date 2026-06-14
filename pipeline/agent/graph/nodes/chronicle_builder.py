@@ -76,17 +76,43 @@ def _find_primary_relationship(event, candidate_relations, committed, relation_i
     return None
 
 
-def _collect_secondary_entities(event, primary_rel_id, enriched_entities, entity_id_map):
-    """Collect entities mentioned in the event, resolved to DB IDs."""
-    mentioned = set(e.lower() for e in event.mentioned_entities)
-    return [
-        ChronicleEntryEntity(
-            entity_id=entity_id_map.get(e.candidate.label, e.candidate.label),
-            role="participant",
-        )
-        for e in enriched_entities
-        if e.candidate.label.lower() in mentioned
-    ]
+def _entity_names(enriched) -> list[str]:
+    names = [enriched.candidate.label, *(enriched.candidate.aliases or [])]
+    return [n for n in names if isinstance(n, str) and n.strip()]
+
+
+def _collect_secondary_entities(event, enriched_entities, entity_id_map):
+    """Attach every entity the event mentions OR that appears by name in the
+    narrative.
+
+    Matching only event.mentioned_entities (a separate LLM call) missed entities
+    that plainly appear in the entry text — "Cyrus II", "Justinian", "Qing
+    Dynasty" — so we also match each entity's label/aliases (word-boundary)
+    against the narrative. This is what gets existing entities onto their entries
+    (and thus feeds the entry's derived year + location).
+    """
+    mentioned = {m.lower() for m in event.mentioned_entities}
+    narrative = (event.description or "").lower()
+
+    result = []
+    seen: set[str] = set()
+    for enriched in enriched_entities:
+        label = enriched.candidate.label
+        if label in seen:
+            continue
+        if any(
+            name.lower() in mentioned
+            or re.search(r"\b" + re.escape(name.lower()) + r"\b", narrative)
+            for name in _entity_names(enriched)
+        ):
+            seen.add(label)
+            result.append(
+                ChronicleEntryEntity(
+                    entity_id=entity_id_map.get(label, label),
+                    role="participant",
+                )
+            )
+    return result
 
 
 def chronicle_builder(state: AgentRunState) -> AgentRunState:
@@ -125,7 +151,6 @@ def chronicle_builder(state: AgentRunState) -> AgentRunState:
 
         secondary = _collect_secondary_entities(
             event,
-            primary_rel_id,
             state["enriched_entities"],
             state["entity_id_map"],
         )
