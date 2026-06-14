@@ -147,16 +147,19 @@ class EntityBuilder extends Builder
      */
     public function inTimeRange(int $startYear, int $endYear): self
     {
-        return $this->whereRaw(
-            sprintf(
-                'COALESCE(%s, %d) <= ? AND COALESCE(%s, %d) >= ?',
-                self::primaryTemporalStartYearSql(),
-                PHP_INT_MAX,
-                self::primaryTemporalEndYearSql(),
-                PHP_INT_MIN,
-            ),
-            [$endYear, $startYear],
-        );
+        // EXISTS over the primary range with an int4range overlap so the GiST
+        // index (etr_active_range_gist_idx) is usable and NULL bounds are
+        // unbounded (open-ended entities are included, not excluded).
+        return $this->whereExists(function ($query) use ($startYear, $endYear): void {
+            $query->selectRaw('1')
+                ->from('entity_temporal_ranges as etr')
+                ->whereColumn('etr.entity_id', 'entities.entity_id')
+                ->where('etr.is_primary', true)
+                ->whereRaw(
+                    "int4range(etr.start_year, CASE WHEN etr.end_year IS NULL THEN NULL ELSE etr.end_year + 1 END, '[)') && int4range(?::integer, ?::integer + 1, '[)')",
+                    [$startYear, $endYear],
+                );
+        });
     }
 
     /**
@@ -164,16 +167,18 @@ class EntityBuilder extends Builder
      */
     public function existsAt(int $year): self
     {
-        return $this->whereRaw(
-            sprintf(
-                'COALESCE(%s, %d) <= ? AND COALESCE(%s, %d) >= ?',
-                self::primaryTemporalStartYearSql(),
-                PHP_INT_MAX,
-                self::primaryTemporalEndYearSql(),
-                PHP_INT_MIN,
-            ),
-            [$year, $year],
-        );
+        // EXISTS over the primary range; int4range containment is index-usable and
+        // treats NULL bounds as unbounded (ongoing entities match later years).
+        return $this->whereExists(function ($query) use ($year): void {
+            $query->selectRaw('1')
+                ->from('entity_temporal_ranges as etr')
+                ->whereColumn('etr.entity_id', 'entities.entity_id')
+                ->where('etr.is_primary', true)
+                ->whereRaw(
+                    "int4range(etr.start_year, CASE WHEN etr.end_year IS NULL THEN NULL ELSE etr.end_year + 1 END, '[)') @> ?::integer",
+                    [$year],
+                );
+        });
     }
 
     /**
