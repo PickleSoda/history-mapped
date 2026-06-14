@@ -140,19 +140,24 @@ class MapEntitiesAction
             $query->whereRaw("{$periodRange} @> ?::integer", [$year]);
         }
 
-        // Filter by spatial bbox on border geometry columns
-        $bbox = [
-            (float) $filters['bbox_min_lng'],
-            (float) $filters['bbox_min_lat'],
-            (float) $filters['bbox_max_lng'],
-            (float) $filters['bbox_max_lat'],
-        ];
+        // Spatial bbox on the SAME COALESCE geometry that is serialized (MQ-9), so
+        // the filter and the rendered geometry agree; uses gp_map_geom_gist. The
+        // longitudes are normalized and, when the viewport crosses the antimeridian
+        // (min_lng > max_lng), the filter ORs two envelopes (MQ-17).
+        $w = $this->normalizeLng((float) $filters['bbox_min_lng']);
+        $s = (float) $filters['bbox_min_lat'];
+        $e = $this->normalizeLng((float) $filters['bbox_max_lng']);
+        $n = (float) $filters['bbox_max_lat'];
+        $geomCol = 'COALESCE(geometry_periods.territory_geom, geometry_periods.geom)';
 
-        $query->whereRaw(
-            '(geometry_periods.territory_geom && ST_MakeEnvelope(?, ?, ?, ?, 4326)
-              OR geometry_periods.geom && ST_MakeEnvelope(?, ?, ?, ?, 4326))',
-            [...$bbox, ...$bbox],
-        );
+        if ($w <= $e) {
+            $query->whereRaw("{$geomCol} && ST_MakeEnvelope(?, ?, ?, ?, 4326)", [$w, $s, $e, $n]);
+        } else {
+            $query->where(function ($q) use ($geomCol, $w, $s, $e, $n): void {
+                $q->whereRaw("{$geomCol} && ST_MakeEnvelope(?, ?, 180, ?, 4326)", [$w, $s, $n])
+                    ->orWhereRaw("{$geomCol} && ST_MakeEnvelope(-180, ?, ?, ?, 4326)", [$s, $e, $n]);
+            });
+        }
 
         if ($allPeriods) {
             // Every period; territory-first then priority (NULLS LAST), newest first.
@@ -219,5 +224,20 @@ class MapEntitiesAction
         }
 
         return null;
+    }
+
+    /** Wrap an out-of-range longitude into [-180, 180]; in-range values (incl. ±180) are unchanged. */
+    private function normalizeLng(float $lng): float
+    {
+        if ($lng >= -180.0 && $lng <= 180.0) {
+            return $lng;
+        }
+
+        $wrapped = fmod($lng + 180.0, 360.0);
+        if ($wrapped < 0) {
+            $wrapped += 360.0;
+        }
+
+        return $wrapped - 180.0;
     }
 }
