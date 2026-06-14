@@ -21,9 +21,20 @@ class MapEntitiesByYearAction
         $year = (int) $filters['year'];
         $limit = (int) ($filters['limit'] ?? 100000);
 
+        // OHM geo-ref subqueries (primary first) — mirrors MapEntitiesAction so
+        // both map endpoints carry the same OHM ref contract. For OHM-linked
+        // entities the client highlights the OHM basemap feature, so we serve the
+        // point geometry instead of the stored polygon (borders-from-OHM, D19).
+        $ohmWhere = "egr.entity_id = entities.entity_id AND egr.provider = 'ohm' AND egr.is_active = true";
+        $ohmOrder = "ORDER BY (egr.match_role = 'primary') DESC, egr.updated_at DESC NULLS LAST LIMIT 1";
+        $ohmExternalId = "(SELECT egr.external_id FROM entity_geo_refs egr WHERE {$ohmWhere} {$ohmOrder})";
+        $ohmExternalType = "(SELECT egr.external_type::text FROM entity_geo_refs egr WHERE {$ohmWhere} {$ohmOrder})";
+        $ohmExists = "EXISTS (SELECT 1 FROM entity_geo_refs egr WHERE {$ohmWhere})";
+        $geom = "CASE WHEN {$ohmExists} THEN geometry_periods.geom ELSE COALESCE(geometry_periods.territory_geom, geometry_periods.geom) END";
+
         $query = DB::table('geometry_periods')
             ->selectRaw(
-                <<<'SQL'
+                <<<SQL
                 geometry_periods.geometry_period_id,
                 entities.entity_id,
                 geometry_periods.start_year,
@@ -45,7 +56,9 @@ class MapEntitiesByYearAction
                 entities.display_priority,
                 entities.impact_score,
                 entities.attributes->>'entity_color' AS entity_color,
-                ST_AsGeoJSON(COALESCE(geometry_periods.territory_geom, geometry_periods.geom), 5)::text AS geojson
+                {$ohmExternalId} AS ohm_external_id,
+                {$ohmExternalType} AS ohm_external_type,
+                ST_AsGeoJSON({$geom}, 5)::text AS geojson
                 SQL
             )
             ->join('entities', 'entities.entity_id', '=', 'geometry_periods.entity_id')
@@ -112,6 +125,9 @@ class MapEntitiesByYearAction
                     'start_year' => $row->start_year,
                     'end_year' => $row->end_year,
                     'entity_color' => $row->entity_color,
+                    'ohm_provider' => $row->ohm_external_id !== null ? 'ohm' : null,
+                    'ohm_external_type' => $row->ohm_external_type,
+                    'ohm_external_id' => $row->ohm_external_id,
                 ],
             ];
         });
