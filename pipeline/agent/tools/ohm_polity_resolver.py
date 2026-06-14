@@ -139,17 +139,10 @@ def build_manifest(candidate: dict[str, Any], query: str, candidate_count: int) 
             "reason": "ohm_first_polity",
         },
     }
-    # Store a small representative POINT (Nominatim's lat/lon), not the full
-    # boundary polygon. Per the borders-from-OHM decision the polygon is rendered
-    # from the OHM basemap via the geo-ref id; embedding it here bloated the JSONL
-    # enough to exhaust PHP's memory limit on import.
-    sm = candidate.get("source_meta") or {}
-    lat, lon = sm.get("lat"), sm.get("lon")
-    try:
-        if lat is not None and lon is not None:
-            manifest["geometry"] = {"type": "Point", "coordinates": [float(lon), float(lat)]}
-    except (TypeError, ValueError):
-        pass
+    # Geo-ref ONLY — deliberately no geometry. The OHM feature is rendered from
+    # the OHM basemap; a map click returns the OHM id, which resolves back to this
+    # entity via entity_geo_refs.external_id. Storing our own point/polygon would
+    # just duplicate (and drift from) OHM's geometry.
     return manifest
 
 
