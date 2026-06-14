@@ -28,10 +28,11 @@ class MapEntitiesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // Bounding box is required for map queries
-            'bbox_min_lng' => ['required', 'numeric', 'between:-180,180'],
+            // Bounding box is required for map queries. Longitudes accept any
+            // numeric (wrapped values are normalized server-side); latitudes clamp.
+            'bbox_min_lng' => ['required', 'numeric'],
             'bbox_min_lat' => ['required', 'numeric', 'between:-90,90'],
-            'bbox_max_lng' => ['required', 'numeric', 'between:-180,180'],
+            'bbox_max_lng' => ['required', 'numeric'],
             'bbox_max_lat' => ['required', 'numeric', 'between:-90,90'],
             // A single year OR a full temporal range is required (MQ-1):
             // no more silent year=1000 default.
