@@ -2,8 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\EntityLocation;
+use App\Models\EntityRelationship;
 use App\Models\EntityTemporalRange;
 use App\Models\GeometryPeriod;
+use App\Observers\EntityLocationObserver;
+use App\Observers\EntityRelationshipObserver;
 use App\Observers\EntityTemporalRangeObserver;
 use App\Observers\GeometryPeriodObserver;
 use Carbon\CarbonImmutable;
@@ -31,6 +35,8 @@ class AppServiceProvider extends ServiceProvider
     {
         GeometryPeriod::observe(GeometryPeriodObserver::class);
         EntityTemporalRange::observe(EntityTemporalRangeObserver::class);
+        EntityRelationship::observe(EntityRelationshipObserver::class);
+        EntityLocation::observe(EntityLocationObserver::class);
 
         $this->configureDefaults();
     }
