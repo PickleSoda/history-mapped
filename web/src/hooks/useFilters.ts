@@ -1,7 +1,8 @@
 import { useQueryState } from 'nuqs';
 import { useCallback, useMemo } from 'react';
 import { parseAsGroups } from '@/lib/url/params';
-import { ENTITY_GROUPS, type EntityGroup } from '@/types/atlas';
+import { ENTITY_GROUPS  } from '@/types/atlas';
+import type {EntityGroup} from '@/types/atlas';
 
 /**
  * Active group filters <-> URL `g`. Filters shape both the list and the map, so
