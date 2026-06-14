@@ -32,36 +32,38 @@ class MapEntitiesAction
     {
         $minImpact = $this->resolveMinImpact($filters);
         $limit = (int) ($filters['limit'] ?? 2000);
+        // One feature per entity (MQ-16) unless ?all_periods is requested.
+        $allPeriods = (bool) ($filters['all_periods'] ?? false);
+
+        $columns = <<<'SQL'
+            geometry_periods.geometry_period_id,
+            entities.entity_id,
+            geometry_periods.start_year,
+            geometry_periods.end_year,
+            geometry_periods.period_type,
+            COALESCE(
+                (
+                    SELECT entity_aliases.name
+                    FROM entity_aliases
+                    WHERE entity_aliases.entity_id = entities.entity_id
+                      AND entity_aliases.is_primary = true
+                    ORDER BY entity_aliases.updated_at DESC NULLS LAST, entity_aliases.created_at DESC NULLS LAST
+                    LIMIT 1
+                ),
+                entities.name
+            ) AS display_name,
+            entities.entity_type,
+            entities.entity_group,
+            entities.display_priority,
+            entities.icon_class,
+            entities.impact_score,
+            ST_AsGeoJSON(COALESCE(geometry_periods.territory_geom, geometry_periods.geom), 5)::text AS geojson
+            SQL;
 
         // Query geometry_periods directly (map borders source of truth),
         // enrich with entity metadata and primary alias display name.
         $query = DB::table('geometry_periods')
-            ->selectRaw(
-                <<<'SQL'
-                geometry_periods.geometry_period_id,
-                entities.entity_id,
-                geometry_periods.start_year,
-                geometry_periods.end_year,
-                geometry_periods.period_type,
-                COALESCE(
-                    (
-                        SELECT entity_aliases.name
-                        FROM entity_aliases
-                        WHERE entity_aliases.entity_id = entities.entity_id
-                          AND entity_aliases.is_primary = true
-                        ORDER BY entity_aliases.updated_at DESC NULLS LAST, entity_aliases.created_at DESC NULLS LAST
-                        LIMIT 1
-                    ),
-                    entities.name
-                ) AS display_name,
-                entities.entity_type,
-                entities.entity_group,
-                entities.display_priority,
-                entities.icon_class,
-                entities.impact_score,
-                ST_AsGeoJSON(COALESCE(geometry_periods.territory_geom, geometry_periods.geom), 5)::text AS geojson
-                SQL
-            )
+            ->selectRaw(($allPeriods ? '' : 'DISTINCT ON (entities.entity_id) ').$columns)
             ->join('entities', 'entities.entity_id', '=', 'geometry_periods.entity_id')
             ->where(function ($spatialTypeQuery): void {
                 $spatialTypeQuery
@@ -148,14 +150,31 @@ class MapEntitiesAction
             [...$bbox, ...$bbox],
         );
 
-        // Prefer explicit border geometry first, then entity priority.
-        $query
-            ->orderByRaw('CASE WHEN geometry_periods.territory_geom IS NOT NULL THEN 0 ELSE 1 END')
-            ->orderByDesc('entities.display_priority')
-            ->orderByDesc('geometry_periods.start_year')
-            ->orderBy('geometry_periods.end_year');
+        if ($allPeriods) {
+            // Every period; territory-first then priority (NULLS LAST), newest first.
+            $rows = $query
+                ->orderByRaw('CASE WHEN geometry_periods.territory_geom IS NOT NULL THEN 0 ELSE 1 END')
+                ->orderByRaw('entities.display_priority DESC NULLS LAST')
+                ->orderByDesc('geometry_periods.start_year')
+                ->orderBy('geometry_periods.end_year')
+                ->limit($limit)
+                ->cursor();
+        } else {
+            // DISTINCT ON requires the dedup key to lead the ORDER BY; the inner
+            // tiebreak picks the territory period, newest start, for each entity.
+            $query->orderByRaw(
+                'entities.entity_id, (geometry_periods.territory_geom IS NULL), geometry_periods.start_year DESC, geometry_periods.end_year ASC NULLS FIRST',
+            );
 
-        $periodFeatures = $query->limit($limit)->cursor()->map(function ($row): array {
+            // Re-order the deduped rows by display priority then impact (MQ-15).
+            $rows = DB::query()
+                ->fromSub($query, 'm')
+                ->orderByRaw('m.display_priority DESC NULLS LAST, m.impact_score DESC NULLS LAST')
+                ->limit($limit)
+                ->cursor();
+        }
+
+        $periodFeatures = $rows->map(function ($row): array {
             return [
                 'id' => $row->entity_id,
                 'geometry_json' => is_string($row->geojson) && $row->geojson !== '' ? $row->geojson : 'null',

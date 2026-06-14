@@ -56,6 +56,7 @@ class MapEntitiesRequest extends FormRequest
             'zoom_level' => ['sometimes', 'integer', 'min:0', 'max:22'],
             'min_impact' => ['sometimes', 'nullable', 'integer', 'min:0', 'max:100'],
             'include_territories' => ['sometimes', 'boolean'],
+            'all_periods' => ['sometimes', 'boolean'],
 
             // Max features to return (prevent overload)
             'limit' => ['sometimes', 'integer', 'min:1', 'max:5000'],
