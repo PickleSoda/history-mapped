@@ -12,6 +12,9 @@ use App\Observers\EntityRelationshipObserver;
 use App\Observers\EntityTemporalRangeObserver;
 use App\Observers\GeometryPeriodObserver;
 use Carbon\CarbonImmutable;
+use Dedoc\Scramble\Scramble;
+use Dedoc\Scramble\Support\Generator\OpenApi;
+use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -42,6 +45,7 @@ class AppServiceProvider extends ServiceProvider
 
         $this->configureDefaults();
         $this->configureAuthorization();
+        $this->configureApiDocs();
     }
 
     /**
@@ -54,6 +58,29 @@ class AppServiceProvider extends ServiceProvider
     protected function configureAuthorization(): void
     {
         Gate::before(fn (User $user) => $user->hasRole('admin') ? true : null);
+    }
+
+    /**
+     * Expose the OpenAPI documentation (Scramble) for the public /api/v1 contract.
+     *
+     * - Local dev: the docs UI (/docs/api) and JSON spec (/docs/api.json) are always open.
+     * - Other environments: access requires the `viewApiDocs` gate — granted to the
+     *   `admin` role, or to everyone when SCRAMBLE_DOCS_PUBLIC=true.
+     * - The Sanctum bearer scheme is documented so write endpoints render as secured.
+     */
+    protected function configureApiDocs(): void
+    {
+        Gate::define('viewApiDocs', function (?User $user = null): bool {
+            if ((bool) config('scramble.docs_public', false)) {
+                return true;
+            }
+
+            return $user?->hasRole('admin') ?? false;
+        });
+
+        Scramble::extendOpenApi(
+            fn (OpenApi $openApi) => $openApi->secure(SecurityScheme::http('bearer')),
+        );
     }
 
     /**
