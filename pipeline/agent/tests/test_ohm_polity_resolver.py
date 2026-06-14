@@ -53,8 +53,9 @@ def test_build_manifest_shape():
     assert m["geo_ref"]["external_type"] == "relation"
     assert m["geo_ref"]["external_id"] == "2882342"
     assert m["geo_ref"]["retrieval_method"] == "nominatim"
-    # A representative point (from Nominatim lat/lon), not the boundary polygon.
-    assert m["geometry"] == {"type": "Point", "coordinates": [29.0, 41.0]}
+    # Geo-ref only — no stored geometry (the OHM basemap renders the feature; the
+    # OHM id links a map click back to the entity).
+    assert "geometry" not in m
 
 
 def test_relevance_vetoes_wrong_era_namesake():
