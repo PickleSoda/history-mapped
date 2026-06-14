@@ -28,7 +28,10 @@ from pipeline.agent.eval.harness import DEFAULT_TRANSCRIPT_DIR, evaluate
               help="Nuke + reseed the blank baseline before running")
 @click.option("--only", default=None, help="Case-insensitive substring filter on transcript filename")
 @click.option("--limit", type=int, default=None, help="Run at most N transcripts")
-def main(label: str, transcripts_dir: Path, reset: bool, only: str | None, limit: int | None):
+@click.option("--chronicles/--no-chronicles", "create_chronicle", default=True, show_default=True,
+              help="Build a chronicle per transcript (use --no-chronicles to seed entities/relations only)")
+def main(label: str, transcripts_dir: Path, reset: bool, only: str | None, limit: int | None,
+         create_chronicle: bool):
     transcripts = sorted(transcripts_dir.glob("*.txt"))
     if only:
         needle = only.lower()
@@ -44,7 +47,7 @@ def main(label: str, transcripts_dir: Path, reset: bool, only: str | None, limit
     for t in transcripts:
         click.echo(f"        - {t.name}")
 
-    report = evaluate(transcripts, label=label, reset=reset)
+    report = evaluate(transcripts, label=label, reset=reset, create_chronicle=create_chronicle)
 
     counts = report.get("db_state", {}).get("counts", {})
     failed = [r["transcript"] for r in report["runs"] if r["returncode"] != 0]

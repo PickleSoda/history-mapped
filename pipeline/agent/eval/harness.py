@@ -55,7 +55,7 @@ def reset_database() -> dict[str, Any]:
     }
 
 
-def run_transcript(transcript: Path, run_id: str) -> dict[str, Any]:
+def run_transcript(transcript: Path, run_id: str, create_chronicle: bool = True) -> dict[str, Any]:
     """Run the agent pipeline on one transcript in a fresh subprocess."""
     cfg = AgentConfig()
     run_dir = Path(cfg.output_dir) / run_id
@@ -70,6 +70,7 @@ def run_transcript(transcript: Path, run_id: str) -> dict[str, Any]:
         "--input", str(transcript), "--run-id", run_id,
         # Title the chronicle after the transcript, not its first event.
         "--title", transcript.stem.strip(),
+        "--create-chronicle" if create_chronicle else "--no-create-chronicle",
     ]
     started = datetime.now(timezone.utc)
     proc = subprocess.run(cmd, cwd=str(REPO_ROOT), capture_output=True, text=True, timeout=1800)
@@ -116,6 +117,7 @@ def evaluate(
     label: str,
     reset: bool = True,
     generated_at: str | None = None,
+    create_chronicle: bool = True,
 ) -> dict[str, Any]:
     generated_at = generated_at or datetime.now(timezone.utc).isoformat()
     report: dict[str, Any] = {
@@ -135,7 +137,7 @@ def evaluate(
     for i, transcript in enumerate(transcripts, 1):
         run_id = f"eval_{_slug(transcript.stem)}"
         print(f"[eval] ({i}/{len(transcripts)}) running {transcript.name} -> {run_id}", flush=True)
-        result = run_transcript(transcript, run_id)
+        result = run_transcript(transcript, run_id, create_chronicle=create_chronicle)
         rc = result["returncode"]
         committed = (result.get("manifest") or {}).get("committed_count", "?")
         print(f"[eval]   rc={rc} duration={result['duration_s']}s committed={committed}", flush=True)
