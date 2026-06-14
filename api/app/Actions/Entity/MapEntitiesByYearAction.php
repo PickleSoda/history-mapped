@@ -43,8 +43,8 @@ class MapEntitiesByYearAction
                 entities.entity_type,
                 entities.entity_group,
                 entities.display_priority,
-                entities.icon_class,
                 entities.impact_score,
+                entities.attributes->>'entity_color' AS entity_color,
                 ST_AsGeoJSON(COALESCE(geometry_periods.territory_geom, geometry_periods.geom), 5)::text AS geojson
                 SQL
             )
@@ -109,12 +109,9 @@ class MapEntitiesByYearAction
                     'entity_type' => $row->entity_type,
                     'entity_group' => $row->entity_group,
                     'impact_score' => $row->impact_score,
-                    'display_priority' => $row->display_priority,
-                    'icon_class' => $row->icon_class,
-                    'period_type' => $row->period_type,
-                    'geometry_period_id' => $row->geometry_period_id,
                     'start_year' => $row->start_year,
                     'end_year' => $row->end_year,
+                    'entity_color' => $row->entity_color,
                 ],
             ];
         });

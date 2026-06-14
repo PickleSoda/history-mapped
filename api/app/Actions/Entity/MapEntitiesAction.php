@@ -44,12 +44,12 @@ class MapEntitiesAction
             ? "ST_AsGeoJSON(CASE WHEN ST_Dimension({$geom}) = 0 THEN {$geom} ELSE ST_SimplifyPreserveTopology({$geom}, {$simplify['tolerance']}) END, {$simplify['digits']})::text AS geojson"
             : "ST_AsGeoJSON({$geom}, {$simplify['digits']})::text AS geojson";
 
+        // display_priority/impact_score are selected for ordering; the output
+        // properties are trimmed to the UI contract (MQ-8) + entity_color.
         $columns = <<<'SQL'
-            geometry_periods.geometry_period_id,
             entities.entity_id,
             geometry_periods.start_year,
             geometry_periods.end_year,
-            geometry_periods.period_type,
             COALESCE(
                 (
                     SELECT entity_aliases.name
@@ -64,8 +64,8 @@ class MapEntitiesAction
             entities.entity_type,
             entities.entity_group,
             entities.display_priority,
-            entities.icon_class,
             entities.impact_score,
+            entities.attributes->>'entity_color' AS entity_color,
             SQL;
         $columns .= "\n            ".$geojsonExpr;
 
@@ -193,12 +193,9 @@ class MapEntitiesAction
                     'entity_type' => $row->entity_type,
                     'entity_group' => $row->entity_group,
                     'impact_score' => $row->impact_score,
-                    'display_priority' => $row->display_priority,
-                    'icon_class' => $row->icon_class,
-                    'period_type' => $row->period_type,
-                    'geometry_period_id' => $row->geometry_period_id,
                     'start_year' => $row->start_year,
                     'end_year' => $row->end_year,
+                    'entity_color' => $row->entity_color,
                 ],
             ];
         });
