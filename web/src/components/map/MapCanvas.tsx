@@ -3,14 +3,17 @@ import type { GeoJSONSource } from 'maplibre-gl';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useEffect, useRef } from 'react';
-import { useEntitiesInView, useMapInstance, useViewport } from '@/hooks';
+import { useEntitiesInView, useMapInstance, useTimeState, useViewport } from '@/hooks';
+import { instantYear } from '@/lib/format';
+import { loadHistoricalBasemapStyle } from '@/lib/map-config';
+import { yearToOhmDate } from '@/lib/ohm-date';
+import { applyOhmLayerDateFilter } from '@/lib/ohm-layer-date-filter';
 
 const SOURCE_ID = 'entities';
 const FILL_LAYER = 'entities-fill';
 const LINE_LAYER = 'entities-line';
 const CIRCLE_LAYER = 'entities-circles';
 const EMPTY_FC: FeatureCollection = { type: 'FeatureCollection', features: [] };
-const BASEMAP_STYLE = 'https://demotiles.maplibre.org/style.json';
 const MOVE_DEBOUNCE_MS = 250;
 
 /**
@@ -36,107 +39,127 @@ function groupColorExpression(): maplibregl.ExpressionSpecification {
 }
 
 /**
- * The persistent map (spec §6). It mounts ONCE and is never re-rendered to move
- * the camera — React writes data into it imperatively. Gestures commit the bbox
- * to the URL on settle; pins come from the same viewport query the list uses.
+ * The persistent map (spec §6). Mounts ONCE on the OpenHistoricalMap basemap,
+ * whose time-aware vector layers are filtered to the active timeline year. The
+ * camera/data are written imperatively; the map never re-renders to move.
  */
 export function MapCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const { setMap } = useMapInstance();
   const { bbox, setBbox } = useViewport();
+  const { time } = useTimeState();
   const { data } = useEntitiesInView();
 
-  // Keep the latest setBbox in a ref so the moveend handler never goes stale.
+  const year = instantYear(time);
+
+  // Latest values for the (mount-once) init closure.
   const setBboxRef = useRef(setBbox);
   setBboxRef.current = setBbox;
-
-  // Initial camera from the URL bbox — read once on mount only.
+  const yearRef = useRef(year);
+  yearRef.current = year;
   const initialBboxRef = useRef(bbox);
 
-  // ── init map once ─────────────────────────────────────────────────────────
+  // ── init map once (async: the OHM style is fetched + normalized) ───────────
   useEffect(() => {
-    if (!containerRef.current) return;
+    const container = containerRef.current;
+    if (!container) return;
 
-    const map = new maplibregl.Map({
-      container: containerRef.current,
-      style: BASEMAP_STYLE,
-      bounds: [
-        [initialBboxRef.current.w, initialBboxRef.current.s],
-        [initialBboxRef.current.e, initialBboxRef.current.n],
-      ],
-    });
-    mapRef.current = map;
-
-    map.on('load', () => {
-      map.addSource(SOURCE_ID, { type: 'geojson', data: EMPTY_FC });
-
-      const groupColor = groupColorExpression();
-
-      // Polygon territories: fill + outline.
-      map.addLayer({
-        id: FILL_LAYER,
-        type: 'fill',
-        source: SOURCE_ID,
-        filter: ['match', ['geometry-type'], ['Polygon', 'MultiPolygon'], true, false],
-        paint: { 'fill-color': groupColor, 'fill-opacity': 0.15 },
-      });
-      map.addLayer({
-        id: LINE_LAYER,
-        type: 'line',
-        source: SOURCE_ID,
-        filter: ['match', ['geometry-type'], ['Polygon', 'MultiPolygon'], true, false],
-        paint: { 'line-color': groupColor, 'line-width': 1 },
-      });
-      // Point entities.
-      map.addLayer({
-        id: CIRCLE_LAYER,
-        type: 'circle',
-        source: SOURCE_ID,
-        filter: ['match', ['geometry-type'], ['Point', 'MultiPoint'], true, false],
-        paint: {
-          'circle-radius': 5,
-          'circle-color': groupColor,
-          'circle-stroke-width': 1,
-          'circle-stroke-color': '#ffffff',
-        },
-      });
-      setMap(map);
-    });
-
+    let cancelled = false;
+    let mapInstance: maplibregl.Map | null = null;
     let timer: ReturnType<typeof setTimeout>;
-    const onMoveEnd = () => {
-      clearTimeout(timer);
-      timer = setTimeout(() => {
-        const b = map.getBounds();
-        setBboxRef.current({
-          w: b.getWest(),
-          s: b.getSouth(),
-          e: b.getEast(),
-          n: b.getNorth(),
+
+    loadHistoricalBasemapStyle().then((style) => {
+      if (cancelled) return;
+
+      const map = new maplibregl.Map({
+        container,
+        style,
+        bounds: [
+          [initialBboxRef.current.w, initialBboxRef.current.s],
+          [initialBboxRef.current.e, initialBboxRef.current.n],
+        ],
+        attributionControl: { compact: true },
+      });
+      mapInstance = map;
+      mapRef.current = map;
+
+      map.on('load', () => {
+        map.addSource(SOURCE_ID, { type: 'geojson', data: EMPTY_FC });
+
+        const groupColor = groupColorExpression();
+
+        // Entity territories (fill + outline) — drawn over the OHM basemap.
+        map.addLayer({
+          id: FILL_LAYER,
+          type: 'fill',
+          source: SOURCE_ID,
+          filter: ['match', ['geometry-type'], ['Polygon', 'MultiPolygon'], true, false],
+          paint: { 'fill-color': groupColor, 'fill-opacity': 0.15 },
         });
-      }, MOVE_DEBOUNCE_MS);
-    };
-    map.on('moveend', onMoveEnd);
+        map.addLayer({
+          id: LINE_LAYER,
+          type: 'line',
+          source: SOURCE_ID,
+          filter: ['match', ['geometry-type'], ['Polygon', 'MultiPolygon'], true, false],
+          paint: { 'line-color': groupColor, 'line-width': 1 },
+        });
+        map.addLayer({
+          id: CIRCLE_LAYER,
+          type: 'circle',
+          source: SOURCE_ID,
+          filter: ['match', ['geometry-type'], ['Point', 'MultiPoint'], true, false],
+          paint: {
+            'circle-radius': 5,
+            'circle-color': groupColor,
+            'circle-stroke-width': 1,
+            'circle-stroke-color': '#ffffff',
+          },
+        });
+
+        // Filter the OHM basemap to the current year.
+        applyOhmLayerDateFilter(map, yearToOhmDate(yearRef.current));
+        setMap(map);
+      });
+
+      const onMoveEnd = () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          const b = map.getBounds();
+          setBboxRef.current({
+            w: b.getWest(),
+            s: b.getSouth(),
+            e: b.getEast(),
+            n: b.getNorth(),
+          });
+        }, MOVE_DEBOUNCE_MS);
+      };
+      map.on('moveend', onMoveEnd);
+    });
 
     return () => {
+      cancelled = true;
       clearTimeout(timer);
       setMap(null);
-      map.remove();
+      mapInstance?.remove();
       mapRef.current = null;
     };
-    // Mount once. Camera/data sync happen in their own effects.
+    // Mount once. Camera/data/date sync happen in their own effects.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ── re-filter the OHM basemap when the timeline year changes ───────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded()) return;
+    applyOhmLayerDateFilter(map, yearToOhmDate(year));
+  }, [year]);
 
   // ── push entity data imperatively when the query updates ───────────────────
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !data) return;
     const source = map.getSource(SOURCE_ID) as GeoJSONSource | undefined;
-    // The endpoint already returns a GeoJSON FeatureCollection — pass it straight
-    // through (no client-side reserialization). Map features always carry
-    // geometry, so the null-geometry case in the type never occurs here.
     source?.setData(data as FeatureCollection);
   }, [data]);
 
