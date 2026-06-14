@@ -41,6 +41,11 @@ class EntityTimelineEntrySummaryResource extends JsonResource
             'relationship_type' => $this->relationship_type,
             'related_entity_id' => $this->related_entity_id,
             'related_entity_name' => $this->related_entity_name,
+            // OHM basemap reference (borders-from-OHM, D19) — drives the
+            // history panel's OHM-highlight path. Per-entity, set by the controller.
+            'ohm_provider' => $this->ohm_external_id !== null ? 'ohm' : null,
+            'ohm_external_type' => $this->ohm_external_type,
+            'ohm_external_id' => $this->ohm_external_id,
             'derived_at' => $this->derived_at?->toISOString(),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),

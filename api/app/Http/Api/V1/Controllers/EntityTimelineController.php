@@ -8,8 +8,10 @@ use App\Http\Api\V1\Resources\EntityTimelineEntrySummaryResource;
 use App\Http\Api\V1\Resources\EntityTimelineEntryResource;
 use App\Http\Controllers\Controller;
 use App\Models\Entity;
+use App\Models\EntityTimelineEntry;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\DB;
 
 class EntityTimelineController extends Controller
 {
@@ -47,6 +49,8 @@ class EntityTimelineController extends Controller
             ->orderBy('created_at')
             ->get();
 
+        $this->decorateWithOhmRef($entries, $entity);
+
         return EntityTimelineEntrySummaryResource::collection($entries);
     }
 
@@ -61,6 +65,35 @@ class EntityTimelineController extends Controller
             ->where('timeline_entry_id', $timelineEntry)
             ->firstOrFail();
 
+        $this->decorateWithOhmRef(collect([$entry]), $entity);
+
         return new EntityTimelineEntryResource($entry);
+    }
+
+    /**
+     * Stamp each timeline entry with the entity's active OHM geo-ref (one query
+     * per request — the ref is a property of the entity, identical across all
+     * its entries). Under the borders-from-OHM policy (D19) the history panel
+     * uses this to highlight the OHM basemap feature instead of a stored polygon.
+     *
+     * @param  \Illuminate\Support\Collection<int, EntityTimelineEntry>  $entries
+     */
+    private function decorateWithOhmRef(\Illuminate\Support\Collection $entries, string $entityId): void
+    {
+        $ref = DB::table('entity_geo_refs')
+            ->where('entity_id', $entityId)
+            ->where('provider', 'ohm')
+            ->where('is_active', true)
+            ->orderByRaw("(match_role = 'primary') DESC")
+            ->orderByDesc('updated_at')
+            ->first(['external_id', 'external_type']);
+
+        $externalId = $ref->external_id ?? null;
+        $externalType = $ref->external_type ?? null;
+
+        foreach ($entries as $entry) {
+            $entry->setAttribute('ohm_external_id', $externalId);
+            $entry->setAttribute('ohm_external_type', $externalType);
+        }
     }
 }
