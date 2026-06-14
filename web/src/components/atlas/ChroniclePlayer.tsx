@@ -4,7 +4,40 @@ import { GroupDot } from '@/components/atlas/GroupBadge';
 import { useChronicle, useChronicleNav, useSelection, useTimeState } from '@/hooks';
 import { formatYear } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import type { ChronicleEntry } from '@/lib/schemas/chronicle';
 import type { Relationship } from '@/lib/schemas/entity';
+
+type SecondaryEntity = NonNullable<ChronicleEntry['secondary_entities']>[number];
+
+/** Entities attached to the step (chronicle entry's secondary entities). */
+function StepEntities({ entities }: { entities: SecondaryEntity[] }) {
+  const { select } = useSelection();
+  return (
+    <div className="mt-4">
+      <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+        Entities in this step
+      </h4>
+      <div className="space-y-0.5">
+        {entities.map((e) => (
+          <button
+            key={e.entity_id}
+            type="button"
+            onClick={() => select(e.entity_id)}
+            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-muted/60"
+          >
+            <span className="size-1.5 flex-none rounded-full bg-muted-foreground/60" />
+            <span className="min-w-0 flex-1 truncate">{e.name}</span>
+            {e.role && (
+              <span className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
+                {e.role.replace(/_/g, ' ')}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 /** "What changed here" — the step's primary relationship, source → target. */
 function WhatChanged({ rel }: { rel: Relationship }) {
@@ -128,6 +161,9 @@ export function ChroniclePlayer() {
             </p>
             {current?.primary_relationship && (
               <WhatChanged rel={current.primary_relationship} />
+            )}
+            {current?.secondary_entities && current.secondary_entities.length > 0 && (
+              <StepEntities entities={current.secondary_entities} />
             )}
           </div>
 
