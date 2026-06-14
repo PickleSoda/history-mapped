@@ -49,11 +49,11 @@ class MapEntitiesByYearAction
                 SQL
             )
             ->join('entities', 'entities.entity_id', '=', 'geometry_periods.entity_id')
-            ->where('geometry_periods.start_year', '<=', $year)
-            ->where(function ($q) use ($year): void {
-                $q->whereNull('geometry_periods.end_year')
-                    ->orWhere('geometry_periods.end_year', '>=', $year);
-            })
+            // int4range temporal predicate (index-usable, MQ-7); NULL end = ongoing.
+            ->whereRaw(
+                "int4range(geometry_periods.start_year, CASE WHEN geometry_periods.end_year IS NULL THEN NULL ELSE geometry_periods.end_year + 1 END, '[)') @> ?::integer",
+                [$year],
+            )
             ->where(function ($spatialTypeQuery): void {
                 $spatialTypeQuery
                     ->whereNotNull('geometry_periods.territory_geom')

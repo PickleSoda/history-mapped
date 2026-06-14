@@ -117,23 +117,18 @@ class MapEntitiesAction
             $query->where('entities.entity_group', EntityGroup::from($filters['group'])->value);
         }
 
-        // Temporal predicate: a range REPLACES the single-year filter (MQ-1);
-        // year/range presence is guaranteed by MapEntitiesRequest.
+        // Temporal predicate via int4range (mirrors gp_active_range_gist_idx, so
+        // it is index-usable; MQ-7). A range REPLACES the single-year filter
+        // (MQ-1); presence of year-or-range is guaranteed by MapEntitiesRequest.
+        // A NULL end_year is unbounded above (ongoing); a NULL start unbounded below.
+        $periodRange = "int4range(geometry_periods.start_year, CASE WHEN geometry_periods.end_year IS NULL THEN NULL ELSE geometry_periods.end_year + 1 END, '[)')";
         if (isset($filters['temporal_start'], $filters['temporal_end'])) {
             $start = (int) $filters['temporal_start'];
             $end = (int) $filters['temporal_end'];
-            $query->where('geometry_periods.start_year', '<=', $end)
-                ->where(function ($q) use ($start): void {
-                    $q->whereNull('geometry_periods.end_year')
-                        ->orWhere('geometry_periods.end_year', '>=', $start);
-                });
+            $query->whereRaw("{$periodRange} && int4range(?::integer, ?::integer + 1, '[)')", [$start, $end]);
         } else {
             $year = (int) $filters['year'];
-            $query->where('geometry_periods.start_year', '<=', $year)
-                ->where(function ($q) use ($year): void {
-                    $q->whereNull('geometry_periods.end_year')
-                        ->orWhere('geometry_periods.end_year', '>=', $year);
-                });
+            $query->whereRaw("{$periodRange} @> ?::integer", [$year]);
         }
 
         // Filter by spatial bbox on border geometry columns
