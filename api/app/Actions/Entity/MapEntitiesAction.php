@@ -31,7 +31,6 @@ class MapEntitiesAction
     public function __invoke(array $filters): array
     {
         $minImpact = $this->resolveMinImpact($filters);
-        $year = $this->resolveYear($filters);
         $limit = (int) ($filters['limit'] ?? 2000);
 
         // Query geometry_periods directly (map borders source of truth),
@@ -64,11 +63,6 @@ class MapEntitiesAction
                 SQL
             )
             ->join('entities', 'entities.entity_id', '=', 'geometry_periods.entity_id')
-            ->where('geometry_periods.start_year', '<=', $year)
-            ->where(function ($q) use ($year): void {
-                $q->whereNull('geometry_periods.end_year')
-                    ->orWhere('geometry_periods.end_year', '>=', $year);
-            })
             ->where(function ($spatialTypeQuery): void {
                 $spatialTypeQuery
                     ->whereNotNull('geometry_periods.territory_geom')
@@ -121,12 +115,22 @@ class MapEntitiesAction
             $query->where('entities.entity_group', EntityGroup::from($filters['group'])->value);
         }
 
-        // Optional temporal range filter (overrides single-year filter when provided)
+        // Temporal predicate: a range REPLACES the single-year filter (MQ-1);
+        // year/range presence is guaranteed by MapEntitiesRequest.
         if (isset($filters['temporal_start'], $filters['temporal_end'])) {
-            $query->where('geometry_periods.start_year', '<=', (int) $filters['temporal_end'])
-                ->where(function ($q) use ($filters): void {
+            $start = (int) $filters['temporal_start'];
+            $end = (int) $filters['temporal_end'];
+            $query->where('geometry_periods.start_year', '<=', $end)
+                ->where(function ($q) use ($start): void {
                     $q->whereNull('geometry_periods.end_year')
-                        ->orWhere('geometry_periods.end_year', '>=', (int) $filters['temporal_start']);
+                        ->orWhere('geometry_periods.end_year', '>=', $start);
+                });
+        } else {
+            $year = (int) $filters['year'];
+            $query->where('geometry_periods.start_year', '<=', $year)
+                ->where(function ($q) use ($year): void {
+                    $q->whereNull('geometry_periods.end_year')
+                        ->orWhere('geometry_periods.end_year', '>=', $year);
                 });
         }
 
@@ -192,15 +196,5 @@ class MapEntitiesAction
         }
 
         return null;
-    }
-
-    /**
-     * @param  array<string, mixed>  $filters
-     */
-    private function resolveYear(array $filters): int
-    {
-        return array_key_exists('year', $filters)
-            ? (int) $filters['year']
-            : 1000;
     }
 }

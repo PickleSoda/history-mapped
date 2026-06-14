@@ -33,11 +33,13 @@ class MapEntitiesRequest extends FormRequest
             'bbox_min_lat' => ['required', 'numeric', 'between:-90,90'],
             'bbox_max_lng' => ['required', 'numeric', 'between:-180,180'],
             'bbox_max_lat' => ['required', 'numeric', 'between:-90,90'],
-            'year' => ['sometimes', 'integer'],
+            // A single year OR a full temporal range is required (MQ-1):
+            // no more silent year=1000 default.
+            'year' => ['required_without_all:temporal_start,temporal_end', 'integer'],
 
-            // Temporal filter (integer year, negative for BCE)
-            'temporal_start' => ['sometimes', 'integer'],
-            'temporal_end' => ['sometimes', 'integer'],
+            // Temporal range (integer year, negative for BCE); both ends together.
+            'temporal_start' => ['sometimes', 'required_with:temporal_end', 'integer'],
+            'temporal_end' => ['sometimes', 'required_with:temporal_start', 'integer'],
 
             // Optional type/group filter
             'type' => ['sometimes', 'string', Rule::enum(EntityType::class)],
