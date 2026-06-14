@@ -201,14 +201,20 @@ class EntityBuilder extends Builder
     // ── Text Search ──────────────────────────────────────────
 
     /**
-     * Full-text search on entity name using the GIN index.
+     * Fuzzy name search. Combines three signals so typos and partial terms
+     * still match (not just exact word stems):
+     *   - trigram similarity (pg_trgm `%`) — typo tolerance
+     *   - ILIKE substring — partial / prefix matches
+     *   - full-text (tsvector) — whole-word relevance
+     * All three are index-backed (trigram GIN + FTS GIN).
      */
     public function search(string $term): self
     {
-        return $this->whereRaw(
-            "to_tsvector('english', name) @@ plainto_tsquery('english', ?)",
-            [$term],
-        );
+        return $this->where(function (Builder $q) use ($term): void {
+            $q->whereRaw('name % ?', [$term])
+                ->orWhere('name', 'ILIKE', '%'.$term.'%')
+                ->orWhereRaw("to_tsvector('english', name) @@ plainto_tsquery('english', ?)", [$term]);
+        });
     }
 
     /**
@@ -217,6 +223,14 @@ class EntityBuilder extends Builder
     public function nameLike(string $term): self
     {
         return $this->where('name', 'ILIKE', '%'.$term.'%');
+    }
+
+    /**
+     * Order by trigram similarity to a term (best fuzzy matches first).
+     */
+    public function orderBySimilarity(string $term): self
+    {
+        return $this->orderByRaw('similarity(name, ?) DESC', [$term]);
     }
 
     // ── Attribute (JSONB) Queries ─────────────────────────────

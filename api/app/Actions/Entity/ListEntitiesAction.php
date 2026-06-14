@@ -103,7 +103,7 @@ class ListEntitiesAction
                 ? $query->orderByDistanceFrom($filters->nearLng, $filters->nearLat)
                 : $query->orderByImpact(),
             default => $filters->search !== null
-                ? $query            // Full-text search has its own relevance ranking
+                ? $query->orderBySimilarity($filters->search) // fuzzy: best matches first
                 : $query->orderByImpact(),
         };
 
