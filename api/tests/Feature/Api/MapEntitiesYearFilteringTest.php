@@ -18,8 +18,7 @@ class MapEntitiesYearFilteringTest extends TestCase
         int $startYear,
         int $endYear,
         ?string $polygonWkt = null,
-    ): void
-    {
+    ): void {
         $polygon = $polygonWkt ?? 'POLYGON((10 40, 11 40, 11 41, 10 41, 10 40))';
 
         DB::statement(
@@ -79,7 +78,7 @@ class MapEntitiesYearFilteringTest extends TestCase
         $response->assertJsonValidationErrors(['year']);
     }
 
-    public function test_default_year_is_1000_when_not_provided(): void
+    public function test_explicit_year_filters_periods(): void
     {
         $inYear = Entity::factory()
             ->verified()
@@ -101,6 +100,7 @@ class MapEntitiesYearFilteringTest extends TestCase
             'bbox_min_lat' => 30,
             'bbox_max_lng' => 30,
             'bbox_max_lat' => 50,
+            'year' => 1000,
         ]));
 
         $response->assertOk();

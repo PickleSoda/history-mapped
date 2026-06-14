@@ -42,8 +42,7 @@ class MapEntitiesThresholdTest extends TestCase
         int $endYear,
         string $periodType = 'territory',
         ?string $polygonWkt = null,
-    ): void
-    {
+    ): void {
         $polygon = $polygonWkt ?? 'POLYGON((10 40, 11 40, 11 41, 10 41, 10 40))';
 
         DB::statement(
@@ -86,6 +85,7 @@ class MapEntitiesThresholdTest extends TestCase
             'bbox_min_lat' => 30,
             'bbox_max_lng' => 30,
             'bbox_max_lat' => 50,
+            'year' => 1000,
             'zoom_level' => 1,
         ]));
 
@@ -106,6 +106,7 @@ class MapEntitiesThresholdTest extends TestCase
             'bbox_min_lat' => 30,
             'bbox_max_lng' => 30,
             'bbox_max_lat' => 50,
+            'year' => 1000,
             'zoom_level' => 12,
         ]));
 
@@ -134,6 +135,7 @@ class MapEntitiesThresholdTest extends TestCase
             'bbox_min_lat' => 30,
             'bbox_max_lng' => 30,
             'bbox_max_lat' => 50,
+            'year' => 1000,
             'zoom_level' => 1,
             'min_impact' => 30,
         ]));
@@ -154,6 +156,7 @@ class MapEntitiesThresholdTest extends TestCase
             'bbox_min_lat' => 30,
             'bbox_max_lng' => 30,
             'bbox_max_lat' => 50,
+            'year' => 1000,
         ]));
 
         $response->assertOk();
@@ -171,6 +174,7 @@ class MapEntitiesThresholdTest extends TestCase
             'bbox_min_lat' => 30,
             'bbox_max_lng' => 30,
             'bbox_max_lat' => 50,
+            'year' => 1000,
         ]));
 
         $response->assertOk();
