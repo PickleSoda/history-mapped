@@ -66,7 +66,9 @@ class EntityTimelineEntryBuilder
         return [
             'entity_id' => $range->entity_id,
             'entry_kind' => 'temporal_range',
-            'start_year' => $range->start_year,
+            // Coalesce symmetrically so an open-start range never writes NULL into
+            // the NOT NULL start_year (LC-3); mirrors the end_year fallback.
+            'start_year' => $range->start_year ?? $range->end_year,
             'end_year' => $range->end_year ?? $range->start_year,
             'title' => $title,
             'description' => $range->notes,
