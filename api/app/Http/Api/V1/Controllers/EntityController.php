@@ -23,7 +23,10 @@ use App\Http\Api\V1\Resources\EntitySummaryResource;
 use App\Http\Controllers\Controller;
 use App\Models\Entity;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class EntityController extends Controller
@@ -51,9 +54,16 @@ class EntityController extends Controller
     public function map(
         MapEntitiesRequest $request,
         MapEntitiesAction $action,
-    ): StreamedResponse {
+    ): Response {
+        $etag = $this->mapEtag($request->validated());
+
+        if ($this->etagMatches($request, $etag)) {
+            return response('', 304, $this->cacheHeaders($etag));
+        }
+
         $result = $action($request->validated());
-        return $this->streamFeatureCollection($result['features']);
+
+        return $this->streamFeatureCollection($result['features'], $etag);
     }
 
     /**
@@ -64,14 +74,77 @@ class EntityController extends Controller
     public function mapByYear(
         MapEntitiesByYearRequest $request,
         MapEntitiesByYearAction $action,
-    ): StreamedResponse {
+    ): Response {
+        $etag = $this->mapEtag($request->validated());
+
+        if ($this->etagMatches($request, $etag)) {
+            return response('', 304, $this->cacheHeaders($etag));
+        }
+
         $result = $action($request->validated());
 
-        return $this->streamFeatureCollection($result['features']);
+        return $this->streamFeatureCollection($result['features'], $etag);
     }
 
-    private function streamFeatureCollection(iterable $features): StreamedResponse
+    /**
+     * Deterministic ETag for a map response: the geometry data-version
+     * (max updated_at — one cheap aggregate) combined with the validated
+     * request filters. Identical data + identical filters → identical ETag,
+     * so a conditional request can short-circuit to 304.
+     *
+     * @param  array<string, mixed>  $validated
+     */
+    private function mapEtag(array $validated): string
     {
+        $version = DB::table('geometry_periods')->max('updated_at');
+        ksort($validated);
+
+        return '"'.sha1(($version ?? 'empty').'|'.json_encode($validated)).'"';
+    }
+
+    private function etagMatches(Request $request, string $etag): bool
+    {
+        $header = $request->headers->get('If-None-Match');
+
+        if ($header === null || $header === '') {
+            return false;
+        }
+
+        if (trim($header) === '*') {
+            return true;
+        }
+
+        foreach (explode(',', $header) as $candidate) {
+            // Tolerate weak validators (W/"...") and surrounding whitespace.
+            $candidate = preg_replace('/^\s*W\//', '', trim($candidate));
+
+            if ($candidate === $etag) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function cacheHeaders(string $etag): array
+    {
+        return [
+            'ETag' => $etag,
+            'Cache-Control' => 'public, max-age=60',
+        ];
+    }
+
+    private function streamFeatureCollection(iterable $features, ?string $etag = null): StreamedResponse
+    {
+        $headers = ['Content-Type' => 'application/json'];
+
+        if ($etag !== null) {
+            $headers += $this->cacheHeaders($etag);
+        }
+
         return response()->stream(function () use ($features): void {
             echo '{"type":"FeatureCollection","features":[';
 
@@ -97,7 +170,7 @@ class EntityController extends Controller
             }
 
             echo ']}';
-        }, 200, ['Content-Type' => 'application/json']);
+        }, 200, $headers);
     }
 
     /**
