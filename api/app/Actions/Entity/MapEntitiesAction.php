@@ -36,17 +36,27 @@ class MapEntitiesAction
         // One feature per entity (MQ-16) unless ?all_periods is requested.
         $allPeriods = (bool) ($filters['all_periods'] ?? false);
 
-        // Zoom-keyed geometry simplification + coordinate precision (MQ-6).
-        // Points (ST_Dimension = 0) are never simplified.
+        // Borders-from-OHM (§3.1): OHM-linked entities serialize their point so
+        // the client can highlight the OHM basemap feature instead of a stored
+        // polygon. Active OHM geo-ref subqueries (primary first).
+        $ohmWhere = "egr.entity_id = entities.entity_id AND egr.provider = 'ohm' AND egr.is_active = true";
+        $ohmOrder = "ORDER BY (egr.match_role = 'primary') DESC, egr.updated_at DESC NULLS LAST LIMIT 1";
+        $ohmExternalId = "(SELECT egr.external_id FROM entity_geo_refs egr WHERE {$ohmWhere} {$ohmOrder})";
+        $ohmExternalType = "(SELECT egr.external_type::text FROM entity_geo_refs egr WHERE {$ohmWhere} {$ohmOrder})";
+        $ohmExists = "EXISTS (SELECT 1 FROM entity_geo_refs egr WHERE {$ohmWhere})";
+
+        // Geometry served: the point for OHM-linked entities, else the app-owned
+        // COALESCE(territory_geom, geom). Zoom simplification (MQ-6) applies only
+        // to non-point geometry (ST_Dimension > 0).
         $simplify = ZoomSimplification::forZoom((int) ($filters['zoom_level'] ?? 12));
-        $geom = 'COALESCE(geometry_periods.territory_geom, geometry_periods.geom)';
+        $geom = "CASE WHEN {$ohmExists} THEN geometry_periods.geom ELSE COALESCE(geometry_periods.territory_geom, geometry_periods.geom) END";
         $geojsonExpr = $simplify['tolerance'] > 0
             ? "ST_AsGeoJSON(CASE WHEN ST_Dimension({$geom}) = 0 THEN {$geom} ELSE ST_SimplifyPreserveTopology({$geom}, {$simplify['tolerance']}) END, {$simplify['digits']})::text AS geojson"
             : "ST_AsGeoJSON({$geom}, {$simplify['digits']})::text AS geojson";
 
         // display_priority/impact_score are selected for ordering; the output
-        // properties are trimmed to the UI contract (MQ-8) + entity_color.
-        $columns = <<<'SQL'
+        // properties are trimmed to the UI contract (MQ-8) + entity_color + OHM ref.
+        $columns = <<<SQL
             entities.entity_id,
             geometry_periods.start_year,
             geometry_periods.end_year,
@@ -66,6 +76,8 @@ class MapEntitiesAction
             entities.display_priority,
             entities.impact_score,
             entities.attributes->>'entity_color' AS entity_color,
+            {$ohmExternalId} AS ohm_external_id,
+            {$ohmExternalType} AS ohm_external_type,
             SQL;
         $columns .= "\n            ".$geojsonExpr;
 
@@ -196,6 +208,9 @@ class MapEntitiesAction
                     'start_year' => $row->start_year,
                     'end_year' => $row->end_year,
                     'entity_color' => $row->entity_color,
+                    'ohm_provider' => $row->ohm_external_id !== null ? 'ohm' : null,
+                    'ohm_external_type' => $row->ohm_external_type,
+                    'ohm_external_id' => $row->ohm_external_id,
                 ],
             ];
         });

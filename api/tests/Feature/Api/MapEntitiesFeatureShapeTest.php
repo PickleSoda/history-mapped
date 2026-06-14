@@ -48,9 +48,14 @@ class MapEntitiesFeatureShapeTest extends TestCase
         $props = $response->json('features.0.properties');
 
         $this->assertEqualsCanonicalizing(
-            ['id', 'name', 'entity_type', 'entity_group', 'impact_score', 'start_year', 'end_year', 'entity_color'],
+            [
+                'id', 'name', 'entity_type', 'entity_group', 'impact_score',
+                'start_year', 'end_year', 'entity_color',
+                'ohm_provider', 'ohm_external_type', 'ohm_external_id',
+            ],
             array_keys($props),
         );
         $this->assertSame('#abcdef', $props['entity_color']);
+        $this->assertNull($props['ohm_external_id']); // no OHM ref on this entity
     }
 }

@@ -22,6 +22,10 @@ export interface MapFeatureProperties {
   end_year: number | null;
   /** attributes->>'entity_color' (hex) or null. */
   entity_color: string | null;
+  /** OHM basemap reference (for OHM-linked entities) — drive layer highlight. */
+  ohm_provider: string | null;
+  ohm_external_type: string | null;
+  ohm_external_id: string | null;
 }
 
 export type MapFeature = Feature<Geometry | null, MapFeatureProperties>;
