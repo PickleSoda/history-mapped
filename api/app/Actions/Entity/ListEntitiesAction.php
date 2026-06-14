@@ -83,11 +83,6 @@ class ListEntitiesAction
             $query->existsAt($filters->existsAt);
         }
 
-        // ── Hierarchy ────────────────────────────────────────
-        if ($filters->parentId !== null) {
-            $query->childrenOf($filters->parentId);
-        }
-
         // ── Eager loading ────────────────────────────────────
         if ($filters->includeRelationships) {
             $query->with(['outgoingRelationships.targetEntity', 'incomingRelationships.sourceEntity']);

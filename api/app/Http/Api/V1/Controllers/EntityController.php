@@ -188,10 +188,6 @@ class EntityController extends Controller
             $with = ['outgoingRelationships.targetEntity', 'incomingRelationships.sourceEntity'];
         }
 
-        if (request()->boolean('include_children')) {
-            $with[] = 'children';
-        }
-
         return new EntityResource($action($entity, $with));
     }
 
