@@ -9,6 +9,7 @@ use App\Enums\EntityGroup;
 use App\Enums\EntityType;
 use App\Enums\VerificationStatus;
 use App\Services\ZoomImpactThreshold;
+use App\Services\ZoomSimplification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\LazyCollection;
 
@@ -35,6 +36,14 @@ class MapEntitiesAction
         // One feature per entity (MQ-16) unless ?all_periods is requested.
         $allPeriods = (bool) ($filters['all_periods'] ?? false);
 
+        // Zoom-keyed geometry simplification + coordinate precision (MQ-6).
+        // Points (ST_Dimension = 0) are never simplified.
+        $simplify = ZoomSimplification::forZoom((int) ($filters['zoom_level'] ?? 12));
+        $geom = 'COALESCE(geometry_periods.territory_geom, geometry_periods.geom)';
+        $geojsonExpr = $simplify['tolerance'] > 0
+            ? "ST_AsGeoJSON(CASE WHEN ST_Dimension({$geom}) = 0 THEN {$geom} ELSE ST_SimplifyPreserveTopology({$geom}, {$simplify['tolerance']}) END, {$simplify['digits']})::text AS geojson"
+            : "ST_AsGeoJSON({$geom}, {$simplify['digits']})::text AS geojson";
+
         $columns = <<<'SQL'
             geometry_periods.geometry_period_id,
             entities.entity_id,
@@ -57,8 +66,8 @@ class MapEntitiesAction
             entities.display_priority,
             entities.icon_class,
             entities.impact_score,
-            ST_AsGeoJSON(COALESCE(geometry_periods.territory_geom, geometry_periods.geom), 5)::text AS geojson
             SQL;
+        $columns .= "\n            ".$geojsonExpr;
 
         // Query geometry_periods directly (map borders source of truth),
         // enrich with entity metadata and primary alias display name.
