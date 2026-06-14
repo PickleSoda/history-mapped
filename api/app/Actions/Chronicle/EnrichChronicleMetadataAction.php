@@ -35,7 +35,9 @@ class EnrichChronicleMetadataAction
             'entries.primaryRelationship.targetEntity',
         ]);
 
-        $points = $this->entityPoints($this->allEntityIds($chronicle));
+        $entityIds = $this->allEntityIds($chronicle);
+        $points = $this->entityPoints($entityIds);
+        $years = $this->entityYears($entityIds);
 
         $start = null;
         $end = null;
@@ -48,11 +50,15 @@ class EnrichChronicleMetadataAction
 
             $entryImpact = $entities->max('impact_score');
             [$relStart, $relEnd] = $this->relationshipYears($entry);
+            [$entStart, $entEnd] = $this->yearsFromEntities($entities, $years);
             $entryLocation = $this->representativePoint($entities, $points);
 
+            // Year priority: pipeline event date -> primary relationship ->
+            // listed entities (so an entry with no relation still gets a year
+            // for map/timeline filtering).
             $entry->forceFill([
-                'start_year' => $entry->start_year ?? $relStart,
-                'end_year' => $entry->end_year ?? $relEnd,
+                'start_year' => $entry->start_year ?? $relStart ?? $entStart,
+                'end_year' => $entry->end_year ?? $relEnd ?? $entEnd,
                 'impact_score' => $entryImpact ?? $entry->impact_score,
                 'approximate_location' => $entryLocation ?? $entry->approximate_location,
             ])->save();
@@ -108,6 +114,36 @@ class EnrichChronicleMetadataAction
         $relationship = $entry->primaryRelationship;
 
         return [$relationship?->start_year, $relationship?->end_year];
+    }
+
+    /**
+     * Span of the involved entities: earliest start, latest end.
+     *
+     * @param  Collection<int, Entity>  $entities
+     * @param  array<string, array{start: int|null, end: int|null}>  $years
+     * @return array{0: int|null, 1: int|null}
+     */
+    private function yearsFromEntities(Collection $entities, array $years): array
+    {
+        $starts = [];
+        $ends = [];
+        foreach ($entities as $entity) {
+            $range = $years[$entity->entity_id] ?? null;
+            if ($range === null) {
+                continue;
+            }
+            if ($range['start'] !== null) {
+                $starts[] = $range['start'];
+            }
+            if ($range['end'] !== null) {
+                $ends[] = $range['end'];
+            }
+        }
+
+        return [
+            $starts === [] ? null : min($starts),
+            $ends === [] ? null : max($ends),
+        ];
     }
 
     /**
@@ -170,6 +206,35 @@ class EnrichChronicleMetadataAction
             $map[$row->entity_id] = [
                 'lat' => round((float) $row->lat, 5),
                 'lon' => round((float) $row->lon, 5),
+            ];
+        }
+
+        return $map;
+    }
+
+    /**
+     * Primary temporal range (start_year/end_year) per entity.
+     *
+     * @param  list<string>  $entityIds
+     * @return array<string, array{start: int|null, end: int|null}>
+     */
+    private function entityYears(array $entityIds): array
+    {
+        if (empty($entityIds)) {
+            return [];
+        }
+
+        $rows = DB::table('entity_temporal_ranges')
+            ->whereIn('entity_id', $entityIds)
+            ->where('is_primary', true)
+            ->select('entity_id', 'start_year', 'end_year')
+            ->get();
+
+        $map = [];
+        foreach ($rows as $row) {
+            $map[$row->entity_id] = [
+                'start' => $row->start_year !== null ? (int) $row->start_year : null,
+                'end' => $row->end_year !== null ? (int) $row->end_year : null,
             ];
         }
 
