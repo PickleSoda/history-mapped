@@ -1,5 +1,7 @@
 # Temporal Semantics Unification — Implementation Plan
 
+> **Status: ✅ Executed** — verified 2026-06-15 against the codebase. See [STATUS.md](../../plans/STATUS.md).
+>
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Apply one consistent rule for unknown/open-ended/BCE temporal bounds end-to-end — fix the timeline open-start crash, include open-ended entities in temporal filters, make sub-1000-CE/BCE years filter the OHM basemap, and keep timelines fresh without rebuild storms.

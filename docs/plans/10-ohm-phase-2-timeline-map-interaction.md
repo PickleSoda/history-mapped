@@ -1,5 +1,7 @@
 # Phase 2 — Timeline-to-Map Interaction (Snapshots + Relationships)
 
+> **Status: 🟡 Partial** — verified 2026-06-15; remaining work tracked in [STATUS.md](STATUS.md).
+
 ## Objective
 Implement the target UX: map on the left, timeline on the right; clicking snapshots or relationships applies corresponding geometry context to the map.
 

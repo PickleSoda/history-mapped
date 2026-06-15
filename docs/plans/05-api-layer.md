@@ -1,5 +1,7 @@
 # 05 — Entity REST API Layer
 
+> **Status: ✅ Executed** — verified 2026-06-15 against the codebase. See [STATUS.md](STATUS.md).
+
 ## Summary
 
 Complete REST API for entities, relationships, sources, and reference data.

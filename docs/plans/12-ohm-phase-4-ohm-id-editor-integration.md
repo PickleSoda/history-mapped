@@ -1,5 +1,7 @@
 # Phase 4 — Integrate OpenHistoricalMap iD Editor Surface
 
+> **Status: ⬜ Not started** — as of 2026-06-15. See [STATUS.md](STATUS.md).
+
 ## Objective
 Provide a comprehensive OHM-native editing experience by integrating `@openhistoricalmap/id` as a dedicated editing surface while preserving app-level workflow control.
 

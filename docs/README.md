@@ -1,5 +1,7 @@
 # Documentation Index
 
+> **Plan execution status:** see [plans/STATUS.md](plans/STATUS.md) — a verified index of every plan (✅ executed / 🟡 partial / ⬜ not started). Fully-executed historical plans now live in [archive/superpowers-plans/](archive/superpowers-plans/).
+
 This repository has a mix of current runbooks, reference docs, and older planning artifacts. If you want the project as it exists today, start with these documents in this order:
 
 1. [../README.md](../README.md)
@@ -15,8 +17,8 @@ This repository has a mix of current runbooks, reference docs, and older plannin
 - `reference/`: design references and proposal docs that are still useful, but do not describe the live app as-is.
 - `archive/`: superseded or historical documents kept for decision history.
 - `schemas/`: current payload and contract documentation for pipeline artifacts and API requests.
-- `plans/`: older implementation plans and rollout notes.
-- `superpowers/plans/` and `superpowers/specs/`: design and implementation artifacts created during agent-driven work.
+- `plans/`: the numbered product roadmap plus the live agent-driven backlog. See [plans/STATUS.md](plans/STATUS.md) for per-plan execution status.
+- `superpowers/plans/` and `superpowers/specs/`: design and implementation artifacts created during agent-driven work. Only current-cycle (active or recently executed) plans remain here; historical ones moved to `archive/superpowers-plans/`.
 - `ext/`: external reference material and supporting notes.
 
 ## Docs Map

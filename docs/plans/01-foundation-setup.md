@@ -1,5 +1,7 @@
 # Plan 01 - Foundation Setup
 
+> **Status: ✅ Executed** — verified 2026-06-15 against the codebase. See [STATUS.md](STATUS.md).
+
 ## Goal
 
 Create the monorepo foundation so Laravel, the customer app, and the shared package can all run in a fully dockerized workspace.
