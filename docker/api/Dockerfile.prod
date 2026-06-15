@@ -87,32 +87,60 @@ RUN cd api \
     && rm -rf node_modules /app/node_modules /app/web/node_modules
 
 ###############################################################################
-# Stage 2 — runtime: slim php-fpm with only the built application.
+# Stage 2 — runtime: FrankenPHP serving the app through Laravel Octane.
+#
+# FrankenPHP speaks HTTP directly (no nginx/php-fpm sidecar), which suits
+# single-container platforms like DigitalOcean App Platform, and Octane keeps
+# the framework booted between requests for a large throughput win. The same
+# image runs the queue and scheduler by overriding the command with a plain
+# artisan call (the php CLI ships in this base image).
 ###############################################################################
-FROM php-base AS runtime
+FROM dunglas/frankenphp:php8.4-bookworm AS runtime
 
-# Production opcache tuning.
+# Runtime PHP extensions (mirror the build stage). install-php-extensions ships
+# in the FrankenPHP base image.
+RUN install-php-extensions \
+        bcmath \
+        exif \
+        gd \
+        intl \
+        opcache \
+        pcntl \
+        pdo_pgsql \
+        redis \
+        zip
+
+# Production opcache + JIT. enable_cli=1 because Octane runs in a CLI worker.
 RUN { \
         echo 'opcache.enable=1'; \
-        echo 'opcache.enable_cli=0'; \
+        echo 'opcache.enable_cli=1'; \
         echo 'opcache.memory_consumption=256'; \
         echo 'opcache.interned_strings_buffer=16'; \
         echo 'opcache.max_accelerated_files=20000'; \
         echo 'opcache.validate_timestamps=0'; \
-    } > /usr/local/etc/php/conf.d/opcache.ini
+        echo 'opcache.jit=1255'; \
+        echo 'opcache.jit_buffer_size=64M'; \
+    } > "$PHP_INI_DIR/conf.d/opcache.ini"
 
-WORKDIR /var/www/html
+WORKDIR /app
 
 # Built application: vendor (no-dev) + compiled public/build assets.
 COPY --from=build --chown=www-data:www-data /app/api/ ./
 
-# Laravel needs these writable at runtime.
-RUN chown -R www-data:www-data storage bootstrap/cache \
+# Run as non-root: keep FrankenPHP/Caddy state under storage (writable) and own
+# Laravel's writable dirs.
+ENV XDG_CONFIG_HOME=/app/storage/framework/caddy \
+    XDG_DATA_HOME=/app/storage/framework/caddy
+RUN mkdir -p storage/framework/caddy \
+    && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R ug+rwX storage bootstrap/cache
 
 USER www-data
 
-EXPOSE 9000
+EXPOSE 8080
 
-# Overridden by the queue/scheduler services with their own artisan commands.
-CMD ["php-fpm"]
+# Serve via Octane on FrankenPHP. $PORT lets the platform choose the port
+# (App Platform sets it); defaults to 8080. --max-requests recycles workers
+# periodically as a safety net against any latent per-request state leaks.
+ENV PORT=8080
+CMD ["sh", "-c", "php artisan octane:start --server=frankenphp --host=0.0.0.0 --port=${PORT} --workers=auto --max-requests=500"]
