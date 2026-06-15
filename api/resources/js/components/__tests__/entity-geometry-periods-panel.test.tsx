@@ -1,11 +1,26 @@
 // @vitest-environment jsdom
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import {
+    afterAll,
+    afterEach,
+    beforeAll,
+    describe,
+    expect,
+    it,
+    vi,
+} from 'vitest';
 import '@testing-library/jest-dom/vitest';
 import EntityGeometryPeriodsPanel from '../entity-geometry-periods-panel';
 
 vi.mock('@/components/map-editor', () => ({
-    default: ({ onChange }: { onChange: (geom: { type: string; coordinates: number[] } | null, territoryGeom: null) => void }) => (
+    default: ({
+        onChange,
+    }: {
+        onChange: (
+            geom: { type: string; coordinates: number[] } | null,
+            territoryGeom: null,
+        ) => void;
+    }) => (
         <div>
             <label>
                 Longitude
@@ -13,7 +28,10 @@ vi.mock('@/components/map-editor', () => ({
                     aria-label="Longitude"
                     onChange={(event) => {
                         const lon = Number(event.currentTarget.value);
-                        onChange({ type: 'Point', coordinates: [lon, 41.89] }, null);
+                        onChange(
+                            { type: 'Point', coordinates: [lon, 41.89] },
+                            null,
+                        );
                     }}
                 />
             </label>
@@ -83,97 +101,115 @@ describe('EntityGeometryPeriodsPanel', () => {
             territory_geom: null,
         };
 
-        fetchMock.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
-            const url = String(input);
-            const method = init?.method ?? 'GET';
+        fetchMock.mockImplementation(
+            async (input: RequestInfo | URL, init?: RequestInit) => {
+                const url = String(input);
+                const method = init?.method ?? 'GET';
 
-            if (url.includes('/entities/e1/geometry-periods') && method === 'GET') {
-                if (url.endsWith('/entities/e1/geometry-periods/gp-1')) {
+                if (
+                    url.includes('/entities/e1/geometry-periods') &&
+                    method === 'GET'
+                ) {
+                    if (url.endsWith('/entities/e1/geometry-periods/gp-1')) {
+                        return {
+                            ok: true,
+                            json: async () => ({ data: detail }),
+                        } as Response;
+                    }
+
                     return {
                         ok: true,
-                        json: async () => ({ data: detail }),
+                        json: async () => ({ data: rows }),
+                    } as Response;
+                }
+
+                if (
+                    url.endsWith('/entities/e1/geometry-periods') &&
+                    method === 'POST'
+                ) {
+                    const body = JSON.parse(String(init?.body ?? '{}')) as {
+                        start_year: number;
+                        end_year: number;
+                        period_type: string;
+                        description?: string;
+                    };
+
+                    rows = [
+                        ...rows,
+                        {
+                            geometry_period_id: 'gp-2',
+                            entity_id: 'e1',
+                            period_type: body.period_type,
+                            start_year: body.start_year,
+                            end_year: body.end_year,
+                            description: body.description ?? null,
+                            provenance_mode: 'manual',
+                            geom: { type: 'Point', coordinates: [13.0, 42.0] },
+                            territory_geom: null,
+                        },
+                    ];
+
+                    return {
+                        ok: true,
+                        json: async () => ({ data: rows[1] }),
+                    } as Response;
+                }
+
+                if (
+                    url.includes('/entities/e1/geometry-periods/') &&
+                    method === 'PUT'
+                ) {
+                    const body = JSON.parse(String(init?.body ?? '{}')) as {
+                        description?: string;
+                        start_year: number;
+                        end_year: number;
+                        period_type: string;
+                    };
+                    const periodId = url.split('/').pop() ?? '';
+
+                    rows = rows.map((row) =>
+                        row.geometry_period_id === periodId
+                            ? {
+                                  ...row,
+                                  period_type: body.period_type,
+                                  start_year: body.start_year,
+                                  end_year: body.end_year,
+                                  description: body.description ?? null,
+                              }
+                            : row,
+                    );
+
+                    return {
+                        ok: true,
+                        json: async () => ({
+                            data: rows.find(
+                                (row) => row.geometry_period_id === periodId,
+                            ),
+                        }),
+                    } as Response;
+                }
+
+                if (
+                    url.endsWith('/entities/e1/geometry-periods/gp-1') &&
+                    method === 'DELETE'
+                ) {
+                    rows = rows.filter(
+                        (row) => row.geometry_period_id !== 'gp-1',
+                    );
+
+                    return {
+                        ok: true,
+                        json: async () => ({}),
                     } as Response;
                 }
 
                 return {
-                    ok: true,
-                    json: async () => ({ data: rows }),
-                } as Response;
-            }
-
-            if (url.endsWith('/entities/e1/geometry-periods') && method === 'POST') {
-                const body = JSON.parse(String(init?.body ?? '{}')) as {
-                    start_year: number;
-                    end_year: number;
-                    period_type: string;
-                    description?: string;
-                };
-
-                rows = [
-                    ...rows,
-                    {
-                        geometry_period_id: 'gp-2',
-                        entity_id: 'e1',
-                        period_type: body.period_type,
-                        start_year: body.start_year,
-                        end_year: body.end_year,
-                        description: body.description ?? null,
-                        provenance_mode: 'manual',
-                        geom: { type: 'Point', coordinates: [13.0, 42.0] },
-                        territory_geom: null,
-                    },
-                ];
-
-                return {
-                    ok: true,
-                    json: async () => ({ data: rows[1] }),
-                } as Response;
-            }
-
-            if (url.includes('/entities/e1/geometry-periods/') && method === 'PUT') {
-                const body = JSON.parse(String(init?.body ?? '{}')) as {
-                    description?: string;
-                    start_year: number;
-                    end_year: number;
-                    period_type: string;
-                };
-                const periodId = url.split('/').pop() ?? '';
-
-                rows = rows.map((row) =>
-                    row.geometry_period_id === periodId
-                        ? {
-                              ...row,
-                              period_type: body.period_type,
-                              start_year: body.start_year,
-                              end_year: body.end_year,
-                              description: body.description ?? null,
-                          }
-                        : row,
-                );
-
-                return {
-                    ok: true,
-                    json: async () => ({
-                        data: rows.find((row) => row.geometry_period_id === periodId),
-                    }),
-                } as Response;
-            }
-
-            if (url.endsWith('/entities/e1/geometry-periods/gp-1') && method === 'DELETE') {
-                rows = rows.filter((row) => row.geometry_period_id !== 'gp-1');
-
-                return {
-                    ok: true,
+                    ok: false,
+                    status: 500,
                     json: async () => ({}),
                 } as Response;
-            }
-
-            return {
-                ok: false,
-                status: 500,
-                json: async () => ({}),
-            } as Response;
-        });
+            },
+        );
 
         render(
             <EntityGeometryPeriodsPanel

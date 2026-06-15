@@ -206,7 +206,10 @@ export default function EntityEdit({ entity, formOptions }: Props) {
                             <div className="border-b p-4">
                                 <EntityGeoRefEditor
                                     entityId={entity.id}
-                                    onHydratedGeometryChange={(geo, territory) => {
+                                    onHydratedGeometryChange={(
+                                        geo,
+                                        territory,
+                                    ) => {
                                         setGeojson(geo);
                                         setTerritoryGeojson(territory);
                                     }}
@@ -225,7 +228,9 @@ export default function EntityEdit({ entity, formOptions }: Props) {
                                 </div>
                                 <HistoricalMapViewer
                                     baseGeometries={[geojson, territoryGeojson]}
-                                    overlayGeometries={highlightedPeriodGeometries}
+                                    overlayGeometries={
+                                        highlightedPeriodGeometries
+                                    }
                                     timeframeDate={timeframeDate}
                                     fitBounds
                                 />
@@ -291,7 +296,10 @@ export default function EntityEdit({ entity, formOptions }: Props) {
                     {geometryPeriodsOpen && (
                         <div className="border-t p-4">
                             <EntityGeometryPeriodsPanel
-                                listUrl={entity.geometry_periods_url ?? `/entities/${entity.id}/geometry-periods`}
+                                listUrl={
+                                    entity.geometry_periods_url ??
+                                    `/entities/${entity.id}/geometry-periods`
+                                }
                                 detailUrlFn={(periodId) =>
                                     `/entities/${entity.id}/geometry-periods/${periodId}`
                                 }
@@ -305,7 +313,10 @@ export default function EntityEdit({ entity, formOptions }: Props) {
                                 onSelectPeriod={(period) => {
                                     setHighlightedPeriodGeometries(
                                         period
-                                            ? [period.geom ?? null, period.territory_geom ?? null]
+                                            ? [
+                                                  period.geom ?? null,
+                                                  period.territory_geom ?? null,
+                                              ]
                                             : [],
                                     );
 

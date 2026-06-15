@@ -49,7 +49,9 @@ const YEAR_STORAGE_KEY = 'historical-dashboard:selected-year';
 export default function Dashboard() {
     const [yearInput, setYearInput] = useState(String(DEFAULT_DASHBOARD_YEAR));
     const [selectedYear, setSelectedYear] = useState<number | null>(null);
-    const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
+    const [selectedEntityId, setSelectedEntityId] = useState<string | null>(
+        null,
+    );
 
     useEffect(() => {
         const initialYear = getInitialDashboardYear();
@@ -93,15 +95,22 @@ export default function Dashboard() {
         queryKey: ['dashboard-entity', selectedEntityId],
         enabled: selectedEntityId !== null,
         queryFn: async () => {
-            const response = await fetch(`/api/v1/entities/${selectedEntityId}`, {
-                headers: { Accept: 'application/json' },
-            });
+            const response = await fetch(
+                `/api/v1/entities/${selectedEntityId}`,
+                {
+                    headers: { Accept: 'application/json' },
+                },
+            );
 
             if (!response.ok) {
-                throw new Error(`Failed to load entity details (${response.status})`);
+                throw new Error(
+                    `Failed to load entity details (${response.status})`,
+                );
             }
 
-            const payload = (await response.json()) as EntityApiResponse | EntityDetail;
+            const payload = (await response.json()) as
+                | EntityApiResponse
+                | EntityDetail;
 
             return unwrapEntityPayload(payload);
         },
@@ -111,7 +120,9 @@ export default function Dashboard() {
     const selectedEntity = selectedEntityQuery.data ?? null;
     const hasMapData = mapQuery.data !== undefined;
 
-    const handleFeatureClick = (feature: { id?: string; properties?: { id?: string } } | null) => {
+    const handleFeatureClick = (
+        feature: { id?: string; properties?: { id?: string } } | null,
+    ) => {
         const nextId = feature?.properties?.id ?? feature?.id ?? null;
 
         startTransition(() => {
@@ -132,16 +143,19 @@ export default function Dashboard() {
                                 Historical Atlas
                             </div>
                             <div className="space-y-2">
-                                <h1 className="font-serif text-3xl tracking-tight text-stone-900 dark:text-stone-100 md:text-4xl">
-                                    Trace entities across a single historical year.
+                                <h1 className="font-serif text-3xl tracking-tight text-stone-900 md:text-4xl dark:text-stone-100">
+                                    Trace entities across a single historical
+                                    year.
                                 </h1>
                                 <p className="max-w-2xl text-sm leading-6 text-stone-600 dark:text-stone-300">
-                                    The map renders entities active in the selected year when they have a matching geometry period for map display.
+                                    The map renders entities active in the
+                                    selected year when they have a matching
+                                    geometry period for map display.
                                 </p>
                             </div>
                         </div>
 
-                        <div className="grid gap-3 rounded-2xl border border-stone-200/80 bg-white/90 p-4 shadow-sm backdrop-blur dark:border-stone-800 dark:bg-stone-950/80 md:grid-cols-[minmax(0,10rem)_auto] md:items-end">
+                        <div className="grid gap-3 rounded-2xl border border-stone-200/80 bg-white/90 p-4 shadow-sm backdrop-blur md:grid-cols-[minmax(0,10rem)_auto] md:items-end dark:border-stone-800 dark:bg-stone-950/80">
                             <label className="space-y-2 text-sm font-medium text-stone-700 dark:text-stone-200">
                                 <span className="inline-flex items-center gap-2">
                                     <CalendarDays className="size-4" />
@@ -166,9 +180,17 @@ export default function Dashboard() {
                             </label>
                             <div className="grid gap-2 text-sm text-stone-600 dark:text-stone-300">
                                 <div>
-                                    Showing <span className="font-semibold text-stone-900 dark:text-stone-100">{mapFeatures.length}</span> mapped entities for <span className="font-semibold text-stone-900 dark:text-stone-100">{formatYearLabel(activeYear)}</span>.
+                                    Showing{' '}
+                                    <span className="font-semibold text-stone-900 dark:text-stone-100">
+                                        {mapFeatures.length}
+                                    </span>{' '}
+                                    mapped entities for{' '}
+                                    <span className="font-semibold text-stone-900 dark:text-stone-100">
+                                        {formatYearLabel(activeYear)}
+                                    </span>
+                                    .
                                 </div>
-                                <div className="text-xs uppercase tracking-[0.18em] text-stone-500 dark:text-stone-400">
+                                <div className="text-xs tracking-[0.18em] text-stone-500 uppercase dark:text-stone-400">
                                     Global extent • debounced live refresh
                                 </div>
                             </div>
@@ -180,11 +202,16 @@ export default function Dashboard() {
                     <div className="overflow-hidden rounded-3xl border border-sidebar-border/70 bg-white shadow-sm dark:border-sidebar-border dark:bg-stone-950">
                         <div className="flex items-center justify-between border-b border-sidebar-border/70 px-4 py-3 dark:border-sidebar-border">
                             <div>
-                                <h2 className="text-sm font-semibold text-stone-900 dark:text-stone-100">Map view</h2>
-                                <p className="text-xs text-muted-foreground">Click a feature to inspect the full entity record.</p>
+                                <h2 className="text-sm font-semibold text-stone-900 dark:text-stone-100">
+                                    Map view
+                                </h2>
+                                <p className="text-xs text-muted-foreground">
+                                    Click a feature to inspect the full entity
+                                    record.
+                                </p>
                             </div>
                             {mapQuery.isFetching && (
-                                <div className="text-xs uppercase tracking-[0.18em] text-amber-700 dark:text-amber-300">
+                                <div className="text-xs tracking-[0.18em] text-amber-700 uppercase dark:text-amber-300">
                                     Refreshing
                                 </div>
                             )}
@@ -198,13 +225,17 @@ export default function Dashboard() {
                             <div className="flex h-[calc(100vh-18rem)] items-center justify-center">
                                 <div className="space-y-3 text-center">
                                     <div className="mx-auto size-10 animate-spin rounded-full border-4 border-stone-200 border-t-amber-600 dark:border-stone-800 dark:border-t-amber-400" />
-                                    <p className="text-sm text-muted-foreground">Building the historical layer…</p>
+                                    <p className="text-sm text-muted-foreground">
+                                        Building the historical layer…
+                                    </p>
                                 </div>
                             </div>
                         ) : mapFeatures.length > 0 ? (
                             <HistoricalMapViewer
                                 className="h-[calc(100vh-18rem)]"
-                                baseGeometries={mapFeatures as unknown as GeoJsonLike[]}
+                                baseGeometries={
+                                    mapFeatures as unknown as GeoJsonLike[]
+                                }
                                 timeframeDate={yearToTimeframe(activeYear)}
                                 fitBoundsKey={activeYear}
                                 dataVersion={mapQuery.dataUpdatedAt}
@@ -212,29 +243,44 @@ export default function Dashboard() {
                             />
                         ) : (
                             <div className="flex h-[calc(100vh-18rem)] items-center justify-center px-8 text-center text-sm text-muted-foreground">
-                                No mapped entities are active in {formatYearLabel(activeYear)}.
+                                No mapped entities are active in{' '}
+                                {formatYearLabel(activeYear)}.
                             </div>
                         )}
                     </div>
 
                     <aside className="flex min-h-0 flex-col overflow-hidden rounded-3xl border border-sidebar-border/70 bg-stone-50 shadow-sm dark:border-sidebar-border dark:bg-stone-950">
                         <div className="border-b border-sidebar-border/70 px-4 py-3 dark:border-sidebar-border">
-                            <h2 className="text-sm font-semibold text-stone-900 dark:text-stone-100">Selection</h2>
-                            <p className="text-xs text-muted-foreground">Summary details for the currently selected entity.</p>
+                            <h2 className="text-sm font-semibold text-stone-900 dark:text-stone-100">
+                                Selection
+                            </h2>
+                            <p className="text-xs text-muted-foreground">
+                                Summary details for the currently selected
+                                entity.
+                            </p>
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-4">
                             {selectedEntityId === null ? (
-                                <EmptySelectionState year={activeYear} featureCount={mapFeatures.length} />
+                                <EmptySelectionState
+                                    year={activeYear}
+                                    featureCount={mapFeatures.length}
+                                />
                             ) : selectedEntityQuery.isLoading ? (
                                 <div className="space-y-3 rounded-2xl border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
                                     <div className="h-4 w-2/3 animate-pulse rounded bg-stone-200 dark:bg-stone-800" />
                                     <div className="h-3 w-full animate-pulse rounded bg-stone-200 dark:bg-stone-800" />
                                     <div className="h-3 w-5/6 animate-pulse rounded bg-stone-200 dark:bg-stone-800" />
                                 </div>
-                            ) : selectedEntityQuery.isError || selectedEntity === null ? (
+                            ) : selectedEntityQuery.isError ||
+                              selectedEntity === null ? (
                                 <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
-                                    {(selectedEntityQuery.error as Error | undefined)?.message ?? 'Failed to load entity details.'}
+                                    {(
+                                        selectedEntityQuery.error as
+                                            | Error
+                                            | undefined
+                                    )?.message ??
+                                        'Failed to load entity details.'}
                                 </div>
                             ) : (
                                 <div className="space-y-4">
@@ -245,12 +291,16 @@ export default function Dashboard() {
                                                     {selectedEntity.name}
                                                 </h3>
                                                 <p className="text-sm text-muted-foreground">
-                                                    {formatTypeLabel(selectedEntity.entity_type)}
+                                                    {formatTypeLabel(
+                                                        selectedEntity.entity_type,
+                                                    )}
                                                 </p>
                                             </div>
                                             {selectedEntity.entity_group && (
                                                 <span className="rounded-full border border-stone-300 px-2.5 py-1 text-[11px] font-semibold tracking-[0.18em] text-stone-600 uppercase dark:border-stone-700 dark:text-stone-300">
-                                                    {selectedEntity.entity_group}
+                                                    {
+                                                        selectedEntity.entity_group
+                                                    }
                                                 </span>
                                             )}
                                         </div>
@@ -263,15 +313,51 @@ export default function Dashboard() {
                                     </div>
 
                                     <dl className="grid gap-3">
-                                        <DetailCard label="Historical span" value={selectedEntity.temporal_display_range ?? buildFallbackRange(selectedEntity.temporal_start, selectedEntity.temporal_end)} />
-                                        <DetailCard label="Location" value={selectedEntity.location_name} />
-                                        <DetailCard label="Impact score" value={selectedEntity.impact_score != null ? String(selectedEntity.impact_score) : null} />
-                                        <DetailCard label="Verification" value={formatTypeLabel(selectedEntity.verification_status)} />
+                                        <DetailCard
+                                            label="Historical span"
+                                            value={
+                                                selectedEntity.temporal_display_range ??
+                                                buildFallbackRange(
+                                                    selectedEntity.temporal_start,
+                                                    selectedEntity.temporal_end,
+                                                )
+                                            }
+                                        />
+                                        <DetailCard
+                                            label="Location"
+                                            value={selectedEntity.location_name}
+                                        />
+                                        <DetailCard
+                                            label="Impact score"
+                                            value={
+                                                selectedEntity.impact_score !=
+                                                null
+                                                    ? String(
+                                                          selectedEntity.impact_score,
+                                                      )
+                                                    : null
+                                            }
+                                        />
+                                        <DetailCard
+                                            label="Verification"
+                                            value={formatTypeLabel(
+                                                selectedEntity.verification_status,
+                                            )}
+                                        />
                                     </dl>
 
                                     <div className="grid gap-2">
-                                        <Button asChild className="h-10 justify-between rounded-xl bg-stone-900 text-white hover:bg-stone-800 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-stone-200">
-                                            <Link href={showEntity(selectedEntity.id).url}>
+                                        <Button
+                                            asChild
+                                            className="h-10 justify-between rounded-xl bg-stone-900 text-white hover:bg-stone-800 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-stone-200"
+                                        >
+                                            <Link
+                                                href={
+                                                    showEntity(
+                                                        selectedEntity.id,
+                                                    ).url
+                                                }
+                                            >
                                                 Open full entity record
                                                 <ExternalLink className="size-4" />
                                             </Link>
@@ -279,7 +365,9 @@ export default function Dashboard() {
                                         <Button
                                             variant="outline"
                                             className="h-10 rounded-xl"
-                                            onClick={() => setSelectedEntityId(null)}
+                                            onClick={() =>
+                                                setSelectedEntityId(null)
+                                            }
                                         >
                                             Clear selection
                                         </Button>
@@ -294,7 +382,13 @@ export default function Dashboard() {
     );
 }
 
-function EmptySelectionState({ year, featureCount }: { year: number; featureCount: number }) {
+function EmptySelectionState({
+    year,
+    featureCount,
+}: {
+    year: number;
+    featureCount: number;
+}) {
     return (
         <div className="flex h-full flex-col justify-between rounded-2xl border border-dashed border-stone-300 bg-white/80 p-4 dark:border-stone-700 dark:bg-stone-900/60">
             <div className="space-y-3">
@@ -302,9 +396,12 @@ function EmptySelectionState({ year, featureCount }: { year: number; featureCoun
                     <MapPinned className="size-5" />
                 </div>
                 <div className="space-y-1">
-                    <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100">Nothing selected yet</h3>
+                    <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100">
+                        Nothing selected yet
+                    </h3>
                     <p className="text-sm leading-6 text-muted-foreground">
-                        Choose a feature on the map to inspect its detail record for {formatYearLabel(year)}.
+                        Choose a feature on the map to inspect its detail record
+                        for {formatYearLabel(year)}.
                     </p>
                 </div>
             </div>
@@ -316,11 +413,21 @@ function EmptySelectionState({ year, featureCount }: { year: number; featureCoun
     );
 }
 
-function DetailCard({ label, value }: { label: string; value: string | null | undefined }) {
+function DetailCard({
+    label,
+    value,
+}: {
+    label: string;
+    value: string | null | undefined;
+}) {
     return (
         <div className="rounded-2xl border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
-            <dt className="text-[11px] font-semibold tracking-[0.18em] text-stone-500 uppercase dark:text-stone-400">{label}</dt>
-            <dd className="mt-1 text-sm leading-6 text-stone-800 dark:text-stone-200">{value && value.length > 0 ? value : 'Unknown'}</dd>
+            <dt className="text-[11px] font-semibold tracking-[0.18em] text-stone-500 uppercase dark:text-stone-400">
+                {label}
+            </dt>
+            <dd className="mt-1 text-sm leading-6 text-stone-800 dark:text-stone-200">
+                {value && value.length > 0 ? value : 'Unknown'}
+            </dd>
         </div>
     );
 }
@@ -354,7 +461,9 @@ function formatTypeLabel(value: string | null | undefined): string {
         return 'Unknown';
     }
 
-    return value.replace(/_/g, ' ').replace(/\b\w/g, (character) => character.toUpperCase());
+    return value
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, (character) => character.toUpperCase());
 }
 
 function formatYearLabel(year: number): string {
@@ -369,6 +478,8 @@ function buildFallbackRange(start: string | null, end: string | null): string {
     return start ?? end ?? 'Unknown';
 }
 
-function unwrapEntityPayload(payload: EntityApiResponse | EntityDetail): EntityDetail {
+function unwrapEntityPayload(
+    payload: EntityApiResponse | EntityDetail,
+): EntityDetail {
     return 'data' in payload ? payload.data : payload;
 }

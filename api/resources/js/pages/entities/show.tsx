@@ -183,9 +183,14 @@ export default function EntityShow({ entity }: Props) {
                 </div>
 
                 <div className="rounded-lg border p-4">
-                    <h2 className="mb-3 text-sm font-semibold">Geometry Periods</h2>
+                    <h2 className="mb-3 text-sm font-semibold">
+                        Geometry Periods
+                    </h2>
                     <EntityGeometryPeriodsPanel
-                        listUrl={entity.geometry_periods_url ?? `/entities/${entity.id}/geometry-periods`}
+                        listUrl={
+                            entity.geometry_periods_url ??
+                            `/entities/${entity.id}/geometry-periods`
+                        }
                         readOnly
                     />
                 </div>

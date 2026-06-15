@@ -83,7 +83,12 @@ function HistoricalMapViewer({
         [overlayGeometries],
     );
     const timeframeHighlightKey = useMemo(
-        () => [timeframeDate ?? '', timeframeStartDate ?? '', timeframeEndDate ?? ''].join('|'),
+        () =>
+            [
+                timeframeDate ?? '',
+                timeframeStartDate ?? '',
+                timeframeEndDate ?? '',
+            ].join('|'),
         [timeframeDate, timeframeStartDate, timeframeEndDate],
     );
     const timeframeHighlightKeyRef = useRef(timeframeHighlightKey);
@@ -91,19 +96,16 @@ function HistoricalMapViewer({
         feature: GeoJsonLike;
         key: string;
     } | null>(null);
-    const setOhmHighlightFeature = useCallback(
-        (feature: GeoJsonLike) => {
-            setOhmHighlightSelection(
-                feature
-                    ? {
-                          feature,
-                          key: timeframeHighlightKeyRef.current,
-                      }
-                    : null,
-            );
-        },
-        [],
-    );
+    const setOhmHighlightFeature = useCallback((feature: GeoJsonLike) => {
+        setOhmHighlightSelection(
+            feature
+                ? {
+                      feature,
+                      key: timeframeHighlightKeyRef.current,
+                  }
+                : null,
+        );
+    }, []);
     const ohmHighlightData = useMemo(
         () =>
             normalizeToFeatureCollection(
@@ -122,11 +124,16 @@ function HistoricalMapViewer({
     const timeframeEndDateRef = useRef(timeframeEndDate);
     const onFeatureHoverRef = useRef(onFeatureHover);
     const onFeatureClickRef = useRef(onFeatureClick);
-    const closePopupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const closePopupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+        null,
+    );
     const popupHoveredRef = useRef(false);
     const pointHoveredRef = useRef(false);
     // Track popup info, screen position, and hover state
-    const [popupInfo, setPopupInfo] = useState<{ feature: any, screen: { x: number, y: number } } | null>(null);
+    const [popupInfo, setPopupInfo] = useState<{
+        feature: any;
+        screen: { x: number; y: number };
+    } | null>(null);
 
     const clearPopupCloseTimer = useCallback(() => {
         if (closePopupTimerRef.current) {
@@ -325,26 +332,29 @@ function HistoricalMapViewer({
                     );
                 });
 
-                const unbindOverlayInteractions = bindOverlayInteractionHandlers({
-                    map,
-                    clearPopupCloseTimer,
-                    clearOhmHighlight: () => setOhmHighlightFeature(null),
-                    schedulePopupClose,
-                    onFeatureHoverRef,
-                    onFeatureClickRef,
-                    pointHoveredRef,
-                    popupHoveredRef,
-                    setPopupInfo,
-                });
+                const unbindOverlayInteractions =
+                    bindOverlayInteractionHandlers({
+                        map,
+                        clearPopupCloseTimer,
+                        clearOhmHighlight: () => setOhmHighlightFeature(null),
+                        schedulePopupClose,
+                        onFeatureHoverRef,
+                        onFeatureClickRef,
+                        pointHoveredRef,
+                        popupHoveredRef,
+                        setPopupInfo,
+                    });
 
-                const unbindOhmInteractions = bindOhmBasemapInteractionHandlers({
-                    map,
-                    onFeatureClickRef,
-                    timeframeDateRef,
-                    timeframeStartDateRef,
-                    timeframeEndDateRef,
-                    setOhmHighlightFeature,
-                });
+                const unbindOhmInteractions = bindOhmBasemapInteractionHandlers(
+                    {
+                        map,
+                        onFeatureClickRef,
+                        timeframeDateRef,
+                        timeframeStartDateRef,
+                        timeframeEndDateRef,
+                        setOhmHighlightFeature,
+                    },
+                );
 
                 mapRef.current = map;
 
@@ -375,9 +385,10 @@ function HistoricalMapViewer({
             return;
         }
 
-        const overlayColor = overlayRelationship?.direction === 'incoming'
-            ? '#14b8a6'
-            : '#f59e0b';
+        const overlayColor =
+            overlayRelationship?.direction === 'incoming'
+                ? '#14b8a6'
+                : '#f59e0b';
         const hasSelectedRelationship = Boolean(
             overlayRelationship?.relationship_id,
         );
@@ -386,10 +397,7 @@ function HistoricalMapViewer({
         const hoverExpression: any = hoveredRelationshipId
             ? [
                   '==',
-                  [
-                      'to-string',
-                      ['coalesce', ['get', 'relationship_id'], ''],
-                  ],
+                  ['to-string', ['coalesce', ['get', 'relationship_id'], '']],
                   hoveredRelationshipId,
               ]
             : false;
@@ -400,12 +408,7 @@ function HistoricalMapViewer({
         ];
 
         const fillOpacityExpression: any[] = hasSelectedRelationship
-            ? [
-                  'case',
-                  hoverPreviewExpression,
-                  hasHover ? 0.14 : 0.12,
-                  0.34,
-              ]
+            ? ['case', hoverPreviewExpression, hasHover ? 0.14 : 0.12, 0.34]
             : hasHover
               ? ['case', hoverExpression, 0.36, 0.07]
               : ['case', hoverExpression, 0.28, 0.18];
@@ -610,16 +613,35 @@ function HistoricalMapViewer({
     const popupProperties = popupInfo?.feature?.properties ?? {};
     const popupTitle = String(
         popupProperties.name ??
-        popupProperties.label ??
-        overlayRelationship?.related_entity?.name ??
-        'Entity',
+            popupProperties.label ??
+            overlayRelationship?.related_entity?.name ??
+            'Entity',
     );
-    const popupType = popupProperties.entity_type ?? overlayRelationship?.related_entity?.entity_type ?? null;
-    const popupSummary = popupProperties.summary ?? popupProperties.description ?? overlayRelationship?.description ?? null;
+    const popupType =
+        popupProperties.entity_type ??
+        overlayRelationship?.related_entity?.entity_type ??
+        null;
+    const popupSummary =
+        popupProperties.summary ??
+        popupProperties.description ??
+        overlayRelationship?.description ??
+        null;
     const popupPrimaryEntries = [
-        { key: 'relationship_type', label: 'Relationship', value: popupProperties.relationship_type },
-        { key: 'direction', label: 'Direction', value: popupProperties.direction },
-        { key: 'entity_group', label: 'Group', value: popupProperties.entity_group },
+        {
+            key: 'relationship_type',
+            label: 'Relationship',
+            value: popupProperties.relationship_type,
+        },
+        {
+            key: 'direction',
+            label: 'Direction',
+            value: popupProperties.direction,
+        },
+        {
+            key: 'entity_group',
+            label: 'Group',
+            value: popupProperties.entity_group,
+        },
         { key: 'year_start', label: 'From', value: popupProperties.year_start },
         { key: 'year_end', label: 'To', value: popupProperties.year_end },
     ].filter((entry) => entry.value != null && entry.value !== '');
@@ -649,10 +671,13 @@ function HistoricalMapViewer({
         .sort(([a], [b]) => a.localeCompare(b));
 
     return (
-        <div ref={mapContainerRef} className={cn('h-105 w-full relative', className)}>
+        <div
+            ref={mapContainerRef}
+            className={cn('relative h-105 w-full', className)}
+        >
             {popupInfo && popupInfo.feature && (
                 <div
-                    className="absolute z-20 min-w-55 max-w-xs"
+                    className="absolute z-20 max-w-xs min-w-55"
                     style={{
                         left: popupInfo.screen.x,
                         top: popupInfo.screen.y - 5,
@@ -668,7 +693,7 @@ function HistoricalMapViewer({
                     }}
                     onMouseDown={(e) => e.stopPropagation()}
                 >
-                    <Card className="pointer-events-auto shadow-lg border-primary bg-card text-card-foreground">
+                    <Card className="pointer-events-auto border-primary bg-card text-card-foreground shadow-lg">
                         <CardHeader className="pb-0">
                             <CardTitle className="text-base">
                                 {popupTitle}
@@ -685,20 +710,39 @@ function HistoricalMapViewer({
                                     {String(popupSummary)}
                                 </div>
                             )}
-                            <div className="space-y-1 text-xs max-h-48 overflow-auto">
+                            <div className="max-h-48 space-y-1 overflow-auto text-xs">
                                 {popupPrimaryEntries.map((entry) => (
-                                    <div key={entry.key} className="flex justify-between gap-2">
-                                        <span className="text-muted-foreground">{entry.label}:</span>
-                                        <span className="font-medium break-all">{String(entry.value)}</span>
+                                    <div
+                                        key={entry.key}
+                                        className="flex justify-between gap-2"
+                                    >
+                                        <span className="text-muted-foreground">
+                                            {entry.label}:
+                                        </span>
+                                        <span className="font-medium break-all">
+                                            {String(entry.value)}
+                                        </span>
                                     </div>
                                 ))}
-                                {popupPrimaryEntries.length === 0 && popupEntries.length === 0 && (
-                                    <div className="text-muted-foreground">No additional details</div>
-                                )}
+                                {popupPrimaryEntries.length === 0 &&
+                                    popupEntries.length === 0 && (
+                                        <div className="text-muted-foreground">
+                                            No additional details
+                                        </div>
+                                    )}
                                 {popupEntries.map(([key, value]) => (
-                                    <div key={key} className="flex justify-between gap-2">
-                                        <span className="text-muted-foreground">{toDisplayLabel(key)}:</span>
-                                        <span className="font-medium break-all">{typeof value === 'object' ? JSON.stringify(value) : String(value)}</span>
+                                    <div
+                                        key={key}
+                                        className="flex justify-between gap-2"
+                                    >
+                                        <span className="text-muted-foreground">
+                                            {toDisplayLabel(key)}:
+                                        </span>
+                                        <span className="font-medium break-all">
+                                            {typeof value === 'object'
+                                                ? JSON.stringify(value)
+                                                : String(value)}
+                                        </span>
                                     </div>
                                 ))}
                             </div>
@@ -707,12 +751,16 @@ function HistoricalMapViewer({
                                     variant="default"
                                     size="sm"
                                     className="mt-2 w-full"
-                                    onClick={(e: MouseEvent<HTMLButtonElement>) => {
+                                    onClick={(
+                                        e: MouseEvent<HTMLButtonElement>,
+                                    ) => {
                                         e.stopPropagation();
                                         clearPopupCloseTimer();
 
                                         if (onFeatureClickRef.current) {
-                                            onFeatureClickRef.current(popupInfo.feature);
+                                            onFeatureClickRef.current(
+                                                popupInfo.feature,
+                                            );
                                         }
 
                                         popupHoveredRef.current = false;
@@ -733,7 +781,9 @@ function HistoricalMapViewer({
 
 type OhmBasemapInteractionHandlerOptions = {
     map: Map;
-    onFeatureClickRef: MutableRefObject<((feature: any | null) => void) | undefined>;
+    onFeatureClickRef: MutableRefObject<
+        ((feature: any | null) => void) | undefined
+    >;
     timeframeDateRef: MutableRefObject<string | null | undefined>;
     timeframeStartDateRef: MutableRefObject<string | null | undefined>;
     timeframeEndDateRef: MutableRefObject<string | null | undefined>;
@@ -842,11 +892,12 @@ function bindOhmBasemapInteractionHandlers({
             return distanceFromCoordinate(geometry.coordinates);
         }
 
-        const lineLike = geometry.type === 'LineString'
-            ? [geometry.coordinates]
-            : geometry.type === 'MultiLineString'
-              ? geometry.coordinates
-              : [];
+        const lineLike =
+            geometry.type === 'LineString'
+                ? [geometry.coordinates]
+                : geometry.type === 'MultiLineString'
+                  ? geometry.coordinates
+                  : [];
 
         if (lineLike.length === 0) {
             return null;
@@ -1016,7 +1067,10 @@ function bindOhmBasemapInteractionHandlers({
             );
             const boundaryFallbackRadii = [60, 160, 320, maxAdaptiveRadius];
             const labelFallbackRadii = [120, 240, 420, maxAdaptiveRadius];
-            const collectFirstNonEmpty = (layerIds: string[], radii: number[]) => {
+            const collectFirstNonEmpty = (
+                layerIds: string[],
+                radii: number[],
+            ) => {
                 for (const radius of radii) {
                     const features = dedupByFeature(
                         queryFeaturesInRadius(e, layerIds, radius),
@@ -1040,11 +1094,15 @@ function bindOhmBasemapInteractionHandlers({
                 bestBoundaryFeatures = expandedBoundaryFeatures;
             }
 
-            if (expandedBoundaryFeatures.length > 0 && expandedLabelFeatures.length > 0) {
-                const linkedLabels = expandedLabelFeatures.filter((labelFeature) =>
-                    expandedBoundaryFeatures.some((boundaryFeature) =>
-                        hasTokenOverlap(labelFeature, boundaryFeature),
-                    ),
+            if (
+                expandedBoundaryFeatures.length > 0 &&
+                expandedLabelFeatures.length > 0
+            ) {
+                const linkedLabels = expandedLabelFeatures.filter(
+                    (labelFeature) =>
+                        expandedBoundaryFeatures.some((boundaryFeature) =>
+                            hasTokenOverlap(labelFeature, boundaryFeature),
+                        ),
                 );
 
                 if (linkedLabels.length > 0) {
@@ -1053,10 +1111,12 @@ function bindOhmBasemapInteractionHandlers({
                         source: 'label' as const,
                     }));
                 } else {
-                    candidateFeatures = expandedBoundaryFeatures.map((feature) => ({
-                        feature,
-                        source: 'boundary' as const,
-                    }));
+                    candidateFeatures = expandedBoundaryFeatures.map(
+                        (feature) => ({
+                            feature,
+                            source: 'boundary' as const,
+                        }),
+                    );
                 }
             } else if (expandedBoundaryFeatures.length > 0) {
                 candidateFeatures = expandedBoundaryFeatures.map((feature) => ({
@@ -1081,7 +1141,9 @@ function bindOhmBasemapInteractionHandlers({
                 const nearestViewportLabel = viewportLabels
                     .map((feature) => ({
                         feature,
-                        distance: getDistanceFromClick(feature, e) ?? Number.MAX_SAFE_INTEGER,
+                        distance:
+                            getDistanceFromClick(feature, e) ??
+                            Number.MAX_SAFE_INTEGER,
                     }))
                     .sort((a, b) => a.distance - b.distance)[0];
 
@@ -1142,9 +1204,9 @@ function bindOhmBasemapInteractionHandlers({
 
         const highlightFeature =
             selectedCandidate.source === 'label'
-                ? bestBoundaryFeatures.find((candidate) =>
+                ? (bestBoundaryFeatures.find((candidate) =>
                       hasTokenOverlap(selectedCandidate.feature, candidate),
-                  ) ?? selectedCandidate.feature
+                  ) ?? selectedCandidate.feature)
                 : selectedCandidate.feature;
         const resolutionPayload =
             buildResolveOhmFeaturePayload(selectedCandidate.feature, {
@@ -1179,7 +1241,6 @@ function bindOhmBasemapInteractionHandlers({
     };
 }
 
-
 export default HistoricalMapViewer;
 
 type OverlayInteractionHandlerOptions = {
@@ -1187,11 +1248,17 @@ type OverlayInteractionHandlerOptions = {
     clearPopupCloseTimer: () => void;
     clearOhmHighlight: () => void;
     schedulePopupClose: () => void;
-    onFeatureHoverRef: MutableRefObject<((feature: any | null) => void) | undefined>;
-    onFeatureClickRef: MutableRefObject<((feature: any | null) => void) | undefined>;
+    onFeatureHoverRef: MutableRefObject<
+        ((feature: any | null) => void) | undefined
+    >;
+    onFeatureClickRef: MutableRefObject<
+        ((feature: any | null) => void) | undefined
+    >;
     pointHoveredRef: MutableRefObject<boolean>;
     popupHoveredRef: MutableRefObject<boolean>;
-    setPopupInfo: (value: { feature: any, screen: { x: number, y: number } } | null) => void;
+    setPopupInfo: (
+        value: { feature: any; screen: { x: number; y: number } } | null,
+    ) => void;
 };
 
 function bindOverlayInteractionHandlers({
@@ -1296,7 +1363,10 @@ function isLocalGeometryClick(map: Map, event: MapLayerMouseEvent): boolean {
         return false;
     }
 
-    return map.queryRenderedFeatures(event.point, { layers: localLayerIds }).length > 0;
+    return (
+        map.queryRenderedFeatures(event.point, { layers: localLayerIds })
+            .length > 0
+    );
 }
 
 async function resolveClickedOhmFeature({
@@ -1344,10 +1414,13 @@ async function resolveClickedOhmFeature({
         setOhmHighlightFeature(resolvedFeature as unknown as GeoJsonLike);
         onFeatureClick?.(resolvedFeature);
     } catch (error) {
-        console.warn('[HistoricalMapViewer] Failed to resolve OHM feature click', {
-            payload,
-            error,
-        });
+        console.warn(
+            '[HistoricalMapViewer] Failed to resolve OHM feature click',
+            {
+                payload,
+                error,
+            },
+        );
         setOhmHighlightFeature(null);
     }
 }

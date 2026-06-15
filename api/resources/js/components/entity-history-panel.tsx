@@ -1,6 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
-import type { TimelineItem, SelectedTimelineItem } from '@/components/entity-history-timeline';
+import type {
+    TimelineItem,
+    SelectedTimelineItem,
+} from '@/components/entity-history-timeline';
 import EntityHistoryTimeline from '@/components/entity-history-timeline';
 import HistoricalMapViewer from '@/components/historical-map-viewer';
 import TimeframeRangeSelector from '@/components/timeframe-range-selector';
@@ -40,7 +43,6 @@ type TimelineEntryDetail = TimelineEntrySummary & {
     territory_geom: GeoJsonLike;
 };
 
-
 export default function EntityHistoryPanel({
     entityGeojson,
     entityTerritoryGeojson,
@@ -48,9 +50,8 @@ export default function EntityHistoryPanel({
     entityTemporalEnd,
     timelineUrl,
 }: Props) {
-    const [selectedItem, setSelectedItem] = useState<SelectedTimelineItem>(
-        null,
-    );
+    const [selectedItem, setSelectedItem] =
+        useState<SelectedTimelineItem>(null);
     const [selectedRange, setSelectedRange] = useState<{
         startYear: number | null;
         endYear: number | null;
@@ -83,9 +84,8 @@ export default function EntityHistoryPanel({
         }
 
         return (
-            timelineEntries.find(
-                (entry) => entry.id === selectedItem.id,
-            ) ?? null
+            timelineEntries.find((entry) => entry.id === selectedItem.id) ??
+            null
         );
     }, [timelineEntries, selectedItem]);
 
@@ -277,12 +277,15 @@ export default function EntityHistoryPanel({
 
     const selectedStartDate = useMemo(
         () =>
-            effectiveStartYear != null ? yearToOhmDate(effectiveStartYear) : null,
+            effectiveStartYear != null
+                ? yearToOhmDate(effectiveStartYear)
+                : null,
         [effectiveStartYear],
     );
 
     const selectedEndDate = useMemo(
-        () => (effectiveEndYear != null ? yearToOhmDate(effectiveEndYear) : null),
+        () =>
+            effectiveEndYear != null ? yearToOhmDate(effectiveEndYear) : null,
         [effectiveEndYear],
     );
 
@@ -315,7 +318,7 @@ export default function EntityHistoryPanel({
 
     return (
         <div className="flex flex-col gap-4 lg:flex-row">
-            <div className="rounded-lg border flex flex-col flex-1 min-w-0 h-[820px] overflow-hidden">
+            <div className="flex h-[820px] min-w-0 flex-1 flex-col overflow-hidden rounded-lg border">
                 <div className="border-b px-4 py-3">
                     <h3 className="text-sm font-semibold">Geometry Map</h3>
                     <p className="mt-0.5 text-xs text-muted-foreground">
@@ -351,14 +354,14 @@ export default function EntityHistoryPanel({
                 )}
             </div>
 
-            <div className="rounded-lg border flex flex-col flex-1 min-w-0 h-[820px] overflow-hidden">
+            <div className="flex h-[820px] min-w-0 flex-1 flex-col overflow-hidden rounded-lg border">
                 <div className="border-b px-4 py-3">
                     <h3 className="text-sm font-semibold">Timeline</h3>
                     <p className="mt-0.5 text-xs text-muted-foreground">
                         Timeline entries sorted chronologically.
                     </p>
                 </div>
-                <div className="flex-1 min-h-0">
+                <div className="min-h-0 flex-1">
                     <EntityHistoryTimeline
                         items={timelineItems}
                         loading={loading}
@@ -442,7 +445,10 @@ function enrichGeoJson(
         }>;
     };
 
-    if (candidate.type === 'FeatureCollection' && Array.isArray(candidate.features)) {
+    if (
+        candidate.type === 'FeatureCollection' &&
+        Array.isArray(candidate.features)
+    ) {
         return {
             ...candidate,
             features: candidate.features.map((feature) => ({

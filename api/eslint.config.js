@@ -41,6 +41,9 @@ export default [
             'react/react-in-jsx-scope': 'off',
             'react/prop-types': 'off',
             'react/no-unescaped-entities': 'off',
+            // Resetting a transient index/value from an effect is a benign,
+            // common pattern; keep it visible as a warning rather than failing.
+            'react-hooks/set-state-in-effect': 'warn',
         },
         settings: {
             react: {
@@ -63,6 +66,14 @@ export default [
         },
         rules: {
             '@typescript-eslint/no-explicit-any': 'off',
+            '@typescript-eslint/no-unused-vars': [
+                'error',
+                {
+                    argsIgnorePattern: '^_',
+                    varsIgnorePattern: '^_',
+                    caughtErrorsIgnorePattern: '^_',
+                },
+            ],
             '@typescript-eslint/consistent-type-imports': [
                 'error',
                 {

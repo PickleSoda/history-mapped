@@ -1,6 +1,14 @@
 // @vitest-environment jsdom
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { beforeAll, afterAll, afterEach, describe, expect, it, vi } from 'vitest';
+import {
+    beforeAll,
+    afterAll,
+    afterEach,
+    describe,
+    expect,
+    it,
+    vi,
+} from 'vitest';
 import '@testing-library/jest-dom/vitest';
 import EntityGeoRefEditor from '../entity-geo-ref-editor';
 
@@ -108,18 +116,24 @@ describe('EntityGeoRefEditor', () => {
             />,
         );
 
-        expect(await screen.findByText(/No OHM references attached yet/i)).toBeInTheDocument();
+        expect(
+            await screen.findByText(/No OHM references attached yet/i),
+        ).toBeInTheDocument();
 
         fireEvent.change(screen.getByLabelText(/Search OHM by name/i), {
             target: { value: 'Roman Empire' },
         });
         fireEvent.click(screen.getByRole('button', { name: /Search OHM/i }));
 
-        expect(await screen.findByText(/Roman Empire, Mediterranean/i)).toBeInTheDocument();
+        expect(
+            await screen.findByText(/Roman Empire, Mediterranean/i),
+        ).toBeInTheDocument();
         expect(screen.getByText(/boundary/i)).toBeInTheDocument();
         expect(screen.getByText('historic')).toBeInTheDocument();
 
-        fireEvent.click(screen.getByRole('button', { name: /Attach Roman Empire/i }));
+        fireEvent.click(
+            screen.getByRole('button', { name: /Attach Roman Empire/i }),
+        );
 
         await waitFor(() => {
             expect(onHydratedGeometryChange).toHaveBeenCalledWith(null, {

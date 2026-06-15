@@ -55,7 +55,7 @@ const mainNavItems: NavItem[] = [
         title: 'Chronicles',
         href: '/chronicles',
         icon: BookOpen,
-    }
+    },
 ];
 
 const referenceNavItems: NavItem[] = [

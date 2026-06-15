@@ -2,13 +2,27 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import {
+    afterAll,
+    afterEach,
+    beforeAll,
+    describe,
+    expect,
+    it,
+    vi,
+} from 'vitest';
 import Dashboard from '../dashboard';
 
 const YEAR_STORAGE_KEY = 'historical-dashboard:selected-year';
 
 const historicalMapViewerMock = vi.fn(
-    ({ timeframeDate, baseGeometries }: { timeframeDate?: string; baseGeometries?: unknown[] }) => (
+    ({
+        timeframeDate,
+        baseGeometries,
+    }: {
+        timeframeDate?: string;
+        baseGeometries?: unknown[];
+    }) => (
         <div
             data-testid="mock-map-viewer"
             data-feature-count={String(baseGeometries?.length ?? 0)}
@@ -25,11 +39,14 @@ vi.mock('@inertiajs/react', () => ({
 }));
 
 vi.mock('@/components/historical-map-viewer', () => ({
-    default: (props: { timeframeDate?: string; baseGeometries?: unknown[] }) => historicalMapViewerMock(props),
+    default: (props: { timeframeDate?: string; baseGeometries?: unknown[] }) =>
+        historicalMapViewerMock(props),
 }));
 
 vi.mock('@/layouts/app-layout', () => ({
-    default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    default: ({ children }: { children: React.ReactNode }) => (
+        <div>{children}</div>
+    ),
 }));
 
 vi.mock('@/routes', () => ({

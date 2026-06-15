@@ -1,11 +1,21 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { describe, it, beforeAll, afterAll, afterEach, vi, expect } from 'vitest';
+import {
+    describe,
+    it,
+    beforeAll,
+    afterAll,
+    afterEach,
+    vi,
+    expect,
+} from 'vitest';
 import EntityHistoryPanel from '../entity-history-panel';
 import '@testing-library/jest-dom/vitest';
 
-const historicalMapViewerMock = vi.fn(() => <div data-testid="mock-map-viewer" />);
+const historicalMapViewerMock = vi.fn(() => (
+    <div data-testid="mock-map-viewer" />
+));
 
 vi.mock('../historical-map-viewer', () => ({
     default: (props: unknown) => historicalMapViewerMock(props),
@@ -85,9 +95,7 @@ describe('EntityHistoryPanel', () => {
     }
 
     it('renders timeline items and uses summary point geometry without an extra detail fetch', async () => {
-        fetchMock.mockImplementation((input) =>
-            mockFetchImpl(String(input)),
-        );
+        fetchMock.mockImplementation((input) => mockFetchImpl(String(input)));
 
         const queryClient = new QueryClient({
             defaultOptions: {
@@ -101,7 +109,10 @@ describe('EntityHistoryPanel', () => {
             <QueryClientProvider client={queryClient}>
                 <EntityHistoryPanel
                     entityGeojson={{ type: 'FeatureCollection', features: [] }}
-                    entityTerritoryGeojson={{ type: 'FeatureCollection', features: [] }}
+                    entityTerritoryGeojson={{
+                        type: 'FeatureCollection',
+                        features: [],
+                    }}
                     entityTemporalStart={null}
                     entityTemporalEnd={null}
                     timelineUrl="/api/v1/entities/e1/timeline"
@@ -110,7 +121,9 @@ describe('EntityHistoryPanel', () => {
         );
 
         // Wait for timeline items to appear
-        expect(await screen.findByText(/Alliance of 120 CE/i)).toBeInTheDocument();
+        expect(
+            await screen.findByText(/Alliance of 120 CE/i),
+        ).toBeInTheDocument();
 
         // Simulate clicking the relationship timeline item
         const relItem = screen.getByText(/Alliance of 120 CE/i);
@@ -131,9 +144,7 @@ describe('EntityHistoryPanel', () => {
     });
 
     it('shows timeline point geometries from the summary payload on the map', async () => {
-        fetchMock.mockImplementation((input) =>
-            mockFetchImpl(String(input)),
-        );
+        fetchMock.mockImplementation((input) => mockFetchImpl(String(input)));
 
         const queryClient = new QueryClient({
             defaultOptions: {
@@ -147,7 +158,10 @@ describe('EntityHistoryPanel', () => {
             <QueryClientProvider client={queryClient}>
                 <EntityHistoryPanel
                     entityGeojson={{ type: 'FeatureCollection', features: [] }}
-                    entityTerritoryGeojson={{ type: 'FeatureCollection', features: [] }}
+                    entityTerritoryGeojson={{
+                        type: 'FeatureCollection',
+                        features: [],
+                    }}
                     entityTemporalStart={null}
                     entityTemporalEnd={null}
                     timelineUrl="/api/v1/entities/e1/timeline"
@@ -155,17 +169,24 @@ describe('EntityHistoryPanel', () => {
             </QueryClientProvider>,
         );
 
-        expect(await screen.findByText(/Alliance of 120 CE/i)).toBeInTheDocument();
+        expect(
+            await screen.findByText(/Alliance of 120 CE/i),
+        ).toBeInTheDocument();
 
         await waitFor(() => {
             const calls = historicalMapViewerMock.mock.calls;
             expect(
-                calls.some((call) =>
-                    Array.isArray(call[0]?.overlayGeometries) &&
-                    call[0].overlayGeometries.some(
-                        (geometry: { type?: string; geometry?: { type?: string } }) =>
-                            geometry?.type === 'Feature' && geometry?.geometry?.type === 'Point',
-                    ),
+                calls.some(
+                    (call) =>
+                        Array.isArray(call[0]?.overlayGeometries) &&
+                        call[0].overlayGeometries.some(
+                            (geometry: {
+                                type?: string;
+                                geometry?: { type?: string };
+                            }) =>
+                                geometry?.type === 'Feature' &&
+                                geometry?.geometry?.type === 'Point',
+                        ),
                 ),
             ).toBe(true);
         });
@@ -188,7 +209,15 @@ describe('EntityHistoryPanel', () => {
                 ...territorySummary[0],
                 territory_geom: {
                     type: 'Polygon',
-                    coordinates: [[[3, 4], [4, 4], [4, 5], [3, 5], [3, 4]]],
+                    coordinates: [
+                        [
+                            [3, 4],
+                            [4, 4],
+                            [4, 5],
+                            [3, 5],
+                            [3, 4],
+                        ],
+                    ],
                 },
             },
         };
@@ -225,7 +254,10 @@ describe('EntityHistoryPanel', () => {
             <QueryClientProvider client={queryClient}>
                 <EntityHistoryPanel
                     entityGeojson={{ type: 'FeatureCollection', features: [] }}
-                    entityTerritoryGeojson={{ type: 'FeatureCollection', features: [] }}
+                    entityTerritoryGeojson={{
+                        type: 'FeatureCollection',
+                        features: [],
+                    }}
                     entityTemporalStart={null}
                     entityTemporalEnd={null}
                     timelineUrl="/api/v1/entities/e1/timeline"
@@ -233,7 +265,9 @@ describe('EntityHistoryPanel', () => {
             </QueryClientProvider>,
         );
 
-        expect(await screen.findByText(/Territorial expansion/i)).toBeInTheDocument();
+        expect(
+            await screen.findByText(/Territorial expansion/i),
+        ).toBeInTheDocument();
 
         fireEvent.click(screen.getByText(/Territorial expansion/i));
 

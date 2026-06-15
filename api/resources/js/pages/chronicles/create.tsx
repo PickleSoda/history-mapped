@@ -4,11 +4,21 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { store } from '@/routes/chronicles';
-import type { BreadcrumbItem, ChronicleEntryFormData, ChronicleFormData } from '@/types';
+import type {
+    BreadcrumbItem,
+    ChronicleEntryFormData,
+    ChronicleFormData,
+} from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -16,7 +26,13 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'New Chronicle', href: '/chronicles/create' },
 ];
 
-type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
+type JsonValue =
+    | string
+    | number
+    | boolean
+    | null
+    | JsonValue[]
+    | { [key: string]: JsonValue };
 
 export default function ChronicleCreate() {
     const [data, setData] = useState<ChronicleFormData>({
@@ -45,12 +61,17 @@ export default function ChronicleCreate() {
         }
     }
 
-    function handleEntryChange(index: number, field: keyof ChronicleEntryFormData, value: string | string[]) {
+    function handleEntryChange(
+        index: number,
+        field: keyof ChronicleEntryFormData,
+        value: string | string[],
+    ) {
         setData((prev) => ({
             ...prev,
-            entries: prev.entries?.map((entry, i) =>
-                i === index ? { ...entry, [field]: value } : entry,
-            ) ?? [],
+            entries:
+                prev.entries?.map((entry, i) =>
+                    i === index ? { ...entry, [field]: value } : entry,
+                ) ?? [],
         }));
     }
 
@@ -109,7 +130,9 @@ export default function ChronicleCreate() {
                 notes: entry.notes,
                 source_evidence: entry.source_evidence,
                 primary_relationship_id: entry.primary_relationship_id,
-                secondary_entity_ids: entry.secondary_entities.map((s) => s.entity_id),
+                secondary_entity_ids: entry.secondary_entities.map(
+                    (s) => s.entity_id,
+                ),
                 secondary_roles: entry.secondary_entities.map((s) => s.role),
             })),
         };
@@ -130,7 +153,8 @@ export default function ChronicleCreate() {
                         New Chronicle
                     </h1>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        Create a new chronicle to organize historical narrative entries.
+                        Create a new chronicle to organize historical narrative
+                        entries.
                     </p>
                 </div>
 
@@ -141,12 +165,16 @@ export default function ChronicleCreate() {
                         <Input
                             id="title"
                             value={data.title}
-                            onChange={(e) => handleChange('title', e.target.value)}
+                            onChange={(e) =>
+                                handleChange('title', e.target.value)
+                            }
                             placeholder="e.g. Battle of Didgori"
                             required
                         />
                         {errors.title && (
-                            <p className="text-sm text-destructive">{errors.title}</p>
+                            <p className="text-sm text-destructive">
+                                {errors.title}
+                            </p>
                         )}
                     </div>
 
@@ -156,12 +184,16 @@ export default function ChronicleCreate() {
                         <Input
                             id="slug"
                             value={data.slug}
-                            onChange={(e) => handleChange('slug', e.target.value)}
+                            onChange={(e) =>
+                                handleChange('slug', e.target.value)
+                            }
                             placeholder="auto-generated-from-title"
                             required
                         />
                         {errors.slug && (
-                            <p className="text-sm text-destructive">{errors.slug}</p>
+                            <p className="text-sm text-destructive">
+                                {errors.slug}
+                            </p>
                         )}
                     </div>
 
@@ -170,15 +202,21 @@ export default function ChronicleCreate() {
                         <Label htmlFor="source_type">Source Type</Label>
                         <Select
                             value={data.source_type}
-                            onValueChange={(v) => handleChange('source_type', v)}
+                            onValueChange={(v) =>
+                                handleChange('source_type', v)
+                            }
                         >
                             <SelectTrigger id="source_type">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="video_transcript">Video Transcript</SelectItem>
+                                <SelectItem value="video_transcript">
+                                    Video Transcript
+                                </SelectItem>
                                 <SelectItem value="article">Article</SelectItem>
-                                <SelectItem value="book_excerpt">Book Excerpt</SelectItem>
+                                <SelectItem value="book_excerpt">
+                                    Book Excerpt
+                                </SelectItem>
                                 <SelectItem value="manual">Manual</SelectItem>
                             </SelectContent>
                         </Select>
@@ -186,11 +224,15 @@ export default function ChronicleCreate() {
 
                     {/* Source Reference */}
                     <div className="space-y-2">
-                        <Label htmlFor="source_reference">Source Reference</Label>
+                        <Label htmlFor="source_reference">
+                            Source Reference
+                        </Label>
                         <Input
                             id="source_reference"
                             value={data.source_reference}
-                            onChange={(e) => handleChange('source_reference', e.target.value)}
+                            onChange={(e) =>
+                                handleChange('source_reference', e.target.value)
+                            }
                             placeholder="e.g. transcript.txt or URL"
                         />
                     </div>
@@ -207,8 +249,12 @@ export default function ChronicleCreate() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="draft">Draft</SelectItem>
-                                <SelectItem value="published">Published</SelectItem>
-                                <SelectItem value="archived">Archived</SelectItem>
+                                <SelectItem value="published">
+                                    Published
+                                </SelectItem>
+                                <SelectItem value="archived">
+                                    Archived
+                                </SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -219,12 +265,16 @@ export default function ChronicleCreate() {
                         <Textarea
                             id="metadata"
                             value={data.metadata}
-                            onChange={(e) => handleChange('metadata', e.target.value)}
+                            onChange={(e) =>
+                                handleChange('metadata', e.target.value)
+                            }
                             placeholder='{"event_count": 0, "generated_at": "..."}'
                             rows={4}
                         />
                         {errors.metadata && (
-                            <p className="text-sm text-destructive">{errors.metadata}</p>
+                            <p className="text-sm text-destructive">
+                                {errors.metadata}
+                            </p>
                         )}
                     </div>
 
@@ -232,7 +282,12 @@ export default function ChronicleCreate() {
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <h3 className="text-lg font-semibold">Entries</h3>
-                            <Button type="button" variant="outline" size="sm" onClick={addEntry}>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={addEntry}
+                            >
                                 <Plus className="mr-1.5 size-4" />
                                 Add Entry
                             </Button>
@@ -245,7 +300,10 @@ export default function ChronicleCreate() {
                         ) : (
                             <div className="space-y-3">
                                 {data.entries.map((entry, index) => (
-                                    <div key={index} className="rounded-lg border p-4">
+                                    <div
+                                        key={index}
+                                        className="rounded-lg border p-4"
+                                    >
                                         <div className="mb-3 flex items-center justify-between">
                                             <div className="flex items-center gap-2">
                                                 <GripVertical className="size-4 text-muted-foreground" />
@@ -257,7 +315,9 @@ export default function ChronicleCreate() {
                                                 type="button"
                                                 variant="ghost"
                                                 size="sm"
-                                                onClick={() => removeEntry(index)}
+                                                onClick={() =>
+                                                    removeEntry(index)
+                                                }
                                             >
                                                 <Trash2 className="size-4" />
                                             </Button>
@@ -269,7 +329,11 @@ export default function ChronicleCreate() {
                                                 <Textarea
                                                     value={entry.narrative_text}
                                                     onChange={(e) =>
-                                                        handleEntryChange(index, 'narrative_text', e.target.value)
+                                                        handleEntryChange(
+                                                            index,
+                                                            'narrative_text',
+                                                            e.target.value,
+                                                        )
                                                     }
                                                     placeholder="Describe the historical event..."
                                                     rows={3}
@@ -281,7 +345,11 @@ export default function ChronicleCreate() {
                                                 <Textarea
                                                     value={entry.notes ?? ''}
                                                     onChange={(e) =>
-                                                        handleEntryChange(index, 'notes', e.target.value)
+                                                        handleEntryChange(
+                                                            index,
+                                                            'notes',
+                                                            e.target.value,
+                                                        )
                                                     }
                                                     placeholder="Additional context or analysis..."
                                                     rows={2}
@@ -291,9 +359,16 @@ export default function ChronicleCreate() {
                                             <div className="space-y-1">
                                                 <Label>Source Evidence</Label>
                                                 <Input
-                                                    value={entry.source_evidence ?? ''}
+                                                    value={
+                                                        entry.source_evidence ??
+                                                        ''
+                                                    }
                                                     onChange={(e) =>
-                                                        handleEntryChange(index, 'source_evidence', e.target.value)
+                                                        handleEntryChange(
+                                                            index,
+                                                            'source_evidence',
+                                                            e.target.value,
+                                                        )
                                                     }
                                                     placeholder="e.g. Appian 2.41 or medieval chronicle"
                                                 />

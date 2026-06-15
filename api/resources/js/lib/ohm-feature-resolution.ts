@@ -75,7 +75,11 @@ export function buildResolvedOhmSelectionFeature(
             id: resolution.entity.id,
             name:
                 resolution.entity.name ??
-                String(feature.properties?.name ?? feature.properties?.label ?? 'Entity'),
+                String(
+                    feature.properties?.name ??
+                        feature.properties?.label ??
+                        'Entity',
+                ),
             entity_type: resolution.entity.entity_type,
             entity_group: resolution.entity.entity_group,
             geo_ref_id: resolution.geo_ref_id,
@@ -88,7 +92,9 @@ export function buildResolvedOhmSelectionFeature(
     };
 }
 
-function extractOhmFeatureIdentity(feature: FeatureLike): OhmFeatureIdentity | null {
+function extractOhmFeatureIdentity(
+    feature: FeatureLike,
+): OhmFeatureIdentity | null {
     const properties = feature.properties ?? {};
     const rawAtId = properties['@id'];
 
@@ -98,7 +104,8 @@ function extractOhmFeatureIdentity(feature: FeatureLike): OhmFeatureIdentity | n
 
         if (slashMatch) {
             return {
-                external_type: slashMatch[1] as OhmFeatureIdentity['external_type'],
+                external_type:
+                    slashMatch[1] as OhmFeatureIdentity['external_type'],
                 external_id: slashMatch[2],
             };
         }
@@ -113,9 +120,10 @@ function extractOhmFeatureIdentity(feature: FeatureLike): OhmFeatureIdentity | n
         }
     }
 
-    const osmType = typeof properties.osm_type === 'string'
-        ? properties.osm_type.toLowerCase()
-        : null;
+    const osmType =
+        typeof properties.osm_type === 'string'
+            ? properties.osm_type.toLowerCase()
+            : null;
     const osmId = properties.osm_id;
 
     if (
@@ -155,7 +163,9 @@ function parseYear(value: string | null): number | null {
     return Number.isFinite(parsed) ? parsed : null;
 }
 
-function prefixToExternalType(prefix: string): OhmFeatureIdentity['external_type'] {
+function prefixToExternalType(
+    prefix: string,
+): OhmFeatureIdentity['external_type'] {
     switch (prefix) {
         case 'n':
             return 'node';

@@ -313,9 +313,10 @@ export default function RelationshipPanel({
 
         try {
             const method = isEditing ? 'PUT' : 'POST';
-            const url = isEditing && updateUrlFn
-                ? updateUrlFn(editingRelationshipId!)
-                : storeUrl;
+            const url =
+                isEditing && updateUrlFn
+                    ? updateUrlFn(editingRelationshipId!)
+                    : storeUrl;
 
             if (isEditing && !updateUrlFn) {
                 setFormErrors({ _: 'Update endpoint not configured.' });
@@ -772,7 +773,10 @@ function RelationshipForm({
                     onChange={(e) => {
                         const type = e.target.value;
                         onChange('relationship_type', type);
-                        onChange('derive_geometry_period', AUTO_PRESENCE_TYPES.has(type));
+                        onChange(
+                            'derive_geometry_period',
+                            AUTO_PRESENCE_TYPES.has(type),
+                        );
                     }}
                 >
                     <option value="">— select type —</option>
@@ -874,10 +878,14 @@ function RelationshipForm({
                     }
                     className="h-4 w-4 rounded border-input"
                 />
-                <Label htmlFor="rel-derive-geometry" className="text-xs cursor-pointer">
+                <Label
+                    htmlFor="rel-derive-geometry"
+                    className="cursor-pointer text-xs"
+                >
                     Derive geometry period from entity location
                     <span className="ml-1 text-muted-foreground">
-                        (auto for: born in, died in, resided in, fought at, signed by)
+                        (auto for: born in, died in, resided in, fought at,
+                        signed by)
                     </span>
                 </Label>
             </div>

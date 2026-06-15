@@ -12,7 +12,12 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import type { BreadcrumbItem, PaginatedChronicles, ChronicleFilters, FilterOption } from '@/types';
+import type {
+    BreadcrumbItem,
+    PaginatedChronicles,
+    ChronicleFilters,
+    FilterOption,
+} from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -27,13 +32,20 @@ type Props = {
 
 const statusColors: Record<string, string> = {
     draft: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200',
-    published: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    published:
+        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
     archived: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
 };
 
-export default function ChroniclesIndex({ chronicles, filters, filterOptions }: Props) {
+export default function ChroniclesIndex({
+    chronicles,
+    filters,
+    filterOptions,
+}: Props) {
     const [search, setSearch] = useState(filters.search);
-    const [statusFilter, setStatusFilter] = useState(filters.status || '__all__');
+    const [statusFilter, setStatusFilter] = useState(
+        filters.status || '__all__',
+    );
 
     const navigate = useCallback(
         (params: Record<string, string | number>) => {
@@ -80,7 +92,11 @@ export default function ChroniclesIndex({ chronicles, filters, filterOptions }: 
     const clearFilters = useCallback(() => {
         setSearch('');
         setStatusFilter('__all__');
-        router.get('/chronicles', {}, { preserveState: true, preserveScroll: true });
+        router.get(
+            '/chronicles',
+            {},
+            { preserveState: true, preserveScroll: true },
+        );
     }, []);
 
     const hasActiveFilters = filters.search || filters.status;
@@ -97,7 +113,11 @@ export default function ChroniclesIndex({ chronicles, filters, filterOptions }: 
                             Chronicles
                         </h1>
                         <p className="text-sm text-muted-foreground">
-                            {chronicles.total} {chronicles.total === 1 ? 'chronicle' : 'chronicles'} found
+                            {chronicles.total}{' '}
+                            {chronicles.total === 1
+                                ? 'chronicle'
+                                : 'chronicles'}{' '}
+                            found
                         </p>
                     </div>
                     <Link href="/chronicles/create">
@@ -128,12 +148,17 @@ export default function ChroniclesIndex({ chronicles, filters, filterOptions }: 
                     </form>
 
                     {/* Status filter */}
-                    <Select value={statusFilter} onValueChange={handleStatusFilter}>
+                    <Select
+                        value={statusFilter}
+                        onValueChange={handleStatusFilter}
+                    >
                         <SelectTrigger className="w-40">
                             <SelectValue placeholder="All statuses" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="__all__">All statuses</SelectItem>
+                            <SelectItem value="__all__">
+                                All statuses
+                            </SelectItem>
                             {filterOptions.statuses.map((s) => (
                                 <SelectItem key={s.value} value={s.value}>
                                     {s.label}
@@ -144,7 +169,11 @@ export default function ChroniclesIndex({ chronicles, filters, filterOptions }: 
 
                     {/* Clear filters */}
                     {hasActiveFilters && (
-                        <Button variant="ghost" size="sm" onClick={clearFilters}>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={clearFilters}
+                        >
                             <X className="mr-1.5 size-4" />
                             Clear
                         </Button>
@@ -156,7 +185,10 @@ export default function ChroniclesIndex({ chronicles, filters, filterOptions }: 
                     {chronicles.data.length === 0 ? (
                         <div className="rounded-lg border p-8 text-center text-muted-foreground">
                             No chronicles found.{' '}
-                            <Link href="/chronicles/create" className="text-primary underline">
+                            <Link
+                                href="/chronicles/create"
+                                className="text-primary underline"
+                            >
                                 Create one
                             </Link>
                         </div>
@@ -170,20 +202,34 @@ export default function ChroniclesIndex({ chronicles, filters, filterOptions }: 
                                 <div className="rounded-lg border p-4 transition-colors hover:bg-muted/50">
                                     <div className="flex items-center justify-between">
                                         <div className="flex-1">
-                                            <h2 className="text-lg font-semibold">{chronicle.title}</h2>
+                                            <h2 className="text-lg font-semibold">
+                                                {chronicle.title}
+                                            </h2>
                                             <div className="mt-1 flex items-center gap-2">
                                                 <Badge variant="outline">
-                                                    {chronicle.source_type?.replace(/_/g, ' ') || '—'}
+                                                    {chronicle.source_type?.replace(
+                                                        /_/g,
+                                                        ' ',
+                                                    ) || '—'}
                                                 </Badge>
                                                 {chronicle.status && (
-                                                    <Badge className={statusColors[chronicle.status] || ''}>
+                                                    <Badge
+                                                        className={
+                                                            statusColors[
+                                                                chronicle.status
+                                                            ] || ''
+                                                        }
+                                                    >
                                                         {chronicle.status}
                                                     </Badge>
                                                 )}
                                             </div>
                                         </div>
                                         <div className="text-sm text-muted-foreground">
-                                            {chronicle.entry_count} {chronicle.entry_count === 1 ? 'entry' : 'entries'}
+                                            {chronicle.entry_count}{' '}
+                                            {chronicle.entry_count === 1
+                                                ? 'entry'
+                                                : 'entries'}
                                         </div>
                                     </div>
                                 </div>
@@ -199,18 +245,25 @@ export default function ChroniclesIndex({ chronicles, filters, filterOptions }: 
                             variant="outline"
                             size="sm"
                             disabled={chronicles.current_page === 1}
-                            onClick={() => navigate({ page: chronicles.current_page - 1 })}
+                            onClick={() =>
+                                navigate({ page: chronicles.current_page - 1 })
+                            }
                         >
                             Previous
                         </Button>
                         <span className="text-sm text-muted-foreground">
-                            Page {chronicles.current_page} of {chronicles.last_page}
+                            Page {chronicles.current_page} of{' '}
+                            {chronicles.last_page}
                         </span>
                         <Button
                             variant="outline"
                             size="sm"
-                            disabled={chronicles.current_page === chronicles.last_page}
-                            onClick={() => navigate({ page: chronicles.current_page + 1 })}
+                            disabled={
+                                chronicles.current_page === chronicles.last_page
+                            }
+                            onClick={() =>
+                                navigate({ page: chronicles.current_page + 1 })
+                            }
                         >
                             Next
                         </Button>

@@ -56,7 +56,15 @@ describe('ohm-feature-resolution', () => {
                 id: 'relation/1880',
                 geometry: {
                     type: 'Polygon',
-                    coordinates: [[[10, 40], [15, 40], [15, 45], [10, 45], [10, 40]]],
+                    coordinates: [
+                        [
+                            [10, 40],
+                            [15, 40],
+                            [15, 45],
+                            [10, 45],
+                            [10, 40],
+                        ],
+                    ],
                 },
                 properties: {
                     name: 'Roman Empire',
