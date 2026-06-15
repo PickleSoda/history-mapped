@@ -11,9 +11,7 @@ export type TimelineItem = {
     relatedEntityId?: string | null;
 };
 
-export type SelectedTimelineItem =
-    | { kind: 'timeline'; id: string }
-    | null;
+export type SelectedTimelineItem = { kind: 'timeline'; id: string } | null;
 
 export type EntityHistoryTimelineProps = {
     items: TimelineItem[];
@@ -59,7 +57,10 @@ export default function EntityHistoryTimeline({
                     const ref = (el: HTMLDivElement | null) => {
                         if (el && selected) {
                             // Scroll into view and focus
-                            el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                            el.scrollIntoView({
+                                block: 'nearest',
+                                behavior: 'smooth',
+                            });
                             el.querySelector('button')?.focus();
                         }
                     };
@@ -67,7 +68,7 @@ export default function EntityHistoryTimeline({
                     return (
                         <div
                             key={item.id}
-                            className="relative group"
+                            className="group relative"
                             ref={ref}
                             onMouseEnter={() => {
                                 const hovered = item.id
@@ -111,9 +112,7 @@ export default function EntityHistoryTimeline({
                                 ].join(' ')}
                             >
                                 <div className="mb-1 flex items-center justify-between gap-2">
-                                    <Badge
-                                        variant="outline"
-                                    >
+                                    <Badge variant="outline">
                                         {item.badgeLabel ?? item.kind}
                                     </Badge>
                                     <span className="text-xs text-muted-foreground tabular-nums">
@@ -137,9 +136,9 @@ export default function EntityHistoryTimeline({
                                     href={`/entities/${item.relatedEntityId}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-blue-600 underline"
+                                    className="absolute top-2 right-2 text-xs text-blue-600 underline opacity-0 transition-opacity group-hover:opacity-100"
                                     title="Open related entity in new tab"
-                                    onClick={e => e.stopPropagation()}
+                                    onClick={(e) => e.stopPropagation()}
                                 >
                                     ↗
                                 </a>

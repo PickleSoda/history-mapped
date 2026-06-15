@@ -32,7 +32,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const ROLE_OPTIONS = ['participant', 'mentioned', 'location', 'outcome'];
 
-type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
+type JsonValue =
+    | string
+    | number
+    | boolean
+    | null
+    | JsonValue[]
+    | { [key: string]: JsonValue };
 
 type Props = {
     chronicle: ChronicleDetail;
@@ -49,7 +55,11 @@ type EntitySearchResult = {
  * Debounced entity search backed by GET /api/v1/entities?search=...
  * Calls onAdd with the picked entity.
  */
-function EntityPicker({ onAdd }: { onAdd: (entity: EntitySearchResult) => void }) {
+function EntityPicker({
+    onAdd,
+}: {
+    onAdd: (entity: EntitySearchResult) => void;
+}) {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<EntitySearchResult[]>([]);
     const [open, setOpen] = useState(false);
@@ -64,11 +74,14 @@ function EntityPicker({ onAdd }: { onAdd: (entity: EntitySearchResult) => void }
                 return;
             }
 
-            fetch(`/api/v1/entities?search=${encodeURIComponent(query)}&per_page=8`, {
-                headers: { Accept: 'application/json' },
-                credentials: 'same-origin',
-                signal: controller.signal,
-            })
+            fetch(
+                `/api/v1/entities?search=${encodeURIComponent(query)}&per_page=8`,
+                {
+                    headers: { Accept: 'application/json' },
+                    credentials: 'same-origin',
+                    signal: controller.signal,
+                },
+            )
                 .then((res) => (res.ok ? res.json() : { data: [] }))
                 .then((json: { data?: Array<Record<string, unknown>> }) => {
                     const rows = json.data ?? [];
@@ -76,7 +89,8 @@ function EntityPicker({ onAdd }: { onAdd: (entity: EntitySearchResult) => void }
                         rows.map((row) => ({
                             entity_id: String(row.id ?? row.entity_id ?? ''),
                             name: String(row.name ?? ''),
-                            entity_type: (row.entity_type as string | null) ?? null,
+                            entity_type:
+                                (row.entity_type as string | null) ?? null,
                         })),
                     );
                     setOpen(true);
@@ -142,7 +156,10 @@ export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
                 sequence_order: e.sequence_order,
                 narrative_text: e.narrative_text,
                 notes: e.notes ?? '',
-                source_evidence: typeof e.source_evidence === 'string' ? e.source_evidence : '',
+                source_evidence:
+                    typeof e.source_evidence === 'string'
+                        ? e.source_evidence
+                        : '',
                 // Preserve existing relations/entities — previously hardcoded to
                 // null/[], which wiped them on every save.
                 primary_relationship_id: e.primary_relationship_id ?? null,
@@ -164,15 +181,24 @@ export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
         setData((prev) => ({ ...prev, [field]: value }));
 
         if (field === 'title') {
-            const slug = value.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').slice(0, 80);
+            const slug = value
+                .toLowerCase()
+                .replace(/[^\w\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .slice(0, 80);
             setData((prev) => ({ ...prev, slug }));
         }
     }
 
-    function updateEntry(index: number, patch: Partial<ChronicleEntryFormData>) {
+    function updateEntry(
+        index: number,
+        patch: Partial<ChronicleEntryFormData>,
+    ) {
         setData((prev) => ({
             ...prev,
-            entries: prev.entries.map((entry, i) => (i === index ? { ...entry, ...patch } : entry)),
+            entries: prev.entries.map((entry, i) =>
+                i === index ? { ...entry, ...patch } : entry,
+            ),
         }));
     }
 
@@ -196,7 +222,10 @@ export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
     }
 
     function removeEntry(index: number) {
-        setData((prev) => ({ ...prev, entries: prev.entries.filter((_, i) => i !== index) }));
+        setData((prev) => ({
+            ...prev,
+            entries: prev.entries.filter((_, i) => i !== index),
+        }));
     }
 
     function addSecondaryEntity(index: number, entity: EntitySearchResult) {
@@ -207,7 +236,11 @@ export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
                     return entry;
                 }
 
-                if (entry.secondary_entities.some((s) => s.entity_id === entity.entity_id)) {
+                if (
+                    entry.secondary_entities.some(
+                        (s) => s.entity_id === entity.entity_id,
+                    )
+                ) {
                     return entry; // already attached
                 }
 
@@ -217,7 +250,10 @@ export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
                     role: 'mentioned',
                 };
 
-                return { ...entry, secondary_entities: [...entry.secondary_entities, added] };
+                return {
+                    ...entry,
+                    secondary_entities: [...entry.secondary_entities, added],
+                };
             }),
         }));
     }
@@ -227,7 +263,12 @@ export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
             ...prev,
             entries: prev.entries.map((entry, i) =>
                 i === index
-                    ? { ...entry, secondary_entities: entry.secondary_entities.filter((s) => s.entity_id !== entityId) }
+                    ? {
+                          ...entry,
+                          secondary_entities: entry.secondary_entities.filter(
+                              (s) => s.entity_id !== entityId,
+                          ),
+                      }
                     : entry,
             ),
         }));
@@ -240,8 +281,9 @@ export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
                 i === index
                     ? {
                           ...entry,
-                          secondary_entities: entry.secondary_entities.map((s) =>
-                              s.entity_id === entityId ? { ...s, role } : s,
+                          secondary_entities: entry.secondary_entities.map(
+                              (s) =>
+                                  s.entity_id === entityId ? { ...s, role } : s,
                           ),
                       }
                     : entry,
@@ -249,7 +291,11 @@ export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
         }));
     }
 
-    function setRelationshipField(index: number, field: keyof ChronicleEntryNewRelationship, value: string) {
+    function setRelationshipField(
+        index: number,
+        field: keyof ChronicleEntryNewRelationship,
+        value: string,
+    ) {
         setData((prev) => ({
             ...prev,
             entries: prev.entries.map((entry, i) => {
@@ -263,7 +309,10 @@ export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
                     relationship_type: '',
                 };
 
-                return { ...entry, new_relationship: { ...base, [field]: value } };
+                return {
+                    ...entry,
+                    new_relationship: { ...base, [field]: value },
+                };
             }),
         }));
     }
@@ -299,7 +348,9 @@ export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
                 notes: entry.notes,
                 source_evidence: entry.source_evidence,
                 primary_relationship_id: entry.primary_relationship_id,
-                secondary_entity_ids: entry.secondary_entities.map((s) => s.entity_id),
+                secondary_entity_ids: entry.secondary_entities.map(
+                    (s) => s.entity_id,
+                ),
                 secondary_roles: entry.secondary_entities.map((s) => s.role),
                 new_relationship:
                     entry.new_relationship &&
@@ -324,11 +375,17 @@ export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
             <div className="mx-auto max-w-2xl p-4">
                 <div className="mb-6 flex items-center gap-4">
                     <Link href={`/chronicles/${chronicle.slug}`}>
-                        <Button variant="outline" size="icon" className="size-8">
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="size-8"
+                        >
                             <ArrowLeft className="size-4" />
                         </Button>
                     </Link>
-                    <h1 className="text-2xl font-bold tracking-tight">Edit Chronicle</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">
+                        Edit Chronicle
+                    </h1>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -338,11 +395,17 @@ export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
                         <Input
                             id="title"
                             value={data.title}
-                            onChange={(e) => handleChange('title', e.target.value)}
+                            onChange={(e) =>
+                                handleChange('title', e.target.value)
+                            }
                             placeholder="e.g. Battle of Didgori"
                             required
                         />
-                        {errors.title && <p className="text-sm text-destructive">{errors.title}</p>}
+                        {errors.title && (
+                            <p className="text-sm text-destructive">
+                                {errors.title}
+                            </p>
+                        )}
                     </div>
 
                     {/* Slug */}
@@ -351,24 +414,39 @@ export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
                         <Input
                             id="slug"
                             value={data.slug}
-                            onChange={(e) => handleChange('slug', e.target.value)}
+                            onChange={(e) =>
+                                handleChange('slug', e.target.value)
+                            }
                             placeholder="auto-generated-from-title"
                             required
                         />
-                        {errors.slug && <p className="text-sm text-destructive">{errors.slug}</p>}
+                        {errors.slug && (
+                            <p className="text-sm text-destructive">
+                                {errors.slug}
+                            </p>
+                        )}
                     </div>
 
                     {/* Source Type */}
                     <div className="space-y-2">
                         <Label htmlFor="source_type">Source Type</Label>
-                        <Select value={data.source_type} onValueChange={(v) => handleChange('source_type', v)}>
+                        <Select
+                            value={data.source_type}
+                            onValueChange={(v) =>
+                                handleChange('source_type', v)
+                            }
+                        >
                             <SelectTrigger id="source_type">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="video_transcript">Video Transcript</SelectItem>
+                                <SelectItem value="video_transcript">
+                                    Video Transcript
+                                </SelectItem>
                                 <SelectItem value="article">Article</SelectItem>
-                                <SelectItem value="book_excerpt">Book Excerpt</SelectItem>
+                                <SelectItem value="book_excerpt">
+                                    Book Excerpt
+                                </SelectItem>
                                 <SelectItem value="manual">Manual</SelectItem>
                             </SelectContent>
                         </Select>
@@ -376,11 +454,15 @@ export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
 
                     {/* Source Reference */}
                     <div className="space-y-2">
-                        <Label htmlFor="source_reference">Source Reference</Label>
+                        <Label htmlFor="source_reference">
+                            Source Reference
+                        </Label>
                         <Input
                             id="source_reference"
                             value={data.source_reference}
-                            onChange={(e) => handleChange('source_reference', e.target.value)}
+                            onChange={(e) =>
+                                handleChange('source_reference', e.target.value)
+                            }
                             placeholder="e.g. transcript.txt or URL"
                         />
                     </div>
@@ -388,14 +470,21 @@ export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
                     {/* Status */}
                     <div className="space-y-2">
                         <Label htmlFor="status">Status</Label>
-                        <Select value={data.status} onValueChange={(v) => handleChange('status', v)}>
+                        <Select
+                            value={data.status}
+                            onValueChange={(v) => handleChange('status', v)}
+                        >
                             <SelectTrigger id="status">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="draft">Draft</SelectItem>
-                                <SelectItem value="published">Published</SelectItem>
-                                <SelectItem value="archived">Archived</SelectItem>
+                                <SelectItem value="published">
+                                    Published
+                                </SelectItem>
+                                <SelectItem value="archived">
+                                    Archived
+                                </SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -406,18 +495,29 @@ export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
                         <Textarea
                             id="metadata"
                             value={data.metadata}
-                            onChange={(e) => handleChange('metadata', e.target.value)}
+                            onChange={(e) =>
+                                handleChange('metadata', e.target.value)
+                            }
                             placeholder='{"event_count": 0, "generated_at": "..."}'
                             rows={4}
                         />
-                        {errors.metadata && <p className="text-sm text-destructive">{errors.metadata}</p>}
+                        {errors.metadata && (
+                            <p className="text-sm text-destructive">
+                                {errors.metadata}
+                            </p>
+                        )}
                     </div>
 
                     {/* Entries Management */}
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <h3 className="text-lg font-semibold">Entries</h3>
-                            <Button type="button" variant="outline" size="sm" onClick={addEntry}>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={addEntry}
+                            >
                                 <Plus className="mr-1.5 size-4" />
                                 Add Entry
                             </Button>
@@ -430,17 +530,24 @@ export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
                         ) : (
                             <div className="space-y-3">
                                 {data.entries.map((entry, index) => (
-                                    <div key={entry.entry_id ?? index} className="rounded-lg border p-4">
+                                    <div
+                                        key={entry.entry_id ?? index}
+                                        className="rounded-lg border p-4"
+                                    >
                                         <div className="mb-3 flex items-center justify-between">
                                             <div className="flex items-center gap-2">
                                                 <GripVertical className="size-4 text-muted-foreground" />
-                                                <span className="text-sm font-medium">Entry #{index + 1}</span>
+                                                <span className="text-sm font-medium">
+                                                    Entry #{index + 1}
+                                                </span>
                                             </div>
                                             <Button
                                                 type="button"
                                                 variant="ghost"
                                                 size="sm"
-                                                onClick={() => removeEntry(index)}
+                                                onClick={() =>
+                                                    removeEntry(index)
+                                                }
                                             >
                                                 <Trash2 className="size-4" />
                                             </Button>
@@ -451,7 +558,12 @@ export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
                                                 <Label>Narrative Text *</Label>
                                                 <Textarea
                                                     value={entry.narrative_text}
-                                                    onChange={(e) => updateEntry(index, { narrative_text: e.target.value })}
+                                                    onChange={(e) =>
+                                                        updateEntry(index, {
+                                                            narrative_text:
+                                                                e.target.value,
+                                                        })
+                                                    }
                                                     placeholder="Describe the historical event..."
                                                     rows={3}
                                                 />
@@ -461,7 +573,12 @@ export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
                                                 <Label>Notes</Label>
                                                 <Textarea
                                                     value={entry.notes ?? ''}
-                                                    onChange={(e) => updateEntry(index, { notes: e.target.value })}
+                                                    onChange={(e) =>
+                                                        updateEntry(index, {
+                                                            notes: e.target
+                                                                .value,
+                                                        })
+                                                    }
                                                     placeholder="Additional context or analysis..."
                                                     rows={2}
                                                 />
@@ -470,84 +587,179 @@ export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
                                             <div className="space-y-1">
                                                 <Label>Source Evidence</Label>
                                                 <Input
-                                                    value={entry.source_evidence ?? ''}
-                                                    onChange={(e) => updateEntry(index, { source_evidence: e.target.value })}
+                                                    value={
+                                                        entry.source_evidence ??
+                                                        ''
+                                                    }
+                                                    onChange={(e) =>
+                                                        updateEntry(index, {
+                                                            source_evidence:
+                                                                e.target.value,
+                                                        })
+                                                    }
                                                     placeholder="e.g. Appian 2.41 or medieval chronicle"
                                                 />
                                             </div>
 
                                             {/* Primary relationship — author one from the entry's entities */}
                                             <div className="space-y-1">
-                                                <Label>Primary Relationship</Label>
+                                                <Label>
+                                                    Primary Relationship
+                                                </Label>
                                                 {entry.primary_relationship_id ? (
                                                     <div className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
-                                                        <span>{entry.primary_relationship_label ?? entry.primary_relationship_id}</span>
+                                                        <span>
+                                                            {entry.primary_relationship_label ??
+                                                                entry.primary_relationship_id}
+                                                        </span>
                                                         <Button
                                                             type="button"
                                                             variant="ghost"
                                                             size="sm"
                                                             onClick={() =>
-                                                                updateEntry(index, {
-                                                                    primary_relationship_id: null,
-                                                                    primary_relationship_label: null,
-                                                                })
+                                                                updateEntry(
+                                                                    index,
+                                                                    {
+                                                                        primary_relationship_id:
+                                                                            null,
+                                                                        primary_relationship_label:
+                                                                            null,
+                                                                    },
+                                                                )
                                                             }
                                                         >
                                                             <X className="size-4" />
                                                         </Button>
                                                     </div>
-                                                ) : entry.secondary_entities.length >= 2 ? (
+                                                ) : entry.secondary_entities
+                                                      .length >= 2 ? (
                                                     <div className="grid grid-cols-3 gap-2">
                                                         <Select
-                                                            value={entry.new_relationship?.source_entity_id ?? ''}
-                                                            onValueChange={(v) => setRelationshipField(index, 'source_entity_id', v)}
+                                                            value={
+                                                                entry
+                                                                    .new_relationship
+                                                                    ?.source_entity_id ??
+                                                                ''
+                                                            }
+                                                            onValueChange={(
+                                                                v,
+                                                            ) =>
+                                                                setRelationshipField(
+                                                                    index,
+                                                                    'source_entity_id',
+                                                                    v,
+                                                                )
+                                                            }
                                                         >
                                                             <SelectTrigger className="text-xs">
                                                                 <SelectValue placeholder="Source" />
                                                             </SelectTrigger>
                                                             <SelectContent>
-                                                                {entry.secondary_entities.map((s) => (
-                                                                    <SelectItem key={s.entity_id} value={s.entity_id}>
-                                                                        {s.name}
-                                                                    </SelectItem>
-                                                                ))}
+                                                                {entry.secondary_entities.map(
+                                                                    (s) => (
+                                                                        <SelectItem
+                                                                            key={
+                                                                                s.entity_id
+                                                                            }
+                                                                            value={
+                                                                                s.entity_id
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                s.name
+                                                                            }
+                                                                        </SelectItem>
+                                                                    ),
+                                                                )}
                                                             </SelectContent>
                                                         </Select>
                                                         <Select
-                                                            value={entry.new_relationship?.relationship_type ?? ''}
-                                                            onValueChange={(v) => setRelationshipField(index, 'relationship_type', v)}
+                                                            value={
+                                                                entry
+                                                                    .new_relationship
+                                                                    ?.relationship_type ??
+                                                                ''
+                                                            }
+                                                            onValueChange={(
+                                                                v,
+                                                            ) =>
+                                                                setRelationshipField(
+                                                                    index,
+                                                                    'relationship_type',
+                                                                    v,
+                                                                )
+                                                            }
                                                         >
                                                             <SelectTrigger className="text-xs">
                                                                 <SelectValue placeholder="Type" />
                                                             </SelectTrigger>
                                                             <SelectContent>
-                                                                {relationshipTypes.map((t) => (
-                                                                    <SelectItem key={t} value={t}>
-                                                                        {t.replace(/_/g, ' ')}
-                                                                    </SelectItem>
-                                                                ))}
+                                                                {relationshipTypes.map(
+                                                                    (t) => (
+                                                                        <SelectItem
+                                                                            key={
+                                                                                t
+                                                                            }
+                                                                            value={
+                                                                                t
+                                                                            }
+                                                                        >
+                                                                            {t.replace(
+                                                                                /_/g,
+                                                                                ' ',
+                                                                            )}
+                                                                        </SelectItem>
+                                                                    ),
+                                                                )}
                                                             </SelectContent>
                                                         </Select>
                                                         <Select
-                                                            value={entry.new_relationship?.target_entity_id ?? ''}
-                                                            onValueChange={(v) => setRelationshipField(index, 'target_entity_id', v)}
+                                                            value={
+                                                                entry
+                                                                    .new_relationship
+                                                                    ?.target_entity_id ??
+                                                                ''
+                                                            }
+                                                            onValueChange={(
+                                                                v,
+                                                            ) =>
+                                                                setRelationshipField(
+                                                                    index,
+                                                                    'target_entity_id',
+                                                                    v,
+                                                                )
+                                                            }
                                                         >
                                                             <SelectTrigger className="text-xs">
                                                                 <SelectValue placeholder="Target" />
                                                             </SelectTrigger>
                                                             <SelectContent>
-                                                                {entry.secondary_entities.map((s) => (
-                                                                    <SelectItem key={s.entity_id} value={s.entity_id}>
-                                                                        {s.name}
-                                                                    </SelectItem>
-                                                                ))}
+                                                                {entry.secondary_entities.map(
+                                                                    (s) => (
+                                                                        <SelectItem
+                                                                            key={
+                                                                                s.entity_id
+                                                                            }
+                                                                            value={
+                                                                                s.entity_id
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                s.name
+                                                                            }
+                                                                        </SelectItem>
+                                                                    ),
+                                                                )}
                                                             </SelectContent>
                                                         </Select>
                                                     </div>
                                                 ) : (
                                                     <p className="text-xs text-muted-foreground">
-                                                        Add at least two entities below, then pick source → type → target to
-                                                        create the relationship on save.
+                                                        Add at least two
+                                                        entities below, then
+                                                        pick source → type →
+                                                        target to create the
+                                                        relationship on save.
                                                     </p>
                                                 )}
                                             </div>
@@ -555,44 +767,87 @@ export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
                                             {/* Secondary entities */}
                                             <div className="space-y-1">
                                                 <Label>Entities</Label>
-                                                {entry.secondary_entities.length > 0 && (
+                                                {entry.secondary_entities
+                                                    .length > 0 && (
                                                     <div className="flex flex-col gap-2">
-                                                        {entry.secondary_entities.map((s) => (
-                                                            <div
-                                                                key={s.entity_id}
-                                                                className="flex items-center gap-2 rounded-md border px-2 py-1.5"
-                                                            >
-                                                                <Badge variant="secondary" className="flex-1 justify-start">
-                                                                    {s.name}
-                                                                </Badge>
-                                                                <Select
-                                                                    value={s.role}
-                                                                    onValueChange={(v) => setSecondaryRole(index, s.entity_id, v)}
+                                                        {entry.secondary_entities.map(
+                                                            (s) => (
+                                                                <div
+                                                                    key={
+                                                                        s.entity_id
+                                                                    }
+                                                                    className="flex items-center gap-2 rounded-md border px-2 py-1.5"
                                                                 >
-                                                                    <SelectTrigger className="h-7 w-32 text-xs">
-                                                                        <SelectValue />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {ROLE_OPTIONS.map((role) => (
-                                                                            <SelectItem key={role} value={role}>
-                                                                                {role}
-                                                                            </SelectItem>
-                                                                        ))}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    onClick={() => removeSecondaryEntity(index, s.entity_id)}
-                                                                >
-                                                                    <X className="size-4" />
-                                                                </Button>
-                                                            </div>
-                                                        ))}
+                                                                    <Badge
+                                                                        variant="secondary"
+                                                                        className="flex-1 justify-start"
+                                                                    >
+                                                                        {s.name}
+                                                                    </Badge>
+                                                                    <Select
+                                                                        value={
+                                                                            s.role
+                                                                        }
+                                                                        onValueChange={(
+                                                                            v,
+                                                                        ) =>
+                                                                            setSecondaryRole(
+                                                                                index,
+                                                                                s.entity_id,
+                                                                                v,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <SelectTrigger className="h-7 w-32 text-xs">
+                                                                            <SelectValue />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {ROLE_OPTIONS.map(
+                                                                                (
+                                                                                    role,
+                                                                                ) => (
+                                                                                    <SelectItem
+                                                                                        key={
+                                                                                            role
+                                                                                        }
+                                                                                        value={
+                                                                                            role
+                                                                                        }
+                                                                                    >
+                                                                                        {
+                                                                                            role
+                                                                                        }
+                                                                                    </SelectItem>
+                                                                                ),
+                                                                            )}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        onClick={() =>
+                                                                            removeSecondaryEntity(
+                                                                                index,
+                                                                                s.entity_id,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <X className="size-4" />
+                                                                    </Button>
+                                                                </div>
+                                                            ),
+                                                        )}
                                                     </div>
                                                 )}
-                                                <EntityPicker onAdd={(entity) => addSecondaryEntity(index, entity)} />
+                                                <EntityPicker
+                                                    onAdd={(entity) =>
+                                                        addSecondaryEntity(
+                                                            index,
+                                                            entity,
+                                                        )
+                                                    }
+                                                />
                                             </div>
                                         </div>
                                     </div>

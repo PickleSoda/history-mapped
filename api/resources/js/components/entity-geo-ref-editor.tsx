@@ -34,7 +34,9 @@ export default function EntityGeoRefEditor({
     const csrfRef = useRef<string>('');
     const [refs, setRefs] = useState<EntityGeoRef[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [searchResults, setSearchResults] = useState<OhmLookupCandidate[]>([]);
+    const [searchResults, setSearchResults] = useState<OhmLookupCandidate[]>(
+        [],
+    );
     const [loading, setLoading] = useState(true);
     const [searching, setSearching] = useState(false);
     const [attaching, setAttaching] = useState(false);
@@ -42,7 +44,9 @@ export default function EntityGeoRefEditor({
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const meta = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]');
+        const meta = document.querySelector<HTMLMetaElement>(
+            'meta[name="csrf-token"]',
+        );
         csrfRef.current = meta?.content ?? '';
     }, []);
 
@@ -62,7 +66,9 @@ export default function EntityGeoRefEditor({
                 throw new Error(`HTTP ${response.status}`);
             }
 
-            const payload = (await response.json()) as { data?: EntityGeoRef[] };
+            const payload = (await response.json()) as {
+                data?: EntityGeoRef[];
+            };
             setRefs(payload.data ?? []);
         } catch (caught) {
             console.error(caught);
@@ -131,7 +137,10 @@ export default function EntityGeoRefEditor({
         }
 
         const payload = (await response.json()) as EntityShowPayload;
-        onHydratedGeometryChange(payload.geom ?? null, payload.territory_geom ?? null);
+        onHydratedGeometryChange(
+            payload.geom ?? null,
+            payload.territory_geom ?? null,
+        );
     }
 
     async function handleAttach(candidate: OhmLookupCandidate): Promise<void> {
@@ -157,7 +166,12 @@ export default function EntityGeoRefEditor({
                     // PrepareGeoRefAttachmentAction::lookupByIdentity(), so sending coordinates
                     // here is wasteful and causes 413 for large polygons.
                     source_meta: candidate.source_meta
-                        ? (({ raw: _raw, ...rest }) => rest)(candidate.source_meta as Record<string, unknown> & { raw?: unknown })
+                        ? (({ raw: _raw, ...rest }) => rest)(
+                              candidate.source_meta as Record<
+                                  string,
+                                  unknown
+                              > & { raw?: unknown },
+                          )
                         : undefined,
                     external_tags: candidate.external_tags,
                 }),
@@ -212,7 +226,8 @@ export default function EntityGeoRefEditor({
             <div>
                 <h3 className="text-sm font-semibold">OHM References</h3>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                    Attach existing OpenHistoricalMap objects to preserve provenance and hydrate local geometry.
+                    Attach existing OpenHistoricalMap objects to preserve
+                    provenance and hydrate local geometry.
                 </p>
             </div>
 
@@ -252,14 +267,25 @@ export default function EntityGeoRefEditor({
                         >
                             <div className="min-w-0 flex-1">
                                 <p className="truncate text-sm font-medium">
-                                    {candidate.display_name ?? candidate.match_label ?? `${candidate.external_type}:${candidate.external_id}`}
+                                    {candidate.display_name ??
+                                        candidate.match_label ??
+                                        `${candidate.external_type}:${candidate.external_id}`}
                                 </p>
                                 <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
                                     <span>
-                                        {candidate.external_type}:{candidate.external_id}
+                                        {candidate.external_type}:
+                                        {candidate.external_id}
                                     </span>
-                                    <span>{String(candidate.source_meta?.class ?? '')}</span>
-                                    <span>{String(candidate.source_meta?.type ?? '')}</span>
+                                    <span>
+                                        {String(
+                                            candidate.source_meta?.class ?? '',
+                                        )}
+                                    </span>
+                                    <span>
+                                        {String(
+                                            candidate.source_meta?.type ?? '',
+                                        )}
+                                    </span>
                                 </div>
                             </div>
                             <Button
@@ -278,7 +304,9 @@ export default function EntityGeoRefEditor({
             )}
 
             {loading ? (
-                <div className="text-sm text-muted-foreground">Loading OHM references…</div>
+                <div className="text-sm text-muted-foreground">
+                    Loading OHM references…
+                </div>
             ) : refs.length === 0 ? (
                 <div className="rounded-md border border-dashed px-4 py-5 text-sm text-muted-foreground">
                     No OHM references attached yet.
@@ -295,7 +323,9 @@ export default function EntityGeoRefEditor({
                                     <span className="truncate text-sm font-medium">
                                         {displayGeoRefLabel(geoRef)}
                                     </span>
-                                    {geoRef.is_active && <Badge variant="outline">Active</Badge>}
+                                    {geoRef.is_active && (
+                                        <Badge variant="outline">Active</Badge>
+                                    )}
                                 </div>
                                 <p className="mt-0.5 text-xs text-muted-foreground">
                                     {geoRef.external_type}:{geoRef.external_id}
@@ -305,10 +335,14 @@ export default function EntityGeoRefEditor({
                                 type="button"
                                 size="sm"
                                 variant="outline"
-                                onClick={() => void handleDelete(geoRef.geo_ref_id)}
+                                onClick={() =>
+                                    void handleDelete(geoRef.geo_ref_id)
+                                }
                                 disabled={deletingId === geoRef.geo_ref_id}
                             >
-                                {deletingId === geoRef.geo_ref_id ? 'Removing…' : 'Remove'}
+                                {deletingId === geoRef.geo_ref_id
+                                    ? 'Removing…'
+                                    : 'Remove'}
                             </Button>
                         </div>
                     ))}

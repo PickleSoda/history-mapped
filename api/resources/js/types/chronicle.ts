@@ -1,8 +1,16 @@
 export type ChronicleStatus = 'draft' | 'published' | 'archived';
 
-export type SourceType = 'video_transcript' | 'article' | 'book_excerpt' | 'manual';
+export type SourceType =
+    | 'video_transcript'
+    | 'article'
+    | 'book_excerpt'
+    | 'manual';
 
-export type ChronicleEntryRole = 'participant' | 'mentioned' | 'location' | 'outcome';
+export type ChronicleEntryRole =
+    | 'participant'
+    | 'mentioned'
+    | 'location'
+    | 'outcome';
 
 export type ChronicleSummary = {
     chronicle_id: string;

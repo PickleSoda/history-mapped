@@ -44,7 +44,13 @@ type Props = {
     onSelectPeriod?: (period: GeometryPeriodDetail | null) => void;
 };
 
-const PERIOD_TYPES = ['territory', 'route', 'spread_zone', 'movement_path', 'presence'] as const;
+const PERIOD_TYPES = [
+    'territory',
+    'route',
+    'spread_zone',
+    'movement_path',
+    'presence',
+] as const;
 
 type GeometryPeriodFormState = {
     period_type: string;
@@ -80,7 +86,9 @@ function toFormState(period: GeometryPeriodDetail): GeometryPeriodFormState {
     };
 }
 
-function buildPayload(form: GeometryPeriodFormState): GeometryPeriodPayload | null {
+function buildPayload(
+    form: GeometryPeriodFormState,
+): GeometryPeriodPayload | null {
     const startYear = Number(form.start_year);
     const endYear = Number(form.end_year);
 
@@ -144,12 +152,10 @@ export default function EntityGeometryPeriodsPanel({
     const [editingId, setEditingId] = useState<string | null>(null);
     const [loadingPeriodId, setLoadingPeriodId] = useState<string | null>(null);
 
-    const [createForm, setCreateForm] = useState<GeometryPeriodFormState>(
-        defaultFormState,
-    );
-    const [editForm, setEditForm] = useState<GeometryPeriodFormState>(
-        defaultFormState,
-    );
+    const [createForm, setCreateForm] =
+        useState<GeometryPeriodFormState>(defaultFormState);
+    const [editForm, setEditForm] =
+        useState<GeometryPeriodFormState>(defaultFormState);
 
     useEffect(() => {
         const token = document
@@ -172,7 +178,9 @@ export default function EntityGeometryPeriodsPanel({
                 throw new Error(`HTTP ${response.status}`);
             }
 
-            const payload = (await response.json()) as { data: GeometryPeriodSummary[] };
+            const payload = (await response.json()) as {
+                data: GeometryPeriodSummary[];
+            };
             setPeriods(payload.data ?? []);
         } catch {
             setError('Failed to load geometry periods.');
@@ -199,7 +207,9 @@ export default function EntityGeometryPeriodsPanel({
         });
     }, [periods]);
 
-    async function loadPeriodDetail(periodId: string): Promise<GeometryPeriodDetail | null> {
+    async function loadPeriodDetail(
+        periodId: string,
+    ): Promise<GeometryPeriodDetail | null> {
         if (!detailUrlFn) {
             return null;
         }
@@ -216,7 +226,9 @@ export default function EntityGeometryPeriodsPanel({
                 throw new Error(`HTTP ${response.status}`);
             }
 
-            const payload = (await response.json()) as { data: GeometryPeriodDetail };
+            const payload = (await response.json()) as {
+                data: GeometryPeriodDetail;
+            };
 
             return payload.data;
         } catch {
@@ -224,7 +236,9 @@ export default function EntityGeometryPeriodsPanel({
 
             return null;
         } finally {
-            setLoadingPeriodId((current) => (current === periodId ? null : current));
+            setLoadingPeriodId((current) =>
+                current === periodId ? null : current,
+            );
         }
     }
 
@@ -236,7 +250,9 @@ export default function EntityGeometryPeriodsPanel({
         const payload = buildPayload(createForm);
 
         if (!payload) {
-            setError('Start year, end year, and at least one drawn geometry are required.');
+            setError(
+                'Start year, end year, and at least one drawn geometry are required.',
+            );
 
             return;
         }
@@ -310,6 +326,7 @@ export default function EntityGeometryPeriodsPanel({
 
     async function beginEditPeriod(period: GeometryPeriodSummary) {
         const detail = await loadPeriodDetail(period.geometry_period_id);
+
         if (!detail) {
             return;
         }
@@ -324,6 +341,7 @@ export default function EntityGeometryPeriodsPanel({
         }
 
         const detail = await loadPeriodDetail(period.geometry_period_id);
+
         if (!detail) {
             return;
         }
@@ -364,20 +382,28 @@ export default function EntityGeometryPeriodsPanel({
         <div className="space-y-4">
             {error && <p className="text-sm text-destructive">{error}</p>}
             {loading && (
-                <p className="text-sm text-muted-foreground">Loading geometry periods…</p>
+                <p className="text-sm text-muted-foreground">
+                    Loading geometry periods…
+                </p>
             )}
 
             {!loading && sortedPeriods.length === 0 && (
-                <p className="text-sm text-muted-foreground">No geometry periods defined yet.</p>
+                <p className="text-sm text-muted-foreground">
+                    No geometry periods defined yet.
+                </p>
             )}
 
             {!loading && sortedPeriods.length > 0 && (
                 <div className="space-y-3">
                     {sortedPeriods.map((period) => {
-                        const isEditing = editingId === period.geometry_period_id;
+                        const isEditing =
+                            editingId === period.geometry_period_id;
 
                         return (
-                            <div key={period.geometry_period_id} className="rounded-lg border p-3">
+                            <div
+                                key={period.geometry_period_id}
+                                className="rounded-lg border p-3"
+                            >
                                 {isEditing ? (
                                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                                         <Input
@@ -419,7 +445,10 @@ export default function EntityGeometryPeriodsPanel({
                                             onChange={(e) =>
                                                 setEditForm((prev) => ({
                                                     ...prev,
-                                                    provenance_mode: e.target.value as 'manual' | 'derived',
+                                                    provenance_mode: e.target
+                                                        .value as
+                                                        | 'manual'
+                                                        | 'derived',
                                                 }))
                                             }
                                             placeholder="Provenance mode"
@@ -431,19 +460,26 @@ export default function EntityGeometryPeriodsPanel({
                                                 onChange={(e) =>
                                                     setEditForm((prev) => ({
                                                         ...prev,
-                                                        description: e.target.value,
+                                                        description:
+                                                            e.target.value,
                                                     }))
                                                 }
                                                 placeholder="Description"
                                                 rows={2}
                                             />
                                         </div>
-                                        <div className="sm:col-span-2 space-y-2 rounded-md border p-3">
+                                        <div className="space-y-2 rounded-md border p-3 sm:col-span-2">
                                             <div className="flex items-center justify-between gap-3">
                                                 <div>
-                                                    <p className="text-sm font-medium">Geometry</p>
+                                                    <p className="text-sm font-medium">
+                                                        Geometry
+                                                    </p>
                                                     <p className="text-xs text-muted-foreground">
-                                                        Use the same map editor as the base entity geometry. Draw a point or line in Geom, or a polygon in Territory.
+                                                        Use the same map editor
+                                                        as the base entity
+                                                        geometry. Draw a point
+                                                        or line in Geom, or a
+                                                        polygon in Territory.
                                                     </p>
                                                 </div>
                                                 <span className="text-xs text-muted-foreground">
@@ -459,23 +495,33 @@ export default function EntityGeometryPeriodsPanel({
                                             >
                                                 <MapEditor
                                                     geojson={editForm.geom}
-                                                    territoryGeojson={editForm.territory_geom}
-                                                    timeframeDate={resolveTimeframeDate(editForm.start_year)}
-                                                    onChange={(geom, territoryGeom) => {
+                                                    territoryGeojson={
+                                                        editForm.territory_geom
+                                                    }
+                                                    timeframeDate={resolveTimeframeDate(
+                                                        editForm.start_year,
+                                                    )}
+                                                    onChange={(
+                                                        geom,
+                                                        territoryGeom,
+                                                    ) => {
                                                         setEditForm((prev) => ({
                                                             ...prev,
                                                             geom,
-                                                            territory_geom: territoryGeom,
+                                                            territory_geom:
+                                                                territoryGeom,
                                                         }));
                                                     }}
                                                 />
                                             </Suspense>
                                         </div>
-                                        <div className="sm:col-span-2 flex gap-2">
+                                        <div className="flex gap-2 sm:col-span-2">
                                             <Button
                                                 type="button"
                                                 size="sm"
-                                                onClick={() => void updatePeriod(period)}
+                                                onClick={() =>
+                                                    void updatePeriod(period)
+                                                }
                                                 disabled={saving}
                                             >
                                                 Save
@@ -484,7 +530,9 @@ export default function EntityGeometryPeriodsPanel({
                                                 type="button"
                                                 size="sm"
                                                 variant="outline"
-                                                onClick={() => setEditingId(null)}
+                                                onClick={() =>
+                                                    setEditingId(null)
+                                                }
                                             >
                                                 Cancel
                                             </Button>
@@ -493,10 +541,12 @@ export default function EntityGeometryPeriodsPanel({
                                 ) : (
                                     <div className="space-y-2">
                                         <p className="text-sm font-medium">
-                                            {period.start_year} - {period.end_year}
+                                            {period.start_year} -{' '}
+                                            {period.end_year}
                                         </p>
                                         <p className="text-xs text-muted-foreground">
-                                            {period.period_type} | {period.provenance_mode}
+                                            {period.period_type} |{' '}
+                                            {period.provenance_mode}
                                         </p>
                                         {period.description && (
                                             <p className="text-sm text-muted-foreground">
@@ -509,10 +559,18 @@ export default function EntityGeometryPeriodsPanel({
                                                     <Button
                                                         type="button"
                                                         size="sm"
-                                                        onClick={() => void selectPeriod(period)}
-                                                        disabled={loadingPeriodId === period.geometry_period_id}
+                                                        onClick={() =>
+                                                            void selectPeriod(
+                                                                period,
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            loadingPeriodId ===
+                                                            period.geometry_period_id
+                                                        }
                                                     >
-                                                        {loadingPeriodId === period.geometry_period_id
+                                                        {loadingPeriodId ===
+                                                        period.geometry_period_id
                                                             ? 'Loading…'
                                                             : 'Highlight'}
                                                     </Button>
@@ -521,10 +579,18 @@ export default function EntityGeometryPeriodsPanel({
                                                     type="button"
                                                     size="sm"
                                                     variant="outline"
-                                                    onClick={() => void beginEditPeriod(period)}
-                                                    disabled={loadingPeriodId === period.geometry_period_id}
+                                                    onClick={() =>
+                                                        void beginEditPeriod(
+                                                            period,
+                                                        )
+                                                    }
+                                                    disabled={
+                                                        loadingPeriodId ===
+                                                        period.geometry_period_id
+                                                    }
                                                 >
-                                                    {loadingPeriodId === period.geometry_period_id
+                                                    {loadingPeriodId ===
+                                                    period.geometry_period_id
                                                         ? 'Loading…'
                                                         : 'Edit'}
                                                 </Button>
@@ -549,10 +615,18 @@ export default function EntityGeometryPeriodsPanel({
                                                     type="button"
                                                     size="sm"
                                                     variant="outline"
-                                                    onClick={() => void selectPeriod(period)}
-                                                    disabled={loadingPeriodId === period.geometry_period_id}
+                                                    onClick={() =>
+                                                        void selectPeriod(
+                                                            period,
+                                                        )
+                                                    }
+                                                    disabled={
+                                                        loadingPeriodId ===
+                                                        period.geometry_period_id
+                                                    }
                                                 >
-                                                    {loadingPeriodId === period.geometry_period_id
+                                                    {loadingPeriodId ===
+                                                    period.geometry_period_id
                                                         ? 'Loading…'
                                                         : 'Highlight'}
                                                 </Button>
@@ -567,7 +641,7 @@ export default function EntityGeometryPeriodsPanel({
             )}
 
             {!readOnly && (
-                <div className="rounded-lg border p-3 space-y-2">
+                <div className="space-y-2 rounded-lg border p-3">
                     <h4 className="text-sm font-medium">Add Geometry Period</h4>
                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                         <Input
@@ -615,7 +689,9 @@ export default function EntityGeometryPeriodsPanel({
                             onChange={(e) =>
                                 setCreateForm((prev) => ({
                                     ...prev,
-                                    provenance_mode: e.target.value as 'manual' | 'derived',
+                                    provenance_mode: e.target.value as
+                                        | 'manual'
+                                        | 'derived',
                                 }))
                             }
                             placeholder="manual or derived"
@@ -634,12 +710,15 @@ export default function EntityGeometryPeriodsPanel({
                                 rows={2}
                             />
                         </div>
-                        <div className="sm:col-span-2 space-y-2 rounded-md border p-3">
+                        <div className="space-y-2 rounded-md border p-3 sm:col-span-2">
                             <div className="flex items-center justify-between gap-3">
                                 <div>
-                                    <p className="text-sm font-medium">Geometry</p>
+                                    <p className="text-sm font-medium">
+                                        Geometry
+                                    </p>
                                     <p className="text-xs text-muted-foreground">
-                                        Draw a point or line in Geom, or a polygon in Territory.
+                                        Draw a point or line in Geom, or a
+                                        polygon in Territory.
                                     </p>
                                 </div>
                                 <span className="text-xs text-muted-foreground">
@@ -656,7 +735,9 @@ export default function EntityGeometryPeriodsPanel({
                                 <MapEditor
                                     geojson={createForm.geom}
                                     territoryGeojson={createForm.territory_geom}
-                                    timeframeDate={resolveTimeframeDate(createForm.start_year)}
+                                    timeframeDate={resolveTimeframeDate(
+                                        createForm.start_year,
+                                    )}
                                     onChange={(geom, territoryGeom) => {
                                         setCreateForm((prev) => ({
                                             ...prev,

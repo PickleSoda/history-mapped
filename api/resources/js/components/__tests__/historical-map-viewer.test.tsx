@@ -7,7 +7,9 @@ import HistoricalMapViewer from '../historical-map-viewer';
 const mapTestState = vi.hoisted(() => ({
     latestMapInstance: null as {
         emitLayer: (event: string, layerId: string, payload?: any) => void;
-        getSource: (sourceId: string) => { setData: ReturnType<typeof vi.fn> } | undefined;
+        getSource: (
+            sourceId: string,
+        ) => { setData: ReturnType<typeof vi.fn> } | undefined;
     } | null,
 }));
 
@@ -16,13 +18,19 @@ vi.mock('maplibre-gl', () => ({
     Map: class MockMap {
         public canvas = { style: { cursor: '' } };
 
-        private sources = new Map<string, { setData: ReturnType<typeof vi.fn> }>();
+        private sources = new Map<
+            string,
+            { setData: ReturnType<typeof vi.fn> }
+        >();
 
         private layers = new Set<string>();
 
         private globalHandlers = new Map<string, Set<(event?: any) => void>>();
 
-        private layerHandlers = new Map<string, Map<string, Set<(event?: any) => void>>>();
+        private layerHandlers = new Map<
+            string,
+            Map<string, Set<(event?: any) => void>>
+        >();
 
         public constructor() {
             mapTestState.latestMapInstance = this;
@@ -32,10 +40,18 @@ vi.mock('maplibre-gl', () => ({
             });
         }
 
-        public on(event: string, layerOrHandler: string | ((event?: any) => void), maybeHandler?: (event?: any) => void): void {
+        public on(
+            event: string,
+            layerOrHandler: string | ((event?: any) => void),
+            maybeHandler?: (event?: any) => void,
+        ): void {
             if (typeof layerOrHandler === 'string' && maybeHandler) {
-                const handlersByLayer = this.layerHandlers.get(event) ?? new Map<string, Set<(event?: any) => void>>();
-                const handlers = handlersByLayer.get(layerOrHandler) ?? new Set<(event?: any) => void>();
+                const handlersByLayer =
+                    this.layerHandlers.get(event) ??
+                    new Map<string, Set<(event?: any) => void>>();
+                const handlers =
+                    handlersByLayer.get(layerOrHandler) ??
+                    new Set<(event?: any) => void>();
                 handlers.add(maybeHandler);
                 handlersByLayer.set(layerOrHandler, handlers);
                 this.layerHandlers.set(event, handlersByLayer);
@@ -44,7 +60,9 @@ vi.mock('maplibre-gl', () => ({
             }
 
             if (typeof layerOrHandler === 'function') {
-                const handlers = this.globalHandlers.get(event) ?? new Set<(event?: any) => void>();
+                const handlers =
+                    this.globalHandlers.get(event) ??
+                    new Set<(event?: any) => void>();
                 handlers.add(layerOrHandler);
                 this.globalHandlers.set(event, handlers);
             }
@@ -59,7 +77,11 @@ vi.mock('maplibre-gl', () => ({
             this.on(event, onceHandler);
         }
 
-        public off(event: string, layerOrHandler: string | ((event?: any) => void), maybeHandler?: (event?: any) => void): void {
+        public off(
+            event: string,
+            layerOrHandler: string | ((event?: any) => void),
+            maybeHandler?: (event?: any) => void,
+        ): void {
             if (typeof layerOrHandler === 'string' && maybeHandler) {
                 const handlersByLayer = this.layerHandlers.get(event);
                 const handlers = handlersByLayer?.get(layerOrHandler);
@@ -74,18 +96,25 @@ vi.mock('maplibre-gl', () => ({
         }
 
         public emit(event: string, payload?: any): void {
-            this.globalHandlers.get(event)?.forEach((handler) => handler(payload));
+            this.globalHandlers
+                .get(event)
+                ?.forEach((handler) => handler(payload));
         }
 
         public emitLayer(event: string, layerId: string, payload?: any): void {
-            this.layerHandlers.get(event)?.get(layerId)?.forEach((handler) => handler(payload));
+            this.layerHandlers
+                .get(event)
+                ?.get(layerId)
+                ?.forEach((handler) => handler(payload));
         }
 
         public addSource(sourceId: string): void {
             this.sources.set(sourceId, { setData: vi.fn() });
         }
 
-        public getSource(sourceId: string): { setData: ReturnType<typeof vi.fn> } | undefined {
+        public getSource(
+            sourceId: string,
+        ): { setData: ReturnType<typeof vi.fn> } | undefined {
             return this.sources.get(sourceId);
         }
 
@@ -123,9 +152,12 @@ vi.mock('maplibre-gl', () => ({
     },
 }));
 
-vi.mock('@/actions/App/Http/Api/V1/Controllers/MapResolutionController', () => ({
-    resolveOhmFeature: vi.fn(),
-}));
+vi.mock(
+    '@/actions/App/Http/Api/V1/Controllers/MapResolutionController',
+    () => ({
+        resolveOhmFeature: vi.fn(),
+    }),
+);
 
 vi.mock('@/lib/map-config', () => ({
     loadHistoricalBasemapStyle: vi.fn(async () => ({
@@ -175,13 +207,19 @@ describe('HistoricalMapViewer', () => {
         );
 
         await waitFor(() => {
-            expect(mapTestState.latestMapInstance?.getSource('base-geometry')).toBeDefined();
+            expect(
+                mapTestState.latestMapInstance?.getSource('base-geometry'),
+            ).toBeDefined();
         });
 
         await act(async () => {
-            mapTestState.latestMapInstance?.emitLayer('mouseenter', 'base-point', {
-                features: [feature],
-            });
+            mapTestState.latestMapInstance?.emitLayer(
+                'mouseenter',
+                'base-point',
+                {
+                    features: [feature],
+                },
+            );
         });
 
         expect(await screen.findByText('Rome')).toBeInTheDocument();
@@ -211,7 +249,9 @@ describe('HistoricalMapViewer', () => {
         );
 
         await waitFor(() => {
-            expect(mapTestState.latestMapInstance?.getSource('base-geometry')).toBeDefined();
+            expect(
+                mapTestState.latestMapInstance?.getSource('base-geometry'),
+            ).toBeDefined();
         });
 
         await act(async () => {
