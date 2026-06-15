@@ -228,6 +228,87 @@ class ImportEntitiesCommandTest extends TestCase
         ]);
     }
 
+    private function importRecord(array $record): void
+    {
+        file_put_contents($this->jsonlFile, json_encode($record)."\n");
+
+        $this->artisan('pipeline:import', [
+            'path' => $this->jsonlFile,
+            '--sync' => true,
+            '--skip-relationships' => true,
+        ])->assertExitCode(0);
+    }
+
+    public function test_dedup_by_ohm_external_id_when_wikidata_differs(): void
+    {
+        $base = [
+            'name' => 'Roman Empire',
+            'entity_type' => 'political_entity',
+            'entity_group' => 'POLITY',
+            'wikidata_id' => 'Q2277',
+            'summary' => 'first',
+            'location_name' => 'Rome',
+            'verification_status' => 'pipeline_draft',
+            'confidence' => 'medium',
+            '_geo_resolution' => $this->geoResolutionManifest(),
+        ];
+        $this->importRecord($base);
+
+        // Same OHM feature (external_id 1880) but a DIFFERENT Wikidata id — this is
+        // the cross-transcript case that used to create a duplicate.
+        $this->importRecord(array_replace($base, ['wikidata_id' => 'Q9999999', 'summary' => 'second']));
+
+        $this->assertDatabaseCount('entities', 1);
+        $this->assertDatabaseHas('entities', ['name' => 'Roman Empire', 'summary' => 'first']);
+    }
+
+    public function test_dedup_by_name_and_overlapping_era_when_wikidata_differs(): void
+    {
+        $first = [
+            'name' => 'Deutsches Reich',
+            'entity_type' => 'political_entity',
+            'entity_group' => 'POLITY',
+            'wikidata_id' => 'Q43287',
+            'summary' => 'german empire',
+            'temporal_start' => '1871',
+            'temporal_end' => '1918',
+            'verification_status' => 'pipeline_draft',
+            'confidence' => 'medium',
+        ];
+        $this->importRecord($first);
+
+        // Same name + type + overlapping era, different QID -> merge (no new row).
+        $this->importRecord(array_replace($first, ['wikidata_id' => 'Q139911734', 'summary' => 'dup']));
+
+        $this->assertDatabaseCount('entities', 1);
+    }
+
+    public function test_keeps_distinct_era_namesakes(): void
+    {
+        $german = [
+            'name' => 'Deutsches Reich',
+            'entity_type' => 'political_entity',
+            'entity_group' => 'POLITY',
+            'wikidata_id' => 'Q43287',
+            'summary' => 'german empire',
+            'temporal_start' => '1871',
+            'temporal_end' => '1918',
+            'verification_status' => 'pipeline_draft',
+            'confidence' => 'medium',
+        ];
+        $this->importRecord($german);
+
+        // Same name but a non-overlapping era (Nazi Germany) -> kept separate.
+        $this->importRecord(array_replace($german, [
+            'wikidata_id' => 'Q7318',
+            'summary' => 'nazi germany',
+            'temporal_start' => '1933',
+            'temporal_end' => '1945',
+        ]));
+
+        $this->assertDatabaseCount('entities', 2);
+    }
+
     public function test_sync_import_skips_geo_ref_creation_when_manifest_reports_no_match(): void
     {
         $record = [

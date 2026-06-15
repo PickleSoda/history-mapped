@@ -58,6 +58,7 @@ CRITICAL RULES — entity & relation modeling:
    - technologies named as significant -> entity_type "technology" (e.g. "ballistae", "gunpowder", "stirrup");
    - religions / religious movements -> entity_type "religious_movement" (e.g. "Christianity", "Orthodoxy", "Catholicism", "Islam"), and use schism_from / influenced_by for splits like the East–West Schism.
    A good rule of thumb: every proper noun that denotes a polity, person, place, event, technology, or religion in the sentence should appear as a candidate entity.
+9. COALITIONS & ALLIANCES are NOT single places. A multi-state coalition, alliance, or league (e.g. "Allied Powers", "Central Powers", "Axis", "Triple Entente", "Triple Alliance", "Delian League", "Holy League", "Eight-Nation Alliance", "League of Corinth") must be typed entity_type "diplomatic_relationship" — NEVER "political_entity" — and must not be given a territory. Instead, link each member state to it: "<member state> part_of <coalition>" (one relation per member you can identify), and connect opposing sides with "<side A> at_war_with <side B>". A sovereign state that happens to be a federation/union (e.g. "Soviet Union") is a political_entity, not a coalition.
 
 Worked example — input "In 333 BCE Alexander defeated Darius III at the Battle of Issus, then besieged Tyre.":
 {"candidate_entities": [

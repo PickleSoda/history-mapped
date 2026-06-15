@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Actions\EntityGeoRef\ImportGeoResolutionAction;
 use App\Actions\Entity\CreateEntityAction;
 use App\Actions\Entity\UpdateEntityAction;
+use App\Actions\EntityGeoRef\ImportGeoResolutionAction;
 use App\DTOs\EntityData;
 use App\Models\Entity;
 use App\Models\EntityTemporalRange;
@@ -133,27 +133,101 @@ class ImportEntityJob implements ShouldQueue
     }
 
     /**
-     * Find an existing entity by wikidata_id, or by exact name + type as fallback.
+     * Find an existing entity, layering three dedup keys so the same polity
+     * imported from two transcripts collapses to one row:
+     *   1. wikidata_id (exact)
+     *   2. OHM external_id — authoritative for OHM-resolved polities; two rows
+     *      pointing at the same OHM feature are the same entity even when their
+     *      Wikidata QIDs differ (e.g. "Tawantinsuyu" Q28573 vs Q6609847).
+     *   3. name + type with overlapping era — merges the same polity (German
+     *      Empire 1871–1918 ×2) while keeping distinct-era namesakes apart
+     *      (German Empire vs Nazi "Deutsches Reich" 1933–1945).
+     *
+     * Critically, a wikidata_id MISS no longer short-circuits to null — it falls
+     * through to the OHM-id and name+era checks (the previous behaviour created
+     * the cross-transcript duplicates).
      */
     private function findExisting(array $record): ?Entity
     {
         $wikidataId = $record['wikidata_id'] ?? null;
-
         if ($wikidataId) {
-            return Entity::query()->where('wikidata_id', $wikidataId)->first();
+            $byWikidata = Entity::query()->where('wikidata_id', $wikidataId)->first();
+            if ($byWikidata !== null) {
+                return $byWikidata;
+            }
+        }
+
+        $ohmExternalId = $this->ohmExternalId($record);
+        if ($ohmExternalId !== null) {
+            $byOhm = Entity::query()
+                ->whereHas('geoRefs', function ($query) use ($ohmExternalId) {
+                    $query->where('provider', 'ohm')->where('external_id', $ohmExternalId);
+                })
+                ->first();
+            if ($byOhm !== null) {
+                return $byOhm;
+            }
         }
 
         $name = $record['name'] ?? null;
         $type = $record['entity_type'] ?? null;
-
         if ($name && $type) {
-            return Entity::query()
+            $startYear = $this->parseYear($record['temporal_start'] ?? null);
+            $endYear = $this->parseYear($record['temporal_end'] ?? null);
+
+            $candidates = Entity::query()
                 ->where('name', $name)
                 ->where('entity_type', $type)
-                ->first();
+                ->with('primaryTemporalRange')
+                ->get();
+
+            foreach ($candidates as $candidate) {
+                if ($this->erasOverlap($startYear, $endYear, $candidate)) {
+                    return $candidate;
+                }
+            }
         }
 
         return null;
+    }
+
+    /**
+     * Extract the OHM feature id from the record's geo-resolution manifest.
+     */
+    private function ohmExternalId(array $record): ?string
+    {
+        $geoRef = $record['_geo_resolution']['geo_ref'] ?? null;
+        if (! is_array($geoRef) || ($geoRef['provider'] ?? null) !== 'ohm') {
+            return null;
+        }
+
+        $externalId = $geoRef['external_id'] ?? null;
+
+        return is_string($externalId) && $externalId !== '' ? $externalId : null;
+    }
+
+    /**
+     * Whether an incoming [start, end] era overlaps a candidate's primary range.
+     * Missing bounds on either side are treated as "same entity" (lenient) so we
+     * don't proliferate dateless duplicates; two fully-dated, non-overlapping
+     * spans are kept separate.
+     */
+    private function erasOverlap(?int $start, ?int $end, Entity $candidate): bool
+    {
+        $range = $candidate->primaryTemporalRange;
+        $candidateStart = $range?->start_year;
+        $candidateEnd = $range?->end_year;
+
+        if (($start === null && $end === null) || ($candidateStart === null && $candidateEnd === null)) {
+            return true;
+        }
+
+        $s = $start ?? $end;
+        $e = $end ?? $start;
+        $cs = $candidateStart ?? $candidateEnd;
+        $ce = $candidateEnd ?? $candidateStart;
+
+        return max($s, $cs) <= min($e, $ce);
     }
 
     /**

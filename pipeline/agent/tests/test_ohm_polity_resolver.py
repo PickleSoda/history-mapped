@@ -46,6 +46,17 @@ def test_best_candidate_rejects_irrelevant():
     assert r.best_candidate(junk, "Byzantine Empire", None) is None
 
 
+def test_best_candidate_rejects_physical_feature():
+    # A polity/coalition name ("Allies") must not latch onto a same-named street;
+    # OHM returns it class=highway, which we reject outright even on a name match.
+    street = {
+        "external_type": "way", "external_id": "201952436",
+        "match_label": "Allies", "display_name": "Allies Street",
+        "external_tags": {}, "source_meta": {"class": "highway", "type": "residential"},
+    }
+    assert r.best_candidate([street], "Allies", None) is None
+
+
 def test_build_manifest_shape():
     m = r.build_manifest({**BYZANTINE[0], "match_score": 0.9}, "Byzantine Empire", 2)
     assert m["status"] == "matched"

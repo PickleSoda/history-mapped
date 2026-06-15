@@ -36,6 +36,9 @@ def create_llm(
     api_key: str | None,
     base_url: str | None = None,
     temperature: float = 0.0,
+    timeout: float | None = None,
+    max_retries: int = 0,
+    max_tokens: int | None = None,
 ) -> ChatOpenAI:
     """Create a ChatOpenAI instance configured for the given endpoint.
 
@@ -49,6 +52,10 @@ def create_llm(
               For OpenRouter, use "https://openrouter.ai/api/v1".
               For Ollama, use "http://localhost:11434/v1".
     temperature: Sampling temperature. Defaults to 0 for deterministic output.
+    timeout: Per-request timeout in seconds. None uses the SDK default (600s).
+    max_retries: SDK-internal retries. Defaults to 0 because FallbackLLM owns the
+              retry/fallback loop — letting the SDK also retry compounds latency
+              (600s × 3 internal × N fallback attempts hangs a run for ~30 min).
 
     Returns
     -------
@@ -57,11 +64,16 @@ def create_llm(
     kwargs: dict = {
         "model": model,
         "temperature": temperature,
+        "max_retries": max_retries,
     }
     if api_key is not None:
         kwargs["api_key"] = api_key
     if base_url is not None:
         kwargs["base_url"] = base_url
+    if timeout is not None:
+        kwargs["timeout"] = timeout
+    if max_tokens is not None:
+        kwargs["max_tokens"] = max_tokens
 
     return ChatOpenAI(**kwargs)
 
@@ -81,6 +93,8 @@ class FallbackLLM:
         base_url: str | None = None,
         temperature: float = 0.0,
         max_retries_per_model: int = 2,
+        request_timeout: float | None = None,
+        max_tokens: int | None = None,
     ):
         self._primary_model = primary_model
         self._fallback_models = fallback_models
@@ -88,6 +102,8 @@ class FallbackLLM:
         self._base_url = base_url
         self._temperature = temperature
         self._max_retries = max_retries_per_model
+        self._request_timeout = request_timeout
+        self._max_tokens = max_tokens
         self._primary_llm = self._create_llm(primary_model)
 
     def _create_llm(self, model: str) -> ChatOpenAI:
@@ -96,6 +112,8 @@ class FallbackLLM:
             api_key=self._api_key,
             base_url=self._base_url,
             temperature=self._temperature,
+            timeout=self._request_timeout,
+            max_tokens=self._max_tokens,
         )
 
     def invoke(self, messages: list[Any], **kwargs: Any) -> BaseMessage:
@@ -128,6 +146,7 @@ def create_llm_with_fallbacks(
     model_key: str,
     cfg: AgentConfig,
     temperature: float = 0.0,
+    max_tokens: int | None = None,
 ) -> FallbackLLM:
     """Create a FallbackLLM for the given model key.
 
@@ -151,4 +170,6 @@ def create_llm_with_fallbacks(
         api_key=cfg.openai_api_key,
         base_url=cfg.llm_base_url,
         temperature=temperature,
+        request_timeout=cfg.llm_request_timeout,
+        max_tokens=max_tokens,
     )
