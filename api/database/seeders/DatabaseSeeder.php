@@ -14,9 +14,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // ── Roles must exist before users are assigned them ──────────
+        // ── Roles + permissions must exist before users are assigned them ──
 
         $this->call(RoleSeeder::class);
+        $this->call(PermissionSeeder::class);
 
         // ── Named users (one per role, known credentials for dev) ────
 

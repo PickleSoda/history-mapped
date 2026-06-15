@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Web;
 
 use App\Models\Chronicle;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -15,7 +14,7 @@ class ChronicleNarrativeRequiredTest extends TestCase
 
     public function test_store_chronicle_requires_narrative_text_in_entries(): void
     {
-        $user = User::factory()->create();
+        $user = $this->userWithRole('admin');
         $this->actingAs($user);
 
         $response = $this->post(route('chronicles.store'), [
@@ -24,8 +23,8 @@ class ChronicleNarrativeRequiredTest extends TestCase
             'entries' => [
                 [
                     'sequence_order' => 1,
-                ]
-            ]
+                ],
+            ],
         ]);
 
         $response->assertSessionHasErrors(['entries.0.narrative_text']);
@@ -33,7 +32,7 @@ class ChronicleNarrativeRequiredTest extends TestCase
 
     public function test_update_chronicle_requires_narrative_text_in_entries(): void
     {
-        $user = User::factory()->create();
+        $user = $this->userWithRole('admin');
         $this->actingAs($user);
 
         $chronicle = Chronicle::factory()->create([
@@ -45,8 +44,8 @@ class ChronicleNarrativeRequiredTest extends TestCase
             'entries' => [
                 [
                     'sequence_order' => 1,
-                ]
-            ]
+                ],
+            ],
         ]);
 
         $response->assertSessionHasErrors(['entries.0.narrative_text']);
@@ -54,7 +53,7 @@ class ChronicleNarrativeRequiredTest extends TestCase
 
     public function test_store_chronicle_with_narrative_text_succeeds(): void
     {
-        $user = User::factory()->create();
+        $user = $this->userWithRole('admin');
         $this->actingAs($user);
 
         $response = $this->post(route('chronicles.store'), [
@@ -64,8 +63,8 @@ class ChronicleNarrativeRequiredTest extends TestCase
                 [
                     'sequence_order' => 1,
                     'narrative_text' => 'This is a valid narrative text for the chronicle entry.',
-                ]
-            ]
+                ],
+            ],
         ]);
 
         $response->assertRedirect();
