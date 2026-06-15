@@ -26,12 +26,12 @@ return new class extends Migration
             ON DELETE CASCADE');
 
         DB::statement('DROP INDEX IF EXISTS egr_entity_external_unique_idx');
-        DB::statement("CREATE UNIQUE INDEX egr_entity_external_unique_root_idx
+        DB::statement('CREATE UNIQUE INDEX egr_entity_external_unique_root_idx
             ON entity_geo_refs (entity_id, provider, external_type, external_id)
-            WHERE geometry_period_id IS NULL");
-        DB::statement("CREATE UNIQUE INDEX egr_entity_external_period_unique_idx
+            WHERE geometry_period_id IS NULL');
+        DB::statement('CREATE UNIQUE INDEX egr_entity_external_period_unique_idx
             ON entity_geo_refs (entity_id, provider, external_type, external_id, geometry_period_id)
-            WHERE geometry_period_id IS NOT NULL");
+            WHERE geometry_period_id IS NOT NULL');
         DB::statement('CREATE INDEX IF NOT EXISTS egr_geometry_period_idx ON entity_geo_refs (geometry_period_id)');
     }
 

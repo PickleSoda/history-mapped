@@ -8,6 +8,7 @@ use App\Models\Entity;
 use App\Models\EntityRelationship;
 use App\Models\EntityTemporalRange;
 use App\Models\GeometryPeriod;
+use Illuminate\Support\Collection;
 
 class BackfillGeometryPeriodsAction
 {
@@ -103,7 +104,7 @@ class BackfillGeometryPeriodsAction
     }
 
     /**
-     * @param  \Illuminate\Support\Collection<int, EntityTemporalRange>  $ranges
+     * @param  Collection<int, EntityTemporalRange>  $ranges
      */
     private function backfillDerivedPresencePeriods(Entity $entity, $ranges, ?array $geom, ?array $territoryGeom): int
     {

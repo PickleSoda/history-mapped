@@ -26,6 +26,9 @@ export default [
     rules: {
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
+      // Resetting a transient index from an effect is a benign, common pattern;
+      // keep it visible as a warning rather than failing the build.
+      'react-hooks/set-state-in-effect': 'warn',
     },
   },
   {

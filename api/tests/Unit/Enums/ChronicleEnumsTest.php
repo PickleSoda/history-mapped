@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Enums;
 
+use App\Enums\ChronicleEntryRole;
 use App\Enums\ChronicleStatus;
 use App\Enums\SourceType;
-use App\Enums\ChronicleEntryRole;
 use PHPUnit\Framework\TestCase;
 
 class ChronicleEnumsTest extends TestCase

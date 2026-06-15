@@ -19,14 +19,14 @@ class ListChroniclesAction
     {
         $query = Chronicle::query()->withCount('entries');
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
-                $q->where('title', 'ilike', '%' . $filters['search'] . '%')
-                  ->orWhere('slug', 'ilike', '%' . $filters['search'] . '%');
+                $q->where('title', 'ilike', '%'.$filters['search'].'%')
+                    ->orWhere('slug', 'ilike', '%'.$filters['search'].'%');
             });
         }
 
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 

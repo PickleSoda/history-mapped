@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Admin;
 
 use App\Enums\EntityType;
-use App\Enums\VerificationStatus;
 use App\Models\Entity;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;

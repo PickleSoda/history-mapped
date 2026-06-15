@@ -268,7 +268,7 @@ class ResolveRelationshipsJob implements ShouldQueue
      */
     private function markHint(int $hintId, string $note): void
     {
-        $isTerminal = !in_array($note, ['target_not_found'], true);
+        $isTerminal = ! in_array($note, ['target_not_found'], true);
 
         DB::table('pipeline_relationship_hints')
             ->where('id', $hintId)

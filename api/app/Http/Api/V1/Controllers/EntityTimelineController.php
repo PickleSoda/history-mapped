@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Api\V1\Controllers;
 
-use App\Http\Api\V1\Resources\EntityTimelineEntrySummaryResource;
 use App\Http\Api\V1\Resources\EntityTimelineEntryResource;
+use App\Http\Api\V1\Resources\EntityTimelineEntrySummaryResource;
 use App\Http\Controllers\Controller;
 use App\Models\Entity;
 use App\Models\EntityTimelineEntry;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class EntityTimelineController extends Controller
@@ -76,9 +77,9 @@ class EntityTimelineController extends Controller
      * its entries). Under the borders-from-OHM policy (D19) the history panel
      * uses this to highlight the OHM basemap feature instead of a stored polygon.
      *
-     * @param  \Illuminate\Support\Collection<int, EntityTimelineEntry>  $entries
+     * @param  Collection<int, EntityTimelineEntry>  $entries
      */
-    private function decorateWithOhmRef(\Illuminate\Support\Collection $entries, string $entityId): void
+    private function decorateWithOhmRef(Collection $entries, string $entityId): void
     {
         $ref = DB::table('entity_geo_refs')
             ->where('entity_id', $entityId)

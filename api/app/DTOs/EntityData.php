@@ -25,7 +25,7 @@ readonly class EntityData
      * @param  list<string>|null  $tags
      * @param  list<string>|null  $alternativeNames
      * @param  array<string, mixed>|null  $attributes
-     * @param  array<string, mixed>|null  $geojson       GeoJSON geometry object for point location
+     * @param  array<string, mixed>|null  $geojson  GeoJSON geometry object for point location
      * @param  array<string, mixed>|null  $territoryGeojson  GeoJSON geometry for territory/area
      * @param  list<array<string, mixed>>|null  $sourceCitations
      */

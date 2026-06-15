@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Actions\Relationship\CreateRelationshipAction;
 use App\Actions\Relationship\CreateDerivedPresencePeriodAction;
+use App\Actions\Relationship\CreateRelationshipAction;
 use App\DTOs\RelationshipData;
 use App\Enums\ConfidenceLevel;
 use App\Enums\RelationshipType;

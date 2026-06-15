@@ -2,9 +2,10 @@ import { CornerDownLeft, MapPin, Search, X } from 'lucide-react';
 import {
   useEffect,
   useRef,
-  useState,
-  type KeyboardEvent as ReactKeyboardEvent,
+  useState
+  
 } from 'react';
+import type {KeyboardEvent as ReactKeyboardEvent} from 'react';
 import { GroupBadge, GroupDot } from '@/components/atlas/GroupBadge';
 import { useCommandPalette, useEntitySearch, useSelection } from '@/hooks';
 import { formatYear } from '@/lib/format';

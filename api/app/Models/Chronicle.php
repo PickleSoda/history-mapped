@@ -20,8 +20,11 @@ class Chronicle extends Model
     use HasFactory;
 
     protected $table = 'chronicles';
+
     protected $primaryKey = 'chronicle_id';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected function casts(): array

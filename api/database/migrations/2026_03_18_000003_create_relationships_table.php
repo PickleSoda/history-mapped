@@ -61,15 +61,15 @@ return new class extends Migration
         });
 
         // ── PG enum columns ──────────────────────────────
-        DB::statement("
+        DB::statement('
             ALTER TABLE relationships
                 ADD COLUMN relationship_type relationship_type NOT NULL
-        ");
+        ');
 
-        DB::statement("
+        DB::statement('
             ALTER TABLE relationships
             ADD COLUMN confidence confidence_level
-        ");
+        ');
 
         DB::unprepared(<<<'SQL'
 CREATE OR REPLACE FUNCTION relationships_sync_years()
@@ -109,21 +109,21 @@ SQL);
         // ── Indexes requiring raw SQL ────────────────────
 
         // B-tree on the enum column
-        DB::statement("
+        DB::statement('
             CREATE INDEX relationships_relationship_type_index
                 ON relationships (relationship_type)
-        ");
+        ');
 
         // Composite indexes
-        DB::statement("
+        DB::statement('
             CREATE INDEX relationships_source_entity_id_relationship_type_index
                 ON relationships (source_entity_id, relationship_type)
-        ");
+        ');
 
-        DB::statement("
+        DB::statement('
             CREATE INDEX relationships_target_entity_id_relationship_type_index
                 ON relationships (target_entity_id, relationship_type)
-        ");
+        ');
 
         DB::statement('CREATE INDEX relationships_start_year_idx ON relationships (start_year)');
         DB::statement('CREATE INDEX relationships_end_year_idx ON relationships (end_year)');

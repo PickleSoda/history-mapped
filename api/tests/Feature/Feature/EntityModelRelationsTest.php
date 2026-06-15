@@ -11,6 +11,8 @@ use App\Models\EntityTag;
 use App\Models\EntityTemporalRange;
 use App\Models\EntityTimelineEntry;
 use App\Models\GeometryPeriod;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -132,7 +134,7 @@ class EntityModelRelationsTest extends TestCase
     public function test_entity_geometry_periods_relation_is_defined(): void
     {
         $this->assertInstanceOf(
-            \Illuminate\Database\Eloquent\Relations\HasMany::class,
+            HasMany::class,
             $this->entity->geometryPeriods()
         );
     }
@@ -140,7 +142,7 @@ class EntityModelRelationsTest extends TestCase
     public function test_entity_timeline_entries_relation_is_defined(): void
     {
         $this->assertInstanceOf(
-            \Illuminate\Database\Eloquent\Relations\HasMany::class,
+            HasMany::class,
             $this->entity->timelineEntries()
         );
     }
@@ -152,7 +154,7 @@ class EntityModelRelationsTest extends TestCase
         $period = new GeometryPeriod(['entity_id' => $this->entity->entity_id]);
 
         $this->assertInstanceOf(
-            \Illuminate\Database\Eloquent\Relations\BelongsTo::class,
+            BelongsTo::class,
             $period->entity()
         );
     }
@@ -162,7 +164,7 @@ class EntityModelRelationsTest extends TestCase
         $period = new GeometryPeriod(['relationship_id' => null]);
 
         $this->assertInstanceOf(
-            \Illuminate\Database\Eloquent\Relations\BelongsTo::class,
+            BelongsTo::class,
             $period->relationship()
         );
     }
@@ -172,7 +174,7 @@ class EntityModelRelationsTest extends TestCase
         $period = new GeometryPeriod(['source_event_id' => null]);
 
         $this->assertInstanceOf(
-            \Illuminate\Database\Eloquent\Relations\BelongsTo::class,
+            BelongsTo::class,
             $period->sourceEvent()
         );
     }
@@ -184,7 +186,7 @@ class EntityModelRelationsTest extends TestCase
         $entry = new EntityTimelineEntry(['entity_id' => $this->entity->entity_id]);
 
         $this->assertInstanceOf(
-            \Illuminate\Database\Eloquent\Relations\BelongsTo::class,
+            BelongsTo::class,
             $entry->entity()
         );
     }

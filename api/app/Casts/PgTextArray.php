@@ -22,9 +22,6 @@ class PgTextArray implements CastsAttributes
     /**
      * Parse a PostgreSQL text[] literal into a PHP string array.
      *
-     * @param  Model  $model
-     * @param  string  $key
-     * @param  mixed  $value
      * @param  array<string, mixed>  $attributes
      * @return list<string>|null
      */
@@ -43,11 +40,7 @@ class PgTextArray implements CastsAttributes
     /**
      * Convert a PHP string array to a PostgreSQL text[] literal.
      *
-     * @param  Model  $model
-     * @param  string  $key
-     * @param  mixed  $value
      * @param  array<string, mixed>  $attributes
-     * @return string|null
      */
     public function set(Model $model, string $key, mixed $value, array $attributes): ?string
     {
@@ -64,10 +57,10 @@ class PgTextArray implements CastsAttributes
             $item = str_replace('\\', '\\\\', $item);
             $item = str_replace('"', '\\"', $item);
 
-            return '"' . $item . '"';
+            return '"'.$item.'"';
         }, $value);
 
-        return '{' . implode(',', $escaped) . '}';
+        return '{'.implode(',', $escaped).'}';
     }
 
     /**

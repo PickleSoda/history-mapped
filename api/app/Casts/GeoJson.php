@@ -6,6 +6,7 @@ namespace App\Casts;
 
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -23,9 +24,6 @@ class GeoJson implements CastsAttributes
      * EntityBuilder::withGeoJson()), the value is already a decoded JSON
      * object/array and no extra DB round-trip is needed.
      *
-     * @param  Model  $model
-     * @param  string  $key
-     * @param  mixed  $value
      * @param  array<string, mixed>  $attributes
      * @return array<string, mixed>|null
      */
@@ -33,7 +31,7 @@ class GeoJson implements CastsAttributes
     {
         // Check for a pre-computed GeoJSON attribute (set by withGeoJson()).
         // This avoids the N+1 query on list endpoints.
-        $precomputedKey = $key . '_geojson';
+        $precomputedKey = $key.'_geojson';
         if (array_key_exists($precomputedKey, $attributes)) {
             $precomputed = $attributes[$precomputedKey];
 
@@ -69,11 +67,8 @@ class GeoJson implements CastsAttributes
      * Uses ST_SetSRID(ST_GeomFromGeoJSON(...), 4326) so the SRID is always
      * set correctly at input time (per PostGIS best practices).
      *
-     * @param  Model  $model
-     * @param  string  $key
-     * @param  mixed  $value
      * @param  array<string, mixed>  $attributes
-     * @return \Illuminate\Database\Query\Expression|null
+     * @return Expression|null
      */
     public function set(Model $model, string $key, mixed $value, array $attributes): mixed
     {

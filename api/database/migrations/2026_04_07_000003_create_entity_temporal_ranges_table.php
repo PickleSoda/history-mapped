@@ -32,8 +32,8 @@ return new class extends Migration
                 ->cascadeOnDelete();
         });
 
-        DB::statement("ALTER TABLE entity_temporal_ranges ADD CONSTRAINT etr_valid_year_range
-            CHECK (start_year IS NULL OR end_year IS NULL OR start_year <= end_year)");
+        DB::statement('ALTER TABLE entity_temporal_ranges ADD CONSTRAINT etr_valid_year_range
+            CHECK (start_year IS NULL OR end_year IS NULL OR start_year <= end_year)');
 
         DB::unprepared(<<<'SQL'
 CREATE OR REPLACE FUNCTION entity_temporal_ranges_sync_years()

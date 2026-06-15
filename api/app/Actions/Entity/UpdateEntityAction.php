@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Actions\Entity;
 
 use App\DTOs\EntityData;
+use App\Models\Entity;
 use App\Models\EntityAlias;
 use App\Models\EntityLocation;
 use App\Models\EntityTag;
 use App\Models\EntityTemporalRange;
-use App\Models\Entity;
 use Illuminate\Support\Facades\DB;
 
 /**

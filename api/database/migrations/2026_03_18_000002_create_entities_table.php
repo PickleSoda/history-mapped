@@ -63,24 +63,24 @@ return new class extends Migration
         // ──────────────────────────────────────────────
 
         // Core identity
-        DB::statement("ALTER TABLE entities ADD COLUMN entity_type entity_type NOT NULL");
-        DB::statement("ALTER TABLE entities ADD COLUMN entity_group entity_group NOT NULL");
+        DB::statement('ALTER TABLE entities ADD COLUMN entity_type entity_type NOT NULL');
+        DB::statement('ALTER TABLE entities ADD COLUMN entity_group entity_group NOT NULL');
 
         // Spatial
-        DB::statement("ALTER TABLE entities ADD COLUMN location_confidence confidence_level");
-        DB::statement("ALTER TABLE entities ADD COLUMN location_method location_resolution_method");
+        DB::statement('ALTER TABLE entities ADD COLUMN location_confidence confidence_level');
+        DB::statement('ALTER TABLE entities ADD COLUMN location_method location_resolution_method');
 
         // Temporal
-        DB::statement("ALTER TABLE entities ADD COLUMN date_method date_resolution_method");
-        DB::statement("ALTER TABLE entities ADD COLUMN date_confidence confidence_level");
-        DB::statement("ALTER TABLE entities ADD COLUMN duration_type duration_type");
+        DB::statement('ALTER TABLE entities ADD COLUMN date_method date_resolution_method');
+        DB::statement('ALTER TABLE entities ADD COLUMN date_confidence confidence_level');
+        DB::statement('ALTER TABLE entities ADD COLUMN duration_type duration_type');
 
         // Verification
         DB::statement("ALTER TABLE entities ADD COLUMN verification_status verification_status NOT NULL DEFAULT 'pipeline_draft'");
-        DB::statement("ALTER TABLE entities ADD COLUMN confidence confidence_level");
+        DB::statement('ALTER TABLE entities ADD COLUMN confidence confidence_level');
 
         // Display
-        DB::statement("ALTER TABLE entities ADD COLUMN icon_class icon_class");
+        DB::statement('ALTER TABLE entities ADD COLUMN icon_class icon_class');
 
         // ──────────────────────────────────────────────
         // 3. Indexes

@@ -51,18 +51,18 @@ return new class extends Migration
         });
 
         // ── PG enum column ───────────────────────────────
-        DB::statement("
+        DB::statement('
             ALTER TABLE sources
                 ADD COLUMN source_type reliability_tier NOT NULL
-        ");
+        ');
 
         // ── Indexes requiring raw SQL ────────────────────
 
         // B-tree on the enum column
-        DB::statement("
+        DB::statement('
             CREATE INDEX sources_source_type_index
                 ON sources (source_type)
-        ");
+        ');
 
         // Full-text search on title (GIN with to_tsvector)
         DB::statement("

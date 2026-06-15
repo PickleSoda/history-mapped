@@ -37,8 +37,7 @@ class MapEntitiesByYearEndpointTest extends TestCase
         int $startYear,
         int $endYear,
         ?string $polygonWkt = null,
-    ): void
-    {
+    ): void {
         $polygon = $polygonWkt ?? 'POLYGON((10 40, 11 40, 11 41, 10 41, 10 40))';
 
         DB::statement(

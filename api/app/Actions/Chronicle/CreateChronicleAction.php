@@ -65,7 +65,7 @@ class CreateChronicleAction
                 'source_evidence' => $entryData['source_evidence'] ?? null,
             ]);
 
-            if (!empty($entryData['secondary_entity_ids']) && is_array($entryData['secondary_entity_ids'])) {
+            if (! empty($entryData['secondary_entity_ids']) && is_array($entryData['secondary_entity_ids'])) {
                 $pivotData = [];
                 foreach ($entryData['secondary_entity_ids'] as $index => $entityId) {
                     $pivotData[$entityId] = [

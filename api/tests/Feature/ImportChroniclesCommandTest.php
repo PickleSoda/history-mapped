@@ -17,7 +17,7 @@ class ImportChroniclesCommandTest extends TestCase
     public function test_import_persists_new_fields_and_source_evidence(): void
     {
         $fixturePath = storage_path('app/testing/chronicle.json');
-        
+
         $fixtureData = [
             'title' => 'Test Chronicle',
             'slug' => 'test-chronicle',

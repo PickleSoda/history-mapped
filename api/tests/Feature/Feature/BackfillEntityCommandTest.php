@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Tests\Feature\Feature;
 
 use App\Models\Entity;
-use App\Models\EntityRelationship;
-use App\Models\GeometryPeriod;
-use App\Models\EntityTimelineEntry;
+use App\Models\EntityAlias;
 use App\Models\EntityLocation;
+use App\Models\EntityRelationship;
+use App\Models\EntityTag;
 use App\Models\EntityTemporalRange;
+use App\Models\EntityTimelineEntry;
+use App\Models\GeometryPeriod;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
@@ -23,24 +26,24 @@ class BackfillEntityCommandTest extends TestCase
     {
         $entity = Entity::factory()->create();
 
-        \App\Models\EntityAlias::query()->create([
+        EntityAlias::query()->create([
             'entity_id' => $entity->entity_id,
             'name' => 'Imperium Romanum',
             'is_primary' => false,
         ]);
 
-        \App\Models\EntityAlias::query()->create([
+        EntityAlias::query()->create([
             'entity_id' => $entity->entity_id,
             'name' => 'Res Publica Romana',
             'is_primary' => false,
         ]);
 
-        \App\Models\EntityTag::query()->create([
+        EntityTag::query()->create([
             'entity_id' => $entity->entity_id,
             'tag' => 'rome',
         ]);
 
-        \App\Models\EntityTemporalRange::query()->create([
+        EntityTemporalRange::query()->create([
             'entity_id' => $entity->entity_id,
             'range_type' => 'primary',
             'start_year' => -509,
@@ -50,7 +53,7 @@ class BackfillEntityCommandTest extends TestCase
             'is_primary' => true,
         ]);
 
-        \App\Models\EntityLocation::query()->create([
+        EntityLocation::query()->create([
             'entity_id' => $entity->entity_id,
             'location_name' => 'Rome',
             'is_primary' => true,
@@ -105,7 +108,7 @@ class BackfillEntityCommandTest extends TestCase
 
     public function test_database_seeder_runs_backfill_for_canonical_tables(): void
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
 
         $entity = Entity::query()->where('name', 'Roman Empire')->firstOrFail();
 
