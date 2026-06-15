@@ -35,8 +35,8 @@
 | 13-ohm-phase-5-change-requests-and-contribution-pipeline | ⬜ | No change_requests tables/models; depends on Phase 4. |
 | 14-experimental-inferred-boundary-fallback-pipeline | ⬜ | Explicitly experimental; no `pipeline/inference/` yet. |
 | 15-ohm-bulk-border-ingestion | ✅ | `pipeline/ohm_borders/*`, `ImportBordersCommand`, OHM-draft constraints. |
-| 16-openapi-docs-exposure | ⬜ | No Scramble config/UI; was blocked on RBAC (17), now unblocking. |
-| 17-rbac-write-authorization | 🟡 | **In progress (concurrent work):** `permission:` middleware on write routes + `Gate::before` admin super-user landed in `routes/api.php` / `AppServiceProvider`; verify PermissionSeeder, Policies, and tests to close out. |
+| 16-openapi-docs-exposure | ✅ | Scramble docs at `/docs/api` scoped to `api/v1`; `viewApiDocs` gate (admin / `SCRAMBLE_DOCS_PUBLIC`); Sanctum bearer scheme documented; `ApiDocsTest`. Commit `fd6b69f`. |
+| 17-rbac-write-authorization | ✅ | `permission:`-gated writes (reads stay public), `PermissionSeeder`, `Gate::before` admin super-user, `entities.verify` gate, `user:role` command, `RbacAuthorizationTest`. Commit `7190bb2`. |
 
 ## Active agent-driven plans (`docs/superpowers/plans/`)
 
@@ -80,7 +80,7 @@ ConfidenceLevel::atLeast, int4range temporal predicate, DISTINCT-ON dedup, ZoomS
 
 **Editorial / contribution program (OHM phases 4–5)**
 - iD editor integration (12), change-requests pipeline (13) — large, not started.
-- OpenAPI docs (16) + RBAC completion (17, concurrent).
+- ~~OpenAPI docs (16) + RBAC (17)~~ — ✅ executed 2026-06-15 (see roadmap table).
 
 **Experimental**
 - Inferred-boundary fallback pipeline (14) — explicitly experimental, no code.
