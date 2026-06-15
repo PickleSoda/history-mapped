@@ -117,6 +117,20 @@ def _collect_secondary_entities(event, enriched_entities, entity_id_map):
 
 def chronicle_builder(state: AgentRunState) -> AgentRunState:
     """Build a Chronicle from parsed events and committed data."""
+    # Honor --no-create-chronicle: seed entities/relations only, skip the
+    # chronicle. chronicle_writer no-ops when state["chronicle"] is None.
+    if not state.get("create_chronicle", True):
+        state["chronicle"] = None
+        state["audit_log"].append(
+            AuditEvent(
+                timestamp=datetime.now(timezone.utc).isoformat(),
+                node="chronicle_builder",
+                action="skipped",
+                output_summary="create_chronicle=False — entity/relation seeding only",
+            )
+        )
+        return state
+
     events = state["parsed_events"]
     if not events:
         state["chronicle"] = None

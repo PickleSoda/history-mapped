@@ -32,6 +32,15 @@ class AgentConfig:
     llm_base_url: str | None = None
     model_fallbacks: dict[str, list[str]] | None = None
     auto_commit_threshold: float = 0.95
+    # Per-request LLM timeout (seconds). Caps a single model call so a stuck
+    # endpoint fails fast and FallbackLLM moves on, instead of the OpenAI SDK's
+    # 600s default × internal retries hanging the whole pipeline run.
+    llm_request_timeout: float = 120.0
+    # Output-token ceiling for the content-generation call. Without it the model
+    # default (65536) is requested, which is both wasteful and unaffordable on a
+    # low credit balance — a single generate_content call then 402s and the
+    # entity summaries are lost. 8000 comfortably fits the summaries JSON.
+    generate_max_tokens: int = 8000
     output_dir: str = "api/storage/app/pipeline/agent_runs"
     chronicle_output_dir: str = "api/storage/app/pipeline/agent_runs"
     ohm_index_path: str = "output/ohm_collections/map-egypt.xml.sqlite"

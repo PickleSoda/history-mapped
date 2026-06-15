@@ -33,6 +33,11 @@ DEFAULT_TRANSCRIPT_DIR = REPO_ROOT / "output" / "transctipts"
 EVAL_OUTPUT_DIR = REPO_ROOT / "output" / "eval_runs"
 BASELINE_SEEDER = r"Database\Seeders\BaselineSeeder"
 
+# Per-transcript wall-clock cap. With LLM calls now bounded (cfg.llm_request_timeout
+# + FallbackLLM), a healthy transcript finishes well under this; a hang is killed
+# and the batch continues rather than aborting the whole run.
+TRANSCRIPT_TIMEOUT_S = 900
+
 
 def _slug(text: str) -> str:
     out = "".join(c.lower() if c.isalnum() else "_" for c in text).strip("_")
@@ -73,7 +78,25 @@ def run_transcript(transcript: Path, run_id: str, create_chronicle: bool = True)
         "--create-chronicle" if create_chronicle else "--no-create-chronicle",
     ]
     started = datetime.now(timezone.utc)
-    proc = subprocess.run(cmd, cwd=str(REPO_ROOT), capture_output=True, text=True, timeout=1800)
+    try:
+        proc = subprocess.run(
+            cmd, cwd=str(REPO_ROOT), capture_output=True, text=True,
+            timeout=TRANSCRIPT_TIMEOUT_S,
+        )
+    except subprocess.TimeoutExpired as exc:
+        # One hung transcript must not kill the whole batch — record it as failed
+        # and let evaluate() move on to the next.
+        duration = (datetime.now(timezone.utc) - started).total_seconds()
+        stdout_tail = (exc.stdout or "")[-800:] if isinstance(exc.stdout, str) else ""
+        return {
+            "transcript": transcript.name,
+            "run_id": run_id,
+            "returncode": -1,
+            "duration_s": round(duration, 1),
+            "manifest": None,
+            "stdout_tail": stdout_tail,
+            "stderr_tail": f"TIMEOUT after {TRANSCRIPT_TIMEOUT_S}s — transcript killed, batch continued",
+        }
     duration = (datetime.now(timezone.utc) - started).total_seconds()
 
     manifest_summary: dict[str, Any] | None = None

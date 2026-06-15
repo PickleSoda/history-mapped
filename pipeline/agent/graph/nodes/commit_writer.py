@@ -58,6 +58,55 @@ def _entity_type_to_group(entity_type: str) -> str:
     return ENTITY_TYPE_TO_GROUP.get(entity_type, "POLITY")
 
 
+# Relations whose convention is "<combatant/participant> <rel> <event>". When the
+# LLM emits them inverted (the event as source, a person/army as target) the
+# import trips the event-range check and the chronicle links the wrong way. We
+# flip them deterministically here — the extraction prompt already forbids this,
+# yet the model still does it, so guidance alone is not enough.
+_EVENT_ANCHORED_RELATIONS = {
+    "victorious_at",
+    "defeated_at",
+    "fought_at",
+    "participated_in",
+    "stationed_at",
+}
+
+
+def _is_event_type(entity_type: str | None) -> bool:
+    et = entity_type or ""
+    return et.startswith("event") or et in {"migration", "epidemic_disease"}
+
+
+def _entity_type_index(create_entities) -> dict[str, str]:
+    """Map every known entity label/alias (lowercased) to its entity_type.
+
+    Includes aliases because resolve_ohm may have renamed a polity to its OHM
+    canonical form, leaving the transcript name (which relations still use) as an
+    alias.
+    """
+    index: dict[str, str] = {}
+    for enriched in create_entities:
+        etype = enriched.candidate.entity_type
+        index[enriched.candidate.label.lower()] = etype
+        for alias in (enriched.candidate.aliases or []):
+            index.setdefault(alias.lower(), etype)
+    return index
+
+
+def _normalize_relation_directions(relations, type_index: dict[str, str]) -> int:
+    """Flip event-anchored relations emitted as event→combatant. Returns count flipped."""
+    flipped = 0
+    for rel in relations:
+        if rel.relationship_type not in _EVENT_ANCHORED_RELATIONS:
+            continue
+        src_type = type_index.get(rel.source_label.lower())
+        tgt_type = type_index.get(rel.target_label.lower())
+        if _is_event_type(src_type) and tgt_type is not None and not _is_event_type(tgt_type):
+            rel.source_label, rel.target_label = rel.target_label, rel.source_label
+            flipped += 1
+    return flipped
+
+
 def _extract_geojson(geometry: Any) -> dict[str, Any] | None:
     """Return a bare GeoJSON geometry suitable for PostGIS ST_GeomFromGeoJSON.
 
@@ -146,6 +195,15 @@ def commit_writer(state: AgentRunState) -> AgentRunState:
     diff = state["proposed_diff"]
     if diff is None:
         return state
+
+    # Deterministically correct inverted event-anchored relations (e.g. the LLM's
+    # "Battle of Waterloo defeated_at Napoleon" → "Napoleon defeated_at Battle of
+    # Waterloo") before they are written and imported.
+    flipped = _normalize_relation_directions(
+        diff.create_relations, _entity_type_index(diff.create_entities)
+    )
+    if flipped:
+        logger.info("Corrected %d inverted event-anchored relation(s)", flipped)
 
     # Use container-visible path for artisan commands
     container_path = cfg.container_output_dir

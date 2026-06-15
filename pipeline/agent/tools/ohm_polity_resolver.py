@@ -29,6 +29,21 @@ logger = get_logger(__name__)
 _CACHE_PATH = Path("output/ohm_collections/ohm_polity_cache.sqlite")
 _ACCEPT_THRESHOLD = 0.3
 
+# OHM Nominatim "class" values that denote a physical feature (a street, building,
+# river, …), never a polity. A polity match is class=boundary/place/historic; a
+# bogus hit like "Allies Street" comes back class=highway. Reject these outright
+# so a coalition/polity name can't latch onto an unrelated street or building.
+_REJECTED_FEATURE_CLASSES = {
+    "highway", "building", "amenity", "shop", "tourism", "leisure", "barrier",
+    "man_made", "railway", "aeroway", "waterway", "natural", "landuse", "power",
+    "office", "craft", "healthcare", "emergency",
+}
+
+
+def _is_physical_feature(candidate: dict[str, Any]) -> bool:
+    cls = ((candidate.get("source_meta") or {}).get("class") or "").lower()
+    return cls in _REJECTED_FEATURE_CLASSES
+
 
 # ── candidate scoring (pure) ─────────────────────────────────────────────────
 
@@ -107,7 +122,7 @@ def best_candidate(candidates: list[dict[str, Any]], query: str, target_era: int
     scored = [
         (relevance(c, query, target_era, entity_wikidata), c)
         for c in candidates
-        if c.get("external_id")
+        if c.get("external_id") and not _is_physical_feature(c)
     ]
     if not scored:
         return None

@@ -26,7 +26,7 @@ def _load_style_guide() -> str:
 
 def generate_content(state: AgentRunState) -> AgentRunState:
     cfg = AgentConfig()
-    llm = create_llm_with_fallbacks("generate_model", cfg)
+    llm = create_llm_with_fallbacks("generate_model", cfg, max_tokens=cfg.generate_max_tokens)
     style_guide = _load_style_guide()
     logger.info("LLM call: generate_content (model=%s, entities=%d, relations=%d)",
                 cfg.generate_model, len(state["enriched_entities"]), len(state["candidate_relations"]))

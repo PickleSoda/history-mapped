@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from datetime import datetime, timezone
 
 from pipeline.agent.graph.state import AgentRunState
@@ -34,6 +35,22 @@ _EVENT_TYPES = {
 # towns in OHM Nominatim (Rome OH, Gaza IA) without an identity anchor, so they
 # are deliberately excluded here — era-aware place geocoding is a follow-up.
 _GEO_TYPES = _POLITY_TYPES | _EVENT_TYPES
+
+# Coalitions/alliances are not single places — they are sets of member states, so
+# they must NOT get one OHM border or point (the members carry the geography; see
+# the extraction prompt, which links members with part_of). This is a deterministic
+# backstop for when the LLM mis-types one as a political_entity instead of a
+# diplomatic_relationship. "Union" is deliberately absent (Soviet Union etc. are
+# real bordered states).
+_COALITION_RE = re.compile(
+    r"\b(allies|allied powers|alliance|coalition|league|entente|axis|"
+    r"central powers|triple alliance|triple entente|holy league|grand alliance)\b",
+    re.IGNORECASE,
+)
+
+
+def _is_coalition(name: str) -> bool:
+    return bool(_COALITION_RE.search(name or ""))
 
 
 def _adopt_ohm_name(candidate: CandidateEntity, ohm_name: str | None) -> None:
@@ -77,6 +94,15 @@ def resolve_ohm(state: AgentRunState) -> AgentRunState:
             continue
 
         is_polity = entity_type in _POLITY_TYPES
+
+        # Coalitions/alliances get no single geo-ref — their member states do.
+        if is_polity and _is_coalition(enriched.candidate.label):
+            logger.info(
+                "  [%d/%d] skip geo-ref for coalition '%s' (members carry geography)",
+                i + 1, len(entities), enriched.candidate.label,
+            )
+            continue
+
         era = (
             era_year(enriched.candidate.start_date)
             or era_year(enriched.candidate.end_date)
