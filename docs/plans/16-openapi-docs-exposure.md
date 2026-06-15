@@ -1,6 +1,6 @@
 # 16 — Expose the OpenAPI (Scramble) Documentation UI
 
-> **Status: ⬜ Not started** — as of 2026-06-15. See [STATUS.md](STATUS.md).
+> **Status: ✅ Executed** — implemented & tested 2026-06-15 (commit `fd6b69f`, branch `feat/openapi-docs-exposure`). See [STATUS.md](STATUS.md).
 
 > Resolves the Final-Report open issue: *"OpenAPI/Swagger UI — the schema is generated from the
 > typed request/resource layer via Scramble, but the interactive docs route is not yet publicly
