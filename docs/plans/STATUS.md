@@ -30,7 +30,7 @@
 | 10-ohm-phase-2-timeline-map-interaction | 🟡 | Selection + relationship-geometry done; UI extraction (2.1), source/target distinction (2.4), FE interaction tests (2.5) remain. |
 | 11-agentic-pipeline-improvements | 🟡 | Write-path (PP-1/2/3/4/7) fixed; confidence rework (PP-5) + structured I/O, checkpointing, observability, caching not started. |
 | 11-ohm-phase-3-reference-existing-ohm-objects | 🟡 | Backend (`entity_geo_refs`, resolve-ohm-feature) done; editor attach/search/remove UI + OHM retrieval expansion remain. |
-| 12-bug-report | 🟡 | ~50–60% of the 44 bugs fixed (LC-1/2/4, MQ-7/8/11/14, PP-1/2/3/4/7). Open: MQ-2, MQ-15, PP-5, FE-1 (admin), FE-5/7/10/11. |
+| 12-bug-report | 🟡 | ~70% fixed (LC-1/2/3/4/5/6, MQ-7/8/11/13/14/15/16, PP-1/2/3/4/7). Open: **backend** MQ-2 (dashboard repoint), MQ-3/4/5/12/19 (perf rewrites, risky); **admin FE** FE-1/2/3/4/5/6/7/8/9/10/11; **pipeline** PP-5/8/9/10/11/12. |
 | 12-ohm-phase-4-ohm-id-editor-integration | ⬜ | No iD editor surface / postMessage bridge yet. |
 | 13-ohm-phase-5-change-requests-and-contribution-pipeline | ⬜ | No change_requests tables/models; depends on Phase 4. |
 | 14-experimental-inferred-boundary-fallback-pipeline | ⬜ | Explicitly experimental; no `pipeline/inference/` yet. |
