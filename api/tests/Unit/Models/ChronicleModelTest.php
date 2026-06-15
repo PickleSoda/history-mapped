@@ -11,7 +11,7 @@ class ChronicleModelTest extends TestCase
 {
     public function test_chronicle_has_expected_fillable(): void
     {
-        $chronicle = new Chronicle();
+        $chronicle = new Chronicle;
         $this->assertContains('title', $chronicle->getFillable());
         $this->assertContains('slug', $chronicle->getFillable());
         $this->assertContains('status', $chronicle->getFillable());
@@ -19,7 +19,7 @@ class ChronicleModelTest extends TestCase
 
     public function test_chronicle_casts(): void
     {
-        $chronicle = new Chronicle();
+        $chronicle = new Chronicle;
         $casts = $chronicle->getCasts();
         $this->assertArrayHasKey('status', $casts);
         $this->assertArrayHasKey('source_type', $casts);

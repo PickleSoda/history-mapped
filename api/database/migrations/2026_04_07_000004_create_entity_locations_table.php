@@ -29,8 +29,8 @@ return new class extends Migration
                 ->cascadeOnDelete();
         });
 
-        DB::statement("ALTER TABLE entity_locations ADD CONSTRAINT el_has_locator
-            CHECK (location_name IS NOT NULL OR geom IS NOT NULL OR territory_geom IS NOT NULL)");
+        DB::statement('ALTER TABLE entity_locations ADD CONSTRAINT el_has_locator
+            CHECK (location_name IS NOT NULL OR geom IS NOT NULL OR territory_geom IS NOT NULL)');
 
         DB::statement('CREATE INDEX el_entity_idx ON entity_locations (entity_id)');
         DB::statement('CREATE INDEX el_geom_gist_idx ON entity_locations USING GIST (geom)');

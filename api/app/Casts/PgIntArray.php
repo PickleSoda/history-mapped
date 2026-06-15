@@ -22,9 +22,6 @@ class PgIntArray implements CastsAttributes
     /**
      * Parse a PostgreSQL integer[] literal into a PHP int array.
      *
-     * @param  Model  $model
-     * @param  string  $key
-     * @param  mixed  $value
      * @param  array<string, mixed>  $attributes
      * @return list<int>|null
      */
@@ -43,11 +40,7 @@ class PgIntArray implements CastsAttributes
     /**
      * Convert a PHP int array to a PostgreSQL integer[] literal.
      *
-     * @param  Model  $model
-     * @param  string  $key
-     * @param  mixed  $value
      * @param  array<string, mixed>  $attributes
-     * @return string|null
      */
     public function set(Model $model, string $key, mixed $value, array $attributes): ?string
     {
@@ -59,6 +52,6 @@ class PgIntArray implements CastsAttributes
             return '{}';
         }
 
-        return '{' . implode(',', array_map('intval', $value)) . '}';
+        return '{'.implode(',', array_map('intval', $value)).'}';
     }
 }

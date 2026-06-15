@@ -3,9 +3,9 @@ import { useEffect } from 'react';
 import { GroupDot } from '@/components/atlas/GroupBadge';
 import { useChronicle, useChronicleNav, useSelection, useTimeState } from '@/hooks';
 import { formatYear } from '@/lib/format';
-import { cn } from '@/lib/utils';
 import type { ChronicleEntry } from '@/lib/schemas/chronicle';
 import type { Relationship } from '@/lib/schemas/entity';
+import { cn } from '@/lib/utils';
 
 type SecondaryEntity = NonNullable<ChronicleEntry['secondary_entities']>[number];
 

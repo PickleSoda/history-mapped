@@ -31,12 +31,12 @@ class HydrateEntityGeometryFromGeoRefAction
         DB::transaction(function () use ($currentEntity, $geoRef, $normalized, $column, $locationMethod): void {
             DB::statement(
                 sprintf(
-                    "UPDATE entity_locations
+                    'UPDATE entity_locations
                      SET %s = ST_SetSRID(ST_GeomFromGeoJSON(?), 4326),
                                                  location_method = COALESCE(location_method, ?),
                          updated_at = NOW()
                      WHERE entity_id = ?
-                       AND is_primary = true",
+                       AND is_primary = true',
                     $column,
                 ),
                 [json_encode($normalized), $locationMethod, $currentEntity->entity_id],
@@ -44,7 +44,7 @@ class HydrateEntityGeometryFromGeoRefAction
 
             DB::statement(
                 sprintf(
-                    "INSERT INTO entity_locations (
+                    'INSERT INTO entity_locations (
                         location_id, entity_id, location_name, %s,
                         location_method, location_confidence, is_primary,
                         created_at, updated_at
@@ -57,7 +57,7 @@ class HydrateEntityGeometryFromGeoRefAction
                     WHERE NOT EXISTS (
                         SELECT 1 FROM entity_locations
                         WHERE entity_id = ? AND is_primary = true
-                    )",
+                    )',
                     $column,
                 ),
                 [

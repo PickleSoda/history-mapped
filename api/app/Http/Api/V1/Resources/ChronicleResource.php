@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Api\V1\Resources;
 
+use App\Models\Chronicle;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin \App\Models\Chronicle */
+/** @mixin Chronicle */
 class ChronicleResource extends JsonResource
 {
     /** @return array<string, mixed> */

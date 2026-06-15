@@ -25,6 +25,7 @@ class UpdateChronicleRequest extends FormRequest
         if ($this->chronicle === null) {
             $this->chronicle = Chronicle::where('slug', $this->route('slug'))->firstOrFail();
         }
+
         return $this->chronicle;
     }
 

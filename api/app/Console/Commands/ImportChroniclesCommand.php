@@ -202,7 +202,7 @@ class ImportChroniclesCommand extends Command
                 ChronicleEntry::where('chronicle_id', $existing->chronicle_id)->delete();
                 $chronicle = $existing;
             } else {
-                $chronicle = new Chronicle();
+                $chronicle = new Chronicle;
                 $chronicle->chronicle_id = Str::uuid()->toString();
             }
 
@@ -260,7 +260,7 @@ class ImportChroniclesCommand extends Command
         $imported = 0;
 
         foreach ($entries as $entryData) {
-            $entry = new ChronicleEntry();
+            $entry = new ChronicleEntry;
             $entry->entry_id = Str::uuid()->toString();
             $entry->chronicle_id = $chronicle->chronicle_id;
             $entry->sequence_order = $entryData['sequence_order'] ?? $imported;

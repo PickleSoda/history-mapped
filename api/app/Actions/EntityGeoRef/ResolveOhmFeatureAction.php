@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Actions\EntityGeoRef;
 
-use App\Models\GeometryPeriod;
 use App\Models\EntityGeoRef;
+use App\Models\GeometryPeriod;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 
@@ -16,8 +16,8 @@ class ResolveOhmFeatureAction
      * @return array{
      *     entity: array{id: string, name: string, entity_type: string|null, entity_group: string|null},
      *     geo_ref_id: string,
-    *     feature_ref: array{provider: string|null, external_type: string|null, external_id: string, geometry_period_id: string|null, target_year: int},
-    *     resolution_source: string,
+     *     feature_ref: array{provider: string|null, external_type: string|null, external_id: string, geometry_period_id: string|null, target_year: int},
+     *     resolution_source: string,
      *     geometry: array<string, mixed>
      * }
      */

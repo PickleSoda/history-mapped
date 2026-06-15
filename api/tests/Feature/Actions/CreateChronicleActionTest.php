@@ -27,11 +27,11 @@ class CreateChronicleActionTest extends TestCase
                     'impact_score' => 5,
                     'approximate_location' => ['lat' => 40.0, 'lng' => -74.0],
                     'narrative_text' => 'Test narrative',
-                ]
+                ],
             ]
         );
 
-        $action = new CreateChronicleAction();
+        $action = new CreateChronicleAction;
         $chronicle = $action($data, 'test_user');
 
         $this->assertDatabaseHas('chronicle_entries', [

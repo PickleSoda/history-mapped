@@ -73,5 +73,4 @@ class EntityGeoRef extends Model
     {
         return $this->belongsTo(GeometryPeriod::class, 'geometry_period_id', 'geometry_period_id');
     }
-
 }

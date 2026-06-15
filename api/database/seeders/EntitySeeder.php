@@ -102,7 +102,7 @@ class EntitySeeder extends Seeder
 
                 $territoryExpression = 'NULL';
                 if (isset($this->territories[$id])) {
-                    $territoryExpression = "ST_SetSRID(ST_GeomFromGeoJSON('" . str_replace("'", "''", $this->territories[$id]) . "'), 4326)";
+                    $territoryExpression = "ST_SetSRID(ST_GeomFromGeoJSON('".str_replace("'", "''", $this->territories[$id])."'), 4326)";
                 }
 
                 DB::statement(

@@ -192,5 +192,4 @@ class Entity extends Model
     {
         return new EntityBuilder($query);
     }
-
 }

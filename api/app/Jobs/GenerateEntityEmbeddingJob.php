@@ -180,5 +180,4 @@ class GenerateEntityEmbeddingJob implements ShouldQueue
 
         return implode("\n", $parts);
     }
-
 }

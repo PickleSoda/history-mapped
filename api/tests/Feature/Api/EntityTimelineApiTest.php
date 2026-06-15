@@ -75,7 +75,7 @@ class EntityTimelineApiTest extends TestCase
             ->assertJsonPath('data.0.end_year', -52)
             ->assertJsonPath('data.0.has_geom', true)
             ->assertJsonPath('data.0.has_territory_geom', false)
-                ->assertJsonPath('data.0.geom.type', 'Point')
+            ->assertJsonPath('data.0.geom.type', 'Point')
             ->assertJsonPath('data.0.source_table', 'geometry_periods')
             ->assertJsonPath('data.0.source_id', $periodId)
             ->assertJsonMissingPath('data.0.territory_geom');

@@ -24,6 +24,7 @@ use Illuminate\Validation\Rule;
 class StoreEntityRequest extends FormRequest
 {
     use ValidatesEntityAttributes;
+
     public function authorize(): bool
     {
         return $this->user() !== null;
