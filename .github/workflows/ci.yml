@@ -84,7 +84,7 @@ jobs:
       # start-up failure (environment, not assertions). Surfaced in the logs
       # but doesn't gate deploys. Flip off once the suite runs cleanly in CI.
       - name: admin · unit tests (vitest)
-        continue-on-error: true
+        continue-on-error: false
         run: pnpm --filter @history-mapped/api exec vitest run --passWithNoTests
         # NOTE: `vite build` for the admin UI is intentionally NOT run here —
         # the Wayfinder plugin needs a live PHP app. It is exercised inside the
