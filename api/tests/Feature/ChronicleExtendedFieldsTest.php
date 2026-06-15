@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Models\Chronicle;
-use App\Models\ChronicleEntry;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -18,7 +15,7 @@ class ChronicleExtendedFieldsTest extends TestCase
 
     public function test_chronicle_extended_fields_round_trip_via_web_and_api(): void
     {
-        $user = User::factory()->create();
+        $user = $this->userWithRole('admin');
         $this->actingAs($user);
 
         $chronicleId = Str::uuid()->toString();

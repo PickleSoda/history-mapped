@@ -23,7 +23,7 @@ class EntityGeometryPeriodControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
+        $this->user = $this->userWithRole('admin');
         $this->entity = Entity::factory()->create();
         $this->otherEntity = Entity::factory()->create();
     }
