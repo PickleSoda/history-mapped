@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Web;
 
 use App\Models\Chronicle;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -15,7 +14,7 @@ class ChronicleUpdateTest extends TestCase
 
     public function test_update_chronicle_with_same_slug_does_not_throw_500(): void
     {
-        $user = User::factory()->create();
+        $user = $this->userWithRole('admin');
         $this->actingAs($user);
 
         $chronicle = Chronicle::factory()->create([

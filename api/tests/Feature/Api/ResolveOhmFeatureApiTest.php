@@ -15,6 +15,15 @@ class ResolveOhmFeatureApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // resolve-ohm-feature is an editorial geodata tool gated by
+        // `permission:geometry.write`; authenticate as an authorised editor.
+        $this->actingAs($this->userWithRole('admin'));
+    }
+
     private function setEntityPointGeom(Entity $entity, float $lng, float $lat): void
     {
         $hasPrimary = DB::table('entity_locations')
@@ -24,9 +33,9 @@ class ResolveOhmFeatureApiTest extends TestCase
 
         if ($hasPrimary) {
             DB::statement(
-                "UPDATE entity_locations
+                'UPDATE entity_locations
                  SET geom = ST_SetSRID(ST_MakePoint(?, ?), 4326), updated_at = NOW()
-                 WHERE entity_id = ? AND is_primary = true",
+                 WHERE entity_id = ? AND is_primary = true',
                 [$lng, $lat, $entity->entity_id],
             );
 
@@ -271,4 +280,3 @@ class ResolveOhmFeatureApiTest extends TestCase
         ])->assertNotFound();
     }
 }
-

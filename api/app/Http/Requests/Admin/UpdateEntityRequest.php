@@ -26,9 +26,41 @@ use Illuminate\Validation\Rule;
 class UpdateEntityRequest extends FormRequest
 {
     use ValidatesEntityAttributes;
+
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        $user = $this->user();
+
+        if ($user === null) {
+            return false;
+        }
+
+        // Promoting/changing an entity's verification status is a sensitive action
+        // that requires the dedicated `entities.verify` permission, on top of the
+        // `entities.write` permission already enforced by the route. Normal edits
+        // that leave the status unchanged are unaffected.
+        if ($this->isChangingVerificationStatus() && ! $user->can('entities.verify')) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Whether this request changes the entity's verification status from its
+     * current persisted value.
+     */
+    protected function isChangingVerificationStatus(): bool
+    {
+        if (! $this->has('verification_status')) {
+            return false;
+        }
+
+        $entity = $this->route('entity');
+        $current = is_object($entity) ? ($entity->verification_status ?? null) : null;
+        $current = $current instanceof \BackedEnum ? $current->value : $current;
+
+        return $this->input('verification_status') !== $current;
     }
 
     /**

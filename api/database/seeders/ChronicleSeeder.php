@@ -61,7 +61,7 @@ class ChronicleSeeder extends Seeder
             'primary_relationship_id' => $relId,
             'narrative_text' => 'In August 1121, David IV of Georgia confronted the Seljuk army under Ilghazi near Didgori. The Georgian forces, bolstered by Kipchak mercenaries, achieved a decisive victory on August 12, shattering Seljuk dominance in the region.',
             'notes' => 'The battle is considered the turning point in Georgia\'s Golden Age.',
-            'source_evidence' => 'medieval chronicle',
+            'source_evidence' => json_encode(['medieval chronicle']),
             'generated_by' => 'seeder',
             'created_at' => now(),
             'updated_at' => now(),
@@ -112,7 +112,7 @@ class ChronicleSeeder extends Seeder
                 'primary_relationship_id' => $rel2Id,
                 'narrative_text' => 'Crossing the Rubicon in 49 BCE, Julius Caesar plunged the Roman Republic into civil war. His rivalry with Pompey the Great defined a decade of bloodshed.',
                 'notes' => 'The Rubicon crossing marked the point of no return.',
-                'source_evidence' => 'Appian 2.41',
+                'source_evidence' => json_encode(['Appian 2.41']),
                 'generated_by' => 'seeder',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -124,7 +124,7 @@ class ChronicleSeeder extends Seeder
                 'primary_relationship_id' => null,
                 'narrative_text' => 'After Pompey\'s death in 48 BCE, Caesar consolidated power as dictator perpetuo. His assassination in 44 BCE triggered a second round of civil wars, ending only with Octavian\'s victory at Actium in 31 BCE.',
                 'notes' => 'The Second Triumvirate (Octavian, Antony, Lepidus) was formed in 43 BCE.',
-                'source_evidence' => 'Appian 2.123',
+                'source_evidence' => json_encode(['Appian 2.123']),
                 'generated_by' => 'seeder',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -175,7 +175,7 @@ class ChronicleSeeder extends Seeder
             'primary_relationship_id' => $rel3Id,
             'narrative_text' => 'On May 29, 1453, after a 53-day siege, Sultan Mehmed II\'s forces breached the Theodosian Walls of Constantinople. Emperor Constantine XI died defending the city, marking the definitive end of the Byzantine Empire and a pivotal moment in world history.',
             'notes' => 'The Ottomans employed large-scale cannon, including the "Basilica" cannon designed by Orban.',
-            'source_evidence' => 'Runciman 1965, pp. 120–145',
+            'source_evidence' => json_encode(['Runciman 1965, pp. 120–145']),
             'generated_by' => 'seeder',
             'created_at' => now(),
             'updated_at' => now(),
@@ -192,14 +192,14 @@ class ChronicleSeeder extends Seeder
         }
 
         $id = Str::uuid()->toString();
-        
-        $entityType = match($type) {
+
+        $entityType = match ($type) {
             'person' => EntityType::Person->value,
             'event' => EntityType::EventBattle->value,
             default => EntityType::PoliticalEntity->value,
         };
-        
-        $entityGroup = match($type) {
+
+        $entityGroup = match ($type) {
             'person' => EntityGroup::Polity->value,
             'event' => EntityGroup::Event->value,
             default => EntityGroup::Polity->value,

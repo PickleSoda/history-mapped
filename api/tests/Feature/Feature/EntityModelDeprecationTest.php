@@ -21,7 +21,7 @@ class EntityModelDeprecationTest extends TestCase
     {
         parent::setUp();
 
-        $this->user = User::factory()->create();
+        $this->user = $this->userWithRole('admin');
     }
 
     public function test_create_writes_temporal_and_location_data_to_canonical_tables(): void
