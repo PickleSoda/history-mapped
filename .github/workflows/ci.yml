@@ -288,3 +288,52 @@ jobs:
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
           app_name: history-mapped
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Deploy to a DigitalOcean Droplet over SSH — main branch only, and OPT-IN:
+  # skipped until you set repo variable DEPLOY_TO_DROPLET=true.
+  #
+  # Prereqs on the droplet (one-time — see docs/implementation-docs/deployment_runbook.md):
+  #   - Docker Engine + Compose plugin installed.
+  #   - The repo cloned at $DROPLET_APP_DIR (default /opt/history-mapped),
+  #     with docker/.env.prod filled in (it is gitignored, holds secrets).
+  # Required secrets: DROPLET_HOST, DROPLET_USER, DROPLET_SSH_KEY.
+  # Optional secrets: GHCR_USERNAME + GHCR_TOKEN (only if the GHCR package is
+  #   private), DROPLET_SSH_PORT. Optional variable: DROPLET_APP_DIR.
+  # ───────────────────────────────────────────────────────────────────────────
+  deploy-droplet:
+    name: Deploy (DigitalOcean Droplet)
+    if: github.ref == 'refs/heads/main' && vars.DEPLOY_TO_DROPLET == 'true'
+    needs: [images]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DROPLET_HOST }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          port: ${{ secrets.DROPLET_SSH_PORT || 22 }}
+          script_stop: true
+          envs: GHCR_USERNAME,GHCR_TOKEN,APP_DIR
+          script: |
+            set -euo pipefail
+            cd "${APP_DIR:-/opt/history-mapped}"
+
+            # Get the latest compose / db build context / Caddyfile.
+            git pull --ff-only
+
+            # Authenticate to GHCR only if a token is provided (private package).
+            if [ -n "${GHCR_TOKEN:-}" ]; then
+              echo "$GHCR_TOKEN" | docker login ghcr.io -u "${GHCR_USERNAME:-}" --password-stdin
+            fi
+
+            COMPOSE="docker compose --env-file docker/.env.prod -f docker/docker-compose.prod.yml"
+            $COMPOSE pull
+            $COMPOSE --profile setup run --rm migrate
+            $COMPOSE up -d --remove-orphans
+            docker image prune -f
+        env:
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          APP_DIR: ${{ vars.DROPLET_APP_DIR }}

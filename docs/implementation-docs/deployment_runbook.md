@@ -76,6 +76,25 @@ Files: [`docker/docker-compose.prod.yml`](../../docker/docker-compose.prod.yml),
 
 The stack runs the app (FrankenPHP/Octane), `queue`, `scheduler`, self-hosted Postgres (PostGIS+pgvector), and Redis on the one box. To use managed data services instead, delete the `db`/`redis` services and repoint `DB_*`/`REDIS_*`.
 
+### 4b. Automated droplet deploy on push (CI over SSH)
+
+The `deploy-droplet` job in `.github/workflows/ci.yml` SSHes into the droplet and runs the update after each image build. Opt in:
+
+1. **On the droplet (one-time):**
+   - Install Docker Engine + the Compose plugin.
+   - Clone the repo at `/opt/history-mapped` (or any path). For a **private repo**, add a read-only **Deploy key** (repo → Settings → Deploy keys) so `git pull` works non-interactively.
+   - `cp docker/.env.prod.example docker/.env.prod` and fill it in (gitignored; holds secrets).
+   - Do the first deploy manually (section 4) so the stack is healthy.
+2. **Repo secrets** (Settings → Secrets and variables → Actions → Secrets):
+   - `DROPLET_HOST` — IP/hostname · `DROPLET_USER` — SSH user · `DROPLET_SSH_KEY` — the **private** key whose public half is in the droplet's `~/.ssh/authorized_keys`.
+   - *Optional:* `DROPLET_SSH_PORT` (default 22); `GHCR_USERNAME` + `GHCR_TOKEN` (PAT with `read:packages`, only if the GHCR package is private — the job logs in for you).
+3. **Repo variables** (→ Variables):
+   - `DEPLOY_TO_DROPLET` = `true` (enables the job — it stays skipped otherwise).
+   - *Optional:* `DROPLET_APP_DIR` if you cloned somewhere other than `/opt/history-mapped`.
+4. Push to `main` → CI builds + pushes the image, then SSHes in and runs `git pull → compose pull → migrate → up -d → prune`.
+
+**Security:** use a dedicated low-privilege deploy user and an SSH key scoped to that host; the private key lives only in GitHub Secrets.
+
 ## 5. Cost comparison (approximate — confirm on DO's pricing page)
 
 | | Droplet (Option B) | App Platform (Option A) |
