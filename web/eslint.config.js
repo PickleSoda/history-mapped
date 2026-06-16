@@ -36,6 +36,9 @@ export default [
       import: importPlugin,
     },
     settings: {
+      // Classify the `@/` alias as "internal" by path, not by module resolution,
+      // so import-order stays deterministic regardless of resolver state.
+      'import/internal-regex': '^@/',
       'import/resolver': {
         typescript: {
           alwaysTryTypes: true,
