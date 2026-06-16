@@ -82,7 +82,14 @@ export function snapScope(raw: RawScope): Scope {
   return {
     z,
     bbox: snapBboxToTiles(raw.bbox, z),
-    time: snapTime(raw.time, timeResolutionForZoom(z)),
+    // An instant is a precise year the user picked (and the scrubber commits on
+    // release, not continuously), so snap it at full resolution — otherwise at a
+    // world/continent zoom the 100-year band swallows the year change and the
+    // map never refetches. Range queries keep the zoom-banded aggregation.
+    time:
+      raw.time.kind === 'instant'
+        ? snapTime(raw.time, 1)
+        : snapTime(raw.time, timeResolutionForZoom(z)),
     groups: [...raw.groups].sort(),
   };
 }
