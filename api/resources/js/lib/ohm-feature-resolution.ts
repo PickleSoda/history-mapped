@@ -63,7 +63,7 @@ export function buildResolveOhmFeaturePayload(
 export function buildResolvedOhmSelectionFeature(
     feature: FeatureLike,
     resolution: ResolveOhmFeatureResponse,
-): GeoJSON.Feature {
+): GeoJSON.Feature<GeoJSON.Geometry | null> {
     return {
         type: 'Feature',
         id:

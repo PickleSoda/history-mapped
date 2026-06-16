@@ -73,8 +73,10 @@ describe('EntityGeometryPeriodsPanel', () => {
             end_year: number;
             description: string | null;
             provenance_mode: string;
-            has_geom: boolean;
-            has_territory_geom: boolean;
+            has_geom?: boolean;
+            has_territory_geom?: boolean;
+            geom?: { type: string; coordinates: number[] };
+            territory_geom?: unknown;
         }> = [
             {
                 geometry_period_id: 'gp-1',

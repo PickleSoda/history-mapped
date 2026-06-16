@@ -520,7 +520,9 @@ export default function EntityGeometryPeriodsPanel({
                                                 type="button"
                                                 size="sm"
                                                 onClick={() =>
-                                                    void updatePeriod(period)
+                                                    void updatePeriod(
+                                                        period.geometry_period_id,
+                                                    )
                                                 }
                                                 disabled={saving}
                                             >

@@ -13,12 +13,19 @@ import {
 import EntityHistoryPanel from '../entity-history-panel';
 import '@testing-library/jest-dom/vitest';
 
-const historicalMapViewerMock = vi.fn(() => (
+type MockMapViewerProps = {
+    overlayGeometries?: Array<{
+        type?: string;
+        geometry?: { type?: string };
+    }>;
+};
+
+const historicalMapViewerMock = vi.fn((_props: MockMapViewerProps) => (
     <div data-testid="mock-map-viewer" />
 ));
 
 vi.mock('../historical-map-viewer', () => ({
-    default: (props: unknown) => historicalMapViewerMock(props),
+    default: (props: MockMapViewerProps) => historicalMapViewerMock(props),
 }));
 
 let fetchMock: ReturnType<typeof vi.fn>;
