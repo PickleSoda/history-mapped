@@ -96,7 +96,7 @@ jobs:
           composer install --no-interaction --prefer-dist --no-progress
           cp .env.example .env
           php artisan key:generate
-          php artisan wayfinder:generate
+          php artisan wayfinder:generate --with-form
 
       - name: admin · lint
         run: pnpm --filter @history-mapped/api run lint:check
