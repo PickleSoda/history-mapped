@@ -71,6 +71,33 @@ jobs:
           retention-days: 7
 
       # --- api Inertia admin UI -------------------------------------------
+      # The admin UI imports Wayfinder-generated route/action helpers, which are
+      # gitignored. Generate them (no DB needed) so lint + typecheck can resolve
+      # the @/routes and @/actions modules — otherwise import-order and tsc
+      # behave differently in CI than locally.
+      - name: Install PHP (Wayfinder generation)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: bcmath, exif, gd, intl, pcntl, pdo_pgsql, redis, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer/files
+          key: composer-${{ runner.os }}-${{ hashFiles('api/composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Generate Wayfinder route helpers
+        working-directory: api
+        run: |
+          composer install --no-interaction --prefer-dist --no-progress
+          cp .env.example .env
+          php artisan key:generate
+          php artisan wayfinder:generate
+
       - name: admin · lint
         run: pnpm --filter @history-mapped/api run lint:check
 
