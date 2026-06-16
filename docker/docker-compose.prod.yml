@@ -1,0 +1,119 @@
+# Production stack for a single DigitalOcean Droplet (or any Docker host).
+#
+# Pulls the GHCR image published by CI and runs it behind Caddy (auto-HTTPS),
+# with self-hosted Postgres (PostGIS + pgvector) and Redis.
+#
+# Usage:
+#   cp docker/.env.prod.example docker/.env.prod   # then fill it in
+#   docker login ghcr.io                            # PAT with read:packages (skip if package is public)
+#   docker compose --env-file docker/.env.prod -f docker/docker-compose.prod.yml pull
+#   docker compose --env-file docker/.env.prod -f docker/docker-compose.prod.yml --profile setup run --rm migrate
+#   docker compose --env-file docker/.env.prod -f docker/docker-compose.prod.yml up -d
+#
+# To point at MANAGED Postgres/Valkey instead, delete the db/redis services and
+# set DB_*/REDIS_* in docker/.env.prod to the managed endpoints.
+
+x-app-image: &app_image "${APP_IMAGE:-ghcr.io/picklesoda/history-mapped/api:latest}"
+
+services:
+  # ── Edge: TLS termination + reverse proxy (Let's Encrypt via Caddy) ─────────
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      APP_DOMAIN: "${APP_DOMAIN:?set APP_DOMAIN in docker/.env.prod}"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+  # ── API (FrankenPHP + Octane); serves HTTP on 8080 ──────────────────────────
+  app:
+    image: *app_image
+    restart: unless-stopped
+    env_file: [.env.prod]
+    expose:
+      - "8080"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1:8080/up') !== false ? 0 : 1);"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ── Queue worker (same image, different command) ────────────────────────────
+  queue:
+    image: *app_image
+    restart: unless-stopped
+    env_file: [.env.prod]
+    command: php artisan queue:work --tries=3 --max-time=3600 --sleep=1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  # ── Scheduler (exactly one replica) ─────────────────────────────────────────
+  scheduler:
+    image: *app_image
+    restart: unless-stopped
+    env_file: [.env.prod]
+    command: php artisan schedule:work
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  # ── One-off migration job (run with: --profile setup run --rm migrate) ──────
+  migrate:
+    image: *app_image
+    profiles: ["setup"]
+    env_file: [.env.prod]
+    command: sh -c "php artisan migrate --force && php artisan config:cache && php artisan route:cache"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ── PostgreSQL 16 with PostGIS + pgvector ───────────────────────────────────
+  db:
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB:-history-mapped}"
+      POSTGRES_USER: "${POSTGRES_USER:-history-mapped}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in docker/.env.prod}"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init-extensions.sql:/docker-entrypoint-initdb.d/10-extensions.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-history-mapped} -d ${POSTGRES_DB:-history-mapped}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis (cache / queue / session) ─────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
+  caddy_data:
+  caddy_config:
