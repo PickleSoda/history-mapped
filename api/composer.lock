@@ -7234,16 +7234,16 @@
         },
         {
             "name": "tpetry/laravel-postgresql-enhanced",
-            "version": "3.6.0",
+            "version": "3.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tpetry/laravel-postgresql-enhanced.git",
-                "reference": "d78c391d7e8bc586370e469c96dd7467844ce054"
+                "reference": "a3c9df5f29f188f06645aa9e8c11198101873106"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tpetry/laravel-postgresql-enhanced/zipball/d78c391d7e8bc586370e469c96dd7467844ce054",
-                "reference": "d78c391d7e8bc586370e469c96dd7467844ce054",
+                "url": "https://api.github.com/repos/tpetry/laravel-postgresql-enhanced/zipball/a3c9df5f29f188f06645aa9e8c11198101873106",
+                "reference": "a3c9df5f29f188f06645aa9e8c11198101873106",
                 "shasum": ""
             },
             "require": {
@@ -7261,7 +7261,8 @@
                 "phpstan/extension-installer": "^1.1",
                 "phpstan/phpstan": "^1.5|^2.0",
                 "phpunit/phpunit": "^8.5.23|^9.5.13|^10.5|^11.4",
-                "ramsey/uuid": "^3.9|^4.7"
+                "ramsey/uuid": "^3.9|^4.7",
+                "symfony/polyfill-php86": "^1.37"
             },
             "type": "library",
             "extra": {
@@ -7299,9 +7300,9 @@
             ],
             "support": {
                 "issues": "https://github.com/tpetry/laravel-postgresql-enhanced/issues",
-                "source": "https://github.com/tpetry/laravel-postgresql-enhanced/tree/3.6.0"
+                "source": "https://github.com/tpetry/laravel-postgresql-enhanced/tree/3.7.0"
             },
-            "time": "2026-03-16T16:22:38+00:00"
+            "time": "2026-05-17T10:02:20+00:00"
         },
         {
             "name": "vlucas/phpdotenv",
