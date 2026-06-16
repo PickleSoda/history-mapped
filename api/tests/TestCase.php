@@ -10,6 +10,16 @@ use Laravel\Fortify\Features;
 
 abstract class TestCase extends BaseTestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Page-rendering (Inertia) tests don't build frontend assets in CI, so
+        // stub Vite to avoid ViteManifestNotFoundException when app.blade.php
+        // renders the @vite directive.
+        $this->withoutVite();
+    }
+
     protected function skipUnlessFortifyFeature(string $feature, ?string $message = null): void
     {
         if (! Features::enabled($feature)) {
