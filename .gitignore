@@ -7,6 +7,7 @@ nul
 .env
 api/.env
 web/.env
+docker/.env.prod
 
 # Dependencies
 node_modules/
