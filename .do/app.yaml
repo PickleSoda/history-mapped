@@ -8,7 +8,7 @@
 #   - migrate    PRE_DEPLOY job (php artisan migrate --force)
 # plus the customer SPA as a static site, and managed Postgres + Valkey.
 #
-# FIRST-TIME SETUP (see docs/implementation-docs/deployment_runbook.md):
+# FIRST-TIME SETUP (see docs/implementation-docs/deployment-runbook.md):
 #   1. doctl auth init
 #   2. Create managed Postgres + Valkey clusters; enable `postgis` and `vector`
 #      on the Postgres DB (CREATE EXTENSION ...). Put their names in `cluster_name` below.

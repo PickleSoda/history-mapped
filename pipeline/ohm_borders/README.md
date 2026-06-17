@@ -95,7 +95,7 @@ output/ohm_borders/<run_id>/subgraph/
 └── closure_report.json
 ```
 
-See `docs/implementation-docs/ohm_country_subgraph_runbook.md` for the full first-run and second-run workflow.
+See `docs/implementation-docs/ohm-country-subgraph-runbook.md` for the full first-run and second-run workflow.
 
 `extract-subgraph` now resolves the subgraph from SQLite only. It does not fall back to loading the full raw payload into memory during normal command execution.
 

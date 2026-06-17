@@ -196,13 +196,13 @@ Docker Compose defaults are defined in `docker/docker-compose.yml`. Override the
 | Document | Description |
 |----------|-------------|
 | [docs/README.md](docs/README.md) | Documentation index and guidance on which docs describe current state |
-| [docs/architecture_overview.md](docs/architecture_overview.md) | Runtime surfaces, routing, and repository architecture |
+| [docs/architecture/system-overview.md](docs/architecture/system-overview.md) | Runtime surfaces, routing, and repository architecture |
 | [docs/implementation-docs/setup.md](docs/implementation-docs/setup.md) | Local setup and development workflow |
 | [pipeline/README.md](pipeline/README.md) | Python pipeline overview and command entry points |
-| [docs/implementation-docs/data_pipeline_architecture.md](docs/implementation-docs/data_pipeline_architecture.md) | Detailed scrape, OHM, import, and embedding pipeline architecture |
+| [docs/architecture/data-pipeline.md](docs/architecture/data-pipeline.md) | Detailed scrape, OHM, import, and embedding pipeline architecture |
 | [docs/entity-model/README.md](docs/entity-model/README.md) | Entity model overview and companion references |
 | [docs/schemas/README.md](docs/schemas/README.md) | Pipeline and API schema documentation |
-| [docs/implementation-docs/ohm_country_subgraph_runbook.md](docs/implementation-docs/ohm_country_subgraph_runbook.md) | OHM country subgraph extraction workflow |
+| [docs/implementation-docs/ohm-country-subgraph-runbook.md](docs/implementation-docs/ohm-country-subgraph-runbook.md) | OHM country subgraph extraction workflow |
 | [docs/TODO.md](docs/TODO.md) | Current task backlog |
 
 ---
