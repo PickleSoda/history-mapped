@@ -85,6 +85,12 @@ services:
     image: *app_image
     profiles: ["setup"]
     env_file: [.env.prod]
+    # The permission migration flushes the Spatie cache (Cache::forget), which
+    # would hit Redis. This one-off runs before `up`, so the redis service isn't
+    # started yet and the host won't resolve — use the array store to keep
+    # migrations independent of the cache backend. (overrides .env.prod)
+    environment:
+      CACHE_STORE: array
     command: sh -c "php artisan migrate --force && php artisan config:cache"
     depends_on:
       db:
