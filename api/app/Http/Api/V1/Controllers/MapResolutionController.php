@@ -28,4 +28,17 @@ class MapResolutionController extends Controller
             'data' => $result,
         ]);
     }
+
+    /**
+     * Read-only counterpart of {@see resolveOhmFeature()} for the public atlas
+     * GET route. It shares the same logic but is a distinct controller action so
+     * Wayfinder generates a separate, non-colliding route helper (one method
+     * bound to both a GET and a POST at the same URL collides during generation).
+     */
+    public function showOhmFeature(
+        ResolveOhmFeatureRequest $request,
+        ResolveOhmFeatureAction $action,
+    ): JsonResponse {
+        return $this->resolveOhmFeature($request, $action);
+    }
 }

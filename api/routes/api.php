@@ -33,7 +33,7 @@ Route::prefix('v1')->group(function () {
     // Read-only OHM-feature resolution for the public atlas (click an OHM
     // basemap feature -> matching entity). The editor's mutating counterpart is
     // the permission-gated POST below.
-    Route::get('/map/resolve-ohm-feature', [MapResolutionController::class, 'resolveOhmFeature'])
+    Route::get('/map/resolve-ohm-feature', [MapResolutionController::class, 'showOhmFeature'])
         ->name('api.v1.map.resolve-ohm-feature.show');
 
     Route::get('/entities', [EntityController::class, 'index'])
