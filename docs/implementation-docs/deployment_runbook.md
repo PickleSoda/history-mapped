@@ -60,19 +60,26 @@ Components in the spec: `api` (HTTP), `queue` + `scheduler` (workers), `migrate`
 
 Files: [`docker/docker-compose.prod.yml`](../../docker/docker-compose.prod.yml), [`docker/Caddyfile`](../../docker/Caddyfile), [`docker/.env.prod.example`](../../docker/.env.prod.example).
 
-1. Create a Droplet (≥2 GB RAM), point your DNS A record at it.
+**Two domains.** The admin (Inertia, served by the app) and the customer SPA both live at `/`, so they need separate hostnames:
+- **`APP_DOMAIN`** → the app container (API `/api`, admin UI, OpenAPI `/docs`).
+- **`WEB_DOMAIN`** → the customer SPA (static files, built into the `web_dist` volume by the `web-build` service and served by Caddy). Point an A record for each at the Droplet.
+
+1. Create a Droplet (≥2 GB RAM), point DNS A records for **both** `APP_DOMAIN` and `WEB_DOMAIN` at it.
 2. Install Docker Engine + Compose plugin.
-3. Clone the repo (or copy the `docker/` files), then:
+3. Clone the repo (the `db` image and the SPA are built locally, so the full repo is needed), then:
    ```bash
-   cp docker/.env.prod.example docker/.env.prod   # fill APP_KEY, passwords, APP_DOMAIN, ...
+   cp docker/.env.prod.example docker/.env.prod   # fill APP_KEY, passwords, APP_DOMAIN, WEB_DOMAIN, ...
    docker login ghcr.io                            # PAT with read:packages (skip if package is public)
    cd docker
    docker compose --env-file .env.prod -f docker-compose.prod.yml pull
+   docker compose --env-file .env.prod -f docker-compose.prod.yml --profile setup run --rm web-build  # build the SPA
    docker compose --env-file .env.prod -f docker-compose.prod.yml --profile setup run --rm migrate
    docker compose --env-file .env.prod -f docker-compose.prod.yml up -d
    ```
-4. Caddy auto-provisions Let's Encrypt TLS for `APP_DOMAIN` and proxies to the app on 8080.
-5. To update after a new image: `pull` again, run `migrate`, then `up -d` (rolling).
+4. Caddy auto-provisions Let's Encrypt TLS for both domains; it proxies `APP_DOMAIN` to the app on 8080 and serves the SPA on `WEB_DOMAIN`.
+5. To update after a new image: `pull`, re-run `web-build` + `migrate`, then `up -d` (the automated SSH deploy does exactly this).
+
+> Note: migrations run **without** `route:cache` — `/health` and `/user` are closure routes, which `route:cache` rejects (it would fail the one-off job and, with `script_stop: true`, abort the whole SSH deploy).
 
 The stack runs the app (FrankenPHP/Octane), `queue`, `scheduler`, self-hosted Postgres (PostGIS+pgvector), and Redis on the one box. To use managed data services instead, delete the `db`/`redis` services and repoint `DB_*`/`REDIS_*`.
 

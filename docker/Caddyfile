@@ -1,12 +1,20 @@
 # Caddy edge proxy for the production droplet stack.
-# Auto-provisions and renews Let's Encrypt TLS for $APP_DOMAIN, then reverse-
-# proxies to the FrankenPHP/Octane app container on port 8080.
+# Auto-provisions and renews Let's Encrypt TLS for both domains.
 #
-# $APP_DOMAIN is injected from docker/.env.prod via docker-compose.prod.yml.
-# For a local/staging host without a public domain, replace "{$APP_DOMAIN}"
-# with ":80" to serve plain HTTP.
+# $APP_DOMAIN / $WEB_DOMAIN are injected from docker/.env.prod via
+# docker-compose.prod.yml. For a local/staging host without public domains,
+# replace the site addresses with ":80" / ":8081" to serve plain HTTP.
 
+# API + admin (Inertia) + OpenAPI docs — the FrankenPHP/Octane app on :8080.
 {$APP_DOMAIN} {
 	encode zstd gzip
 	reverse_proxy app:8080
+}
+
+# Public customer SPA — static files built into the web_dist volume.
+{$WEB_DOMAIN} {
+	encode zstd gzip
+	root * /srv/web
+	try_files {path} /index.html   # SPA client-side routing
+	file_server
 }

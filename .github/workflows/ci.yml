@@ -330,7 +330,8 @@ jobs:
 
             COMPOSE="docker compose --env-file docker/.env.prod -f docker/docker-compose.prod.yml"
             $COMPOSE pull
-            $COMPOSE --profile setup run --rm migrate
+            $COMPOSE --profile setup run --rm web-build   # rebuild the customer SPA
+            $COMPOSE --profile setup run --rm migrate     # migrations (before traffic shifts)
             $COMPOSE up -d --remove-orphans
             docker image prune -f
         env:
