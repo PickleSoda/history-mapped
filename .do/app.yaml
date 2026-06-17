@@ -1,0 +1,139 @@
+# DigitalOcean App Platform spec for history-mapped.
+#
+# This deploys the GHCR image built by .github/workflows/ci.yml
+# (ghcr.io/<owner>/history-mapped/api) as four components that share one image:
+#   - api        HTTP service (FrankenPHP + Octane)
+#   - queue      worker  (php artisan queue:work)
+#   - scheduler  worker  (php artisan schedule:work)
+#   - migrate    PRE_DEPLOY job (php artisan migrate --force)
+# plus the customer SPA as a static site, and managed Postgres + Valkey.
+#
+# FIRST-TIME SETUP (see docs/implementation-docs/deployment_runbook.md):
+#   1. doctl auth init
+#   2. Create managed Postgres + Valkey clusters; enable `postgis` and `vector`
+#      on the Postgres DB (CREATE EXTENSION ...). Put their names in `cluster_name` below.
+#   3. Fill registry_credentials (a GitHub PAT with read:packages) OR make the
+#      GHCR package public and delete that line.
+#   4. Replace every REPLACE_ME / your-* placeholder.
+#   5. Validate + create:
+#        doctl apps spec validate .do/app.yaml
+#        doctl apps create --spec .do/app.yaml
+#   6. Set the real APP_KEY secret (php artisan key:generate --show) in the UI/secret.
+#
+# Thereafter, CI auto-deploys on push to main once you set repo variable DEPLOY_TO_DO=true.
+
+name: history-mapped
+region: fra1   # pick the region nearest your DB cluster
+
+services:
+  - name: api
+    # Shared image + env are anchored here and reused by the workers and job.
+    image: &api_image
+      registry_type: GHCR
+      repository: picklesoda/history-mapped/api   # ghcr.io/<owner>/history-mapped/api (lowercase)
+      tag: latest
+      # PAT with read:packages, format "username:token". Omit if the package is public.
+      registry_credentials: "PickleSoda:REPLACE_ME_GHCR_PAT_read_packages"
+    http_port: 8080            # the image serves Octane/FrankenPHP on $PORT (default 8080)
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+    health_check:
+      http_path: /up           # Laravel's built-in health endpoint (no DB hit)
+      initial_delay_seconds: 15
+      period_seconds: 10
+      failure_threshold: 3
+    envs: &runtime_envs
+      - { key: APP_NAME, value: history-mapped, scope: RUN_TIME }
+      - { key: APP_ENV, value: production, scope: RUN_TIME }
+      - { key: APP_DEBUG, value: "false", scope: RUN_TIME }
+      # Generate with: php artisan key:generate --show  → set as an encrypted secret.
+      - { key: APP_KEY, value: "base64:REPLACE_ME", scope: RUN_TIME, type: SECRET }
+      - { key: APP_URL, value: "https://your-api-domain", scope: RUN_TIME }
+      - { key: LOG_CHANNEL, value: stderr, scope: RUN_TIME }   # logs → App Platform stream
+      - { key: APP_MAINTENANCE_DRIVER, value: file, scope: RUN_TIME }
+      - { key: OCTANE_SERVER, value: frankenphp, scope: RUN_TIME }
+      # ── Database (managed Postgres bound below as "db") ──
+      - { key: DB_CONNECTION, value: pgsql, scope: RUN_TIME }
+      - { key: DB_URL, value: "${db.DATABASE_URL}", scope: RUN_TIME }
+      # ── Cache / queue / session (managed Valkey bound below as "cache") ──
+      # NOTE: DO Valkey requires TLS. If phpredis can't connect, prefix the host
+      # with tls:// or set a 'scheme' => 'tls' option in config/database.php.
+      - { key: REDIS_HOST, value: "${cache.HOSTNAME}", scope: RUN_TIME }
+      - { key: REDIS_PORT, value: "${cache.PORT}", scope: RUN_TIME }
+      - { key: REDIS_USERNAME, value: "${cache.USERNAME}", scope: RUN_TIME }
+      - { key: REDIS_PASSWORD, value: "${cache.PASSWORD}", scope: RUN_TIME, type: SECRET }
+      - { key: CACHE_STORE, value: redis, scope: RUN_TIME }
+      - { key: SESSION_DRIVER, value: redis, scope: RUN_TIME }
+      - { key: QUEUE_CONNECTION, value: redis, scope: RUN_TIME }
+      # ── SPA auth / CORS ──
+      - { key: SANCTUM_STATEFUL_DOMAINS, value: "your-web-domain", scope: RUN_TIME }
+      - { key: FRONTEND_URL, value: "https://your-web-domain", scope: RUN_TIME }
+      - { key: SCRAMBLE_DOCS_PUBLIC, value: "false", scope: RUN_TIME }
+
+workers:
+  - name: queue
+    image: *api_image
+    run_command: php artisan queue:work --tries=3 --max-time=3600 --sleep=1
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    envs: *runtime_envs
+
+  - name: scheduler
+    image: *api_image
+    run_command: php artisan schedule:work
+    instance_count: 1            # MUST stay at exactly 1
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    envs: *runtime_envs
+
+jobs:
+  - name: migrate
+    kind: PRE_DEPLOY             # runs before each deploy, once, before traffic shifts
+    image: *api_image
+    run_command: php artisan migrate --force && php artisan config:cache && php artisan route:cache
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    envs: *runtime_envs
+
+static_sites:
+  - name: web
+    # The customer SPA, built from the monorepo. Requires the GitHub integration
+    # connected to your DO team (Settings → integrations).
+    github:
+      repo: PickleSoda/history-mapped
+      branch: main
+      deploy_on_push: true
+    source_dir: /
+    build_command: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @history-mapped/web build
+    output_dir: web/dist
+    catchall_document: index.html   # SPA client-side routing
+    envs:
+      # Build-time API base URL — match the actual VITE_* var the web app reads.
+      - { key: VITE_API_URL, value: "https://your-api-domain", scope: BUILD_TIME }
+
+databases:
+  # Reference EXISTING managed clusters (needed for PostGIS + pgvector).
+  - name: db
+    engine: PG
+    production: true
+    cluster_name: your-postgres-cluster
+  - name: cache
+    engine: REDIS          # DigitalOcean managed Valkey
+    production: true
+    cluster_name: your-valkey-cluster
+
+ingress:
+  rules:
+    - match:
+        path:
+          prefix: /api
+      component:
+        name: api
+    - match:
+        path:
+          prefix: /docs        # OpenAPI docs (Scramble)
+      component:
+        name: api
+    - match:
+        path:
+          prefix: /
+      component:
+        name: web
