@@ -109,6 +109,12 @@ services:
     image: node:20-bookworm-slim
     profiles: ["setup"]
     working_dir: /repo
+    # Vite bakes VITE_* into the bundle at build time. VITE_API_URL must be the
+    # API origin the browser calls (no /api/v1, no trailing slash); without it
+    # the SPA falls back to http://localhost:8000.
+    environment:
+      VITE_API_URL: "${VITE_API_URL:?set VITE_API_URL in docker/.env.prod}"
+      VITE_APP_NAME: "${VITE_APP_NAME:-history-mapped}"
     volumes:
       - ..:/repo
       - web_dist:/repo/web/dist
