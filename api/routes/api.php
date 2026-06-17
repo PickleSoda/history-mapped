@@ -30,6 +30,12 @@ Route::prefix('v1')->group(function () {
     Route::get('/entities/map', [EntityController::class, 'map'])
         ->name('api.v1.entities.map');
 
+    // Read-only OHM-feature resolution for the public atlas (click an OHM
+    // basemap feature -> matching entity). The editor's mutating counterpart is
+    // the permission-gated POST below.
+    Route::get('/map/resolve-ohm-feature', [MapResolutionController::class, 'resolveOhmFeature'])
+        ->name('api.v1.map.resolve-ohm-feature.show');
+
     Route::get('/entities', [EntityController::class, 'index'])
         ->name('api.v1.entities.index');
 

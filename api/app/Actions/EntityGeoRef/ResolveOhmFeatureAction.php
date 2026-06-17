@@ -23,6 +23,11 @@ class ResolveOhmFeatureAction
      */
     public function __invoke(array $payload): array
     {
+        // Coerce once: a GET query param arrives as a string ("117"), while a
+        // JSON POST sends an int. Downstream comparisons and buildResponse()
+        // expect an int.
+        $payload['target_year'] = (int) $payload['target_year'];
+
         $match = DB::table('entity_geo_refs as gr')
             ->join('entities as e', 'e.entity_id', '=', 'gr.entity_id')
             ->select('gr.geo_ref_id', 'gr.geometry_period_id')
