@@ -1,5 +1,5 @@
 import type { FeatureCollection } from 'geojson';
-import type { GeoJSONSource, MapLayerMouseEvent } from 'maplibre-gl';
+import type { GeoJSONSource } from 'maplibre-gl';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useEffect, useRef } from 'react';
@@ -15,6 +15,7 @@ import { loadHistoricalBasemapStyle } from '@/lib/map-config';
 import { registerGroupMarkers } from '@/lib/map-icons';
 import { yearToOhmDate } from '@/lib/ohm-date';
 import { applyOhmLayerDateFilter } from '@/lib/ohm-layer-date-filter';
+import { resolveOhmClickToEntity } from '@/lib/ohm-resolve';
 
 const SOURCE_ID = 'entities';
 const FILL_LAYER = 'entities-fill';
@@ -159,14 +160,7 @@ export function MapCanvas() {
           },
         });
 
-        // Click any entity feature → select it (opens the detail panel).
-        const onFeatureClick = (e: MapLayerMouseEvent) => {
-          const id = e.features?.[0]?.properties?.id;
-          if (typeof id === 'string' && id) {
-            e.originalEvent.stopPropagation();
-            void selectRef.current(id);
-          }
-        };
+        // Pointer cursor over our own clickable features.
         const setPointer = () => {
           map.getCanvas().style.cursor = 'pointer';
         };
@@ -174,10 +168,32 @@ export function MapCanvas() {
           map.getCanvas().style.cursor = '';
         };
         for (const layerId of INTERACTIVE_LAYERS) {
-          map.on('click', layerId, onFeatureClick);
           map.on('mouseenter', layerId, setPointer);
           map.on('mouseleave', layerId, clearPointer);
         }
+
+        // Unified click: select a clicked entity; otherwise try resolving an
+        // OHM basemap feature under the click to one of our entities. A click
+        // sequence token drops a stale resolution if the user clicks again.
+        let clickSeq = 0;
+        map.on('click', (e) => {
+          const layers = INTERACTIVE_LAYERS.filter((l) => map.getLayer(l));
+          const hit = layers.length
+            ? map.queryRenderedFeatures(e.point, { layers })[0]
+            : undefined;
+          const id = hit?.properties?.id;
+          if (typeof id === 'string' && id) {
+            void selectRef.current(id);
+            return;
+          }
+
+          const seq = ++clickSeq;
+          void resolveOhmClickToEntity(map, e, yearRef.current).then(
+            (entityId) => {
+              if (entityId && seq === clickSeq) void selectRef.current(entityId);
+            },
+          );
+        });
 
         // Filter the OHM basemap to the current year, then publish whatever the
         // viewport query has already loaded (it may resolve before 'load').
