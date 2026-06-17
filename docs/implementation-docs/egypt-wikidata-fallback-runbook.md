@@ -118,5 +118,5 @@ The Wikidata fallback output goes to `output/wikidata_collections/<run_id>/`, se
 
 ## See also
 
-- [data_pipeline_architecture.md](../../docs/implementation-docs/data_pipeline_architecture.md)
-- [data-contributor-guide.md](../../docs/implementation-docs/data-contributor-guide.md)
+- [data-pipeline.md](../architecture/data-pipeline.md)
+- [data-contributor-guide.md](data-contributor-guide.md)

@@ -10,7 +10,7 @@
 
 **Tech Stack:** Laravel 13 (PHP 8) + PostgreSQL (int4range/GiST), PHPUnit; React/TS (Vitest).
 
-**Spec:** [../specs/2026-06-12-temporal-semantics-unification-design.md](../specs/2026-06-12-temporal-semantics-unification-design.md)
+**Spec:** [../specs/2026-06-12-temporal-semantics-unification-design.md](../superpowers-specs/2026-06-12-temporal-semantics-unification-design.md)
 
 ---
 

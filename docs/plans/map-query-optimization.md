@@ -7,10 +7,6 @@
 > `MapEntitiesAction`, `MapEntitiesByYearAction`, `ResolveOhmFeatureAction`, `EntityBuilder`, the
 > `GeoJson` cast, and all geometry/temporal migrations. Findings independently spot-checked against source.
 
-> **Filename note:** there is a pre-existing `docs/plans/10-ohm-phase-2-timeline-map-interaction.md`.
-> This file intentionally reuses the `10-` prefix per the task brief; the two are unrelated. Renumber if the
-> duplicate prefix is undesirable.
-
 ---
 
 ## 1. Headline finding
@@ -250,7 +246,7 @@ the WKB→JSON→WKB conversion. Batch path only — zero request-path risk.
 ---
 
 ## 6. Correctness bugs blocking P1 (cross-reference)
-These live in the consolidated [12-bug-report.md](12-bug-report.md); they must be fixed as part of P1 because they make
+These live in the consolidated [bug-report.md](bug-report.md); they must be fixed as part of P1 because they make
 the bbox endpoint wrong rather than just slow:
 
 - **MQ-1 (high):** `temporal_start/temporal_end` is ANDed with a hidden default `year=1000` instead of overriding it →

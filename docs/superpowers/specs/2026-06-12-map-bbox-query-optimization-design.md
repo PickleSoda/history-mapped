@@ -3,7 +3,7 @@
 > **Date:** 2026-06-12
 > **Status:** Design (approved) — ready for implementation planning
 > **Area:** `api/` (Laravel) + `api/resources/js` (admin map UI)
-> **Source:** [../../plans/10-map-query-optimization.md](../../plans/10-map-query-optimization.md) and bug report MQ-1…MQ-19, LC-1.
+> **Source:** [../../plans/map-query-optimization.md](../../plans/map-query-optimization.md) and bug report MQ-1…MQ-19, LC-1.
 > **Sub-project:** A of the audit-remediation set.
 
 ## 1. Problem

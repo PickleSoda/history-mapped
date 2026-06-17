@@ -10,7 +10,7 @@ history-mapped is a monorepo with three active product and engineering surfaces:
 
 The Laravel app is the richest implemented surface today. The standalone `web/` package is already connected to the backend but remains intentionally small, while the MapLibre-based historical map and geometry editing tooling currently lives in the admin code inside `api/resources/js`.
 
-> The LangGraph agentic pipeline is an MVP: it produces artifacts and is test-covered with mocked LLMs, but its database-commit path has known critical defects (it currently writes nothing to the DB on a real run). See [implementation-docs/agentic-pipeline-runbook.md](implementation-docs/agentic-pipeline-runbook.md) and [plans/12-bug-report.md](plans/12-bug-report.md) before relying on it.
+> The LangGraph agentic pipeline is an MVP: it produces artifacts and is test-covered with mocked LLMs, but its database-commit path has known critical defects (it currently writes nothing to the DB on a real run). See [../implementation-docs/agentic-pipeline-runbook.md](../implementation-docs/agentic-pipeline-runbook.md) and [../plans/bug-report.md](../plans/bug-report.md) before relying on it.
 
 ## Runtime Surfaces
 
@@ -101,7 +101,7 @@ The ingestion architecture is file-based rather than streaming-based.
 3. Laravel artisan commands import those artifacts into PostgreSQL.
 4. Queue jobs and follow-up commands resolve relationship hints and generate embeddings.
 
-> **Caveat (agentic track):** the agent's commit node shells out to artisan importers but currently passes a host path the app container cannot see and never checks the return code, so on a real run it persists nothing while reporting success; chronicles are written to disk but not imported. Treat the agentic write path as not-yet-working — see [plans/11-agentic-pipeline-improvements.md](plans/11-agentic-pipeline-improvements.md).
+> **Caveat (agentic track):** the agent's commit node shells out to artisan importers but currently passes a host path the app container cannot see and never checks the return code, so on a real run it persists nothing while reporting success; chronicles are written to disk but not imported. Treat the agentic write path as not-yet-working — see [../plans/agentic-pipeline-improvements.md](../plans/agentic-pipeline-improvements.md).
 
 ```mermaid
 flowchart LR
@@ -170,12 +170,12 @@ Working conventions:
 |----------|-------------|
 | `README.md` | Foundational architecture for the Historical Atlas platform, including the three-layer map model and AI-to-human review lifecycle |
 | `docs/implementation-docs/setup.md` | Monorepo setup, workspace structure, Docker services, auth model, and contract generation flow |
-| `docs/implementation-docs/entity_specification.md` | Entity types, enums, and field-level data model details |
-| `docs/implementation-docs/reference_tables.md` | Historical periods, regions, and supporting reference data |
+| `docs/entity-model/entity-specification.md` | Entity types, enums, and field-level data model details |
+| `docs/entity-model/reference-tables.md` | Historical periods, regions, and supporting reference data |
 | `docs/entity-model/` | Canonical entity/relationship/chronicle data model reference |
 | `docs/implementation-docs/agentic-pipeline-runbook.md` | LangGraph agentic pipeline node reference and run instructions |
-| `docs/implementation-docs/data_pipeline_architecture.md` | All three pipeline tracks and the Laravel import layer |
-| `docs/plans/10-map-query-optimization.md` | Map bbox query optimization plan (headline) |
-| `docs/plans/11-agentic-pipeline-improvements.md` | Agentic pipeline reliability/idempotency/observability plan |
-| `docs/plans/12-bug-report.md` | Consolidated, severity-ranked audit bug report |
-| `docs/reference/implementation-docs/game_inspired_ui_ux.md` | Design reference for the intended historical atlas frontend UI direction |
+| `docs/architecture/data-pipeline.md` | All three pipeline tracks and the Laravel import layer |
+| `docs/plans/map-query-optimization.md` | Map bbox query optimization plan (headline) |
+| `docs/plans/agentic-pipeline-improvements.md` | Agentic pipeline reliability/idempotency/observability plan |
+| `docs/plans/bug-report.md` | Consolidated, severity-ranked audit bug report |
+| `docs/reference/game-inspired-ui-ux.md` | Design reference for the intended historical atlas frontend UI direction |

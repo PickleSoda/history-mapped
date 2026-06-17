@@ -3,7 +3,7 @@
 > **Date:** 2026-06-12
 > **Status:** Design (proposed — foundational interaction model for the customer `web/` SPA; the admin dashboard can adopt it too).
 > **Area:** `web/` (customer SPA, currently a stub) and `api/resources/js` (admin dashboard); the public read API.
-> **Related:** [chronicle-dashboard-display-design](2026-06-12-chronicle-dashboard-display-design.md) (the Chronicles mode), [map-bbox-query-optimization-design](2026-06-12-map-bbox-query-optimization-design.md) (D19 borders-from-OHM + the bbox/index work this depends on), and the UI/UX reference [game_inspired_ui_ux.md](../../reference/implementation-docs/game_inspired_ui_ux.md).
+> **Related:** [chronicle-dashboard-display-design](../../archive/superpowers-specs/2026-06-12-chronicle-dashboard-display-design.md) (the Chronicles mode, archived), [map-bbox-query-optimization-design](2026-06-12-map-bbox-query-optimization-design.md) (D19 borders-from-OHM + the bbox/index work this depends on), and the UI/UX reference [game-inspired-ui-ux.md](../../reference/game-inspired-ui-ux.md).
 
 ## 1. Intent
 

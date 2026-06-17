@@ -281,7 +281,7 @@ entity, but only when those relations are eager-loaded.
 Many-to-many between entries and entities. Composite PK `(entry_id, entity_id)`, `withPivot('role', 'sequence_in_entry')`
 (role default `mentioned`), FK to `entities` is `RESTRICT` on delete.
 
-> **Known drift / bugs (see [../plans/12-bug-report.md](../plans/12-bug-report.md)):** the June-11 temporal/impact/location
+> **Known drift / bugs (see [../plans/bug-report.md](../plans/bug-report.md)):** the June-11 temporal/impact/location
 > fields are persisted by the DTO/action but are stripped by the Web FormRequests and omitted by every serializer, so they
 > are currently unreachable over HTTP (LC-6). `source_evidence` is validated as an array but the column is text (LC-4), and
 > `narrative_text` is NOT NULL while the validator allows null (LC-5). The agent pipeline writes `chronicle.json` but does

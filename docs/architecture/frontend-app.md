@@ -1,7 +1,7 @@
 # Frontend App Architecture — Historical Atlas (`web/`)
 
 > Architecture reference for the Atlas SPA. Companion to the plumbing spec at
-> [`docs/superpowers/specs/2026-06-13-atlas-frontend-plumbing-design.md`](superpowers/specs/2026-06-13-atlas-frontend-plumbing-design.md).
+> [`docs/superpowers/specs/2026-06-13-atlas-frontend-plumbing-design.md`](../superpowers/specs/2026-06-13-atlas-frontend-plumbing-design.md).
 > Describes the **current intended state** of the frontend foundation.
 
 ## What this app is

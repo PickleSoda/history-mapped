@@ -10,7 +10,7 @@
 
 **Tech Stack:** Laravel 13 (PHP 8), PostgreSQL 16 (jsonb), PHPUnit.
 
-**Spec:** [../specs/2026-06-12-chronicle-data-model-completion-design.md](../specs/2026-06-12-chronicle-data-model-completion-design.md)
+**Spec:** [../specs/2026-06-12-chronicle-data-model-completion-design.md](../superpowers-specs/2026-06-12-chronicle-data-model-completion-design.md)
 
 ---
 

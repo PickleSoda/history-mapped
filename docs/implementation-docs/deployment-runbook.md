@@ -114,3 +114,12 @@ The `deploy-droplet` job in `.github/workflows/ci.yml` SSHes into the droplet an
 | You manage | OS patching, backups, TLS (Caddy auto), restarts, scaling | nothing — DO handles HA, backups, TLS, rolling deploys, scaling |
 
 **Bottom line:** the Droplet is ~2–4× cheaper but you own operations; App Platform costs more but is hands-off and tells a stronger "managed, scalable, platform-agnostic" story for the capstone report. For a class demo on a tight budget, the Droplet is fine; for the production-grade narrative, App Platform.
+
+---
+
+> **This is the single canonical deployment doc.** Two earlier strategy write-ups
+> (`deployment-production-optimal.md`, an aspirational managed/autoscaling target, and
+> `deployment-mvp-low-cost.md`, which argued *against* the VPS+Compose approach that ultimately
+> shipped) were superseded by this runbook and moved to
+> [`../archive/implementation-docs/`](../archive/implementation-docs/). Consult them only for historical
+> rationale.

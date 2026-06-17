@@ -1,6 +1,6 @@
 # 17 — RBAC: Role-Gated Writes, Public Reads
 
-> **Status: ✅ Executed** — implemented & tested 2026-06-15 (commit `7190bb2`, branch `feat/rbac-write-authorization`). See [STATUS.md](STATUS.md).
+> **Status: ✅ Executed** — implemented & tested 2026-06-15 (commit `7190bb2`, branch `feat/rbac-write-authorization`). See [STATUS.md](../../plans/STATUS.md).
 
 > Resolves the Final-Report open issue: *"RBAC enforcement — roles are seeded via
 > spatie/laravel-permission and writes are auth-gated, but fine-grained per-endpoint permissions and

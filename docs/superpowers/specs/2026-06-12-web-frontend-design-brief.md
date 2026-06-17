@@ -5,7 +5,7 @@
 > self-contained: product concept, data model, interaction model, layout, aesthetic direction, technical constraints, and
 > deliverables. Trim the data-model detail if you want a tighter prompt.
 > **Grounded in:** [web-interaction-model-design](2026-06-12-web-interaction-model-design.md), the borders-from-OHM policy
-> (D19), and the UI/UX reference [game_inspired_ui_ux.md](../../reference/implementation-docs/game_inspired_ui_ux.md).
+> (D19), and the UI/UX reference [game-inspired-ui-ux.md](../../reference/game-inspired-ui-ux.md).
 
 ---
 
