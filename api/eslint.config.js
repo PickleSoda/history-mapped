@@ -56,6 +56,10 @@ export default [
             import: importPlugin,
         },
         settings: {
+            // Classify the `@/` alias as "internal" by path, not by module
+            // resolution — so import-order is stable even when Wayfinder-generated
+            // modules (@/routes, @/actions) aren't present (e.g. in CI).
+            'import/internal-regex': '^@/',
             'import/resolver': {
                 typescript: {
                     alwaysTryTypes: true,
