@@ -232,6 +232,13 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
+      # GHCR/Docker require lowercase image names, but `github.repository` keeps
+      # the owner's original case (e.g. "PickleSoda/history-mapped"), which makes
+      # buildx reject the tag with "repository name must be lowercase". Normalise
+      # it once here and reuse it for both push and scan.
+      - name: Resolve lowercase image name
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}/api" >> "$GITHUB_ENV"
+
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -246,16 +253,38 @@ jobs:
           file: docker/api/Dockerfile.prod
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}/api:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/api:latest
+            ${{ env.IMAGE }}:${{ github.sha }}
+            ${{ env.IMAGE }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Scan API image (Trivy)
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: ghcr.io/${{ github.repository }}/api:${{ github.sha }}
+          image-ref: ${{ env.IMAGE }}:${{ github.sha }}
           format: sarif
           output: trivy-api.sarif
           severity: HIGH,CRITICAL
           exit-code: "0"   # report-only at first; flip to "1" to gate merges
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Deploy to DigitalOcean App Platform — main branch only, and OPT-IN: the job
+  # is skipped until you set the repo variable DEPLOY_TO_DO=true
+  # (Settings → Secrets and variables → Actions → Variables). It also needs the
+  # DIGITALOCEAN_ACCESS_TOKEN secret and an app already created from .do/app.yaml.
+  # GHCR images can't use App Platform's deploy-on-push, so this step triggers
+  # the deploy after the image is published. See docs/implementation-docs/deployment_runbook.md.
+  # ───────────────────────────────────────────────────────────────────────────
+  deploy:
+    name: Deploy (DigitalOcean App Platform)
+    if: github.ref == 'refs/heads/main' && vars.DEPLOY_TO_DO == 'true'
+    needs: [images]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy App Platform app
+        uses: digitalocean/app_action/deploy@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          app_name: history-mapped
