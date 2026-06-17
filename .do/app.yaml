@@ -89,7 +89,7 @@ jobs:
   - name: migrate
     kind: PRE_DEPLOY             # runs before each deploy, once, before traffic shifts
     image: *api_image
-    run_command: php artisan migrate --force && php artisan config:cache && php artisan route:cache
+    run_command: php artisan migrate --force && php artisan config:cache   # no route:cache — /health & /user are closure routes
     instance_size_slug: apps-s-1vcpu-0.5gb
     envs: *runtime_envs
 

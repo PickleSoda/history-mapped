@@ -25,10 +25,12 @@ services:
       - "443:443"
     environment:
       APP_DOMAIN: "${APP_DOMAIN:?set APP_DOMAIN in docker/.env.prod}"
+      WEB_DOMAIN: "${WEB_DOMAIN:?set WEB_DOMAIN in docker/.env.prod}"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
+      - web_dist:/srv/web:ro      # customer SPA, built by the web-build service
     depends_on:
       - app
 
@@ -76,14 +78,31 @@ services:
         condition: service_started
 
   # ── One-off migration job (run with: --profile setup run --rm migrate) ──────
+  #     NOTE: no `route:cache` — /health and /user are closure routes, which
+  #     route:cache rejects. config:cache is safe. (Octane registers routes per
+  #     worker boot, so route caching buys little here anyway.)
   migrate:
     image: *app_image
     profiles: ["setup"]
     env_file: [.env.prod]
-    command: sh -c "php artisan migrate --force && php artisan config:cache && php artisan route:cache"
+    command: sh -c "php artisan migrate --force && php artisan config:cache"
     depends_on:
       db:
         condition: service_healthy
+
+  # ── Build the customer SPA into the web_dist volume (run via the setup
+  #     profile on each deploy); Caddy serves it on WEB_DOMAIN. ────────────────
+  web-build:
+    image: node:20-bookworm-slim
+    profiles: ["setup"]
+    working_dir: /repo
+    volumes:
+      - ..:/repo
+      - web_dist:/repo/web/dist
+    command: >-
+      sh -lc "corepack enable
+      && pnpm install --frozen-lockfile --filter @history-mapped/web...
+      && pnpm --filter @history-mapped/web build"
 
   # ── PostgreSQL 16 with PostGIS + pgvector ───────────────────────────────────
   db:
@@ -117,3 +136,4 @@ volumes:
   redis_data:
   caddy_data:
   caddy_config:
+  web_dist:
