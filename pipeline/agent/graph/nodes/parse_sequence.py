@@ -20,8 +20,10 @@ _PROMPT = """You are a historical event parser. Convert the provided historical 
 For each event, extract:
 - label: a concise title
 - description: a 1-sentence summary
-- start_date: ISO date if known, else null
-- end_date: ISO date if known, else null
+- start_date: the date with an EXPLICIT era marker — "430 BCE", "165 CE", "1347 CE"; never a bare number or an
+  ISO calendar string for ancient years, and never a minus sign on a CE year. null if unknown. (A bare "430" for
+  430 BCE silently becomes the year 430 CE downstream, so the BCE/CE marker is required.)
+- end_date: same format as start_date, else null
 - mentioned_entities: list of named entities mentioned
 - date_uncertain: true if the date is vague or estimated
 
