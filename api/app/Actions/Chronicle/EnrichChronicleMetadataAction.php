@@ -27,6 +27,37 @@ use Illuminate\Support\Facades\DB;
  */
 class EnrichChronicleMetadataAction
 {
+    /**
+     * Weight of the peak (single most significant entity) vs the mean of all
+     * involved entities when scoring a chronicle. Peak dominates so a chronicle
+     * about a major polity still ranks high; the mean spreads the score by how
+     * much *other* significant content the chronicle carries.
+     */
+    private const PEAK_WEIGHT = 0.7;
+
+    /**
+     * Score a chronicle's impact by blending its peak involved-entity impact
+     * with the mean across all involved entities. Pure so it can be unit-tested
+     * without a DB.
+     *
+     * The old behaviour (raw max of involved-entity impact) saturated — almost
+     * every chronicle contains one ~98 polity, so 84% scored an identical 98,
+     * and entry-count breadth did not help because these chronicles are large.
+     * Blending in the mean differentiates a chronicle dense with major entities
+     * from one that merely name-drops a single empire among minor figures.
+     */
+    public static function computeChronicleImpact(?int $peak, ?float $mean): ?int
+    {
+        if ($peak === null) {
+            return null;
+        }
+
+        $mean ??= (float) $peak;
+        $blended = self::PEAK_WEIGHT * $peak + (1.0 - self::PEAK_WEIGHT) * $mean;
+
+        return max(1, min(100, (int) round($blended)));
+    }
+
     public function __invoke(Chronicle $chronicle): void
     {
         $chronicle->load([
@@ -44,11 +75,17 @@ class EnrichChronicleMetadataAction
         $impact = null;
         $location = null;
         $locationImpact = -1;
+        $involvedImpacts = [];
 
         foreach ($chronicle->entries as $entry) {
             $entities = $this->involvedEntities($entry);
 
             $entryImpact = $entities->max('impact_score');
+            foreach ($entities as $involved) {
+                if ($involved->impact_score !== null) {
+                    $involvedImpacts[] = (int) $involved->impact_score;
+                }
+            }
             [$relStart, $relEnd] = $this->relationshipYears($entry);
             [$entStart, $entEnd] = $this->yearsFromEntities($entities, $years);
             $entryLocation = $this->representativePoint($entities, $points);
@@ -78,10 +115,15 @@ class EnrichChronicleMetadataAction
             }
         }
 
+        $meanImpact = $involvedImpacts === []
+            ? null
+            : array_sum($involvedImpacts) / count($involvedImpacts);
+
         $chronicle->forceFill([
             'start_year' => $chronicle->start_year ?? $start,
             'end_year' => $chronicle->end_year ?? $end,
-            'impact_score' => $impact ?? $chronicle->impact_score,
+            'impact_score' => self::computeChronicleImpact($impact, $meanImpact)
+                ?? $chronicle->impact_score,
             'approximate_location' => $location ?? $chronicle->approximate_location,
         ])->save();
     }

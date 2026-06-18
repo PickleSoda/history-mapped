@@ -41,6 +41,7 @@ class EnrichedCandidate(BaseModel):
     # `_geo_resolution` manifest (OHM Nominatim) for the Laravel geo-ref importer.
     geo_resolution: dict[str, Any] | None = None
     summary: str | None = None
+    significance: str | None = None
     system_confidence: float = 0.0
     final_confidence: float = 0.0
     validation_errors: list[str] = Field(default_factory=list)
