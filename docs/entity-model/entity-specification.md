@@ -5,7 +5,7 @@
 
 > **Companion to:** Data Pipeline Architecture, Foundational Architecture Document, Game-Inspired UI/UX Design Guide
 > **Storage context:** PostgreSQL (PostGIS + pgvector) for structured/queryable data, S3-compatible object storage for raw files and logs.
-> **Changes from v1.0:** Merged Economic/Trade Good into Natural Resource. Demoted Historical Period/Era and Historiographical School to reference tables (see `reference_tables.md`). Added Infrastructure/Monument, Diplomatic Relationship/Alliance, and Epidemic/Disease as new first-class entities.
+> **Changes from v1.0:** Merged Economic/Trade Good into Natural Resource. Demoted Historical Period/Era and Historiographical School to reference tables (see `reference-tables.md`). Added Infrastructure/Monument, Diplomatic Relationship/Alliance, and Epidemic/Disease as new first-class entities.
 > **Changes from v2.0:** Consolidated entity groups from 10 to 5. Eliminated singleton groups (PERSON, MILITARY, BELIEF) and the catch-all SOCIETY group. Absorbed KNOWLEDGE into CULTURE and PLACE. See Section 1 rationale.
 
 ---

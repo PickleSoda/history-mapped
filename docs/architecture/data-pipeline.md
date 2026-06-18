@@ -8,7 +8,7 @@ The current data pipeline is split into three Python tracks plus a Laravel impor
 
 1. `pipeline/wikidata/` for generic Wikidata/Wikipedia scraping, topic graph walks, and deduplication.
 2. `pipeline/ohm_borders/` (and `pipeline/ohm_collections/`) for staged OpenHistoricalMap borders processing and relation extraction.
-3. `pipeline/agent/` — a **LangGraph agentic pipeline** that turns raw historical text into validated entity/relation/chronicle proposals (see §3.5 and the [agentic-pipeline-runbook.md](agentic-pipeline-runbook.md)).
+3. `pipeline/agent/` — a **LangGraph agentic pipeline** that turns raw historical text into validated entity/relation/chronicle proposals (see §3.5 and the [agentic-pipeline-runbook.md](../implementation-docs/agentic-pipeline-runbook.md)).
 4. Laravel artisan commands for importing generated artifacts, resolving relationship hints, generating embeddings, and importing chronicles.
 
 The system is intentionally file-based. Python writes JSONL and staged artifacts to disk first, then Laravel imports those artifacts later. This keeps the scrape and import loops decoupled and repeatable.
@@ -176,13 +176,13 @@ resolve_ohm → generate → validate → build_diff → approval_gate → commi
 `manifest.json`, `entities_to_create.jsonl`, `relations_to_create.jsonl`, `chronicle.json`.
 
 `commit_writer` shells out to `pipeline:import` / `pipeline:import-borders`, and `chronicle.json` is imported by
-`chronicles:import`. Full node reference and run instructions: [agentic-pipeline-runbook.md](agentic-pipeline-runbook.md).
+`chronicles:import`. Full node reference and run instructions: [agentic-pipeline-runbook.md](../implementation-docs/agentic-pipeline-runbook.md).
 
 > ⚠️ **Known issues:** the agent's commit path currently passes a host path the app container can't see, ignores artisan
 > return codes, sends relations to the wrong importer, and never invokes `chronicles:import` — so on a real run it
 > persists nothing while reporting success. The JSONL/manifest artifacts are correct; the DB-commit half is not yet
-> working. See [../plans/11-agentic-pipeline-improvements.md](../plans/11-agentic-pipeline-improvements.md) and
-> [../plans/12-bug-report.md](../plans/12-bug-report.md).
+> working. See [../plans/agentic-pipeline-improvements.md](../plans/agentic-pipeline-improvements.md) and
+> [../plans/bug-report.md](../plans/bug-report.md).
 
 ## 3. Laravel Import Layer
 
@@ -277,4 +277,4 @@ py -m pytest pipeline/tests
 - [../../pipeline/README.md](../../pipeline/README.md)
 - [../../pipeline/wikidata/README.md](../../pipeline/wikidata/README.md)
 - [../../pipeline/ohm_borders/README.md](../../pipeline/ohm_borders/README.md)
-- [ohm_country_subgraph_runbook.md](ohm_country_subgraph_runbook.md)
+- [ohm-country-subgraph-runbook.md](../implementation-docs/ohm-country-subgraph-runbook.md)

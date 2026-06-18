@@ -8,7 +8,7 @@
 
 **Tech Stack:** React 19, TanStack Query v5, Inertia, TypeScript, Vitest (admin frontend under `api/resources/js`).
 
-**Spec:** [../specs/2026-06-12-chronicle-dashboard-display-design.md](../specs/2026-06-12-chronicle-dashboard-display-design.md)
+**Spec:** [../specs/2026-06-12-chronicle-dashboard-display-design.md](../superpowers-specs/2026-06-12-chronicle-dashboard-display-design.md)
 
 **Dependencies:** Works on today's API. Enhanced by sub-project D (explicit entry/chronicle temporal fields + index year filter) — adopt when available; do not block.
 

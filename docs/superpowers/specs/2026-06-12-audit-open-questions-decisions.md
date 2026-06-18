@@ -151,8 +151,8 @@ end-to-end (timeline coalesce, EntityBuilder ±∞ semantics, map/click ongoing 
 | D1–D7 | [map-bbox-query-optimization-design](2026-06-12-map-bbox-query-optimization-design.md) | [plan](../plans/2026-06-12-map-bbox-query-optimization.md) |
 | D8–D13 | [agentic-pipeline-write-path-design](2026-06-12-agentic-pipeline-write-path-design.md) | [plan](../plans/2026-06-12-agentic-pipeline-write-path.md) |
 | D14 | [confidence-scoring-rework-design](2026-06-12-confidence-scoring-rework-design.md) | [plan](../plans/2026-06-12-confidence-scoring-rework.md) |
-| D15–D16 | [chronicle-data-model-completion-design](2026-06-12-chronicle-data-model-completion-design.md) | [plan](../plans/2026-06-12-chronicle-data-model-completion.md) |
-| D17–D18 | [temporal-semantics-unification-design](2026-06-12-temporal-semantics-unification-design.md) | [plan](../plans/2026-06-12-temporal-semantics-unification.md) |
+| D15–D16 | [chronicle-data-model-completion-design](../../archive/superpowers-specs/2026-06-12-chronicle-data-model-completion-design.md) | [plan](../../archive/superpowers-plans/2026-06-12-chronicle-data-model-completion.md) |
+| D17–D18 | [temporal-semantics-unification-design](../../archive/superpowers-specs/2026-06-12-temporal-semantics-unification-design.md) | [plan](../../archive/superpowers-plans/2026-06-12-temporal-semantics-unification.md) |
 
 ## Pending owner sign-off
 - **D1** — MVT vs GeoJSON-only, gated on the dense-year row count.

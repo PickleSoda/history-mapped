@@ -5,7 +5,7 @@
 > **Scope:** `pipeline/agent/` — the LangGraph entity/relation/chronicle pipeline (`langgraph.json` → `build_workflow`).
 > **Audit basis:** Read-only GitNexus-guided audit of `graph/workflow.py`, `graph/state.py`, all `graph/nodes/*`,
 > `tools/*`, `schemas/*`, `llm.py`, `config.py`, and the test suite. Every bug cited here was adversarially verified;
-> see [12-bug-report.md](12-bug-report.md) for the full evidence.
+> see [bug-report.md](bug-report.md) for the full evidence.
 
 ---
 

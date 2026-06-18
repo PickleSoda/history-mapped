@@ -3,8 +3,8 @@
 > **Date:** 2026-06-12
 > **Status:** Design (approved) — ready for implementation planning
 > **Area:** `pipeline/agent/`
-> **Source:** Audit [../../plans/12-bug-report.md](../../plans/12-bug-report.md) (PP-1…PP-12) and plan
-> [../../plans/11-agentic-pipeline-improvements.md](../../plans/11-agentic-pipeline-improvements.md).
+> **Source:** Audit [../../plans/bug-report.md](../../plans/bug-report.md) (PP-1…PP-12) and plan
+> [../../plans/agentic-pipeline-improvements.md](../../plans/agentic-pipeline-improvements.md).
 > **Sub-project:** B of the audit-remediation set (critical-first).
 
 ## 1. Problem

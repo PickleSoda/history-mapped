@@ -6,7 +6,7 @@ Related spec:
 - [../archive/entity-model/schema-proposal-strict-write-derived-timeline.md](../archive/entity-model/schema-proposal-strict-write-derived-timeline.md)
 
 Related plan:
-- [2026-04-06-entity-model-migration.md](../superpowers/plans/2026-04-06-entity-model-migration.md)
+- [2026-04-06-entity-model-migration.md](../archive/superpowers-plans/2026-04-06-entity-model-migration.md)
 
 ---
 

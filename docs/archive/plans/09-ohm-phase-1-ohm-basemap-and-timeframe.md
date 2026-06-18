@@ -1,6 +1,6 @@
 # Phase 1 — OHM Basemap + Timeframe Filtering
 
-> **Status: ✅ Executed** — verified 2026-06-15 against the codebase. See [STATUS.md](STATUS.md).
+> **Status: ✅ Executed** — verified 2026-06-15 against the codebase. See [STATUS.md](../../plans/STATUS.md).
 
 ## Objective
 Switch all map surfaces from current OpenFreeMap styling to OpenHistoricalMap-compatible styling with timeframe-driven rendering.

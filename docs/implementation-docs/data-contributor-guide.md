@@ -4,13 +4,13 @@
 >
 > **Related docs:**
 > - `docs/schemas/pipeline-entity-record.md` — canonical JSONL schema
-> - `docs/implementation-docs/data_pipeline_architecture.md` — pipeline architecture
-> - `docs/implementation-docs/ohm_integraton_guide.md` — OHM map integration
+> - `docs/architecture/data-pipeline.md` — pipeline architecture
+> - `docs/architecture/ohm-integration.md` — OHM map integration
 > - `docs/entity-model/for-geodata-contributors.md` — geodata authoring guide
 > - `pipeline/README.md` — pipeline quick start
 > - `pipeline/ohm_borders/README.md` — OHM borders runbook
 > - `docs/implementation-docs/ohm-egypt-collection-runbook.md` — Egypt collection runbook
-> - `docs/implementation-docs/ohm_country_subgraph_runbook.md` — country subgraph runbook
+> - `docs/implementation-docs/ohm-country-subgraph-runbook.md` — country subgraph runbook
 
 ---
 
@@ -89,8 +89,8 @@ Each `.jsonl` file contains one entity per line. The importer skips records miss
 | Field | Required | Description |
 |-------|----------|-------------|
 | `name` | Yes | Primary display name |
-| `entity_type` | Yes | See entity type list below |
-| `entity_group` | Yes | `POLITY`, `PLACE`, `PERSON`, `EVENT`, `WORK`, `CULTURE` |
+| `entity_type` | Yes | One of the 30 canonical types — see [entity-model/entity-specification.md](../entity-model/entity-specification.md) |
+| `entity_group` | Yes | `POLITY`, `PLACE`, `EVENT`, `ECONOMY`, `CULTURE` (the 5 canonical groups) |
 | `wikidata_id` | Recommended | `Q12345` format |
 | `summary` | Recommended | Short description |
 | `alternative_names` | Optional | Array of aliases |
@@ -103,16 +103,17 @@ Each `.jsonl` file contains one entity per line. The importer skips records miss
 
 ### Entity types
 
-```
-political_entity       event_battle           event_treaty
-event_migration        event_epidemic         person
-writer                 historian              work
-religion               culture                writing_system
-currency               infrastructure_monument  trade_route
-ref_historical_period  ref_geographic_region  ref_body_of_water
-```
+The 30 canonical `entity_type` values (grouped under the 5 groups above) are defined and kept
+current in [entity-model/entity-specification.md](../entity-model/entity-specification.md) §4 — treat
+that spec as the single source of truth rather than re-listing them here. Common examples:
+`political_entity` / `person` / `dynasty` / `military_unit` (POLITY); `city` / `infrastructure_monument`
+(PLACE); `event_war` / `event_battle` / `event_treaty` / `migration` / `epidemic_disease` (EVENT);
+`trade_route` / `natural_resource` / `currency_monetary_system` (ECONOMY); and `cultural_work` /
+`intellectual_movement` / `religious_movement` / `technology` (CULTURE).
 
-Records with `_ref_type` matching `ref_*` types are skipped by the importer (they belong in reference tables, not the entities table).
+> Historical periods, geographic regions, and bodies of water are **reference-table** records, not
+> entities — see [entity-model/reference-tables.md](../entity-model/reference-tables.md). Records the
+> pipeline marks as reference data are skipped by the entity importer.
 
 ---
 

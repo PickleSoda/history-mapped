@@ -172,4 +172,4 @@ Generated data is not confined to the `pipeline/` directory.
 - Use Docker for Laravel, Composer, pnpm, Vite, queue, and scheduler work.
 - Use repo-root `pnpm` scripts for workspace-level tasks.
 - Use repo-root `py -m pipeline ...` commands for the Python pipeline.
-- Prefer the docs in [../../README.md](../../README.md), [../architecture_overview.md](../architecture_overview.md), and [../../pipeline/README.md](../../pipeline/README.md) over older planning docs when there is a discrepancy.
+- Prefer the docs in [../../README.md](../../README.md), [../architecture/system-overview.md](../architecture/system-overview.md), and [../../pipeline/README.md](../../pipeline/README.md) over older planning docs when there is a discrepancy.

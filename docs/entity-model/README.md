@@ -48,4 +48,4 @@ and [diagrams.md](./diagrams.md) §6.
 | [attributes.md](./attributes.md) | Full reference for every attribute (field) on an entity, with allowed values and notes |
 | [relationships.md](./relationships.md) | Full reference for all 76 relationship types with examples |
 | [../archive/entity-model/schema-proposal-strict-write-derived-timeline.md](../archive/entity-model/schema-proposal-strict-write-derived-timeline.md) | Historical proposal that informed the normalized write model and derived timeline direction |
-| [laravel-implementation-checklist.md](./laravel-implementation-checklist.md) | Current implementation status and remaining cleanup items for the canonical entity model |
+| [implementation-status.md](./implementation-status.md) | Current implementation status and remaining cleanup items for the canonical entity model |

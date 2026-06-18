@@ -1,6 +1,6 @@
 # Plan 02 - App Scaffolding
 
-> **Status: ✅ Executed** — verified 2026-06-15 against the codebase. See [STATUS.md](STATUS.md).
+> **Status: ✅ Executed** — verified 2026-06-15 against the codebase. See [STATUS.md](../../plans/STATUS.md).
 
 ## Goal
 

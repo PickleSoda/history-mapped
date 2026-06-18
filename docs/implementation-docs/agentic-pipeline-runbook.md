@@ -7,8 +7,8 @@
 > ⚠️ **Known critical issues (read before relying on this).** On a real (non-mocked) run the pipeline currently
 > **persists nothing to the database while reporting success**: `commit_writer` writes JSONL to a host path the app
 > container cannot see, never checks the artisan return code, and sends relations to the wrong importer with a directory
-> argument; chronicles are written to disk but never imported. See [../plans/12-bug-report.md](../plans/12-bug-report.md)
-> (PP-1…PP-7) and the improvement plan [../plans/11-agentic-pipeline-improvements.md](../plans/11-agentic-pipeline-improvements.md).
+> argument; chronicles are written to disk but never imported. See [../plans/bug-report.md](../plans/bug-report.md)
+> (PP-1…PP-7) and the improvement plan [../plans/agentic-pipeline-improvements.md](../plans/agentic-pipeline-improvements.md).
 > The MVP is useful today as an **artifact generator** (the JSONL/manifest are correct); the DB-commit half is not yet working.
 
 ---
@@ -313,6 +313,33 @@ py -m pytest pipeline/agent/tests/test_tools.py -v
 
 ---
 
+## LangGraph Development UI
+
+For local development with a visual graph, node-execution tracing, and hot reloading, run the
+graph under the LangGraph CLI and attach LangSmith Studio.
+
+```powershell
+# Install the in-memory dev server (requires Python 3.11+)
+py -m pip install "langgraph-cli[inmem]"   # or: uv pip install "langgraph-cli[inmem]"
+
+# Start the local server (hot reload, no Docker)
+langgraph dev                              # serves http://localhost:2024
+
+# On Python 3.10, run the server in a container instead:
+langgraph dev --wait                       # requires Docker Desktop
+```
+
+Open Studio against the local server:
+
+```
+https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024
+```
+
+Studio gives you the workflow graph with per-node execution tracing, real-time state inspection,
+and hot reload on code changes — all backed by local state storage.
+
+---
+
 ## Module Layout
 
 ```text
@@ -375,5 +402,5 @@ pipeline/agent/
 
 ## Design Documents
 
-- **Design spec:** [`docs/superpowers/specs/2026-06-09-historical-entity-agentic-pipeline-design.md`](../../superpowers/specs/2026-06-09-historical-entity-agentic-pipeline-design.md)
-- **Implementation plan:** [`docs/superpowers/plans/2026-06-09-historical-entity-agentic-pipeline.md`](../../superpowers/plans/2026-06-09-historical-entity-agentic-pipeline.md)
+- **Design spec:** [`docs/archive/superpowers-specs/2026-06-09-historical-entity-agentic-pipeline-design.md`](../archive/superpowers-specs/2026-06-09-historical-entity-agentic-pipeline-design.md)
+- **Implementation plan:** [`docs/archive/superpowers-plans/2026-06-09-historical-entity-agentic-pipeline.md`](../archive/superpowers-plans/2026-06-09-historical-entity-agentic-pipeline.md)

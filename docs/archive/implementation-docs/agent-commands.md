@@ -194,6 +194,6 @@ Raw historical text
 
 ## Related Documentation
 
-- [Agentic Pipeline Runbook](agentic-pipeline-runbook.md) — Full architecture, node reference, risk policies
-- [Data Contributor Guide](data-contributor-guide.md) — Wikidata scraping, OHM borders, Laravel import
-- [Style Guide](agentic-pipeline-runbook.md#style-guide) — Content generation rules
+- [Agentic Pipeline Runbook](../../implementation-docs/agentic-pipeline-runbook.md) — Full architecture, node reference, risk policies
+- [Data Contributor Guide](../../implementation-docs/data-contributor-guide.md) — Wikidata scraping, OHM borders, Laravel import
+- [Style Guide](../../implementation-docs/agentic-pipeline-runbook.md#style-guide) — Content generation rules
