@@ -10,6 +10,17 @@ from pipeline.agent.tools.disambiguation import context_era, era_year, rerank_by
 
 logger = get_logger(__name__)
 
+# Cities, monuments and institutions persist across eras, so their Wikidata
+# inception (often deep-BCE) is a poor era signal. Era-reranking actively harms
+# them: the real city (penalised for a founding date far from the transcript era)
+# is demoted below a dateless modern namesake that the penalty can't touch — e.g.
+# Jerusalem resolved to a stray Q10540001 instead of Q1218, then failed OHM and
+# the coordinate fallback, landing no geo at all. Only era-rerank bounded-lifetime
+# entities (persons, dynasties, polities, events).
+_PERSISTENT_PLACE_TYPES = {
+    "city", "infrastructure_monument", "extraction_infra", "educational_institution",
+}
+
 
 def _sign_corrected(llm_date: str | None, wd_date: str | None) -> str | None:
     """Return the Wikidata date when it is the same magnitude as the LLM date but
@@ -66,8 +77,10 @@ def resolve_wikidata(state: AgentRunState) -> AgentRunState:
             # Era-aware tie-break: when the top label-matched candidates are close
             # (e.g. "Philip II of Macedon" vs "Philip II of Spain"), enrich the
             # leaders' dates and prefer the one nearest the entity's era. Bounded
-            # to the ambiguous cases so we don't enrich on every clear match.
-            if is_ambiguous(ranked):
+            # to the ambiguous cases so we don't enrich on every clear match — and
+            # skipped for persistent places, whose inception date misleads the
+            # rerank (see _PERSISTENT_PLACE_TYPES).
+            if is_ambiguous(ranked) and enriched.candidate.entity_type not in _PERSISTENT_PLACE_TYPES:
                 target_era = (
                     era_year(enriched.candidate.start_date)
                     or era_year(enriched.candidate.end_date)
