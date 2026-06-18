@@ -129,13 +129,10 @@ function RelationshipTimeline({
   );
 }
 
-/**
- * Entity detail panel (spec §6). Pure function of the URL `sel` param; the right
- * aside that opens on selection. Shows chronicle membership, and renders the
- * entity's relationships as a chronological timeline.
- */
-export function DetailPanel() {
-  const { sel, clear } = useSelection();
+/** Chrome-less detail body — shared by the desktop aside and the mobile sheet.
+ *  Reads the selection itself; renders nothing when nothing is selected. */
+export function DetailPanelContent() {
+  const { sel } = useSelection();
   const { enter } = useChronicleNav();
   const { data: entity, isLoading, isError } = useEntity(sel);
   const { data: connections } = useEntityConnections(sel);
@@ -155,20 +152,7 @@ export function DetailPanel() {
   if (!sel) return null;
 
   return (
-    <aside className="flex h-full w-[380px] max-w-[90vw] flex-none flex-col overflow-y-auto border-l bg-card">
-      {/* Bar */}
-      <div className="flex items-center justify-between px-3 py-2.5">
-        <span className="px-1.5 text-xs font-medium text-muted-foreground">Detail</span>
-        <button
-          type="button"
-          onClick={clear}
-          className="grid size-7 place-items-center rounded-md text-muted-foreground hover:bg-muted"
-          aria-label="Close detail"
-        >
-          <X size={16} />
-        </button>
-      </div>
-
+    <>
       {isLoading && <p className="px-4 py-3 text-sm text-muted-foreground">Loading…</p>}
       {isError && (
         <p className="px-4 py-3 text-sm text-destructive">Could not load entity.</p>
@@ -271,6 +255,28 @@ export function DetailPanel() {
           </div>
         </>
       )}
+    </>
+  );
+}
+
+/** Desktop right aside: chrome + the shared content. */
+export function DetailPanel() {
+  const { sel, clear } = useSelection();
+  if (!sel) return null;
+  return (
+    <aside className="flex h-full w-[380px] max-w-[90vw] flex-none flex-col overflow-y-auto border-l bg-card">
+      <div className="flex items-center justify-between px-3 py-2.5">
+        <span className="px-1.5 text-xs font-medium text-muted-foreground">Detail</span>
+        <button
+          type="button"
+          onClick={clear}
+          className="grid size-7 place-items-center rounded-md text-muted-foreground hover:bg-muted"
+          aria-label="Close detail"
+        >
+          <X size={16} />
+        </button>
+      </div>
+      <DetailPanelContent />
     </aside>
   );
 }
