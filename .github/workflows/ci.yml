@@ -273,7 +273,7 @@ jobs:
   # (Settings → Secrets and variables → Actions → Variables). It also needs the
   # DIGITALOCEAN_ACCESS_TOKEN secret and an app already created from .do/app.yaml.
   # GHCR images can't use App Platform's deploy-on-push, so this step triggers
-  # the deploy after the image is published. See docs/implementation-docs/deployment_runbook.md.
+  # the deploy after the image is published. See docs/implementation-docs/deployment-runbook.md.
   # ───────────────────────────────────────────────────────────────────────────
   deploy:
     name: Deploy (DigitalOcean App Platform)
@@ -293,7 +293,7 @@ jobs:
   # Deploy to a DigitalOcean Droplet over SSH — main branch only, and OPT-IN:
   # skipped until you set repo variable DEPLOY_TO_DROPLET=true.
   #
-  # Prereqs on the droplet (one-time — see docs/implementation-docs/deployment_runbook.md):
+  # Prereqs on the droplet (one-time — see docs/implementation-docs/deployment-runbook.md):
   #   - Docker Engine + Compose plugin installed.
   #   - The repo cloned at $DROPLET_APP_DIR (default /opt/history-mapped),
   #     with docker/.env.prod filled in (it is gitignored, holds secrets).

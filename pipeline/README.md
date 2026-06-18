@@ -170,5 +170,5 @@ pipeline/
     └── tests/            # 31 tests across schemas, nodes, tools, graph
 ```
 
-See [../docs/implementation-docs/data_pipeline_architecture.md](../docs/implementation-docs/data_pipeline_architecture.md) for the current end-to-end pipeline architecture.  
+See [../docs/architecture/data-pipeline.md](../docs/architecture/data-pipeline.md) for the current end-to-end pipeline architecture.  
 See [../docs/implementation-docs/agentic-pipeline-runbook.md](../docs/implementation-docs/agentic-pipeline-runbook.md) for the agentic pipeline in detail.

@@ -3,7 +3,7 @@
  *
  * These are the vocabulary the whole app speaks: the five entity groups, the
  * bounding box, the time state, and the derived `Scope` that every viewport
- * query keys on. See docs/architecture-frontend-app.md.
+ * query keys on. See docs/architecture/frontend-app.md.
  */
 
 /** The five entity groups. Lowercase tokens mirror the backend `EntityGroup` enum
