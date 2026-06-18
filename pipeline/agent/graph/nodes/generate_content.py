@@ -171,6 +171,33 @@ def generate_content(state: AgentRunState) -> AgentRunState:
                 )
             )
 
+    # ── Engaging chronicle title when the caller didn't supply one ──────────
+    # The fallback (first event's label) produces flat titles like "Plague of
+    # Athens"; an LLM title over the whole entity set reads far better.
+    if not (state.get("title") or "").strip() and entities:
+        names = ", ".join(e.candidate.label for e in entities[:14])
+        title_prompt = (
+            "Write ONE engaging, specific title for a historical chronicle that covers these entities:\n"
+            f"{names}\n\n"
+            "Make it evocative yet accurate, like 'The Rise and Fall of the Byzantine Empire', 'Plagues That "
+            "Reshaped the Ancient World', or 'How the Silk Road Bound East to West'. Max 9 words, no subtitle.\n"
+            'Output strictly as JSON: {"title": "..."}'
+        )
+        try:
+            resp = llm.invoke([HumanMessage(content=title_prompt)])
+            tcontent = resp.content if hasattr(resp, "content") else str(resp)
+            title = (parse_llm_json(tcontent).get("title") or "").strip()
+            if title:
+                state["title"] = title
+                logger.info("Generated chronicle title: %s", title)
+        except (json.JSONDecodeError, TypeError) as exc:
+            state["errors"].append(
+                PipelineError(
+                    node="generate_content", error_type="json_parse",
+                    message=str(exc), context={"raw_response": tcontent, "stage": "title"},
+                )
+            )
+
     summarised = sum(1 for e in entities if e.summary)
     with_significance = sum(1 for e in entities if e.significance)
     state["audit_log"].append(
