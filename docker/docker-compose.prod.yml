@@ -59,6 +59,10 @@ services:
     restart: unless-stopped
     env_file: [.env.prod]
     command: php artisan queue:work --tries=3 --max-time=3600 --sleep=1
+    # Workers don't serve HTTP, so disable the image's inherited HTTP healthcheck
+    # (otherwise they're perpetually marked "unhealthy").
+    healthcheck:
+      disable: true
     depends_on:
       db:
         condition: service_healthy
@@ -71,6 +75,9 @@ services:
     restart: unless-stopped
     env_file: [.env.prod]
     command: php artisan schedule:work
+    # Not an HTTP server — disable the inherited HTTP healthcheck.
+    healthcheck:
+      disable: true
     depends_on:
       db:
         condition: service_healthy
