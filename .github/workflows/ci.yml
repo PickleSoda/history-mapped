@@ -307,6 +307,11 @@ jobs:
     needs: [images]
     runs-on: ubuntu-latest
     steps:
+      # Deploy the exact image this run built (immutable + rollback-able) rather
+      # than chasing :latest. Lowercased to satisfy GHCR.
+      - name: Resolve image tag
+        run: echo "APP_IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}/api:${GITHUB_SHA}" >> "$GITHUB_ENV"
+
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -315,13 +320,16 @@ jobs:
           key: ${{ secrets.DROPLET_SSH_KEY }}
           port: ${{ secrets.DROPLET_SSH_PORT || 22 }}
           script_stop: true
-          envs: GHCR_USERNAME,GHCR_TOKEN,APP_DIR
+          envs: GHCR_USERNAME,GHCR_TOKEN,APP_DIR,APP_IMAGE
           script: |
             set -euo pipefail
             cd "${APP_DIR:-/opt/history-mapped}"
+            export APP_IMAGE="${APP_IMAGE:?image tag not provided}"
 
-            # Get the latest compose / db build context / Caddyfile.
+            # Pull new sources (compose, Caddyfile, db build context, web/ src).
+            BEFORE=$(git rev-parse HEAD)
             git pull --ff-only
+            AFTER=$(git rev-parse HEAD)
 
             # Authenticate to GHCR only if a token is provided (private package).
             if [ -n "${GHCR_TOKEN:-}" ]; then
@@ -329,12 +337,39 @@ jobs:
             fi
 
             COMPOSE="docker compose --env-file docker/.env.prod -f docker/docker-compose.prod.yml"
-            $COMPOSE pull
-            $COMPOSE --profile setup run --rm web-build   # rebuild the customer SPA
-            $COMPOSE --profile setup run --rm migrate     # migrations (before traffic shifts)
+
+            # Pull the pinned API image.
+            $COMPOSE pull app
+
+            # Rebuild the customer SPA only when web/ or the lockfile changed —
+            # it's the heaviest step and most deploys are backend-only.
+            if ! git diff --quiet "$BEFORE" "$AFTER" -- web/ pnpm-lock.yaml; then
+              echo "web/ changed → rebuilding SPA"
+              $COMPOSE --profile setup run --rm web-build
+            else
+              echo "web/ unchanged → skipping SPA rebuild"
+            fi
+
+            # Migrate before the new code takes traffic, then roll the services.
+            $COMPOSE --profile setup run --rm migrate
             $COMPOSE up -d --remove-orphans
+
+            # Health gate: fail the deploy if the app doesn't become healthy.
+            echo "waiting for app to become healthy…"
+            for i in $(seq 1 20); do
+              status=$(docker inspect -f '{{.State.Health.Status}}' "$($COMPOSE ps -q app)" 2>/dev/null || echo starting)
+              [ "$status" = "healthy" ] && { echo "app healthy"; break; }
+              if [ "$i" = "20" ]; then
+                echo "::error::app did not become healthy after deploy"
+                $COMPOSE logs --tail=80 app
+                exit 1
+              fi
+              sleep 3
+            done
+
             docker image prune -f
         env:
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
           APP_DIR: ${{ vars.DROPLET_APP_DIR }}
+          APP_IMAGE: ${{ env.APP_IMAGE }}
