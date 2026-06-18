@@ -28,7 +28,9 @@ repeat anything already present.
 
 Look specifically for:
 1. Container polities/dynasties named or clearly implied but not yet an entity (empires, kingdoms, states).
-2. People, places, battles/wars, technologies, or religions mentioned in the text but not yet extracted.
+2. People, places, battles/wars, technologies, religions, or DISEASES mentioned in the text but not yet
+   extracted. Named diseases/plagues/pandemics ("Black Death", "Spanish Flu", "smallpox") must be their own
+   `epidemic_disease` entity, not just an event.
 3. IMPLICIT relations the text supports but that are absent: succeeded_by/preceded_by, part_of (member states ↔
    coalitions/empires), capital_of, participated_in / victorious_at / defeated_at for every belligerent of a
    battle, born_in/died_in, at_war_with between opposing sides.
