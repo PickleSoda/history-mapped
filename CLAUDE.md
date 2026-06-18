@@ -1,7 +1,7 @@
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **history-mapped** (9551 symbols, 17786 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **history-mapped** (9921 symbols, 18824 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > Index stale? Run `node .gitnexus/run.cjs analyze` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? `npx gitnexus analyze` (npm 11 crash → `npm i -g gitnexus`; #1939).
 
@@ -64,4 +64,3 @@ Conventions when writing docs here:
 - New design specs → `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`; implementation plans → `docs/superpowers/plans/YYYY-MM-DD-<feature>.md` (per the `brainstorming` / `writing-plans` skills).
 - When a plan ships, move it (and its spec) to `docs/archive/` and update `docs/plans/STATUS.md`.
 - Filenames are kebab-case. Code is the source of truth; then the relevant doc; then `STATUS.md`.
-
