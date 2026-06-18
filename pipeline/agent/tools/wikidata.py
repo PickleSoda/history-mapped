@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import time
 from typing import Any
 
@@ -167,6 +168,28 @@ def _rank_candidates(
     return scored
 
 
+_WD_YEAR_RE = re.compile(r"^([+-]?\d+)")
+
+
+def _wikidata_date(value: dict[str, Any]) -> str | None:
+    """Return a precision-aware date string from a Wikidata time datavalue.
+
+    Wikidata's ``time`` is always a full timestamp (e.g. "+0750-01-01T00:00:00Z")
+    even when only the year is known — the ``-01-01`` is filler driven by the
+    ``precision`` field (11=day, 10=month, 9=year, ≤8=decade/coarser). When
+    precision is year-or-coarser we drop to year-only ("+0750") so the pipeline
+    never persists a fabricated month/day; finer precision keeps the full date.
+    """
+    time_str = value.get("time")
+    if not isinstance(time_str, str) or not time_str:
+        return None
+    precision = value.get("precision")
+    if isinstance(precision, int) and precision <= 9:
+        match = _WD_YEAR_RE.match(time_str)
+        return match.group(1) if match else time_str
+    return time_str
+
+
 def enrich_wikidata_entities(qids: list[str]) -> dict[str, dict[str, Any]]:
     """Fetch Wikidata records via the REST EntityData endpoint.
 
@@ -212,8 +235,9 @@ def enrich_wikidata_entities(qids: list[str]) -> dict[str, dict[str, Any]]:
             for prop in ("P571", "P569", "P585"):
                 if prop in claims:
                     try:
-                        start_date = claims[prop][0]["mainsnak"]["datavalue"]["value"]["time"]
-                        break
+                        start_date = _wikidata_date(claims[prop][0]["mainsnak"]["datavalue"]["value"])
+                        if start_date:
+                            break
                     except (KeyError, IndexError, TypeError):
                         pass
 
@@ -222,8 +246,9 @@ def enrich_wikidata_entities(qids: list[str]) -> dict[str, dict[str, Any]]:
             for prop in ("P576", "P570"):
                 if prop in claims:
                     try:
-                        end_date = claims[prop][0]["mainsnak"]["datavalue"]["value"]["time"]
-                        break
+                        end_date = _wikidata_date(claims[prop][0]["mainsnak"]["datavalue"]["value"])
+                        if end_date:
+                            break
                     except (KeyError, IndexError, TypeError):
                         pass
 

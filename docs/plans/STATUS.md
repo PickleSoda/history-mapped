@@ -19,6 +19,7 @@
 |------|--------|-------|
 | [map-query-optimization](map-query-optimization.md) | 🟡 | Index/payload plumbing shipped; live remainder tracked in the superpowers map-bbox plan (resolver, spatial builder, MVT/caching, MQ-2 dashboard fetch). |
 | [agentic-pipeline-improvements](agentic-pipeline-improvements.md) | 🟡 | Write-path (PP-1/2/3/4/7) fixed; confidence rework (PP-5) + structured I/O, checkpointing, observability, caching not started. |
+| [pipeline-data-quality-remediation](pipeline-data-quality-remediation.md) | ⬜ | Empirical baseline from a real langgraph dataset. F1 OHM gate (places), F2 CE/BCE sign, F3 date precision, F4 ranking, F5 shallow text, F6 recall loop. |
 | [bug-report](bug-report.md) | 🟡 | ~70% fixed. Open: **backend** MQ-2 (dashboard repoint), MQ-3/4/5/12/19 (perf rewrites, risky); **admin FE** FE-1…FE-11; **pipeline** PP-5/8/9/10/11/12. |
 | [ohm-phase-2-timeline-map-interaction](ohm-phase-2-timeline-map-interaction.md) | 🟡 | Selection + relationship-geometry done; UI extraction (2.1), source/target distinction (2.4), FE interaction tests (2.5) remain. |
 | [ohm-phase-3-reference-existing-ohm-objects](ohm-phase-3-reference-existing-ohm-objects.md) | 🟡 | Backend (`entity_geo_refs`, resolve-ohm-feature) done; editor attach/search/remove UI + OHM retrieval expansion remain. |

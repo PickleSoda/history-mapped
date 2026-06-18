@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 
 from pipeline.agent.tools.db import search_entity_by_name
-from pipeline.agent.tools.wikidata import search_wikidata_by_name, enrich_wikidata_entities
+from pipeline.agent.tools.wikidata import search_wikidata_by_name, enrich_wikidata_entities, _wikidata_date
 from pipeline.agent.tools.db import search_relationship_by_labels
 
 
@@ -52,6 +52,21 @@ def test_wikidata_enrich(mock_get):
     results = enrich_wikidata_entities(["Q405"])
     assert "Q405" in results
     assert results["Q405"]["label"] == "David IV"
+
+
+def test_wikidata_date_drops_year_precision_filler():
+    # Year-or-coarser precision → strip the fabricated -01-01 to year-only.
+    assert _wikidata_date({"time": "+0750-01-01T00:00:00Z", "precision": 9}) == "+0750"
+    assert _wikidata_date({"time": "-0331-01-01T00:00:00Z", "precision": 9}) == "-0331"
+    assert _wikidata_date({"time": "+0750-01-01T00:00:00Z", "precision": 7}) == "+0750"
+
+
+def test_wikidata_date_keeps_real_precision_and_handles_blanks():
+    # Month/day precision → keep the full timestamp (real precision).
+    assert _wikidata_date({"time": "+1066-10-14T00:00:00Z", "precision": 11}) == "+1066-10-14T00:00:00Z"
+    assert _wikidata_date({"time": "+0476-09-01T00:00:00Z", "precision": 10}) == "+0476-09-01T00:00:00Z"
+    assert _wikidata_date({"time": None}) is None
+    assert _wikidata_date({}) is None
 
 
 from pipeline.agent.tools.ohm import search_ohm_by_name, search_ohm_by_wikidata_id, resolve_ohm_geometry

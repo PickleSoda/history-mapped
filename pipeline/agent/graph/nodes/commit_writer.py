@@ -160,6 +160,7 @@ def _entity_to_jsonl_record(enriched) -> dict[str, Any]:
         "entity_type": enriched.candidate.entity_type,
         "entity_group": group,
         "summary": enriched.summary or "",
+        "significance": enriched.significance or None,
         "wikidata_id": enriched.wikidata_match.get("qid") if enriched.wikidata_match else None,
         "temporal_start": temporal_start,
         "temporal_end": temporal_end,

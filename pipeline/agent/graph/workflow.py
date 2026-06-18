@@ -12,6 +12,7 @@ logger = get_logger(__name__)
 from pipeline.agent.graph.nodes.preprocess_transcript import preprocess_transcript
 from pipeline.agent.graph.nodes.parse_sequence import parse_sequence
 from pipeline.agent.graph.nodes.extract_candidates import extract_candidates
+from pipeline.agent.graph.nodes.completeness_critic import completeness_critic, route_after_critic
 from pipeline.agent.graph.nodes.db_lookup import db_lookup
 from pipeline.agent.graph.nodes.resolve_wikidata import resolve_wikidata
 from pipeline.agent.graph.nodes.resolve_ohm import resolve_ohm
@@ -36,6 +37,7 @@ def build_workflow() -> StateGraph:
     workflow.add_node("preprocess_transcript", with_error_capture(preprocess_transcript))
     workflow.add_node("parse_sequence", with_error_capture(parse_sequence))
     workflow.add_node("extract_candidates", with_error_capture(extract_candidates))
+    workflow.add_node("completeness_critic", with_error_capture(completeness_critic))
     workflow.add_node("db_lookup", with_error_capture(db_lookup))
     workflow.add_node("resolve_wikidata", with_error_capture(resolve_wikidata))
     workflow.add_node("resolve_ohm", with_error_capture(resolve_ohm))
@@ -53,7 +55,14 @@ def build_workflow() -> StateGraph:
     workflow.set_entry_point("preprocess_transcript")
     workflow.add_edge("preprocess_transcript", "parse_sequence")
     workflow.add_edge("parse_sequence", "extract_candidates")
-    workflow.add_edge("extract_candidates", "db_lookup")
+    workflow.add_edge("extract_candidates", "completeness_critic")
+    # Bounded recall loop: re-read the transcript for missed entities/relations,
+    # looping until a pass finds nothing new (or the cap is hit), then enrich.
+    workflow.add_conditional_edges(
+        "completeness_critic",
+        route_after_critic,
+        {"loop": "completeness_critic", "done": "db_lookup"},
+    )
     workflow.add_edge("db_lookup", "resolve_wikidata")
     workflow.add_edge("resolve_wikidata", "resolve_ohm")
     workflow.add_edge("resolve_ohm", "generate_content")
@@ -115,6 +124,8 @@ def run_agent(raw_input: str, run_id: str, title: str | None = None, create_chro
                 "create_chronicle": create_chronicle,
                 "entity_id_map": {},
                 "relation_id_map": {},
+                "critic_iterations": 0,
+                "critic_done": True,
             }
 
     initial_state: AgentRunState = {
@@ -135,6 +146,8 @@ def run_agent(raw_input: str, run_id: str, title: str | None = None, create_chro
         "create_chronicle": create_chronicle,
         "entity_id_map": {},
         "relation_id_map": {},
+        "critic_iterations": 0,
+        "critic_done": False,
     }
     result = workflow.invoke(initial_state, config={"configurable": {"thread_id": run_id}})
     logger.info("Workflow complete: run_id=%s errors=%d committed=%d chronicle=%s",

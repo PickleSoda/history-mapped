@@ -95,5 +95,10 @@ def test_generate_content(mock_chat):
         )
     ]
     new_state = generate_content(state)
-    assert new_state["enriched_entities"][0].summary is not None
-    assert "Ruled the Kingdom" in new_state["enriched_entities"][0].summary
+    enriched = new_state["enriched_entities"][0]
+    assert enriched.summary is not None
+    assert "Ruled the Kingdom" in enriched.summary
+    assert enriched.significance is not None
+    assert "Golden Age" in enriched.significance
+    # relation descriptions still resolved (second LLM pass)
+    assert new_state["candidate_relations"][0].description is not None
