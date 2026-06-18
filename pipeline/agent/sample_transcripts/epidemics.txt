@@ -1,15 +1,11 @@
-Epidemic disease has repeatedly reshaped the course of human history. The Plague of Athens struck the city
-in 430 BCE during the Peloponnesian War against Sparta, killing perhaps a third of the population and the
-statesman Pericles. Centuries later, the Antonine Plague swept the Roman Empire beginning in 165 CE, carried
-home by soldiers returning from campaigns in the east.
+Epidemic disease has shaped the rise and fall of civilizations as profoundly as any war or empire. One of the earliest recorded catastrophes was the Plague of Athens, which struck the city of Athens in 430 BCE during the Peloponnesian War against Sparta. The historian Thucydides, who survived the illness himself, described how the crowded city was ravaged for years, and the death of the statesman Pericles in 429 BCE deprived Athens of its greatest leader. The epidemic crippled Athenian morale and contributed to the eventual defeat of the city.
 
-The Plague of Justinian erupted in 541 CE in the Byzantine Empire under Emperor Justinian I, devastating
-Constantinople and the wider Mediterranean world and weakening Justinian's efforts to reconquer the west.
-The most catastrophic pandemic was the Black Death, a bubonic plague that reached Europe in 1347 CE aboard
-Genoese trading ships docking at the Sicilian port of Messina. By 1351 CE it had killed an estimated third
-of Europe's population, shattering the medieval social and economic order.
+The Roman Empire suffered repeated waves of pestilence as its trade networks carried disease across three continents. The Antonine Plague, probably smallpox, erupted in 165 CE under the emperor Marcus Aurelius and killed millions across the Roman world before it subsided around 180 CE. A century later the Plague of Cyprian, named for the bishop of Carthage who chronicled it, broke out in 249 CE and tormented Rome until roughly 262 CE, weakening the empire during a period of profound crisis. The most devastating outbreak came under the Byzantine Empire when the Plague of Justinian, the first known pandemic of bubonic plague, reached the capital Constantinople in 541 CE during the reign of the emperor Justinian I, killing tens of millions and shattering his dream of restoring Roman power.
 
-After 1492 CE the Columbian Exchange carried smallpox and other Old World diseases to the Americas, where
-they contributed to the collapse of the Aztec Empire and the Inca Empire. In 1918 CE, near the end of the
-First World War, the influenza pandemic known as the Spanish Flu spread across the globe and killed tens of
-millions of people.
+The deadliest pandemic in human history was the Black Death, a return of bubonic plague that arrived in Europe through the Sicilian port of Messina in 1347 CE aboard Genoese trading ships. The disease spread with terrifying speed, reaching its devastating peak across France and England between 1348 CE and 1351 CE, killing as much as half the population of the continent. Plague did not vanish afterward but recurred for centuries, including the Great Plague of London in 1665 CE and the Great Plague of Marseille in 1720 CE, which were among the last major European outbreaks.
+
+The European voyages of exploration unleashed catastrophe on the peoples of the Americas through the Columbian Exchange. Smallpox arrived with Spanish forces and devastated the Aztec Empire during the siege of the capital Tenochtitlan in 1520 CE, fatally weakening resistance to the conquistador Hernan Cortes. The same disease swept south and struck the Inca Empire of the Andes, killing the emperor Huayna Capac around 1524 CE and triggering a civil war that left the realm vulnerable to Spanish conquest. Across the Americas, smallpox, measles, and other imported diseases killed an estimated ninety percent of the indigenous population over the following century.
+
+The industrial age brought its own scourge in cholera, which spread out of the Ganges delta of India along expanding trade and transport routes. The first cholera pandemic began in 1817 CE, and a later wave reached Britain in 1831 CE, prompting the physician John Snow during the London outbreak of 1854 CE to trace the disease to a contaminated water pump, a founding moment of modern epidemiology. A third great plague pandemic emerged from China and reached Hong Kong in 1894 CE, the year the bacterium responsible was finally identified.
+
+The twentieth century opened with the most lethal epidemic of the modern era, the Spanish Flu, an influenza pandemic that erupted in 1918 CE in the final year of the First World War. Spread by the movement of soldiers and refugees, it infected a third of humanity and killed perhaps fifty million people before fading in 1920 CE. The arrival of HIV and AIDS, formally recognized in 1981 CE, opened a new chapter in the long human struggle against epidemic disease that continues into the present day.
