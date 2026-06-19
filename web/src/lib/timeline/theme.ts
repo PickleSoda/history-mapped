@@ -5,7 +5,7 @@
  */
 
 /** The app's sans family (Geist), matching the rest of the UI. */
-export const APP_FONT_FAMILY = "'Geist Variable', ui-sans-serif, system-ui, sans-serif";
+export const APP_FONT_FAMILY = "'Geist Variable', sans-serif";
 
 /** True when the dark theme class is active on <html>. */
 export function isDarkTheme(): boolean {
@@ -23,4 +23,14 @@ export function labelTextColor(): string {
 /** Contrasting outline colour so labels stay legible over coloured spans. */
 export function labelOutlineColor(): string {
   return isDarkTheme() ? '#0a0a0a' : '#ffffff';
+}
+
+/** Muted colour for time-axis tick labels (approximates --muted-foreground). */
+export function axisLabelColor(): string {
+  return isDarkTheme() ? '#a3a3a3' : '#737373';
+}
+
+/** Subtle colour for the axis line and ticks (approximates --border). */
+export function axisLineColor(): string {
+  return isDarkTheme() ? '#3f3f3f' : '#d4d4d4';
 }
