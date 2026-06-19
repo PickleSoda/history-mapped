@@ -116,7 +116,7 @@ On **release** the URL changes and the existing `MapCanvas` time effect re-filte
 
 ## Theming
 
-- Span colours: a small TS token map mirroring the five `--g-*` entity-group hexes in [`web/src/styles.css`](../../../web/src/styles.css) (they do not change in dark mode, so static hex is safe). timescope style options accept colour strings / data-functions.
+- Span colours: the five `--g-*` entity-group tokens **change between light and dark** ([`web/src/styles.css`](../../../web/src/styles.css) lines 106-110 vs 158-162), and canvas cannot resolve `var(--x)`. So resolve to the active theme's hex at runtime via `getComputedStyle(document.documentElement).getPropertyValue('--g-<group>')` with a literal-hex fallback — the same `c(name, fallback)` pattern already used in [`web/src/lib/map-icons.ts`](../../../web/src/lib/map-icons.ts). timescope style options take colour strings / data-functions.
 - Canvas `background`: read `--card` (or `--background`) from `getComputedStyle(document.documentElement)` so it fits light/dark.
 - Fonts: default; optionally pass Geist later.
 
