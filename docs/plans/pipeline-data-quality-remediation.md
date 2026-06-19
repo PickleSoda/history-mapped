@@ -159,3 +159,40 @@ it is the justification for the MCP/agent investment discussed in [agentic-pipel
 
 After each fix, re-run the pipeline on the same transcripts, reload, and re-run the §2 queries against the
 baseline numbers. The §1 load procedure is the reset.
+
+## 6. Post-F1–F6 validation (2026-06-19) — three new systematic fixes
+
+Validating the F1–F6 work end-to-end on a clean DB across 10 comprehensive transcripts (christianity,
+epidemics, renaissance, islamic_golden_age, norse_culture, silk_road, greek_philosophy, ancient_egypt,
+roman_republic, mongol_empire) surfaced three more systematic bugs, now fixed:
+
+- **G1 — off-taxonomy entity types silently blocked (~20% of candidates).** Despite the prompt the LLM emits
+  generic/synonym types — `polity`/`state`/`place` for backbone polities (Roman Empire, Roman Republic,
+  Carthage, Italy), `religion` for Christianity, bare `event` for the Punic Wars. `validate.ALLOWED_ENTITY_TYPES`
+  dropped them, and their relations went unresolved at import (roman_republic committed **0 of 11** relations).
+  Fix: normalize generic→canonical at `CandidateEntity` construction (covers extractor **and** critic),
+  label-aware for bare events; countries/regions → `political_entity` (no dedicated type). →
+  [`schemas/entities.py`](../../pipeline/agent/schemas/entities.py) `normalize_entity_type`.
+- **G2 — era-rerank demoted real ancient cities.** Same-name Wikidata candidates tie on label score, so the era
+  tie-break runs and penalises far-from-era dates (≥400y, −0.4); a city's deep-BCE inception is always far, so
+  the real Jerusalem (Q1218) was pushed below a dateless modern namesake (Q10540001) and got no geo. Fix: skip
+  era-rerank for persistent place types (city/monument/institution). →
+  [`resolve_wikidata.py`](../../pipeline/agent/graph/nodes/resolve_wikidata.py).
+- **G3 — relations to non-extracted entities orphaned their endpoints.** The critic emits relations to things it
+  never extracts ("Leonardo authored Mona Lisa", no Mona Lisa entity); validate drops them, orphaning the person
+  (29% orphans, 43 notable people). Fix: critic prompt now requires referential integrity, plus a deterministic
+  backstop that materialises a missing endpoint with a relationship-inferred type (or drops the un-typeable
+  dangler). → [`completeness_critic.py`](../../pipeline/agent/graph/nodes/completeness_critic.py).
+
+**Measured impact (clean 10-transcript run, gpt-4o):** entities 246→302, relationships 107→160 (+50%),
+geo_refs 69→111, orphan rate 37%→29%, **zero off-taxonomy types in the DB**, relation import resolution ~50%→~94%.
+Backbone polities now created with correct types; Jerusalem→Q1218 and Samarkand→Q5753 (was stray QIDs) with geo.
+Dates remain clean (62 BCE / 128 CE correctly signed, zero fabricated `-01-01`); chronicle impact spans 74–93.
+
+**Remaining follow-ups (still open):** (1) `Carthage`/`Carthaginian Empire` single-entity dedup;
+(2) Wikidata namesake disambiguation on non-ambiguous top matches (Paullus wrong dates);
+(3) **diacritic-insensitive Wikidata search** — "Reykjavik" (unaccented in the transcript) doesn't surface the
+canonical "Reykjavík" Q1764, so it resolves to an obscure same-spelling item with no coordinates (1 of 302
+entities); search should fold diacritics or try an accent-normalised query;
+(4) re-validate G1–G3 (especially the G3 orphan-rate drop) once the pipeline's model config is settled — the
+2026-06-19 switch to free OpenRouter tiers means the next run uses different models than this measurement.
