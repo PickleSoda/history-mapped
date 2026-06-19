@@ -1,27 +1,20 @@
 import { Timescope } from '@timescope/react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { TimelineGantt } from '@/components/atlas/TimelineGantt';
+import { useEffect, useMemo, useRef } from 'react';
 import { useLiveScrub, useTimeState } from '@/hooks';
 import { eraFor, formatYear, instantYear } from '@/lib/format';
-import { APP_FONT_FAMILY } from '@/lib/timeline/theme';
+import {
+  APP_FONT_FAMILY,
+  axisLabelColor,
+  axisLineColor,
+} from '@/lib/timeline/theme';
 import { AXIS_MAX, AXIS_MIN, clampYear, toYear } from '@/lib/timeline/year';
 
 const TRACK = 'main';
-const BAR_PX = 56;
+const BAR_PX = 30;
 
 /** Stable identities so the @timescope/react effects don't re-fire each render. */
 const TIME_RANGE: [number, number] = [AXIS_MIN, AXIS_MAX];
 const EMPTY = {};
-const TRACKS = {
-  [TRACK]: {
-    timeAxis: {
-      labels: { fontFamily: APP_FONT_FAMILY },
-      timeFormat: (opts: { time: { number(): number } }) =>
-        formatYear(Math.round(opts.time.number())),
-    },
-  },
-};
 
 /**
  * Bottom timeline — a simple timescope scrubber (date axis + draggable playhead).
@@ -38,13 +31,29 @@ export function TimelineScope() {
   const { liveScrub, setLiveScrub, commit } = useLiveScrub();
   const committedYear = instantYear(time);
   const displayYear = liveScrub ?? committedYear;
-  const [ganttOpen, setGanttOpen] = useState(false);
-
   const scrubbingRef = useRef(false);
+  // Latest year seen during the active drag; committed to global time on release.
+  const pendingYearRef = useRef<number | null>(null);
+  // commit() is recreated when its deps change; keep a live ref for the
+  // once-registered window listener below.
+  const commitRef = useRef(commit);
   useEffect(() => {
-    // Clear after the release's synchronous `timechanged` has been handled, so a
-    // real drag still commits but later animation frames do not.
-    const end = () => setTimeout(() => (scrubbingRef.current = false), 0);
+    commitRef.current = commit;
+  }, [commit]);
+
+  useEffect(() => {
+    // Commit the dragged year to global time on pointer release. We commit here
+    // (not in timescope's async `timechanged`, whose timing relative to pointerup
+    // is unreliable) so a real drag always updates the global year, while
+    // programmatic setTime (chronicle/TopBar) — where no pointer is down — is
+    // ignored because `scrubbingRef` stays false.
+    const end = () => {
+      if (!scrubbingRef.current) return;
+      scrubbingRef.current = false;
+      const y = pendingYearRef.current;
+      pendingYearRef.current = null;
+      if (y !== null) commitRef.current(y);
+    };
     window.addEventListener('pointerup', end);
     window.addEventListener('pointercancel', end);
     return () => {
@@ -53,35 +62,42 @@ export function TimelineScope() {
     };
   }, []);
 
-  return (
-    <div className="relative flex flex-col-reverse md:flex-row">
-      {ganttOpen && (
-        <div className="absolute inset-x-0 top-full z-20 border-b bg-card shadow-lg md:bottom-full md:top-auto md:border-b-0 md:border-t">
-          <TimelineGantt />
-        </div>
-      )}
+  // Canvas-themed axis: muted line/ticks, muted-foreground Geist labels.
+  // Memoised so @timescope/react effects keep a stable identity (colours read
+  // once at mount; they reflect the active light/dark theme).
+  const tracks = useMemo(
+    () => ({
+      [TRACK]: {
+        timeAxis: {
+          axis: { color: axisLineColor() },
+          ticks: { color: axisLineColor() },
+          labels: {
+            fontFamily: APP_FONT_FAMILY,
+            fontSize: '11px',
+            color: axisLabelColor(),
+          },
+          timeFormat: (opts: { time: { number(): number } }) =>
+            formatYear(Math.round(opts.time.number())),
+        },
+      },
+    }),
+    [],
+  );
 
+  return (
+    <div className="relative flex flex-col-reverse md:flex-row h20 px-2 md:px-10 py-2 ">
       {/* Readout + open/close button — left column on desktop, bottom row on mobile. */}
-      <div className="flex flex-none flex-row items-center justify-between gap-2 px-4 py-1 md:w-[150px] md:flex-col md:items-start md:justify-center md:py-0">
-        <div className="leading-tight">
-          <div className="font-mono text-sm tabular-nums">{formatYear(displayYear)}</div>
-          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
-            {eraFor(displayYear)}
-          </div>
+      <div className="leading-tight flex flex-none flex-row items-end justify-start gap-2 px-2 py-0.5 md:w-[150px] md:flex-col md:items-start md:justify-center md:py-0" >
+        <div className="font-mono text-sm tabular-nums">{formatYear(displayYear)}</div>
+        <div className="text-[10px] uppercase tracking-wide text-muted-foreground ">
+          {eraFor(displayYear)}
         </div>
-        <button
-          type="button"
-          onClick={() => setGanttOpen((o) => !o)}
-          aria-label={ganttOpen ? 'Close historical periods' : 'Open historical periods'}
-          className="grid size-6 flex-none place-items-center rounded-md border bg-card text-muted-foreground hover:bg-muted md:mt-1 md:self-start"
-        >
-          {ganttOpen ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
-        </button>
+
       </div>
 
       <div
-        className="relative min-w-0 flex-1"
-        style={{ height: BAR_PX }}
+        className="relative min-w-0 flex-1 rounded-lg border border-border bg-muted/50 px-2 py-0.5"
+        style={{ height: BAR_PX + 10 }}
         onPointerDownCapture={() => {
           scrubbingRef.current = true;
         }}
@@ -95,16 +111,24 @@ export function TimelineScope() {
           onTimeChanging={(v) => {
             if (!scrubbingRef.current) return;
             const y = toYear(v);
-            if (y !== null) setLiveScrub(clampYear(y));
+            if (y !== null) {
+              const cy = clampYear(y);
+              pendingYearRef.current = cy;
+              setLiveScrub(cy);
+            }
           }}
           onTimeChanged={(v) => {
             if (!scrubbingRef.current) return;
             const y = toYear(v);
-            if (y !== null) commit(clampYear(y));
+            if (y !== null) {
+              const cy = clampYear(y);
+              pendingYearRef.current = cy;
+              setLiveScrub(cy);
+            }
           }}
           sources={EMPTY}
           series={EMPTY}
-          tracks={TRACKS}
+          tracks={tracks}
         />
       </div>
     </div>
