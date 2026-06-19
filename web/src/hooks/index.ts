@@ -36,3 +36,6 @@ export {
 // Sheet logic
 export { useSheetContent } from './useSheetContent';
 export { useSheetSelectionSync } from './useSheetSelectionSync';
+
+// Responsive
+export { useMediaQuery, useIsMobile } from './useMediaQuery';
