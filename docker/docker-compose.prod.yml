@@ -115,13 +115,17 @@ services:
     environment:
       VITE_API_URL: "${VITE_API_URL:?set VITE_API_URL in docker/.env.prod}"
       VITE_APP_NAME: "${VITE_APP_NAME:-history-mapped}"
+      # Stamped into the built bundle on success so a deploy can tell whether the
+      # bundle is stale (compared against the web/ tree + lockfile hash). See ci.yml.
+      WEB_FINGERPRINT: "${WEB_FINGERPRINT:-}"
     volumes:
       - ..:/repo
       - web_dist:/repo/web/dist
     command: >-
       sh -lc "corepack enable
       && pnpm install --frozen-lockfile --filter @history-mapped/web...
-      && pnpm --filter @history-mapped/web build"
+      && pnpm --filter @history-mapped/web build
+      && printf '%s' $$WEB_FINGERPRINT > /repo/web/dist/.web-fingerprint"
 
   # ── PostgreSQL 16 with PostGIS + pgvector ───────────────────────────────────
   db:
