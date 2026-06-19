@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { sampleSpans, SAMPLE_LANES } from './sampleSpans';
 import { ENTITY_GROUPS } from '@/types/atlas';
+import { sampleSpans, SAMPLE_LANES } from './sampleSpans';
 
 describe('sampleSpans', () => {
   it('is non-empty', () => expect(sampleSpans.length).toBeGreaterThan(0));

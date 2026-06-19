@@ -2,7 +2,7 @@ import { ChroniclePlayer } from '@/components/atlas/ChroniclePlayer';
 import { CommandPalette } from '@/components/atlas/CommandPalette';
 import { DetailPanel } from '@/components/atlas/DetailPanel';
 import { LeftSidebar } from '@/components/atlas/LeftSidebar';
-import { Timeline } from '@/components/atlas/Timeline';
+import { TimelineScope } from '@/components/atlas/TimelineScope';
 import { TopBar } from '@/components/atlas/TopBar';
 import { MapCanvas } from '@/components/map/MapCanvas';
 import { useChronicleNav } from '@/hooks';
@@ -39,7 +39,7 @@ export function AtlasLayout() {
 
       {/* Timeline spine */}
       <div className="h-14 flex-none border-t bg-card">
-        <Timeline />
+        <TimelineScope />
       </div>
 
       <CommandPalette />
