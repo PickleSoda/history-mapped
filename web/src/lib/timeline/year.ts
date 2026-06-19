@@ -9,12 +9,11 @@
 export type DecimalLike = { number(): number };
 
 /**
- * Supported timeline axis window. Exported as a forward hook for the real-data
- * follow-up (clamping the queried window); not yet consumed by TimelineScope,
- * which relies on timescope's own panning bounds.
+ * Hard limits for how far the timeline can pan/scrub: 10000 BCE → 2050 CE.
+ * Passed to timescope as `timeRange` and used to clamp committed years.
  */
-export const AXIS_MIN = -4000;
-export const AXIS_MAX = 2025;
+export const AXIS_MIN = -10000;
+export const AXIS_MAX = 2050;
 
 /**
  * A timescope time value (Decimal | number | null) → an integer year, or null
