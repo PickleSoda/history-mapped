@@ -8,11 +8,18 @@
 /** Minimal shape of the decimal value timescope passes to time callbacks. */
 export type DecimalLike = { number(): number };
 
-/** Supported timeline axis window. */
+/**
+ * Supported timeline axis window. Exported as a forward hook for the real-data
+ * follow-up (clamping the queried window); not yet consumed by TimelineScope,
+ * which relies on timescope's own panning bounds.
+ */
 export const AXIS_MIN = -4000;
 export const AXIS_MAX = 2025;
 
-/** A timescope time value (Decimal | number | null) → an integer year or null. */
+/**
+ * A timescope time value (Decimal | number | null) → an integer year, or null
+ * for null/NaN/Infinity inputs.
+ */
 export function toYear(v: DecimalLike | number | null): number | null {
   if (v == null) return null;
   const n = typeof v === 'number' ? v : v.number();

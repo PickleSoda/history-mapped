@@ -24,7 +24,7 @@ export function TimelineScope() {
   const trackHeight = expanded ? 150 : 28;
 
   return (
-    <div className={cn('flex items-stretch transition-[height]', expanded ? 'h-[170px]' : 'h-14')}>
+    <div className={cn('flex items-stretch overflow-hidden transition-[height]', expanded ? 'h-[170px]' : 'h-14')}>
       <div className="flex w-[150px] flex-none flex-col justify-center px-4 leading-tight">
         <span className="font-mono text-sm tabular-nums">{formatYear(displayYear)}</span>
         <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
@@ -105,8 +105,8 @@ export function TimelineScope() {
               height: trackHeight,
               timeAxis: {
                 // .number() converts the @kikuchan/decimal tick value to a float;
-              // round to a whole year for the BCE/CE axis label.
-              timeFormat: (opts) => formatYear(Math.round(opts.time.number())),
+                // round to a whole year for the BCE/CE axis label.
+                timeFormat: (opts) => formatYear(Math.round(opts.time.number())),
               },
             },
           }}
