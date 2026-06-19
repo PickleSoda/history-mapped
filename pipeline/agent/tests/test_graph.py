@@ -44,10 +44,13 @@ def test_run_agent_end_to_end(mock_run, mock_resolve_polity, mock_enrich, mock_w
                 "candidate_entities": [{"label": "David IV of Georgia", "entity_type": "person", "aliases": ["David IV"]}, {"label": "Battle of Didgori", "entity_type": "event_battle", "start_date": "1121-08-12", "end_date": "1121-08-12"}],
                 "candidate_relations": [{"source_label": "David IV of Georgia", "target_label": "Battle of Didgori", "relationship_type": "participated_in", "start_date": "1121-08-12", "end_date": "1121-08-12"}]
             }))
-        # Call 4: generate_content
+        # Call 4+: generate_content (entity chunk, then relations) + later LLM nodes
         else:
             return MagicMock(content=json.dumps({
-                "summaries": {"David IV of Georgia": "Ruled Georgia from 1089 to 1125."},
+                "entities": {"David IV of Georgia": {
+                    "summary": "Ruled Georgia from 1089 to 1125.",
+                    "significance": "Broke Seljuk dominance and began the Georgian Golden Age."
+                }},
                 "relation_descriptions": {"David IV of Georgia|participated_in|Battle of Didgori": "Commanded at Didgori."}
             }))
 

@@ -327,6 +327,13 @@ class ImportEntityJob implements ShouldQueue
             $record['impact_score'] = $this->deriveImpactScore($record);
         }
 
+        // Map ordering (entities_display_priority_idx, NULLS LAST) needs a value;
+        // the pipeline never sets one, leaving every row NULL. Seed it from the
+        // derived impact so the most significant entities surface first.
+        if (($record['display_priority'] ?? null) === null) {
+            $record['display_priority'] = (int) $record['impact_score'];
+        }
+
         return $record;
     }
 

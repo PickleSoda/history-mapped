@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 from pipeline.agent.graph.nodes.db_lookup import db_lookup
-from pipeline.agent.graph.nodes.resolve_wikidata import resolve_wikidata
+from pipeline.agent.graph.nodes.resolve_wikidata import resolve_wikidata, _sign_corrected
 from pipeline.agent.graph.nodes.resolve_ohm import resolve_ohm
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.entities import CandidateEntity, EnrichedCandidate
@@ -61,22 +61,48 @@ def test_resolve_wikidata(mock_search, mock_enrich):
     assert new_state["enriched_entities"][0].wikidata_match.get("qid") == "Q405"
 
 
+def test_sign_corrected_flips_ce_to_bce():
+    # LLM emitted "750 CE" but Wikidata says -0750: same magnitude, opposite sign.
+    assert _sign_corrected("750 CE", "-0750-01-01T00:00:00Z") == "-0750-01-01T00:00:00Z"
+    assert _sign_corrected("331 BCE", "+0331-01-01T00:00:00Z") == "+0331-01-01T00:00:00Z"
+
+
+def test_sign_corrected_leaves_genuine_differences_and_blanks():
+    # Different magnitude (birth vs reign) → no correction.
+    assert _sign_corrected("100 BCE", "-0044-01-01T00:00:00Z") is None
+    # Agreeing dates → no correction.
+    assert _sign_corrected("-331", "-0331-01-01T00:00:00Z") is None
+    # Missing either side → no correction.
+    assert _sign_corrected(None, "-0331") is None
+    assert _sign_corrected("331 BCE", None) is None
+
+
 @patch("pipeline.agent.graph.nodes.resolve_ohm.resolve_polity")
-def test_resolve_ohm_skips_place_types(mock_resolve):
-    # City/monument places are out of scope (modern-namesake mismatches like
-    # Rome OH); they must not be OHM-resolved.
+def test_resolve_ohm_resolves_place_types(mock_resolve):
+    # Places (cities/monuments) ARE OHM-resolved now — the qid anchor + era guard
+    # against modern-namesake mismatches (Rome OH). Geometry only; name preserved.
+    mock_resolve.return_value = {
+        "name": "Tbilisi",
+        "external_id": "12345",
+        "external_type": "relation",
+        "wikidata_id": "Q994",
+        "match_score": 0.9,
+        "manifest": {"status": "matched", "geo_ref": {"provider": "ohm"}},
+    }
     state = make_base_state()
     state["candidate_entities"] = []
     state["enriched_entities"] = [
         EnrichedCandidate(
-            candidate=CandidateEntity(label="Didgori", entity_type="infrastructure_monument"),
+            candidate=CandidateEntity(label="Tbilisi", entity_type="city"),
+            wikidata_match={"qid": "Q994"},
         )
     ]
     new_state = resolve_ohm(state)
     enriched = new_state["enriched_entities"][0]
-    assert enriched.geo_resolution is None
-    assert enriched.ohm_match is None
-    mock_resolve.assert_not_called()
+    assert enriched.geo_resolution is not None
+    assert enriched.ohm_match == {"object_type": "relation", "object_id": "12345"}
+    assert enriched.candidate.label == "Tbilisi"  # place name preserved (not a polity)
+    mock_resolve.assert_called_once()
 
 
 @patch("pipeline.agent.graph.nodes.resolve_ohm.resolve_polity")
@@ -100,7 +126,7 @@ def test_resolve_ohm_event_always_gets_a_point(mock_resolve):
 
 
 @patch("pipeline.agent.graph.nodes.resolve_ohm.resolve_polity")
-def test_resolve_ohm_polity_adopts_ohm_identity(mock_resolve):
+def test_resolve_ohm_polity_keeps_name_records_ohm_alias(mock_resolve):
     mock_resolve.return_value = {
         "name": "Imperium Romanum Orientale",
         "external_id": "2882342",
@@ -118,9 +144,10 @@ def test_resolve_ohm_polity_adopts_ohm_identity(mock_resolve):
     ]
     new_state = resolve_ohm(state)
     enriched = new_state["enriched_entities"][0]
-    assert enriched.candidate.label == "Imperium Romanum Orientale"  # polity: OHM name adopted
-    assert "Byzantine Empire" in enriched.candidate.aliases
-    assert enriched.wikidata_match.get("qid") == "Q12544"
+    # Readable display name kept; OHM's canonical form recorded as an alias.
+    assert enriched.candidate.label == "Byzantine Empire"
+    assert "Imperium Romanum Orientale" in enriched.candidate.aliases
+    assert enriched.wikidata_match.get("qid") == "Q12544"  # OHM's id/qid still adopted
     assert enriched.geo_resolution is not None
 
 

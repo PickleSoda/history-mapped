@@ -7,10 +7,23 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
+/**
+ * Minimal "base" seed: everything the application needs to run, but NO
+ * pipeline-authored content (entities, relationships, chronicles).
+ *
+ * Seeds roles, permissions, dev users, and curated reference tables only.
+ * This is the default seed (`php artisan db:seed` / `migrate --seed`) and the
+ * blank slate the agentic pipeline writes into.
+ *
+ * For the full demo dataset (entities / relationships / chronicles fixtures on
+ * top of this base), seed {@see DemoSeeder} instead:
+ *   php artisan db:seed --class=Database\\Seeders\\DemoSeeder
+ *   php artisan migrate:fresh --seeder=Database\\Seeders\\DemoSeeder
+ */
 class DatabaseSeeder extends Seeder
 {
     /**
-     * Seed the application's database.
+     * Seed the application's database (minimal base).
      */
     public function run(): void
     {
@@ -46,20 +59,13 @@ class DatabaseSeeder extends Seeder
             'email' => 'user@example.com',
         ])->assignRole('user');
 
-        // ── Reference data ──────────────────────────────────────────
+        // ── Reference data (calendars, regions, periods, …) ─────────
 
         $this->call(ReferenceTableSeeder::class);
 
-        // ── Entity seed data ────────────────────────────────────────
-
-        $this->call(EntitySeeder::class);
-
-        // ── Relationships between entities ──────────────────────────
-
-        $this->call(RelationshipSeeder::class);
-
-        // ── Chronicle seed data ────────────────────────────────────
-
-        $this->call(ChronicleSeeder::class);
+        // ── Intentionally NOT seeded here (see DemoSeeder): ─────────
+        //   EntitySeeder, RelationshipSeeder, ChronicleSeeder
+        // The base seed leaves the knowledge graph empty so the agentic
+        // pipeline is the sole author of that content.
     }
 }

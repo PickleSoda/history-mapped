@@ -33,3 +33,7 @@ class AgentRunState(TypedDict):
     create_chronicle: bool
     entity_id_map: dict[str, str]
     relation_id_map: dict[str, str]
+    # Completeness-critic recall loop (F6): how many critic passes have run, and
+    # whether the loop is finished (no new items found, or the cap was hit).
+    critic_iterations: int
+    critic_done: bool

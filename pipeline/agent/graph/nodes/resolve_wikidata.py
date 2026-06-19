@@ -10,6 +10,33 @@ from pipeline.agent.tools.disambiguation import context_era, era_year, rerank_by
 
 logger = get_logger(__name__)
 
+# Cities, monuments and institutions persist across eras, so their Wikidata
+# inception (often deep-BCE) is a poor era signal. Era-reranking actively harms
+# them: the real city (penalised for a founding date far from the transcript era)
+# is demoted below a dateless modern namesake that the penalty can't touch — e.g.
+# Jerusalem resolved to a stray Q10540001 instead of Q1218, then failed OHM and
+# the coordinate fallback, landing no geo at all. Only era-rerank bounded-lifetime
+# entities (persons, dynasties, polities, events).
+_PERSISTENT_PLACE_TYPES = {
+    "city", "infrastructure_monument", "extraction_infra", "educational_institution",
+}
+
+
+def _sign_corrected(llm_date: str | None, wd_date: str | None) -> str | None:
+    """Return the Wikidata date when it is the same magnitude as the LLM date but
+    opposite sign — i.e. a CE/BCE confusion the extractor makes despite the prompt
+    (e.g. "750 CE" vs Wikidata's "-0750"). Returns None when no sign flip applies,
+    so the caller keeps the LLM value. Only a pure sign flip is corrected; a
+    genuinely different year (birth vs reign-start) is left alone.
+    """
+    llm_year = era_year(llm_date)
+    wd_year = era_year(wd_date)
+    if llm_year is None or wd_year is None:
+        return None
+    if llm_year != wd_year and abs(llm_year) == abs(wd_year):
+        return wd_date
+    return None
+
 
 def resolve_wikidata(state: AgentRunState) -> AgentRunState:
     entity_count = len(state["enriched_entities"])
@@ -50,8 +77,10 @@ def resolve_wikidata(state: AgentRunState) -> AgentRunState:
             # Era-aware tie-break: when the top label-matched candidates are close
             # (e.g. "Philip II of Macedon" vs "Philip II of Spain"), enrich the
             # leaders' dates and prefer the one nearest the entity's era. Bounded
-            # to the ambiguous cases so we don't enrich on every clear match.
-            if is_ambiguous(ranked):
+            # to the ambiguous cases so we don't enrich on every clear match — and
+            # skipped for persistent places, whose inception date misleads the
+            # rerank (see _PERSISTENT_PLACE_TYPES).
+            if is_ambiguous(ranked) and enriched.candidate.entity_type not in _PERSISTENT_PLACE_TYPES:
                 target_era = (
                     era_year(enriched.candidate.start_date)
                     or era_year(enriched.candidate.end_date)
@@ -89,6 +118,19 @@ def resolve_wikidata(state: AgentRunState) -> AgentRunState:
                 enriched.candidate.start_date = wd_start
             if wd_end and not enriched.candidate.end_date:
                 enriched.candidate.end_date = wd_end
+            # Correct CE/BCE sign flips against Wikidata (authoritative). The
+            # extractor intermittently mis-signs a year; trust Wikidata's sign
+            # when the magnitude matches.
+            corrected_start = _sign_corrected(enriched.candidate.start_date, wd_start)
+            if corrected_start:
+                logger.info("    → corrected start_date sign %s → %s (wikidata)",
+                            enriched.candidate.start_date, corrected_start)
+                enriched.candidate.start_date = corrected_start
+            corrected_end = _sign_corrected(enriched.candidate.end_date, wd_end)
+            if corrected_end:
+                logger.info("    → corrected end_date sign %s → %s (wikidata)",
+                            enriched.candidate.end_date, corrected_end)
+                enriched.candidate.end_date = corrected_end
             logger.info("    → selected QID=%s label=%s score=%.2f",
                         qid, best_match["label"], best_match.get("score", 0))
         else:

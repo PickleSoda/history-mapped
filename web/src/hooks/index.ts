@@ -22,6 +22,7 @@ export { useChronicle } from './useChronicle';
 export { useChronicleList } from './useChronicleList';
 export { useEntityChronicles } from './useEntityChronicles';
 export { usePrefetchEntity } from './usePrefetchEntity';
+export { useHistoricalPeriods } from './useHistoricalPeriods';
 
 // Ephemeral / imperative
 export {
@@ -31,3 +32,10 @@ export {
   useSheet,
   useCommandPalette,
 } from './ephemeral';
+
+// Sheet logic
+export { useSheetContent } from './useSheetContent';
+export { useSheetSelectionSync } from './useSheetSelectionSync';
+
+// Responsive
+export { useMediaQuery, useIsMobile } from './useMediaQuery';

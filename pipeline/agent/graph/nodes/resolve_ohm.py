@@ -12,8 +12,8 @@ from pipeline.agent.tools.ohm_polity_resolver import resolve_polity, build_wikid
 
 logger = get_logger(__name__)
 
-# Polities: OHM is authoritative for IDENTITY — adopt OHM's canonical name + id
-# (the transcript's name becomes an alias).
+# Polities: adopt OHM's id (authoritative for geometry/dedup), but keep the
+# transcript's readable name and record OHM's canonical form as an alias.
 _POLITY_TYPES = {"political_entity", "dynasty"}
 
 # Events (wars, battles, sieges, …): GEOMETRY only — keep the event's name, but
@@ -31,10 +31,20 @@ _EVENT_TYPES = {
     "epidemic_disease",
 }
 
-# Bare city/place names (Rome, Gaza, Babylon) collide with modern same-named
-# towns in OHM Nominatim (Rome OH, Gaza IA) without an identity anchor, so they
-# are deliberately excluded here — era-aware place geocoding is a follow-up.
-_GEO_TYPES = _POLITY_TYPES | _EVENT_TYPES
+# Places (cities, monuments, …): GEOMETRY only — keep the place's name, put a
+# point down. Bare names (Rome, Gaza, Babylon) collide with modern same-named
+# towns in OHM Nominatim (Rome OH, Gaza IA), so resolution is anchored by the
+# entity's Wikidata qid (a qid match is decisive in `relevance()`) plus era —
+# the same anchors that already disambiguate polities. The Wikidata-coordinate
+# fallback applies when OHM has no feature.
+_PLACE_TYPES = {
+    "city",
+    "infrastructure_monument",
+    "extraction_infra",
+    "educational_institution",
+}
+
+_GEO_TYPES = _POLITY_TYPES | _PLACE_TYPES | _EVENT_TYPES
 
 # Coalitions/alliances are not single places — they are sets of member states, so
 # they must NOT get one OHM border or point (the members carry the geography; see
@@ -53,29 +63,33 @@ def _is_coalition(name: str) -> bool:
     return bool(_COALITION_RE.search(name or ""))
 
 
-def _adopt_ohm_name(candidate: CandidateEntity, ohm_name: str | None) -> None:
-    """Adopt OHM's canonical name, preserving the transcript's name as an alias.
+def _record_ohm_alias(candidate: CandidateEntity, ohm_name: str | None) -> None:
+    """Record OHM's canonical name as an alias, keeping the transcript's readable
+    name as the display label.
 
-    Skips non-Latin-script canonicals (e.g. OHM's Old-Persian/cuneiform 𐎧𐏁𐏂 for
-    the Achaemenids) — those make poor display names; we still take OHM's id +
-    geometry, just keep the readable transcript name.
+    We still adopt OHM's id + geometry (the valuable part), but NOT its name: OHM's
+    canonical is often a less-recognisable Latin/native-script form (its 'Carthāgō'
+    or 'Imperium Romanum Orientale' vs the common 'Carthage'/'Byzantine Empire').
+    Renaming to it both degraded display names and produced near-duplicate entities
+    (the same place under two spellings) that string-dedup missed. Keeping the
+    transcript name keeps labels consistent and human-friendly. Non-Latin-script
+    canonicals (e.g. cuneiform 𐎧𐏁𐏂) are skipped entirely.
     """
-    original = candidate.label
     canonical = (ohm_name or "").strip()
     ascii_letters = sum(1 for ch in canonical if ch.isascii() and ch.isalpha())
     if ascii_letters < 2:
         return
-    if canonical and canonical.lower() != original.lower():
-        if original and original not in candidate.aliases:
-            candidate.aliases.append(original)
-        candidate.label = canonical
+    if canonical.lower() == candidate.label.lower():
+        return
+    if canonical not in candidate.aliases:
+        candidate.aliases.append(canonical)
 
 
 def resolve_ohm(state: AgentRunState) -> AgentRunState:
     """Resolve polities + events to OpenHistoricalMap via live Nominatim.
 
-    Polities adopt OHM's canonical name + id (OHM-first identity); events take
-    geometry only (keep their own name). When OHM has no feature, fall back to
+    Polities adopt OHM's id (+ OHM's name as an alias, keeping the readable
+    display name); events take geometry only. When OHM has no feature, fall back to
     the entity's Wikidata coordinate so a point is still produced — events
     especially (a war/battle must be locatable). Each match is attached as a
     `_geo_resolution` manifest for the Laravel geo-ref importer. (Replaces the
@@ -122,9 +136,10 @@ def resolve_ohm(state: AgentRunState) -> AgentRunState:
                 "object_type": result["external_type"],
                 "object_id": result["external_id"],
             }
-            # Identity adoption is polities-only; events keep their own name.
+            # Polities record OHM's canonical name as an alias (display name kept);
+            # events keep their own name and add no alias.
             if is_polity:
-                _adopt_ohm_name(enriched.candidate, result.get("name"))
+                _record_ohm_alias(enriched.candidate, result.get("name"))
                 if not enriched.wikidata_match and result.get("wikidata_id"):
                     enriched.wikidata_match = {"qid": result["wikidata_id"]}
             resolved += 1
@@ -155,7 +170,7 @@ def resolve_ohm(state: AgentRunState) -> AgentRunState:
             node="resolve_ohm",
             action="ohm_resolved",
             output_summary=(
-                f"OHM-resolved {resolved} (polities+events); "
+                f"OHM-resolved {resolved} (polities+places+events); "
                 f"{fallback_points} approximate-point fallbacks (of {len(entities)} entities)"
             ),
         )
