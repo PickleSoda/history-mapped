@@ -22,6 +22,7 @@ export { useChronicle } from './useChronicle';
 export { useChronicleList } from './useChronicleList';
 export { useEntityChronicles } from './useEntityChronicles';
 export { usePrefetchEntity } from './usePrefetchEntity';
+export { useHistoricalPeriods } from './useHistoricalPeriods';
 
 // Ephemeral / imperative
 export {
@@ -30,7 +31,7 @@ export {
   useHover,
   useSheet,
   useCommandPalette,
-  useTimelineExpanded,
+  useTimelineMode,
 } from './ephemeral';
 
 // Sheet logic

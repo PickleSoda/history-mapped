@@ -1,14 +1,16 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { useEphemeralStore } from './ephemeral';
 
-afterEach(() => useEphemeralStore.getState().setTimelineExpanded(false));
+afterEach(() => useEphemeralStore.getState().setTimelineMode('collapsed'));
 
-describe('timelineExpanded slice', () => {
-  it('defaults to false', () => {
-    expect(useEphemeralStore.getState().timelineExpanded).toBe(false);
+describe('timelineMode slice', () => {
+  it('defaults to collapsed', () => {
+    expect(useEphemeralStore.getState().timelineMode).toBe('collapsed');
   });
-  it('is updated by setTimelineExpanded', () => {
-    useEphemeralStore.getState().setTimelineExpanded(true);
-    expect(useEphemeralStore.getState().timelineExpanded).toBe(true);
+  it('is updated by setTimelineMode', () => {
+    useEphemeralStore.getState().setTimelineMode('transient');
+    expect(useEphemeralStore.getState().timelineMode).toBe('transient');
+    useEphemeralStore.getState().setTimelineMode('pinned');
+    expect(useEphemeralStore.getState().timelineMode).toBe('pinned');
   });
 });
