@@ -45,3 +45,5 @@ __pycache__/
 output/*
 pipeline/output/*
 !pipeline/output/.gitkeep
+# Agent git worktrees
+.claude/worktrees/

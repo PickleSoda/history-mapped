@@ -66,12 +66,13 @@ Each run writes to `output/eval_runs/<label>/`:
 
 `--reset` runs:
 ```bash
-php artisan migrate:fresh --seeder=Database\\Seeders\\BaselineSeeder --force
+php artisan migrate:fresh --seeder=Database\\Seeders\\DatabaseSeeder --force
 ```
-`BaselineSeeder` seeds roles, dev users, and reference tables **only** — the
-`entities`, `relationships`, and `chronicles` tables start empty so the pipeline
-is the sole author of that content. (Contrast with `DatabaseSeeder`, which also
-loads demo entity/relationship/chronicle fixtures.)
+The default `DatabaseSeeder` seeds roles, permissions, dev users, and reference
+tables **only** — the `entities`, `relationships`, and `chronicles` tables start
+empty so the pipeline is the sole author of that content. (For a populated demo
+dataset instead, seed `DemoSeeder`, which loads the entity/relationship/chronicle
+fixtures on top of this base.)
 
 ## Iteration workflow
 

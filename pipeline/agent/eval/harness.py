@@ -1,7 +1,7 @@
 """Orchestration for the reproducible eval harness.
 
 Pipeline of a single ``evaluate()`` call:
-  1. (optional) reset the database to the blank BaselineSeeder slate
+  1. (optional) reset the database to the blank DatabaseSeeder slate
   2. run the agent pipeline over each transcript (fresh subprocess each)
   3. probe the database for what actually persisted
   4. apply quality heuristics + overlap-consistency checks
@@ -31,7 +31,11 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 COMPOSE_FILE = REPO_ROOT / "docker" / "docker-compose.yml"
 DEFAULT_TRANSCRIPT_DIR = REPO_ROOT / "output" / "transctipts"
 EVAL_OUTPUT_DIR = REPO_ROOT / "output" / "eval_runs"
-BASELINE_SEEDER = r"Database\Seeders\BaselineSeeder"
+# The default DatabaseSeeder is the minimal "base" slate: roles, permissions,
+# dev users, and reference tables only — entities/relationships/chronicles start
+# empty so the pipeline is the sole author of that content. (DemoSeeder adds the
+# demo fixtures on top; we never want those during eval.)
+BASELINE_SEEDER = r"Database\Seeders\DatabaseSeeder"
 
 # Per-transcript wall-clock cap. With LLM calls now bounded (cfg.llm_request_timeout
 # + FallbackLLM), a healthy transcript finishes well under this; a hang is killed
@@ -152,7 +156,7 @@ def evaluate(
     }
 
     if reset:
-        print(f"[eval] resetting database (BaselineSeeder)…", flush=True)
+        print(f"[eval] resetting database (DatabaseSeeder, blank slate)…", flush=True)
         report["reset"] = reset_database()
         if not report["reset"]["ok"]:
             print(f"[eval] WARNING: db reset failed: {report['reset']['stderr_tail']}", flush=True)

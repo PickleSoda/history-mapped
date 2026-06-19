@@ -7,9 +7,9 @@ measured by a reproducible evaluation harness.
 ## How to reproduce
 
 ```bash
-# 1. blank slate (roles + users + reference tables only; no entity/rel/chronicle fixtures)
+# 1. blank slate (roles + permissions + users + reference tables only; no entity/rel/chronicle fixtures)
 docker compose -f docker/docker-compose.yml exec app php artisan migrate:fresh \
-  --seeder='Database\Seeders\BaselineSeeder' --force
+  --seeder='Database\Seeders\DatabaseSeeder' --force
 
 # 2. run + evaluate all transcripts in output/transctipts/ (resets first by default)
 py -m pipeline.agent.eval --label myrun
@@ -35,7 +35,7 @@ Reports land in `output/eval_runs/<label>/report.{md,json}`. See
 
 ## The harness
 
-- `Database\Seeders\BaselineSeeder` — blank-slate seed (no entity/rel/chronicle fixtures).
+- `Database\Seeders\DatabaseSeeder` — default minimal/blank-slate seed (no entity/rel/chronicle fixtures; `DemoSeeder` adds them).
 - `py -m pipeline.agent.eval` — reset → run each transcript (fresh subprocess) →
   probe the DB → quality heuristics → `report.{md,json}`.
 - `py -m pipeline.agent.eval.compare A B` — metric-delta table with `[better]`/`[worse]`.

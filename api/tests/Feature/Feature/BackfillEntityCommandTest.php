@@ -12,7 +12,7 @@ use App\Models\EntityTag;
 use App\Models\EntityTemporalRange;
 use App\Models\EntityTimelineEntry;
 use App\Models\GeometryPeriod;
-use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\DemoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
@@ -106,9 +106,9 @@ class BackfillEntityCommandTest extends TestCase
         $this->assertDatabaseMissing('entity_locations', ['entity_id' => $entity->entity_id]);
     }
 
-    public function test_database_seeder_runs_backfill_for_canonical_tables(): void
+    public function test_demo_seeder_runs_backfill_for_canonical_tables(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(DemoSeeder::class);
 
         $entity = Entity::query()->where('name', 'Roman Empire')->firstOrFail();
 
