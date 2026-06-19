@@ -1,3 +1,77 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## What this is
+
+`history-mapped` is a pnpm monorepo for an interactive historical atlas. Three runtime surfaces:
+
+- **`api/`** — Laravel 13 / PHP 8.4. Serves both the **JSON REST API** (`routes/api.php`, versioned under `/api/v1`, controllers in `app/Http/Api`) **and** the **Inertia.js + React admin** (`routes/web.php`, `app/Http/Controllers`, React under `api/resources/js`). Fronted by Nginx.
+- **`web/`** — standalone **React 19 + Vite** public Atlas SPA (`@history-mapped/web`). TanStack Query + Axios against the API. Independent of the Inertia admin.
+- **`pipeline/`** — **Python** ingestion: Wikidata/Wikipedia scraping, topic extraction, OpenHistoricalMap (OHM) border processing, and a LangGraph **agentic** extraction pipeline (`pipeline/agent`).
+
+Generated artifacts (JSONL, OHM borders) land in `output/`. Persistence is **PostgreSQL 16 with PostGIS (geometry) + pgvector (embeddings)**.
+
+## Everything runs in Docker Compose
+
+Do **not** run host-local PHP/Composer/PHP-unit — use the containers, or you'll hit host/container drift. The stack is `docker/docker-compose.yml`, project name `history-mapped`. Services: `app` (PHP), `nginx`, `web` (SPA Vite), `vite-admin` (admin Vite), `db`, `redis`, `queue`, `scheduler`, `mailpit`, `cloudbeaver`, `redisinsight`; `composer-install` / `pnpm-install` are one-shot init containers.
+
+```bash
+pnpm dev            # docker compose -f docker/docker-compose.yml up  (whole stack)
+pnpm dev:build      # ...up --build  (rebuild images)
+pnpm dev:down       # ...down --remove-orphans
+```
+
+Dev URLs (override with `FORWARD_*_PORT` in `.env`): API+admin via Nginx → `:8000`, public SPA → `:5173`, admin Vite → `:5174`, Postgres → `:5432`, Mailpit → `:8025`, CloudBeaver → `:8978`, RedisInsight → `:5540`.
+
+Run backend commands inside `app` (this prefix is assumed below):
+
+```bash
+docker compose -f docker/docker-compose.yml exec app php artisan <cmd>
+```
+
+## Common commands
+
+**Backend (Laravel, in `app`):**
+
+```bash
+php artisan test                       # full PHPUnit suite
+php artisan test --filter EntityTest   # single test class / method
+php artisan test tests/Feature/Foo.php # single file
+composer test                          # config:clear + pint --test + artisan test
+composer ci:check                      # JS lint + prettier + tsc + tests (mirrors CI)
+composer lint                          # Pint (PHP) autofix; composer lint:check to verify
+php artisan wayfinder:generate --with-form  # regen TS route/action helpers (see Gotchas)
+php artisan route:list                 # or: pnpm api:routes  (from host)
+```
+
+The admin frontend (`api/resources/js`) uses npm scripts run in `app`: `npm run lint` / `format` / `types:check`, `npm run build`.
+
+**Public SPA (`web/`, pnpm):** `pnpm lint`, `pnpm types:check`, `pnpm build` (= `tsc -b && vite build`). From host root, `pnpm typecheck` typechecks workspaces via the `web` service.
+
+**Pipeline (Python):**
+
+```bash
+python -m pipeline scrape --type political_entity   # Wikidata scrape
+python -m pipeline topic "Roman Empire"             # topic extraction
+python -m pipeline borders fetch                     # OHM borders
+python -m pytest pipeline/tests/                     # pipeline tests
+python -m pytest pipeline/agent/tests/test_graph.py  # agentic-pipeline tests
+```
+
+The LangGraph agent graph is `pipeline/agent/graph/workflow.py:build_workflow` (registered in `langgraph.json`); pipeline config/secrets come from `pipeline/.env`.
+
+## Architecture notes (the non-obvious parts)
+
+- **`Entity` is the domain hub.** 30 entity types across 5 groups (the canonical model is `docs/entity-model/entity-specification.md`). Around it: `EntityRelationship` (typed links), `Chronicle`/`ChronicleEntry` (narrative), time-aware geography via `GeometryPeriod` + `EntityGeoRef`/`EntityLocation` (PostGIS), `EntityTimelineEntry`, plus reference tables (`CalendarSystem`, `HistoricalPeriod`, `GeographicRegion`, `WritingSystem`, …).
+- **Write/business logic lives in Action classes**, not controllers: `app/Actions/{Entity,Relationship,Chronicle,Source,Timeline,EntityGeoRef}`. Controllers stay thin. Supporting layers: `app/Services`, `app/Builders` (query builders), `app/DTOs`, `app/Casts`, `app/Observers`, `app/Jobs` (async via the `queue` worker), and the `scheduler` container for cron tasks.
+- **Data flows pipeline → app.** The pipeline scrapes/fetches and writes JSONL + OHM artifacts to `output/` (contracts in `docs/schemas/`); a Laravel import layer ingests them into Postgres; embeddings are generated into pgvector; the API then serves entities/timeline/map to the SPA and admin. End-to-end flow: `docs/architecture/data-pipeline.md`.
+- **OHM integration**: historical borders/geometry come from OpenHistoricalMap and render via MapLibre — see `docs/architecture/ohm-integration.md`.
+
+## Gotchas
+
+- **Wayfinder TS is generated**, not hand-written: `api/resources/js/actions/**` and `api/resources/js/routes/**` come from `php artisan wayfinder:generate`. Regenerate rather than editing; if a run hits `Permission denied`, the target tree was left root-owned by an earlier run — `chown` it back to your user on the host.
+
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
