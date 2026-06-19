@@ -32,3 +32,7 @@ export {
   useCommandPalette,
   useTimelineExpanded,
 } from './ephemeral';
+
+// Sheet logic
+export { useSheetContent } from './useSheetContent';
+export { useSheetSelectionSync } from './useSheetSelectionSync';
