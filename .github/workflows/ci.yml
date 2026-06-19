@@ -256,7 +256,10 @@ jobs:
             ${{ env.IMAGE }}:${{ github.sha }}
             ${{ env.IMAGE }}:latest
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # ignore-error: a transient GHA-cache outage (e.g. a 504 "Unicorn"
+          # page) must not fail the build — the image push is a separate
+          # exporter and still gates the deploy.
+          cache-to: type=gha,mode=max,ignore-error=true
 
       - name: Scan API image (Trivy)
         uses: aquasecurity/trivy-action@v0.36.0   # tags are v-prefixed; 0.28.0 (no v) does not exist
