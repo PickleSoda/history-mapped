@@ -1,8 +1,9 @@
 import { Timescope } from '@timescope/react';
-import { useTimeState } from '@/hooks';
-import { eraFor, formatTime, formatYear, instantYear } from '@/lib/format';
+import { useLiveScrub, useTimeState } from '@/hooks';
+import { eraFor, formatYear, instantYear } from '@/lib/format';
 import { groupColor } from '@/lib/timeline/colors';
 import { sampleSpans, SAMPLE_LANES } from '@/lib/timeline/sampleSpans';
+import { toYear } from '@/lib/timeline/year';
 
 const TRACK = 'main';
 
@@ -13,14 +14,16 @@ const TRACK = 'main';
  */
 export function TimelineScope() {
   const { time } = useTimeState();
-  const year = instantYear(time);
+  const { liveScrub, setLiveScrub, commit } = useLiveScrub();
+  const committedYear = instantYear(time);
+  const displayYear = liveScrub ?? committedYear;
 
   return (
     <div className="flex h-full items-stretch">
       <div className="flex w-[150px] flex-none flex-col justify-center px-4 leading-tight">
-        <span className="font-mono text-sm tabular-nums">{formatTime(time)}</span>
+        <span className="font-mono text-sm tabular-nums">{formatYear(displayYear)}</span>
         <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-          {eraFor(year)}
+          {eraFor(displayYear)}
         </span>
       </div>
 
@@ -28,8 +31,16 @@ export function TimelineScope() {
         <Timescope
           width="100%"
           height="100%"
-          time={year}
+          time={committedYear}
           indicator
+          onTimeChanging={(v) => {
+            const y = toYear(v);
+            if (y !== null) setLiveScrub(y);
+          }}
+          onTimeChanged={(v) => {
+            const y = toYear(v);
+            if (y !== null) commit(y);
+          }}
           sources={{ spans: sampleSpans }}
           series={{
             spans: {
