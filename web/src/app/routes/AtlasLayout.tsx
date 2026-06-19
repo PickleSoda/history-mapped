@@ -38,7 +38,7 @@ export function AtlasLayout() {
       </div>
 
       {/* Timeline spine */}
-      <div className="h-14 flex-none border-t bg-card">
+      <div className="flex-none border-t bg-card">
         <TimelineScope />
       </div>
 
