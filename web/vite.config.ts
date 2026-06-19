@@ -34,7 +34,18 @@ export default defineConfig({
   optimizeDeps: {
     include: ['@timescope/react', 'timescope', '@kikuchan/decimal'],
     esbuildOptions: {
-      loader: { '.js': 'jsx' },
+      plugins: [
+        {
+          name: 'timescope-jsx-prebundle',
+          setup(build) {
+            build.onLoad({ filter: /@timescope[\\/]react/ }, async (args) => {
+              const { readFile } = await import('node:fs/promises');
+              const contents = await readFile(args.path, 'utf8');
+              return { contents, loader: 'jsx' };
+            });
+          },
+        },
+      ],
     },
   },
   server: {
