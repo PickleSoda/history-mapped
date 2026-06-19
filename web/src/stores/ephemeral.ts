@@ -22,12 +22,15 @@ interface EphemeralState {
   sheet: SheetHeight;
   /** Imperative handle to the maplibre map. Not React state for renders. */
   map: MaplibreMap | null;
+  /** Bottom timeline expanded (gantt) vs collapsed (scrubber). */
+  timelineExpanded: boolean;
 
   setLiveScrub: (year: number | null) => void;
   setHover: (id: string | null) => void;
   setPaletteOpen: (open: boolean) => void;
   setSheet: (height: SheetHeight) => void;
   setMap: (map: MaplibreMap | null) => void;
+  setTimelineExpanded: (expanded: boolean) => void;
 }
 
 export const useEphemeralStore = create<EphemeralState>()((set) => ({
@@ -36,10 +39,12 @@ export const useEphemeralStore = create<EphemeralState>()((set) => ({
   paletteOpen: false,
   sheet: 'peek',
   map: null,
+  timelineExpanded: false,
 
   setLiveScrub: (liveScrub) => set({ liveScrub }),
   setHover: (hoverId) => set({ hoverId }),
   setPaletteOpen: (paletteOpen) => set({ paletteOpen }),
   setSheet: (sheet) => set({ sheet }),
   setMap: (map) => set({ map }),
+  setTimelineExpanded: (timelineExpanded) => set({ timelineExpanded }),
 }));

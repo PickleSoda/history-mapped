@@ -30,4 +30,5 @@ export {
   useHover,
   useSheet,
   useCommandPalette,
+  useTimelineExpanded,
 } from './ephemeral';
