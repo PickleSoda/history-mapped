@@ -58,23 +58,3 @@ export function useCommandPalette() {
   );
   return { open, setOpen: setPaletteOpen, toggle };
 }
-
-/**
- * Bottom-timeline open mode (collapsed / transient / pinned) plus the
- * transitions the component needs:
- * - `expandTransient` — click on the bar (auto-closes later).
- * - `togglePin` — the chevron: open→pinned, pinned→collapsed.
- * - `collapse` — used by the auto-close (pointer-leave / tap-outside).
- */
-export function useTimelineMode() {
-  const mode = useEphemeralStore((s) => s.timelineMode);
-  const setMode = useEphemeralStore((s) => s.setTimelineMode);
-  const expanded = mode !== 'collapsed';
-  const expandTransient = useCallback(() => setMode('transient'), [setMode]);
-  const collapse = useCallback(() => setMode('collapsed'), [setMode]);
-  const togglePin = useCallback(
-    () => setMode(mode === 'pinned' ? 'collapsed' : 'pinned'),
-    [mode, setMode],
-  );
-  return { mode, expanded, expandTransient, collapse, togglePin };
-}

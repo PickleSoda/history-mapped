@@ -1,64 +1,67 @@
 import { Timescope } from '@timescope/react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useEffect, useMemo, useRef } from 'react';
-import { useHistoricalPeriods, useLiveScrub, useTimeState, useTimelineMode } from '@/hooks';
+import { useEffect, useRef, useState } from 'react';
+import { TimelineGantt } from '@/components/atlas/TimelineGantt';
+import { useLiveScrub, useTimeState } from '@/hooks';
 import { eraFor, formatYear, instantYear } from '@/lib/format';
-import { laneCount, periodsToSpans } from '@/lib/timeline/periods';
-import { APP_FONT_FAMILY, labelOutlineColor, labelTextColor } from '@/lib/timeline/theme';
+import { APP_FONT_FAMILY } from '@/lib/timeline/theme';
 import { AXIS_MAX, AXIS_MIN, clampYear, toYear } from '@/lib/timeline/year';
-import { cn } from '@/lib/utils';
 
 const TRACK = 'main';
+const BAR_PX = 56;
+
+/** Stable identities so the @timescope/react effects don't re-fire each render. */
+const TIME_RANGE: [number, number] = [AXIS_MIN, AXIS_MAX];
+const EMPTY = {};
+const TRACKS = {
+  [TRACK]: {
+    timeAxis: {
+      labels: { fontFamily: APP_FONT_FAMILY },
+      timeFormat: (opts: { time: { number(): number } }) =>
+        formatYear(Math.round(opts.time.number())),
+    },
+  },
+};
 
 /**
- * Bottom timeline. Collapsed it is a thin, read-only scrubber; clicking it
- * transiently expands the historical-periods gantt and enables dragging the
- * playhead, then auto-closes on pointer-leave / tap-outside. The chevron pins
- * it open. Time is clamped to {@link AXIS_MIN}..{@link AXIS_MAX}.
+ * Bottom timeline — a simple timescope scrubber (date axis + draggable playhead).
+ * The chevron opens the historical-periods gantt in a panel above the bar.
+ *
+ * Flicker fix: timescope's *programmatic* setTime (from a chronicle step or the
+ * TopBar) animates the playhead and emits `timechanged` with intermediate frame
+ * values. Committing those back to the URL caused the time state to oscillate.
+ * We therefore only honour the time callbacks while the user is actually
+ * pointer-dragging the canvas (`scrubbingRef`); programmatic changes are ignored.
  */
 export function TimelineScope() {
   const { time } = useTimeState();
   const { liveScrub, setLiveScrub, commit } = useLiveScrub();
-  const { mode, expanded, expandTransient, collapse, togglePin } = useTimelineMode();
-  const { data: periods } = useHistoricalPeriods();
-
   const committedYear = instantYear(time);
   const displayYear = liveScrub ?? committedYear;
+  const [ganttOpen, setGanttOpen] = useState(false);
 
-  const spans = useMemo(() => periodsToSpans(periods ?? []), [periods]);
-  const lanes = useMemo(() => laneCount(spans), [spans]);
-  const showGantt = expanded && spans.length > 0;
-  const trackHeight = expanded ? 150 : 28;
-
-  const containerRef = useRef<HTMLDivElement>(null);
-  const draggingRef = useRef(false);
-
-  // Auto-close a transiently-opened timeline on tap/click outside (covers
-  // touch, where pointer-leave never fires). Pinned mode ignores this.
+  const scrubbingRef = useRef(false);
   useEffect(() => {
-    if (mode !== 'transient') return;
-    const onPointerDown = (e: PointerEvent) => {
-      if (draggingRef.current) return;
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        collapse();
-      }
+    // Clear after the release's synchronous `timechanged` has been handled, so a
+    // real drag still commits but later animation frames do not.
+    const end = () => setTimeout(() => (scrubbingRef.current = false), 0);
+    window.addEventListener('pointerup', end);
+    window.addEventListener('pointercancel', end);
+    return () => {
+      window.removeEventListener('pointerup', end);
+      window.removeEventListener('pointercancel', end);
     };
-    document.addEventListener('pointerdown', onPointerDown);
-    return () => document.removeEventListener('pointerdown', onPointerDown);
-  }, [mode, collapse]);
+  }, []);
 
   return (
-    <div
-      ref={containerRef}
-      onMouseLeave={() => {
-        if (mode === 'transient' && !draggingRef.current) collapse();
-      }}
-      className={cn(
-        'flex flex-col-reverse overflow-hidden transition-[height] md:flex-row',
-        expanded ? 'h-[170px]' : 'h-14',
+    <div className="relative flex flex-col-reverse md:flex-row">
+      {ganttOpen && (
+        <div className="absolute inset-x-0 top-full z-20 border-b bg-card shadow-lg md:bottom-full md:top-auto md:border-b-0 md:border-t">
+          <TimelineGantt />
+        </div>
       )}
-    >
-      {/* Readout + opener — left column on desktop, bottom row on small screens. */}
+
+      {/* Readout + open/close button — left column on desktop, bottom row on mobile. */}
       <div className="flex flex-none flex-row items-center justify-between gap-2 px-4 py-1 md:w-[150px] md:flex-col md:items-start md:justify-center md:py-0">
         <div className="leading-tight">
           <div className="font-mono text-sm tabular-nums">{formatYear(displayYear)}</div>
@@ -68,101 +71,41 @@ export function TimelineScope() {
         </div>
         <button
           type="button"
-          onClick={togglePin}
-          aria-label={expanded ? 'Collapse timeline' : 'Pin timeline open'}
+          onClick={() => setGanttOpen((o) => !o)}
+          aria-label={ganttOpen ? 'Close historical periods' : 'Open historical periods'}
           className="grid size-6 flex-none place-items-center rounded-md border bg-card text-muted-foreground hover:bg-muted md:mt-1 md:self-start"
         >
-          {expanded ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+          {ganttOpen ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
         </button>
       </div>
 
-      <div className="relative min-w-0 flex-1">
+      <div
+        className="relative min-w-0 flex-1"
+        style={{ height: BAR_PX }}
+        onPointerDownCapture={() => {
+          scrubbingRef.current = true;
+        }}
+      >
         <Timescope
           width="100%"
-          height="100%"
+          height={`${BAR_PX}px`}
           time={committedYear}
-          timeRange={[AXIS_MIN, AXIS_MAX]}
+          timeRange={TIME_RANGE}
           indicator
           onTimeChanging={(v) => {
-            draggingRef.current = true;
+            if (!scrubbingRef.current) return;
             const y = toYear(v);
             if (y !== null) setLiveScrub(clampYear(y));
           }}
           onTimeChanged={(v) => {
-            draggingRef.current = false;
+            if (!scrubbingRef.current) return;
             const y = toYear(v);
             if (y !== null) commit(clampYear(y));
           }}
-          sources={{ spans }}
-          series={
-            showGantt
-              ? {
-                  spans: {
-                    data: {
-                      source: 'spans',
-                      time: { start: 'start', end: 'end' },
-                      value: { lane: 'lane' },
-                      range: [0, lanes],
-                    },
-                    track: TRACK,
-                    chart: {
-                      marks: [
-                        {
-                          draw: 'box',
-                          using: ['lane@start', 'lane@end'],
-                          style: {
-                            size: 16,
-                            radius: 3,
-                            fillColor: ({ data }) => data.color,
-                            fillOpacity: 0.85,
-                            lineWidth: 1.5,
-                            lineColor: ({ data }) => data.color,
-                          },
-                        },
-                        {
-                          draw: 'text',
-                          using: 'lane@start',
-                          style: {
-                            size: 12,
-                            fontFamily: APP_FONT_FAMILY,
-                            text: ({ data }) => data.label,
-                            textAlign: 'start',
-                            textColor: labelTextColor(),
-                            textOutline: true,
-                            textOutlineColor: labelOutlineColor(),
-                            textOutlineWidth: 3,
-                            offset: ({ data }) => [(data.end - data.start) * 0.5, 0],
-                          },
-                        },
-                      ],
-                    },
-                  },
-                }
-              : {}
-          }
-          tracks={{
-            [TRACK]: {
-              height: trackHeight,
-              timeAxis: {
-                labels: { fontFamily: APP_FONT_FAMILY },
-                // .number() converts the @kikuchan/decimal tick value to a float;
-                // round to a whole year for the BCE/CE axis label.
-                timeFormat: (opts) => formatYear(Math.round(opts.time.number())),
-              },
-            },
-          }}
+          sources={EMPTY}
+          series={EMPTY}
+          tracks={TRACKS}
         />
-
-        {/* When collapsed, intercept clicks so the canvas can't be scrubbed;
-            the first click just expands (transient). */}
-        {!expanded && (
-          <button
-            type="button"
-            aria-label="Expand timeline"
-            onClick={expandTransient}
-            className="absolute inset-0 z-10 cursor-pointer"
-          />
-        )}
       </div>
     </div>
   );

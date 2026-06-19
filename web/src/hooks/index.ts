@@ -31,7 +31,6 @@ export {
   useHover,
   useSheet,
   useCommandPalette,
-  useTimelineMode,
 } from './ephemeral';
 
 // Sheet logic
