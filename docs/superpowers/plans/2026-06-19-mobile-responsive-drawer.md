@@ -896,8 +896,10 @@ git commit -m "feat(web): add compact variant to Timeline"
 - Create: `web/src/components/atlas/MobileShell.tsx`
 
 **Interfaces:**
-- Consumes: `MobileTopBar`, `MobileSheet`, `Timeline` (compact), `MapCanvas`, `CommandPalette`, `useSheetSelectionSync`.
+- Consumes: `MobileTopBar`, `MobileSheet`, `TimelineScope`, `MapCanvas`, `CommandPalette`, `useSheetSelectionSync`.
 - Produces: `export function MobileShell(): JSX.Element`.
+
+NOTE (timescope change): the old `Timeline` component was removed by the concurrent timescope agent and replaced by `TimelineScope` (a self-contained collapsible scrubber↔gantt). There is no `compact` prop — `TimelineScope` already collapses to a 28px scrubber row by default. Use `<TimelineScope />` directly inside the floating wrapper.
 
 - [ ] **Step 1: Create `web/src/components/atlas/MobileShell.tsx`**
 
@@ -905,7 +907,7 @@ git commit -m "feat(web): add compact variant to Timeline"
 import { CommandPalette } from '@/components/atlas/CommandPalette';
 import { MobileSheet } from '@/components/atlas/MobileSheet';
 import { MobileTopBar } from '@/components/atlas/MobileTopBar';
-import { Timeline } from '@/components/atlas/Timeline';
+import { TimelineScope } from '@/components/atlas/TimelineScope';
 import { MapCanvas } from '@/components/map/MapCanvas';
 import { useSheetSelectionSync } from '@/hooks';
 
@@ -919,8 +921,8 @@ export function MobileShell() {
       <div className="relative min-h-0 flex-1 overflow-hidden">
         <MapCanvas />
         <div className="pointer-events-none absolute inset-x-0 top-0 z-10 p-2">
-          <div className="pointer-events-auto rounded-xl border bg-card/95 shadow-sm backdrop-blur">
-            <Timeline compact />
+          <div className="pointer-events-auto overflow-hidden rounded-xl border bg-card/95 shadow-sm backdrop-blur">
+            <TimelineScope />
           </div>
         </div>
       </div>
@@ -954,13 +956,13 @@ git commit -m "feat(web): compose MobileShell"
 
 - [ ] **Step 1: Create `web/src/components/atlas/DesktopShell.tsx`**
 
-Move the current body of `AtlasLayout` here verbatim (including the `RightPanel` helper):
+Move the current body of `AtlasLayout` here **verbatim** (including the `RightPanel` helper). IMPORTANT: the current `AtlasLayout` already uses `TimelineScope` (not the old `Timeline`) and its timeline spine div is `flex-none border-t bg-card` (no `h-14` — `TimelineScope` owns its own height). Copy exactly what is in `web/src/app/routes/AtlasLayout.tsx` today, only renaming the function to `DesktopShell`:
 ```tsx
 import { ChroniclePlayer } from '@/components/atlas/ChroniclePlayer';
 import { CommandPalette } from '@/components/atlas/CommandPalette';
 import { DetailPanel } from '@/components/atlas/DetailPanel';
 import { LeftSidebar } from '@/components/atlas/LeftSidebar';
-import { Timeline } from '@/components/atlas/Timeline';
+import { TimelineScope } from '@/components/atlas/TimelineScope';
 import { TopBar } from '@/components/atlas/TopBar';
 import { MapCanvas } from '@/components/map/MapCanvas';
 import { useChronicleNav } from '@/hooks';
@@ -984,8 +986,8 @@ export function DesktopShell() {
           <RightPanel />
         </div>
       </div>
-      <div className="h-14 flex-none border-t bg-card">
-        <Timeline />
+      <div className="flex-none border-t bg-card">
+        <TimelineScope />
       </div>
       <CommandPalette />
     </div>
