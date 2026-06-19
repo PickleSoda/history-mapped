@@ -19,7 +19,7 @@
 - **vaul version:** add `vaul@^1.1.2` (React 19-compatible). If install resolves a different major, verify its snap-point API before wiring (see Task 5).
 - **Commits:** Conventional Commits. Every commit message ends with the trailer:
   `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`
-- **Run commands from `web/`:** e.g. `cd web && npm run test:run`.
+- **Run commands from `web/`:** e.g. `cd web && npm test`. NOTE: the concurrent "timescope" agent already installed Vitest and removed the old `Timeline` (now `TimelineScope`). Scripts are `test` (= `vitest run`) and `test:watch` (= `vitest`) — there is NO `test:run`. Run a focused suite with `npm test -- <path-fragment>`.
 
 ## Prerequisites (owned by another agent)
 
@@ -344,7 +344,7 @@ describe('nextSheetForSelection', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd web && npm run test:run -- lib/sheet`
+Run: `cd web && npm test -- lib/sheet`
 Expected: FAIL — cannot resolve `./sheet`.
 
 - [ ] **Step 3: Implement `web/src/lib/sheet.ts`**
@@ -391,7 +391,7 @@ export function nextSheetForSelection(a: {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd web && npm run test:run -- lib/sheet`
+Run: `cd web && npm test -- lib/sheet`
 Expected: PASS — all sheet tests green.
 
 - [ ] **Step 5: Implement `web/src/hooks/useSheetContent.ts`**
@@ -439,7 +439,7 @@ export { useSheetSelectionSync } from './useSheetSelectionSync';
 
 - [ ] **Step 8: Verify types + lint, then commit**
 
-Run: `cd web && npm run test:run -- lib/sheet && npm run types:check && npm run lint`
+Run: `cd web && npm test -- lib/sheet && npm run types:check && npm run lint`
 Expected: tests PASS, no type errors, no lint errors.
 ```bash
 git add web/src/lib/sheet.ts web/src/lib/sheet.test.ts web/src/hooks/useSheetContent.ts web/src/hooks/useSheetSelectionSync.ts web/src/hooks/index.ts
