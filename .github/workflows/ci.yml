@@ -348,13 +348,15 @@ jobs:
             # it's the heaviest step and most deploys are backend-only.
             if ! git diff --quiet "$BEFORE" "$AFTER" -- web/ pnpm-lock.yaml; then
               echo "web/ changed → rebuilding SPA"
-              $COMPOSE --profile setup run --rm web-build
+              # -T: no pseudo-TTY — drone-ssh runs without one, and `compose run`
+              # otherwise aborts with "the input device is not a TTY".
+              $COMPOSE --profile setup run --rm -T web-build
             else
               echo "web/ unchanged → skipping SPA rebuild"
             fi
 
             # Migrate before the new code takes traffic, then roll the services.
-            $COMPOSE --profile setup run --rm migrate
+            $COMPOSE --profile setup run --rm -T migrate
             $COMPOSE up -d --remove-orphans
 
             # Health gate: fail the deploy if the app doesn't become healthy.
