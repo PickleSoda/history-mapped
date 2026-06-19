@@ -44,6 +44,12 @@ PRECISION: only add relationships actually supported by the text or well-establi
 relation-type semantics: `member_of_dynasty` connects a PERSON to a named ruling DYNASTY only — never to a
 republic, empire, or state (use `part_of` / `governed_by` for those).
 
+REFERENTIAL INTEGRITY (critical): every source_label and target_label you use in a relation MUST be a real
+entity. If you connect something to an entity that is NOT in existing_entities and NOT one you are adding, then
+ALSO add that thing to candidate_entities with its correct type (e.g. when you write "Leonardo da Vinci authored
+Mona Lisa", add "Mona Lisa" as a cultural_work). A relation whose endpoint is not an entity is useless — it is
+dropped. So pair every new relation with the entities it needs.
+
 Use the same entity_type and relationship_type vocabulary as the existing items. Output ONLY new items not
 already in the provided lists. If nothing is missing, return empty lists.
 
@@ -51,6 +57,77 @@ Output strictly as JSON:
 {"candidate_entities": [{"label": "...", "entity_type": "...", "start_date": "...", "end_date": "...", "aliases": []}],
  "candidate_relations": [{"source_label": "...", "target_label": "...", "relationship_type": "...", "start_date": "...", "end_date": "..."}]}
 """
+
+
+# Type to give an auto-created missing relation endpoint, inferred from the
+# relationship's semantics. (source_type, target_type); None on a side means that
+# side carries no reliable type signal. When the relevant side is None — or the
+# relationship is absent from this map — a dangling relation is dropped rather than
+# create a mistyped entity. This connects the common orphan-makers (a person's
+# authored work / commanded unit / dynasty / battle) with the right type, while
+# refusing to guess on the genuinely ambiguous ones.
+_REL_ENDPOINT_TYPES: dict[str, tuple[str | None, str | None]] = {
+    "authored": (None, "cultural_work"),
+    "commissioned": (None, "cultural_work"),
+    "translated_into": ("religious_text", None),
+    "invented": (None, "technology"),
+    "adopted": (None, "technology"),
+    "built_by": ("infrastructure_monument", None),
+    "destroyed_by": ("infrastructure_monument", None),
+    "commanded": (None, "military_unit"),
+    "member_of_dynasty": (None, "dynasty"),
+    "adheres_to": (None, "religious_movement"),
+    "official_religion_of": ("religious_movement", "political_entity"),
+    "capital_of": ("city", "political_entity"),
+    "at_war_with": ("political_entity", "political_entity"),
+    "allied_with": ("political_entity", "political_entity"),
+    "part_of": (None, "political_entity"),
+    "contains": ("political_entity", "political_entity"),
+    "succeeded_by": ("political_entity", "political_entity"),
+    "preceded_by": ("political_entity", "political_entity"),
+    "vassal_of": ("political_entity", "political_entity"),
+    "suzerain_of": ("political_entity", "political_entity"),
+    "spread_to": (None, "political_entity"),
+    "participated_in": (None, "event_war"),
+    "victorious_at": (None, "event_battle"),
+    "defeated_at": (None, "event_battle"),
+    "fought_at": (None, "event_battle"),
+}
+
+
+def _ensure_relation_endpoints(entities, relations) -> tuple[int, int]:
+    """Guarantee every relation endpoint is a candidate entity.
+
+    The LLM routinely emits a relation to a thing it never extracted (e.g.
+    "Leonardo da Vinci authored Mona Lisa" without a Mona Lisa entity); validate
+    then drops the relation, leaving the person an orphan. For each missing
+    endpoint we create a minimal entity whose type is inferred from the
+    relationship (it still gets Wikidata-enriched + summarised downstream). When
+    the type can't be safely inferred we drop the relation instead of inventing a
+    mistyped entity. Returns (entities_added, relations_dropped). Mutates the lists.
+    """
+    have = {_entity_key(e.label) for e in entities}
+    added = 0
+    kept = []
+    dropped = 0
+    for rel in relations:
+        src_type, tgt_type = _REL_ENDPOINT_TYPES.get(rel.relationship_type, (None, None))
+        ok = True
+        for label, inferred in ((rel.source_label, src_type), (rel.target_label, tgt_type)):
+            if _entity_key(label) in have:
+                continue
+            if not inferred:
+                ok = False  # missing endpoint we can't type — drop the relation
+                break
+            entities.append(CandidateEntity(label=label, entity_type=inferred))
+            have.add(_entity_key(label))
+            added += 1
+        if ok:
+            kept.append(rel)
+        else:
+            dropped += 1
+    relations[:] = kept
+    return added, dropped
 
 
 def _entity_key(label: str) -> str:
@@ -139,10 +216,21 @@ def completeness_critic(state: AgentRunState) -> AgentRunState:
         )
 
     added = added_entities + added_relations
-    state["candidate_entities"] = existing_entities
-    state["candidate_relations"] = existing_relations
     # Done when this pass found nothing new, or we've hit the iteration cap.
     state["critic_done"] = added == 0 or iterations >= MAX_CRITIC_ITERATIONS
+
+    # Final cleanup once the LLM passes are exhausted: materialise any relation
+    # endpoint the model referenced but never extracted (so the relation survives
+    # validate and connects its entity instead of orphaning it), and drop the
+    # un-typeable danglers.
+    backstop_entities = backstop_dropped = 0
+    if state["critic_done"]:
+        backstop_entities, backstop_dropped = _ensure_relation_endpoints(
+            existing_entities, existing_relations
+        )
+
+    state["candidate_entities"] = existing_entities
+    state["candidate_relations"] = existing_relations
 
     state["audit_log"].append(
         AuditEvent(
@@ -151,7 +239,8 @@ def completeness_critic(state: AgentRunState) -> AgentRunState:
             action="critic_pass",
             output_summary=(
                 f"pass {iterations}: +{added_entities} entities, +{added_relations} relations "
-                f"(done={state['critic_done']})"
+                f"(done={state['critic_done']}); backstop +{backstop_entities} endpoints, "
+                f"-{backstop_dropped} dangling relations"
             ),
         )
     )
