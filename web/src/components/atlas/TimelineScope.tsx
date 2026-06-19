@@ -76,7 +76,9 @@ export function TimelineScope() {
             [TRACK]: {
               height: 150,
               timeAxis: {
-                timeFormat: (opts) => formatYear(Math.round(opts.time.number())),
+                // .number() converts the @kikuchan/decimal tick value to a float;
+              // round to a whole year for the BCE/CE axis label.
+              timeFormat: (opts) => formatYear(Math.round(opts.time.number())),
               },
             },
           }}
