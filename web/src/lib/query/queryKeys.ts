@@ -22,4 +22,6 @@ export const qk = {
   highlights: (time: TimeState) => ['highlights', time] as const,
   density: (scope: Scope) => ['density', scope.bbox, scope.groups] as const,
   chronicle: (slug: string) => ['chronicle', slug] as const,
+  /** Public historical-periods reference list (timeline gantt). */
+  historicalPeriods: () => ['reference', 'historical-periods'] as const,
 };

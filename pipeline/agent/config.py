@@ -4,30 +4,55 @@ import os
 from dataclasses import dataclass
 
 
+# ── Free-first model chains (OpenRouter), slugs verified via the models API ──
+# 2026-06-19. The primary for each step is the matching AgentConfig field below
+# (also free); FallbackLLM then walks primary → this list, top→bottom. Notes:
+#   • Every entry except the final backstop is a $0 ":free" tier, verified
+#     against https://openrouter.ai/api/v1/models.
+#   • Chains are provider-diversified (nvidia/openai/google/poolside) so one
+#     provider's rate-limit or daily cap can't stall the whole step.
+#   • The last entry per chain stays PAID (deepseek) as a last-resort backstop —
+#     only reached if every free tier fails. Remove it for strictly-$0 runs.
+#   • Deliberately NOT used: "nex-agi/nex-n2-pro:free" (deprecating 2026-06-22).
+#   • The pipeline parses JSON from plain text (no response_format / tools), so
+#     native structured-output support on the :free tiers isn't required.
+#   • Privacy: Owl Alpha logs prompts/completions; Poolside may train on free
+#     inputs — acceptable for public-history transcripts.
 MODEL_FALLBACKS: dict[str, list[str]] = {
+    # parse: high-volume, lightweight; just needs to emit clean JSON.
+    # Primary: openai/gpt-oss-20b:free (see AgentConfig.parse_model).
     "parse_model": [
-        "openai/gpt-oss-20b:free",
+        "nvidia/nemotron-3-nano-30b-a3b:free",
         "google/gemma-4-26b-a4b-it:free",
+        "poolside/laguna-xs.2:free",
         "deepseek/deepseek-v3.1-terminus",
     ],
+    # extract: mid-tier reasoning + dependable structured extraction.
+    # Primary: nvidia/nemotron-3-super-120b-a12b:free (1M ctx, strong SWE-bench).
     "extract_model": [
-        "google/gemma-4-31b-it:free",
         "openai/gpt-oss-120b:free",
+        "google/gemma-4-31b-it:free",
         "deepseek/deepseek-v3.1-terminus",
     ],
+    # generate: highest-quality summaries/prose; long context helps.
+    # Primary: nvidia/nemotron-3-ultra-550b-a55b:free (1M ctx, frontier reasoning).
     "generate_model": [
+        "openrouter/owl-alpha",
+        "nvidia/nemotron-3-super-120b-a12b:free",
         "deepseek/deepseek-v3.1-terminus",
-        "google/gemini-2.5-flash",
-        "x-ai/grok-4.20",
     ],
 }
 
 
 @dataclass
 class AgentConfig:
-    parse_model: str = "gpt-4o-mini"
-    extract_model: str = "gpt-4o-mini"
-    generate_model: str = "gpt-4o"
+    # Primary models per step — free OpenRouter tiers (see MODEL_FALLBACKS for
+    # the per-step fallback chains). The previous "gpt-4o*" bare names were not
+    # valid OpenRouter slugs, so every primary call failed straight into the
+    # fallback chain; these resolve directly.
+    parse_model: str = "openai/gpt-oss-20b:free"
+    extract_model: str = "nvidia/nemotron-3-super-120b-a12b:free"
+    generate_model: str = "nvidia/nemotron-3-ultra-550b-a55b:free"
     openai_api_key: str | None = None
     llm_base_url: str | None = None
     model_fallbacks: dict[str, list[str]] | None = None

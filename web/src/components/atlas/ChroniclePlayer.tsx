@@ -82,13 +82,9 @@ function WhatChanged({ rel }: { rel: Relationship }) {
   );
 }
 
-/**
- * Chronicle tour player. Takes over the left sidebar while a chronicle is
- * active (?chron=). Stepping bumps ?step= (back-button walks steps) and drives
- * the timeline year. (Map camera following is deferred with map integration.)
- */
-export function ChroniclePlayer() {
-  const { chron, step, next, prev, exit, goto } = useChronicleNav();
+/** Chrome-less chronicle body — shared by the desktop aside and the mobile sheet. */
+export function ChroniclePlayerContent() {
+  const { chron, step, next, prev, goto } = useChronicleNav();
   const { data, isLoading, isError } = useChronicle(chron);
   const { setInstant } = useTimeState();
 
@@ -96,26 +92,12 @@ export function ChroniclePlayer() {
   const total = entries.length;
   const current = entries[step];
 
-  // Drive the timeline to the active step's year.
   useEffect(() => {
     if (current?.start_year != null) setInstant(current.start_year);
   }, [current?.entry_id, current?.start_year, setInstant]);
 
   return (
-    <aside className="flex h-full w-[380px] max-w-[90vw] flex-none flex-col border-l bg-card">
-      <div className="flex items-center justify-between border-b px-3 py-2">
-        <button
-          type="button"
-          onClick={exit}
-          className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[13px] text-muted-foreground hover:bg-muted hover:text-foreground"
-        >
-          <ChevronLeft size={15} /> Exit tour
-        </button>
-        <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] text-muted-foreground">
-          <Route size={12} /> Chronicle
-        </span>
-      </div>
-
+    <div className="flex h-full flex-col">
       {isLoading && <p className="p-4 text-sm text-muted-foreground">Loading…</p>}
       {isError && (
         <p className="p-4 text-sm text-destructive">Could not load chronicle.</p>
@@ -187,6 +169,32 @@ export function ChroniclePlayer() {
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+/**
+ * Chronicle tour player. Takes over the left sidebar while a chronicle is
+ * active (?chron=). Stepping bumps ?step= (back-button walks steps) and drives
+ * the timeline year. (Map camera following is deferred with map integration.)
+ */
+export function ChroniclePlayer() {
+  const { exit } = useChronicleNav();
+  return (
+    <aside className="flex h-full w-[380px] max-w-[90vw] flex-none flex-col border-l bg-card">
+      <div className="flex items-center justify-between border-b px-3 py-2">
+        <button
+          type="button"
+          onClick={exit}
+          className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[13px] text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          <ChevronLeft size={15} /> Exit tour
+        </button>
+        <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] text-muted-foreground">
+          <Route size={12} /> Chronicle
+        </span>
+      </div>
+      <ChroniclePlayerContent />
     </aside>
   );
 }
