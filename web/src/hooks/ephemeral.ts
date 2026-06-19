@@ -58,3 +58,11 @@ export function useCommandPalette() {
   );
   return { open, setOpen: setPaletteOpen, toggle };
 }
+
+/** Bottom-timeline expanded/collapsed state (gantt vs scrubber). */
+export function useTimelineExpanded() {
+  const expanded = useEphemeralStore((s) => s.timelineExpanded);
+  const setExpanded = useEphemeralStore((s) => s.setTimelineExpanded);
+  const toggle = useCallback(() => setExpanded(!expanded), [expanded, setExpanded]);
+  return { expanded, setExpanded, toggle };
+}
