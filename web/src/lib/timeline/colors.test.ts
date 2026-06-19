@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { groupColor } from './colors';
 import { ENTITY_GROUPS } from '@/types/atlas';
+import { groupColor } from './colors';
 
 describe('groupColor', () => {
   it('returns a hex fallback for every group when the CSS var is unset (jsdom)', () => {
