@@ -52,7 +52,10 @@ CRITICAL RULES — entity & relation modeling:
    - "A commanded/led an army" => A commanded <military_unit>
    - born_in / died_in / founded / capital_of point FROM the person or polity TO the place.
 5. Names: use the full canonical historical name; never truncate ("Tyre", not "Ty"). Disambiguate rulers by polity/era when the text allows ("Philip II of Macedon", not just "Philip II").
-6. Extract relations among ALL entities mentioned, not only the main subject.
+6. Extract relations among ALL entities mentioned, not only the main subject. Every entity you create comes from
+   this text, so it relates to something in it — aim to connect each entity to at least one or two others (its
+   event, its polity, a person, a predecessor/successor). An entity with no relation is almost always a missed
+   relation, not a truly isolated thing.
 7. Dates: ALWAYS include an explicit era marker — write "323 BCE", "527 CE", "4000 BCE". Never emit a bare number or an ISO calendar string (e.g. "4000-01-01") for ancient years, and never put a minus sign on a CE year. Put the earlier year first so start_date is on or before end_date. Give EVERY entity start/end dates where the text or your knowledge supports it — including peoples, ethnic groups, and dynasties (use their era of historical prominence, e.g. the Goths "200 CE"–"600 CE", the Sumerians "4500 BCE"–"1900 BCE").
 8. Extract EVERY named entity in each event — including the "container" polity, not just the people. If the text names an empire/kingdom/state/dynasty (e.g. "New Kingdom of Egypt", "Macedonian Empire", "Byzantine Empire", "Mongol Empire", "Ottoman Empire", "Qing Dynasty"), emit it as its own political_entity/dynasty AND relate the people/events to it. Also extract:
    - technologies / inventions named as significant -> entity_type "technology" (e.g. "ballistae", "gunpowder", "stirrup", "printing press");

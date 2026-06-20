@@ -93,6 +93,13 @@ class ImportRelationsCommand extends Command
                     continue;
                 }
 
+                // Persist the provenance the pipeline gathered (source event,
+                // endpoint Wikidata ids, transcript run) rather than a bare stub;
+                // always stamp batch_id/created_by so the import remains traceable.
+                $citations = is_array($record['source_citations'] ?? null) ? $record['source_citations'] : [];
+                $citations += ['created_by' => 'historical-agent-pipeline'];
+                $citations['batch_id'] = $batchId;
+
                 DB::table('relationships')->insert([
                     'source_entity_id' => $sourceId,
                     'target_entity_id' => $targetId,
@@ -101,7 +108,7 @@ class ImportRelationsCommand extends Command
                     'temporal_end' => $this->stringField($record, 'end_date'),
                     'description' => $this->stringField($record, 'description'),
                     'confidence' => $this->normalizeConfidence($record['confidence'] ?? null),
-                    'source_citations' => json_encode(['created_by' => 'historical-agent-pipeline', 'batch_id' => $batchId]),
+                    'source_citations' => json_encode($citations),
                     'created_by' => "pipeline:{$batchId}",
                     'created_at' => now(),
                 ]);

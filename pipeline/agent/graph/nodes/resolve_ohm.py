@@ -9,6 +9,7 @@ from pipeline.agent.schemas.entities import CandidateEntity
 from pipeline.agent.schemas.validation import AuditEvent
 from pipeline.agent.tools.disambiguation import context_era, era_year
 from pipeline.agent.tools.ohm_polity_resolver import resolve_polity, build_wikidata_point_manifest
+from pipeline.agent.tools.wikidata import enrich_wikidata_entities
 
 logger = get_logger(__name__)
 
@@ -86,15 +87,19 @@ def _record_ohm_alias(candidate: CandidateEntity, ohm_name: str | None) -> None:
 
 
 def resolve_ohm(state: AgentRunState) -> AgentRunState:
-    """Resolve polities + events to OpenHistoricalMap via live Nominatim.
+    """Give every entity a map point when one is obtainable.
 
-    Polities adopt OHM's id (+ OHM's name as an alias, keeping the readable
-    display name); events take geometry only. When OHM has no feature, fall back to
-    the entity's Wikidata coordinate so a point is still produced — events
-    especially (a war/battle must be locatable). Each match is attached as a
-    `_geo_resolution` manifest for the Laravel geo-ref importer. (Replaces the
-    old Egypt-only local index, which placed the Byzantine Empire in the Nile
-    delta.)
+    Resolution ladder per entity:
+      1. Geographic types (polity/place/event) → a real OHM feature via Nominatim
+         (polities adopt OHM's id + name alias; events take geometry only).
+      2. Any type → the entity's own Wikidata coordinate (P625).
+      3. People / works / religions etc. → a point via their place of association
+         (birthplace, work location, country of origin), i.e. that place's coord.
+      4. Last resort → the chronicle centroid (mean of resolved points), marked
+         low-confidence/approximate, so nothing is left off the map.
+    No territory polygons are produced — points only. Coalitions are skipped (their
+    member states carry the geography). Each match is attached as a
+    `_geo_resolution` manifest for the Laravel geo-ref importer.
     """
     context_era_year = context_era(state["parsed_events"])
     entities = state["enriched_entities"]
@@ -102,11 +107,21 @@ def resolve_ohm(state: AgentRunState) -> AgentRunState:
 
     resolved = 0
     fallback_points = 0
+    place_hop_points = 0
+    centroid_points = 0
+    resolved_coords: list[tuple[float, float]] = []
+
+    def _track(manifest) -> None:
+        """Remember a resolved point so the centroid fallback can use it."""
+        try:
+            lon, lat = manifest["geometry"]["coordinates"]
+            resolved_coords.append((float(lon), float(lat)))
+        except (KeyError, TypeError, ValueError):
+            pass
+
     for i, enriched in enumerate(entities):
         entity_type = enriched.candidate.entity_type
-        if entity_type not in _GEO_TYPES:
-            continue
-
+        is_geo = entity_type in _GEO_TYPES
         is_polity = entity_type in _POLITY_TYPES
 
         # Coalitions/alliances get no single geo-ref — their member states do.
@@ -124,45 +139,88 @@ def resolve_ohm(state: AgentRunState) -> AgentRunState:
         )
         qid = enriched.wikidata_match.get("qid") if enriched.wikidata_match else None
 
-        try:
-            result = resolve_polity(enriched.candidate.label, era, entity_wikidata=qid)
-        except Exception as exc:  # never let a lookup error sink the node
-            logger.warning("OHM resolve failed for %s: %s", enriched.candidate.label, exc)
-            result = None
+        # 1) Geographic types: try a real OHM feature first.
+        if is_geo:
+            try:
+                result = resolve_polity(enriched.candidate.label, era, entity_wikidata=qid)
+            except Exception as exc:  # never let a lookup error sink the node
+                logger.warning("OHM resolve failed for %s: %s", enriched.candidate.label, exc)
+                result = None
+            if result:
+                enriched.geo_resolution = result["manifest"]
+                enriched.ohm_match = {
+                    "object_type": result["external_type"],
+                    "object_id": result["external_id"],
+                }
+                # Polities record OHM's canonical name as an alias (display name kept);
+                # events keep their own name and add no alias.
+                if is_polity:
+                    _record_ohm_alias(enriched.candidate, result.get("name"))
+                    if not enriched.wikidata_match and result.get("wikidata_id"):
+                        enriched.wikidata_match = {"qid": result["wikidata_id"]}
+                resolved += 1
+                _track(result["manifest"])
+                logger.info(
+                    "  [%d/%d] %s -> OHM %s/%s (score=%.2f)",
+                    i + 1, len(entities), enriched.candidate.label,
+                    result["external_type"], result["external_id"], result.get("match_score", 0.0),
+                )
+                continue
 
-        if result:
-            enriched.geo_resolution = result["manifest"]
-            enriched.ohm_match = {
-                "object_type": result["external_type"],
-                "object_id": result["external_id"],
-            }
-            # Polities record OHM's canonical name as an alias (display name kept);
-            # events keep their own name and add no alias.
-            if is_polity:
-                _record_ohm_alias(enriched.candidate, result.get("name"))
-                if not enriched.wikidata_match and result.get("wikidata_id"):
-                    enriched.wikidata_match = {"qid": result["wikidata_id"]}
-            resolved += 1
+        # 2) Any type: the entity's own Wikidata coordinate (P625).
+        coords = enriched.wikidata_match.get("coordinates") if enriched.wikidata_match else None
+        manifest = build_wikidata_point_manifest(qid, coords)
+        if manifest:
+            enriched.geo_resolution = manifest
+            fallback_points += 1
+            _track(manifest)
             logger.info(
-                "  [%d/%d] %s -> OHM %s/%s (score=%.2f)",
-                i + 1, len(entities), enriched.candidate.label,
-                result["external_type"], result["external_id"], result.get("match_score", 0.0),
+                "  [%d/%d] %s -> approximate point (wikidata %s)",
+                i + 1, len(entities), enriched.candidate.label, qid,
             )
             continue
 
-        # No OHM feature — fall back to an approximate point from the entity's
-        # Wikidata coordinate so it still lands on the map. This is what makes
-        # events (Sack of Rome, Franco-Prussian War) and OHM-less polities
-        # (Persian Empire, Nabataean Kingdom) always get a point when possible.
-        coords = enriched.wikidata_match.get("coordinates") if enriched.wikidata_match else None
-        fallback = build_wikidata_point_manifest(qid, coords)
-        if fallback:
-            enriched.geo_resolution = fallback
-            fallback_points += 1
-            logger.info(
-                "  [%d/%d] %s -> approximate point (wikidata %s, no OHM feature)",
-                i + 1, len(entities), enriched.candidate.label, qid,
+        # 3) People / works / religions etc.: a point via their place of
+        # association (birthplace, work location, …) — resolve that place's coord.
+        location_qid = enriched.wikidata_match.get("location_qid") if enriched.wikidata_match else None
+        if location_qid:
+            place = enrich_wikidata_entities([location_qid]).get(location_qid, {})
+            manifest = build_wikidata_point_manifest(
+                location_qid, place.get("coordinates"),
+                reason="place_of_association", source="wikidata_place_of_association",
             )
+            if manifest:
+                enriched.geo_resolution = manifest
+                place_hop_points += 1
+                _track(manifest)
+                logger.info(
+                    "  [%d/%d] %s -> place-of-association point (wikidata %s)",
+                    i + 1, len(entities), enriched.candidate.label, location_qid,
+                )
+
+    # 4) Last resort: place still-unlocated entities at the chronicle centroid
+    # (mean of resolved points), marked low-confidence/approximate, so everything
+    # appears on the map. Needs a Wikidata qid for the geo-ref external_id, and
+    # never applies to coalitions.
+    if resolved_coords:
+        cen_lon = sum(c[0] for c in resolved_coords) / len(resolved_coords)
+        cen_lat = sum(c[1] for c in resolved_coords) / len(resolved_coords)
+        cen_wkt = f"Point({cen_lon} {cen_lat})"
+        for enriched in entities:
+            if getattr(enriched, "geo_resolution", None):
+                continue
+            if enriched.candidate.entity_type in _POLITY_TYPES and _is_coalition(enriched.candidate.label):
+                continue
+            qid = enriched.wikidata_match.get("qid") if enriched.wikidata_match else None
+            if not qid:
+                continue
+            manifest = build_wikidata_point_manifest(
+                qid, cen_wkt, reason="chronicle_centroid_approximate",
+                match_score=0.2, source="chronicle_centroid",
+            )
+            if manifest:
+                enriched.geo_resolution = manifest
+                centroid_points += 1
 
     state["audit_log"].append(
         AuditEvent(
@@ -170,8 +228,9 @@ def resolve_ohm(state: AgentRunState) -> AgentRunState:
             node="resolve_ohm",
             action="ohm_resolved",
             output_summary=(
-                f"OHM-resolved {resolved} (polities+places+events); "
-                f"{fallback_points} approximate-point fallbacks (of {len(entities)} entities)"
+                f"OHM-resolved {resolved}; {fallback_points} wikidata-coord, "
+                f"{place_hop_points} place-of-association, {centroid_points} centroid "
+                f"(of {len(entities)} entities)"
             ),
         )
     )
