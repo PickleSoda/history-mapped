@@ -36,9 +36,17 @@ Look specifically for:
    battle, born_in/died_in, at_war_with between opposing sides.
 4. Relations among ALREADY-extracted entities that were never connected (reduce orphan entities).
 
-PRIORITY — orphans: the `orphan_entities` list below contains entities with NO relationships yet. Add at least
-one relationship for EACH of them that the source text or well-established history supports (e.g. a belligerent
-polity must be `at_war_with` its opponent and/or `participated_in` the relevant war/battle).
+Every entity was pulled from this chronicle, so each one IS connected to the story — be generous and thorough in
+wiring them together. Each `existing_entities` item carries a `source_event`: entities sharing a source_event
+almost always relate to each other and to that event, so connect them. Also connect each entity to its container
+polity and to its temporal neighbours (succeeded_by / preceded_by).
+
+PRIORITY — orphans: the `orphan_entities` list below contains entities with NO relationships yet. Give EACH of
+them at least TWO relationships that the source text or well-established history supports — first to entities from
+its own `source_event`, then to its container polity, the central figure/event of the chronicle, or a temporal
+neighbour (e.g. a person `participated_in` the event they appear in and `member_of_dynasty`/`born_in` something;
+a belligerent polity is `at_war_with` its opponent and `participated_in` the war). No entity should be left
+unconnected.
 
 PRECISION: only add relationships actually supported by the text or well-established history — do not pad. Respect
 relation-type semantics: `member_of_dynasty` connects a PERSON to a named ruling DYNASTY only — never to a
@@ -162,7 +170,11 @@ def completeness_critic(state: AgentRunState) -> AgentRunState:
 
     context = {
         "source_text": state["raw_input"],
-        "existing_entities": [{"label": e.label, "type": e.entity_type} for e in existing_entities],
+        "existing_entities": [
+            {"label": e.label, "type": e.entity_type, "source_event": e.source_event,
+             "start_date": e.start_date}
+            for e in existing_entities
+        ],
         "existing_relations": [
             {"source": r.source_label, "type": r.relationship_type, "target": r.target_label}
             for r in existing_relations

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -74,13 +75,17 @@ def _entity_context(enriched, event_text: dict[str, str], rels: dict[str, list[d
 
 
 _ENTITY_PROMPT = """You are a historical content writer. For EACH entity below, write two fields:
-- "summary": 2–4 sentences of specific, flowing prose. Ground it in the entity's source-event text and its
-  relationships; name concrete actors, places, dates, and outcomes. Do NOT just restate the Wikidata gloss.
+- "summary": AT LEAST THREE full sentences (3–5) of specific, engaging, flowing prose — never a single
+  sentence. Open with a vivid framing of what the entity is, then ground it in the entity's source-event text
+  and relationships, naming concrete actors, places, dates, and outcomes, and close on its arc or fate. Write
+  it like a paragraph in a popular history book, not a dictionary gloss. Do NOT just restate the Wikidata
+  description.
 - "significance": 1–2 sentences on why this entity matters historically — its consequences, role, or influence.
 
 Draw on the source text and relationships first; for well-known entities you may add widely-established
-historical facts to give a fuller picture. Do not fabricate. Only omit an entity's key if you genuinely cannot
-identify who or what it is — a recognised historical figure, place, or event should always get both fields.
+historical facts to give a fuller, multi-sentence picture. Do not fabricate. Only omit an entity's key if you
+genuinely cannot identify who or what it is — a recognised historical figure, place, or event should always get
+both fields, and its summary must still be at least three sentences.
 
 Style Guide:
 {style_guide}
@@ -96,6 +101,39 @@ Output strictly as JSON:
 def _chunked(items: list, size: int):
     for i in range(0, len(items), size):
         yield items[i:i + size]
+
+
+def _sentence_count(text: str | None) -> int:
+    """Rough count of sentences — enough to tell a one-liner from a paragraph."""
+    if not text:
+        return 0
+    return len(re.findall(r"[.!?](?:\s|$)", text.strip()))
+
+
+def _apply_summary_pass(llm, prompt: str, by_label: dict, state: AgentRunState, stage: str) -> None:
+    """Run one summary/significance LLM call and merge results, keeping the longer
+    summary so a retry never regresses an entity to a shorter one."""
+    response = llm.invoke([HumanMessage(content=prompt)])
+    content = response.content if hasattr(response, "content") else str(response)
+    try:
+        data = parse_llm_json(content)
+        for label, fields in (data.get("entities", {}) or {}).items():
+            enriched = by_label.get(label)
+            if enriched is None or not isinstance(fields, dict):
+                continue
+            new_summary = fields.get("summary")
+            if new_summary and _sentence_count(new_summary) >= _sentence_count(enriched.summary):
+                enriched.summary = new_summary
+            enriched.significance = fields.get("significance") or enriched.significance
+    except (json.JSONDecodeError, TypeError) as exc:
+        state["errors"].append(
+            PipelineError(
+                node="generate_content",
+                error_type="json_parse",
+                message=str(exc),
+                context={"raw_response": content, "stage": stage},
+            )
+        )
 
 
 def generate_content(state: AgentRunState) -> AgentRunState:
@@ -118,25 +156,25 @@ def generate_content(state: AgentRunState) -> AgentRunState:
             default=str,
         )
         prompt = _ENTITY_PROMPT.format(style_guide=style_guide, entities=context)
-        response = llm.invoke([HumanMessage(content=prompt)])
-        content = response.content if hasattr(response, "content") else str(response)
-        try:
-            data = parse_llm_json(content)
-            for label, fields in (data.get("entities", {}) or {}).items():
-                enriched = by_label.get(label)
-                if enriched is None or not isinstance(fields, dict):
-                    continue
-                enriched.summary = fields.get("summary") or enriched.summary
-                enriched.significance = fields.get("significance") or enriched.significance
-        except (json.JSONDecodeError, TypeError) as exc:
-            state["errors"].append(
-                PipelineError(
-                    node="generate_content",
-                    error_type="json_parse",
-                    message=str(exc),
-                    context={"raw_response": content, "chunk_labels": [e.candidate.label for e in chunk]},
-                )
+        _apply_summary_pass(llm, prompt, by_label, state, "summary")
+
+    # ── Guard: re-request any summary that came back too short (<3 sentences).
+    # The model intermittently returns a one-liner despite the prompt; one extra
+    # targeted pass over just the deficient entities enforces the floor without
+    # regenerating everything.
+    deficient = [e for e in entities if _sentence_count(e.summary) < 3]
+    if deficient:
+        logger.info("Re-requesting %d short summaries (<3 sentences)", len(deficient))
+        for chunk in _chunked(deficient, ENTITY_CHUNK_SIZE):
+            context = json.dumps(
+                [_entity_context(e, event_text, rels_by_entity) for e in chunk],
+                default=str,
             )
+            prompt = _ENTITY_PROMPT.format(style_guide=style_guide, entities=context) + (
+                "\n\nIMPORTANT: a previous attempt returned summaries that were too short. Write a NEW summary "
+                "of at least THREE full sentences for EVERY entity above."
+            )
+            _apply_summary_pass(llm, prompt, by_label, state, "summary_retry")
 
     # ── Relation descriptions (short; one pass) ─────────────────────────────
     if relations:

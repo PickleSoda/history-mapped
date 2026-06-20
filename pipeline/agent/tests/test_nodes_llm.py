@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import json
 
 from pipeline.agent.graph.nodes.extract_candidates import extract_candidates
-from pipeline.agent.graph.nodes.generate_content import generate_content
+from pipeline.agent.graph.nodes.generate_content import generate_content, _sentence_count
 from pipeline.agent.graph.nodes.parse_sequence import parse_sequence
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.entities import CandidateEntity, EnrichedCandidate, ParsedEvent
@@ -102,3 +102,31 @@ def test_generate_content(mock_chat):
     assert "Golden Age" in enriched.significance
     # relation descriptions still resolved (second LLM pass)
     assert new_state["candidate_relations"][0].description is not None
+
+
+def test_sentence_count():
+    assert _sentence_count(None) == 0
+    assert _sentence_count("One sentence only.") == 1
+    assert _sentence_count("First. Second! Third?") == 3
+    assert _sentence_count("No terminal punctuation") == 0  # unpunctuated → deficient, gets retried
+
+
+@patch("pipeline.agent.llm.ChatOpenAI")
+def test_short_summary_is_retried_until_three_sentences(mock_chat):
+    short = json.dumps({"entities": {"Cnut": {"summary": "A king.", "significance": "Ruled an empire."}}})
+    long = json.dumps({"entities": {"Cnut": {
+        "summary": "Cnut the Great ruled a North Sea empire. He united England, Denmark, and Norway. "
+                   "His realm fragmented after his death in 1035.",
+        "significance": "He briefly unified Scandinavia and England.",
+    }}})
+    mock_llm = MagicMock()
+    # 1st call: short summary → triggers retry; 2nd call: long; then relation + title passes.
+    mock_llm.invoke.side_effect = [
+        MagicMock(content=short), MagicMock(content=long),
+        MagicMock(content="{}"), MagicMock(content="{}"),
+    ]
+    mock_chat.return_value = mock_llm
+    state = make_base_state()
+    state["enriched_entities"] = [EnrichedCandidate(candidate=CandidateEntity(label="Cnut", entity_type="person"))]
+    new_state = generate_content(state)
+    assert _sentence_count(new_state["enriched_entities"][0].summary) >= 3

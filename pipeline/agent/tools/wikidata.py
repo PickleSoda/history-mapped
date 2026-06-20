@@ -230,6 +230,21 @@ def enrich_wikidata_entities(qids: list[str]) -> dict[str, dict[str, Any]]:
                 except (KeyError, IndexError, TypeError):
                     pass
 
+            # Place of association — for entities that have no coordinate of their
+            # own (people, works, religions), the referenced place's coordinate
+            # lets them still get a map point. Order: birth → death → work
+            # location → location → headquarters → admin territory → origin.
+            location_qid = None
+            if not coordinates:
+                for prop in ("P19", "P20", "P937", "P276", "P159", "P131", "P495"):
+                    if prop in claims:
+                        try:
+                            location_qid = claims[prop][0]["mainsnak"]["datavalue"]["value"]["id"]
+                            if location_qid:
+                                break
+                        except (KeyError, IndexError, TypeError):
+                            pass
+
             # Start date: try P571 (inception) → P569 (birth) → P585 (point in time)
             start_date = None
             for prop in ("P571", "P569", "P585"):
@@ -256,6 +271,7 @@ def enrich_wikidata_entities(qids: list[str]) -> dict[str, dict[str, Any]]:
                 "label": label,
                 "description": description,
                 "coordinates": coordinates,
+                "location_qid": location_qid,
                 "start_date": start_date,
                 "end_date": end_date,
             }
