@@ -35,10 +35,13 @@ MODEL_FALLBACKS: dict[str, list[str]] = {
         "deepseek/deepseek-v3.1-terminus",
     ],
     # generate: highest-quality summaries/prose; long context helps.
-    # Primary: nvidia/nemotron-3-ultra-550b-a55b:free (1M ctx, frontier reasoning).
+    # Primary: openrouter/owl-alpha (1M+ ctx, ~100% 1d uptime per the endpoints
+    # API). Replaced nvidia/nemotron-3-ultra-550b-a55b:free, whose :free routing
+    # returned repeated 504s mid-generation. Fallbacks are other ~100%-uptime free
+    # instruct models, then the paid deepseek backstop.
     "generate_model": [
-        "openrouter/owl-alpha",
-        "nvidia/nemotron-3-super-120b-a12b:free",
+        "meta-llama/llama-3.3-70b-instruct:free",
+        "openai/gpt-oss-120b:free",
         "deepseek/deepseek-v3.1-terminus",
     ],
 }
@@ -52,7 +55,7 @@ class AgentConfig:
     # fallback chain; these resolve directly.
     parse_model: str = "openai/gpt-oss-20b:free"
     extract_model: str = "nvidia/nemotron-3-super-120b-a12b:free"
-    generate_model: str = "nvidia/nemotron-3-ultra-550b-a55b:free"
+    generate_model: str = "openrouter/owl-alpha"
     openai_api_key: str | None = None
     llm_base_url: str | None = None
     model_fallbacks: dict[str, list[str]] | None = None
