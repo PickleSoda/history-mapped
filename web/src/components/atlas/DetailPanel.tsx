@@ -1,6 +1,6 @@
 import { Clock, FileText, MapPin, ScrollText, X } from 'lucide-react';
 import { useMemo } from 'react';
-import { GroupBadge, GroupDot } from '@/components/atlas/GroupBadge';
+import { GroupDot, TypeBadge } from '@/components/atlas/GroupBadge';
 import {
   useChronicleNav,
   useEntity,
@@ -109,8 +109,15 @@ function RelationshipTimeline({
                 <span className="min-w-0 flex-1 truncate text-[13px]">
                   {other?.name ?? '—'}
                 </span>
-                {other && <GroupBadge group={other.entity_group} />}
+                {other && (
+                  <TypeBadge group={other.entity_group} type={other.entity_type} />
+                )}
               </button>
+              {rel.description && (
+                <p className="ml-1.5 mt-1 text-[12px] leading-snug text-foreground/70">
+                  {rel.description}
+                </p>
+              )}
               {chronicle && (
                 <button
                   type="button"
@@ -162,7 +169,7 @@ export function DetailPanelContent() {
         <>
           {/* Title block */}
           <div className="px-4 pb-4">
-            <GroupBadge group={entity.entity_group} />
+            <TypeBadge group={entity.entity_group} type={entity.entity_type} />
             <h2 className="mt-3 text-lg font-semibold leading-tight">{entity.name}</h2>
             <div className="mt-2.5 flex flex-wrap gap-1.5">
               {temporalText(entity) && (
