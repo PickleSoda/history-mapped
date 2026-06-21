@@ -3,7 +3,11 @@ from pipeline.agent.config import AgentConfig, ENTITY_RISK_POLICIES, RELATION_RI
 
 def test_config_loads_defaults():
     cfg = AgentConfig()
-    assert cfg.parse_model == "gpt-4o-mini"
+    # Model identities are tuned over time (and per the OpenRouter free tiers), so
+    # assert they load as non-empty strings rather than pinning exact slugs.
+    assert isinstance(cfg.parse_model, str) and cfg.parse_model
+    assert isinstance(cfg.extract_model, str) and cfg.extract_model
+    assert isinstance(cfg.generate_model, str) and cfg.generate_model
     assert cfg.ohm_index_path == "output/ohm_collections/map-egypt.xml.sqlite"
 
 
