@@ -1,6 +1,6 @@
 import { Clock, MapPin, Search, Sparkles } from 'lucide-react';
 import { useState } from 'react';
-import { GroupBadge, GroupDot } from '@/components/atlas/GroupBadge';
+import { GroupDot, TypeBadge } from '@/components/atlas/GroupBadge';
 import {
   useEntityList,
   useFilters,
@@ -91,7 +91,7 @@ function ListRow({ e }: { e: EntitySummary }) {
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-medium">{e.name}</span>
         <span className="mt-1 flex items-center gap-2">
-          <GroupBadge group={e.entity_group} />
+          <TypeBadge group={e.entity_group} type={e.entity_type} />
           <span className="truncate font-mono text-[11px] text-muted-foreground">
             {spanLabel(e)}
           </span>

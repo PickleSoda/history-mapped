@@ -61,7 +61,12 @@ function WhatChanged({ rel }: { rel: Relationship }) {
             <span className="truncate">{src.name}</span>
           </button>
         )}
-        <MoveRight size={14} className="flex-none text-muted-foreground" />
+        <span className="flex flex-none items-center gap-1 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
+          {rel.relationship_type && (
+            <span>{rel.relationship_type.replace(/_/g, ' ')}</span>
+          )}
+          <MoveRight size={12} />
+        </span>
         {tgt && (
           <button
             type="button"
@@ -73,9 +78,9 @@ function WhatChanged({ rel }: { rel: Relationship }) {
           </button>
         )}
       </div>
-      {rel.relationship_type && (
-        <p className="mt-1.5 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
-          {rel.relationship_type.replace(/_/g, ' ')}
+      {rel.description && (
+        <p className="mt-2 text-[12px] leading-relaxed text-foreground/80">
+          {rel.description}
         </p>
       )}
     </div>
