@@ -330,9 +330,7 @@ jobs:
             export APP_IMAGE="${APP_IMAGE:?image tag not provided}"
 
             # Pull new sources (compose, Caddyfile, db build context, web/ src).
-            BEFORE=$(git rev-parse HEAD)
             git pull --ff-only
-            AFTER=$(git rev-parse HEAD)
 
             # Authenticate to GHCR only if a token is provided (private package).
             if [ -n "${GHCR_TOKEN:-}" ]; then
@@ -344,16 +342,27 @@ jobs:
             # Pull the pinned API image.
             $COMPOSE pull app
 
-            # Rebuild the customer SPA only when web/ or the lockfile changed —
-            # it's the heaviest step and most deploys are backend-only.
-            if ! git diff --quiet "$BEFORE" "$AFTER" -- web/ pnpm-lock.yaml; then
-              echo "web/ changed → rebuilding SPA"
-              # -T + </dev/null: drone-ssh runs without a TTY, and `compose run`
-              # attaches stdin even with -T — pointing it at the live SSH channel
-              # makes it die right here. Detach stdin so it runs non-interactively.
-              $COMPOSE --profile setup run --rm -T web-build </dev/null
+            # Rebuild the customer SPA only when its built bundle is stale vs the
+            # current checkout — not merely when *this pull* touched web/. We
+            # fingerprint the web/ tree + lockfile (git object hashes, stable
+            # unless those inputs change) and compare against the fingerprint the
+            # last successful build recorded inside the web_dist volume. So a
+            # deploy that pulled web/ changes but failed before building still
+            # rebuilds next time, instead of being skipped forever.
+            WEB_FP="$(git rev-parse 'HEAD:web' 2>/dev/null || echo none):$(git rev-parse 'HEAD:pnpm-lock.yaml' 2>/dev/null || echo none)"
+            # Read the marker straight from the volume's mountpoint (root, instant);
+            # assumes a single compose stack on this host.
+            WEB_VOL="$(docker volume ls -q -f label=com.docker.compose.volume=web_dist 2>/dev/null | head -n1 || true)"
+            WEB_MP="$(docker volume inspect -f '{{.Mountpoint}}' "$WEB_VOL" 2>/dev/null || true)"
+            BUILT_FP="$(cat "${WEB_MP:-/nonexistent}/.web-fingerprint" 2>/dev/null || true)"
+            if [ "$WEB_FP" != "$BUILT_FP" ]; then
+              echo "SPA bundle stale (built='${BUILT_FP:-none}', want='$WEB_FP') → rebuilding"
+              # -T + </dev/null: drone-ssh has no TTY and `compose run` attaches
+              # stdin even with -T; detach it so the build runs non-interactively.
+              # WEB_FINGERPRINT is recorded into the bundle on success (see compose).
+              WEB_FINGERPRINT="$WEB_FP" $COMPOSE --profile setup run --rm -T web-build </dev/null
             else
-              echo "web/ unchanged → skipping SPA rebuild"
+              echo "SPA bundle current ($WEB_FP) → skipping rebuild"
             fi
 
             # Migrate before the new code takes traffic, then roll the services.
