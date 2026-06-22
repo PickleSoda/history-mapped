@@ -5,8 +5,12 @@ from datetime import datetime, timezone
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.log_config import get_logger
 from pipeline.agent.schemas.validation import AuditEvent
-from pipeline.agent.tools.wikidata import search_wikidata_by_name, enrich_wikidata_entities, _rank_candidates
-from pipeline.agent.tools.disambiguation import context_era, era_year, rerank_by_era, is_ambiguous
+from pipeline.agent.tools.wikidata import (
+    search_wikidata_by_name, enrich_wikidata_entities, fetch_entity_meta, _rank_candidates,
+)
+from pipeline.agent.tools.disambiguation import (
+    context_era, era_year, rerank_by_era, rerank_by_type, is_ambiguous,
+)
 
 logger = get_logger(__name__)
 
@@ -74,12 +78,22 @@ def resolve_wikidata(state: AgentRunState) -> AgentRunState:
                 continue
 
             ranked = _rank_candidates(results, enriched.candidate.label, enriched.candidate.entity_type)
-            # Era-aware tie-break: when the top label-matched candidates are close
-            # (e.g. "Philip II of Macedon" vs "Philip II of Spain"), enrich the
-            # leaders' dates and prefer the one nearest the entity's era. Bounded
-            # to the ambiguous cases so we don't enrich on every clear match — and
-            # skipped for persistent places, whose inception date misleads the
-            # rerank (see _PERSISTENT_PLACE_TYPES).
+            # Type + popularity rerank (ALWAYS): fetch P31/sitelinks/dates for ALL
+            # candidates in one batched call, then prefer the candidate whose
+            # Wikidata kind matches the entity — a person resolves to a human, not
+            # a same-named ship, statuette, cognomen, or insect genus. We fetch the
+            # whole candidate set (not just the top few) because the correct subject
+            # often has a non-matching label (e.g. the explorer "Américo Vespucio"
+            # vs the search term "Amerigo Vespucci") and so sorts LOW on base score;
+            # the type+popularity boost is exactly what rescues it. Type errors
+            # aren't gated by score-closeness, so this runs unconditionally (unlike
+            # the era tie-break below). The fetched dates are reused for era rerank.
+            meta_by_qid = fetch_entity_meta([c["qid"] for c in ranked])
+            rerank_by_type(ranked, enriched.candidate.entity_type, meta_by_qid)
+            # Era-aware tie-break: when the top candidates are still close (e.g.
+            # "Philip II of Macedon" vs "Philip II of Spain"), prefer the one
+            # nearest the entity's era — reusing meta dates, no extra fetch. Skipped
+            # for persistent places whose inception date misleads it.
             if is_ambiguous(ranked) and enriched.candidate.entity_type not in _PERSISTENT_PLACE_TYPES:
                 target_era = (
                     era_year(enriched.candidate.start_date)
@@ -87,9 +101,7 @@ def resolve_wikidata(state: AgentRunState) -> AgentRunState:
                     or context_era_year
                 )
                 if target_era is not None:
-                    leaders = ranked[:5]
-                    dates_by_qid = enrich_wikidata_entities([c["qid"] for c in leaders])
-                    rerank_by_era(ranked, target_era, dates_by_qid)
+                    rerank_by_era(ranked, target_era, meta_by_qid)
                     logger.info("    → era rerank (era=%s) top: %s", target_era,
                                 [(c["qid"], c["label"], c.get("score", 0)) for c in ranked[:3]])
             logger.info("    → search='%s' top: %s", search_name,
