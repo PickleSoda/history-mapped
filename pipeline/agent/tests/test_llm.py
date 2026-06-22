@@ -93,6 +93,63 @@ def test_fallback_llm_exhausts_all_models(mock_chat):
     assert mock_chat.call_count == 2  # primary + 1 fallback
 
 
+@patch("pipeline.agent.llm.ChatOpenAI")
+def test_invoke_json_parses_valid_response(mock_chat):
+    llm = MagicMock()
+    llm.invoke.return_value = MagicMock(content='{"ok": true}')
+    mock_chat.return_value = llm
+    fb = FallbackLLM("primary", [], api_key="sk", max_retries_per_model=1)
+    assert fb.invoke_json(["msg"]) == {"ok": True}
+
+
+@patch("pipeline.agent.llm.ChatOpenAI")
+def test_invoke_json_retries_same_model_on_bad_json(mock_chat):
+    """A malformed body is treated like a transient failure: retry the SAME model."""
+    llm = MagicMock()
+    llm.invoke.side_effect = [MagicMock(content="not json {"), MagicMock(content='{"ok": 1}')]
+    mock_chat.return_value = llm
+    fb = FallbackLLM("primary", [], api_key="sk", max_retries_per_model=2)
+    assert fb.invoke_json(["msg"]) == {"ok": 1}
+    assert llm.invoke.call_count == 2
+
+
+@patch("pipeline.agent.llm.ChatOpenAI")
+def test_invoke_json_falls_back_to_next_model_on_bad_json(mock_chat):
+    """Persistent bad JSON on the primary should fall back to the next model —
+    the resilience a bare invoke()+parse in the caller never had."""
+    primary = MagicMock()
+    primary.invoke.return_value = MagicMock(content="garbage, not json")
+    fallback = MagicMock()
+    fallback.invoke.return_value = MagicMock(content='{"ok": true}')
+    mock_chat.side_effect = [primary, fallback]
+    fb = FallbackLLM("primary", ["fallback-1"], api_key="sk", max_retries_per_model=1)
+    assert fb.invoke_json(["msg"]) == {"ok": True}
+    assert mock_chat.call_count == 2
+
+
+@patch("pipeline.agent.llm.ChatOpenAI")
+def test_invoke_json_retries_on_validate_failure(mock_chat):
+    """A well-formed but wrong-shape response (validate→False) also retries."""
+    llm = MagicMock()
+    llm.invoke.side_effect = [MagicMock(content='{"foo": 1}'), MagicMock(content='{"events": []}')]
+    mock_chat.return_value = llm
+    fb = FallbackLLM("primary", [], api_key="sk", max_retries_per_model=2)
+    out = fb.invoke_json(["msg"], validate=lambda d: "events" in d)
+    assert out == {"events": []}
+    assert llm.invoke.call_count == 2
+
+
+@patch("pipeline.agent.llm.ChatOpenAI")
+def test_invoke_json_raises_when_all_exhausted(mock_chat):
+    llm = MagicMock()
+    llm.invoke.return_value = MagicMock(content="never valid json")
+    mock_chat.return_value = llm
+    fb = FallbackLLM("primary", ["fallback-1"], api_key="sk", max_retries_per_model=1)
+    with pytest.raises(Exception):
+        fb.invoke_json(["msg"])
+    assert llm.invoke.call_count == 2  # primary + 1 fallback, one attempt each
+
+
 def test_create_llm_with_fallbacks_reads_config():
     cfg = AgentConfig(
         parse_model="openai/gpt-oss-20b:free",
