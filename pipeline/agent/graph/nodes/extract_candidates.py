@@ -16,7 +16,9 @@ from pipeline.agent.schemas.validation import AuditEvent, PipelineError
 
 logger = get_logger(__name__)
 
-_PROMPT = """You are a historical entity extractor. Given a list of events, extract all candidate entities and relations.
+_PROMPT = """IMPORTANT: Respond with ONLY a JSON object. No explanations, no plans, no commentary, no markdown. Start your response with { and end with }. Nothing before or after the JSON.
+
+You are a historical entity extractor. Given a list of events, extract all candidate entities and relations.
 
 Allowed entity types (grouped by domain):
 
@@ -83,7 +85,7 @@ Output strictly as JSON:
 
 def extract_candidates(state: AgentRunState) -> AgentRunState:
     cfg = AgentConfig()
-    llm = create_llm_with_fallbacks("extract_model", cfg)
+    llm = create_llm_with_fallbacks("extract_model", cfg, reasoning_effort=cfg.reasoning_effort)
     events_json = json.dumps([e.model_dump() for e in state["parsed_events"]], default=str)
     logger.info("LLM call: extract_candidates (model=%s, events=%d)", cfg.extract_model, len(state["parsed_events"]))
     messages = [SystemMessage(content=_PROMPT), HumanMessage(content=events_json)]
