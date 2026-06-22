@@ -190,6 +190,104 @@ def _wikidata_date(value: dict[str, Any]) -> str | None:
     return time_str
 
 
+def _parse_claim_dates(claims: dict[str, Any]) -> tuple[str | None, str | None]:
+    """Extract (start_date, end_date) from a claims dict, mirroring enrich order:
+    start = P571 → P569 → P585; end = P576 → P570."""
+    start_date = None
+    for prop in ("P571", "P569", "P585"):
+        if prop in claims:
+            try:
+                start_date = _wikidata_date(claims[prop][0]["mainsnak"]["datavalue"]["value"])
+                if start_date:
+                    break
+            except (KeyError, IndexError, TypeError):
+                pass
+    end_date = None
+    for prop in ("P576", "P570"):
+        if prop in claims:
+            try:
+                end_date = _wikidata_date(claims[prop][0]["mainsnak"]["datavalue"]["value"])
+                if end_date:
+                    break
+            except (KeyError, IndexError, TypeError):
+                pass
+    return start_date, end_date
+
+
+def _parse_geo(claims: dict[str, Any]) -> tuple[str | None, str | None]:
+    """Extract (coordinates_wkt, location_qid) from a claims dict — direct P625
+    coordinate, else the QID of an associated place (birth/death/work/location)."""
+    coordinates = None
+    if "P625" in claims:
+        try:
+            coords = claims["P625"][0]["mainsnak"]["datavalue"]["value"]
+            coordinates = f"Point({coords['longitude']} {coords['latitude']})"
+        except (KeyError, IndexError, TypeError):
+            pass
+    location_qid = None
+    if not coordinates:
+        for prop in ("P19", "P20", "P937", "P276", "P159", "P131", "P495"):
+            if prop in claims:
+                try:
+                    location_qid = claims[prop][0]["mainsnak"]["datavalue"]["value"]["id"]
+                    if location_qid:
+                        break
+                except (KeyError, IndexError, TypeError):
+                    pass
+    return coordinates, location_qid
+
+
+def fetch_entity_meta(qids: list[str]) -> dict[str, dict[str, Any]]:
+    """Batched fetch of disambiguation/verification metadata via wbgetentities.
+
+    One API call per 50 QIDs (vs enrich's one-call-per-QID), returning for each:
+    ``p31`` (instance-of QIDs), ``sitelinks`` (count — a popularity prior),
+    ``start_date``/``end_date``, ``coordinates``, ``location_qid``, ``label``,
+    ``description``. Used both to re-rank search candidates by type (resolve
+    node) and to verify/repair already-committed QIDs (repair pass).
+    """
+    if not qids:
+        return {}
+    out: dict[str, dict[str, Any]] = {}
+    for i in range(0, len(qids), 50):
+        batch = qids[i:i + 50]
+        data = _wikidata_get({
+            "action": "wbgetentities",
+            "ids": "|".join(batch),
+            "props": "claims|sitelinks|labels|descriptions",
+            "languages": "en",
+            "format": "json",
+        })
+        if not data:
+            continue
+        for qid, ent in (data.get("entities", {}) or {}).items():
+            if "missing" in ent:
+                continue
+            claims = ent.get("claims", {}) or {}
+            p31 = []
+            for c in claims.get("P31", []):
+                try:
+                    p31.append(c["mainsnak"]["datavalue"]["value"]["id"])
+                except (KeyError, IndexError, TypeError):
+                    pass
+            start_date, end_date = _parse_claim_dates(claims)
+            coordinates, location_qid = _parse_geo(claims)
+            labels = ent.get("labels", {}) or {}
+            descriptions = ent.get("descriptions", {}) or {}
+            out[qid] = {
+                "label": labels.get("en", {}).get("value", ""),
+                "description": descriptions.get("en", {}).get("value", ""),
+                "p31": p31,
+                "sitelinks": len(ent.get("sitelinks", {}) or {}),
+                "start_date": start_date,
+                "end_date": end_date,
+                "coordinates": coordinates,
+                "location_qid": location_qid,
+            }
+    logger.info("Wikidata meta: %d/%d resolved (batched)", len(out), len(qids))
+    return out
+
+
 def enrich_wikidata_entities(qids: list[str]) -> dict[str, dict[str, Any]]:
     """Fetch Wikidata records via the REST EntityData endpoint.
 
