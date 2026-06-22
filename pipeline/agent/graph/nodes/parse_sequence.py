@@ -34,7 +34,7 @@ Output strictly as JSON matching this schema:
 
 def parse_sequence(state: AgentRunState) -> AgentRunState:
     cfg = AgentConfig()
-    llm = create_llm_with_fallbacks("parse_model", cfg)
+    llm = create_llm_with_fallbacks("parse_model", cfg, reasoning_effort=cfg.reasoning_effort)
     logger.info("LLM call: parse_sequence (model=%s)", cfg.parse_model)
     messages = [SystemMessage(content=_PROMPT), HumanMessage(content=state["raw_input"])]
     response = llm.invoke(messages)

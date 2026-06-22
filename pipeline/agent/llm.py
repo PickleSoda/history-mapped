@@ -39,6 +39,7 @@ def create_llm(
     timeout: float | None = None,
     max_retries: int = 0,
     max_tokens: int | None = None,
+    reasoning_effort: str | None = None,
 ) -> ChatOpenAI:
     """Create a ChatOpenAI instance configured for the given endpoint.
 
@@ -74,6 +75,12 @@ def create_llm(
         kwargs["timeout"] = timeout
     if max_tokens is not None:
         kwargs["max_tokens"] = max_tokens
+    # reasoning_effort tames the gpt-5* reasoning models: without it they spend the
+    # bulk of the token budget on hidden reasoning (≈4k tokens/call) and more often
+    # wander into malformed JSON; "minimal" makes them emit the structured answer
+    # directly. Non-reasoning fallback models (gpt-oss, qwen) accept and ignore it.
+    if reasoning_effort is not None:
+        kwargs["reasoning_effort"] = reasoning_effort
 
     return ChatOpenAI(**kwargs)
 
@@ -95,6 +102,7 @@ class FallbackLLM:
         max_retries_per_model: int = 2,
         request_timeout: float | None = None,
         max_tokens: int | None = None,
+        reasoning_effort: str | None = None,
     ):
         self._primary_model = primary_model
         self._fallback_models = fallback_models
@@ -104,6 +112,7 @@ class FallbackLLM:
         self._max_retries = max_retries_per_model
         self._request_timeout = request_timeout
         self._max_tokens = max_tokens
+        self._reasoning_effort = reasoning_effort
         self._primary_llm = self._create_llm(primary_model)
 
     def _create_llm(self, model: str) -> ChatOpenAI:
@@ -114,6 +123,7 @@ class FallbackLLM:
             temperature=self._temperature,
             timeout=self._request_timeout,
             max_tokens=self._max_tokens,
+            reasoning_effort=self._reasoning_effort,
         )
 
     def invoke(self, messages: list[Any], **kwargs: Any) -> BaseMessage:
@@ -147,6 +157,7 @@ def create_llm_with_fallbacks(
     cfg: AgentConfig,
     temperature: float = 0.0,
     max_tokens: int | None = None,
+    reasoning_effort: str | None = None,
 ) -> FallbackLLM:
     """Create a FallbackLLM for the given model key.
 
@@ -172,4 +183,5 @@ def create_llm_with_fallbacks(
         temperature=temperature,
         request_timeout=cfg.llm_request_timeout,
         max_tokens=max_tokens,
+        reasoning_effort=reasoning_effort,
     )

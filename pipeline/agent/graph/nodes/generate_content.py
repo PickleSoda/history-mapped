@@ -87,6 +87,9 @@ historical facts to give a fuller, multi-sentence picture. Do not fabricate. Onl
 genuinely cannot identify who or what it is — a recognised historical figure, place, or event should always get
 both fields, and its summary must still be at least three sentences.
 
+Write every field in English, regardless of the entity's origin (e.g. write "Born in 1783, Agustín
+de Iturbide…", never "Nacido en 1783…").
+
 Style Guide:
 {style_guide}
 
@@ -138,7 +141,8 @@ def _apply_summary_pass(llm, prompt: str, by_label: dict, state: AgentRunState, 
 
 def generate_content(state: AgentRunState) -> AgentRunState:
     cfg = AgentConfig()
-    llm = create_llm_with_fallbacks("generate_model", cfg, max_tokens=cfg.generate_max_tokens)
+    llm = create_llm_with_fallbacks("generate_model", cfg, max_tokens=cfg.generate_max_tokens,
+                                    reasoning_effort=cfg.reasoning_effort)
     style_guide = _load_style_guide()
     entities = state["enriched_entities"]
     relations = state["candidate_relations"]

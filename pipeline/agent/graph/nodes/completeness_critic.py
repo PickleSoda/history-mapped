@@ -182,7 +182,7 @@ def completeness_critic(state: AgentRunState) -> AgentRunState:
         "orphan_entities": orphan_labels,
     }
 
-    llm = create_llm_with_fallbacks("extract_model", cfg)
+    llm = create_llm_with_fallbacks("extract_model", cfg, reasoning_effort=cfg.reasoning_effort)
     logger.info("LLM call: completeness_critic pass %d (entities=%d, relations=%d)",
                 iterations, len(existing_entities), len(existing_relations))
     messages = [SystemMessage(content=_PROMPT), HumanMessage(content=json.dumps(context, default=str))]
