@@ -49,3 +49,9 @@ pipeline/output/*
 .claude/worktrees/
 
 .playwright-mcp
+
+# LangGraph dev server local state (inmem checkpoints/ops/store). Never commit;
+# the dev watcher rewrites these every cycle, which is the source of the noisy
+# "N changes detected" log lines.
+.langgraph_api/
+history_mapped_pipeline.egg-info/

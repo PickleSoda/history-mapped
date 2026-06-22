@@ -1,0 +1,36 @@
+[project]
+name = "history-mapped-pipeline"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "SPARQLWrapper>=2.0.0",
+    "requests>=2.31.0",
+    "python-dotenv>=1.0.0",
+    "wptools>=0.4.17",
+    "mwparserfromhell>=0.6.5",
+    "pydantic>=2.5.0",
+    "orjson>=3.9.0",
+    "thefuzz[speedup]>=0.22.0",
+    "rapidfuzz>=3.9.0",
+    "openai>=1.12.0",
+    "psycopg[binary]>=3.1.0",
+    "rich>=13.7.0",
+    "click>=8.1.0",
+    "shapely>=2.0.0",
+    "langgraph>=0.2.0",
+    "langchain>=0.2.0",
+    "langchain-openai>=0.1.0",
+    "responses>=0.25.0",
+    "ratelimit>=2.2.1",
+    "ijson>=3.3.0",
+]
+
+[dependency-groups]
+dev = ["langgraph-cli[inmem]>=0.4.0"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["pipeline*"]

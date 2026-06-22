@@ -3,5 +3,5 @@
   "graphs": {
     "agent": "./pipeline/agent/graph/workflow.py:build_workflow"
   },
-  "env": ".env"
+  "env": "pipeline/.env"
 }
