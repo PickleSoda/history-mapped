@@ -65,7 +65,7 @@ def load_state(cur):
     """Return (no_point rows, located {entity_id:(lon,lat)}, names {id:name})."""
     cur.execute("""
         SELECT e.entity_id, e.name, e.entity_type::text, e.wikidata_id,
-               t.start_year,
+               t.start_year, t.end_year,
                (SELECT g.geo_ref_id FROM entity_geo_refs g
                 WHERE g.entity_id = e.entity_id
                 ORDER BY (g.source_meta->>'source' = 'chronicle_centroid') DESC NULLS LAST
@@ -183,20 +183,29 @@ def main() -> int:
                             "extid": r["wikidata_id"] or "inferred",
                             "detail": f"{rtype} → {names.get(other, other)[:24]}"}
 
+    # A point is only time-placeable if its entity has a start year: the map
+    # filters geometry by geometry_periods.start_year/end_year (NULL end = ongoing),
+    # so a point on a date-less entity renders at EVERY year (the "Nazi Germany in
+    # 2017" bug). Drop those rather than add always-on noise.
+    id2row = {str(r["entity_id"]): r for r in no_point}
+    skipped = [eid for eid in list(planned) if id2row[eid]["start_year"] is None]
+    for eid in skipped:
+        del planned[eid]
+
     # ── Report ──────────────────────────────────────────────────────────────
     by_tier = Counter(p["tier"] for p in planned.values())
     print("\n" + "=" * 72)
     print("GEO BACKFILL" + ("  (DRY RUN)" if not args.apply else "  (APPLYING)"))
     print("=" * 72)
-    print(f"Points to add: {len(planned)} / {len(no_point)} missing")
+    print(f"Points to add: {len(planned)} / {len(no_point)} missing  "
+          f"({len(skipped)} skipped — no start year, would be always-on)")
     for tier in ("wikidata_p625", "wikidata_place_assoc", "relationship_inference"):
         print(f"   {tier:24s} {by_tier.get(tier, 0)}")
     cov_before = len(located)
     cov_after = cov_before + len(planned)
-    total = cov_after + (len(no_point) - len(planned))
+    total = len(located) + len(no_point)
     print(f"Coverage: {cov_before}/{total} ({100*cov_before//total}%) → {cov_after}/{total} ({100*cov_after//total}%)\n")
 
-    id2row = {str(r["entity_id"]): r for r in no_point}
     for tier in ("wikidata_p625", "wikidata_place_assoc", "relationship_inference"):
         items = [(eid, p) for eid, p in planned.items() if p["tier"] == tier]
         if not items:
@@ -213,15 +222,18 @@ def main() -> int:
             for eid, p in planned.items():
                 row = id2row[eid]
                 prov, ext_type, retr, role, score, conf = TIER_META[p["tier"]]
-                start_year = row["start_year"] if row["start_year"] is not None else 0
+                # start_year is guaranteed non-NULL (date-less entities filtered
+                # out above); end_year mirrors the entity's range (NULL = ongoing)
+                # so the map-by-year filter bounds the point to the entity's life.
                 cur.execute("""
                     INSERT INTO geometry_periods
-                        (entity_id, period_type, start_year, provenance_mode, geom,
+                        (entity_id, period_type, start_year, end_year, provenance_mode, geom,
                          confidence, created_by, created_at, updated_at)
-                    VALUES (%s, 'territory', %s, 'manual',
+                    VALUES (%s, 'territory', %s, %s, 'manual',
                             ST_SetSRID(ST_MakePoint(%s, %s), 4326), %s::confidence_level,
                             %s, now(), now())
-                """, (eid, start_year, p["lon"], p["lat"], conf, f"geo-backfill:{p['tier']}"))
+                """, (eid, row["start_year"], row["end_year"], p["lon"], p["lat"],
+                      conf, f"geo-backfill:{p['tier']}"))
 
                 src_meta = f'{{"source": "{p["tier"]}", "detail": "{p["detail"]}"}}'
                 if row["geo_ref_id"]:
