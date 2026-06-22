@@ -4,13 +4,13 @@ import json
 from datetime import datetime, timezone
 
 from langchain_core.messages import HumanMessage, SystemMessage
+from pydantic import ValidationError
 
 from pipeline.agent.config import AgentConfig
 from pipeline.agent.llm import create_llm_with_fallbacks
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.entities import CandidateEntity
 from pipeline.agent.schemas.relations import CandidateRelation
-from pipeline.agent.json_utils import parse_llm_json
 from pipeline.agent.log_config import get_logger
 from pipeline.agent.schemas.validation import AuditEvent, PipelineError
 
@@ -186,18 +186,20 @@ def completeness_critic(state: AgentRunState) -> AgentRunState:
     logger.info("LLM call: completeness_critic pass %d (entities=%d, relations=%d)",
                 iterations, len(existing_entities), len(existing_relations))
     messages = [SystemMessage(content=_PROMPT), HumanMessage(content=json.dumps(context, default=str))]
-    response = llm.invoke(messages)
-    content = response.content if hasattr(response, "content") else str(response)
 
     added_entities = 0
     added_relations = 0
+    # No validate predicate: a critic response with no additions is legitimate
+    # ("nothing more to add" → done). invoke_json still retries/falls back on a
+    # malformed or empty body (the free-model failure mode), instead of dropping
+    # the whole pass on the first bad parse.
     try:
-        data = parse_llm_json(content)
+        data = llm.invoke_json(messages)
         for raw in data.get("candidate_entities", []):
             try:
                 entity = CandidateEntity(**raw)
-            except TypeError:
-                continue
+            except (TypeError, ValidationError):
+                continue  # one malformed entity (e.g. missing entity_type) skips, not aborts
             key = _entity_key(entity.label)
             if not key or key in entity_keys:
                 continue
@@ -209,7 +211,7 @@ def completeness_critic(state: AgentRunState) -> AgentRunState:
                 continue
             try:
                 relation = CandidateRelation(**raw)
-            except TypeError:
+            except (TypeError, ValidationError):
                 continue
             key = _relation_key(relation.source_label, relation.relationship_type, relation.target_label)
             if key in relation_keys:
@@ -217,13 +219,13 @@ def completeness_critic(state: AgentRunState) -> AgentRunState:
             relation_keys.add(key)
             existing_relations.append(relation)
             added_relations += 1
-    except (json.JSONDecodeError, TypeError) as exc:
+    except Exception as exc:
         state["errors"].append(
             PipelineError(
                 node="completeness_critic",
                 error_type="json_parse",
                 message=str(exc),
-                context={"raw_response": content, "iteration": iterations},
+                context={"iteration": iterations},
             )
         )
 

@@ -4,13 +4,13 @@ import json
 from datetime import datetime, timezone
 
 from langchain_core.messages import HumanMessage, SystemMessage
+from pydantic import ValidationError
 
 from pipeline.agent.config import AgentConfig
 from pipeline.agent.llm import create_llm_with_fallbacks
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.entities import CandidateEntity
 from pipeline.agent.schemas.relations import CandidateRelation
-from pipeline.agent.json_utils import parse_llm_json
 from pipeline.agent.log_config import get_logger
 from pipeline.agent.schemas.validation import AuditEvent, PipelineError
 
@@ -89,26 +89,40 @@ def extract_candidates(state: AgentRunState) -> AgentRunState:
     events_json = json.dumps([e.model_dump() for e in state["parsed_events"]], default=str)
     logger.info("LLM call: extract_candidates (model=%s, events=%d)", cfg.extract_model, len(state["parsed_events"]))
     messages = [SystemMessage(content=_PROMPT), HumanMessage(content=events_json)]
-    response = llm.invoke(messages)
-    content = response.content if hasattr(response, "content") else str(response)
-    logger.info("LLM response: %d chars", len(content))
+    # invoke_json parses inside the retry/fallback loop, so a malformed or
+    # shapeless response (e.g. the model emitting a "plan" instead of JSON) retries
+    # the model then falls back, rather than silently extracting zero entities.
     try:
-        data = parse_llm_json(content)
-        entities = [CandidateEntity(**e) for e in data.get("candidate_entities", [])]
-        raw_relations = data.get("candidate_relations", [])
+        data = llm.invoke_json(
+            messages,
+            validate=lambda d: isinstance(d, dict)
+            and ("candidate_entities" in d or "candidate_relations" in d),
+        )
+        # Build per-item so ONE malformed candidate (e.g. missing entity_type) is
+        # skipped, not fatal to the whole extraction. CandidateEntity/Relation raise
+        # pydantic ValidationError (a ValueError), not TypeError, on a bad dict.
+        entities = []
+        for e in data.get("candidate_entities", []):
+            try:
+                entities.append(CandidateEntity(**e))
+            except (TypeError, ValidationError) as exc:
+                logger.warning("Skipping malformed candidate entity %s: %s", e, exc)
         relations = []
-        for r in raw_relations:
+        for r in data.get("candidate_relations", []):
             if not r.get("source_label") or not r.get("target_label"):
                 logger.warning("Skipping relation with null source/target: %s", r)
                 continue
-            relations.append(CandidateRelation(**r))
-    except (json.JSONDecodeError, TypeError) as exc:
+            try:
+                relations.append(CandidateRelation(**r))
+            except (TypeError, ValidationError) as exc:
+                logger.warning("Skipping malformed candidate relation %s: %s", r, exc)
+    except Exception as exc:
         state["errors"].append(
             PipelineError(
                 node="extract_candidates",
                 error_type="json_parse",
                 message=str(exc),
-                context={"raw_response": content},
+                context={},
             )
         )
         entities = []

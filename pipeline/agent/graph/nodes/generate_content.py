@@ -8,7 +8,6 @@ from pathlib import Path
 from langchain_core.messages import HumanMessage
 
 from pipeline.agent.config import AgentConfig
-from pipeline.agent.json_utils import parse_llm_json
 from pipeline.agent.llm import create_llm_with_fallbacks
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.log_config import get_logger
@@ -116,10 +115,14 @@ def _sentence_count(text: str | None) -> int:
 def _apply_summary_pass(llm, prompt: str, by_label: dict, state: AgentRunState, stage: str) -> None:
     """Run one summary/significance LLM call and merge results, keeping the longer
     summary so a retry never regresses an entity to a shorter one."""
-    response = llm.invoke([HumanMessage(content=prompt)])
-    content = response.content if hasattr(response, "content") else str(response)
+    # invoke_json retries/falls back on a malformed or entities-less response — the
+    # exact failure that left summaries empty in the free-model batch — so a single
+    # bad parse no longer drops a whole chunk of summaries.
     try:
-        data = parse_llm_json(content)
+        data = llm.invoke_json(
+            [HumanMessage(content=prompt)],
+            validate=lambda d: isinstance(d, dict) and "entities" in d,
+        )
         for label, fields in (data.get("entities", {}) or {}).items():
             enriched = by_label.get(label)
             if enriched is None or not isinstance(fields, dict):
@@ -128,13 +131,13 @@ def _apply_summary_pass(llm, prompt: str, by_label: dict, state: AgentRunState, 
             if new_summary and _sentence_count(new_summary) >= _sentence_count(enriched.summary):
                 enriched.summary = new_summary
             enriched.significance = fields.get("significance") or enriched.significance
-    except (json.JSONDecodeError, TypeError) as exc:
+    except Exception as exc:
         state["errors"].append(
             PipelineError(
                 node="generate_content",
                 error_type="json_parse",
                 message=str(exc),
-                context={"raw_response": content, "stage": stage},
+                context={"stage": stage},
             )
         )
 
@@ -196,20 +199,22 @@ def generate_content(state: AgentRunState) -> AgentRunState:
             f"Relations:\n{relations_context}\n\n"
             'Output strictly as JSON:\n{"relation_descriptions": {"Source|relationship_type|Target": "..."}}\n'
         )
-        response = llm.invoke([HumanMessage(content=rel_prompt)])
-        content = response.content if hasattr(response, "content") else str(response)
         try:
-            rel_descs = parse_llm_json(content).get("relation_descriptions", {})
+            data = llm.invoke_json(
+                [HumanMessage(content=rel_prompt)],
+                validate=lambda d: isinstance(d, dict) and "relation_descriptions" in d,
+            )
+            rel_descs = data.get("relation_descriptions", {})
             for relation in relations:
                 key = f"{relation.source_label}|{relation.relationship_type}|{relation.target_label}"
                 relation.description = rel_descs.get(key)
-        except (json.JSONDecodeError, TypeError) as exc:
+        except Exception as exc:
             state["errors"].append(
                 PipelineError(
                     node="generate_content",
                     error_type="json_parse",
                     message=str(exc),
-                    context={"raw_response": content, "stage": "relation_descriptions"},
+                    context={"stage": "relation_descriptions"},
                 )
             )
 
@@ -226,17 +231,19 @@ def generate_content(state: AgentRunState) -> AgentRunState:
             'Output strictly as JSON: {"title": "..."}'
         )
         try:
-            resp = llm.invoke([HumanMessage(content=title_prompt)])
-            tcontent = resp.content if hasattr(resp, "content") else str(resp)
-            title = (parse_llm_json(tcontent).get("title") or "").strip()
+            data = llm.invoke_json(
+                [HumanMessage(content=title_prompt)],
+                validate=lambda d: isinstance(d, dict) and "title" in d,
+            )
+            title = (data.get("title") or "").strip()
             if title:
                 state["title"] = title
                 logger.info("Generated chronicle title: %s", title)
-        except (json.JSONDecodeError, TypeError) as exc:
+        except Exception as exc:
             state["errors"].append(
                 PipelineError(
                     node="generate_content", error_type="json_parse",
-                    message=str(exc), context={"raw_response": tcontent, "stage": "title"},
+                    message=str(exc), context={"stage": "title"},
                 )
             )
 
