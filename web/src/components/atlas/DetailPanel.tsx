@@ -1,11 +1,12 @@
 import { Clock, FileText, MapPin, ScrollText, X } from 'lucide-react';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { GroupDot, TypeBadge } from '@/components/atlas/GroupBadge';
 import {
   useChronicleNav,
   useEntity,
   useEntityChronicles,
   useEntityConnections,
+  useMapFocus,
   useSelection,
 } from '@/hooks';
 import { formatYear } from '@/lib/format';
@@ -144,6 +145,17 @@ export function DetailPanelContent() {
   const { data: entity, isLoading, isError } = useEntity(sel);
   const { data: connections } = useEntityConnections(sel);
   const { data: chronicles } = useEntityChronicles(sel);
+  const { focusGeometries } = useMapFocus();
+
+  // Frame the entity on the map the first time its detail opens (once per
+  // selection — re-renders or a re-fetch must not yank the camera back).
+  const focusedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (entity?.id && entity.geom != null && focusedRef.current !== entity.id) {
+      focusedRef.current = entity.id;
+      focusGeometries([entity.geom]);
+    }
+  }, [entity?.id, entity?.geom, focusGeometries]);
 
   // relationship id → chronicle (first match wins).
   const relChronicle = useMemo(() => {
@@ -179,11 +191,14 @@ export function DetailPanelContent() {
                 </span>
               )}
               {entity.geom != null ? (
-                entity.location_name && (
-                  <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-[11px]">
-                    <MapPin size={13} /> {entity.location_name}
-                  </span>
-                )
+                <button
+                  type="button"
+                  onClick={() => focusGeometries([entity.geom])}
+                  className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-[11px] transition-colors hover:bg-muted/70"
+                  title="Focus on map"
+                >
+                  <MapPin size={13} /> {entity.location_name ?? 'Show on map'}
+                </button>
               ) : (
                 <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-1 text-[11px] text-amber-800 dark:bg-amber-950 dark:text-amber-200">
                   <MapPin size={13} /> Not placed on map

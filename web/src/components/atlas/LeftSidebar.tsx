@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { BrowseTab } from './BrowseTab';
 import { ChronicleList } from './ChronicleList';
+import { NavBreadcrumb } from './NavBreadcrumb';
 
 type Tab = 'entities' | 'chronicles';
 
@@ -100,6 +101,7 @@ export function LeftSidebar() {
         </div>
       ) : (
         <>
+          <NavBreadcrumb className="flex-none" />
           <div className="flex items-center gap-2 border-b px-3 py-2">
             <div className="flex flex-1 gap-0.5 rounded-lg bg-muted p-0.5">
               <TabButton

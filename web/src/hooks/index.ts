@@ -11,11 +11,13 @@ export { useView } from './useView';
 
 // Derived
 export { useScope } from './useScope';
+export { useNavTrail, useNavTrailSync } from './useNavTrail';
 
 // Server-cache
 export { useEntitiesInView } from './useEntitiesInView';
 export { useEntityList } from './useEntityList';
 export { useEntity, useEntityConnections } from './useEntity';
+export { useEntityGeometries } from './useEntityGeometries';
 export { useSearch, useHighlights, useTimelineDensity } from './useDiscovery';
 export { useEntitySearch } from './useEntitySearch';
 export { useChronicle } from './useChronicle';
@@ -32,6 +34,7 @@ export {
   useSheet,
   useCommandPalette,
 } from './ephemeral';
+export { useMapFocus } from './useMapFocus';
 
 // Sheet logic
 export { useSheetContent } from './useSheetContent';
