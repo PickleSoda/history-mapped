@@ -36,6 +36,20 @@ class BackfillGeometryPeriodsAction
             ->whereNotNull('relationship_id')
             ->delete();
 
+        // Supersede stale low-confidence relationship-inference geometry. Once an
+        // entity has its own primary-location geometry, the 0.40-confidence
+        // neighbour guesses written by pipeline/backfill_geo.py (which can land an
+        // abstract/extended entity on the wrong continent — e.g. "Papacy" placed
+        // in Canada) are replaced by the authoritative location-derived periods
+        // created below. Gated on real geometry so we never strip an entity's only
+        // point: with no own location, the inferred guess is its only signal.
+        if ($geom !== null || $territoryGeom !== null) {
+            GeometryPeriod::query()
+                ->where('entity_id', $entity->entity_id)
+                ->where('created_by', 'geo-backfill:relationship_inference')
+                ->delete();
+        }
+
         $ranges = EntityTemporalRange::query()
             ->where('entity_id', $entity->entity_id)
             ->where(function ($query): void {
