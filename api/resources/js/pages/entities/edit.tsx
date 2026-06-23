@@ -310,6 +310,7 @@ export default function EntityEdit({ entity, formOptions }: Props) {
                                 deleteUrlFn={(periodId) =>
                                     `/entities/${entity.id}/geometry-periods/${periodId}`
                                 }
+                                backfillUrl={`/entities/${entity.id}/backfill`}
                                 onSelectPeriod={(period) => {
                                     setHighlightedPeriodGeometries(
                                         period

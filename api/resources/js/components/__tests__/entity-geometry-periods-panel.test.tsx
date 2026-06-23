@@ -286,4 +286,66 @@ describe('EntityGeometryPeriodsPanel', () => {
             expect.objectContaining({ method: 'DELETE' }),
         );
     });
+
+    it('runs backfill, shows the counts, and reloads periods', async () => {
+        fetchMock.mockImplementation(
+            async (input: RequestInfo | URL, init?: RequestInit) => {
+                const url = String(input);
+                const method = init?.method ?? 'GET';
+
+                if (url.endsWith('/entities/e1/backfill') && method === 'POST') {
+                    return {
+                        ok: true,
+                        json: async () => ({
+                            data: {
+                                counts: {
+                                    aliases: 0,
+                                    tags: 0,
+                                    temporal_ranges: 1,
+                                    locations: 1,
+                                    geometry_periods: 2,
+                                },
+                            },
+                        }),
+                    } as Response;
+                }
+
+                // All geometry-period list/detail GETs return empty.
+                return { ok: true, json: async () => ({ data: [] }) } as Response;
+            },
+        );
+
+        render(
+            <EntityGeometryPeriodsPanel
+                listUrl="/entities/e1/geometry-periods"
+                backfillUrl="/entities/e1/backfill"
+            />,
+        );
+
+        const backfillButton = await screen.findByRole('button', {
+            name: /Backfill from primary location/i,
+        });
+        fireEvent.click(backfillButton);
+
+        // POST hits the backfill endpoint...
+        await waitFor(() => {
+            expect(fetchMock).toHaveBeenCalledWith(
+                '/entities/e1/backfill',
+                expect.objectContaining({ method: 'POST' }),
+            );
+        });
+
+        // ...the counts are surfaced...
+        expect(
+            await screen.findByText(/2 geometry period\(s\)/i),
+        ).toBeInTheDocument();
+
+        // ...and the period list is reloaded afterwards (a GET after the POST).
+        const listGets = fetchMock.mock.calls.filter(
+            ([input, init]) =>
+                String(input) === '/entities/e1/geometry-periods' &&
+                (init?.method ?? 'GET') === 'GET',
+        );
+        expect(listGets.length).toBeGreaterThanOrEqual(2);
+    });
 });

@@ -40,8 +40,17 @@ type Props = {
     storeUrl?: string;
     updateUrlFn?: (periodId: string) => string;
     deleteUrlFn?: (periodId: string) => string;
+    backfillUrl?: string;
     readOnly?: boolean;
     onSelectPeriod?: (period: GeometryPeriodDetail | null) => void;
+};
+
+type BackfillCounts = {
+    aliases: number;
+    tags: number;
+    temporal_ranges: number;
+    locations: number;
+    geometry_periods: number;
 };
 
 const PERIOD_TYPES = [
@@ -141,6 +150,7 @@ export default function EntityGeometryPeriodsPanel({
     storeUrl,
     updateUrlFn,
     deleteUrlFn,
+    backfillUrl,
     readOnly = false,
     onSelectPeriod,
 }: Props) {
@@ -149,6 +159,8 @@ export default function EntityGeometryPeriodsPanel({
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
+    const [backfilling, setBackfilling] = useState(false);
+    const [backfillMessage, setBackfillMessage] = useState<string | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [loadingPeriodId, setLoadingPeriodId] = useState<string | null>(null);
 
@@ -192,6 +204,48 @@ export default function EntityGeometryPeriodsPanel({
     useEffect(() => {
         void loadPeriods();
     }, [listUrl]);
+
+    async function runBackfill() {
+        if (!backfillUrl) {
+            return;
+        }
+
+        setBackfilling(true);
+        setError(null);
+        setBackfillMessage(null);
+
+        try {
+            const response = await fetch(backfillUrl, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': csrfRef.current,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const payload = (await response.json()) as {
+                data: { counts: BackfillCounts };
+            };
+            const counts = payload.data.counts;
+
+            setBackfillMessage(
+                `Backfilled: ${counts.geometry_periods} geometry period(s), ` +
+                    `${counts.locations} location(s), ${counts.temporal_ranges} temporal range(s), ` +
+                    `${counts.aliases} alias(es), ${counts.tags} tag(s).`,
+            );
+
+            // Reflect any newly-derived periods in the list.
+            await loadPeriods();
+        } catch {
+            setError('Failed to backfill this entity.');
+        } finally {
+            setBackfilling(false);
+        }
+    }
 
     useEffect(() => {
         onSelectPeriod?.(null);
@@ -380,6 +434,28 @@ export default function EntityGeometryPeriodsPanel({
 
     return (
         <div className="space-y-4">
+            {!readOnly && backfillUrl && (
+                <div className="flex flex-wrap items-center gap-3 rounded-lg border border-dashed p-3">
+                    <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => void runBackfill()}
+                        disabled={backfilling || saving}
+                    >
+                        {backfilling ? 'Backfilling…' : 'Backfill from primary location'}
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                        Derives territory geometry periods (and other canonical
+                        rows) so a primary location shows on the map.
+                    </p>
+                    {backfillMessage && (
+                        <p className="w-full text-sm text-emerald-600 dark:text-emerald-400">
+                            {backfillMessage}
+                        </p>
+                    )}
+                </div>
+            )}
             {error && <p className="text-sm text-destructive">{error}</p>}
             {loading && (
                 <p className="text-sm text-muted-foreground">
