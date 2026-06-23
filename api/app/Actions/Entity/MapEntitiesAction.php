@@ -22,6 +22,11 @@ use Illuminate\Support\LazyCollection;
  *   - If `min_impact` is provided it is used directly.
  *   - If only `zoom_level` is provided, the threshold is derived via ZoomImpactThreshold.
  *   - If neither is provided, no impact threshold is applied.
+ *
+ * Minimum-results floor (`min_results`): when a threshold is active, the result
+ * is the union of entities above the threshold and the top-`min_results` by
+ * impact in view — so the map is never empty when zoomed out or filtered, while
+ * the threshold still declutters wherever plenty clears it. Off when 0/omitted.
  */
 class MapEntitiesAction
 {
@@ -35,6 +40,13 @@ class MapEntitiesAction
         $limit = (int) ($filters['limit'] ?? 2000);
         // One feature per entity (MQ-16) unless ?all_periods is requested.
         $allPeriods = (bool) ($filters['all_periods'] ?? false);
+
+        // Minimum-results floor: when a threshold is active but few entities clear
+        // it, keep the map populated by also returning the next highest-impact
+        // ones up to this count. The threshold then declutters only where there is
+        // plenty above it. Off (0) unless requested; not applied to all_periods.
+        $floor = max(0, (int) ($filters['min_results'] ?? 0));
+        $backfill = $minImpact !== null && $floor > 0 && ! $allPeriods;
 
         // Borders-from-OHM (§3.1): OHM-linked entities serialize their point so
         // the client can highlight the OHM basemap feature instead of a stored
@@ -103,7 +115,9 @@ class MapEntitiesAction
             VerificationStatus::ExpertVerified->value,
         ]);
 
-        if ($minImpact !== null) {
+        // When backfilling, the threshold is applied later (as a soft floor over
+        // the ranked rows) so entities below it can still fill the quota.
+        if ($minImpact !== null && ! $backfill) {
             $query->where('entities.impact_score', '>=', $minImpact);
         }
 
@@ -187,12 +201,30 @@ class MapEntitiesAction
                 'entities.entity_id, (geometry_periods.territory_geom IS NULL), geometry_periods.start_year DESC, geometry_periods.end_year ASC NULLS FIRST',
             );
 
-            // Re-order the deduped rows by display priority then impact (MQ-15).
-            $rows = DB::query()
-                ->fromSub($query, 'm')
-                ->orderByRaw('m.display_priority DESC NULLS LAST, m.impact_score DESC NULLS LAST')
-                ->limit($limit)
-                ->cursor();
+            $deduped = DB::query()->fromSub($query, 'm');
+
+            if ($backfill) {
+                // Rank the (unthresholded) deduped rows by impact, then keep those
+                // above the threshold OR within the floor — so the map always shows
+                // the top `floor` highest-impact entities in view, and everything
+                // above the threshold when there is more than that.
+                $ranked = DB::query()
+                    ->fromSub($deduped, 'd')
+                    ->selectRaw('d.*, ROW_NUMBER() OVER (ORDER BY d.impact_score DESC NULLS LAST) AS impact_rank');
+
+                $rows = DB::query()
+                    ->fromSub($ranked, 'r')
+                    ->whereRaw('(r.impact_score >= ? OR r.impact_rank <= ?)', [$minImpact, $floor])
+                    ->orderByRaw('r.display_priority DESC NULLS LAST, r.impact_score DESC NULLS LAST')
+                    ->limit($limit)
+                    ->cursor();
+            } else {
+                // Re-order the deduped rows by display priority then impact (MQ-15).
+                $rows = $deduped
+                    ->orderByRaw('m.display_priority DESC NULLS LAST, m.impact_score DESC NULLS LAST')
+                    ->limit($limit)
+                    ->cursor();
+            }
         }
 
         $periodFeatures = $rows->map(function ($row): array {
