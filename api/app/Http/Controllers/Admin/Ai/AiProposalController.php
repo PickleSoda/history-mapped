@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\Ai;
 use App\Ai\ProposalApplier;
 use App\Http\Controllers\Controller;
 use App\Models\Ai\ProposedChangePart;
+use App\Models\Chronicle;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
@@ -26,9 +27,16 @@ class AiProposalController extends Controller
 
         $applied = $applier->applyPart($part);
 
+        $redirectUrl = match ($applied->tool) {
+            'create_entity' => route('entities.edit', $applied->result_id),
+            'create_chronicle' => route('chronicles.edit', Chronicle::findOrFail($applied->result_id)->slug),
+            default => null,
+        };
+
         return response()->json([
             'status' => $applied->status,
             'result_id' => $applied->result_id,
+            'redirect_url' => $redirectUrl,
         ]);
     }
 

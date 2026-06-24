@@ -3,6 +3,7 @@
 namespace Tests\Feature\Ai;
 
 use App\Models\Ai\ProposedChange;
+use App\Models\Chronicle;
 use App\Models\Entity;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -43,6 +44,58 @@ class AiProposalEndpointTest extends TestCase
                 'entity_type' => 'political_entity',
             ],
             'human_diff' => ['summary' => 'Create entity "Test Empire"'],
+            'status' => 'pending',
+        ]);
+
+        return [$change, $part];
+    }
+
+    /**
+     * Stage a ProposedChange owned by $user with a single create_chronicle part.
+     * Returns [ProposedChange, ProposedChangePart].
+     */
+    private function stageCreateChronicleProposal(User $user): array
+    {
+        $change = ProposedChange::create([
+            'user_id' => $user->id,
+            'context_type' => 'chronicle',
+            'context_id' => 'test',
+        ]);
+
+        $part = $change->parts()->create([
+            'key' => 'chronicle',
+            'tool' => 'create_chronicle',
+            'payload' => [
+                'title' => 'Test Chronicle',
+            ],
+            'human_diff' => ['summary' => 'Create chronicle "Test Chronicle"'],
+            'status' => 'pending',
+        ]);
+
+        return [$change, $part];
+    }
+
+    /**
+     * Stage a ProposedChange with a set_entity_location part (non-creator tool).
+     * Requires a pre-existing entity. Returns [ProposedChange, ProposedChangePart].
+     */
+    private function stageSetEntityLocationProposal(User $user, Entity $entity): array
+    {
+        $change = ProposedChange::create([
+            'user_id' => $user->id,
+            'context_type' => 'entity',
+            'context_id' => $entity->entity_id,
+        ]);
+
+        $part = $change->parts()->create([
+            'key' => 'location',
+            'tool' => 'set_entity_location',
+            'payload' => [
+                'entity_id' => $entity->entity_id,
+                'lon' => 12.4964,
+                'lat' => 41.9028,
+            ],
+            'human_diff' => ['summary' => 'Set location'],
             'status' => 'pending',
         ]);
 
@@ -147,5 +200,67 @@ class AiProposalEndpointTest extends TestCase
             ->assertJsonPath('status', 'discarded');
 
         $this->assertSame('discarded', $part->fresh()->status);
+    }
+
+    public function test_apply_create_entity_returns_redirect_url(): void
+    {
+        $this->fakeWikidata();
+        $user = $this->userWithPermissions(['entities.write']);
+
+        [$change, $part] = $this->stageCreateEntityProposal($user);
+
+        $response = $this->actingAs($user)
+            ->postJson("/ai/proposals/{$change->id}/parts/{$part->key}/apply")
+            ->assertOk()
+            ->assertJsonStructure(['status', 'result_id', 'redirect_url']);
+
+        $part->refresh();
+        $entityId = $part->result_id;
+        $this->assertNotNull($entityId);
+
+        $expected = route('entities.edit', $entityId);
+        $response->assertJsonPath('redirect_url', $expected);
+    }
+
+    public function test_apply_create_chronicle_returns_redirect_url(): void
+    {
+        $user = $this->userWithPermissions(['entities.write']);
+
+        [$change, $part] = $this->stageCreateChronicleProposal($user);
+
+        $response = $this->actingAs($user)
+            ->postJson("/ai/proposals/{$change->id}/parts/{$part->key}/apply")
+            ->assertOk()
+            ->assertJsonStructure(['status', 'result_id', 'redirect_url']);
+
+        $part->refresh();
+        $chronicleId = $part->result_id;
+        $this->assertNotNull($chronicleId);
+
+        $chronicle = Chronicle::findOrFail($chronicleId);
+        $expected = route('chronicles.edit', $chronicle->slug);
+        $response->assertJsonPath('redirect_url', $expected);
+    }
+
+    public function test_apply_non_creator_tool_returns_null_redirect_url(): void
+    {
+        $this->fakeWikidata();
+        $user = $this->userWithPermissions(['entities.write']);
+
+        // First create an entity to reference in the location update.
+        [$createChange, $createPart] = $this->stageCreateEntityProposal($user);
+        $this->actingAs($user)
+            ->postJson("/ai/proposals/{$createChange->id}/parts/{$createPart->key}/apply")
+            ->assertOk();
+        $createPart->refresh();
+        $entity = Entity::findOrFail($createPart->result_id);
+
+        // Now stage a set_entity_location part (non-creator).
+        [$change, $part] = $this->stageSetEntityLocationProposal($user, $entity);
+
+        $this->actingAs($user)
+            ->postJson("/ai/proposals/{$change->id}/parts/{$part->key}/apply")
+            ->assertOk()
+            ->assertJsonPath('redirect_url', null);
     }
 }
