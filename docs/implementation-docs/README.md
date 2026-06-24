@@ -8,6 +8,10 @@ see [../architecture/](../architecture/); for the data model, see [../entity-mod
 - [setup.md](setup.md) — local dev: Docker stack, services, commands, route layout.
 - [deployment-runbook.md](deployment-runbook.md) — canonical GHCR → DigitalOcean deploy (App Platform or Droplet + Compose).
 
+## Admin AI agent
+
+- [admin-ai-agent.md](admin-ai-agent.md) — route-bound AI editing assistant in the admin: propose→preview→confirm flow, tool list, provenance, OpenRouter config, and retention (`ai:prune-proposals`).
+
 ## Agentic pipeline
 
 - [agentic-pipeline-runbook.md](agentic-pipeline-runbook.md) — the 15-node LangGraph agent: nodes, commands, env, risk policies, LangGraph Studio, known defects.
