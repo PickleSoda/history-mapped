@@ -9,15 +9,20 @@ use App\Models\Ai\ProposedChange;
 use App\Models\User;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use RuntimeException;
 use Tests\TestCase;
 
 class ProposalApplierTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_dependent_part_waits_for_its_dependency_then_substitutes_result_id(): void
+    private ProposedChange $change;
+
+    protected function setUp(): void
     {
-        // register a fake tool that echoes payload + injected dependency id
+        parent::setUp();
+
+        // Register a fake tool that echoes payload + injected dependency id
         app()->bind('ai.tool.fake', fn () => new class extends AgentTool
         {
             public static function name(): string
@@ -48,20 +53,38 @@ class ProposalApplierTest extends TestCase
         app(ToolRegistry::class)->register('fake', 'ai.tool.fake');
 
         $user = User::factory()->create();
-        $change = ProposedChange::create(['user_id' => $user->id, 'context_type' => 'entity', 'context_id' => 'e1']);
-        $a = $change->parts()->create(['key' => 'a', 'tool' => 'fake', 'payload' => ['v' => 'A'], 'human_diff' => []]);
-        $b = $change->parts()->create(['key' => 'b', 'tool' => 'fake', 'payload' => ['v' => 'B'], 'human_diff' => [], 'depends_on' => 'a']);
+        $this->change = ProposedChange::create(['user_id' => $user->id, 'context_type' => 'entity', 'context_id' => 'e1']);
+    }
+
+    public function test_dependent_part_throws_when_dependency_not_applied(): void
+    {
+        $a = $this->change->parts()->create(['key' => 'a', 'tool' => 'fake', 'payload' => ['v' => 'A'], 'human_diff' => []]);
+        $b = $this->change->parts()->create(['key' => 'b', 'tool' => 'fake', 'payload' => ['v' => 'B'], 'human_diff' => [], 'depends_on' => 'a']);
 
         $applier = app(ProposalApplier::class);
 
-        // applying B before A throws (dependency not applied)
-        $this->expectExceptionMessage('depends_on');
-        $applier->applyPart($b);
-        $this->assertSame('pending', $b->fresh()->status);
+        $threw = false;
+        try {
+            $applier->applyPart($b);
+        } catch (RuntimeException $e) {
+            $threw = true;
+            $this->assertStringContainsString('depends_on', $e->getMessage());
+        }
 
-        // apply A, then B substitutes A's result_id
+        $this->assertTrue($threw, 'Expected RuntimeException was not thrown');
+        $this->assertSame('pending', $b->fresh()->status);
+    }
+
+    public function test_dependency_result_id_is_substituted_into_dependent_part(): void
+    {
+        $a = $this->change->parts()->create(['key' => 'a', 'tool' => 'fake', 'payload' => ['v' => 'A'], 'human_diff' => []]);
+        $b = $this->change->parts()->create(['key' => 'b', 'tool' => 'fake', 'payload' => ['v' => 'B'], 'human_diff' => [], 'depends_on' => 'a']);
+
+        $applier = app(ProposalApplier::class);
+
         $applier->applyPart($a);
         $this->assertSame('X:A', $a->fresh()->result_id);
+
         $applier->applyPart($b->fresh());
         $this->assertSame('X:A:B', $b->fresh()->result_id);
     }
