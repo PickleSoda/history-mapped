@@ -10,7 +10,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Chronicle;
 use App\Models\Entity;
 use Illuminate\Http\Request;
-use Laravel\Ai\Responses\StreamableAgentResponse;
+use Illuminate\Support\Str;
+use Laravel\Ai\Models\Conversation;
+use Symfony\Component\HttpFoundation\Response;
 
 class AiChatController extends Controller
 {
@@ -27,7 +29,7 @@ class AiChatController extends Controller
      * RemembersConversations::continue() to load prior messages from the conversation
      * store. New conversations are started with forUser() so the store can persist them.
      */
-    public function chat(Request $request): StreamableAgentResponse
+    public function chat(Request $request): Response
     {
         $data = $request->validate([
             'context_type' => 'required|in:entity,chronicle',
@@ -85,6 +87,31 @@ class AiChatController extends Controller
 
         $contextId = $mode === 'create' ? 'create' : $data['context_id'];
 
+        // Resolve the session (agent_conversations row). Either continue one the
+        // user owns, or mint + create a fresh tagged row so proposals and message
+        // persistence are tied to a real, listable session from the first message.
+        if ($conversationId !== null) {
+            $conversation = Conversation::find($conversationId);
+
+            if ($conversation === null) {
+                abort(404, 'Unknown conversation.');
+            }
+
+            if ((string) $conversation->user_id !== (string) $user->id) {
+                abort(403, 'You do not own this conversation.');
+            }
+        } else {
+            $conversationId = (string) Str::uuid7();
+
+            Conversation::create([
+                'id' => $conversationId,
+                'user_id' => $user->id,
+                'title' => Str::limit($promptText, 60, ''),
+                'context_type' => $data['context_type'],
+                'context_id' => $contextId,
+            ]);
+        }
+
         $context = [
             'user_id' => (string) $user->id,
             'context_type' => $data['context_type'],
@@ -99,13 +126,13 @@ class AiChatController extends Controller
             $data['context_type'] === 'chronicle' => new ChronicleEditorAgent(Chronicle::findOrFail($contextId), $user, $context),
         };
 
-        // Wire conversation persistence via RemembersConversations.
-        if ($conversationId !== null) {
-            $agent->continue($conversationId, $user);
-        } else {
-            $agent->forUser($user);
-        }
+        // We pre-created the row, so continue() makes the SDK persist messages
+        // under our id instead of generating its own.
+        $agent->continue($conversationId, $user);
 
-        return $agent->stream($promptText)->usingVercelDataProtocol();
+        $response = $agent->stream($promptText)->usingVercelDataProtocol()->toResponse($request);
+        $response->headers->set('X-Conversation-Id', $conversationId);
+
+        return $response;
     }
 }
