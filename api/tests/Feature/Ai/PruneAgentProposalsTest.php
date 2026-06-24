@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
 use Tests\TestCase;
 
 /**
- * Tests for App\Console\Commands\PruneAgentProposals (ai:prune-proposals).
+ * Tests for App\Console\Commands\PruneAgentProposalsCommand (ai:prune-proposals).
  *
  * Retention rules
  *   - pending | discarded parts: deleted when created_at < now()-7 days
@@ -295,15 +295,60 @@ class PruneAgentProposalsTest extends TestCase
         $changeB = $this->makeChange();
         $this->makePart($changeB, ['status' => 'pending']);
 
-        // Dry-run should report orphaned=1 (only change A).
+        // Dry-run should report orphaned=1 (only change A), NOT 0 or 2.
+        $convTable = config('ai.conversations.tables.conversations', 'agent_conversations');
         $this->artisan('ai:prune-proposals', ['--dry-run' => true])
             ->assertSuccessful()
-            ->expectsOutputToContain('DRY-RUN');
+            ->expectsOutputToContain('DRY-RUN')
+            ->expectsTable(
+                ['rule', 'rows'],
+                [
+                    ['pending/discarded parts > 7 days', '1'],
+                    ['applied parts > 1 year', '0'],
+                    ['orphaned parent changes', '1'],
+                    ["conversations ({$convTable}) > 90 days", '0'],
+                ]
+            );
 
         // Neither change should be deleted in dry-run.
         $this->assertDatabaseHas('agent_proposed_changes', ['id' => $changeA->id]);
         $this->assertDatabaseHas('agent_proposed_changes', ['id' => $changeB->id]);
         // The old part should still exist too.
         $this->assertDatabaseHas('agent_proposed_change_parts', ['change_id' => $changeA->id]);
+    }
+
+    public function test_dry_run_mixed_parts_change_is_not_orphaned(): void
+    {
+        // A single change with TWO parts:
+        //   - one stale pending (Rule 1 would delete it)
+        //   - one recent applied (survives both rules)
+        // In dry-run, the change must NOT appear in the orphaned count because
+        // the surviving applied part keeps it alive.
+        $change = $this->makeChange();
+
+        $old8days = Carbon::now()->subDays(8)->toDateTimeString();
+        $this->makePart($change, ['status' => 'pending', 'created_at' => $old8days, 'updated_at' => $old8days]);
+        $this->makePart($change, [
+            'status' => 'applied',
+            'applied_at' => Carbon::now()->subMonths(3)->toDateTimeString(),
+        ]);
+
+        // Orphaned changes count must be 0: the change has a surviving part.
+        $convTable = config('ai.conversations.tables.conversations', 'agent_conversations');
+        $this->artisan('ai:prune-proposals', ['--dry-run' => true])
+            ->assertSuccessful()
+            ->expectsOutputToContain('DRY-RUN')
+            ->expectsTable(
+                ['rule', 'rows'],
+                [
+                    ['pending/discarded parts > 7 days', '1'],
+                    ['applied parts > 1 year', '0'],
+                    ['orphaned parent changes', '0'],
+                    ["conversations ({$convTable}) > 90 days", '0'],
+                ]
+            );
+
+        // Nothing deleted in dry-run.
+        $this->assertDatabaseHas('agent_proposed_changes', ['id' => $change->id]);
     }
 }
