@@ -3,6 +3,7 @@ import { CheckCircle, XCircle } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { emitAiApplied } from '@/lib/ai-events';
 
 export type ProposalPart = {
     key: string;
@@ -97,8 +98,11 @@ export function ProposalCard({ proposal, mode = 'edit' }: { proposal: Proposal; 
                     router.visit(json.redirect_url);
                 } else {
                     // Refresh Inertia page props so the entity data reflects the
-                    // applied change without a full navigation.
+                    // applied change without a full navigation, and signal the
+                    // self-fetching panels (geometry periods, relationships,
+                    // timeline) to re-fetch their own state.
                     router.reload();
+                    emitAiApplied();
                 }
             }
         } catch {

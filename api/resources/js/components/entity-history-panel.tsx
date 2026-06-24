@@ -7,6 +7,7 @@ import type {
 import EntityHistoryTimeline from '@/components/entity-history-timeline';
 import HistoricalMapViewer from '@/components/historical-map-viewer';
 import TimeframeRangeSelector from '@/components/timeframe-range-selector';
+import { useAiApplied } from '@/lib/ai-events';
 import { normalizeToFeatureCollection } from '@/lib/geojson';
 import type { GeoJsonLike } from '@/lib/geojson';
 import { yearToOhmDate } from '@/lib/ohm-date';
@@ -72,6 +73,9 @@ export default function EntityHistoryPanel({
             return (await response.json()) as { data: TimelineEntrySummary[] };
         },
     });
+
+    // Re-fetch the timeline when the AI applies a change.
+    useAiApplied(() => void timelineQuery.refetch());
 
     const timelineEntries = useMemo(
         () => timelineQuery.data?.data ?? [],

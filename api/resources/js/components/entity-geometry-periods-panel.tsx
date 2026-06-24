@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { useAiApplied } from '@/lib/ai-events';
 import type { GeoJsonLike } from '@/lib/geojson';
 import { yearToOhmDate } from '@/lib/ohm-date';
 
@@ -204,6 +205,9 @@ export default function EntityGeometryPeriodsPanel({
     useEffect(() => {
         void loadPeriods();
     }, [listUrl]);
+
+    // Re-fetch when the AI applies a change (e.g. a new geometry period).
+    useAiApplied(() => void loadPeriods());
 
     async function runBackfill() {
         if (!backfillUrl) {
