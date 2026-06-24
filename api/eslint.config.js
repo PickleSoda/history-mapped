@@ -129,8 +129,11 @@ export default [
             'vite.config.ts',
             'resources/js/actions/**',
             'resources/js/components/ui/*',
+            'resources/js/components/ui/**',
             'resources/js/routes/**',
             'resources/js/wayfinder/**',
+            // shadcn registry dumps files here during install; they're not our source
+            'components/**',
         ],
     },
     prettier, // Turn off all rules that might conflict with Prettier

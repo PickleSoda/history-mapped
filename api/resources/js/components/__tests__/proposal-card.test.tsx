@@ -1,0 +1,177 @@
+// @vitest-environment jsdom
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+    afterAll,
+    afterEach,
+    beforeAll,
+    describe,
+    expect,
+    it,
+    vi,
+} from 'vitest';
+import '@testing-library/jest-dom/vitest';
+
+import { ProposalCard } from '@/components/ai/proposal-card';
+import type { Proposal } from '@/components/ai/proposal-card';
+
+// ── Mock Inertia router.reload ────────────────────────────────────────────────
+
+vi.mock('@inertiajs/react', () => ({
+    router: { reload: vi.fn() },
+}));
+
+// ── Fetch mock ────────────────────────────────────────────────────────────────
+
+let fetchMock: ReturnType<typeof vi.fn>;
+
+beforeAll(() => {
+    fetchMock = vi.fn();
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const meta = document.createElement('meta');
+    meta.setAttribute('name', 'csrf-token');
+    meta.setAttribute('content', 'test-csrf');
+    document.head.appendChild(meta);
+});
+
+afterAll(() => {
+    fetchMock.mockRestore();
+});
+
+afterEach(() => {
+    fetchMock.mockReset();
+    cleanup();
+});
+
+// ── Fixtures ──────────────────────────────────────────────────────────────────
+
+const proposal: Proposal = {
+    proposal_id: 'prop-123',
+    parts: [
+        {
+            key: 'location',
+            human_diff: { summary: 'Set location to Luxor, Egypt' },
+        },
+        {
+            key: 'name',
+            human_diff: { summary: 'Rename to "Thebes (Ancient City)"' },
+        },
+    ],
+    note: 'AI-suggested correction',
+};
+
+// ── Tests ─────────────────────────────────────────────────────────────────────
+
+describe('ProposalCard', () => {
+    it('renders all part summaries and action buttons', () => {
+        render(<ProposalCard proposal={proposal} />);
+
+        expect(
+            screen.getByText('Set location to Luxor, Egypt'),
+        ).toBeInTheDocument();
+
+        expect(
+            screen.getByText('Rename to "Thebes (Ancient City)"'),
+        ).toBeInTheDocument();
+
+        // Each part should have Apply and Discard buttons
+        const applyButtons = screen.getAllByRole('button', { name: /apply/i });
+        const discardButtons = screen.getAllByRole('button', {
+            name: /discard/i,
+        });
+
+        expect(applyButtons).toHaveLength(2);
+        expect(discardButtons).toHaveLength(2);
+    });
+
+    it('shows the proposal note', () => {
+        render(<ProposalCard proposal={proposal} />);
+
+        expect(screen.getByText(/AI-suggested correction/)).toBeInTheDocument();
+    });
+
+    it('calls /apply endpoint and shows Applied status on success', async () => {
+        const { router } = await import('@inertiajs/react');
+
+        fetchMock.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ status: 'applied' }),
+        } as Response);
+
+        render(<ProposalCard proposal={proposal} />);
+
+        const applyButtons = screen.getAllByRole('button', { name: /apply/i });
+        fireEvent.click(applyButtons[0]);
+
+        // Shows loading state briefly then applied
+        await waitFor(() => {
+            expect(screen.getByText('Applied')).toBeInTheDocument();
+        });
+
+        // Verify fetch was called with the right URL
+        expect(fetchMock).toHaveBeenCalledWith(
+            `/ai/proposals/prop-123/parts/location/apply`,
+            expect.objectContaining({
+                method: 'POST',
+                headers: expect.objectContaining({
+                    'X-CSRF-TOKEN': 'test-csrf',
+                }),
+            }),
+        );
+
+        // router.reload() should be called after apply
+        expect(router.reload).toHaveBeenCalled();
+    });
+
+    it('calls /discard endpoint and shows Discarded status', async () => {
+        fetchMock.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ status: 'discarded' }),
+        } as Response);
+
+        render(<ProposalCard proposal={proposal} />);
+
+        const discardButtons = screen.getAllByRole('button', {
+            name: /discard/i,
+        });
+        fireEvent.click(discardButtons[0]);
+
+        await waitFor(() => {
+            expect(screen.getByText('Discarded')).toBeInTheDocument();
+        });
+
+        expect(fetchMock).toHaveBeenCalledWith(
+            `/ai/proposals/prop-123/parts/location/discard`,
+            expect.objectContaining({ method: 'POST' }),
+        );
+    });
+
+    it('shows error state on network failure', async () => {
+        fetchMock.mockRejectedValueOnce(new Error('Network error'));
+
+        render(<ProposalCard proposal={proposal} />);
+
+        const applyButtons = screen.getAllByRole('button', { name: /apply/i });
+        fireEvent.click(applyButtons[0]);
+
+        await waitFor(() => {
+            expect(screen.getByText(/Error/)).toBeInTheDocument();
+        });
+    });
+
+    it('shows error state on non-ok HTTP response', async () => {
+        fetchMock.mockResolvedValueOnce({
+            ok: false,
+            status: 403,
+        } as Response);
+
+        render(<ProposalCard proposal={proposal} />);
+
+        const applyButtons = screen.getAllByRole('button', { name: /apply/i });
+        fireEvent.click(applyButtons[0]);
+
+        await waitFor(() => {
+            expect(screen.getByText(/Error/)).toBeInTheDocument();
+        });
+    });
+});
