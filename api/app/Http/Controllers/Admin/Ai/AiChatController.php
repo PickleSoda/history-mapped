@@ -27,7 +27,11 @@ class AiChatController extends Controller
      *
      * Conversation resumption: when a conversation_id is supplied the agent uses
      * RemembersConversations::continue() to load prior messages from the conversation
-     * store. New conversations are started with forUser() so the store can persist them.
+     * store. For a new session, a UUID is minted and the bound record is resolved
+     * (findOrFail) before the session row is created, so an invalid context_id aborts
+     * with 404 without leaving a phantom row. The new conversation id is returned in
+     * the X-Conversation-Id response header, and the agent always continues via
+     * continue() so the SDK persists messages under the pre-created id.
      */
     public function chat(Request $request): Response
     {
@@ -88,8 +92,11 @@ class AiChatController extends Controller
         $contextId = $mode === 'create' ? 'create' : $data['context_id'];
 
         // Resolve the session (agent_conversations row). Either continue one the
-        // user owns, or mint + create a fresh tagged row so proposals and message
-        // persistence are tied to a real, listable session from the first message.
+        // user owns, or mint a UUID for a new session. For new sessions we resolve
+        // the bound record BEFORE creating the row so an invalid context_id aborts
+        // with 404 without leaving a phantom session in the store.
+        $isNewSession = false;
+
         if ($conversationId !== null) {
             $conversation = Conversation::find($conversationId);
 
@@ -102,14 +109,7 @@ class AiChatController extends Controller
             }
         } else {
             $conversationId = (string) Str::uuid7();
-
-            Conversation::create([
-                'id' => $conversationId,
-                'user_id' => $user->id,
-                'title' => Str::limit($promptText, 60, ''),
-                'context_type' => $data['context_type'],
-                'context_id' => $contextId,
-            ]);
+            $isNewSession = true;
         }
 
         $context = [
@@ -119,6 +119,16 @@ class AiChatController extends Controller
             'conversation_id' => $conversationId,
         ];
 
+        // Build the agent (and resolve the bound record via findOrFail). This may
+        // abort with 404 before we create any row — intentional for the new-session
+        // path so bad context_id values leave no phantom rows behind.
+        // Guard: PostgreSQL UUID columns reject non-UUID strings at the driver level
+        // (PDOException) before Eloquent can convert that to a ModelNotFoundException.
+        // Pre-check the format so we always get a clean 404 for unresolvable ids.
+        if ($mode === 'edit' && ! Str::isUuid($contextId)) {
+            abort(404, 'Record not found.');
+        }
+
         $agent = match (true) {
             $mode === 'create' && $data['context_type'] === 'entity' => new EntityCreatorAgent($user, $context),
             $mode === 'create' && $data['context_type'] === 'chronicle' => new ChronicleCreatorAgent($user, $context),
@@ -126,8 +136,21 @@ class AiChatController extends Controller
             $data['context_type'] === 'chronicle' => new ChronicleEditorAgent(Chronicle::findOrFail($contextId), $user, $context),
         };
 
-        // We pre-created the row, so continue() makes the SDK persist messages
-        // under our id instead of generating its own.
+        // Now that the bound record is confirmed valid, create the session row for
+        // new sessions so proposals and message persistence are tied to a real,
+        // listable session from the first message.
+        if ($isNewSession) {
+            Conversation::create([
+                'id' => $conversationId,
+                'user_id' => $user->id,
+                'title' => Str::limit($promptText, 60, ''),
+                'context_type' => $data['context_type'],
+                'context_id' => $contextId,
+            ]);
+        }
+
+        // continue() makes the SDK persist messages under our pre-created id
+        // instead of generating its own.
         $agent->continue($conversationId, $user);
 
         $response = $agent->stream($promptText)->usingVercelDataProtocol()->toResponse($request);

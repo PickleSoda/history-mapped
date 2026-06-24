@@ -22,6 +22,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Laravel\Ai\Models\Conversation;
 use Tests\TestCase;
 
 class AiChatStreamTest extends TestCase
@@ -431,8 +432,8 @@ class AiChatStreamTest extends TestCase
         $user = $this->userWithPermissions(['entities.write']);
         $entity = $this->makeEntity();
 
-        $existing = \Laravel\Ai\Models\Conversation::create([
-            'id' => (string) \Illuminate\Support\Str::uuid7(),
+        $existing = Conversation::create([
+            'id' => (string) Str::uuid7(),
             'user_id' => $user->id,
             'title' => 'Earlier chat',
             'context_type' => 'entity',
@@ -448,7 +449,23 @@ class AiChatStreamTest extends TestCase
 
         $response->assertOk();
         $this->assertSame($existing->id, $response->headers->get('X-Conversation-Id'));
-        $this->assertSame(1, \Laravel\Ai\Models\Conversation::query()->count());
+        $this->assertSame(1, Conversation::query()->count());
+    }
+
+    public function test_chat_with_unresolvable_edit_context_id_creates_no_session_row(): void
+    {
+        $this->fakeWikidata();
+        EntityEditorAgent::fake(['x']);
+
+        $user = $this->userWithPermissions(['entities.write']);
+
+        $this->actingAs($user)->postJson('/ai/chat', [
+            'context_type' => 'entity',
+            'context_id' => 'does-not-exist',
+            'prompt' => 'hi',
+        ])->assertNotFound();
+
+        $this->assertSame(0, Conversation::query()->count());
     }
 
     public function test_chat_rejects_continuing_a_session_owned_by_another_user(): void
@@ -460,8 +477,8 @@ class AiChatStreamTest extends TestCase
         $intruder = $this->userWithPermissions(['entities.write']);
         $entity = $this->makeEntity();
 
-        $others = \Laravel\Ai\Models\Conversation::create([
-            'id' => (string) \Illuminate\Support\Str::uuid7(),
+        $others = Conversation::create([
+            'id' => (string) Str::uuid7(),
             'user_id' => $owner->id,
             'title' => 'Owner chat',
             'context_type' => 'entity',
