@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Ai\ToolRegistry;
+use App\Ai\Tools\CreateEntity;
 use App\Models\EntityLocation;
 use App\Models\EntityRelationship;
 use App\Models\EntityTemporalRange;
@@ -43,6 +44,8 @@ class AppServiceProvider extends ServiceProvider
         EntityTemporalRange::observe(EntityTemporalRangeObserver::class);
         EntityRelationship::observe(EntityRelationshipObserver::class);
         EntityLocation::observe(EntityLocationObserver::class);
+
+        app(ToolRegistry::class)->register(CreateEntity::name(), CreateEntity::class);
 
         $this->configureDefaults();
         $this->configureAuthorization();
