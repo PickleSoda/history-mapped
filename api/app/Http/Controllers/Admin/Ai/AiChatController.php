@@ -17,8 +17,11 @@ class AiChatController extends Controller
     /**
      * Handle an AI chat request and stream the response using the Vercel data protocol.
      *
-     * Supports context_type=entity (EntityEditorAgent) and
-     * context_type=chronicle (ChronicleEditorAgent).
+     * In edit mode (the default) it routes context_type=entity to EntityEditorAgent
+     * and context_type=chronicle to ChronicleEditorAgent, binding to the record at
+     * context_id. In create mode (mode=create) it routes to EntityCreatorAgent /
+     * ChronicleCreatorAgent with no bound record, staging proposals under the
+     * sentinel context_id='create'.
      *
      * Conversation resumption: when a conversation_id is supplied the agent uses
      * RemembersConversations::continue() to load prior messages from the conversation
