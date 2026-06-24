@@ -78,6 +78,7 @@ class UpdateChronicleEntryActionTest extends TestCase
         );
 
         $this->assertSame('A note.', $updated->notes);
+        $this->assertSame('Narrative.', $updated->narrative_text);
         $this->assertEqualsCanonicalizing(
             [$e1->entity_id],
             $updated->secondaryEntities()->pluck('entities.entity_id')->all(),
