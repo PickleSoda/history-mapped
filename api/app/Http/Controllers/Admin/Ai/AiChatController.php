@@ -6,6 +6,7 @@ use App\Ai\Agents\ChronicleCreatorAgent;
 use App\Ai\Agents\ChronicleEditorAgent;
 use App\Ai\Agents\EntityCreatorAgent;
 use App\Ai\Agents\EntityEditorAgent;
+use App\Ai\Agents\GlobalAgent;
 use App\Http\Controllers\Controller;
 use App\Models\Chronicle;
 use App\Models\Entity;
@@ -36,7 +37,8 @@ class AiChatController extends Controller
     public function chat(Request $request): Response
     {
         $data = $request->validate([
-            'context_type' => 'required|in:entity,chronicle',
+            'context_type' => ['nullable', 'required_unless:kind,global', 'in:entity,chronicle'],
+            'kind' => 'nullable|in:global,entity,chronicle',
             'context_id' => 'nullable|string',
             'mode' => 'nullable|in:edit,create',
             // v3 @ai-sdk/react sends `messages` array; legacy/test callers may send `prompt`.
@@ -84,12 +86,16 @@ class AiChatController extends Controller
         $user = $request->user();
         $conversationId = $data['conversation_id'] ?? null;
         $mode = $data['mode'] ?? 'edit';
+        $kind = $data['kind'] ?? null;
 
-        if ($mode === 'edit' && empty($data['context_id'])) {
+        // Global sessions have no bound record and no context_type/context_id.
+        $isGlobal = $kind === 'global';
+
+        if (! $isGlobal && $mode === 'edit' && empty($data['context_id'])) {
             abort(422, 'context_id is required in edit mode.');
         }
 
-        $contextId = $mode === 'create' ? 'create' : $data['context_id'];
+        $contextId = $isGlobal ? null : ($mode === 'create' ? 'create' : ($data['context_id'] ?? null));
 
         // Resolve the session (agent_conversations row). Either continue one the
         // user owns, or mint a UUID for a new session. For new sessions we resolve
@@ -114,8 +120,8 @@ class AiChatController extends Controller
 
         $context = [
             'user_id' => (string) $user->id,
-            'context_type' => $data['context_type'],
-            'context_id' => $contextId,
+            'context_type' => $isGlobal ? 'global' : $data['context_type'],
+            'context_id' => $contextId ?? $conversationId, // global: use session id as context_id for proposal staging
             'conversation_id' => $conversationId,
         ];
 
@@ -125,11 +131,12 @@ class AiChatController extends Controller
         // Guard: PostgreSQL UUID columns reject non-UUID strings at the driver level
         // (PDOException) before Eloquent can convert that to a ModelNotFoundException.
         // Pre-check the format so we always get a clean 404 for unresolvable ids.
-        if ($mode === 'edit' && ! Str::isUuid($contextId)) {
+        if (! $isGlobal && $mode === 'edit' && ! Str::isUuid($contextId)) {
             abort(404, 'Record not found.');
         }
 
         $agent = match (true) {
+            $isGlobal => new GlobalAgent($user, $context),
             $mode === 'create' && $data['context_type'] === 'entity' => new EntityCreatorAgent($user, $context),
             $mode === 'create' && $data['context_type'] === 'chronicle' => new ChronicleCreatorAgent($user, $context),
             $data['context_type'] === 'entity' => new EntityEditorAgent(Entity::findOrFail($contextId), $user, $context),
@@ -144,7 +151,7 @@ class AiChatController extends Controller
                 'id' => $conversationId,
                 'user_id' => $user->id,
                 'title' => Str::limit($promptText, 60, ''),
-                'context_type' => $data['context_type'],
+                'context_type' => $isGlobal ? 'global' : $data['context_type'],
                 'context_id' => $contextId,
             ]);
         }
