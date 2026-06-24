@@ -174,4 +174,34 @@ describe('ProposalCard', () => {
             expect(screen.getByText(/Error/)).toBeInTheDocument();
         });
     });
+
+    it('double-click on Apply only calls fetch once (concurrent guard)', async () => {
+        // Resolve after a small delay to simulate an in-flight request so the
+        // second click hits while status is already 'loading'.
+        let resolveFirst!: (v: unknown) => void;
+        const firstPromise = new Promise((res) => {
+            resolveFirst = res;
+        });
+
+        fetchMock.mockReturnValueOnce(firstPromise);
+
+        render(<ProposalCard proposal={proposal} />);
+
+        const applyButtons = screen.getAllByRole('button', { name: /apply/i });
+
+        // First click — triggers the request (status → loading).
+        fireEvent.click(applyButtons[0]);
+        // Second click immediately after — should be a no-op.
+        fireEvent.click(applyButtons[0]);
+
+        // Resolve the first (and only) in-flight request.
+        resolveFirst({ ok: true, json: async () => ({ status: 'applied' }) });
+
+        await waitFor(() => {
+            expect(screen.getByText('Applied')).toBeInTheDocument();
+        });
+
+        // fetch must have been called exactly once.
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
 });

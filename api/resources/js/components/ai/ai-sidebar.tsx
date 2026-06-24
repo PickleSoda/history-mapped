@@ -2,7 +2,7 @@ import { Chat } from '@ai-sdk/react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { BotMessageSquare, SendHorizonal, Square } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { ProposalCard } from '@/components/ai/proposal-card';
 import type { Proposal } from '@/components/ai/proposal-card';
 import {
@@ -86,21 +86,27 @@ export function AiSidebar({ open, onOpenChange }: AiSidebarProps) {
     const [input, setInput] = useState('');
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-    // Build a stable Chat instance that includes context + CSRF in every POST.
-    // We recreate it when the context changes so the transport always has
-    // fresh context_type / context_id.
-    const chat = new Chat({
-        transport: new DefaultChatTransport({
-            api: '/ai/chat',
-            headers: () => ({
-                'X-CSRF-TOKEN': getCsrfToken(),
-                'X-Requested-With': 'XMLHttpRequest',
+    // Memoize the Chat instance so it is stable across re-renders (e.g. input
+    // state changes). Only recreate it when the bound record changes so the
+    // transport always has fresh context_type / context_id — and so conversation
+    // history is reset when the user navigates to a different record.
+    const chat = useMemo(
+        () =>
+            new Chat({
+                transport: new DefaultChatTransport({
+                    api: '/ai/chat',
+                    headers: () => ({
+                        'X-CSRF-TOKEN': getCsrfToken(),
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }),
+                    body: aiCtx
+                        ? { context_type: aiCtx.type, context_id: aiCtx.id }
+                        : {},
+                }),
             }),
-            body: aiCtx
-                ? { context_type: aiCtx.type, context_id: aiCtx.id }
-                : {},
-        }),
-    });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [aiCtx?.type, aiCtx?.id],
+    );
 
     const { messages, sendMessage, status, stop } = useChat({ chat });
 
@@ -115,6 +121,9 @@ export function AiSidebar({ open, onOpenChange }: AiSidebarProps) {
         const text = input.trim();
         setInput('');
         void sendMessage({ text });
+        // Restore focus to the textarea so the user can type a follow-up
+        // immediately without clicking.
+        setTimeout(() => textareaRef.current?.focus(), 0);
     }
 
     function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -127,7 +136,7 @@ export function AiSidebar({ open, onOpenChange }: AiSidebarProps) {
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent
-                side="right"
+                side="left"
                 className="flex w-[440px] max-w-full flex-col gap-0 p-0 sm:max-w-[440px]"
             >
                 {/* Header */}

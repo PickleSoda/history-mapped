@@ -27,9 +27,47 @@ class AiChatController extends Controller
         $data = $request->validate([
             'context_type' => 'required|in:entity,chronicle',
             'context_id' => 'required|string',
-            'prompt' => 'required|string',
+            // v3 @ai-sdk/react sends `messages` array; legacy/test callers may send `prompt`.
+            'prompt' => 'nullable|string',
+            'messages' => 'nullable|array',
             'conversation_id' => 'nullable|string',
         ]);
+
+        // Derive the prompt text from either the legacy `prompt` field or the
+        // v3 UIMessage array (take the last user message and join its text parts).
+        $promptText = null;
+
+        if (! empty($data['prompt'])) {
+            $promptText = $data['prompt'];
+        } elseif (! empty($data['messages'])) {
+            $userMessages = array_filter(
+                $data['messages'],
+                fn ($m) => isset($m['role']) && $m['role'] === 'user',
+            );
+
+            $lastUser = end($userMessages);
+
+            if ($lastUser !== false) {
+                // v3 UIMessage: parts: [{type:'text', text:'...'}]
+                if (! empty($lastUser['parts']) && is_array($lastUser['parts'])) {
+                    $textParts = array_filter(
+                        $lastUser['parts'],
+                        fn ($p) => isset($p['type']) && $p['type'] === 'text',
+                    );
+                    $texts = array_map(fn ($p) => $p['text'] ?? '', $textParts);
+                    $promptText = implode('', $texts);
+                }
+
+                // Fallback: plain `content` string (some SDK versions)
+                if (empty($promptText) && isset($lastUser['content']) && is_string($lastUser['content'])) {
+                    $promptText = $lastUser['content'];
+                }
+            }
+        }
+
+        if (empty($promptText)) {
+            abort(422, 'Could not extract a user message from the request. Provide `prompt` or a non-empty `messages` array with at least one user message containing text parts.');
+        }
 
         $user = $request->user();
         $conversationId = $data['conversation_id'] ?? null;
@@ -61,6 +99,6 @@ class AiChatController extends Controller
             $agent->forUser($user);
         }
 
-        return $agent->stream($data['prompt'])->usingVercelDataProtocol();
+        return $agent->stream($promptText)->usingVercelDataProtocol();
     }
 }

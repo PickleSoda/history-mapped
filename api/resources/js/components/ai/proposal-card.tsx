@@ -48,6 +48,17 @@ export function ProposalCard({ proposal }: { proposal: Proposal }) {
     }
 
     async function act(key: string, verb: 'apply' | 'discard') {
+        // Guard against concurrent or double calls (e.g. double-click).
+        const currentStatus = partStatus[key];
+
+        if (
+            currentStatus === 'loading' ||
+            currentStatus === 'applied' ||
+            currentStatus === 'discarded'
+        ) {
+            return;
+        }
+
         setPartStatus((s) => ({ ...s, [key]: 'loading' }));
 
         try {
