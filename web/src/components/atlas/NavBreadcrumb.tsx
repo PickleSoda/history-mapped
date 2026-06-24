@@ -1,5 +1,5 @@
 import { ChevronRight, Route } from 'lucide-react';
-import { Fragment } from 'react';
+import { Fragment, useEffect, useRef } from 'react';
 import { useNavTrail } from '@/hooks';
 import { GROUPS } from '@/lib/groups';
 import { cn } from '@/lib/utils';
@@ -21,10 +21,19 @@ export function NavBreadcrumb({
   variant?: 'bar' | 'pill';
 }) {
   const { trail, goTo } = useNavTrail();
+  const navRef = useRef<HTMLElement>(null);
+
+  // Keep the newest crumb in view: scroll to the end whenever the trail grows.
+  useEffect(() => {
+    const el = navRef.current;
+    if (el) el.scrollTo({ left: el.scrollWidth, behavior: 'smooth' });
+  }, [trail.length]);
+
   if (trail.length < 2) return null;
 
   return (
     <nav
+      ref={navRef}
       aria-label="Navigation trail"
       className={cn(
         'flex max-w-full items-center gap-0.5 overflow-x-auto text-[12px]',
