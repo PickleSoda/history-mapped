@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Entity;
 
+use App\Enums\EntityGroup;
 use App\Models\Entity;
 use App\Models\EntityRelationship;
 use App\Models\EntityTemporalRange;
@@ -22,6 +23,12 @@ class BackfillGeometryPeriodsAction
         $primaryLocation = $entity->primaryLocation;
         $geom = $primaryLocation?->geom;
         $territoryGeom = $primaryLocation?->territory_geom;
+
+        // Events are momentary: an open (NULL) end means "end unknown", NOT
+        // "ongoing to the present". Collapsing it to a point (end = start) keeps the
+        // map's int4range from rendering a one-day battle across every later century
+        // up to today. Non-event entities (polities, monuments) keep NULL = ongoing.
+        $isEvent = $entity->entity_group === EntityGroup::Event;
 
         GeometryPeriod::query()
             ->where('entity_id', $entity->entity_id)
@@ -72,6 +79,10 @@ class BackfillGeometryPeriodsAction
                 // otherwise. A genuine point-in-time entity carries end_year=start.
                 $endYear = $range->end_year;
 
+                if ($endYear === null && $isEvent) {
+                    $endYear = $startYear;
+                }
+
                 if ($startYear === null) {
                     continue;
                 }
@@ -101,6 +112,10 @@ class BackfillGeometryPeriodsAction
         $primaryRange = $entity->primaryTemporalRange;
         $startYear = $primaryRange?->start_year ?? $primaryRange?->end_year;
         $endYear = $primaryRange?->end_year;  // keep NULL = ongoing (see above)
+
+        if ($endYear === null && $isEvent) {
+            $endYear = $startYear;
+        }
 
         if ($geom !== null || $territoryGeom !== null) {
             if ($startYear !== null) {
