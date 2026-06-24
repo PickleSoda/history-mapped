@@ -134,3 +134,40 @@ All Artisan commands run inside the `app` container:
 docker compose -f docker/docker-compose.yml exec app php artisan ai:prune-proposals --dry-run
 docker compose -f docker/docker-compose.yml exec app php artisan ai:prune-proposals
 ```
+
+---
+
+## 9. Choosing the model — `pipeline/eval_admin_agent_models.py`
+
+The agent needs a model that is good at **both** tool-calling _and_ writing summaries from source text, at interactive latency and low cost. `pipeline/eval_admin_agent_models.py` is a standalone (stdlib-only) harness that replays the **real** agent loop against several OpenRouter models and auto-grades the result.
+
+It feeds each model the real system prompt + tool schemas, executes its tool calls with stubs (with **live** Wikidata for `verify_wikidata`), and loops until the model stops — exactly what `EntityEditorAgent` / `ChronicleEditorAgent` do in production.
+
+### Scenarios
+
+| Key | Agent | Probes |
+| --- | --- | --- |
+| `fix-karnak` | entity editor | verify→set QID, fix location (NL-coord trap), write a summary from source, signed-BCE years |
+| `link-new-entity` | entity editor | nested `create_relationship` via `new_target` (must not fabricate a UUID or split into `create_entity`) |
+| `chronicle-relate` | chronicle editor | link two of the chronicle's referenced entities by their real ids, write a missing summary (uses the chronicle toolset — no `get_entity_context`) |
+
+### Running it
+
+```bash
+python3 pipeline/eval_admin_agent_models.py                      # all scenarios × default models
+python3 pipeline/eval_admin_agent_models.py --scenarios chronicle-relate
+python3 pipeline/eval_admin_agent_models.py --models openai/gpt-5-mini,mistralai/mistral-medium-3.1
+python3 pipeline/eval_admin_agent_models.py --repeat 3           # run each combo N times for variance
+```
+
+Key resolution: `--key` → `$OPENROUTER_API_KEY` → `api/.env` → `pipeline/.env`. Per-model output shows the tool-call sequence, an auto-score against the rubric, the proposed summary (for human writing-judgment), and latency/cost/tokens; an aggregate matrix prints at the end.
+
+### Findings (2026-06-24)
+
+All four candidates (`openai/gpt-5-mini`, `mistralai/mistral-medium-3.1`, `google/gemini-3.1-flash-lite`, `qwen/qwen3.7-plus`) passed every rubric check. The differentiators the rubric does **not** score:
+
+- **Argument hygiene** — `gpt-5-mini` (and, less often, `qwen`) over-fill tool args with empty strings / all-zero objects (e.g. `update_entity_fields` with `name:"", entity_type:"", start_year:0`), which our tools would treat as destructive writes. **Mistral** and **Gemini** send only the fields they change.
+- **Writing** — `gpt-5-mini`/`qwen` are richest; **Mistral** is very close and keeps the specifics (named pharaohs, architectural nouns); **Gemini** flattens detail.
+- **Latency / cost** — Mistral ~5.7 s / ~$0.005; Gemini ~7 s; gpt-5-mini ~30 s and ~3× the cost; qwen slow.
+
+**Chosen: `mistralai/mistral-medium-3.1`** — the only candidate that is simultaneously clean on tool args, near-best on writing, fastest, and cheap.
