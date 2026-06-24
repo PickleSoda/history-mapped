@@ -381,6 +381,7 @@ class ProposalApplierTest extends TestCase
         // register a fake tool that echoes payload + injected dependency id
         app()->bind('ai.tool.fake', fn () => new class extends \App\Ai\Tools\AgentTool {
             public static function name(): string { return 'fake'; }
+            public function description(): string { return 'fake tool'; }
             public function schema(\Illuminate\Contracts\JsonSchema\JsonSchema $s): array { return []; }
             public function buildParts(array $args): array { return []; }
             public function applyPart(array $payload, array $resolved): array {
@@ -414,6 +415,9 @@ class ProposalApplierTest extends TestCase
 
 - [ ] **Step 3: Implement the base, registry, applier**
 
+> **Aligned to the installed `laravel/ai` v0.8.1 `Contracts\Tool` (Task 1 findings):**
+> `description(): Stringable|string`, `handle(Laravel\Ai\Tools\Request $request): Stringable|string` (returns a **string**; args via `$request->all()`), `schema(JsonSchema $schema): array`. The Tool interface has **no `name()`** and `handle()` receives only the model's args — so route/conversation context is injected by the agent via a `withContext()` setter, and `name()` is kept solely for our registry.
+
 ```php
 // app/Ai/Tools/AgentTool.php
 <?php
@@ -421,10 +425,19 @@ namespace App\Ai\Tools;
 
 use App\Models\Ai\ProposedChange;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Laravel\Ai\Contracts\Tool;
+use Laravel\Ai\Tools\Request;
+use Stringable;
 
-abstract class AgentTool
+abstract class AgentTool implements Tool
 {
+    /** Route/conversation context injected by the agent (user_id, context_type, context_id, conversation_id). */
+    protected array $context = [];
+
+    /** Registry key — NOT part of the SDK Tool contract. */
     abstract public static function name(): string;
+
+    abstract public function description(): Stringable|string;
 
     /** @return array<string,\Illuminate\JsonSchema\Types\Type> */
     abstract public function schema(JsonSchema $schema): array;
@@ -435,20 +448,27 @@ abstract class AgentTool
     /** @return array{result_id:string,summary:string} */
     abstract public function applyPart(array $payload, array $resolved): array;
 
+    public function withContext(array $context): static
+    {
+        $this->context = $context;
+
+        return $this;
+    }
+
     /**
-     * Model-facing entry point. Stages a ProposedChange and returns a compact
-     * summary the model can show. NOTE: align the actual method name/return type
-     * with the installed laravel/ai Tool contract (Task 1, Step 2).
+     * Model-facing entry point (laravel/ai Tool contract). Stages a
+     * ProposedChange from the model's args + injected context and returns a
+     * JSON summary STRING the model relays. The model never applies.
      */
-    public function handle(array $args, array $context): array
+    public function handle(Request $request): Stringable|string
     {
         $change = ProposedChange::create([
-            'user_id' => $context['user_id'],
-            'conversation_id' => $context['conversation_id'] ?? null,
-            'context_type' => $context['context_type'],
-            'context_id' => $context['context_id'],
+            'user_id' => $this->context['user_id'],
+            'conversation_id' => $this->context['conversation_id'] ?? null,
+            'context_type' => $this->context['context_type'],
+            'context_id' => $this->context['context_id'],
         ]);
-        foreach ($this->buildParts($args) as $part) {
+        foreach ($this->buildParts($request->all()) as $part) {
             $change->parts()->create([
                 'key' => $part['key'], 'tool' => $part['tool'],
                 'payload' => $part['payload'], 'human_diff' => $part['human_diff'],
@@ -456,11 +476,11 @@ abstract class AgentTool
             ]);
         }
 
-        return [
+        return json_encode([
             'proposal_id' => $change->id,
             'parts' => $change->parts()->get(['key', 'tool', 'human_diff'])->toArray(),
             'note' => 'Proposed. Awaiting the operator to Apply each part.',
-        ];
+        ], JSON_THROW_ON_ERROR);
     }
 }
 ```
