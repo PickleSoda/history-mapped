@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
-class PruneAgentProposals extends Command
+class PruneAgentProposalsCommand extends Command
 {
     protected $signature = 'ai:prune-proposals
                             {--dry-run : Report row counts without deleting anything}';
@@ -82,20 +82,22 @@ class PruneAgentProposals extends Command
         // ── Rule 4: conversations older than 90 days ──────────────────────────
         $cutoffConversations = Carbon::now()->subDays(90);
 
-        $oldConversationIds = DB::table($conversationsTable)
-            ->where('updated_at', '<', $cutoffConversations)
-            ->pluck('id');
+        if ($dryRun) {
+            $countMessagesDeleted = DB::table($messagesTable)
+                ->whereIn('conversation_id', fn ($q) => $q->select('id')->from($conversationsTable)->where('updated_at', '<', $cutoffConversations))
+                ->count();
 
-        $countOldConversations = $oldConversationIds->count();
-
-        if (! $dryRun && $countOldConversations > 0) {
-            // Delete orphaned messages first (no FK cascade on conversation_id).
-            DB::table($messagesTable)
-                ->whereIn('conversation_id', $oldConversationIds)
+            $countOldConversations = DB::table($conversationsTable)
+                ->where('updated_at', '<', $cutoffConversations)
+                ->count();
+        } else {
+            // Delete messages via subquery first (no FK cascade on conversation_id).
+            $countMessagesDeleted = DB::table($messagesTable)
+                ->whereIn('conversation_id', fn ($q) => $q->select('id')->from($conversationsTable)->where('updated_at', '<', $cutoffConversations))
                 ->delete();
 
-            DB::table($conversationsTable)
-                ->whereIn('id', $oldConversationIds)
+            $countOldConversations = DB::table($conversationsTable)
+                ->where('updated_at', '<', $cutoffConversations)
                 ->delete();
         }
 
