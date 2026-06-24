@@ -85,5 +85,7 @@ describe('Create with AI page', () => {
         await waitFor(() => {
             expect(screen.getByText('Edit Rome')).toBeInTheDocument();
         });
+
+        expect(screen.getByText('Entity: Rome')).toBeInTheDocument();
     });
 });
