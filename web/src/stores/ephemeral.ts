@@ -8,6 +8,7 @@
  */
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { create } from 'zustand';
+import type { Crumb } from '@/lib/nav-trail';
 
 export type SheetHeight = 'peek' | 'half' | 'full';
 
@@ -22,12 +23,15 @@ interface EphemeralState {
   sheet: SheetHeight;
   /** Imperative handle to the maplibre map. Not React state for renders. */
   map: MaplibreMap | null;
+  /** Breadcrumb trail of visited focuses (tours / entities) this session. */
+  trail: Crumb[];
 
   setLiveScrub: (year: number | null) => void;
   setHover: (id: string | null) => void;
   setPaletteOpen: (open: boolean) => void;
   setSheet: (height: SheetHeight) => void;
   setMap: (map: MaplibreMap | null) => void;
+  setTrail: (updater: (prev: Crumb[]) => Crumb[]) => void;
 }
 
 export const useEphemeralStore = create<EphemeralState>()((set) => ({
@@ -36,10 +40,12 @@ export const useEphemeralStore = create<EphemeralState>()((set) => ({
   paletteOpen: false,
   sheet: 'peek',
   map: null,
+  trail: [],
 
   setLiveScrub: (liveScrub) => set({ liveScrub }),
   setHover: (hoverId) => set({ hoverId }),
   setPaletteOpen: (paletteOpen) => set({ paletteOpen }),
   setSheet: (sheet) => set({ sheet }),
   setMap: (map) => set({ map }),
+  setTrail: (updater) => set((s) => ({ trail: updater(s.trail) })),
 }));

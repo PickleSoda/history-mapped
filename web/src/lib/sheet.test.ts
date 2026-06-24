@@ -23,8 +23,11 @@ describe('snap mappers', () => {
 });
 
 describe('sheetContentKind', () => {
-  it('chronicle wins over selection', () => {
-    expect(sheetContentKind({ chronicleActive: true, hasSelection: true })).toBe('chronicle');
+  it('selection wins over chronicle (drill into an entity mid-tour)', () => {
+    expect(sheetContentKind({ chronicleActive: true, hasSelection: true })).toBe('detail');
+  });
+  it('shows the tour when a chronicle is active and nothing is selected', () => {
+    expect(sheetContentKind({ chronicleActive: true, hasSelection: false })).toBe('chronicle');
   });
   it('selection shows detail', () => {
     expect(sheetContentKind({ chronicleActive: false, hasSelection: true })).toBe('detail');

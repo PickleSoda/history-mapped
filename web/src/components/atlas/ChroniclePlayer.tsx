@@ -1,8 +1,17 @@
 import { ChevronLeft, MoveRight, Route } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { GroupDot } from '@/components/atlas/GroupBadge';
-import { useChronicle, useChronicleNav, useSelection, useTimeState } from '@/hooks';
+import { NavBreadcrumb } from '@/components/atlas/NavBreadcrumb';
+import {
+  useChronicle,
+  useChronicleNav,
+  useEntityGeometries,
+  useMapFocus,
+  useSelection,
+  useTimeState,
+} from '@/hooks';
 import { formatYear } from '@/lib/format';
+import { geometriesBounds } from '@/lib/map-focus';
 import type { ChronicleEntry } from '@/lib/schemas/chronicle';
 import type { Relationship } from '@/lib/schemas/entity';
 import { cn } from '@/lib/utils';
@@ -101,6 +110,32 @@ export function ChroniclePlayerContent() {
     if (current?.start_year != null) setInstant(current.start_year);
   }, [current?.entry_id, current?.start_year, setInstant]);
 
+  // Camera follows the tour: frame everyone in the step — the relationship's two
+  // ends (inline geom) + its approximate location + the secondary entities
+  // (geom resolved by id, since they arrive without it). `secondaryGeoms` is
+  // referentially stable, so `bounds` only changes on a step change or once late
+  // geometry resolves — the effect then re-frames, never on an idle re-render.
+  const { focusBounds } = useMapFocus();
+  const rel = current?.primary_relationship ?? null;
+  const secondaryIds = useMemo(
+    () => current?.secondary_entities?.map((e) => e.entity_id) ?? [],
+    [current],
+  );
+  const secondaryGeoms = useEntityGeometries(secondaryIds);
+  const bounds = useMemo(
+    () =>
+      geometriesBounds([
+        rel?.source_entity?.geom,
+        rel?.target_entity?.geom,
+        current?.approximate_location,
+        ...secondaryGeoms,
+      ]),
+    [rel, current?.approximate_location, secondaryGeoms],
+  );
+  useEffect(() => {
+    focusBounds(bounds);
+  }, [bounds, focusBounds]);
+
   return (
     <div className="flex h-full flex-col">
       {isLoading && <p className="p-4 text-sm text-muted-foreground">Loading…</p>}
@@ -186,7 +221,8 @@ export function ChroniclePlayerContent() {
 export function ChroniclePlayer() {
   const { exit } = useChronicleNav();
   return (
-    <aside className="flex h-full w-[380px] max-w-[90vw] flex-none flex-col border-l bg-card">
+    <aside className="flex h-full w-[380px] max-w-[90vw] flex-none flex-col border-r bg-card">
+      <NavBreadcrumb className="flex-none" />
       <div className="flex items-center justify-between border-b px-3 py-2">
         <button
           type="button"

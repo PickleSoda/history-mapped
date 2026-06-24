@@ -7,10 +7,15 @@ import { TopBar } from '@/components/atlas/TopBar';
 import { MapCanvas } from '@/components/map/MapCanvas';
 import { useChronicleNav } from '@/hooks';
 
-/** The right panel hosts the chronicle tour OR the entity detail — never both. */
-function RightPanel() {
+/**
+ * While a chronicle is active the tour takes the left rail (in place of the
+ * list); the right panel is always the entity detail. So the tour and an entity
+ * you drill into from it can be read side by side, instead of one replacing the
+ * other.
+ */
+function LeftPanel() {
   const { isActive } = useChronicleNav();
-  return isActive ? <ChroniclePlayer /> : <DetailPanel />;
+  return isActive ? <ChroniclePlayer /> : <LeftSidebar />;
 }
 
 /**
@@ -30,10 +35,10 @@ export function DesktopShell() {
 
         {/* Sidebars float over the map */}
         <div className="absolute inset-y-0 left-0 z-10">
-          <LeftSidebar />
+          <LeftPanel />
         </div>
         <div className="absolute inset-y-0 right-0 z-10">
-          <RightPanel />
+          <DetailPanel />
         </div>
       </div>
 

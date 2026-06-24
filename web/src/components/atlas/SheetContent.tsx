@@ -6,14 +6,17 @@ import {
   ChroniclePlayerContent,
 } from '@/components/atlas/ChroniclePlayer';
 import { DetailPanelContent } from '@/components/atlas/DetailPanel';
+import { NavBreadcrumb } from '@/components/atlas/NavBreadcrumb';
 import { useChronicleNav, useSelection, useSheetContent } from '@/hooks';
 import { cn } from '@/lib/utils';
 
 type Tab = 'entities' | 'chronicles';
 
-/** Detail in the sheet: a back-to-results bar over the shared detail body. */
+/** Detail in the sheet: a back bar over the shared detail body. During a tour
+ *  clearing the selection returns to the tour, so the label reflects that. */
 function SheetDetail() {
   const { clear } = useSelection();
+  const { isActive } = useChronicleNav();
   return (
     <div className="flex h-full flex-col">
       <div className="flex flex-none items-center px-2 py-1.5">
@@ -22,7 +25,7 @@ function SheetDetail() {
           onClick={clear}
           className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[13px] text-muted-foreground hover:bg-muted hover:text-foreground"
         >
-          <ChevronLeft size={15} /> Results
+          <ChevronLeft size={15} /> {isActive ? 'Back to tour' : 'Results'}
         </button>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
@@ -82,10 +85,22 @@ function SheetList() {
   );
 }
 
-/** Sheet body: chronicle tour, entity detail, or the list. */
+/** Sheet body: a navigation trail (when there's one) over the chronicle tour,
+ *  entity detail, or the list. */
 export function SheetContent() {
   const kind = useSheetContent();
-  if (kind === 'chronicle') return <SheetChronicle />;
-  if (kind === 'detail') return <SheetDetail />;
-  return <SheetList />;
+  const body =
+    kind === 'chronicle' ? (
+      <SheetChronicle />
+    ) : kind === 'detail' ? (
+      <SheetDetail />
+    ) : (
+      <SheetList />
+    );
+  return (
+    <div className="flex h-full flex-col">
+      <NavBreadcrumb variant="pill" className="mx-2 mt-1 flex-none" />
+      <div className="min-h-0 flex-1">{body}</div>
+    </div>
+  );
 }

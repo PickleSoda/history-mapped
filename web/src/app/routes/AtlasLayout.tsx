@@ -1,6 +1,6 @@
 import { DesktopShell } from '@/components/atlas/DesktopShell';
 import { MobileShell } from '@/components/atlas/MobileShell';
-import { useIsMobile } from '@/hooks';
+import { useIsMobile, useNavTrailSync } from '@/hooks';
 
 /**
  * Top-level shell selector. Below `md` (≤767px) the touch shell (bottom sheet)
@@ -11,5 +11,6 @@ import { useIsMobile } from '@/hooks';
  */
 export function AtlasLayout() {
   const isMobile = useIsMobile();
+  useNavTrailSync();
   return isMobile ? <MobileShell /> : <DesktopShell />;
 }
