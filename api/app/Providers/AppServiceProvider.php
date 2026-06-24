@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Ai\ToolRegistry;
 use App\Ai\Tools\CreateEntity;
+use App\Ai\Tools\CreateRelationship;
 use App\Ai\Tools\GetEntityContext;
 use App\Ai\Tools\SetEntityLocation;
 use App\Ai\Tools\UpdateEntityFields;
@@ -50,6 +51,7 @@ class AppServiceProvider extends ServiceProvider
         EntityLocation::observe(EntityLocationObserver::class);
 
         app(ToolRegistry::class)->register(CreateEntity::name(), CreateEntity::class);
+        app(ToolRegistry::class)->register(CreateRelationship::name(), CreateRelationship::class);
         app(ToolRegistry::class)->register(SetEntityLocation::name(), SetEntityLocation::class);
         app(ToolRegistry::class)->register(UpdateEntityFields::name(), UpdateEntityFields::class);
         app(ToolRegistry::class)->register(GetEntityContext::name(), GetEntityContext::class);
