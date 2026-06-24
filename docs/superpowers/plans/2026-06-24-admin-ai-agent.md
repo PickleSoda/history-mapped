@@ -640,6 +640,15 @@ class CreateEntity extends AgentTool
         return 'create_entity';
     }
 
+    public function description(): string
+    {
+        return 'Create a new historical entity (the primary tool). Verify any wikidata_id first; pass a representative lon/lat when known.';
+    }
+
+    // NOTE: align the fluent builder calls with the INSTALLED Illuminate JsonSchema
+    // API (Laravel AI confirmed `$schema->string('description')` style). Use
+    // whatever the installed `Illuminate\JsonSchema\Types` exposes for description /
+    // required / number / integer — adjust the calls below to match if they differ.
     public function schema(JsonSchema $schema): array
     {
         return [
