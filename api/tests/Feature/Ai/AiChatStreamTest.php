@@ -22,6 +22,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Laravel\Ai\Models\Conversation;
 use Tests\TestCase;
 
 class AiChatStreamTest extends TestCase
@@ -392,6 +393,104 @@ class AiChatStreamTest extends TestCase
             ]);
 
         $response->assertUnprocessable();
+    }
+
+    // ── Feature: session ownership ────────────────────────────────────────────
+
+    public function test_chat_creates_and_returns_a_session_for_a_new_conversation(): void
+    {
+        $this->fakeWikidata();
+        EntityEditorAgent::fake(['Hello from the fake agent.']);
+
+        $user = $this->userWithPermissions(['entities.write']);
+        $entity = $this->makeEntity();
+
+        $response = $this->actingAs($user)->postJson('/ai/chat', [
+            'context_type' => 'entity',
+            'context_id' => $entity->entity_id,
+            'prompt' => 'Tell me about this entity.',
+        ]);
+
+        $response->assertOk();
+        $response->assertHeader('X-Conversation-Id');
+
+        $sessionId = $response->headers->get('X-Conversation-Id');
+        $this->assertNotEmpty($sessionId);
+        $this->assertDatabaseHas('agent_conversations', [
+            'id' => $sessionId,
+            'user_id' => $user->id,
+            'context_type' => 'entity',
+            'context_id' => $entity->entity_id,
+        ]);
+    }
+
+    public function test_chat_continues_a_session_the_user_owns_without_creating_a_new_row(): void
+    {
+        $this->fakeWikidata();
+        EntityEditorAgent::fake(['Continuing.']);
+
+        $user = $this->userWithPermissions(['entities.write']);
+        $entity = $this->makeEntity();
+
+        $existing = Conversation::create([
+            'id' => (string) Str::uuid7(),
+            'user_id' => $user->id,
+            'title' => 'Earlier chat',
+            'context_type' => 'entity',
+            'context_id' => $entity->entity_id,
+        ]);
+
+        $response = $this->actingAs($user)->postJson('/ai/chat', [
+            'context_type' => 'entity',
+            'context_id' => $entity->entity_id,
+            'conversation_id' => $existing->id,
+            'prompt' => 'Follow-up.',
+        ]);
+
+        $response->assertOk();
+        $this->assertSame($existing->id, $response->headers->get('X-Conversation-Id'));
+        $this->assertSame(1, Conversation::query()->count());
+    }
+
+    public function test_chat_with_unresolvable_edit_context_id_creates_no_session_row(): void
+    {
+        $this->fakeWikidata();
+        EntityEditorAgent::fake(['x']);
+
+        $user = $this->userWithPermissions(['entities.write']);
+
+        $this->actingAs($user)->postJson('/ai/chat', [
+            'context_type' => 'entity',
+            'context_id' => 'does-not-exist',
+            'prompt' => 'hi',
+        ])->assertNotFound();
+
+        $this->assertSame(0, Conversation::query()->count());
+    }
+
+    public function test_chat_rejects_continuing_a_session_owned_by_another_user(): void
+    {
+        $this->fakeWikidata();
+        EntityEditorAgent::fake(['nope']);
+
+        $owner = $this->userWithPermissions(['entities.write']);
+        $intruder = $this->userWithPermissions(['entities.write']);
+        $entity = $this->makeEntity();
+
+        $others = Conversation::create([
+            'id' => (string) Str::uuid7(),
+            'user_id' => $owner->id,
+            'title' => 'Owner chat',
+            'context_type' => 'entity',
+            'context_id' => $entity->entity_id,
+        ]);
+
+        $this->actingAs($intruder)->postJson('/ai/chat', [
+            'context_type' => 'entity',
+            'context_id' => $entity->entity_id,
+            'conversation_id' => $others->id,
+            'prompt' => 'let me in',
+        ])->assertForbidden();
     }
 
     /**
