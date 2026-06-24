@@ -77,7 +77,9 @@ class CreateEntity extends AgentTool
             wikidataId: $payload['wikidata_id'] ?? null,
             temporalStart: isset($payload['start_year']) ? (string) $payload['start_year'] : null,
             temporalEnd: isset($payload['end_year']) ? (string) $payload['end_year'] : null,
-            locationMethod: $hasCoord ? LocationResolutionMethod::Wikidata : null,
+            locationMethod: $hasCoord
+                ? (! empty($payload['wikidata_id']) ? LocationResolutionMethod::Wikidata : LocationResolutionMethod::HumanAssigned)
+                : null,
             geojson: $hasCoord ? ['type' => 'Point', 'coordinates' => [$payload['lon'], $payload['lat']]] : null,
         );
 
