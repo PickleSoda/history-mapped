@@ -4,12 +4,14 @@ namespace App\Providers;
 
 use App\Ai\ToolRegistry;
 use App\Ai\Tools\CreateChronicle;
+use App\Ai\Tools\CreateChronicleEntry;
 use App\Ai\Tools\CreateEntity;
 use App\Ai\Tools\CreateRelationship;
 use App\Ai\Tools\GetEntityContext;
 use App\Ai\Tools\MergeDuplicateEntities;
 use App\Ai\Tools\SetEntityLocation;
 use App\Ai\Tools\SetEntityWikidata;
+use App\Ai\Tools\UpdateChronicleEntry;
 use App\Ai\Tools\UpdateEntityFields;
 use App\Ai\Tools\VerifyWikidata;
 use App\Models\EntityLocation;
@@ -62,6 +64,8 @@ class AppServiceProvider extends ServiceProvider
         app(ToolRegistry::class)->register(VerifyWikidata::name(), VerifyWikidata::class);
         app(ToolRegistry::class)->register(SetEntityWikidata::name(), SetEntityWikidata::class);
         app(ToolRegistry::class)->register(MergeDuplicateEntities::name(), MergeDuplicateEntities::class);
+        app(ToolRegistry::class)->register(CreateChronicleEntry::name(), CreateChronicleEntry::class);
+        app(ToolRegistry::class)->register(UpdateChronicleEntry::name(), UpdateChronicleEntry::class);
 
         $this->configureDefaults();
         $this->configureAuthorization();

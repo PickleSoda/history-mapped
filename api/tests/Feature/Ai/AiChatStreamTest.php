@@ -6,12 +6,14 @@ use App\Ai\Agents\ChronicleCreatorAgent;
 use App\Ai\Agents\ChronicleEditorAgent;
 use App\Ai\Agents\EntityCreatorAgent;
 use App\Ai\Agents\EntityEditorAgent;
+use App\Ai\Tools\CreateChronicleEntry;
 use App\Ai\Tools\CreateEntity;
 use App\Ai\Tools\CreateRelationship;
 use App\Ai\Tools\GetEntityContext;
 use App\Ai\Tools\MergeDuplicateEntities;
 use App\Ai\Tools\SetEntityLocation;
 use App\Ai\Tools\SetEntityWikidata;
+use App\Ai\Tools\UpdateChronicleEntry;
 use App\Ai\Tools\UpdateEntityFields;
 use App\Ai\Tools\VerifyWikidata;
 use App\Models\Chronicle;
@@ -414,8 +416,8 @@ class AiChatStreamTest extends TestCase
         $agent = new ChronicleEditorAgent($chronicle, $user, $context);
         $tools = collect($agent->tools());
 
-        // Expect 7 tools (no GetEntityContext, but VerifyWikidata + 6 staging tools).
-        $this->assertCount(7, $tools);
+        // Expect 9 tools (no GetEntityContext, but VerifyWikidata + 8 staging tools).
+        $this->assertCount(9, $tools);
 
         // VerifyWikidata present.
         $this->assertTrue(
@@ -423,8 +425,8 @@ class AiChatStreamTest extends TestCase
             'VerifyWikidata must be in the tools list'
         );
 
-        // All six staging tools present.
-        foreach ([CreateEntity::class, SetEntityLocation::class, UpdateEntityFields::class, SetEntityWikidata::class, CreateRelationship::class, MergeDuplicateEntities::class] as $toolClass) {
+        // All eight staging tools present.
+        foreach ([CreateEntity::class, SetEntityLocation::class, UpdateEntityFields::class, SetEntityWikidata::class, CreateRelationship::class, MergeDuplicateEntities::class, CreateChronicleEntry::class, UpdateChronicleEntry::class] as $toolClass) {
             $this->assertTrue(
                 $tools->contains(fn ($t) => $t instanceof $toolClass),
                 "{$toolClass} must be in the tools list"

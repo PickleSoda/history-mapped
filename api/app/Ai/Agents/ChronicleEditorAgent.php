@@ -2,11 +2,13 @@
 
 namespace App\Ai\Agents;
 
+use App\Ai\Tools\CreateChronicleEntry;
 use App\Ai\Tools\CreateEntity;
 use App\Ai\Tools\CreateRelationship;
 use App\Ai\Tools\MergeDuplicateEntities;
 use App\Ai\Tools\SetEntityLocation;
 use App\Ai\Tools\SetEntityWikidata;
+use App\Ai\Tools\UpdateChronicleEntry;
 use App\Ai\Tools\UpdateEntityFields;
 use App\Ai\Tools\VerifyWikidata;
 use App\Models\Chronicle;
@@ -68,6 +70,8 @@ class ChronicleEditorAgent implements Agent, Conversational, HasTools
             app(SetEntityWikidata::class)->withContext($this->context),
             app(CreateRelationship::class)->withContext($this->context),
             app(MergeDuplicateEntities::class)->withContext($this->context),
+            app(CreateChronicleEntry::class)->withContext($this->context),
+            app(UpdateChronicleEntry::class)->withContext($this->context),
         ];
     }
 }
