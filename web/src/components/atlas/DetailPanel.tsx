@@ -1,5 +1,7 @@
-import { Clock, FileText, MapPin, ScrollText, X } from 'lucide-react';
+import { Clock, FileText, MapPin, ScrollText, Sparkles, X } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
+import type { ReactNode } from 'react';
 import { GroupDot, TypeBadge } from '@/components/atlas/GroupBadge';
 import {
   useChronicleNav,
@@ -8,17 +10,43 @@ import {
   useEntityConnections,
   useMapFocus,
   useSelection,
+  useTimeState,
 } from '@/hooks';
 import { formatYear } from '@/lib/format';
 import { GROUPS } from '@/lib/groups';
 import type { EntityDetail, Relationship } from '@/lib/schemas/entity';
+import { cn } from '@/lib/utils';
 
-function StatCell({ label, value }: { label: string; value: string }) {
+/** A compact icon pill; a button when `onClick` is given, else static text. */
+function Pill({
+  icon: Icon,
+  className,
+  onClick,
+  title,
+  children,
+}: {
+  icon: LucideIcon;
+  className: string;
+  onClick?: () => void;
+  title?: string;
+  children: ReactNode;
+}) {
+  const cls = cn(
+    'inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px]',
+    onClick && 'transition-opacity hover:opacity-80',
+    className,
+  );
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} title={title} className={cls}>
+        <Icon size={13} /> {children}
+      </button>
+    );
+  }
   return (
-    <div className="flex flex-col gap-1">
-      <span className="text-[11px] text-muted-foreground">{label}</span>
-      <span className="font-mono text-[13px] tabular-nums">{value}</span>
-    </div>
+    <span className={cls} title={title}>
+      <Icon size={13} /> {children}
+    </span>
   );
 }
 
@@ -26,6 +54,16 @@ function StatCell({ label, value }: { label: string; value: string }) {
 function yearText(v: number | string | null): string | null {
   if (v == null) return null;
   return typeof v === 'number' ? formatYear(v) : v;
+}
+
+/** Extract a numeric year from a year number or a date string (null if none). */
+function numericYear(v: number | string | null): number | null {
+  if (typeof v === 'number') return v;
+  if (typeof v === 'string') {
+    const m = v.match(/-?\d{1,6}/);
+    if (m) return parseInt(m[0], 10);
+  }
+  return null;
 }
 
 /** Numeric sort key for a relationship's start (unknown → sorts last). */
@@ -146,6 +184,7 @@ export function DetailPanelContent() {
   const { data: connections } = useEntityConnections(sel);
   const { data: chronicles } = useEntityChronicles(sel);
   const { focusGeometries } = useMapFocus();
+  const { setInstant } = useTimeState();
 
   // Frame the entity on the map the first time its detail opens (once per
   // selection — re-renders or a re-fetch must not yank the camera back).
@@ -170,6 +209,11 @@ export function DetailPanelContent() {
 
   if (!sel) return null;
 
+  // The year the date pill jumps the timeline to (entity's start, else end).
+  const startYear = entity
+    ? (numericYear(entity.temporal_start) ?? numericYear(entity.temporal_end))
+    : null;
+
   return (
     <>
       {isLoading && <p className="px-4 py-3 text-sm text-muted-foreground">Loading…</p>}
@@ -185,24 +229,40 @@ export function DetailPanelContent() {
             <h2 className="mt-3 text-lg font-semibold leading-tight">{entity.name}</h2>
             <div className="mt-2.5 flex flex-wrap gap-1.5">
               {temporalText(entity) && (
-                <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-[11px]">
-                  <Clock size={13} />
+                <Pill
+                  icon={Clock}
+                  className="bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300"
+                  onClick={startYear != null ? () => setInstant(startYear) : undefined}
+                  title={startYear != null ? 'Jump the timeline to this date' : undefined}
+                >
                   <span className="font-mono">{temporalText(entity)}</span>
-                </span>
+                </Pill>
               )}
               {entity.geom != null ? (
-                <button
-                  type="button"
+                <Pill
+                  icon={MapPin}
+                  className="bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
                   onClick={() => focusGeometries([entity.geom])}
-                  className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-[11px] transition-colors hover:bg-muted/70"
                   title="Focus on map"
                 >
-                  <MapPin size={13} /> {entity.location_name ?? 'Show on map'}
-                </button>
+                  {entity.location_name ?? 'Show on map'}
+                </Pill>
               ) : (
-                <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-1 text-[11px] text-amber-800 dark:bg-amber-950 dark:text-amber-200">
-                  <MapPin size={13} /> Not placed on map
-                </span>
+                <Pill
+                  icon={MapPin}
+                  className="bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200"
+                >
+                  Not placed on map
+                </Pill>
+              )}
+              {entity.impact_score != null && (
+                <Pill
+                  icon={Sparkles}
+                  className="bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300"
+                  title="Impact score"
+                >
+                  Impact {entity.impact_score}
+                </Pill>
               )}
             </div>
 
@@ -222,19 +282,6 @@ export function DetailPanelContent() {
                 ))}
               </div>
             )}
-          </div>
-
-          <div className="h-px bg-border" />
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 gap-4 px-4 py-4">
-            <StatCell label="Began" value={yearText(entity.temporal_start) ?? '—'} />
-            <StatCell label="Ended" value={yearText(entity.temporal_end) ?? '—'} />
-            <StatCell
-              label="Impact"
-              value={entity.impact_score != null ? String(entity.impact_score) : '—'}
-            />
-            <StatCell label="Type" value={entity.entity_type ?? '—'} />
           </div>
 
           {/* Summary */}
