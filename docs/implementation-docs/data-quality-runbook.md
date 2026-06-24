@@ -9,7 +9,9 @@ All the Python helpers live in `pipeline/` and default to **dry-run**; pass
 `docker compose -f docker/docker-compose.yml exec db pg_dump -U history-mapped -d history-mapped --clean --if-exists > output/history-mapped-backup-<date>.sql`.
 
 See [entity-reresolution.md](entity-reresolution.md) for the deep dive on QID
-re-resolution, merging, and the geometry model.
+re-resolution, merging, and the geometry model. These fixes write **directly to the
+DB**, not the JSONL — so to get them to prod, transfer the database, don't
+re-import: [content-data-transfer.md](content-data-transfer.md).
 
 ---
 
