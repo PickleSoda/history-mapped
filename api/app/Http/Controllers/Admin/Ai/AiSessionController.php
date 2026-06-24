@@ -68,6 +68,7 @@ class AiSessionController extends Controller
         $messages = ConversationMessage::query()
             ->where('conversation_id', $session->id)
             ->orderBy('created_at')
+            ->orderBy('id')
             ->get()
             ->map(fn (ConversationMessage $m) => [
                 'id' => $m->id,
