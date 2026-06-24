@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
+import type { UIMessage } from 'ai';
 import { Plus } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { AiChatPanel } from '@/components/ai/ai-chat-panel';
@@ -7,6 +8,7 @@ import type { CreatedRef } from '@/components/ai/proposal-card';
 import { Button } from '@/components/ui/button';
 import { useSessionChat } from '@/hooks/use-session-chat';
 import AppLayout from '@/layouts/app-layout';
+import { reconstructSessionMessages } from '@/lib/reconstruct-session-messages';
 import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -34,6 +36,11 @@ export default function CreateWithAi() {
     const [chatKey, setChatKey] = useState(0);
     // Created-record links to display above the chat.
     const [createdRefs, setCreatedRefs] = useState<CreatedRef[]>([]);
+    // Active session scope — drives useSessionChat's kind/context binding.
+    const [activeKind, setActiveKind] = useState<'global' | 'entity' | 'chronicle'>('global');
+    const [activeContextType, setActiveContextType] = useState<string | undefined>(undefined);
+    const [activeContextId, setActiveContextId] = useState<string | null>(null);
+    const [initialMessages, setInitialMessages] = useState<UIMessage[]>([]);
 
     const {
         data: sessionsData,
@@ -57,7 +64,10 @@ export default function CreateWithAi() {
 
     const { chat, setSessionId } = useSessionChat({
         sessionId: activeSessionId,
-        kind: 'global',
+        kind: activeKind,
+        contextType: activeContextType,
+        contextId: activeContextId,
+        initialMessages,
         resetNonce: chatKey,
         onNewSessionId: useCallback(
             (id: string) => {
@@ -69,20 +79,46 @@ export default function CreateWithAi() {
     });
 
     function handleNewSession() {
-        setChatKey((k) => k + 1);
+        setActiveKind('global');
+        setActiveContextType(undefined);
+        setActiveContextId(null);
+        setInitialMessages([]);
         setActiveSessionId(null);
         setCreatedRefs([]);
+        setChatKey((k) => k + 1);
     }
 
-    function handleSelectSession(session: Session) {
+    async function handleSelectSession(session: Session) {
         if (session.id === activeSessionId) {
             return;
         }
 
-        setChatKey((k) => k + 1);
+        const kind = (session.kind ?? 'global') as 'global' | 'entity' | 'chronicle';
+
+        let messages: UIMessage[] = [];
+
+        try {
+            const res = await fetch(`/ai/sessions/${session.id}`, {
+                headers: { Accept: 'application/json' },
+            });
+
+            if (res.ok) {
+                const payload = await res.json();
+                messages = reconstructSessionMessages(payload);
+            }
+        } catch {
+            // On a failed history load, open the session empty rather than break.
+            messages = [];
+        }
+
+        setActiveKind(kind);
+        setActiveContextType(kind === 'global' ? undefined : kind);
+        setActiveContextId(kind === 'global' ? null : session.context_id);
+        setInitialMessages(messages);
         setActiveSessionId(session.id);
         setSessionId(session.id);
         setCreatedRefs([]);
+        setChatKey((k) => k + 1);
     }
 
     function handleCreatedRef(ref: CreatedRef) {
@@ -120,7 +156,7 @@ export default function CreateWithAi() {
                             <li key={s.id}>
                                 <button
                                     type="button"
-                                    onClick={() => handleSelectSession(s)}
+                                    onClick={() => void handleSelectSession(s)}
                                     className={`w-full px-4 py-2 text-left text-sm transition-colors hover:bg-muted ${
                                         activeSessionId === s.id
                                             ? 'bg-muted font-medium'
@@ -161,7 +197,7 @@ export default function CreateWithAi() {
                     <AiChatPanel
                         key={chatKey}
                         chat={chat}
-                        kind="global"
+                        kind={activeKind}
                         sessionId={activeSessionId}
                         onCreatedRef={handleCreatedRef}
                         className="flex-1"
