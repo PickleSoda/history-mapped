@@ -68,8 +68,13 @@ class MapEntitiesByYearAction
             ->selectRaw(($allPeriods ? '' : 'DISTINCT ON (entities.entity_id) ').$columns)
             ->join('entities', 'entities.entity_id', '=', 'geometry_periods.entity_id')
             // int4range temporal predicate (index-usable, MQ-7); NULL end = ongoing.
+            // EVENTs are decade-sticky: their momentary point is padded ±10y so it
+            // surfaces near its time on the continuous timeline (see MapEntitiesAction).
             ->whereRaw(
-                "int4range(geometry_periods.start_year, CASE WHEN geometry_periods.end_year IS NULL THEN NULL ELSE geometry_periods.end_year + 1 END, '[)') @> ?::integer",
+                'int4range('
+                ."CASE WHEN entities.entity_group = 'EVENT' THEN geometry_periods.start_year - 10 ELSE geometry_periods.start_year END, "
+                ."CASE WHEN entities.entity_group = 'EVENT' THEN COALESCE(geometry_periods.end_year, geometry_periods.start_year) + 11 "
+                ."WHEN geometry_periods.end_year IS NULL THEN NULL ELSE geometry_periods.end_year + 1 END, '[)') @> ?::integer",
                 [$year],
             )
             ->where(function ($spatialTypeQuery): void {

@@ -156,7 +156,17 @@ class MapEntitiesAction
         // it is index-usable; MQ-7). A range REPLACES the single-year filter
         // (MQ-1); presence of year-or-range is guaranteed by MapEntitiesRequest.
         // A NULL end_year is unbounded above (ongoing); a NULL start unbounded below.
-        $periodRange = "int4range(geometry_periods.start_year, CASE WHEN geometry_periods.end_year IS NULL THEN NULL ELSE geometry_periods.end_year + 1 END, '[)')";
+        //
+        // EVENTs are momentary points (start = end) but the timeline is continuous,
+        // so an exact-year match would flash by on a scrub. They're "decade-sticky":
+        // their effective range is padded ±10y around the point (or span) so the
+        // event surfaces near its time without bleeding across a whole century. The
+        // stored period stays a precise point — only the match widens. The CASE on
+        // entity_group forgoes the GiST index for these rows, fine at this scale.
+        $periodRange = 'int4range('
+            ."CASE WHEN entities.entity_group = 'EVENT' THEN geometry_periods.start_year - 10 ELSE geometry_periods.start_year END, "
+            ."CASE WHEN entities.entity_group = 'EVENT' THEN COALESCE(geometry_periods.end_year, geometry_periods.start_year) + 11 "
+            ."WHEN geometry_periods.end_year IS NULL THEN NULL ELSE geometry_periods.end_year + 1 END, '[)')";
         if (isset($filters['temporal_start'], $filters['temporal_end'])) {
             $start = (int) $filters['temporal_start'];
             $end = (int) $filters['temporal_end'];

@@ -130,6 +130,28 @@ WHERE t.entity_id=gp.entity_id AND t.is_primary
 ```
 (Point-in-time events keep `start_year=end_year` — they have a non-null entity end.)
 
+### 5b. An EVENT spans from its date to the present (the inverse)
+
+**Cause:** the §5 "keep NULL = ongoing" rule is right for a polity/monument that
+still exists, but **wrong for an event** — a battle in −334 with `end_year IS NULL`
+then renders on the map for *every* year from −334 to today.
+
+**Fixed in code** (`BackfillGeometryPeriodsAction`): for `entity_group='EVENT'`,
+an open end collapses to a point (`end_year = start_year`). Non-events keep
+NULL = ongoing. **Data repair** = just re-run backfill on the affected events:
+```sql
+SELECT DISTINCT e.entity_id FROM entities e
+JOIN geometry_periods gp ON gp.entity_id=e.entity_id
+WHERE gp.period_type='territory' AND gp.end_year IS NULL AND e.entity_group='EVENT';
+-- then: php artisan entity:backfill --entity-id=<id>  (per id)
+```
+
+**Display side (decade-sticky).** A point event would only appear at its exact year
+on the continuous timeline. `MapEntitiesAction` + `MapEntitiesByYearAction` pad an
+EVENT's effective `int4range` by ±10y at query time (`start_year-10` ..
+`COALESCE(end_year,start_year)+11`), so it surfaces near its time without bleeding
+across a century. The stored period stays a precise point — only the match widens.
+
 ## 6. Geometry silently won't materialise after setting a location
 
 **Cause:** `entity_locations.location_method` is cast to the
