@@ -1,6 +1,6 @@
 import { Chat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 function getCsrfToken(): string {
     return (
@@ -84,10 +84,10 @@ export function useSessionChat({
         [kind, contextType, contextId, resetNonce],
     );
 
-    function setSessionId(id: string) {
+    const setSessionId = useCallback((id: string) => {
         sessionIdRef.current = id;
         setCurrentSessionId(id);
-    }
+    }, []);
 
     return { chat, sessionId: currentSessionId, setSessionId };
 }
