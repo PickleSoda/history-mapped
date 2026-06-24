@@ -1,44 +1,7 @@
-import {
-  ChevronLeft,
-  ChevronRight,
-  Compass,
-  Globe,
-  Layers,
-  MapPin,
-  Search,
-  SlidersHorizontal,
-} from 'lucide-react';
-import { useCommandPalette, useTimeState, useView } from '@/hooks';
-import { formatTime } from '@/lib/format';
+import { Compass, Globe, Layers, MapPin, Search, SlidersHorizontal } from 'lucide-react';
+import { useCommandPalette, useView } from '@/hooks';
 import { cn } from '@/lib/utils';
 import type { ViewMode } from '@/types/atlas';
-
-const YEAR_STEP = 10;
-
-function YearNav() {
-  const { time, step } = useTimeState();
-  return (
-    <div className="flex items-center gap-1.5">
-      <button
-        type="button"
-        onClick={() => step(-YEAR_STEP)}
-        className="grid size-7 place-items-center rounded-md text-muted-foreground hover:bg-muted"
-        aria-label="Step back"
-      >
-        <ChevronLeft size={15} />
-      </button>
-      <span className="font-mono text-sm tabular-nums">{formatTime(time)}</span>
-      <button
-        type="button"
-        onClick={() => step(YEAR_STEP)}
-        className="grid size-7 place-items-center rounded-md text-muted-foreground hover:bg-muted"
-        aria-label="Step forward"
-      >
-        <ChevronRight size={15} />
-      </button>
-    </div>
-  );
-}
 
 function ViewToggle() {
   const { view, setView } = useView();
@@ -75,13 +38,10 @@ export function TopBar() {
         <span className="grid size-[30px] place-items-center rounded-lg bg-primary text-primary-foreground">
           <Compass size={17} />
         </span>
-        <span className="text-[15px] font-bold tracking-[0.14em]">ATLAS</span>
-        <span className="ml-0.5 hidden rounded-full border px-2 py-0.5 text-[11px] font-medium text-muted-foreground sm:inline">
-          Historical
-        </span>
+        <span className="text-[15px] font-bold tracking-tight">History Mapped</span>
       </div>
 
-      {/* Center: omni-search + year nav */}
+      {/* Center: omni-search */}
       <div className="flex flex-1 items-center justify-center gap-3.5">
         <button
           type="button"
@@ -94,9 +54,6 @@ export function TopBar() {
             ⌘K
           </kbd>
         </button>
-        <div className="hidden lg:block">
-          <YearNav />
-        </div>
       </div>
 
       {/* Right: view toggle + tools */}
