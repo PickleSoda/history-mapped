@@ -23,7 +23,7 @@ import type { Proposal } from '@/components/ai/proposal-card';
 // ── Mock Inertia router.reload ────────────────────────────────────────────────
 
 vi.mock('@inertiajs/react', () => ({
-    router: { reload: vi.fn() },
+    router: { reload: vi.fn(), visit: vi.fn() },
 }));
 
 // ── Fetch mock ────────────────────────────────────────────────────────────────
@@ -44,8 +44,11 @@ afterAll(() => {
     fetchMock.mockRestore();
 });
 
-afterEach(() => {
+afterEach(async () => {
     fetchMock.mockReset();
+    const { router } = await import('@inertiajs/react');
+    vi.mocked(router.reload).mockClear();
+    vi.mocked(router.visit).mockClear();
     cleanup();
 });
 
@@ -179,6 +182,50 @@ describe('ProposalCard', () => {
         await waitFor(() => {
             expect(screen.getByText(/Error/)).toBeInTheDocument();
         });
+    });
+
+    it('calls router.visit with redirect_url in create mode on apply success', async () => {
+        const { router } = await import('@inertiajs/react');
+
+        fetchMock.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ status: 'applied', redirect_url: '/entities/99/edit' }),
+        } as Response);
+
+        render(<ProposalCard proposal={proposal} mode="create" />);
+
+        const applyButtons = screen.getAllByRole('button', { name: /apply/i });
+        fireEvent.click(applyButtons[0]);
+
+        await waitFor(() => {
+            expect(screen.getByText('Applied')).toBeInTheDocument();
+        });
+
+        expect(router.visit).toHaveBeenCalledWith('/entities/99/edit');
+        expect(router.reload).not.toHaveBeenCalled();
+    });
+
+    it('calls router.reload (not router.visit) in edit mode on apply success', async () => {
+        const { router } = await import('@inertiajs/react');
+        vi.mocked(router.reload).mockClear();
+        vi.mocked(router.visit).mockClear();
+
+        fetchMock.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ status: 'applied' }),
+        } as Response);
+
+        render(<ProposalCard proposal={proposal} mode="edit" />);
+
+        const applyButtons = screen.getAllByRole('button', { name: /apply/i });
+        fireEvent.click(applyButtons[0]);
+
+        await waitFor(() => {
+            expect(screen.getByText('Applied')).toBeInTheDocument();
+        });
+
+        expect(router.reload).toHaveBeenCalled();
+        expect(router.visit).not.toHaveBeenCalled();
     });
 
     it('double-click on Apply only calls fetch once (concurrent guard)', async () => {
