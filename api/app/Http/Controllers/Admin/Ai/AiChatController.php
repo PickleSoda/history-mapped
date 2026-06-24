@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Admin\Ai;
 
+use App\Ai\Agents\ChronicleCreatorAgent;
 use App\Ai\Agents\ChronicleEditorAgent;
+use App\Ai\Agents\EntityCreatorAgent;
 use App\Ai\Agents\EntityEditorAgent;
 use App\Http\Controllers\Controller;
 use App\Models\Chronicle;
@@ -26,7 +28,8 @@ class AiChatController extends Controller
     {
         $data = $request->validate([
             'context_type' => 'required|in:entity,chronicle',
-            'context_id' => 'required|string',
+            'context_id' => 'nullable|string',
+            'mode' => 'nullable|in:edit,create',
             // v3 @ai-sdk/react sends `messages` array; legacy/test callers may send `prompt`.
             'prompt' => 'nullable|string',
             'messages' => 'nullable|array',
@@ -71,25 +74,26 @@ class AiChatController extends Controller
 
         $user = $request->user();
         $conversationId = $data['conversation_id'] ?? null;
+        $mode = $data['mode'] ?? 'edit';
+
+        if ($mode === 'edit' && empty($data['context_id'])) {
+            abort(422, 'context_id is required in edit mode.');
+        }
+
+        $contextId = $mode === 'create' ? 'create' : $data['context_id'];
 
         $context = [
             'user_id' => (string) $user->id,
             'context_type' => $data['context_type'],
-            'context_id' => $data['context_id'],
+            'context_id' => $contextId,
             'conversation_id' => $conversationId,
         ];
 
-        $agent = match ($data['context_type']) {
-            'entity' => new EntityEditorAgent(
-                Entity::findOrFail($data['context_id']),
-                $user,
-                $context,
-            ),
-            'chronicle' => new ChronicleEditorAgent(
-                Chronicle::findOrFail($data['context_id']),
-                $user,
-                $context,
-            ),
+        $agent = match (true) {
+            $mode === 'create' && $data['context_type'] === 'entity' => new EntityCreatorAgent($user, $context),
+            $mode === 'create' && $data['context_type'] === 'chronicle' => new ChronicleCreatorAgent($user, $context),
+            $data['context_type'] === 'entity' => new EntityEditorAgent(Entity::findOrFail($contextId), $user, $context),
+            $data['context_type'] === 'chronicle' => new ChronicleEditorAgent(Chronicle::findOrFail($contextId), $user, $context),
         };
 
         // Wire conversation persistence via RemembersConversations.
