@@ -27,6 +27,7 @@ from langchain_core.messages import BaseMessage
 from langchain_openai import ChatOpenAI
 
 from pipeline.agent.config import AgentConfig
+from pipeline.agent.json_utils import parse_llm_json
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +40,7 @@ def create_llm(
     timeout: float | None = None,
     max_retries: int = 0,
     max_tokens: int | None = None,
+    reasoning_effort: str | None = None,
 ) -> ChatOpenAI:
     """Create a ChatOpenAI instance configured for the given endpoint.
 
@@ -74,6 +76,12 @@ def create_llm(
         kwargs["timeout"] = timeout
     if max_tokens is not None:
         kwargs["max_tokens"] = max_tokens
+    # reasoning_effort tames the gpt-5* reasoning models: without it they spend the
+    # bulk of the token budget on hidden reasoning (≈4k tokens/call) and more often
+    # wander into malformed JSON; "minimal" makes them emit the structured answer
+    # directly. Non-reasoning fallback models (gpt-oss, qwen) accept and ignore it.
+    if reasoning_effort is not None:
+        kwargs["reasoning_effort"] = reasoning_effort
 
     return ChatOpenAI(**kwargs)
 
@@ -95,6 +103,7 @@ class FallbackLLM:
         max_retries_per_model: int = 2,
         request_timeout: float | None = None,
         max_tokens: int | None = None,
+        reasoning_effort: str | None = None,
     ):
         self._primary_model = primary_model
         self._fallback_models = fallback_models
@@ -104,6 +113,7 @@ class FallbackLLM:
         self._max_retries = max_retries_per_model
         self._request_timeout = request_timeout
         self._max_tokens = max_tokens
+        self._reasoning_effort = reasoning_effort
         self._primary_llm = self._create_llm(primary_model)
 
     def _create_llm(self, model: str) -> ChatOpenAI:
@@ -114,10 +124,19 @@ class FallbackLLM:
             temperature=self._temperature,
             timeout=self._request_timeout,
             max_tokens=self._max_tokens,
+            reasoning_effort=self._reasoning_effort,
         )
 
-    def invoke(self, messages: list[Any], **kwargs: Any) -> BaseMessage:
-        """Invoke the LLM, falling back through the chain on failure."""
+    def _run(self, operation: Any, what: str) -> Any:
+        """Run ``operation(llm)`` across the model chain, retrying each model
+        ``max_retries`` times before falling back to the next.
+
+        ``operation`` signals failure by RAISING — and crucially, that failure can
+        be *content-level* (an unparseable/empty response), not just a transport
+        error. That is what lets ``invoke_json`` retry a 200-OK-with-bad-JSON the
+        same way ``invoke`` retries a 5xx. Returns the operation's value on first
+        success; re-raises the last error when every model/attempt is exhausted.
+        """
         models = [self._primary_model, *self._fallback_models]
         last_error: Exception | None = None
 
@@ -125,14 +144,15 @@ class FallbackLLM:
             llm = self._create_llm(model) if model != self._primary_model else self._primary_llm
             for attempt in range(1, self._max_retries + 1):
                 try:
-                    result = llm.invoke(messages, **kwargs)
+                    value = operation(llm)
                     if model != self._primary_model:
-                        logger.info("Fallback succeeded: model=%s", model)
-                    return result
+                        logger.info("Fallback succeeded (%s): model=%s", what, model)
+                    return value
                 except Exception as exc:
                     last_error = exc
                     logger.warning(
-                        "LLM attempt %d/%d failed for model=%s: %s",
+                        "LLM %s attempt %d/%d failed for model=%s: %s",
+                        what,
                         attempt,
                         self._max_retries,
                         model,
@@ -141,12 +161,52 @@ class FallbackLLM:
 
         raise last_error or RuntimeError("All LLM models exhausted")
 
+    def invoke(self, messages: list[Any], **kwargs: Any) -> BaseMessage:
+        """Invoke the LLM, falling back through the chain on transport failure."""
+        return self._run(lambda llm: llm.invoke(messages, **kwargs), "invoke")
+
+    def invoke_json(
+        self,
+        messages: list[Any],
+        *,
+        parser: Any = None,
+        validate: Any = None,
+        **kwargs: Any,
+    ) -> Any:
+        """Invoke AND parse JSON inside the SAME retry/fallback loop.
+
+        A 200-OK response whose body is malformed or empty JSON is not a transport
+        error, so a bare ``invoke()`` + parse in the caller gets exactly one shot
+        before the data is dropped (this is what silently lost summaries/entities in
+        the free-model batch). Here the parse runs inside ``_run``, so a
+        ``json.JSONDecodeError`` — or a ``validate(data)`` that returns False — is
+        treated like any other failure: retry the same model, then fall back to the
+        next, identical to the existing 5xx/429 handling.
+
+        ``parser`` defaults to :func:`parse_llm_json`. ``validate`` is an optional
+        ``data -> bool`` predicate (e.g. require an expected key). Returns the
+        parsed object; raises the last error when every model/attempt is exhausted,
+        so callers keep their existing graceful-degrade ``except`` blocks.
+        """
+        parse = parser or parse_llm_json
+
+        def operation(llm: Any) -> Any:
+            result = llm.invoke(messages, **kwargs)
+            content = result.content if hasattr(result, "content") else str(result)
+            data = parse(content)
+            if validate is not None and not validate(data):
+                raise ValueError("response failed validation")
+            return data
+
+        return self._run(operation, "invoke_json")
+
 
 def create_llm_with_fallbacks(
     model_key: str,
     cfg: AgentConfig,
     temperature: float = 0.0,
     max_tokens: int | None = None,
+    reasoning_effort: str | None = None,
 ) -> FallbackLLM:
     """Create a FallbackLLM for the given model key.
 
@@ -172,4 +232,5 @@ def create_llm_with_fallbacks(
         temperature=temperature,
         request_timeout=cfg.llm_request_timeout,
         max_tokens=max_tokens,
+        reasoning_effort=reasoning_effort,
     )

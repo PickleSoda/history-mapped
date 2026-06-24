@@ -4,42 +4,21 @@ import os
 from dataclasses import dataclass
 
 
-# ── Free-first model chains (OpenRouter), slugs verified via the models API ──
-# 2026-06-19. The primary for each step is the matching AgentConfig field below
-# (also free); FallbackLLM then walks primary → this list, top→bottom. Notes:
-#   • Every entry except the final backstop is a $0 ":free" tier, verified
-#     against https://openrouter.ai/api/v1/models.
-#   • Chains are provider-diversified (nvidia/openai/google/poolside) so one
-#     provider's rate-limit or daily cap can't stall the whole step.
-#   • The last entry per chain stays PAID (deepseek) as a last-resort backstop —
-#     only reached if every free tier fails. Remove it for strictly-$0 runs.
-#   • Deliberately NOT used: "nex-agi/nex-n2-pro:free" (deprecating 2026-06-22).
-#   • The pipeline parses JSON from plain text (no response_format / tools), so
-#     native structured-output support on the :free tiers isn't required.
-#   • Privacy: Owl Alpha logs prompts/completions; Poolside may train on free
-#     inputs — acceptable for public-history transcripts.
+# ── Fallback model chains (OpenRouter) ──
+# Primary for all stages: openai/gpt-5-nano ($0.05/$0.40 per 1M tokens).
+# FallbackLLM walks primary → list below, top→bottom on 429/5xx.
 MODEL_FALLBACKS: dict[str, list[str]] = {
-    # parse: high-volume, lightweight; just needs to emit clean JSON.
-    # Primary: openai/gpt-oss-20b:free (see AgentConfig.parse_model).
     "parse_model": [
-        "nvidia/nemotron-3-nano-30b-a3b:free",
-        "google/gemma-4-26b-a4b-it:free",
-        "poolside/laguna-xs.2:free",
-        "deepseek/deepseek-v3.1-terminus",
+        "openai/gpt-oss-120b",
+        "meta-llama/llama-3.1-8b-instruct",
     ],
-    # extract: mid-tier reasoning + dependable structured extraction.
-    # Primary: nvidia/nemotron-3-super-120b-a12b:free (1M ctx, strong SWE-bench).
     "extract_model": [
-        "openai/gpt-oss-120b:free",
-        "google/gemma-4-31b-it:free",
-        "deepseek/deepseek-v3.1-terminus",
+        "openai/gpt-oss-120b",
+        "qwen/qwen3-30b-a3b-instruct-2507",
     ],
-    # generate: highest-quality summaries/prose; long context helps.
-    # Primary: nvidia/nemotron-3-ultra-550b-a55b:free (1M ctx, frontier reasoning).
     "generate_model": [
-        "openrouter/owl-alpha",
-        "nvidia/nemotron-3-super-120b-a12b:free",
-        "deepseek/deepseek-v3.1-terminus",
+        "openai/gpt-oss-120b",
+        "qwen/qwen3-32b",
     ],
 }
 
@@ -50,9 +29,9 @@ class AgentConfig:
     # the per-step fallback chains). The previous "gpt-4o*" bare names were not
     # valid OpenRouter slugs, so every primary call failed straight into the
     # fallback chain; these resolve directly.
-    parse_model: str = "openai/gpt-oss-20b:free"
-    extract_model: str = "nvidia/nemotron-3-super-120b-a12b:free"
-    generate_model: str = "nvidia/nemotron-3-ultra-550b-a55b:free"
+    parse_model: str = "openai/gpt-5-nano"
+    extract_model: str = "openai/gpt-5-nano"
+    generate_model: str = "openai/gpt-5-nano"
     openai_api_key: str | None = None
     llm_base_url: str | None = None
     model_fallbacks: dict[str, list[str]] | None = None
@@ -65,7 +44,11 @@ class AgentConfig:
     # default (65536) is requested, which is both wasteful and unaffordable on a
     # low credit balance — a single generate_content call then 402s and the
     # entity summaries are lost. 8000 comfortably fits the summaries JSON.
-    generate_max_tokens: int = 8000
+    generate_max_tokens: int = 32000
+    # Reasoning effort for the gpt-5* models. "minimal" stops them spending the
+    # token budget on hidden reasoning (~4k/call) and reduces malformed-JSON
+    # output; it is accepted-and-ignored by the non-reasoning fallback models.
+    reasoning_effort: str = "minimal"
     output_dir: str = "api/storage/app/pipeline/agent_runs"
     chronicle_output_dir: str = "api/storage/app/pipeline/agent_runs"
     ohm_index_path: str = "output/ohm_collections/map-egypt.xml.sqlite"

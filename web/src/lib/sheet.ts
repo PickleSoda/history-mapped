@@ -15,13 +15,17 @@ export function snapToHeight(snap: number | string | null): SheetHeight {
 
 export type SheetContentKind = 'chronicle' | 'detail' | 'list';
 
-/** What the sheet shows. Chronicle tour wins, then a selected entity, else the list. */
+/**
+ * What the sheet shows. A selected entity wins so you can drill into an entity
+ * mid-tour (detail, with a "back to tour" affordance) — clearing the selection
+ * falls back to the active chronicle; otherwise the tour, else the list.
+ */
 export function sheetContentKind(a: {
   chronicleActive: boolean;
   hasSelection: boolean;
 }): SheetContentKind {
-  if (a.chronicleActive) return 'chronicle';
   if (a.hasSelection) return 'detail';
+  if (a.chronicleActive) return 'chronicle';
   return 'list';
 }
 

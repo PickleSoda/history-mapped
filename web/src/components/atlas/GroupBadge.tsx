@@ -40,3 +40,29 @@ export function GroupBadge({
     </span>
   );
 }
+
+/** Pill badge labelled with the entity's specific type, coloured by its group —
+ *  the colour carries the group, the text carries the type. Falls back to the
+ *  group label when an entity has no type. */
+export function TypeBadge({
+  group,
+  type,
+  className,
+}: {
+  group: EntityGroup;
+  type?: string | null;
+  className?: string;
+}) {
+  const g = GROUPS[group];
+  return (
+    <span
+      className={cn(
+        'inline-flex h-[21px] items-center rounded-full px-2 text-[11px] font-medium whitespace-nowrap capitalize',
+        className,
+      )}
+      style={{ background: g.soft, color: g.color }}
+    >
+      {type ? type.replace(/_/g, ' ') : g.label}
+    </span>
+  );
+}

@@ -13,12 +13,19 @@ import type { EntityGroup, Scope } from '@/types/atlas';
 type Params = Record<string, string | number | string[]>;
 
 /**
- * TEMP (dev): the dataset is small and many entities have no point, so viewport
- * + time filtering hides them. Fetch globally for now and flip these back on
- * once the dataset grows.
+ * TEMP (dev): viewport (geometry) filtering stays off — the small dataset has
+ * many unplaced entities a bbox query would hide. Time filtering on the list is
+ * ON: the entities sidebar shows only entities present at the current year.
  */
 const FILTER_BY_VIEWPORT = false; // bbox on the map + list
-const FILTER_LIST_BY_TIME = false; // exists_at / temporal range on the list
+
+/**
+ * Keep the map populated: when the zoom-derived impact threshold would leave
+ * fewer than this many entities in view (zoomed out, or a group filter applied),
+ * the API backfills with the next highest-impact ones. Pure declutter stays
+ * wherever more than this clears the threshold.
+ */
+const MAP_MIN_RESULTS = 24;
 
 /** Whole-world bbox — the map endpoint requires a bbox even when unfiltered. */
 const WORLD_BBOX: Params = {
@@ -49,6 +56,7 @@ export function mapParams(scope: Scope, limit = 2000): Params {
   const params: Params = {
     ...bboxParams(scope),
     zoom_level: Math.max(0, Math.min(22, scope.z)),
+    min_results: MAP_MIN_RESULTS,
     limit,
   };
 
@@ -86,13 +94,15 @@ export function listParams(scope: Scope, opts: ListOptions = {}): Params {
   // column and would exclude unplaced entities.
   if (FILTER_BY_VIEWPORT) Object.assign(params, bboxParams(scope));
 
-  if (FILTER_LIST_BY_TIME) {
-    if (scope.time.kind === 'instant') {
-      params.exists_at = scope.time.year;
-    } else {
-      params.temporal_start = scope.time.start;
-      params.temporal_end = scope.time.end;
-    }
+  // Temporal presence: only entities that exist at the current year (instant) or
+  // overlap the selected range. The backend's exists_at / range filter uses an
+  // int4range containment where a NULL start/end is unbounded — a missing bound
+  // is treated as ±infinity (open-ended entities match), never as year 0.
+  if (scope.time.kind === 'instant') {
+    params.exists_at = scope.time.year;
+  } else {
+    params.temporal_start = scope.time.start;
+    params.temporal_end = scope.time.end;
   }
 
   const groups = groupValues(scope.groups);

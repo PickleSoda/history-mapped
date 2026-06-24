@@ -140,7 +140,95 @@ def _consistent_dates(start: Any, end: Any) -> tuple[Any, Any]:
     return start, end
 
 
-def _entity_to_jsonl_record(enriched) -> dict[str, Any]:
+# Relation types that denote an open-ended state/span rather than a single
+# moment. For these a lone start date means "since then" (end unknown), so the
+# end stays null. Every other relation is point-in-time: a lone bound is mirrored
+# onto both (the import previously recorded only the start), so it stores a full
+# [start, end] and renders at its moment instead of as "ongoing to the present".
+_SPAN_RELATIONS = {
+    "rules", "governed_by", "part_of", "contains", "capital_of", "vassal_of",
+    "suzerain_of", "member_of_dynasty", "adheres_to", "official_religion_of",
+    "allied_with", "at_war_with", "resided_in", "controlled_by",
+}
+
+
+def _collapse_relation_dates(rtype: str, start: Any, end: Any) -> tuple[Any, Any]:
+    """Fill a point-in-time relation's missing bound from the one it has."""
+    if rtype in _SPAN_RELATIONS:
+        return start, end
+    if start and not end:
+        return start, start
+    if end and not start:
+        return end, end
+    return start, end
+
+
+def _year_label(date: Any) -> str | None:
+    """'-430' -> '430 BCE', '165' -> '165 CE' for human-readable descriptions."""
+    year = era_year(date)
+    if year is None:
+        return None
+    return f"{-year} BCE" if year < 0 else f"{year} CE"
+
+
+def _fallback_relation_description(relation, start: Any, end: Any) -> str:
+    """Templated description, used only when content generation produced none, so
+    no relation is ever stored without a description."""
+    verb = (relation.relationship_type or "related to").replace("_", " ")
+    s, e = _year_label(start), _year_label(end)
+    if s and e and s == e:
+        span = f" ({s})"
+    elif s and e:
+        span = f" ({s}–{e})"
+    elif s:
+        span = f" (from {s})"
+    else:
+        span = ""
+    return f"{relation.source_label} {verb} {relation.target_label}{span}."
+
+
+def _wikidata_url(qid: str | None) -> str | None:
+    return f"https://www.wikidata.org/wiki/{qid}" if qid else None
+
+
+def _entity_source_citations(enriched, run_id: str) -> dict[str, Any]:
+    """Provenance actually gathered for this entity — the Wikidata item, Wikipedia
+    page, OHM feature, and the source transcript run — instead of a bare stub."""
+    wd = enriched.wikidata_match or {}
+    qid = wd.get("qid")
+    ohm = getattr(enriched, "ohm_match", None) or {}
+    citations: dict[str, Any] = {
+        "created_by": "historical-agent-pipeline",
+        "confidence": enriched.final_confidence,
+        "transcript_run": run_id,
+    }
+    if qid:
+        citations["wikidata_id"] = qid
+        citations["wikidata_url"] = _wikidata_url(qid)
+    if getattr(enriched, "wikipedia_url", None):
+        citations["wikipedia_url"] = enriched.wikipedia_url
+    if ohm.get("object_id"):
+        citations["ohm_feature"] = f"{ohm.get('object_type')}/{ohm.get('object_id')}"
+    return citations
+
+
+def _relation_source_citations(relation, run_id: str) -> dict[str, Any]:
+    """Provenance for a relation: its source event and the transcript run, plus
+    either endpoint's Wikidata id when the extractor supplied one."""
+    citations: dict[str, Any] = {
+        "created_by": "historical-agent-pipeline",
+        "transcript_run": run_id,
+    }
+    if relation.source_event:
+        citations["source_event"] = relation.source_event
+    if relation.source_wikidata_id:
+        citations["source_wikidata_id"] = relation.source_wikidata_id
+    if relation.target_wikidata_id:
+        citations["target_wikidata_id"] = relation.target_wikidata_id
+    return citations
+
+
+def _entity_to_jsonl_record(enriched, run_id: str) -> dict[str, Any]:
     temporal_start, temporal_end = _consistent_dates(
         enriched.candidate.start_date, enriched.candidate.end_date
     )
@@ -166,7 +254,7 @@ def _entity_to_jsonl_record(enriched) -> dict[str, Any]:
         "temporal_end": temporal_end,
         "alternative_names": enriched.candidate.aliases,
         "geojson": _extract_geojson(enriched.geometry),
-        "source_citations": {"created_by": "historical-agent-pipeline", "confidence": enriched.final_confidence},
+        "source_citations": _entity_source_citations(enriched, run_id),
     }
     # OHM geo-ref manifest → entity_geo_refs + geometry hydration (Laravel side).
     geo_resolution = getattr(enriched, "geo_resolution", None)
@@ -175,17 +263,19 @@ def _entity_to_jsonl_record(enriched) -> dict[str, Any]:
     return record
 
 
-def _relation_to_jsonl_record(relation) -> dict[str, Any]:
+def _relation_to_jsonl_record(relation, run_id: str) -> dict[str, Any]:
     """Name-keyed relation record consumed by `php artisan pipeline:import-relations`."""
     start_date, end_date = _consistent_dates(relation.start_date, relation.end_date)
+    start_date, end_date = _collapse_relation_dates(relation.relationship_type, start_date, end_date)
+    description = relation.description or _fallback_relation_description(relation, start_date, end_date)
     return {
         "source_name": relation.source_label,
         "target_name": relation.target_label,
         "relationship_type": relation.relationship_type,
         "start_date": start_date,
         "end_date": end_date,
-        "description": relation.description,
-        "source_citations": {"created_by": "historical-agent-pipeline"},
+        "description": description,
+        "source_citations": _relation_source_citations(relation, run_id),
     }
 
 
@@ -209,7 +299,7 @@ def commit_writer(state: AgentRunState) -> AgentRunState:
     # Use container-visible path for artisan commands
     container_path = cfg.container_output_dir
 
-    entity_records = [_entity_to_jsonl_record(e) for e in diff.create_entities]
+    entity_records = [_entity_to_jsonl_record(e, state["run_id"]) for e in diff.create_entities]
     entity_path = output_root / "entities_to_create.jsonl"
     with entity_path.open("w", encoding="utf-8") as f:
         for record in entity_records:
@@ -217,7 +307,7 @@ def commit_writer(state: AgentRunState) -> AgentRunState:
 
     # Name-keyed relations: the agent rarely has a Wikidata QID for both ends,
     # so we resolve relations by entity name (see pipeline:import-relations).
-    relation_records = [_relation_to_jsonl_record(r) for r in diff.create_relations]
+    relation_records = [_relation_to_jsonl_record(r, state["run_id"]) for r in diff.create_relations]
     relations_path = output_root / "relations.jsonl"
     with relations_path.open("w", encoding="utf-8") as f:
         for record in relation_records:
@@ -226,7 +316,11 @@ def commit_writer(state: AgentRunState) -> AgentRunState:
     if entity_records:
         # Use container-visible absolute path
         container_entity_path = f"{container_path}/{state['run_id']}/entities_to_create.jsonl"
-        cmd = build_artisan_command("pipeline:import", container_entity_path, sync=True, batch_id=state["run_id"])
+        # Refresh mode: --force so the import UPDATES an existing match in place
+        # (UpdateEntityAction) — re-doing type/QID/geo/date while keeping its
+        # entity_id, so relationships pointing at it survive.
+        cmd = build_artisan_command("pipeline:import", container_entity_path, sync=True,
+                                    batch_id=state["run_id"], force=state.get("refresh", False))
         logger.info("Docker import entities (%d records): %s", len(entity_records), " ".join(cmd))
         result = run_artisan_command(cmd)
         logger.info("Docker import entities result: returncode=%d stdout=%s stderr=%s",

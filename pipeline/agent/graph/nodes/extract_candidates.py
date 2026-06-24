@@ -4,19 +4,21 @@ import json
 from datetime import datetime, timezone
 
 from langchain_core.messages import HumanMessage, SystemMessage
+from pydantic import ValidationError
 
 from pipeline.agent.config import AgentConfig
 from pipeline.agent.llm import create_llm_with_fallbacks
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.entities import CandidateEntity
 from pipeline.agent.schemas.relations import CandidateRelation
-from pipeline.agent.json_utils import parse_llm_json
 from pipeline.agent.log_config import get_logger
 from pipeline.agent.schemas.validation import AuditEvent, PipelineError
 
 logger = get_logger(__name__)
 
-_PROMPT = """You are a historical entity extractor. Given a list of events, extract all candidate entities and relations.
+_PROMPT = """IMPORTANT: Respond with ONLY a JSON object. No explanations, no plans, no commentary, no markdown. Start your response with { and end with }. Nothing before or after the JSON.
+
+You are a historical entity extractor. Given a list of events, extract all candidate entities and relations.
 
 Allowed entity types (grouped by domain):
 
@@ -52,7 +54,10 @@ CRITICAL RULES — entity & relation modeling:
    - "A commanded/led an army" => A commanded <military_unit>
    - born_in / died_in / founded / capital_of point FROM the person or polity TO the place.
 5. Names: use the full canonical historical name; never truncate ("Tyre", not "Ty"). Disambiguate rulers by polity/era when the text allows ("Philip II of Macedon", not just "Philip II").
-6. Extract relations among ALL entities mentioned, not only the main subject.
+6. Extract relations among ALL entities mentioned, not only the main subject. Every entity you create comes from
+   this text, so it relates to something in it — aim to connect each entity to at least one or two others (its
+   event, its polity, a person, a predecessor/successor). An entity with no relation is almost always a missed
+   relation, not a truly isolated thing.
 7. Dates: ALWAYS include an explicit era marker — write "323 BCE", "527 CE", "4000 BCE". Never emit a bare number or an ISO calendar string (e.g. "4000-01-01") for ancient years, and never put a minus sign on a CE year. Put the earlier year first so start_date is on or before end_date. Give EVERY entity start/end dates where the text or your knowledge supports it — including peoples, ethnic groups, and dynasties (use their era of historical prominence, e.g. the Goths "200 CE"–"600 CE", the Sumerians "4500 BCE"–"1900 BCE").
 8. Extract EVERY named entity in each event — including the "container" polity, not just the people. If the text names an empire/kingdom/state/dynasty (e.g. "New Kingdom of Egypt", "Macedonian Empire", "Byzantine Empire", "Mongol Empire", "Ottoman Empire", "Qing Dynasty"), emit it as its own political_entity/dynasty AND relate the people/events to it. Also extract:
    - technologies / inventions named as significant -> entity_type "technology" (e.g. "ballistae", "gunpowder", "stirrup", "printing press");
@@ -80,30 +85,44 @@ Output strictly as JSON:
 
 def extract_candidates(state: AgentRunState) -> AgentRunState:
     cfg = AgentConfig()
-    llm = create_llm_with_fallbacks("extract_model", cfg)
+    llm = create_llm_with_fallbacks("extract_model", cfg, reasoning_effort=cfg.reasoning_effort)
     events_json = json.dumps([e.model_dump() for e in state["parsed_events"]], default=str)
     logger.info("LLM call: extract_candidates (model=%s, events=%d)", cfg.extract_model, len(state["parsed_events"]))
     messages = [SystemMessage(content=_PROMPT), HumanMessage(content=events_json)]
-    response = llm.invoke(messages)
-    content = response.content if hasattr(response, "content") else str(response)
-    logger.info("LLM response: %d chars", len(content))
+    # invoke_json parses inside the retry/fallback loop, so a malformed or
+    # shapeless response (e.g. the model emitting a "plan" instead of JSON) retries
+    # the model then falls back, rather than silently extracting zero entities.
     try:
-        data = parse_llm_json(content)
-        entities = [CandidateEntity(**e) for e in data.get("candidate_entities", [])]
-        raw_relations = data.get("candidate_relations", [])
+        data = llm.invoke_json(
+            messages,
+            validate=lambda d: isinstance(d, dict)
+            and ("candidate_entities" in d or "candidate_relations" in d),
+        )
+        # Build per-item so ONE malformed candidate (e.g. missing entity_type) is
+        # skipped, not fatal to the whole extraction. CandidateEntity/Relation raise
+        # pydantic ValidationError (a ValueError), not TypeError, on a bad dict.
+        entities = []
+        for e in data.get("candidate_entities", []):
+            try:
+                entities.append(CandidateEntity(**e))
+            except (TypeError, ValidationError) as exc:
+                logger.warning("Skipping malformed candidate entity %s: %s", e, exc)
         relations = []
-        for r in raw_relations:
+        for r in data.get("candidate_relations", []):
             if not r.get("source_label") or not r.get("target_label"):
                 logger.warning("Skipping relation with null source/target: %s", r)
                 continue
-            relations.append(CandidateRelation(**r))
-    except (json.JSONDecodeError, TypeError) as exc:
+            try:
+                relations.append(CandidateRelation(**r))
+            except (TypeError, ValidationError) as exc:
+                logger.warning("Skipping malformed candidate relation %s: %s", r, exc)
+    except Exception as exc:
         state["errors"].append(
             PipelineError(
                 node="extract_candidates",
                 error_type="json_parse",
                 message=str(exc),
-                context={"raw_response": content},
+                context={},
             )
         )
         entities = []

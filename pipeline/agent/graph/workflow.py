@@ -81,7 +81,8 @@ def build_workflow() -> StateGraph:
     return workflow.compile(checkpointer=checkpointer)
 
 
-def run_agent(raw_input: str, run_id: str, title: str | None = None, create_chronicle: bool = True) -> AgentRunState:
+def run_agent(raw_input: str, run_id: str, title: str | None = None, create_chronicle: bool = True,
+              refresh: bool = False) -> AgentRunState:
     """Run the full agent pipeline on a raw text input.
 
     Parameters
@@ -90,6 +91,9 @@ def run_agent(raw_input: str, run_id: str, title: str | None = None, create_chro
     run_id: Unique identifier for this run.
     title: Optional chronicle title (defaults to derived from input).
     create_chronicle: Whether to build a chronicle from the events.
+    refresh: Re-resolve every entity (type/QID/geo/date) and force-update existing
+        rows in place, preserving entity_id and relationships. Also bypasses the
+        already-completed short-circuit below so a prior clean run is redone.
 
     Returns
     -------
@@ -98,10 +102,11 @@ def run_agent(raw_input: str, run_id: str, title: str | None = None, create_chro
     cfg = AgentConfig()
     workflow = build_workflow()
 
-    # Check for idempotency - if manifest exists with no errors, short-circuit
+    # Check for idempotency - if manifest exists with no errors, short-circuit.
+    # Refresh mode intentionally re-runs even a previously-clean transcript.
     output_root = Path(cfg.output_dir) / run_id
     manifest_path = output_root / "manifest.json"
-    if manifest_path.exists():
+    if not refresh and manifest_path.exists():
         with open(manifest_path) as f:
             manifest = json.load(f)
         if manifest.get("errors_count", 0) == 0:
@@ -144,6 +149,7 @@ def run_agent(raw_input: str, run_id: str, title: str | None = None, create_chro
         "errors": [],
         "title": title,
         "create_chronicle": create_chronicle,
+        "refresh": refresh,
         "entity_id_map": {},
         "relation_id_map": {},
         "critic_iterations": 0,

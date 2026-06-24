@@ -4,13 +4,13 @@ import json
 from datetime import datetime, timezone
 
 from langchain_core.messages import HumanMessage, SystemMessage
+from pydantic import ValidationError
 
 from pipeline.agent.config import AgentConfig
 from pipeline.agent.llm import create_llm_with_fallbacks
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.entities import CandidateEntity
 from pipeline.agent.schemas.relations import CandidateRelation
-from pipeline.agent.json_utils import parse_llm_json
 from pipeline.agent.log_config import get_logger
 from pipeline.agent.schemas.validation import AuditEvent, PipelineError
 
@@ -36,9 +36,17 @@ Look specifically for:
    battle, born_in/died_in, at_war_with between opposing sides.
 4. Relations among ALREADY-extracted entities that were never connected (reduce orphan entities).
 
-PRIORITY — orphans: the `orphan_entities` list below contains entities with NO relationships yet. Add at least
-one relationship for EACH of them that the source text or well-established history supports (e.g. a belligerent
-polity must be `at_war_with` its opponent and/or `participated_in` the relevant war/battle).
+Every entity was pulled from this chronicle, so each one IS connected to the story — be generous and thorough in
+wiring them together. Each `existing_entities` item carries a `source_event`: entities sharing a source_event
+almost always relate to each other and to that event, so connect them. Also connect each entity to its container
+polity and to its temporal neighbours (succeeded_by / preceded_by).
+
+PRIORITY — orphans: the `orphan_entities` list below contains entities with NO relationships yet. Give EACH of
+them at least TWO relationships that the source text or well-established history supports — first to entities from
+its own `source_event`, then to its container polity, the central figure/event of the chronicle, or a temporal
+neighbour (e.g. a person `participated_in` the event they appear in and `member_of_dynasty`/`born_in` something;
+a belligerent polity is `at_war_with` its opponent and `participated_in` the war). No entity should be left
+unconnected.
 
 PRECISION: only add relationships actually supported by the text or well-established history — do not pad. Respect
 relation-type semantics: `member_of_dynasty` connects a PERSON to a named ruling DYNASTY only — never to a
@@ -162,7 +170,11 @@ def completeness_critic(state: AgentRunState) -> AgentRunState:
 
     context = {
         "source_text": state["raw_input"],
-        "existing_entities": [{"label": e.label, "type": e.entity_type} for e in existing_entities],
+        "existing_entities": [
+            {"label": e.label, "type": e.entity_type, "source_event": e.source_event,
+             "start_date": e.start_date}
+            for e in existing_entities
+        ],
         "existing_relations": [
             {"source": r.source_label, "type": r.relationship_type, "target": r.target_label}
             for r in existing_relations
@@ -170,22 +182,24 @@ def completeness_critic(state: AgentRunState) -> AgentRunState:
         "orphan_entities": orphan_labels,
     }
 
-    llm = create_llm_with_fallbacks("extract_model", cfg)
+    llm = create_llm_with_fallbacks("extract_model", cfg, reasoning_effort=cfg.reasoning_effort)
     logger.info("LLM call: completeness_critic pass %d (entities=%d, relations=%d)",
                 iterations, len(existing_entities), len(existing_relations))
     messages = [SystemMessage(content=_PROMPT), HumanMessage(content=json.dumps(context, default=str))]
-    response = llm.invoke(messages)
-    content = response.content if hasattr(response, "content") else str(response)
 
     added_entities = 0
     added_relations = 0
+    # No validate predicate: a critic response with no additions is legitimate
+    # ("nothing more to add" → done). invoke_json still retries/falls back on a
+    # malformed or empty body (the free-model failure mode), instead of dropping
+    # the whole pass on the first bad parse.
     try:
-        data = parse_llm_json(content)
+        data = llm.invoke_json(messages)
         for raw in data.get("candidate_entities", []):
             try:
                 entity = CandidateEntity(**raw)
-            except TypeError:
-                continue
+            except (TypeError, ValidationError):
+                continue  # one malformed entity (e.g. missing entity_type) skips, not aborts
             key = _entity_key(entity.label)
             if not key or key in entity_keys:
                 continue
@@ -197,7 +211,7 @@ def completeness_critic(state: AgentRunState) -> AgentRunState:
                 continue
             try:
                 relation = CandidateRelation(**raw)
-            except TypeError:
+            except (TypeError, ValidationError):
                 continue
             key = _relation_key(relation.source_label, relation.relationship_type, relation.target_label)
             if key in relation_keys:
@@ -205,13 +219,13 @@ def completeness_critic(state: AgentRunState) -> AgentRunState:
             relation_keys.add(key)
             existing_relations.append(relation)
             added_relations += 1
-    except (json.JSONDecodeError, TypeError) as exc:
+    except Exception as exc:
         state["errors"].append(
             PipelineError(
                 node="completeness_critic",
                 error_type="json_parse",
                 message=str(exc),
-                context={"raw_response": content, "iteration": iterations},
+                context={"iteration": iterations},
             )
         )
 

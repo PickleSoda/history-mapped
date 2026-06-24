@@ -62,7 +62,8 @@ def _state(iterations: int = 0) -> dict:
 @patch("pipeline.agent.graph.nodes.completeness_critic.create_llm_with_fallbacks")
 def test_critic_adds_new_and_dedupes_existing(mock_llm_factory):
     mock_llm = MagicMock()
-    mock_llm.invoke.return_value = MagicMock(content=json.dumps({
+    # invoke_json returns the already-parsed object (parsing now happens inside it).
+    mock_llm.invoke_json.return_value = {
         "candidate_entities": [
             {"label": "Carthage", "entity_type": "political_entity"},
             {"label": "Rome", "entity_type": "political_entity"},  # duplicate → ignored
@@ -71,7 +72,7 @@ def test_critic_adds_new_and_dedupes_existing(mock_llm_factory):
             {"source_label": "Rome", "target_label": "Carthage", "relationship_type": "at_war_with"},
             {"source_label": "", "target_label": "Carthage", "relationship_type": "at_war_with"},  # invalid → skipped
         ],
-    }))
+    }
     mock_llm_factory.return_value = mock_llm
 
     new_state = completeness_critic(_state())
@@ -87,9 +88,7 @@ def test_critic_adds_new_and_dedupes_existing(mock_llm_factory):
 @patch("pipeline.agent.graph.nodes.completeness_critic.create_llm_with_fallbacks")
 def test_critic_stops_when_nothing_new(mock_llm_factory):
     mock_llm = MagicMock()
-    mock_llm.invoke.return_value = MagicMock(content=json.dumps({
-        "candidate_entities": [], "candidate_relations": [],
-    }))
+    mock_llm.invoke_json.return_value = {"candidate_entities": [], "candidate_relations": []}
     mock_llm_factory.return_value = mock_llm
 
     new_state = completeness_critic(_state())
@@ -100,10 +99,10 @@ def test_critic_stops_when_nothing_new(mock_llm_factory):
 @patch("pipeline.agent.graph.nodes.completeness_critic.create_llm_with_fallbacks")
 def test_critic_respects_iteration_cap(mock_llm_factory):
     mock_llm = MagicMock()
-    mock_llm.invoke.return_value = MagicMock(content=json.dumps({
+    mock_llm.invoke_json.return_value = {
         "candidate_entities": [{"label": "Hannibal", "entity_type": "person"}],
         "candidate_relations": [],
-    }))
+    }
     mock_llm_factory.return_value = mock_llm
 
     # Already at the last allowed pass: even though it adds a new entity, it must stop.
@@ -116,7 +115,9 @@ def test_critic_respects_iteration_cap(mock_llm_factory):
 @patch("pipeline.agent.graph.nodes.completeness_critic.create_llm_with_fallbacks")
 def test_critic_survives_bad_json(mock_llm_factory):
     mock_llm = MagicMock()
-    mock_llm.invoke.return_value = MagicMock(content="not json at all")
+    # invoke_json raises once every model/attempt is exhausted on malformed JSON;
+    # the node must catch it, record the error, and still finish the pass.
+    mock_llm.invoke_json.side_effect = json.JSONDecodeError("Expecting value", "", 0)
     mock_llm_factory.return_value = mock_llm
 
     new_state = completeness_critic(_state())

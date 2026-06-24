@@ -171,12 +171,22 @@ def parse_point_wkt(value: Any) -> tuple[float, float] | None:
     return float(m.group(1)), float(m.group(2))
 
 
-def build_wikidata_point_manifest(qid: str | None, coords_wkt: Any) -> dict[str, Any] | None:
-    """Approximate-point fallback when OHM has no feature for a polity.
+def build_wikidata_point_manifest(
+    qid: str | None,
+    coords_wkt: Any,
+    *,
+    reason: str = "ohm_miss_approximate_point",
+    match_score: float = 0.5,
+    source: str = "wikidata_p625",
+) -> dict[str, Any] | None:
+    """Point-fallback geo-ref from a Wikidata coordinate (not an OHM border).
 
-    Uses the entity's Wikidata coordinate (P625) so the polity still gets an
-    approximate location on the map. Persisted as a wikidata geo-ref (fallback
-    role) — not an OHM border.
+    Used three ways: a polity/place/event whose OHM lookup missed but which has
+    its own P625 (``reason=ohm_miss_approximate_point``); a person/work/religion
+    located via a place-of-association coordinate, where ``qid`` is that place
+    (``reason=place_of_association``); and the last-resort chronicle-centroid
+    point (``reason=chronicle_centroid_approximate``, low ``match_score``). The
+    ``source`` is recorded in ``source_meta`` so the approximation is auditable.
     """
     lonlat = parse_point_wkt(coords_wkt)
     if not qid or not lonlat:
@@ -190,11 +200,11 @@ def build_wikidata_point_manifest(qid: str | None, coords_wkt: Any) -> dict[str,
             "external_id": str(qid),
             "match_role": "fallback",
             "retrieval_method": "rest",
-            "match_score": 0.5,
+            "match_score": match_score,
             "external_tags": {},
-            "source_meta": {"source": "wikidata_p625"},
+            "source_meta": {"source": source},
         },
-        "provenance": {"resolver": "wikidata_coords", "reason": "ohm_miss_approximate_point"},
+        "provenance": {"resolver": "wikidata_coords", "reason": reason},
         "geometry": {"type": "Point", "coordinates": [lon, lat]},
     }
 

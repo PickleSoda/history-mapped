@@ -11,15 +11,13 @@ Handles:
 
 from __future__ import annotations
 
-import json
 from datetime import datetime, timezone
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from pipeline.agent.config import AgentConfig
 from pipeline.agent.graph.state import AgentRunState
-from pipeline.agent.json_utils import parse_llm_json
-from pipeline.agent.llm import create_llm
+from pipeline.agent.llm import create_llm_with_fallbacks
 from pipeline.agent.log_config import get_logger
 from pipeline.agent.schemas.validation import AuditEvent, PipelineError
 
@@ -43,7 +41,9 @@ Output strictly as JSON:
 def preprocess_transcript(state: AgentRunState) -> AgentRunState:
     """Clean and structure raw transcript text."""
     cfg = AgentConfig()
-    llm = create_llm(cfg.parse_model, cfg.openai_api_key, cfg.llm_base_url)
+    # Was a bare create_llm (no fallback, no retry); use the fallback factory so a
+    # malformed clean-up response retries/falls back like the other nodes.
+    llm = create_llm_with_fallbacks("parse_model", cfg, reasoning_effort=cfg.reasoning_effort)
 
     logger.info("LLM call: preprocess_transcript (model=%s, input=%d chars)",
                 cfg.parse_model, len(state["raw_input"]))
@@ -53,12 +53,11 @@ def preprocess_transcript(state: AgentRunState) -> AgentRunState:
         HumanMessage(content=state["raw_input"]),
     ]
 
-    response = llm.invoke(messages)
-    content = response.content if hasattr(response, "content") else str(response)
-    logger.info("LLM response: %d chars", len(content))
     try:
-        data = parse_llm_json(content)
-        cleaned = data.get("cleaned_text", "").strip()
+        data = llm.invoke_json(
+            messages, validate=lambda d: isinstance(d, dict) and "cleaned_text" in d
+        )
+        cleaned = (data.get("cleaned_text") or "").strip()
         if cleaned:
             state["raw_input"] = cleaned
         else:
@@ -68,12 +67,12 @@ def preprocess_transcript(state: AgentRunState) -> AgentRunState:
                 message="LLM returned empty cleaned text, using original.",
                 context={"original_length": len(state["raw_input"])},
             ))
-    except (json.JSONDecodeError, TypeError) as exc:
+    except Exception as exc:
         state["errors"].append(PipelineError(
             node="preprocess_transcript",
             error_type="json_parse",
             message=str(exc),
-            context={"raw_response": content[:500] if content else None},
+            context={},
         ))
 
     state["audit_log"].append(

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from datetime import datetime, timezone
 
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -9,7 +8,6 @@ from pipeline.agent.config import AgentConfig
 from pipeline.agent.llm import create_llm_with_fallbacks
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.entities import ParsedEvent
-from pipeline.agent.json_utils import parse_llm_json
 from pipeline.agent.log_config import get_logger
 from pipeline.agent.schemas.validation import AuditEvent, PipelineError
 
@@ -34,22 +32,24 @@ Output strictly as JSON matching this schema:
 
 def parse_sequence(state: AgentRunState) -> AgentRunState:
     cfg = AgentConfig()
-    llm = create_llm_with_fallbacks("parse_model", cfg)
+    llm = create_llm_with_fallbacks("parse_model", cfg, reasoning_effort=cfg.reasoning_effort)
     logger.info("LLM call: parse_sequence (model=%s)", cfg.parse_model)
     messages = [SystemMessage(content=_PROMPT), HumanMessage(content=state["raw_input"])]
-    response = llm.invoke(messages)
-    content = response.content if hasattr(response, "content") else str(response)
-    logger.info("LLM response: %d chars", len(content))
+    # invoke_json runs the parse inside the model's retry/fallback loop: a malformed
+    # or events-less response retries the model, then falls back — instead of being
+    # dropped on the first bad parse. Only a fully-exhausted chain reaches except.
     try:
-        data = parse_llm_json(content)
+        data = llm.invoke_json(
+            messages, validate=lambda d: isinstance(d, dict) and "events" in d
+        )
         events = [ParsedEvent(**e) for e in data.get("events", [])]
-    except (json.JSONDecodeError, TypeError) as exc:
+    except Exception as exc:
         state["errors"].append(
             PipelineError(
                 node="parse_sequence",
                 error_type="json_parse",
                 message=str(exc),
-                context={"raw_response": content},
+                context={},
             )
         )
         events = []

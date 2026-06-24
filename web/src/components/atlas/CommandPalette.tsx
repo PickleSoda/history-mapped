@@ -218,11 +218,11 @@ export function CommandPalette() {
           })}
         </div>
 
-        {/* Results */}
-        <div className="max-h-[50vh] overflow-y-auto p-1.5">
+        {/* Results — fixed height so the modal doesn't resize once results load */}
+        <div className="h-[50vh] overflow-y-auto p-1.5">
           {debounced.length === 0 ? (
             <p className="px-3 py-8 text-center text-sm text-muted-foreground">
-              Type to search the atlas…
+              Type to search History Mapped…
             </p>
           ) : results.length === 0 && !isFetching ? (
             <p className="px-3 py-8 text-center text-sm text-muted-foreground">

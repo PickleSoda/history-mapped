@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 
 from langchain_core.messages import HumanMessage
 
 from pipeline.agent.config import AgentConfig
-from pipeline.agent.json_utils import parse_llm_json
 from pipeline.agent.llm import create_llm_with_fallbacks
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.log_config import get_logger
@@ -74,13 +74,20 @@ def _entity_context(enriched, event_text: dict[str, str], rels: dict[str, list[d
 
 
 _ENTITY_PROMPT = """You are a historical content writer. For EACH entity below, write two fields:
-- "summary": 2–4 sentences of specific, flowing prose. Ground it in the entity's source-event text and its
-  relationships; name concrete actors, places, dates, and outcomes. Do NOT just restate the Wikidata gloss.
+- "summary": AT LEAST THREE full sentences (3–5) of specific, engaging, flowing prose — never a single
+  sentence. Open with a vivid framing of what the entity is, then ground it in the entity's source-event text
+  and relationships, naming concrete actors, places, dates, and outcomes, and close on its arc or fate. Write
+  it like a paragraph in a popular history book, not a dictionary gloss. Do NOT just restate the Wikidata
+  description.
 - "significance": 1–2 sentences on why this entity matters historically — its consequences, role, or influence.
 
 Draw on the source text and relationships first; for well-known entities you may add widely-established
-historical facts to give a fuller picture. Do not fabricate. Only omit an entity's key if you genuinely cannot
-identify who or what it is — a recognised historical figure, place, or event should always get both fields.
+historical facts to give a fuller, multi-sentence picture. Do not fabricate. Only omit an entity's key if you
+genuinely cannot identify who or what it is — a recognised historical figure, place, or event should always get
+both fields, and its summary must still be at least three sentences.
+
+Write every field in English, regardless of the entity's origin (e.g. write "Born in 1783, Agustín
+de Iturbide…", never "Nacido en 1783…").
 
 Style Guide:
 {style_guide}
@@ -98,9 +105,47 @@ def _chunked(items: list, size: int):
         yield items[i:i + size]
 
 
+def _sentence_count(text: str | None) -> int:
+    """Rough count of sentences — enough to tell a one-liner from a paragraph."""
+    if not text:
+        return 0
+    return len(re.findall(r"[.!?](?:\s|$)", text.strip()))
+
+
+def _apply_summary_pass(llm, prompt: str, by_label: dict, state: AgentRunState, stage: str) -> None:
+    """Run one summary/significance LLM call and merge results, keeping the longer
+    summary so a retry never regresses an entity to a shorter one."""
+    # invoke_json retries/falls back on a malformed or entities-less response — the
+    # exact failure that left summaries empty in the free-model batch — so a single
+    # bad parse no longer drops a whole chunk of summaries.
+    try:
+        data = llm.invoke_json(
+            [HumanMessage(content=prompt)],
+            validate=lambda d: isinstance(d, dict) and "entities" in d,
+        )
+        for label, fields in (data.get("entities", {}) or {}).items():
+            enriched = by_label.get(label)
+            if enriched is None or not isinstance(fields, dict):
+                continue
+            new_summary = fields.get("summary")
+            if new_summary and _sentence_count(new_summary) >= _sentence_count(enriched.summary):
+                enriched.summary = new_summary
+            enriched.significance = fields.get("significance") or enriched.significance
+    except Exception as exc:
+        state["errors"].append(
+            PipelineError(
+                node="generate_content",
+                error_type="json_parse",
+                message=str(exc),
+                context={"stage": stage},
+            )
+        )
+
+
 def generate_content(state: AgentRunState) -> AgentRunState:
     cfg = AgentConfig()
-    llm = create_llm_with_fallbacks("generate_model", cfg, max_tokens=cfg.generate_max_tokens)
+    llm = create_llm_with_fallbacks("generate_model", cfg, max_tokens=cfg.generate_max_tokens,
+                                    reasoning_effort=cfg.reasoning_effort)
     style_guide = _load_style_guide()
     entities = state["enriched_entities"]
     relations = state["candidate_relations"]
@@ -118,25 +163,25 @@ def generate_content(state: AgentRunState) -> AgentRunState:
             default=str,
         )
         prompt = _ENTITY_PROMPT.format(style_guide=style_guide, entities=context)
-        response = llm.invoke([HumanMessage(content=prompt)])
-        content = response.content if hasattr(response, "content") else str(response)
-        try:
-            data = parse_llm_json(content)
-            for label, fields in (data.get("entities", {}) or {}).items():
-                enriched = by_label.get(label)
-                if enriched is None or not isinstance(fields, dict):
-                    continue
-                enriched.summary = fields.get("summary") or enriched.summary
-                enriched.significance = fields.get("significance") or enriched.significance
-        except (json.JSONDecodeError, TypeError) as exc:
-            state["errors"].append(
-                PipelineError(
-                    node="generate_content",
-                    error_type="json_parse",
-                    message=str(exc),
-                    context={"raw_response": content, "chunk_labels": [e.candidate.label for e in chunk]},
-                )
+        _apply_summary_pass(llm, prompt, by_label, state, "summary")
+
+    # ── Guard: re-request any summary that came back too short (<3 sentences).
+    # The model intermittently returns a one-liner despite the prompt; one extra
+    # targeted pass over just the deficient entities enforces the floor without
+    # regenerating everything.
+    deficient = [e for e in entities if _sentence_count(e.summary) < 3]
+    if deficient:
+        logger.info("Re-requesting %d short summaries (<3 sentences)", len(deficient))
+        for chunk in _chunked(deficient, ENTITY_CHUNK_SIZE):
+            context = json.dumps(
+                [_entity_context(e, event_text, rels_by_entity) for e in chunk],
+                default=str,
             )
+            prompt = _ENTITY_PROMPT.format(style_guide=style_guide, entities=context) + (
+                "\n\nIMPORTANT: a previous attempt returned summaries that were too short. Write a NEW summary "
+                "of at least THREE full sentences for EVERY entity above."
+            )
+            _apply_summary_pass(llm, prompt, by_label, state, "summary_retry")
 
     # ── Relation descriptions (short; one pass) ─────────────────────────────
     if relations:
@@ -154,20 +199,22 @@ def generate_content(state: AgentRunState) -> AgentRunState:
             f"Relations:\n{relations_context}\n\n"
             'Output strictly as JSON:\n{"relation_descriptions": {"Source|relationship_type|Target": "..."}}\n'
         )
-        response = llm.invoke([HumanMessage(content=rel_prompt)])
-        content = response.content if hasattr(response, "content") else str(response)
         try:
-            rel_descs = parse_llm_json(content).get("relation_descriptions", {})
+            data = llm.invoke_json(
+                [HumanMessage(content=rel_prompt)],
+                validate=lambda d: isinstance(d, dict) and "relation_descriptions" in d,
+            )
+            rel_descs = data.get("relation_descriptions", {})
             for relation in relations:
                 key = f"{relation.source_label}|{relation.relationship_type}|{relation.target_label}"
                 relation.description = rel_descs.get(key)
-        except (json.JSONDecodeError, TypeError) as exc:
+        except Exception as exc:
             state["errors"].append(
                 PipelineError(
                     node="generate_content",
                     error_type="json_parse",
                     message=str(exc),
-                    context={"raw_response": content, "stage": "relation_descriptions"},
+                    context={"stage": "relation_descriptions"},
                 )
             )
 
@@ -184,17 +231,19 @@ def generate_content(state: AgentRunState) -> AgentRunState:
             'Output strictly as JSON: {"title": "..."}'
         )
         try:
-            resp = llm.invoke([HumanMessage(content=title_prompt)])
-            tcontent = resp.content if hasattr(resp, "content") else str(resp)
-            title = (parse_llm_json(tcontent).get("title") or "").strip()
+            data = llm.invoke_json(
+                [HumanMessage(content=title_prompt)],
+                validate=lambda d: isinstance(d, dict) and "title" in d,
+            )
+            title = (data.get("title") or "").strip()
             if title:
                 state["title"] = title
                 logger.info("Generated chronicle title: %s", title)
-        except (json.JSONDecodeError, TypeError) as exc:
+        except Exception as exc:
             state["errors"].append(
                 PipelineError(
                     node="generate_content", error_type="json_parse",
-                    message=str(exc), context={"raw_response": tcontent, "stage": "title"},
+                    message=str(exc), context={"stage": "title"},
                 )
             )
 
