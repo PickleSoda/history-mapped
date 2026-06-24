@@ -128,163 +128,173 @@ export function AiSidebar() {
         <aside
             aria-hidden={!open}
             className={cn(
-                'fixed inset-y-0 right-0 z-30 flex w-110 max-w-full flex-col border-l bg-background shadow-lg transition-transform duration-200 ease-in-out',
+                'z-30 border-l bg-background',
+                // Mobile: fixed off-canvas overlay (works well on small screens).
+                'fixed inset-y-0 right-0 w-110 max-w-full shadow-lg transition-transform duration-200 ease-in-out',
                 open ? 'translate-x-0' : 'pointer-events-none translate-x-full',
+                // Desktop (md+): in-flow flex column that collapses its width, so the
+                // main content squishes exactly like the left nav sidebar.
+                'md:static md:max-w-none md:shrink-0 md:translate-x-0 md:overflow-hidden md:shadow-none md:transition-[width] md:duration-200',
+                open ? 'md:w-110' : 'md:pointer-events-none md:w-0',
             )}
         >
-            {/* Header */}
-            <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-semibold">
-                <BotMessageSquare className="size-4 text-primary" />
-                Ask AI
-                {aiCtx && (
-                    <span className="ml-auto text-xs font-normal text-muted-foreground capitalize">
-                        {aiCtx.type} #{aiCtx.id}
-                    </span>
-                )}
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className={cn('size-7', aiCtx ? 'ml-2' : 'ml-auto')}
-                    onClick={() => setOpen(false)}
-                    title="Close"
-                >
-                    <X className="size-4" />
-                </Button>
-            </div>
+            {/* Inner keeps a fixed width so content doesn't reflow while the panel
+                animates its width open/closed on desktop. */}
+            <div className="flex h-full w-110 max-w-full flex-col md:max-w-none">
+                {/* Header */}
+                <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-semibold">
+                    <BotMessageSquare className="size-4 text-primary" />
+                    Ask AI
+                    {aiCtx && (
+                        <span className="ml-auto text-xs font-normal text-muted-foreground capitalize">
+                            {aiCtx.type} #{aiCtx.id}
+                        </span>
+                    )}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn('size-7', aiCtx ? 'ml-2' : 'ml-auto')}
+                        onClick={() => setOpen(false)}
+                        title="Close"
+                    >
+                        <X className="size-4" />
+                    </Button>
+                </div>
 
-            {/* Message list */}
-            <Conversation className="flex-1">
-                <ConversationContent>
-                    {messages.length === 0 && (
-                        <ConversationEmptyState
-                            icon={
-                                <BotMessageSquare className="size-8 text-muted-foreground" />
-                            }
-                            title={
+                {/* Message list */}
+                <Conversation className="flex-1">
+                    <ConversationContent>
+                        {messages.length === 0 && (
+                            <ConversationEmptyState
+                                icon={
+                                    <BotMessageSquare className="size-8 text-muted-foreground" />
+                                }
+                                title={
+                                    aiCtx
+                                        ? 'Ask anything about this record'
+                                        : 'No context available'
+                                }
+                                description={
+                                    aiCtx
+                                        ? 'The assistant can read and update this entity or chronicle.'
+                                        : 'Navigate to an entity or chronicle page to use the AI assistant.'
+                                }
+                            />
+                        )}
+
+                        {messages.map((m) => (
+                            <Message key={m.id} from={m.role}>
+                                <MessageContent>
+                                    {m.parts.map((part, idx) => {
+                                        // Text parts → streaming markdown
+                                        if (part.type === 'text') {
+                                            return (
+                                                <MessageResponse
+                                                    key={idx}
+                                                    isAnimating={isStreaming}
+                                                >
+                                                    {part.text}
+                                                </MessageResponse>
+                                            );
+                                        }
+
+                                        // Dynamic tool parts (staging tools)
+                                        if (
+                                            part.type === 'dynamic-tool' &&
+                                            part.state === 'output-available'
+                                        ) {
+                                            const proposal = parseProposal(
+                                                part.output,
+                                            );
+
+                                            if (proposal) {
+                                                return (
+                                                    <ProposalCard
+                                                        key={idx}
+                                                        proposal={proposal}
+                                                    />
+                                                );
+                                            }
+                                        }
+
+                                        // Static tool parts — type is `tool-${name}`, e.g. `tool-set_entity_location`
+                                        if (
+                                            part.type.startsWith('tool-') &&
+                                            'state' in part &&
+                                            part.state === 'output-available' &&
+                                            'output' in part
+                                        ) {
+                                            const proposal = parseProposal(
+                                                (
+                                                    part as {
+                                                        output: unknown;
+                                                    }
+                                                ).output,
+                                            );
+
+                                            if (proposal) {
+                                                return (
+                                                    <ProposalCard
+                                                        key={idx}
+                                                        proposal={proposal}
+                                                    />
+                                                );
+                                            }
+                                        }
+
+                                        return null;
+                                    })}
+                                </MessageContent>
+                            </Message>
+                        ))}
+                    </ConversationContent>
+                    <ConversationScrollButton />
+                </Conversation>
+
+                {/* Input area */}
+                <div className="border-t p-3">
+                    {!aiCtx && (
+                        <p className="mb-2 text-center text-xs text-muted-foreground">
+                            Open an entity or chronicle to enable AI assistance.
+                        </p>
+                    )}
+                    <div className="flex items-end gap-2">
+                        <Textarea
+                            ref={textareaRef}
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder={
                                 aiCtx
-                                    ? 'Ask anything about this record'
-                                    : 'No context available'
+                                    ? 'Ask a question or request a change… (Enter to send, Shift+Enter for newline)'
+                                    : 'No context — navigate to an entity page first'
                             }
-                            description={
-                                aiCtx
-                                    ? 'The assistant can read and update this entity or chronicle.'
-                                    : 'Navigate to an entity or chronicle page to use the AI assistant.'
-                            }
+                            disabled={!aiCtx}
+                            rows={2}
+                            className="min-h-0 flex-1 resize-none text-sm"
                         />
-                    )}
-
-                    {messages.map((m) => (
-                        <Message key={m.id} from={m.role}>
-                            <MessageContent>
-                                {m.parts.map((part, idx) => {
-                                    // Text parts → streaming markdown
-                                    if (part.type === 'text') {
-                                        return (
-                                            <MessageResponse
-                                                key={idx}
-                                                isAnimating={isStreaming}
-                                            >
-                                                {part.text}
-                                            </MessageResponse>
-                                        );
-                                    }
-
-                                    // Dynamic tool parts (staging tools)
-                                    if (
-                                        part.type === 'dynamic-tool' &&
-                                        part.state === 'output-available'
-                                    ) {
-                                        const proposal = parseProposal(
-                                            part.output,
-                                        );
-
-                                        if (proposal) {
-                                            return (
-                                                <ProposalCard
-                                                    key={idx}
-                                                    proposal={proposal}
-                                                />
-                                            );
-                                        }
-                                    }
-
-                                    // Static tool parts — type is `tool-${name}`, e.g. `tool-set_entity_location`
-                                    if (
-                                        part.type.startsWith('tool-') &&
-                                        'state' in part &&
-                                        part.state === 'output-available' &&
-                                        'output' in part
-                                    ) {
-                                        const proposal = parseProposal(
-                                            (
-                                                part as {
-                                                    output: unknown;
-                                                }
-                                            ).output,
-                                        );
-
-                                        if (proposal) {
-                                            return (
-                                                <ProposalCard
-                                                    key={idx}
-                                                    proposal={proposal}
-                                                />
-                                            );
-                                        }
-                                    }
-
-                                    return null;
-                                })}
-                            </MessageContent>
-                        </Message>
-                    ))}
-                </ConversationContent>
-                <ConversationScrollButton />
-            </Conversation>
-
-            {/* Input area */}
-            <div className="border-t p-3">
-                {!aiCtx && (
-                    <p className="mb-2 text-center text-xs text-muted-foreground">
-                        Open an entity or chronicle to enable AI assistance.
-                    </p>
-                )}
-                <div className="flex items-end gap-2">
-                    <Textarea
-                        ref={textareaRef}
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        placeholder={
-                            aiCtx
-                                ? 'Ask a question or request a change… (Enter to send, Shift+Enter for newline)'
-                                : 'No context — navigate to an entity page first'
-                        }
-                        disabled={!aiCtx}
-                        rows={2}
-                        className="min-h-0 flex-1 resize-none text-sm"
-                    />
-                    {isStreaming ? (
-                        <Button
-                            size="icon"
-                            variant="outline"
-                            onClick={stop}
-                            title="Stop"
-                            className="shrink-0"
-                        >
-                            <Square className="size-4" />
-                        </Button>
-                    ) : (
-                        <Button
-                            size="icon"
-                            onClick={handleSubmit}
-                            disabled={!canSend}
-                            title="Send"
-                            className="shrink-0"
-                        >
-                            <SendHorizonal className="size-4" />
-                        </Button>
-                    )}
+                        {isStreaming ? (
+                            <Button
+                                size="icon"
+                                variant="outline"
+                                onClick={stop}
+                                title="Stop"
+                                className="shrink-0"
+                            >
+                                <Square className="size-4" />
+                            </Button>
+                        ) : (
+                            <Button
+                                size="icon"
+                                onClick={handleSubmit}
+                                disabled={!canSend}
+                                title="Send"
+                                className="shrink-0"
+                            >
+                                <SendHorizonal className="size-4" />
+                            </Button>
+                        )}
+                    </div>
                 </div>
             </div>
         </aside>

@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { useAiPanel } from '@/components/ai/ai-panel-context';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 import type { AppVariant } from '@/types';
@@ -14,21 +13,11 @@ export function AppContent({
     className,
     ...props
 }: Props) {
-    // When the AI panel is docked open, push the content left (md+ only) so the
-    // two sit side-by-side rather than the panel covering the page. Safe-default
-    // hook → no effect in layouts without an AiPanelProvider (e.g. header).
-    const { open: aiOpen } = useAiPanel();
-
     if (variant === 'sidebar') {
+        // min-w-0 lets the flex-1 inset actually shrink when the right-docked
+        // AI panel (a flex sibling) opens, instead of overflowing.
         return (
-            <SidebarInset
-                className={cn(
-                    'transition-[margin] duration-200 ease-in-out',
-                    aiOpen && 'md:mr-110',
-                    className,
-                )}
-                {...props}
-            >
+            <SidebarInset className={cn('min-w-0', className)} {...props}>
                 {children}
             </SidebarInset>
         );
