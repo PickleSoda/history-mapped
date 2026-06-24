@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\Ai\AiProposalController;
 use App\Http\Controllers\Admin\EntityController;
 use App\Http\Controllers\Admin\EntityGeometryPeriodController;
 use App\Http\Controllers\Admin\Reference\CalendarSystemController;
@@ -68,6 +69,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('reference/measurement-units', [MeasurementUnitController::class, 'index'])->name('reference.measurement-units.index');
     Route::get('reference/language-families', [LanguageFamilyController::class, 'index'])->name('reference.language-families.index');
     Route::get('reference/source-type-definitions', [SourceTypeDefinitionController::class, 'index'])->name('reference.source-type-definitions.index');
+
+    // ── AI Proposals ─────────────────────────────────────────────────────────
+    Route::prefix('ai')->name('ai.')->group(function () {
+        Route::post('proposals/{change}/parts/{key}/discard', [AiProposalController::class, 'discard'])->name('proposals.discard');
+        Route::middleware('permission:entities.write')->group(function () {
+            Route::post('proposals/{change}/parts/{key}/apply', [AiProposalController::class, 'apply'])->name('proposals.apply');
+        });
+    });
 
     // ── Chronicles ─────────────────────────────────────────────
     Route::get('/chronicles', [ChronicleController::class, 'index'])->name('chronicles.index');
