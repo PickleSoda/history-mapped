@@ -56,6 +56,11 @@ class MapEntitiesRequest extends FormRequest
             // or supply min_impact directly to override it.
             'zoom_level' => ['sometimes', 'integer', 'min:0', 'max:22'],
             'min_impact' => ['sometimes', 'nullable', 'integer', 'min:0', 'max:100'],
+            // Minimum results floor: when an impact threshold is active but fewer
+            // than this many entities clear it (e.g. zoomed out or heavily
+            // filtered), backfill with the next highest-impact ones so the map is
+            // never empty. 0 / omitted = no floor (pure threshold).
+            'min_results' => ['sometimes', 'integer', 'min:0', 'max:500'],
             'include_territories' => ['sometimes', 'boolean'],
             'all_periods' => ['sometimes', 'boolean'],
 

@@ -19,6 +19,14 @@ type Params = Record<string, string | number | string[]>;
  */
 const FILTER_BY_VIEWPORT = false; // bbox on the map + list
 
+/**
+ * Keep the map populated: when the zoom-derived impact threshold would leave
+ * fewer than this many entities in view (zoomed out, or a group filter applied),
+ * the API backfills with the next highest-impact ones. Pure declutter stays
+ * wherever more than this clears the threshold.
+ */
+const MAP_MIN_RESULTS = 24;
+
 /** Whole-world bbox — the map endpoint requires a bbox even when unfiltered. */
 const WORLD_BBOX: Params = {
   bbox_min_lng: -180,
@@ -48,6 +56,7 @@ export function mapParams(scope: Scope, limit = 2000): Params {
   const params: Params = {
     ...bboxParams(scope),
     zoom_level: Math.max(0, Math.min(22, scope.z)),
+    min_results: MAP_MIN_RESULTS,
     limit,
   };
 

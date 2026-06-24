@@ -95,6 +95,116 @@ class MapEntitiesThresholdTest extends TestCase
         $this->assertNotContains($low->entity_id, $ids);
     }
 
+    public function test_min_results_backfills_below_threshold_when_sparse(): void
+    {
+        // Only the high one clears zoom-1's threshold (80); the low one does not.
+        $high = Entity::factory()->verified()->create(['impact_score' => 85]);
+        $this->setGeometryPeriod($high, 900, 1100);
+
+        $low = Entity::factory()->verified()->create(['impact_score' => 50]);
+        $this->setGeometryPeriod(
+            $low,
+            900,
+            1100,
+            'territory',
+            'POLYGON((12 40, 13 40, 13 41, 12 41, 12 40))',
+        );
+
+        $response = $this->getJson(route('api.v1.entities.map', [
+            'bbox_min_lng' => 0,
+            'bbox_min_lat' => 30,
+            'bbox_max_lng' => 30,
+            'bbox_max_lat' => 50,
+            'year' => 1000,
+            'zoom_level' => 1,
+            'min_results' => 5,
+        ]));
+
+        $response->assertOk();
+        $ids = array_column($response->json('features'), 'id');
+        // The floor backfills the sub-threshold entity so the map isn't empty.
+        $this->assertContains($high->entity_id, $ids);
+        $this->assertContains($low->entity_id, $ids);
+    }
+
+    public function test_min_results_still_excludes_low_when_enough_clear_the_threshold(): void
+    {
+        // Two entities clear the zoom-1 threshold (80) — that already meets the
+        // floor of 2, so the sub-threshold entity must NOT be backfilled.
+        foreach ([[85, '10 40'], [82, '11 40']] as [$score, $origin]) {
+            $high = Entity::factory()->verified()->create(['impact_score' => $score]);
+            [$ox, $oy] = explode(' ', $origin);
+            $this->setGeometryPeriod(
+                $high,
+                900,
+                1100,
+                'territory',
+                sprintf('POLYGON((%1$s %2$s, %3$s %2$s, %3$s %4$s, %1$s %4$s, %1$s %2$s))', $ox, $oy, (float) $ox + 0.5, (float) $oy + 0.5),
+            );
+        }
+
+        $low = Entity::factory()->verified()->create(['impact_score' => 50]);
+        $this->setGeometryPeriod(
+            $low,
+            900,
+            1100,
+            'territory',
+            'POLYGON((20 40, 21 40, 21 41, 20 41, 20 40))',
+        );
+
+        $response = $this->getJson(route('api.v1.entities.map', [
+            'bbox_min_lng' => 0,
+            'bbox_min_lat' => 30,
+            'bbox_max_lng' => 30,
+            'bbox_max_lat' => 50,
+            'year' => 1000,
+            'zoom_level' => 1,
+            'min_results' => 2,
+        ]));
+
+        $response->assertOk();
+        $ids = array_column($response->json('features'), 'id');
+        $this->assertNotContains($low->entity_id, $ids);
+        $this->assertCount(2, $ids);
+    }
+
+    public function test_min_results_caps_backfill_to_the_requested_count(): void
+    {
+        // Five sub-threshold entities, none clearing zoom-1's threshold (80).
+        // With a floor of 3, exactly the three highest-impact ones come back.
+        $entities = [];
+        foreach ([60, 55, 50, 45, 40] as $i => $score) {
+            $e = Entity::factory()->verified()->create(['impact_score' => $score]);
+            $ox = 10 + $i; // distinct, in-bbox polygons
+            $this->setGeometryPeriod(
+                $e,
+                900,
+                1100,
+                'territory',
+                sprintf('POLYGON((%1$d 40, %2$d 40, %2$d 41, %1$d 41, %1$d 40))', $ox, $ox + 1),
+            );
+            $entities[$score] = $e;
+        }
+
+        $response = $this->getJson(route('api.v1.entities.map', [
+            'bbox_min_lng' => 0,
+            'bbox_min_lat' => 30,
+            'bbox_max_lng' => 30,
+            'bbox_max_lat' => 50,
+            'year' => 1000,
+            'zoom_level' => 1,
+            'min_results' => 3,
+        ]));
+
+        $response->assertOk();
+        $ids = array_column($response->json('features'), 'id');
+        $this->assertCount(3, $ids);
+        $this->assertContains($entities[60]->entity_id, $ids);
+        $this->assertContains($entities[55]->entity_id, $ids);
+        $this->assertContains($entities[50]->entity_id, $ids);
+        $this->assertNotContains($entities[45]->entity_id, $ids);
+    }
+
     public function test_zoom_level_12_applies_no_threshold(): void
     {
         // impact 5 — should appear at zoom 12 (no threshold)
