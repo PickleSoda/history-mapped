@@ -20,7 +20,7 @@ export function MobileTopBar() {
         className="flex h-9 flex-1 items-center gap-2 rounded-lg border bg-muted/50 px-3 text-[13px] text-muted-foreground"
       >
         <Search size={15} />
-        <span className="flex-1 text-left">Search the atlas…</span>
+        <span className="flex-1 text-left">Search History Mapped…</span>
       </button>
       <button
         type="button"
