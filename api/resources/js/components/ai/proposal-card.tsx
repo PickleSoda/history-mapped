@@ -60,6 +60,9 @@ export function parseProposal(output: unknown): Proposal | null {
  * On apply: POSTs to `/ai/proposals/{proposal_id}/parts/{key}/apply`, then
  * calls `router.reload()` (edit mode) or `router.visit(redirect_url)` (create
  * mode, when the response includes a redirect_url) so the page updates.
+ * If the apply response includes `created_ref` and an `onCreatedRef` callback
+ * is provided (global session), it calls `onCreatedRef(created_ref)` and does
+ * NOT navigate.
  * On discard: POSTs to `/ai/proposals/{proposal_id}/parts/{key}/discard`.
  */
 export function ProposalCard({
