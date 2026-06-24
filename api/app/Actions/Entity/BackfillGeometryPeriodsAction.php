@@ -65,9 +65,14 @@ class BackfillGeometryPeriodsAction
         if ($geom !== null || $territoryGeom !== null) {
             foreach ($ranges as $range) {
                 $startYear = $range->start_year ?? $range->end_year;
-                $endYear = $range->end_year ?? $range->start_year;
+                // Preserve an open end (NULL = ongoing) so the map's int4range shows
+                // the point from start_year onward. Collapsing NULL to start_year
+                // (the old `?? start_year`) made every still-extant entity — e.g.
+                // gunpowder, 800→present — render at exactly ONE year and vanish
+                // otherwise. A genuine point-in-time entity carries end_year=start.
+                $endYear = $range->end_year;
 
-                if ($startYear === null || $endYear === null) {
+                if ($startYear === null) {
                     continue;
                 }
 
@@ -95,10 +100,10 @@ class BackfillGeometryPeriodsAction
 
         $primaryRange = $entity->primaryTemporalRange;
         $startYear = $primaryRange?->start_year ?? $primaryRange?->end_year;
-        $endYear = $primaryRange?->end_year ?? $primaryRange?->start_year;
+        $endYear = $primaryRange?->end_year;  // keep NULL = ongoing (see above)
 
         if ($geom !== null || $territoryGeom !== null) {
-            if ($startYear !== null && $endYear !== null) {
+            if ($startYear !== null) {
                 GeometryPeriod::query()->create([
                     'entity_id' => $entity->entity_id,
                     'period_type' => 'territory',

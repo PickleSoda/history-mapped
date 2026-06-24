@@ -263,6 +263,28 @@ def main() -> int:
                 """, (eid, row["start_year"], row["end_year"], p["lon"], p["lat"],
                       conf, f"geo-backfill:{p['tier']}"))
 
+                # A confident OWN coordinate also belongs on the CANONICAL primary
+                # location (entity_locations) — what the admin editor and
+                # entity:backfill read. Writing only geometry_periods left entities
+                # like China "location not set" in admin while shown on the map.
+                # Only the Wikidata tiers, never the relationship_inference guess.
+                if p["tier"] in ("wikidata_p625", "wikidata_place_assoc"):
+                    cur.execute("""
+                        UPDATE entity_locations
+                        SET geom = ST_SetSRID(ST_MakePoint(%s, %s), 4326),
+                            location_method = 'wikidata', updated_at = now()
+                        WHERE entity_id = %s AND is_primary = true
+                          AND geom IS NULL AND territory_geom IS NULL
+                    """, (p["lon"], p["lat"], eid))
+                    if cur.rowcount == 0:
+                        cur.execute("""
+                            INSERT INTO entity_locations
+                                (entity_id, location_name, geom, location_method, is_primary, created_at, updated_at)
+                            SELECT %s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326), 'wikidata', true, now(), now()
+                            WHERE NOT EXISTS (
+                                SELECT 1 FROM entity_locations WHERE entity_id=%s AND is_primary=true)
+                        """, (eid, row["name"], p["lon"], p["lat"], eid))
+
                 src_meta = f'{{"source": "{p["tier"]}", "detail": "{p["detail"]}"}}'
                 if row["geo_ref_id"]:
                     cur.execute("""
