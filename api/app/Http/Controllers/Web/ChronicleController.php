@@ -106,6 +106,7 @@ class ChronicleController extends Controller
                 fn (SourceType $s) => ['value' => $s->value, 'label' => str_replace('_', ' ', ucfirst($s->value))],
                 SourceType::cases(),
             ),
+            'ai_context' => ['type' => 'chronicle', 'id' => null, 'mode' => 'create'],
         ]);
     }
 

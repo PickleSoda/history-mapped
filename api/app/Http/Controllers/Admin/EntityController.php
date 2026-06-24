@@ -108,6 +108,7 @@ class EntityController extends Controller
     {
         return Inertia::render('entities/create', [
             'formOptions' => self::buildFormOptions(),
+            'ai_context' => ['type' => 'entity', 'id' => null, 'mode' => 'create'],
         ]);
     }
 
