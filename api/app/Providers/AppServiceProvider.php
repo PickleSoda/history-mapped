@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Ai\ToolRegistry;
 use App\Models\EntityLocation;
 use App\Models\EntityRelationship;
 use App\Models\EntityTemporalRange;
@@ -30,7 +31,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(ToolRegistry::class);
     }
 
     /**
