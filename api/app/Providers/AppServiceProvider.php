@@ -4,6 +4,10 @@ namespace App\Providers;
 
 use App\Ai\ToolRegistry;
 use App\Ai\Tools\CreateEntity;
+use App\Ai\Tools\GetEntityContext;
+use App\Ai\Tools\SetEntityLocation;
+use App\Ai\Tools\UpdateEntityFields;
+use App\Ai\Tools\VerifyWikidata;
 use App\Models\EntityLocation;
 use App\Models\EntityRelationship;
 use App\Models\EntityTemporalRange;
@@ -46,6 +50,10 @@ class AppServiceProvider extends ServiceProvider
         EntityLocation::observe(EntityLocationObserver::class);
 
         app(ToolRegistry::class)->register(CreateEntity::name(), CreateEntity::class);
+        app(ToolRegistry::class)->register(SetEntityLocation::name(), SetEntityLocation::class);
+        app(ToolRegistry::class)->register(UpdateEntityFields::name(), UpdateEntityFields::class);
+        app(ToolRegistry::class)->register(GetEntityContext::name(), GetEntityContext::class);
+        app(ToolRegistry::class)->register(VerifyWikidata::name(), VerifyWikidata::class);
 
         $this->configureDefaults();
         $this->configureAuthorization();
