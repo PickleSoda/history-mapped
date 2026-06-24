@@ -13,11 +13,15 @@ import {
     Languages,
     BookMarked,
     MapPin,
+    Sparkles,
 } from 'lucide-react';
+import { useState } from 'react';
+import { AiSidebar } from '@/components/ai/ai-sidebar';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
+import { Button } from '@/components/ui/button';
 import {
     Sidebar,
     SidebarContent,
@@ -125,29 +129,47 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const [aiOpen, setAiOpen] = useState(false);
+
     return (
-        <Sidebar collapsible="icon" variant="inset">
-            <SidebarHeader>
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
-                                <AppLogo />
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
-            </SidebarHeader>
+        <>
+            <Sidebar collapsible="icon" variant="inset">
+                <SidebarHeader>
+                    <SidebarMenu>
+                        <SidebarMenuItem>
+                            <SidebarMenuButton size="lg" asChild>
+                                <Link href={dashboard()} prefetch>
+                                    <AppLogo />
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                </SidebarHeader>
 
-            <SidebarContent>
-                <NavMain items={mainNavItems} />
-                <NavMain items={referenceNavItems} label="Reference Data" />
-            </SidebarContent>
+                <SidebarContent>
+                    <NavMain items={mainNavItems} />
+                    <NavMain items={referenceNavItems} label="Reference Data" />
+                </SidebarContent>
 
-            <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
-                <NavUser />
-            </SidebarFooter>
-        </Sidebar>
+                <SidebarFooter>
+                    {/* Ask AI button — always visible; input is disabled when no context */}
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start gap-2"
+                        onClick={() => setAiOpen(true)}
+                        title="Open AI assistant"
+                    >
+                        <Sparkles className="size-4 shrink-0 text-primary" />
+                        <span className="truncate">Ask AI</span>
+                    </Button>
+                    <NavFooter items={footerNavItems} className="mt-auto" />
+                    <NavUser />
+                </SidebarFooter>
+            </Sidebar>
+
+            {/* AI sidebar sheet — mounted once outside the nav sidebar */}
+            <AiSidebar open={aiOpen} onOpenChange={setAiOpen} />
+        </>
     );
 }

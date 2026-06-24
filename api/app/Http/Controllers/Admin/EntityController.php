@@ -136,6 +136,7 @@ class EntityController extends Controller
     {
         return Inertia::render('entities/show', [
             'entity' => self::buildEntityDetail($entity),
+            'ai_context' => ['type' => 'entity', 'id' => $entity->entity_id],
         ]);
     }
 
@@ -147,6 +148,7 @@ class EntityController extends Controller
         return Inertia::render('entities/edit', [
             'entity' => self::buildEntityDetail($entity),
             'formOptions' => self::buildFormOptions(),
+            'ai_context' => ['type' => 'entity', 'id' => $entity->entity_id],
         ]);
     }
 
