@@ -15,7 +15,7 @@ class ProposalApplier
             return $part;
         }
 
-        $resolved = [];
+        $resolved = ['user_id' => (string) auth()->id()];
         if ($part->depends_on) {
             $dep = $part->change->parts()->where('key', $part->depends_on)->first();
             if ($dep && $dep->status === 'discarded') {
