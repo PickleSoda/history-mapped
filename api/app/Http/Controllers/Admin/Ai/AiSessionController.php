@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Admin\Ai;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ai\ProposedChange;
+use App\Models\Ai\ProposedChangePart;
 use App\Models\Chronicle;
 use App\Models\Entity;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Laravel\Ai\Models\Conversation;
 use Laravel\Ai\Models\ConversationMessage;
 
@@ -101,6 +103,39 @@ class AiSessionController extends Controller
             'messages' => $messages,
             'proposals' => $proposals,
         ]);
+    }
+
+    /**
+     * Delete a session: removes messages and pending proposals (no applied part).
+     * Proposals with ≥1 applied part are kept as an audit trail.
+     */
+    public function destroy(Request $request, string $conversation): JsonResponse
+    {
+        $session = Conversation::find($conversation);
+
+        if ($session === null) {
+            abort(404);
+        }
+
+        if ((string) $session->user_id !== (string) $request->user()->id) {
+            abort(403);
+        }
+
+        DB::transaction(function () use ($session) {
+            // Proposals for this session with NO applied part are unmaterialized
+            // → delete them and their parts. Keep any change with an applied part.
+            $deletableChangeIds = ProposedChange::where('conversation_id', $session->id)
+                ->whereDoesntHave('parts', fn ($q) => $q->where('status', 'applied'))
+                ->pluck('id');
+
+            ProposedChangePart::whereIn('change_id', $deletableChangeIds)->delete();
+            ProposedChange::whereIn('id', $deletableChangeIds)->delete();
+
+            ConversationMessage::where('conversation_id', $session->id)->delete();
+            $session->delete();
+        });
+
+        return response()->json(['deleted' => true]);
     }
 
     /**

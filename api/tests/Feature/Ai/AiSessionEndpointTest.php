@@ -142,4 +142,67 @@ class AiSessionEndpointTest extends TestCase
 
         $this->actingAs($intruder)->getJson('/ai/sessions/'.$session->id)->assertForbidden();
     }
+
+    public function test_session_destroy_removes_conversation_messages_and_pending_proposals_but_keeps_applied(): void
+    {
+        $user = $this->userWithPermissions(['entities.write']);
+        $entity = Entity::factory()->create(['name' => 'Rome']);
+
+        $session = Conversation::create([
+            'id' => (string) Str::uuid7(),
+            'user_id' => $user->id, 'title' => 'Chat',
+            'context_type' => 'entity', 'context_id' => $entity->entity_id,
+        ]);
+        ConversationMessage::create([
+            'id' => (string) Str::uuid7(),
+            'conversation_id' => $session->id, 'user_id' => $user->id,
+            'agent' => 'X', 'role' => 'user', 'content' => 'hi',
+            'attachments' => '[]', 'tool_calls' => '[]', 'tool_results' => '[]',
+            'usage' => '[]', 'meta' => '[]',
+        ]);
+
+        $pending = ProposedChange::create([
+            'user_id' => (string) $user->id, 'conversation_id' => $session->id,
+            'context_type' => 'entity', 'context_id' => $entity->entity_id,
+        ]);
+        $pendingPart = $pending->parts()->create([
+            'key' => 'a', 'tool' => 'update_entity_fields',
+            'payload' => [], 'human_diff' => [], 'status' => 'pending',
+        ]);
+
+        $applied = ProposedChange::create([
+            'user_id' => (string) $user->id, 'conversation_id' => $session->id,
+            'context_type' => 'entity', 'context_id' => $entity->entity_id,
+        ]);
+        $appliedPart = $applied->parts()->create([
+            'key' => 'b', 'tool' => 'update_entity_fields',
+            'payload' => [], 'human_diff' => [], 'status' => 'applied',
+            'result_id' => $entity->entity_id,
+        ]);
+
+        $this->actingAs($user)->deleteJson('/ai/sessions/'.$session->id)
+            ->assertOk()->assertJson(['deleted' => true]);
+
+        $this->assertDatabaseMissing('agent_conversations', ['id' => $session->id]);
+        $this->assertDatabaseMissing('agent_conversation_messages', ['conversation_id' => $session->id]);
+        $this->assertDatabaseMissing('agent_proposed_changes', ['id' => $pending->id]);
+        $this->assertDatabaseMissing('agent_proposed_change_parts', ['id' => $pendingPart->id]);
+        $this->assertDatabaseHas('agent_proposed_changes', ['id' => $applied->id]);
+        $this->assertDatabaseHas('agent_proposed_change_parts', ['id' => $appliedPart->id]);
+    }
+
+    public function test_session_destroy_forbids_non_owner_and_deletes_nothing(): void
+    {
+        $owner = $this->userWithPermissions(['entities.write']);
+        $intruder = $this->userWithPermissions(['entities.write']);
+
+        $session = Conversation::create([
+            'id' => (string) Str::uuid7(),
+            'user_id' => $owner->id, 'title' => 'Chat',
+            'context_type' => 'entity', 'context_id' => 'x',
+        ]);
+
+        $this->actingAs($intruder)->deleteJson('/ai/sessions/'.$session->id)->assertForbidden();
+        $this->assertDatabaseHas('agent_conversations', ['id' => $session->id]);
+    }
 }
