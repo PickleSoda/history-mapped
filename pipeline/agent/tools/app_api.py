@@ -15,6 +15,7 @@ def build_artisan_command(
     *args: str,
     sync: bool = False,
     batch_id: str | None = None,
+    force: bool = False,
 ) -> list[str]:
     """Build a Laravel artisan command as a list of strings for subprocess.
 
@@ -32,6 +33,8 @@ def build_artisan_command(
         cmd.append("--sync")
     if batch_id:
         cmd.append(f"--batch-id={batch_id}")
+    if force:
+        cmd.append("--force")
     return cmd
 
 

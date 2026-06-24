@@ -316,7 +316,11 @@ def commit_writer(state: AgentRunState) -> AgentRunState:
     if entity_records:
         # Use container-visible absolute path
         container_entity_path = f"{container_path}/{state['run_id']}/entities_to_create.jsonl"
-        cmd = build_artisan_command("pipeline:import", container_entity_path, sync=True, batch_id=state["run_id"])
+        # Refresh mode: --force so the import UPDATES an existing match in place
+        # (UpdateEntityAction) — re-doing type/QID/geo/date while keeping its
+        # entity_id, so relationships pointing at it survive.
+        cmd = build_artisan_command("pipeline:import", container_entity_path, sync=True,
+                                    batch_id=state["run_id"], force=state.get("refresh", False))
         logger.info("Docker import entities (%d records): %s", len(entity_records), " ".join(cmd))
         result = run_artisan_command(cmd)
         logger.info("Docker import entities result: returncode=%d stdout=%s stderr=%s",

@@ -31,6 +31,7 @@ class AgentRunState(TypedDict):
     chronicle: Chronicle | None
     title: str | None
     create_chronicle: bool
+    refresh: bool
     entity_id_map: dict[str, str]
     relation_id_map: dict[str, str]
     # Completeness-critic recall loop (F6): how many critic passes have run, and

@@ -12,18 +12,28 @@ logger = get_logger(__name__)
 
 
 def db_lookup(state: AgentRunState) -> AgentRunState:
+    # Refresh mode re-resolves EVERY entity through the full pipeline (Wikidata
+    # type/QID, OHM geo, dates, summary) and force-updates the existing rows in
+    # place (commit_writer passes --force). So here we deliberately do NOT mark
+    # matches as existing — that flag short-circuits resolution and excludes them
+    # from the diff. The import's own findExisting still collapses to the right row
+    # (by QID / OHM id / name+type+era), preserving entity_id and its relations.
+    refresh = state.get("refresh", False)
     enriched: list[EnrichedCandidate] = []
     for candidate in state["candidate_entities"]:
-        logger.info("DB lookup: %s (type=%s)", candidate.label, candidate.entity_type)
-        try:
-            matches = search_entity_by_name(candidate.label, entity_type=candidate.entity_type)
-            existing = matches[0] if matches else None
-            if candidate.wikidata_id and not existing:
-                qid_matches = search_entity_by_wikidata_id(candidate.wikidata_id)
-                existing = qid_matches[0] if qid_matches else None
-        except DbUnavailable as e:
-            logger.warning("DB unavailable during lookup: %s", e)
-            existing = None
+        logger.info("DB lookup: %s (type=%s)%s", candidate.label, candidate.entity_type,
+                    " [refresh]" if refresh else "")
+        existing = None
+        if not refresh:
+            try:
+                matches = search_entity_by_name(candidate.label, entity_type=candidate.entity_type)
+                existing = matches[0] if matches else None
+                if candidate.wikidata_id and not existing:
+                    qid_matches = search_entity_by_wikidata_id(candidate.wikidata_id)
+                    existing = qid_matches[0] if qid_matches else None
+            except DbUnavailable as e:
+                logger.warning("DB unavailable during lookup: %s", e)
+                existing = None
         enriched.append(
             EnrichedCandidate(
                 candidate=candidate,
