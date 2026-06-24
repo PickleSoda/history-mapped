@@ -102,7 +102,7 @@ export function ProposalCard({ proposal }: { proposal: Proposal }) {
 
     return (
         <Card className="my-2 border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30">
-            <CardHeader className="pb-2 pt-3">
+            <CardHeader className="pt-3 pb-2">
                 <CardTitle className="text-sm font-medium text-amber-900 dark:text-amber-200">
                     Proposed changes
                     {proposal.note ? (

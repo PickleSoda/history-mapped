@@ -8,9 +8,15 @@ export type AiContext = { type: 'entity' | 'chronicle'; id: string };
  * has no AI-editable context (or the prop is malformed / an unknown type).
  */
 export function useAiContext(): AiContext | null {
-    const ctx = (usePage().props as { ai_context?: { type?: unknown; id?: unknown } }).ai_context;
+    const ctx = (
+        usePage().props as { ai_context?: { type?: unknown; id?: unknown } }
+    ).ai_context;
 
-    if (!ctx || typeof ctx.id !== 'string' || (ctx.type !== 'entity' && ctx.type !== 'chronicle')) {
+    if (
+        !ctx ||
+        typeof ctx.id !== 'string' ||
+        (ctx.type !== 'entity' && ctx.type !== 'chronicle')
+    ) {
         return null;
     }
 
