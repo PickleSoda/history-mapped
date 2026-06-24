@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\Ai\AiChatController;
 use App\Http\Controllers\Admin\Ai\AiProposalController;
+use App\Http\Controllers\Admin\Ai\AiSessionController;
 use App\Http\Controllers\Admin\EntityController;
 use App\Http\Controllers\Admin\EntityGeometryPeriodController;
 use App\Http\Controllers\Admin\Reference\CalendarSystemController;
@@ -81,6 +82,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('proposals/{change}/parts/{key}/discard', [AiProposalController::class, 'discard'])->name('proposals.discard');
         Route::middleware('permission:entities.write')->group(function () {
             Route::post('proposals/{change}/parts/{key}/apply', [AiProposalController::class, 'apply'])->name('proposals.apply');
+            Route::get('sessions', [AiSessionController::class, 'index'])->name('sessions.index');
         });
     });
 
