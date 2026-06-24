@@ -83,6 +83,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::middleware('permission:entities.write')->group(function () {
             Route::post('proposals/{change}/parts/{key}/apply', [AiProposalController::class, 'apply'])->name('proposals.apply');
             Route::get('sessions', [AiSessionController::class, 'index'])->name('sessions.index');
+            Route::get('sessions/{conversation}', [AiSessionController::class, 'show'])->name('sessions.show');
         });
     });
 
