@@ -25,10 +25,11 @@ type PartStatus = 'applied' | 'discarded' | 'error' | 'loading';
  * each change part individually.
  *
  * On apply: POSTs to `/ai/proposals/{proposal_id}/parts/{key}/apply`, then
- * calls `router.reload()` so the page's Inertia props refresh.
+ * calls `router.reload()` (edit mode) or `router.visit(redirect_url)` (create
+ * mode, when the response includes a redirect_url) so the page updates.
  * On discard: POSTs to `/ai/proposals/{proposal_id}/parts/{key}/discard`.
  */
-export function ProposalCard({ proposal }: { proposal: Proposal }) {
+export function ProposalCard({ proposal, mode = 'edit' }: { proposal: Proposal; mode?: 'edit' | 'create' }) {
     const [partStatus, setPartStatus] = useState<Record<string, PartStatus>>(
         {},
     );
@@ -81,7 +82,7 @@ export function ProposalCard({ proposal }: { proposal: Proposal }) {
                 return;
             }
 
-            const json = (await res.json()) as { status: string };
+            const json = (await res.json()) as { status: string; redirect_url?: string };
             const status =
                 json.status === 'applied'
                     ? 'applied'
@@ -91,9 +92,14 @@ export function ProposalCard({ proposal }: { proposal: Proposal }) {
             setPartStatus((s) => ({ ...s, [key]: status }));
 
             if (status === 'applied') {
-                // Refresh Inertia page props so the entity data reflects the
-                // applied change without a full navigation.
-                router.reload();
+                if (mode === 'create' && typeof json.redirect_url === 'string') {
+                    // Navigate to the newly-created record after apply in create mode.
+                    router.visit(json.redirect_url);
+                } else {
+                    // Refresh Inertia page props so the entity data reflects the
+                    // applied change without a full navigation.
+                    router.reload();
+                }
             }
         } catch {
             setPartStatus((s) => ({ ...s, [key]: 'error' }));

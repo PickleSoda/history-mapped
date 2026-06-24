@@ -91,12 +91,12 @@ export function AiSidebar() {
                         'X-Requested-With': 'XMLHttpRequest',
                     }),
                     body: aiCtx
-                        ? { context_type: aiCtx.type, context_id: aiCtx.id }
+                        ? { context_type: aiCtx.type, context_id: aiCtx.id, mode: aiCtx.mode }
                         : {},
                 }),
             }),
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [aiCtx?.type, aiCtx?.id],
+        [aiCtx?.type, aiCtx?.id, aiCtx?.mode],
     );
 
     const { messages, sendMessage, status, stop } = useChat({ chat });
@@ -149,7 +149,7 @@ export function AiSidebar() {
                     Ask AI
                     {aiCtx && (
                         <span className="ml-auto text-xs font-normal text-muted-foreground capitalize">
-                            {aiCtx.type} #{aiCtx.id}
+                            {aiCtx.type}{aiCtx.id !== null ? ` #${aiCtx.id}` : ' (new)'}
                         </span>
                     )}
                     <Button
@@ -214,6 +214,7 @@ export function AiSidebar() {
                                                     <ProposalCard
                                                         key={idx}
                                                         proposal={proposal}
+                                                        mode={aiCtx?.mode ?? 'edit'}
                                                     />
                                                 );
                                             }
@@ -239,6 +240,7 @@ export function AiSidebar() {
                                                     <ProposalCard
                                                         key={idx}
                                                         proposal={proposal}
+                                                        mode={aiCtx?.mode ?? 'edit'}
                                                     />
                                                 );
                                             }

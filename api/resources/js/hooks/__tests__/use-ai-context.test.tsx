@@ -39,7 +39,7 @@ describe('useAiContext', () => {
 
         const { result } = renderHook(() => useAiContext());
 
-        expect(result.current).toEqual({ type: 'entity', id: '42' });
+        expect(result.current).toEqual({ type: 'entity', id: '42', mode: 'edit' });
     });
 
     it('returns chronicle context when ai_context has chronicle type', () => {
@@ -54,6 +54,7 @@ describe('useAiContext', () => {
         expect(result.current).toEqual({
             type: 'chronicle',
             id: 'chronicle-7',
+            mode: 'edit',
         });
     });
 
@@ -67,9 +68,49 @@ describe('useAiContext', () => {
         expect(result.current).toBeNull();
     });
 
-    it('returns null when id is missing or not a string', () => {
+    it('returns null when id is missing or not a string in edit mode', () => {
         mockUsePage.mockReturnValue({
             props: { ai_context: { type: 'entity', id: 99 } },
+        });
+
+        const { result } = renderHook(() => useAiContext());
+
+        expect(result.current).toBeNull();
+    });
+
+    it('returns create-mode context with null id when mode is create', () => {
+        mockUsePage.mockReturnValue({
+            props: { ai_context: { type: 'entity', id: null, mode: 'create' } },
+        });
+
+        const { result } = renderHook(() => useAiContext());
+
+        expect(result.current).toEqual({ type: 'entity', id: null, mode: 'create' });
+    });
+
+    it('returns create-mode context for chronicle type with null id', () => {
+        mockUsePage.mockReturnValue({
+            props: { ai_context: { type: 'chronicle', id: null, mode: 'create' } },
+        });
+
+        const { result } = renderHook(() => useAiContext());
+
+        expect(result.current).toEqual({ type: 'chronicle', id: null, mode: 'create' });
+    });
+
+    it('defaults mode to edit when mode field is absent', () => {
+        mockUsePage.mockReturnValue({
+            props: { ai_context: { type: 'entity', id: 'abc' } },
+        });
+
+        const { result } = renderHook(() => useAiContext());
+
+        expect(result.current?.mode).toBe('edit');
+    });
+
+    it('returns null for unknown type even in create mode', () => {
+        mockUsePage.mockReturnValue({
+            props: { ai_context: { type: 'user', id: null, mode: 'create' } },
         });
 
         const { result } = renderHook(() => useAiContext());
