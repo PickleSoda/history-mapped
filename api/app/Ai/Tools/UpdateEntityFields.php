@@ -76,7 +76,10 @@ class UpdateEntityFields extends AgentTool
 
     public function applyPart(array $payload, array $resolved): array
     {
+        // $resolved['user_id'] is part of the uniform tool signature;
+        // provenance is recorded in agent_proposed_change_parts, not on the entity.
         $e = Entity::with('primaryTemporalRange')->findOrFail($payload['entity_id']);
+        $temporal = $e->primaryTemporalRange;
 
         // Merge provided fields over existing values
         $name = $payload['name'] ?? $e->name;
@@ -91,8 +94,8 @@ class UpdateEntityFields extends AgentTool
             entityGroup: $group,
             summary: $payload['summary'] ?? $e->summary,
             significance: $payload['significance'] ?? $e->significance,
-            temporalStart: isset($payload['start_year']) ? (string) $payload['start_year'] : null,
-            temporalEnd: isset($payload['end_year']) ? (string) $payload['end_year'] : null,
+            temporalStart: isset($payload['start_year']) ? (string) $payload['start_year'] : $temporal?->start_date,
+            temporalEnd: isset($payload['end_year']) ? (string) $payload['end_year'] : $temporal?->end_date,
         );
 
         $e = ($this->update)($e, $data);

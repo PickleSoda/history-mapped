@@ -23,7 +23,7 @@ class SetEntityLocation extends AgentTool
 
     public function description(): string
     {
-        return 'Set or move the primary geographic point for an entity (lon/lat). Use when Wikidata or user provides corrected coordinates.';
+        return 'Set or move the primary geographic point for an entity (lon/lat). Use when the agent or user supplies corrected coordinates.';
     }
 
     public function schema(JsonSchema $schema): array
