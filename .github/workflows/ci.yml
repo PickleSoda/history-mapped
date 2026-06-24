@@ -369,13 +369,18 @@ jobs:
             $COMPOSE --profile setup run --rm -T migrate </dev/null
             $COMPOSE up -d --remove-orphans
 
-            # Health gate: fail the deploy if the app doesn't become healthy.
-            echo "waiting for app to become healthy…"
-            for i in $(seq 1 20); do
-              status=$(docker inspect -f '{{.State.Health.Status}}' "$($COMPOSE ps -q app)" 2>/dev/null || echo starting)
-              [ "$status" = "healthy" ] && { echo "app healthy"; break; }
-              if [ "$i" = "20" ]; then
-                echo "::error::app did not become healthy after deploy"
+            # Health gate: probe /up directly instead of waiting on Docker's
+            # health state machine. The container healthcheck's first probe only
+            # lands at interval=15s, so a cold FrankenPHP/Octane boot can flip
+            # "healthy" past a short gate even though the app is already serving.
+            # Probing /up ourselves goes true the instant the app responds.
+            echo "waiting for /up to respond…"
+            for i in $(seq 1 40); do
+              if $COMPOSE exec -T app php -r "exit(@file_get_contents('http://127.0.0.1:8080/up') !== false ? 0 : 1);" 2>/dev/null; then
+                echo "app healthy"; break
+              fi
+              if [ "$i" = "40" ]; then
+                echo "::error::app did not serve /up after deploy"
                 $COMPOSE logs --tail=80 app
                 exit 1
               fi
