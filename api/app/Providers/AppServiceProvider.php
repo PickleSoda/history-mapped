@@ -7,6 +7,7 @@ use App\Ai\Tools\CreateEntity;
 use App\Ai\Tools\CreateRelationship;
 use App\Ai\Tools\GetEntityContext;
 use App\Ai\Tools\SetEntityLocation;
+use App\Ai\Tools\SetEntityWikidata;
 use App\Ai\Tools\UpdateEntityFields;
 use App\Ai\Tools\VerifyWikidata;
 use App\Models\EntityLocation;
@@ -56,6 +57,7 @@ class AppServiceProvider extends ServiceProvider
         app(ToolRegistry::class)->register(UpdateEntityFields::name(), UpdateEntityFields::class);
         app(ToolRegistry::class)->register(GetEntityContext::name(), GetEntityContext::class);
         app(ToolRegistry::class)->register(VerifyWikidata::name(), VerifyWikidata::class);
+        app(ToolRegistry::class)->register(SetEntityWikidata::name(), SetEntityWikidata::class);
 
         $this->configureDefaults();
         $this->configureAuthorization();
