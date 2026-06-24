@@ -2,9 +2,8 @@
 
 namespace App\Ai\Tools;
 
-use App\Actions\Entity\BackfillEntityAction;
+use App\Actions\Entity\SetEntityWikidataAction;
 use App\Models\Entity;
-use App\Models\EntityGeoRef;
 use App\Services\WikidataService;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 
@@ -28,7 +27,7 @@ class SetEntityWikidata extends AgentTool
 
     public function __construct(
         private WikidataService $wikidata,
-        private BackfillEntityAction $backfill,
+        private SetEntityWikidataAction $setWikidata,
     ) {}
 
     public static function name(): string
@@ -92,30 +91,8 @@ class SetEntityWikidata extends AgentTool
         $old = $entity->wikidata_id;
         $new = $payload['wikidata_id'];
 
-        // Update the primary QID column
-        $entity->wikidata_id = $new;
-
-        // Cascade into source_citations (JSON column): update wikidata_id + wikidata_url keys if present
-        $citations = $entity->source_citations;
-        if (is_array($citations) && array_key_exists('wikidata_id', $citations)) {
-            $citations['wikidata_id'] = $new;
-            $citations['wikidata_url'] = "https://www.wikidata.org/wiki/{$new}";
-            // Reassign the whole array so Eloquent's dirty tracking picks it up
-            $entity->source_citations = $citations;
-        }
-
-        $entity->save();
-
-        // Cascade into entity_geo_refs: any row whose external_id matches the old QID
-        if ($old !== null) {
-            EntityGeoRef::query()
-                ->where('entity_id', $entity->entity_id)
-                ->where('external_id', $old)
-                ->update(['external_id' => $new]);
-        }
-
-        // Re-derive computed/denormalized data
-        ($this->backfill)($entity);
+        // The QID set + provenance cascade + backfill live in the Action (atomic).
+        ($this->setWikidata)($entity, $new);
 
         return [
             'result_id' => $entity->entity_id,

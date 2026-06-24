@@ -37,7 +37,7 @@ class CreateEntityToolTest extends TestCase
         $this->assertSame('create_entity', $parts[0]['tool']);
 
         $result = $tool->applyPart($parts[0]['payload'], ['user_id' => 'u1']);
-        $entity = Entity::findOrFail($result['result_id']);
+        $entity = Entity::findOrFail($result['result_id'])->loadMissing('primaryLocation');
 
         $this->assertSame('Maya civilization', $entity->name);
         $this->assertSame('political_entity', $entity->entity_type->value);
@@ -65,7 +65,7 @@ class CreateEntityToolTest extends TestCase
         ]);
 
         $result = $tool->applyPart($parts[0]['payload'], ['user_id' => 'u1']);
-        $entity = Entity::findOrFail($result['result_id']);
+        $entity = Entity::findOrFail($result['result_id'])->loadMissing('primaryLocation');
 
         $this->assertNotNull($entity->primaryLocation);
         $this->assertSame('wikidata', $entity->primaryLocation->location_method->value);
@@ -82,7 +82,7 @@ class CreateEntityToolTest extends TestCase
         ]);
 
         $result = $tool->applyPart($parts[0]['payload'], ['user_id' => 'u2']);
-        $entity = Entity::findOrFail($result['result_id']);
+        $entity = Entity::findOrFail($result['result_id'])->loadMissing('primaryLocation');
 
         $this->assertNotNull($entity->primaryLocation);
         $this->assertSame('human_assigned', $entity->primaryLocation->location_method->value);

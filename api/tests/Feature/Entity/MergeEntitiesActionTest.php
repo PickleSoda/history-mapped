@@ -374,20 +374,56 @@ class MergeEntitiesActionTest extends TestCase
         ]);
     }
 
-    // ── 8. Wrapped in a transaction (loser survives if action throws) ─────────
+    // ── 8. Pre-flight guard: a missing loser throws before any write ──────────
 
-    public function test_merge_is_wrapped_in_transaction(): void
+    public function test_merge_throws_before_any_change_for_missing_loser(): void
+    {
+        $survivor = Entity::factory()->create(['name' => 'Italy']);
+
+        // A non-existent loser fails the pre-flight findOrFail before the
+        // transaction even opens — nothing is written.
+        $this->expectException(ModelNotFoundException::class);
+
+        app(MergeEntitiesAction::class)($survivor->entity_id, (string) Str::uuid());
+    }
+
+    // ── 9. Atomicity: a mid-transaction failure rolls back ALL writes ─────────
+
+    public function test_merge_rolls_back_all_writes_on_mid_transaction_failure(): void
     {
         $survivor = Entity::factory()->create(['name' => 'Italy']);
         $loser = Entity::factory()->create(['name' => 'Italy (dup)']);
+        $other = Entity::factory()->create(['name' => 'Rome']);
 
-        // Verify both exist; then call with an invalid loser UUID which should throw
-        $this->expectException(ModelNotFoundException::class);
+        // A loser relationship the merge will re-point to the survivor.
+        $this->makeRelationship($loser->entity_id, $other->entity_id, 'contains');
 
-        $action = app(MergeEntitiesAction::class);
-        $action($survivor->entity_id, (string) Str::uuid()); // non-existent loser
+        // Inject a deterministic failure mid-merge: throw the first time the action
+        // issues an UPDATE on relationships (the source re-point), AFTER that
+        // statement has run inside the open transaction. The whole merge must abort.
+        DB::listen(function ($query): void {
+            if (str_starts_with($query->sql, 'update "relationships"')) {
+                throw new \RuntimeException('injected mid-merge failure');
+            }
+        });
 
-        // If we got here (shouldn't) survivor must still exist
-        $this->assertDatabaseHas('entities', ['entity_id' => $survivor->entity_id]);
+        try {
+            app(MergeEntitiesAction::class)($survivor->entity_id, $loser->entity_id);
+            $this->fail('Expected the injected failure to abort the merge.');
+        } catch (\RuntimeException $e) {
+            $this->assertSame('injected mid-merge failure', $e->getMessage());
+        }
+
+        // Rolled back: loser still exists and its relationship still points at the
+        // loser (never re-pointed to the survivor).
+        $this->assertDatabaseHas('entities', ['entity_id' => $loser->entity_id]);
+        $this->assertDatabaseHas('relationships', [
+            'source_entity_id' => $loser->entity_id,
+            'target_entity_id' => $other->entity_id,
+        ]);
+        $this->assertDatabaseMissing('relationships', [
+            'source_entity_id' => $survivor->entity_id,
+            'target_entity_id' => $other->entity_id,
+        ]);
     }
 }

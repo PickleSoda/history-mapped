@@ -56,4 +56,24 @@ describe('useAiContext', () => {
             id: 'chronicle-7',
         });
     });
+
+    it('returns null for an unknown type', () => {
+        mockUsePage.mockReturnValue({
+            props: { ai_context: { type: 'user', id: '1' } },
+        });
+
+        const { result } = renderHook(() => useAiContext());
+
+        expect(result.current).toBeNull();
+    });
+
+    it('returns null when id is missing or not a string', () => {
+        mockUsePage.mockReturnValue({
+            props: { ai_context: { type: 'entity', id: 99 } },
+        });
+
+        const { result } = renderHook(() => useAiContext());
+
+        expect(result.current).toBeNull();
+    });
 });

@@ -55,7 +55,7 @@ class UpdateEntityFields extends AgentTool
                 'name' => $e->name,
                 'summary' => $e->summary,
                 'significance' => $e->significance,
-                'entity_type' => $e->entity_type->value,
+                'entity_type' => $e->entity_type?->value,
                 'start_year' => $e->primaryTemporalRange?->start_date,
                 'end_year' => $e->primaryTemporalRange?->end_date,
             };
