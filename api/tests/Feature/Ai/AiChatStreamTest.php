@@ -126,7 +126,8 @@ class AiChatStreamTest extends TestCase
         // Fake the agent BEFORE the request so the FakeTextGateway intercepts.
         EntityEditorAgent::fake(['Hello from the fake agent.']);
 
-        $user = $this->userWithRole('admin');
+        // Use a user with entities.write permission so the gate passes.
+        $user = $this->userWithPermissions(['entities.write']);
         $entity = $this->makeEntity();
 
         $response = $this->actingAs($user)
@@ -137,6 +138,26 @@ class AiChatStreamTest extends TestCase
             ]);
 
         $response->assertOk();
+        $response->assertHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    }
+
+    /**
+     * A user without entities.write must be forbidden from using the chat endpoint.
+     */
+    public function test_chat_endpoint_returns_403_without_entities_write(): void
+    {
+        $this->fakeWikidata();
+
+        $user = $this->userWithRole('user');
+        $entity = $this->makeEntity();
+
+        $this->actingAs($user)
+            ->postJson('/ai/chat', [
+                'context_type' => 'entity',
+                'context_id' => $entity->entity_id,
+                'prompt' => 'Tell me about this entity.',
+            ])
+            ->assertForbidden();
     }
 
     /**
