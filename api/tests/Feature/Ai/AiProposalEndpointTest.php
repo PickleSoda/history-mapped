@@ -122,4 +122,30 @@ class AiProposalEndpointTest extends TestCase
             ->postJson("/ai/proposals/{$change->id}/parts/{$part->key}/apply")
             ->assertForbidden();
     }
+
+    public function test_discard_rejects_another_users_proposal(): void
+    {
+        $owner = $this->userWithRole('user');
+        $other = $this->userWithRole('user');
+
+        [$change, $part] = $this->stageCreateEntityProposal($owner);
+
+        $this->actingAs($other)
+            ->postJson("/ai/proposals/{$change->id}/parts/{$part->key}/discard")
+            ->assertForbidden();
+    }
+
+    public function test_discard_allowed_for_owner_without_entities_write(): void
+    {
+        $user = $this->userWithRole('user');
+
+        [$change, $part] = $this->stageCreateEntityProposal($user);
+
+        $this->actingAs($user)
+            ->postJson("/ai/proposals/{$change->id}/parts/{$part->key}/discard")
+            ->assertOk()
+            ->assertJsonPath('status', 'discarded');
+
+        $this->assertSame('discarded', $part->fresh()->status);
+    }
 }
