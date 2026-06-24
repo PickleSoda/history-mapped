@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useCallback, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
 
 /**
@@ -25,8 +25,30 @@ const AiPanelContext = createContext<AiPanelContextValue>({
     setOpen: () => {},
 });
 
+// Pages render <AppLayout> inline (not Inertia's persistent layout), so the
+// provider remounts on every navigation. Persisting the open flag in
+// sessionStorage keeps the panel open across page changes until the user
+// closes it by hand, and resets on a fresh tab/session.
+const STORAGE_KEY = 'ai-panel-open';
+
+function readInitialOpen(): boolean {
+    if (typeof window === 'undefined') {
+        return false;
+    }
+
+    return window.sessionStorage.getItem(STORAGE_KEY) === '1';
+}
+
 export function AiPanelProvider({ children }: { children: ReactNode }) {
-    const [open, setOpen] = useState(false);
+    const [open, setOpenState] = useState(readInitialOpen);
+
+    const setOpen = useCallback((next: boolean) => {
+        setOpenState(next);
+
+        if (typeof window !== 'undefined') {
+            window.sessionStorage.setItem(STORAGE_KEY, next ? '1' : '0');
+        }
+    }, []);
 
     return (
         <AiPanelContext.Provider value={{ open, setOpen }}>

@@ -85,4 +85,28 @@ class AiContextPropTest extends TestCase
                 ->where('ai_context.id', $chronicle->chronicle_id)
             );
     }
+
+    public function test_entity_create_includes_ai_context(): void
+    {
+        $this->actingAs($this->user)
+            ->get(route('entities.create'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('ai_context.type', 'entity')
+                ->where('ai_context.id', null)
+                ->where('ai_context.mode', 'create')
+            );
+    }
+
+    public function test_chronicle_create_includes_ai_context(): void
+    {
+        $this->actingAs($this->user)
+            ->get(route('chronicles.create'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('ai_context.type', 'chronicle')
+                ->where('ai_context.id', null)
+                ->where('ai_context.mode', 'create')
+            );
+    }
 }

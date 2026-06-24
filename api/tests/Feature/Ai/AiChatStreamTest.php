@@ -2,14 +2,18 @@
 
 namespace Tests\Feature\Ai;
 
+use App\Ai\Agents\ChronicleCreatorAgent;
 use App\Ai\Agents\ChronicleEditorAgent;
+use App\Ai\Agents\EntityCreatorAgent;
 use App\Ai\Agents\EntityEditorAgent;
+use App\Ai\Tools\CreateChronicleEntry;
 use App\Ai\Tools\CreateEntity;
 use App\Ai\Tools\CreateRelationship;
 use App\Ai\Tools\GetEntityContext;
 use App\Ai\Tools\MergeDuplicateEntities;
 use App\Ai\Tools\SetEntityLocation;
 use App\Ai\Tools\SetEntityWikidata;
+use App\Ai\Tools\UpdateChronicleEntry;
 use App\Ai\Tools\UpdateEntityFields;
 use App\Ai\Tools\VerifyWikidata;
 use App\Models\Chronicle;
@@ -302,6 +306,94 @@ class AiChatStreamTest extends TestCase
         $this->assertStringContainsString($entity->entity_id, $instructions);
     }
 
+    // ── Feature: create mode ─────────────────────────────────────────────────
+
+    /**
+     * POST /ai/chat with mode=create and context_type=entity (no context_id)
+     * must return a streaming 200 response using EntityCreatorAgent.
+     */
+    public function test_chat_endpoint_streams_200_for_entity_create_mode(): void
+    {
+        $this->fakeWikidata();
+
+        EntityCreatorAgent::fake(['Hello from the entity creator agent.']);
+
+        $user = $this->userWithPermissions(['entities.write']);
+
+        $response = $this->actingAs($user)
+            ->postJson('/ai/chat', [
+                'context_type' => 'entity',
+                'mode' => 'create',
+                'messages' => [
+                    [
+                        'role' => 'user',
+                        'parts' => [
+                            ['type' => 'text', 'text' => 'create the Maya civilization'],
+                        ],
+                    ],
+                ],
+            ]);
+
+        $response->assertOk();
+        $response->assertHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    }
+
+    /**
+     * POST /ai/chat with mode=create and context_type=chronicle (no context_id)
+     * must return a streaming 200 response using ChronicleCreatorAgent.
+     */
+    public function test_chat_endpoint_streams_200_for_chronicle_create_mode(): void
+    {
+        $this->fakeWikidata();
+
+        ChronicleCreatorAgent::fake(['Hello from the chronicle creator agent.']);
+
+        $user = $this->userWithPermissions(['entities.write']);
+
+        $response = $this->actingAs($user)
+            ->postJson('/ai/chat', [
+                'context_type' => 'chronicle',
+                'mode' => 'create',
+                'messages' => [
+                    [
+                        'role' => 'user',
+                        'parts' => [
+                            ['type' => 'text', 'text' => 'create a chronicle about Rome'],
+                        ],
+                    ],
+                ],
+            ]);
+
+        $response->assertOk();
+        $response->assertHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    }
+
+    /**
+     * POST /ai/chat in edit mode (default) without context_id must return 422.
+     */
+    public function test_chat_endpoint_returns_422_for_edit_mode_without_context_id(): void
+    {
+        $this->fakeWikidata();
+
+        $user = $this->userWithPermissions(['entities.write']);
+
+        $response = $this->actingAs($user)
+            ->postJson('/ai/chat', [
+                'context_type' => 'entity',
+                'mode' => 'edit',
+                'messages' => [
+                    [
+                        'role' => 'user',
+                        'parts' => [
+                            ['type' => 'text', 'text' => 'tell me about this entity'],
+                        ],
+                    ],
+                ],
+            ]);
+
+        $response->assertUnprocessable();
+    }
+
     /**
      * ChronicleEditorAgent::tools() must return 7 tools with context injected into
      * every staging tool (all tools except VerifyWikidata).
@@ -324,8 +416,8 @@ class AiChatStreamTest extends TestCase
         $agent = new ChronicleEditorAgent($chronicle, $user, $context);
         $tools = collect($agent->tools());
 
-        // Expect 7 tools (no GetEntityContext, but VerifyWikidata + 6 staging tools).
-        $this->assertCount(7, $tools);
+        // Expect 9 tools (no GetEntityContext, but VerifyWikidata + 8 staging tools).
+        $this->assertCount(9, $tools);
 
         // VerifyWikidata present.
         $this->assertTrue(
@@ -333,8 +425,8 @@ class AiChatStreamTest extends TestCase
             'VerifyWikidata must be in the tools list'
         );
 
-        // All six staging tools present.
-        foreach ([CreateEntity::class, SetEntityLocation::class, UpdateEntityFields::class, SetEntityWikidata::class, CreateRelationship::class, MergeDuplicateEntities::class] as $toolClass) {
+        // All eight staging tools present.
+        foreach ([CreateEntity::class, SetEntityLocation::class, UpdateEntityFields::class, SetEntityWikidata::class, CreateRelationship::class, MergeDuplicateEntities::class, CreateChronicleEntry::class, UpdateChronicleEntry::class] as $toolClass) {
             $this->assertTrue(
                 $tools->contains(fn ($t) => $t instanceof $toolClass),
                 "{$toolClass} must be in the tools list"
