@@ -37,6 +37,12 @@ class CreateRelationship extends AgentTool
 
     public function buildParts(array $args): array
     {
+        if (empty($args['target_entity_id']) && empty($args['new_target'])) {
+            throw new \InvalidArgumentException(
+                'CreateRelationship requires either target_entity_id or new_target.'
+            );
+        }
+
         $parts = [];
         $targetRef = $args['target_entity_id'] ?? null;
 

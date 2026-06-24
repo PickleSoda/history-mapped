@@ -91,6 +91,25 @@ class CreateRelationshipToolTest extends TestCase
         $this->assertNull($parts[1]['payload']['target_entity_id']);
     }
 
+    // -------------------------------------------------------------------------
+    // Test 3 — missing target: throws InvalidArgumentException
+    // -------------------------------------------------------------------------
+
+    public function test_build_parts_throws_when_neither_target_entity_id_nor_new_target_is_provided(): void
+    {
+        $source = Entity::factory()->create(['name' => 'Roman Empire']);
+
+        $tool = app(CreateRelationship::class);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('CreateRelationship requires either target_entity_id or new_target.');
+
+        $tool->buildParts([
+            'source_entity_id' => $source->entity_id,
+            'relationship_type' => 'contains',
+        ]);
+    }
+
     public function test_apply_part_uses_resolved_depends_for_target_id_when_new_target(): void
     {
         $source = Entity::factory()->create(['name' => 'Roman Empire']);
