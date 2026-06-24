@@ -20,10 +20,9 @@ class CreatorAgentsTest extends TestCase
     public function test_entity_creator_exposes_only_creation_tools_with_context(): void
     {
         $agent = new EntityCreatorAgent(User::factory()->create(), $this->ctx());
-        $names = array_map(fn ($t) => $t::name(), array_filter(
-            iterator_to_array((function () use ($agent) { yield from $agent->tools(); })()),
-            fn ($t) => method_exists($t, 'name'),
-        ));
+        $names = array_map(fn ($t) => $t::name(), iterator_to_array((function () use ($agent) {
+            yield from $agent->tools();
+        })()));
         $this->assertContains('create_entity', $names);
         $this->assertContains('verify_wikidata', $names);
         $this->assertNotContains('merge_duplicate_entities', $names);
@@ -41,7 +40,15 @@ class CreatorAgentsTest extends TestCase
         $instructions = $agent->instructions();
         $this->assertStringContainsStringIgnoringCase('entr', $instructions); // mentions entries
         $this->assertStringContainsStringIgnoringCase('edit', $instructions);  // points to the edit page
-        $names = array_map(fn ($t) => $t::name(), iterator_to_array((function () use ($agent) { yield from $agent->tools(); })()));
+        $names = array_map(fn ($t) => $t::name(), iterator_to_array((function () use ($agent) {
+            yield from $agent->tools();
+        })()));
         $this->assertContains('create_chronicle', $names);
+
+        // context injected on the staging tool
+        $createChronicle = collect($agent->tools())->first(fn ($t) => $t::name() === 'create_chronicle');
+        $ref = new \ReflectionProperty($createChronicle, 'context');
+        $ref->setAccessible(true);
+        $this->assertSame('u1', $ref->getValue($createChronicle)['user_id']);
     }
 }
