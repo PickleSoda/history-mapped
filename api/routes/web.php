@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\Ai\AiChatController;
 use App\Http\Controllers\Admin\Ai\AiProposalController;
 use App\Http\Controllers\Admin\EntityController;
 use App\Http\Controllers\Admin\EntityGeometryPeriodController;
@@ -69,6 +70,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('reference/measurement-units', [MeasurementUnitController::class, 'index'])->name('reference.measurement-units.index');
     Route::get('reference/language-families', [LanguageFamilyController::class, 'index'])->name('reference.language-families.index');
     Route::get('reference/source-type-definitions', [SourceTypeDefinitionController::class, 'index'])->name('reference.source-type-definitions.index');
+
+    // ── AI Chat (streaming) ───────────────────────────────────────────────────
+    Route::post('ai/chat', [AiChatController::class, 'chat'])->name('ai.chat');
 
     // ── AI Proposals ─────────────────────────────────────────────────────────
     Route::prefix('ai')->name('ai.')->group(function () {
