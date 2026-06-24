@@ -5,6 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { emitAiApplied } from '@/lib/ai-events';
 
+export type CreatedRef = {
+    type: 'entity' | 'chronicle';
+    id: string;
+    url: string;
+    label: string;
+};
+
 export type ProposalPart = {
     key: string;
     human_diff: { summary: string };
@@ -30,7 +37,15 @@ type PartStatus = 'applied' | 'discarded' | 'error' | 'loading';
  * mode, when the response includes a redirect_url) so the page updates.
  * On discard: POSTs to `/ai/proposals/{proposal_id}/parts/{key}/discard`.
  */
-export function ProposalCard({ proposal, mode = 'edit' }: { proposal: Proposal; mode?: 'edit' | 'create' }) {
+export function ProposalCard({
+    proposal,
+    mode = 'edit',
+    onCreatedRef,
+}: {
+    proposal: Proposal;
+    mode?: 'edit' | 'create';
+    onCreatedRef?: (ref: CreatedRef) => void;
+}) {
     const [partStatus, setPartStatus] = useState<Record<string, PartStatus>>(
         {},
     );
@@ -83,7 +98,11 @@ export function ProposalCard({ proposal, mode = 'edit' }: { proposal: Proposal; 
                 return;
             }
 
-            const json = (await res.json()) as { status: string; redirect_url?: string };
+            const json = (await res.json()) as {
+                status: string;
+                redirect_url?: string | null;
+                created_ref?: CreatedRef | null;
+            };
             const status =
                 json.status === 'applied'
                     ? 'applied'
@@ -93,7 +112,11 @@ export function ProposalCard({ proposal, mode = 'edit' }: { proposal: Proposal; 
             setPartStatus((s) => ({ ...s, [key]: status }));
 
             if (status === 'applied') {
-                if (mode === 'create' && typeof json.redirect_url === 'string') {
+                if (json.created_ref && onCreatedRef) {
+                    // Global session: surface the created record to the parent
+                    // chat panel as an inline link — do NOT navigate away.
+                    onCreatedRef(json.created_ref);
+                } else if (mode === 'create' && typeof json.redirect_url === 'string') {
                     // Navigate to the newly-created record after apply in create mode.
                     router.visit(json.redirect_url);
                 } else {
