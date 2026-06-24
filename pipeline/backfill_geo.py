@@ -53,6 +53,20 @@ LOCATION_RELATIONS = [
 ]
 _REL_PRIORITY = {r: i for i, r in enumerate(LOCATION_RELATIONS)}
 
+# Entity types for which relationship inference is unsafe: spatially-extended
+# polities and abstract/non-point concepts legitimately relate to far-flung
+# things, so inheriting a single neighbour's coordinate snaps them to the wrong
+# place (e.g. "Papacy" → a related entity in Canada). These get a point only
+# from their own coordinate (Wikidata P625 / place assoc), never from a neighbour.
+INFERENCE_EXCLUDED_TYPES = {
+    "political_entity", "dynasty",            # span territory, not a point
+    "trade_route", "migration",              # linear / diffuse
+    "intellectual_movement", "religious_movement",  # abstract movements
+    "social_class", "language", "technology",       # abstract / non-spatial
+    "legal_code", "currency_monetary_system",       # abstract instruments/systems
+    "diplomatic_relationship",                       # a relation, not a place
+}
+
 # (provider, external_type, retrieval_method, match_role, match_score, confidence)
 TIER_META = {
     "wikidata_p625":          ("wikidata", "qid",     "rest",   "fallback", 0.90, "high"),
@@ -70,7 +84,12 @@ def load_state(cur):
                 WHERE g.entity_id = e.entity_id
                 ORDER BY (g.source_meta->>'source' = 'chronicle_centroid') DESC NULLS LAST
                 LIMIT 1) AS geo_ref_id,
-               e.primary_geo_ref_id
+               e.primary_geo_ref_id,
+               EXISTS (
+                   SELECT 1 FROM entity_locations el
+                   WHERE el.entity_id = e.entity_id AND el.is_primary = true
+                     AND (el.geom IS NOT NULL OR el.territory_geom IS NOT NULL)
+               ) AS has_own_location
         FROM entities e
         LEFT JOIN entity_temporal_ranges t ON t.entity_id = e.entity_id
         LEFT JOIN geometry_periods gp ON gp.entity_id = e.entity_id
@@ -170,11 +189,19 @@ def main() -> int:
     # political_entity "Babylon" → Babylon, NY — are a known, small tail.)
 
     # ── Tier 3: relationship inference for entities Wikidata couldn't place ───
+    # Guarded: skip spatially-extended/abstract types (they snap to the wrong
+    # continent) and entities that already have their own primary location — those
+    # are placed authoritatively from their location by the app-side backfill
+    # (App\Actions\Entity\BackfillGeometryPeriodsAction), not from a neighbour.
     located_now = dict(located)
     located_now.update({eid: (p["lon"], p["lat"]) for eid, p in planned.items()})
+    inference_guarded = 0
     for r in no_point:
         eid = str(r["entity_id"])
         if eid in planned:
+            continue
+        if r["entity_type"] in INFERENCE_EXCLUDED_TYPES or r["has_own_location"]:
+            inference_guarded += 1
             continue
         nb = best_neighbor(eid, located_now, rels, names)
         if nb:
@@ -198,7 +225,8 @@ def main() -> int:
     print("GEO BACKFILL" + ("  (DRY RUN)" if not args.apply else "  (APPLYING)"))
     print("=" * 72)
     print(f"Points to add: {len(planned)} / {len(no_point)} missing  "
-          f"({len(skipped)} skipped — no start year, would be always-on)")
+          f"({len(skipped)} skipped — no start year, would be always-on; "
+          f"{inference_guarded} skipped — guarded inference: own-location/abstract type)")
     for tier in ("wikidata_p625", "wikidata_place_assoc", "relationship_inference"):
         print(f"   {tier:24s} {by_tier.get(tier, 0)}")
     cov_before = len(located)
