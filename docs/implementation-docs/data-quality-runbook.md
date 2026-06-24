@@ -57,6 +57,19 @@ WHERE el.entity_id = sub.entity_id AND el.is_primary AND el.geom IS NULL AND el.
 The source is already fixed: `pipeline/backfill_geo.py` now writes BOTH tables for
 its Wikidata tiers. Never mirror the `relationship_inference` tier — it's a guess.
 
+**Generalised case — "no marker although it's on the map"** (e.g. Reconquista,
+"Invention of Gunpowder…"): the entity's *only* geom is a derived `presence`
+period, so the canonical table is empty and the detail-panel marker shows nothing.
+Copy from ANY geom-bearing period, preferring `territory` over `presence`:
+```sql
+WITH src AS (
+  SELECT DISTINCT ON (gp.entity_id) gp.entity_id, gp.geom FROM geometry_periods gp
+  WHERE gp.geom IS NOT NULL ORDER BY gp.entity_id, (gp.period_type='territory') DESC, gp.start_year)
+UPDATE entity_locations el SET geom=src.geom, location_method='source_database', updated_at=now()
+FROM src WHERE el.entity_id=src.entity_id AND el.is_primary AND el.geom IS NULL AND el.territory_geom IS NULL;
+```
+(INSERT the same for entities with no primary-location row.) Then `entity:backfill`.
+
 ## 2. Entity on the wrong continent (e.g. "Italy" in Texas)
 
 **Cause:** stale/wrong `entity_locations.geom` from a wrong-namesake QID, or a fix
