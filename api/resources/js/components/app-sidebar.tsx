@@ -13,14 +13,11 @@ import {
     Languages,
     BookMarked,
     MapPin,
-    Sparkles,
 } from 'lucide-react';
-import { useAiPanel } from '@/components/ai/ai-panel-context';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
-import { Button } from '@/components/ui/button';
 import {
     Sidebar,
     SidebarContent,
@@ -128,8 +125,6 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
-    const { setOpen: setAiOpen } = useAiPanel();
-
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -150,17 +145,6 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                {/* Ask AI button — always visible; input is disabled when no context */}
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-start gap-2"
-                    onClick={() => setAiOpen(true)}
-                    title="Open AI assistant"
-                >
-                    <Sparkles className="size-4 shrink-0 text-primary" />
-                    <span className="truncate">Ask AI</span>
-                </Button>
                 <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>
