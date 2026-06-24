@@ -5,16 +5,18 @@ declare(strict_types=1);
 namespace App\Actions\Entity;
 
 use App\Actions\Timeline\ProjectEntityTimelineAction;
+use App\Console\Commands\BackfillEntityCommand;
 use App\Models\Entity;
+use App\Models\GeometryPeriod;
 
 /**
  * Backfill the canonical derived tables for a single entity and rebuild its
  * timeline.
  *
- * This is the per-entity unit of work shared by {@see \App\Console\Commands\BackfillEntityCommand}
+ * This is the per-entity unit of work shared by {@see BackfillEntityCommand}
  * (which loops it over every entity) and the admin "Backfill" action on the
  * entity editor. The most common interactive use is turning a freshly-set
- * primary location into territory {@see \App\Models\GeometryPeriod} rows, which
+ * primary location into territory {@see GeometryPeriod} rows, which
  * is what the public map reads — a primary location alone is invisible on the
  * map until those geometry periods are derived.
  */

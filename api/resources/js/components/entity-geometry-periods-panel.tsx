@@ -443,7 +443,9 @@ export default function EntityGeometryPeriodsPanel({
                         onClick={() => void runBackfill()}
                         disabled={backfilling || saving}
                     >
-                        {backfilling ? 'Backfilling…' : 'Backfill from primary location'}
+                        {backfilling
+                            ? 'Backfilling…'
+                            : 'Backfill from primary location'}
                     </Button>
                     <p className="text-xs text-muted-foreground">
                         Derives territory geometry periods (and other canonical

@@ -293,7 +293,10 @@ describe('EntityGeometryPeriodsPanel', () => {
                 const url = String(input);
                 const method = init?.method ?? 'GET';
 
-                if (url.endsWith('/entities/e1/backfill') && method === 'POST') {
+                if (
+                    url.endsWith('/entities/e1/backfill') &&
+                    method === 'POST'
+                ) {
                     return {
                         ok: true,
                         json: async () => ({
@@ -311,7 +314,10 @@ describe('EntityGeometryPeriodsPanel', () => {
                 }
 
                 // All geometry-period list/detail GETs return empty.
-                return { ok: true, json: async () => ({ data: [] }) } as Response;
+                return {
+                    ok: true,
+                    json: async () => ({ data: [] }),
+                } as Response;
             },
         );
 
