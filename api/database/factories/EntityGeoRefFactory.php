@@ -25,6 +25,13 @@ class EntityGeoRefFactory extends Factory
      */
     public function definition(): array
     {
+        // Keep the temporal range valid (start <= end) so the egr_valid_year_range
+        // check constraint never fails on random factory data (prevents flaky tests).
+        $temporalStart = fake()->optional()->numberBetween(-2000, 1800);
+        $temporalEnd = $temporalStart === null
+            ? fake()->optional()->numberBetween(-2000, 1900)
+            : fake()->numberBetween($temporalStart, 1900);
+
         return [
             'geo_ref_id' => Str::uuid()->toString(),
             'entity_id' => Entity::factory(),
@@ -33,8 +40,8 @@ class EntityGeoRefFactory extends Factory
             'external_id' => (string) fake()->numberBetween(1, 999999),
             'match_role' => GeoRefMatchRole::Candidate->value,
             'retrieval_method' => GeoRefRetrievalMethod::Rest->value,
-            'temporal_start_year' => fake()->optional()->numberBetween(-2000, 1800),
-            'temporal_end_year' => fake()->optional()->numberBetween(-2000, 1900),
+            'temporal_start_year' => $temporalStart,
+            'temporal_end_year' => $temporalEnd,
             'external_tags' => [
                 'name' => fake()->words(2, true),
             ],
