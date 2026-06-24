@@ -72,7 +72,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('reference/source-type-definitions', [SourceTypeDefinitionController::class, 'index'])->name('reference.source-type-definitions.index');
 
     // ── AI Chat (streaming) ───────────────────────────────────────────────────
-    Route::post('ai/chat', [AiChatController::class, 'chat'])->name('ai.chat');
+    Route::middleware('permission:entities.write')->group(function () {
+        Route::post('ai/chat', [AiChatController::class, 'chat'])->name('ai.chat');
+    });
 
     // ── AI Proposals ─────────────────────────────────────────────────────────
     Route::prefix('ai')->name('ai.')->group(function () {
