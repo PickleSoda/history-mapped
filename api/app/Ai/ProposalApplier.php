@@ -18,6 +18,9 @@ class ProposalApplier
         $resolved = [];
         if ($part->depends_on) {
             $dep = $part->change->parts()->where('key', $part->depends_on)->first();
+            if ($dep && $dep->status === 'discarded') {
+                throw new RuntimeException("Cannot apply: depends_on '{$part->depends_on}' was discarded.");
+            }
             if (! $dep || $dep->status !== 'applied') {
                 throw new RuntimeException("Cannot apply: depends_on '{$part->depends_on}' is not applied yet.");
             }
