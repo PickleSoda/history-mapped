@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Admin\Ai;
 
+use App\Ai\Agents\ChronicleEditorAgent;
 use App\Ai\Agents\EntityEditorAgent;
 use App\Http\Controllers\Controller;
+use App\Models\Chronicle;
 use App\Models\Entity;
 use Illuminate\Http\Request;
 use Laravel\Ai\Responses\StreamableAgentResponse;
@@ -13,8 +15,8 @@ class AiChatController extends Controller
     /**
      * Handle an AI chat request and stream the response using the Vercel data protocol.
      *
-     * Supports context_type=entity (EntityEditorAgent).
-     * Chronicle agent (Task 9) is not yet available.
+     * Supports context_type=entity (EntityEditorAgent) and
+     * context_type=chronicle (ChronicleEditorAgent).
      *
      * Conversation resumption: when a conversation_id is supplied the agent uses
      * RemembersConversations::continue() to load prior messages from the conversation
@@ -45,8 +47,11 @@ class AiChatController extends Controller
                 $user,
                 $context,
             ),
-            // Chronicle agent will be wired in Task 9.
-            'chronicle' => abort(422, 'Chronicle agent not yet available'),
+            'chronicle' => new ChronicleEditorAgent(
+                Chronicle::findOrFail($data['context_id']),
+                $user,
+                $context,
+            ),
         };
 
         // Wire conversation persistence via RemembersConversations.
