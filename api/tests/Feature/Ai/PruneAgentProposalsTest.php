@@ -63,6 +63,11 @@ class PruneAgentProposalsTest extends TestCase
         return config('ai.conversations.tables.conversations', 'agent_conversations');
     }
 
+    private function messagesTable(): string
+    {
+        return config('ai.conversations.tables.messages', 'agent_conversation_messages');
+    }
+
     private function makeConversation(array $attrs = []): string
     {
         $id = (string) Str::uuid();
@@ -71,6 +76,29 @@ class PruneAgentProposalsTest extends TestCase
             'id' => $id,
             'user_id' => null,
             'title' => 'Test conversation',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ], $attrs));
+
+        return $id;
+    }
+
+    private function makeMessage(string $conversationId, array $attrs = []): string
+    {
+        $id = (string) Str::uuid();
+
+        DB::table($this->messagesTable())->insert(array_merge([
+            'id' => $id,
+            'conversation_id' => $conversationId,
+            'user_id' => null,
+            'agent' => 'entity-editor',
+            'role' => 'user',
+            'content' => 'Test message',
+            'attachments' => '[]',
+            'tool_calls' => '[]',
+            'tool_results' => '[]',
+            'usage' => '{}',
+            'meta' => '{}',
             'created_at' => now(),
             'updated_at' => now(),
         ], $attrs));
@@ -141,6 +169,22 @@ class PruneAgentProposalsTest extends TestCase
         $this->assertDatabaseHas('agent_proposed_change_parts', ['id' => $recentAppliedId]);
     }
 
+    public function test_applied_part_with_old_created_at_but_recent_applied_at_is_kept(): void
+    {
+        // Rule 1 only targets pending|discarded — status=applied is exempt.
+        // Rule 2 checks applied_at, not created_at; 3 months ago is well within 1 year.
+        $change = $this->makeChange();
+        $partId = $this->makePart($change, [
+            'status' => 'applied',
+            'created_at' => Carbon::now()->subDays(400)->toDateTimeString(),
+            'applied_at' => Carbon::now()->subMonths(3)->toDateTimeString(),
+        ]);
+
+        $this->artisan('ai:prune-proposals')->assertSuccessful();
+
+        $this->assertDatabaseHas('agent_proposed_change_parts', ['id' => $partId]);
+    }
+
     // ── orphaned parent changes ───────────────────────────────────────────────
 
     public function test_orphaned_change_is_deleted_after_all_parts_pruned(): void
@@ -185,6 +229,29 @@ class PruneAgentProposalsTest extends TestCase
         $this->assertDatabaseMissing($this->conversationsTable(), ['id' => $oldConvId]);
     }
 
+    public function test_old_conversation_also_removes_its_messages(): void
+    {
+        $oldUpdatedAt = Carbon::now()->subDays(91)->toDateTimeString();
+        $oldConvId = $this->makeConversation(['updated_at' => $oldUpdatedAt, 'created_at' => $oldUpdatedAt]);
+        $msgId = $this->makeMessage($oldConvId);
+
+        $this->artisan('ai:prune-proposals')->assertSuccessful();
+
+        $this->assertDatabaseMissing($this->conversationsTable(), ['id' => $oldConvId]);
+        $this->assertDatabaseMissing($this->messagesTable(), ['id' => $msgId]);
+    }
+
+    public function test_recent_conversation_messages_are_not_deleted(): void
+    {
+        $recentConvId = $this->makeConversation();
+        $msgId = $this->makeMessage($recentConvId);
+
+        $this->artisan('ai:prune-proposals')->assertSuccessful();
+
+        $this->assertDatabaseHas($this->conversationsTable(), ['id' => $recentConvId]);
+        $this->assertDatabaseHas($this->messagesTable(), ['id' => $msgId]);
+    }
+
     public function test_recent_conversation_is_kept(): void
     {
         $recentConvId = $this->makeConversation();
@@ -208,10 +275,35 @@ class PruneAgentProposalsTest extends TestCase
 
         $this->artisan('ai:prune-proposals', ['--dry-run' => true])
             ->assertSuccessful()
-            ->expectsOutputToContain('DRY-RUN');
+            ->expectsOutputToContain('DRY-RUN')
+            // Reported counts must be non-zero so a silently-zero bug is caught.
+            ->expectsOutputToContain('1');
 
         // Nothing was actually deleted.
         $this->assertDatabaseHas('agent_proposed_change_parts', ['id' => $oldPartId]);
         $this->assertDatabaseHas($this->conversationsTable(), ['id' => $oldConvId]);
+    }
+
+    public function test_dry_run_orphan_count_reflects_would_be_deletions(): void
+    {
+        // Change A: one old pending part → would become orphaned after prune.
+        $changeA = $this->makeChange();
+        $old8days = Carbon::now()->subDays(8)->toDateTimeString();
+        $this->makePart($changeA, ['status' => 'pending', 'created_at' => $old8days, 'updated_at' => $old8days]);
+
+        // Change B: one recent pending part → would NOT be pruned, change survives.
+        $changeB = $this->makeChange();
+        $this->makePart($changeB, ['status' => 'pending']);
+
+        // Dry-run should report orphaned=1 (only change A).
+        $this->artisan('ai:prune-proposals', ['--dry-run' => true])
+            ->assertSuccessful()
+            ->expectsOutputToContain('DRY-RUN');
+
+        // Neither change should be deleted in dry-run.
+        $this->assertDatabaseHas('agent_proposed_changes', ['id' => $changeA->id]);
+        $this->assertDatabaseHas('agent_proposed_changes', ['id' => $changeB->id]);
+        // The old part should still exist too.
+        $this->assertDatabaseHas('agent_proposed_change_parts', ['change_id' => $changeA->id]);
     }
 }

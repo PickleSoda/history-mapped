@@ -20,6 +20,9 @@ class PruneAgentProposals extends Command
         $dryRun = (bool) $this->option('dry-run');
         $mode = $dryRun ? 'DRY-RUN' : 'APPLIED';
 
+        $conversationsTable = config('ai.conversations.tables.conversations', 'agent_conversations');
+        $messagesTable = config('ai.conversations.tables.messages', 'agent_conversation_messages');
+
         // ── Rule 1: pending|discarded parts older than 7 days ────────────────
         $cutoffShort = Carbon::now()->subDays(7);
 
@@ -27,11 +30,9 @@ class PruneAgentProposals extends Command
             ->whereIn('status', ['pending', 'discarded'])
             ->where('created_at', '<', $cutoffShort);
 
-        $countStaleParts = $stalePendingOrDiscardedParts->count();
-
-        if (! $dryRun) {
-            $stalePendingOrDiscardedParts->delete();
-        }
+        $countStaleParts = $dryRun
+            ? $stalePendingOrDiscardedParts->count()
+            : $stalePendingOrDiscardedParts->delete();
 
         // ── Rule 2: applied parts older than 1 year ───────────────────────────
         $cutoffLong = Carbon::now()->subYear();
@@ -40,37 +41,62 @@ class PruneAgentProposals extends Command
             ->where('status', 'applied')
             ->where('applied_at', '<', $cutoffLong);
 
-        $countOldApplied = $oldAppliedParts->count();
-
-        if (! $dryRun) {
-            $oldAppliedParts->delete();
-        }
+        $countOldApplied = $dryRun
+            ? $oldAppliedParts->count()
+            : $oldAppliedParts->delete();
 
         // ── Rule 3: orphaned parent changes (no remaining parts) ──────────────
-        $orphanedChanges = DB::table('agent_proposed_changes')
-            ->whereNotExists(function ($q) {
-                $q->select(DB::raw(1))
-                    ->from('agent_proposed_change_parts')
-                    ->whereColumn('agent_proposed_change_parts.change_id', 'agent_proposed_changes.id');
-            });
+        // In dry-run, compute would-be-orphaned count BEFORE any actual deletes:
+        // a change is orphaned when no part would survive both Rule 1 and Rule 2.
+        // A part survives iff it is NOT caught by Rule 1 AND NOT caught by Rule 2.
+        if ($dryRun) {
+            $countOrphanedChanges = DB::table('agent_proposed_changes')
+                ->whereNotExists(function ($q) use ($cutoffShort, $cutoffLong) {
+                    $q->select(DB::raw(1))
+                        ->from('agent_proposed_change_parts as p')
+                        ->whereColumn('p.change_id', 'agent_proposed_changes.id')
+                        // Survives Rule 1: NOT (pending|discarded AND created_at < cutoffShort)
+                        ->where(function ($r1) use ($cutoffShort) {
+                            $r1->whereNotIn('p.status', ['pending', 'discarded'])
+                                ->orWhere('p.created_at', '>=', $cutoffShort);
+                        })
+                        // Survives Rule 2: NOT (applied AND applied_at < cutoffLong)
+                        ->where(function ($r2) use ($cutoffLong) {
+                            $r2->where('p.status', '!=', 'applied')
+                                ->orWhere('p.applied_at', '>=', $cutoffLong)
+                                ->orWhereNull('p.applied_at');
+                        });
+                })
+                ->count();
+        } else {
+            $orphanedChanges = DB::table('agent_proposed_changes')
+                ->whereNotExists(function ($q) {
+                    $q->select(DB::raw(1))
+                        ->from('agent_proposed_change_parts')
+                        ->whereColumn('agent_proposed_change_parts.change_id', 'agent_proposed_changes.id');
+                });
 
-        $countOrphanedChanges = $orphanedChanges->count();
-
-        if (! $dryRun) {
-            $orphanedChanges->delete();
+            $countOrphanedChanges = $orphanedChanges->delete();
         }
 
         // ── Rule 4: conversations older than 90 days ──────────────────────────
-        $conversationsTable = config('ai.conversations.tables.conversations', 'agent_conversations');
         $cutoffConversations = Carbon::now()->subDays(90);
 
-        $oldConversations = DB::table($conversationsTable)
-            ->where('updated_at', '<', $cutoffConversations);
+        $oldConversationIds = DB::table($conversationsTable)
+            ->where('updated_at', '<', $cutoffConversations)
+            ->pluck('id');
 
-        $countOldConversations = $oldConversations->count();
+        $countOldConversations = $oldConversationIds->count();
 
-        if (! $dryRun) {
-            $oldConversations->delete();
+        if (! $dryRun && $countOldConversations > 0) {
+            // Delete orphaned messages first (no FK cascade on conversation_id).
+            DB::table($messagesTable)
+                ->whereIn('conversation_id', $oldConversationIds)
+                ->delete();
+
+            DB::table($conversationsTable)
+                ->whereIn('id', $oldConversationIds)
+                ->delete();
         }
 
         // ── Summary ───────────────────────────────────────────────────────────
