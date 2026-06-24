@@ -66,7 +66,11 @@ the operator applies"):
 
 - **`EntityCreatorAgent`** — tools: `CreateEntity` (already accepts
   name/type/QID/coords/dates in one proposal) + read-only `VerifyWikidata`.
-- **`ChronicleCreatorAgent`** — tools: new `CreateChronicle`.
+- **`ChronicleCreatorAgent`** — tools: new `CreateChronicle`. Its `instructions()`
+  MUST tell the model: entries are **not** created here — if the user asks to add
+  entries while creating the chronicle, create the chronicle shell first and tell the
+  user that entries are added afterward on the chronicle's edit page (where the AI can
+  create/edit them). Never silently drop an entry request.
 
 Both call `->withContext($context)` on staging tools (context_type, sentinel
 context_id, user_id, conversation_id) exactly as the editor agents do.
@@ -153,8 +157,12 @@ The `ChronicleEditorAgent`'s `instructions()` already lists the chronicle's entr
 - `CreateChronicleEntry` / `UpdateChronicleEntry` tools: build + apply via the Actions.
 - `ChronicleEditorAgent` exposes the entry tools with context.
 
-## 7. Open questions
+## 7. Resolved decisions
 
-- Should `create_chronicle` accept inline `entries` (ChronicleData already supports
-  it) in Phase 1, or always defer entries to the Phase-2 edit tools? (Lean: defer —
-  one concern per tool.)
+- **Inline entries in `create_chronicle`: deferred.** The tool does NOT accept
+  entries — entries are created/edited only via the Phase-2 tools on the edit page.
+  **But the agent must communicate this**, not silently drop the request: if the user
+  asks to add entries while creating a chronicle, the `ChronicleCreatorAgent` creates
+  the shell and tells the user entries are added next on the chronicle's edit page
+  (where the AI can do it). Encoded in the agent's instructions (§3.3) and covered by
+  a test asserting the instruction text conveys the hand-off.
