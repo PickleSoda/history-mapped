@@ -219,6 +219,38 @@ class AiChatStreamTest extends TestCase
     }
 
     /**
+     * The v3 @ai-sdk/react DefaultChatTransport posts a `messages` array instead of
+     * a `prompt` string. The controller must extract the last user message text and
+     * stream a 200 response (not 422).
+     */
+    public function test_chat_endpoint_accepts_v3_messages_array(): void
+    {
+        $this->fakeWikidata();
+
+        EntityEditorAgent::fake(['Hello from the fake agent.']);
+
+        $user = $this->userWithPermissions(['entities.write']);
+        $entity = $this->makeEntity();
+
+        $response = $this->actingAs($user)
+            ->postJson('/ai/chat', [
+                'context_type' => 'entity',
+                'context_id' => $entity->entity_id,
+                'messages' => [
+                    [
+                        'role' => 'user',
+                        'parts' => [
+                            ['type' => 'text', 'text' => 'this is in Luxor'],
+                        ],
+                    ],
+                ],
+            ]);
+
+        $response->assertOk();
+        $response->assertHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    }
+
+    /**
      * Unauthenticated requests must be redirected (standard Inertia/web auth behaviour).
      */
     public function test_chat_endpoint_requires_authentication(): void
