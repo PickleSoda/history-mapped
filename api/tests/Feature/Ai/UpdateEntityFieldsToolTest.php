@@ -4,6 +4,7 @@ namespace Tests\Feature\Ai;
 
 use App\Ai\Tools\UpdateEntityFields;
 use App\Models\Entity;
+use App\Models\EntityTemporalRange;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -68,5 +69,53 @@ class UpdateEntityFieldsToolTest extends TestCase
 
         $entity->refresh();
         $this->assertSame('New Name', $entity->name);
+    }
+
+    public function test_apply_part_preserves_end_date_when_only_start_year_supplied(): void
+    {
+        $entity = Entity::factory()->create();
+        EntityTemporalRange::query()->create([
+            'entity_id' => $entity->entity_id,
+            'range_type' => 'primary',
+            'is_primary' => true,
+            'start_date' => '-100',
+            'end_date' => '50',
+        ]);
+
+        $tool = app(UpdateEntityFields::class);
+        $tool->applyPart([
+            'entity_id' => $entity->entity_id,
+            'start_year' => -90,
+        ], ['user_id' => 'u1']);
+
+        $entity->load('primaryTemporalRange');
+        $temporal = $entity->primaryTemporalRange;
+        $this->assertNotNull($temporal, 'Primary temporal range should exist');
+        $this->assertSame('-90', $temporal->start_date, 'start_date should be updated to -90');
+        $this->assertSame('50', $temporal->end_date, 'end_date should be preserved at 50');
+    }
+
+    public function test_apply_part_preserves_start_date_when_only_end_year_supplied(): void
+    {
+        $entity = Entity::factory()->create();
+        EntityTemporalRange::query()->create([
+            'entity_id' => $entity->entity_id,
+            'range_type' => 'primary',
+            'is_primary' => true,
+            'start_date' => '-100',
+            'end_date' => '50',
+        ]);
+
+        $tool = app(UpdateEntityFields::class);
+        $tool->applyPart([
+            'entity_id' => $entity->entity_id,
+            'end_year' => 75,
+        ], ['user_id' => 'u1']);
+
+        $entity->load('primaryTemporalRange');
+        $temporal = $entity->primaryTemporalRange;
+        $this->assertNotNull($temporal, 'Primary temporal range should exist');
+        $this->assertSame('-100', $temporal->start_date, 'start_date should be preserved at -100');
+        $this->assertSame('75', $temporal->end_date, 'end_date should be updated to 75');
     }
 }
