@@ -48,7 +48,9 @@ export function reconstructSessionMessages(payload: SessionShowPayload): UIMessa
         statusByProposal.set(p.proposal_id, byKey);
     }
 
-    return (payload.messages ?? []).map((msg, i): UIMessage => {
+    return (payload.messages ?? [])
+        .filter((msg) => msg.role === 'user' || msg.role === 'assistant')
+        .map((msg, i): UIMessage => {
         const parts: UIMessage['parts'] = [];
 
         if (msg.content) {
@@ -89,3 +91,4 @@ export function reconstructSessionMessages(payload: SessionShowPayload): UIMessa
         };
     });
 }
+
