@@ -128,13 +128,15 @@ export function AiSidebar() {
         <aside
             aria-hidden={!open}
             className={cn(
-                'z-30 border-l bg-background',
+                'z-30 border-l border-sidebar-border bg-sidebar text-sidebar-foreground',
                 // Mobile: fixed off-canvas overlay (works well on small screens).
                 'fixed inset-y-0 right-0 w-110 max-w-full shadow-lg transition-transform duration-200 ease-in-out',
                 open ? 'translate-x-0' : 'pointer-events-none translate-x-full',
-                // Desktop (md+): in-flow flex column that collapses its width, so the
-                // main content squishes exactly like the left nav sidebar.
-                'md:static md:max-w-none md:shrink-0 md:translate-x-0 md:overflow-hidden md:shadow-none md:transition-[width] md:duration-200',
+                // Desktop (md+): in-flow column, but viewport-tall + sticky so it
+                // pins to the screen with its own scroll like the left sidebar
+                // (self-start stops it stretching to content height), while its
+                // width collapses to squish the main content.
+                'md:sticky md:top-0 md:h-svh md:max-w-none md:shrink-0 md:translate-x-0 md:self-start md:overflow-hidden md:shadow-none md:transition-[width] md:duration-200',
                 open ? 'md:w-110' : 'md:pointer-events-none md:w-0',
             )}
         >
