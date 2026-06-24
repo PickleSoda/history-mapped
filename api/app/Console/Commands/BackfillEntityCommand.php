@@ -4,12 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Actions\Entity\BackfillAliasesAction;
-use App\Actions\Entity\BackfillGeometryPeriodsAction;
-use App\Actions\Entity\BackfillLocationsAction;
-use App\Actions\Entity\BackfillTagsAction;
-use App\Actions\Entity\BackfillTemporalRangesAction;
-use App\Actions\Timeline\ProjectEntityTimelineAction;
+use App\Actions\Entity\BackfillEntityAction;
 use App\Models\Entity;
 use Illuminate\Console\Command;
 
@@ -20,12 +15,7 @@ class BackfillEntityCommand extends Command
     protected $description = 'Backfill canonical entity tables and rebuild timeline entries';
 
     public function handle(
-        BackfillAliasesAction $aliasesAction,
-        BackfillTagsAction $tagsAction,
-        BackfillTemporalRangesAction $temporalRangesAction,
-        BackfillLocationsAction $locationsAction,
-        BackfillGeometryPeriodsAction $geometryPeriodsAction,
-        ProjectEntityTimelineAction $timelineProjector,
+        BackfillEntityAction $backfillEntity,
     ): int {
         $dryRun = (bool) $this->option('dry-run');
         $singleEntityId = $this->option('entity-id');
@@ -59,12 +49,12 @@ class BackfillEntityCommand extends Command
                 continue;
             }
 
-            $counts['aliases'] += $aliasesAction($entity);
-            $counts['tags'] += $tagsAction($entity);
-            $counts['temporal_ranges'] += $temporalRangesAction($entity);
-            $counts['locations'] += $locationsAction($entity);
-            $counts['geometry_periods'] += $geometryPeriodsAction($entity);
-            $timelineProjector($entity->entity_id);
+            $result = $backfillEntity($entity);
+            $counts['aliases'] += $result['aliases'];
+            $counts['tags'] += $result['tags'];
+            $counts['temporal_ranges'] += $result['temporal_ranges'];
+            $counts['locations'] += $result['locations'];
+            $counts['geometry_periods'] += $result['geometry_periods'];
         }
 
         $mode = $dryRun ? 'DRY-RUN' : 'APPLIED';

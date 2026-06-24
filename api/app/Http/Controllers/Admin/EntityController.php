@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Entity\BackfillEntityAction;
 use App\Actions\Entity\CreateEntityAction;
 use App\Actions\Entity\DeleteEntityAction;
 use App\Actions\Entity\ListEntitiesAction;
@@ -22,6 +23,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreEntityRequest;
 use App\Http\Requests\Admin\UpdateEntityRequest;
 use App\Models\Entity;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -183,6 +185,24 @@ class EntityController extends Controller
         return redirect()
             ->route('entities.index')
             ->with('success', 'Entity deleted.');
+    }
+
+    /**
+     * Backfill this entity's canonical derived tables (aliases, tags, temporal
+     * ranges, locations, geometry periods) and rebuild its timeline.
+     *
+     * Returns synchronously with per-table counts so the editor can confirm
+     * what changed. The common case is deriving territory geometry periods from
+     * a freshly-set primary location — the map reads geometry_periods, so a
+     * primary location is invisible on the map until this runs.
+     */
+    public function backfill(Entity $entity, BackfillEntityAction $backfillEntity): JsonResponse
+    {
+        $counts = $backfillEntity($entity);
+
+        return response()->json([
+            'data' => ['counts' => $counts],
+        ]);
     }
 
     // ── Private helpers ──────────────────────────────────────────────────────

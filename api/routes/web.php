@@ -51,6 +51,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('entities/{entity}/geometry-periods', [EntityGeometryPeriodController::class, 'store'])->name('entities.geometry-periods.store');
         Route::put('entities/{entity}/geometry-periods/{geometryPeriod}', [EntityGeometryPeriodController::class, 'update'])->name('entities.geometry-periods.update');
         Route::delete('entities/{entity}/geometry-periods/{geometryPeriod}', [EntityGeometryPeriodController::class, 'destroy'])->name('entities.geometry-periods.destroy');
+
+        // Derive canonical tables (notably territory geometry periods from the
+        // primary location) so a just-edited entity becomes map-visible.
+        Route::post('entities/{entity}/backfill', [EntityController::class, 'backfill'])->name('entities.backfill');
     });
 
     // ── Reference Tables ─────────────────────────────────────────────
