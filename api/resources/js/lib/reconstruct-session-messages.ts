@@ -37,11 +37,14 @@ type ProposalStatus = 'pending' | 'applied' | 'discarded';
 export function reconstructSessionMessages(payload: SessionShowPayload): UIMessage[] {
     // Build lookup: proposal_id -> (part key -> {status, result_id})
     const statusByProposal = new Map<string, Map<string, { status?: ProposalStatus; result_id?: string | null }>>();
+
     for (const p of payload.proposals ?? []) {
         const byKey = new Map<string, { status?: ProposalStatus; result_id?: string | null }>();
+
         for (const part of p.parts) {
             byKey.set(part.key, { status: part.status as ProposalStatus | undefined, result_id: part.result_id });
         }
+
         statusByProposal.set(p.proposal_id, byKey);
     }
 
@@ -55,14 +58,17 @@ export function reconstructSessionMessages(payload: SessionShowPayload): UIMessa
         const toolResults = Array.isArray(msg.tool_results) ? msg.tool_results : [];
         (toolResults as Array<{ id?: string; result?: unknown }>).forEach((tr, j) => {
             const proposal = parseProposal(tr.result);
+
             if (!proposal) {
                 return;
             }
 
             const byKey = statusByProposal.get(proposal.proposal_id);
+
             if (byKey) {
                 proposal.parts = proposal.parts.map((pt) => {
                     const stored = byKey.get(pt.key);
+
                     return stored ? { ...pt, status: stored.status, result_id: stored.result_id } : pt;
                 });
             }

@@ -80,11 +80,13 @@ export function ProposalCard({
         // Seed from any stored status on historical (replayed) parts so applied /
         // discarded parts render locked. Live proposals carry no status → actionable.
         const seed: Record<string, PartStatus> = {};
+
         for (const part of proposal.parts) {
             if (part.status === 'applied' || part.status === 'discarded') {
                 seed[part.key] = part.status;
             }
         }
+
         return seed;
     });
     const csrfRef = useRef<string>('');
