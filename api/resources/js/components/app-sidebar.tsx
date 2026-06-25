@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import {
     BookOpen,
+    BotMessageSquare,
     CalendarDays,
     Clock,
     FolderGit2,
@@ -45,6 +46,11 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Create with AI',
+        href: '/ai',
+        icon: BotMessageSquare,
     },
     {
         title: 'Entities',
