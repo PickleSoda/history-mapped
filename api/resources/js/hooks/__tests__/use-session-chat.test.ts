@@ -112,4 +112,42 @@ describe('useSessionChat', () => {
         const initArg = chatMock.mock.calls[0][0] as { messages?: unknown };
         expect(initArg.messages).toEqual(initial);
     });
+
+    it('includes mode in the transport body when provided', () => {
+        const transportMock = vi.mocked(DefaultChatTransport);
+
+        renderHook(() =>
+            useSessionChat({ sessionId: null, kind: 'entity', contextType: 'entity', contextId: 'e1', mode: 'edit' }),
+        );
+
+        const opts = transportMock.mock.calls[0][0] as { body: () => Record<string, unknown> };
+        const body = opts.body();
+        expect(body.mode).toBe('edit');
+        expect(body.context_type).toBe('entity');
+        expect(body.context_id).toBe('e1');
+    });
+
+    it('omits mode from the body when not provided', () => {
+        const transportMock = vi.mocked(DefaultChatTransport);
+
+        renderHook(() => useSessionChat({ sessionId: null, kind: 'global' }));
+
+        const opts = transportMock.mock.calls.at(-1)![0] as { body: () => Record<string, unknown> };
+        expect('mode' in opts.body()).toBe(false);
+    });
+
+    it('syncs the returned sessionId when the sessionId prop changes', () => {
+        const { result, rerender } = renderHook(
+            ({ sid }) => useSessionChat({ sessionId: sid, kind: 'entity', contextType: 'entity', contextId: 'e1' }),
+            { initialProps: { sid: 's1' as string | null } },
+        );
+
+        expect(result.current.sessionId).toBe('s1');
+
+        rerender({ sid: null });
+        expect(result.current.sessionId).toBeNull();
+
+        rerender({ sid: 's2' });
+        expect(result.current.sessionId).toBe('s2');
+    });
 });

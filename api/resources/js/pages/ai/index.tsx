@@ -12,6 +12,22 @@ import { reconstructSessionMessages } from '@/lib/reconstruct-session-messages';
 import { cn } from '@/lib/utils';
 import type { BreadcrumbItem } from '@/types';
 
+function kindLabel(kind: string | null): string {
+    if (kind === 'global') {
+        return 'Global';
+    }
+
+    if (kind === 'chronicle') {
+        return 'Chronicle';
+    }
+
+    if (kind === 'entity') {
+        return 'Entity';
+    }
+
+    return 'Session';
+}
+
 function getCsrfToken(): string {
     return document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
 }
@@ -187,8 +203,13 @@ export default function CreateWithAi() {
                                         activeSessionId === s.id && 'bg-muted font-medium',
                                     )}
                                 >
-                                    <div className="truncate font-medium">
-                                        {s.title || '(untitled)'}
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                                            {kindLabel(s.kind)}
+                                        </span>
+                                        <span className="truncate font-medium">
+                                            {s.title || '(untitled)'}
+                                        </span>
                                     </div>
                                     <div className="truncate text-xs text-muted-foreground">
                                         {s.context_label}

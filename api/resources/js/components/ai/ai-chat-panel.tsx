@@ -24,6 +24,7 @@ type Props = {
     kind: 'global' | 'entity' | 'chronicle';
     sessionId: string | null;
     onCreatedRef?: (ref: CreatedRef) => void;
+    proposalMode?: 'edit' | 'create';
     className?: string;
 };
 
@@ -34,7 +35,7 @@ type Props = {
  * page (rendered as a full-height column). Does NOT include the sidebar wrapper,
  * header, or close button — those are concerns of the parent.
  */
-export function AiChatPanel({ chat, kind, sessionId: _sessionId, onCreatedRef, className }: Props) {
+export function AiChatPanel({ chat, kind, sessionId: _sessionId, onCreatedRef, proposalMode = 'edit', className }: Props) {
     const { messages, sendMessage, status, stop } = useChat({ chat });
     const [input, setInput] = useState('');
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -107,7 +108,7 @@ export function AiChatPanel({ chat, kind, sessionId: _sessionId, onCreatedRef, c
                                                 <ProposalCard
                                                     key={idx}
                                                     proposal={proposal}
-                                                    mode="edit"
+                                                    mode={proposalMode}
                                                     onCreatedRef={onCreatedRef}
                                                 />
                                             );
@@ -129,7 +130,7 @@ export function AiChatPanel({ chat, kind, sessionId: _sessionId, onCreatedRef, c
                                                 <ProposalCard
                                                     key={idx}
                                                     proposal={proposal}
-                                                    mode="edit"
+                                                    mode={proposalMode}
                                                     onCreatedRef={onCreatedRef}
                                                 />
                                             );
