@@ -41,7 +41,11 @@ beforeAll(() => {
 
 afterEach(() => {
     cleanup();
-    fetchMock.mockClear();
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: [] }),
+    } as unknown as Response);
 });
 
 function renderPage() {
@@ -90,6 +94,30 @@ describe('Create with AI page', () => {
         });
 
         expect(screen.getByText('Entity: Rome')).toBeInTheDocument();
+    });
+
+    it('deletes a session and refetches the list', async () => {
+        fetchMock
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({
+                    data: [{ id: 'sess-x', kind: 'global', context_id: null, context_label: 'Global', title: 'Chat X', updated_at: null }],
+                }),
+            } as unknown as Response)
+            .mockResolvedValueOnce({ ok: true, json: async () => ({ deleted: true }) } as unknown as Response)
+            .mockResolvedValueOnce({ ok: true, json: async () => ({ data: [] }) } as unknown as Response);
+
+        renderPage();
+        await waitFor(() => expect(screen.getByText('Chat X')).toBeInTheDocument());
+
+        fireEvent.click(screen.getByRole('button', { name: /delete session/i }));
+
+        await waitFor(() =>
+            expect(fetchMock).toHaveBeenCalledWith(
+                '/ai/sessions/sess-x',
+                expect.objectContaining({ method: 'DELETE' }),
+            ),
+        );
     });
 
     it('fetches and rebinds when a scoped session is selected', async () => {
