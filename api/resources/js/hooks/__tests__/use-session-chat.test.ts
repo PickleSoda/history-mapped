@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, expect, it, vi } from 'vitest';
+import { describe, afterEach, expect, it, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { DefaultChatTransport } from 'ai';
 import { useSessionChat } from '../use-session-chat';
@@ -15,6 +15,11 @@ vi.mock('ai', () => ({
         return { _opts: opts };
     }),
 }));
+
+afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.clearAllMocks();
+});
 
 describe('useSessionChat', () => {
     it('creates a Chat with the correct kind in the transport body function', () => {
@@ -47,5 +52,46 @@ describe('useSessionChat', () => {
         });
 
         expect(result.current.sessionId).toBe('new-uuid');
+    });
+
+    it('captures X-Conversation-Id from the first response and calls onNewSessionId', async () => {
+        const onNewSessionId = vi.fn();
+
+        const { result } = renderHook(() =>
+            useSessionChat({ sessionId: null, kind: 'global', onNewSessionId }),
+        );
+
+        // Grab the fetch function from the transport options captured by the mock.
+        const transportOpts = vi.mocked(DefaultChatTransport).mock.calls[0][0] as {
+            fetch: (input: unknown, init: unknown) => Promise<{ headers: { get: (k: string) => string | null } }>;
+        };
+        expect(typeof transportOpts.fetch).toBe('function');
+
+        // Stub window.fetch to return a response with the X-Conversation-Id header.
+        vi.stubGlobal(
+            'fetch',
+            vi.fn().mockResolvedValue({
+                headers: {
+                    get: (k: string) =>
+                        k === 'X-Conversation-Id' ? 'sess-123' : null,
+                },
+            }),
+        );
+
+        // First call — should capture the id.
+        await act(async () => {
+            await transportOpts.fetch('/ai/chat', {});
+        });
+
+        expect(onNewSessionId).toHaveBeenCalledTimes(1);
+        expect(onNewSessionId).toHaveBeenCalledWith('sess-123');
+        expect(result.current.sessionId).toBe('sess-123');
+
+        // Second call — guard !sessionIdRef.current prevents a second fire.
+        await act(async () => {
+            await transportOpts.fetch('/ai/chat', {});
+        });
+
+        expect(onNewSessionId).toHaveBeenCalledTimes(1);
     });
 });
