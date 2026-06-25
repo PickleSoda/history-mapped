@@ -5,6 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { emitAiApplied } from '@/lib/ai-events';
 
+export type CreatedRef = {
+    type: 'entity' | 'chronicle';
+    id: string;
+    url: string;
+    label: string;
+};
+
 export type ProposalPart = {
     key: string;
     human_diff: { summary: string };
@@ -19,6 +26,31 @@ export type Proposal = {
 type PartStatus = 'applied' | 'discarded' | 'error' | 'loading';
 
 /**
+ * Parse a raw tool output value into a Proposal, or return null if the
+ * shape doesn't match. The AI agent returns a JSON string so we handle
+ * both a string and a pre-parsed object.
+ */
+export function parseProposal(output: unknown): Proposal | null {
+    try {
+        const obj: unknown =
+            typeof output === 'string' ? JSON.parse(output) : output;
+
+        if (
+            obj !== null &&
+            typeof obj === 'object' &&
+            'proposal_id' in obj &&
+            'parts' in obj
+        ) {
+            return obj as Proposal;
+        }
+    } catch {
+        /* ignore */
+    }
+
+    return null;
+}
+
+/**
  * Renders a proposal card for an AI staging result.
  *
  * The AI agent returns a JSON payload `{proposal_id, parts:[{key, human_diff:{summary}}], note}`
@@ -28,9 +60,20 @@ type PartStatus = 'applied' | 'discarded' | 'error' | 'loading';
  * On apply: POSTs to `/ai/proposals/{proposal_id}/parts/{key}/apply`, then
  * calls `router.reload()` (edit mode) or `router.visit(redirect_url)` (create
  * mode, when the response includes a redirect_url) so the page updates.
+ * If the apply response includes `created_ref` and an `onCreatedRef` callback
+ * is provided (global session), it calls `onCreatedRef(created_ref)` and does
+ * NOT navigate.
  * On discard: POSTs to `/ai/proposals/{proposal_id}/parts/{key}/discard`.
  */
-export function ProposalCard({ proposal, mode = 'edit' }: { proposal: Proposal; mode?: 'edit' | 'create' }) {
+export function ProposalCard({
+    proposal,
+    mode = 'edit',
+    onCreatedRef,
+}: {
+    proposal: Proposal;
+    mode?: 'edit' | 'create';
+    onCreatedRef?: (ref: CreatedRef) => void;
+}) {
     const [partStatus, setPartStatus] = useState<Record<string, PartStatus>>(
         {},
     );
@@ -83,7 +126,11 @@ export function ProposalCard({ proposal, mode = 'edit' }: { proposal: Proposal; 
                 return;
             }
 
-            const json = (await res.json()) as { status: string; redirect_url?: string };
+            const json = (await res.json()) as {
+                status: string;
+                redirect_url?: string | null;
+                created_ref?: CreatedRef | null;
+            };
             const status =
                 json.status === 'applied'
                     ? 'applied'
@@ -93,7 +140,11 @@ export function ProposalCard({ proposal, mode = 'edit' }: { proposal: Proposal; 
             setPartStatus((s) => ({ ...s, [key]: status }));
 
             if (status === 'applied') {
-                if (mode === 'create' && typeof json.redirect_url === 'string') {
+                if (json.created_ref && onCreatedRef) {
+                    // Global session: surface the created record to the parent
+                    // chat panel as an inline link — do NOT navigate away.
+                    onCreatedRef(json.created_ref);
+                } else if (mode === 'create' && typeof json.redirect_url === 'string') {
                     // Navigate to the newly-created record after apply in create mode.
                     router.visit(json.redirect_url);
                 } else {

@@ -4,8 +4,7 @@ import { DefaultChatTransport } from 'ai';
 import { BotMessageSquare, SendHorizonal, Square, X } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { useAiPanel } from '@/components/ai/ai-panel-context';
-import { ProposalCard } from '@/components/ai/proposal-card';
-import type { Proposal } from '@/components/ai/proposal-card';
+import { parseProposal, ProposalCard } from '@/components/ai/proposal-card';
 import {
     Conversation,
     ConversationContent,
@@ -29,31 +28,6 @@ function getCsrfToken(): string {
         document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
             ?.content ?? ''
     );
-}
-
-/**
- * Parse a raw tool output value into a Proposal, or return null if the
- * shape doesn't match. The AI agent returns a JSON string so we handle
- * both a string and a pre-parsed object.
- */
-function parseProposal(output: unknown): Proposal | null {
-    try {
-        const obj: unknown =
-            typeof output === 'string' ? JSON.parse(output) : output;
-
-        if (
-            obj !== null &&
-            typeof obj === 'object' &&
-            'proposal_id' in obj &&
-            'parts' in obj
-        ) {
-            return obj as Proposal;
-        }
-    } catch {
-        /* ignore */
-    }
-
-    return null;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────

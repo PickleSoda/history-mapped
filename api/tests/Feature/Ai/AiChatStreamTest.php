@@ -6,6 +6,7 @@ use App\Ai\Agents\ChronicleCreatorAgent;
 use App\Ai\Agents\ChronicleEditorAgent;
 use App\Ai\Agents\EntityCreatorAgent;
 use App\Ai\Agents\EntityEditorAgent;
+use App\Ai\Agents\GlobalAgent;
 use App\Ai\Tools\CreateChronicleEntry;
 use App\Ai\Tools\CreateEntity;
 use App\Ai\Tools\CreateRelationship;
@@ -491,6 +492,70 @@ class AiChatStreamTest extends TestCase
             'conversation_id' => $others->id,
             'prompt' => 'let me in',
         ])->assertForbidden();
+    }
+
+    // ── Feature: kind=global ─────────────────────────────────────────────────
+
+    public function test_kind_global_routes_to_global_agent_without_context_fields(): void
+    {
+        GlobalAgent::fake(['Hello from GlobalAgent.']);
+
+        $user = $this->userWithPermissions(['entities.write']);
+
+        $response = $this->actingAs($user)->postJson('/ai/chat', [
+            'kind' => 'global',
+            'prompt' => 'Tell me about the Roman Empire.',
+        ]);
+
+        $response->assertOk();
+        $response->assertHeader('X-Conversation-Id');
+
+        $sessionId = $response->headers->get('X-Conversation-Id');
+        $this->assertDatabaseHas('agent_conversations', [
+            'id' => $sessionId,
+            'user_id' => $user->id,
+            'context_type' => 'global',
+            'context_id' => null,
+        ]);
+    }
+
+    public function test_kind_global_with_session_id_continues_global_session(): void
+    {
+        GlobalAgent::fake(['Continuing global session.']);
+
+        $user = $this->userWithPermissions(['entities.write']);
+
+        $existing = Conversation::create([
+            'id' => (string) Str::uuid7(),
+            'user_id' => $user->id,
+            'title' => 'Earlier global chat',
+            'context_type' => 'global',
+            'context_id' => null,
+        ]);
+
+        $response = $this->actingAs($user)->postJson('/ai/chat', [
+            'kind' => 'global',
+            'conversation_id' => $existing->id,
+            'prompt' => 'Follow-up.',
+        ]);
+
+        $response->assertOk();
+        $this->assertSame($existing->id, $response->headers->get('X-Conversation-Id'));
+        $this->assertSame(1, Conversation::query()->count());
+    }
+
+    public function test_existing_entity_edit_mode_still_works_when_kind_omitted(): void
+    {
+        EntityEditorAgent::fake(['Edit mode fine.']);
+
+        $user = $this->userWithPermissions(['entities.write']);
+        $entity = $this->makeEntity();
+
+        $this->actingAs($user)->postJson('/ai/chat', [
+            'context_type' => 'entity',
+            'context_id' => $entity->entity_id,
+            'prompt' => 'Update this entity.',
+        ])->assertOk();
     }
 
     /**

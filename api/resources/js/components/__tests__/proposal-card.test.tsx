@@ -26,6 +26,8 @@ vi.mock('@inertiajs/react', () => ({
     router: { reload: vi.fn(), visit: vi.fn() },
 }));
 
+vi.mock('@/lib/ai-events', () => ({ emitAiApplied: vi.fn() }));
+
 // ── Fetch mock ────────────────────────────────────────────────────────────────
 
 let fetchMock: ReturnType<typeof vi.fn>;
@@ -49,6 +51,8 @@ afterEach(async () => {
     const { router } = await import('@inertiajs/react');
     vi.mocked(router.reload).mockClear();
     vi.mocked(router.visit).mockClear();
+    const { emitAiApplied } = await import('@/lib/ai-events');
+    vi.mocked(emitAiApplied).mockClear();
     cleanup();
 });
 
@@ -226,6 +230,98 @@ describe('ProposalCard', () => {
 
         expect(router.reload).toHaveBeenCalled();
         expect(router.visit).not.toHaveBeenCalled();
+    });
+
+    it('calls onCreatedRef when apply returns created_ref (no navigation)', async () => {
+        const { router } = await import('@inertiajs/react');
+        const onCreatedRef = vi.fn();
+
+        fetchMock.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                status: 'applied',
+                result_id: 'entity-uuid',
+                redirect_url: null,
+                created_ref: {
+                    type: 'entity',
+                    id: 'entity-uuid',
+                    url: '/entities/entity-uuid/edit',
+                    label: 'Rome',
+                },
+            }),
+        } as Response);
+
+        render(
+            <ProposalCard
+                proposal={proposal}
+                mode="edit"
+                onCreatedRef={onCreatedRef}
+            />,
+        );
+
+        const applyButtons = screen.getAllByRole('button', { name: /apply/i });
+        fireEvent.click(applyButtons[0]);
+
+        await waitFor(() => {
+            expect(onCreatedRef).toHaveBeenCalledWith({
+                type: 'entity',
+                id: 'entity-uuid',
+                url: '/entities/entity-uuid/edit',
+                label: 'Rome',
+            });
+        });
+        expect(router.visit).not.toHaveBeenCalled();
+        expect(router.reload).not.toHaveBeenCalled();
+    });
+
+    it('calls router.reload + emitAiApplied when no created_ref and no redirect_url', async () => {
+        const { router } = await import('@inertiajs/react');
+        const { emitAiApplied } = await import('@/lib/ai-events');
+
+        fetchMock.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                status: 'applied',
+                result_id: 'x',
+                redirect_url: null,
+                created_ref: null,
+            }),
+        } as Response);
+
+        render(<ProposalCard proposal={proposal} mode="edit" />);
+
+        const applyButtons = screen.getAllByRole('button', { name: /apply/i });
+        fireEvent.click(applyButtons[0]);
+
+        await waitFor(() => {
+            expect(router.reload).toHaveBeenCalled();
+            expect(emitAiApplied).toHaveBeenCalled();
+        });
+        expect(router.visit).not.toHaveBeenCalled();
+    });
+
+    it('calls router.visit with redirect_url when created_ref absent in create mode', async () => {
+        const { router } = await import('@inertiajs/react');
+
+        fetchMock.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                status: 'applied',
+                result_id: 'x',
+                redirect_url: '/entities/x/edit',
+                created_ref: null,
+            }),
+        } as Response);
+
+        render(<ProposalCard proposal={proposal} mode="create" />);
+
+        const applyButtons = screen.getAllByRole('button', { name: /apply/i });
+        fireEvent.click(applyButtons[0]);
+
+        await waitFor(() => {
+            expect(router.visit).toHaveBeenCalledWith('/entities/x/edit');
+        });
+        expect(router.reload).not.toHaveBeenCalled();
     });
 
     it('double-click on Apply only calls fetch once (concurrent guard)', async () => {

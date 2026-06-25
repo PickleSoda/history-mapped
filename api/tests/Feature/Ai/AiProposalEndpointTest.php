@@ -242,6 +242,72 @@ class AiProposalEndpointTest extends TestCase
         $response->assertJsonPath('redirect_url', $expected);
     }
 
+    public function test_apply_returns_created_ref_for_global_session_create_entity(): void
+    {
+        $this->fakeWikidata();
+        $user = $this->userWithPermissions(['entities.write']);
+
+        $change = ProposedChange::create([
+            'user_id' => $user->id,
+            'context_type' => 'global',
+            'context_id' => 'global-session-uuid',
+        ]);
+
+        $part = $change->parts()->create([
+            'key' => 'entity',
+            'tool' => 'create_entity',
+            'payload' => [
+                'name' => 'Test Empire',
+                'entity_type' => 'political_entity',
+            ],
+            'human_diff' => ['summary' => 'Create Rome'],
+            'status' => 'pending',
+            'result_id' => null,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->postJson("/ai/proposals/{$change->id}/parts/entity/apply");
+
+        $response->assertOk();
+        $this->assertSame('applied', $response->json('status'));
+        $this->assertNull($response->json('redirect_url'));
+        $this->assertSame('entity', $response->json('created_ref.type'));
+        $this->assertSame($response->json('result_id'), $response->json('created_ref.id'));
+        $this->assertStringContainsString('entities', $response->json('created_ref.url'));
+        $this->assertNotEmpty($response->json('created_ref.label'));
+    }
+
+    public function test_apply_returns_redirect_url_not_created_ref_for_scoped_session(): void
+    {
+        $this->fakeWikidata();
+        $user = $this->userWithPermissions(['entities.write']);
+
+        $change = ProposedChange::create([
+            'user_id' => $user->id,
+            'context_type' => 'entity',
+            'context_id' => 'some-entity-id',
+        ]);
+
+        $part = $change->parts()->create([
+            'key' => 'entity',
+            'tool' => 'create_entity',
+            'payload' => [
+                'name' => 'Test Empire',
+                'entity_type' => 'political_entity',
+            ],
+            'human_diff' => ['summary' => 'Create Carthage'],
+            'status' => 'pending',
+            'result_id' => null,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->postJson("/ai/proposals/{$change->id}/parts/entity/apply");
+
+        $response->assertOk();
+        $this->assertNotNull($response->json('redirect_url'));
+        $this->assertNull($response->json('created_ref'));
+    }
+
     public function test_apply_non_creator_tool_returns_null_redirect_url(): void
     {
         $this->fakeWikidata();

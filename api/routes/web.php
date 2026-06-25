@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\Reference\WritingSystemController;
 use App\Http\Controllers\Admin\RelationshipController;
 use App\Http\Controllers\Web\ChronicleController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 Route::inertia('/', 'welcome', [
@@ -72,8 +73,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('reference/language-families', [LanguageFamilyController::class, 'index'])->name('reference.language-families.index');
     Route::get('reference/source-type-definitions', [SourceTypeDefinitionController::class, 'index'])->name('reference.source-type-definitions.index');
 
-    // ── AI Chat (streaming) ───────────────────────────────────────────────────
+    // ── AI Chat (streaming) + Create with AI page ────────────────────────────
     Route::middleware('permission:entities.write')->group(function () {
+        Route::get('ai', fn () => Inertia::render('ai/index'))->name('ai.index');
         Route::post('ai/chat', [AiChatController::class, 'chat'])->name('ai.chat');
     });
 
