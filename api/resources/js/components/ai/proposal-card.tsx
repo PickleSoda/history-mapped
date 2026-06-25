@@ -26,6 +26,31 @@ export type Proposal = {
 type PartStatus = 'applied' | 'discarded' | 'error' | 'loading';
 
 /**
+ * Parse a raw tool output value into a Proposal, or return null if the
+ * shape doesn't match. The AI agent returns a JSON string so we handle
+ * both a string and a pre-parsed object.
+ */
+export function parseProposal(output: unknown): Proposal | null {
+    try {
+        const obj: unknown =
+            typeof output === 'string' ? JSON.parse(output) : output;
+
+        if (
+            obj !== null &&
+            typeof obj === 'object' &&
+            'proposal_id' in obj &&
+            'parts' in obj
+        ) {
+            return obj as Proposal;
+        }
+    } catch {
+        /* ignore */
+    }
+
+    return null;
+}
+
+/**
  * Renders a proposal card for an AI staging result.
  *
  * The AI agent returns a JSON payload `{proposal_id, parts:[{key, human_diff:{summary}}], note}`
