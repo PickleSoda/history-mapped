@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import type { Chat, UIMessage } from '@ai-sdk/react';
-import { render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AiChatPanel } from '../ai-chat-panel';
 
 const mockUseChat = vi.fn();
@@ -47,6 +47,16 @@ vi.mock('@/components/ai/proposal-card', () => ({
 }));
 
 describe('AiChatPanel', () => {
+    afterEach(() => {
+        mockUseChat.mockReturnValue({
+            messages: [],
+            sendMessage: vi.fn(),
+            status: 'idle',
+            stop: vi.fn(),
+        });
+        cleanup();
+    });
+
     it('renders the empty state for a global session', () => {
         const mockChat = {} as Chat<UIMessage>;
         render(
