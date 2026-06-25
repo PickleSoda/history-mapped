@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import CreateWithAi from '../index';
@@ -39,7 +39,10 @@ beforeAll(() => {
     globalThis.fetch = fetchMock as unknown as typeof fetch;
 });
 
-afterEach(() => fetchMock.mockClear());
+afterEach(() => {
+    cleanup();
+    fetchMock.mockClear();
+});
 
 function renderPage() {
     const queryClient = new QueryClient({
@@ -87,5 +90,34 @@ describe('Create with AI page', () => {
         });
 
         expect(screen.getByText('Entity: Rome')).toBeInTheDocument();
+    });
+
+    it('fetches and rebinds when a scoped session is selected', async () => {
+        // First call: session list; second call: the show() payload.
+        fetchMock
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({
+                    data: [{ id: 'sess-e', kind: 'entity', context_id: 'ent-1', context_label: 'Entity: Rome', title: 'Edit Rome', updated_at: null }],
+                }),
+            } as unknown as Response)
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({
+                    session: { id: 'sess-e', kind: 'entity', context_id: 'ent-1', context_label: 'Entity: Rome', title: 'Edit Rome' },
+                    messages: [{ id: 'm1', role: 'user', content: 'hi', tool_results: [], created_at: null }],
+                    proposals: [],
+                }),
+            } as unknown as Response);
+
+        renderPage();
+
+        await waitFor(() => expect(screen.getByText('Edit Rome')).toBeInTheDocument());
+
+        fireEvent.click(screen.getByText('Edit Rome'));
+
+        await waitFor(() =>
+            expect(fetchMock).toHaveBeenCalledWith('/ai/sessions/sess-e', expect.anything()),
+        );
     });
 });
