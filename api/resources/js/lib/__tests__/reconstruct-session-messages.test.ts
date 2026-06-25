@@ -37,6 +37,21 @@ describe('reconstructSessionMessages', () => {
         expect(toolPart.output.proposal_id).toBe('prop-1');
         // status merged from proposals[]
         expect(toolPart.output.parts[0].status).toBe('applied');
+        expect((toolPart.output.parts[0] as { result_id?: string }).result_id).toBe('e-9');
+    });
+
+    it('skips system and tool role messages', () => {
+        const messages = reconstructSessionMessages({
+            messages: [
+                { id: 's1', role: 'system', content: 'SYSTEM PROMPT', tool_results: [], created_at: null },
+                { id: 't1', role: 'tool', content: 'tool output', tool_results: [], created_at: null },
+                { id: 'a1', role: 'assistant', content: 'Hello', tool_results: [], created_at: null },
+            ],
+            proposals: [],
+        });
+        expect(messages).toHaveLength(1);
+        expect(messages[0].role).toBe('assistant');
+        expect(messages[0].parts[0]).toMatchObject({ type: 'text', text: 'Hello' });
     });
 
     it('omits the text part when assistant content is empty and handles no tool_results', () => {
