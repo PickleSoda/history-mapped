@@ -525,8 +525,8 @@ class AiChatStreamTest extends TestCase
 
         $user = $this->userWithPermissions(['entities.write']);
 
-        $existing = \Laravel\Ai\Models\Conversation::create([
-            'id' => (string) \Illuminate\Support\Str::uuid7(),
+        $existing = Conversation::create([
+            'id' => (string) Str::uuid7(),
             'user_id' => $user->id,
             'title' => 'Earlier global chat',
             'context_type' => 'global',
@@ -541,12 +541,12 @@ class AiChatStreamTest extends TestCase
 
         $response->assertOk();
         $this->assertSame($existing->id, $response->headers->get('X-Conversation-Id'));
-        $this->assertSame(1, \Laravel\Ai\Models\Conversation::query()->count());
+        $this->assertSame(1, Conversation::query()->count());
     }
 
     public function test_existing_entity_edit_mode_still_works_when_kind_omitted(): void
     {
-        \App\Ai\Agents\EntityEditorAgent::fake(['Edit mode fine.']);
+        EntityEditorAgent::fake(['Edit mode fine.']);
 
         $user = $this->userWithPermissions(['entities.write']);
         $entity = $this->makeEntity();
