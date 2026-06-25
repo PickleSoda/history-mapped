@@ -15,6 +15,8 @@ export type CreatedRef = {
 export type ProposalPart = {
     key: string;
     human_diff: { summary: string };
+    status?: 'pending' | 'applied' | 'discarded';
+    result_id?: string | null;
 };
 
 export type Proposal = {
@@ -74,9 +76,17 @@ export function ProposalCard({
     mode?: 'edit' | 'create';
     onCreatedRef?: (ref: CreatedRef) => void;
 }) {
-    const [partStatus, setPartStatus] = useState<Record<string, PartStatus>>(
-        {},
-    );
+    const [partStatus, setPartStatus] = useState<Record<string, PartStatus>>(() => {
+        // Seed from any stored status on historical (replayed) parts so applied /
+        // discarded parts render locked. Live proposals carry no status → actionable.
+        const seed: Record<string, PartStatus> = {};
+        for (const part of proposal.parts) {
+            if (part.status === 'applied' || part.status === 'discarded') {
+                seed[part.key] = part.status;
+            }
+        }
+        return seed;
+    });
     const csrfRef = useRef<string>('');
 
     // Lazily read the CSRF token the first time we need it (same pattern as
