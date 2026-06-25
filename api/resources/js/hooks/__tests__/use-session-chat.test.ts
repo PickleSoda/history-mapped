@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { renderHook, act } from '@testing-library/react';
 import { Chat } from '@ai-sdk/react';
+import { renderHook, act } from '@testing-library/react';
 import { DefaultChatTransport } from 'ai';
 import { describe, afterEach, expect, it, vi } from 'vitest';
 import { useSessionChat } from '../use-session-chat';
