@@ -120,6 +120,20 @@ describe('Create with AI page', () => {
         );
     });
 
+    it('shows a kind badge for each session', async () => {
+        fetchMock.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                data: [{ id: 'sess-1', kind: 'entity', context_id: 'ent-1', context_label: 'Entity: Rome', title: 'Edit Rome', updated_at: null }],
+            }),
+        } as unknown as Response);
+
+        renderPage();
+
+        await waitFor(() => expect(screen.getByText('Edit Rome')).toBeInTheDocument());
+        expect(screen.getByText('Entity')).toBeInTheDocument(); // kind badge
+    });
+
     it('fetches and rebinds when a scoped session is selected', async () => {
         // First call: session list; second call: the show() payload.
         fetchMock
