@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { describe, afterEach, expect, it, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { DefaultChatTransport } from 'ai';
+import { describe, afterEach, expect, it, vi } from 'vitest';
 import { useSessionChat } from '../use-session-chat';
 
 vi.mock('@ai-sdk/react', () => ({

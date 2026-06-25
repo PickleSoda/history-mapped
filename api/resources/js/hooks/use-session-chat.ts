@@ -70,11 +70,13 @@ export function useSessionChat({
                     fetch: async (input, init) => {
                         const res = await window.fetch(input, init);
                         const newId = res.headers.get('X-Conversation-Id');
+
                         if (newId && !sessionIdRef.current) {
                             sessionIdRef.current = newId;
                             setCurrentSessionId(newId);
                             onNewSessionIdRef.current?.(newId);
                         }
+
                         return res;
                     },
                 }),
