@@ -1,7 +1,7 @@
 import { Chat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import type { UIMessage } from 'ai';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 function getCsrfToken(): string {
     return (
@@ -18,6 +18,8 @@ type UseSessionChatOptions = {
     contextType?: string;
     /** Nullable for global / create-mode sessions. */
     contextId?: string | null;
+    /** Drives create vs edit routing on the server; omitted ⇒ server default (edit). */
+    mode?: 'edit' | 'create';
     /** Called when the first response returns a new X-Conversation-Id header. */
     onNewSessionId?: (id: string) => void;
     /** Bump to force a fresh Chat instance (e.g. "New session" button). */
@@ -31,6 +33,7 @@ export function useSessionChat({
     kind,
     contextType,
     contextId,
+    mode,
     onNewSessionId,
     resetNonce = 0,
     initialMessages,
@@ -46,6 +49,13 @@ export function useSessionChat({
 
     const onNewSessionIdRef = useRef(onNewSessionId);
     onNewSessionIdRef.current = onNewSessionId;
+
+    // Sync the internal session id when the parent changes the prop (resume → an id,
+    // New chat → null). Without this, currentSessionId is frozen at its mount value.
+    useEffect(() => {
+        sessionIdRef.current = sessionId;
+        setCurrentSessionId(sessionId);
+    }, [sessionId]);
 
     // The Chat instance is stable for the lifetime of this session (kind + context
     // do not change mid-session). It is only recreated if the page mounts a
@@ -65,6 +75,7 @@ export function useSessionChat({
                     body: () => ({
                         kind,
                         conversation_id: sessionIdRef.current,
+                        ...(mode ? { mode } : {}),
                         ...(kind !== 'global' && contextType
                             ? { context_type: contextType, context_id: contextId ?? null }
                             : {}),
@@ -88,7 +99,7 @@ export function useSessionChat({
             }),
         // Recreate when the session identity changes OR resetNonce bumps (New session).
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [kind, contextType, contextId, resetNonce],
+        [kind, contextType, contextId, mode, resetNonce],
     );
 
     const setSessionId = useCallback((id: string) => {
