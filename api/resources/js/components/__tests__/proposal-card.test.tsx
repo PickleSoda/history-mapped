@@ -353,4 +353,30 @@ describe('ProposalCard', () => {
         // fetch must have been called exactly once.
         expect(fetchMock).toHaveBeenCalledTimes(1);
     });
+
+    it('renders applied historical part as locked (no Apply/Discard buttons)', () => {
+        const historical = {
+            proposal_id: 'prop-h',
+            parts: [
+                { key: 'k1', human_diff: { summary: 'Did a thing' }, status: 'applied' as const },
+            ],
+        };
+        render(<ProposalCard proposal={historical} mode="edit" />);
+
+        expect(screen.getByText('Did a thing')).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /apply/i })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /discard/i })).not.toBeInTheDocument();
+    });
+
+    it('renders pending historical part as actionable (Apply present)', () => {
+        const historical = {
+            proposal_id: 'prop-p',
+            parts: [
+                { key: 'k1', human_diff: { summary: 'Awaiting' }, status: 'pending' as const },
+            ],
+        };
+        render(<ProposalCard proposal={historical} mode="edit" />);
+
+        expect(screen.getByRole('button', { name: /apply/i })).toBeInTheDocument();
+    });
 });
