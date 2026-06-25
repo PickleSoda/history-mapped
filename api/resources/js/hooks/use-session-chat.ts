@@ -1,5 +1,6 @@
 import { Chat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
+import type { UIMessage } from 'ai';
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 function getCsrfToken(): string {
@@ -21,6 +22,8 @@ type UseSessionChatOptions = {
     onNewSessionId?: (id: string) => void;
     /** Bump to force a fresh Chat instance (e.g. "New session" button). */
     resetNonce?: number;
+    /** Messages to seed the Chat with (supply before bumping resetNonce). */
+    initialMessages?: UIMessage[];
 };
 
 export function useSessionChat({
@@ -30,6 +33,7 @@ export function useSessionChat({
     contextId,
     onNewSessionId,
     resetNonce = 0,
+    initialMessages,
 }: UseSessionChatOptions) {
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(
         sessionId,
@@ -49,6 +53,7 @@ export function useSessionChat({
     const chat = useMemo(
         () =>
             new Chat({
+                messages: initialMessages ?? [],
                 transport: new DefaultChatTransport({
                     api: '/ai/chat',
                     headers: () => ({

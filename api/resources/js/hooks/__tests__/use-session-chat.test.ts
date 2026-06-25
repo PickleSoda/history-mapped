@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { renderHook, act } from '@testing-library/react';
+import { Chat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { describe, afterEach, expect, it, vi } from 'vitest';
 import { useSessionChat } from '../use-session-chat';
@@ -93,5 +94,22 @@ describe('useSessionChat', () => {
         });
 
         expect(onNewSessionId).toHaveBeenCalledTimes(1);
+    });
+
+    it('seeds the Chat with initialMessages', () => {
+        const chatMock = vi.mocked(Chat);
+        const initial = [{ id: 'm1', role: 'user', parts: [{ type: 'text', text: 'hi' }] }];
+
+        renderHook(() =>
+            useSessionChat({
+                sessionId: 's1',
+                kind: 'global',
+                // @ts-expect-error minimal UIMessage stub for the mock
+                initialMessages: initial,
+            }),
+        );
+
+        const initArg = chatMock.mock.calls[0][0] as { messages?: unknown };
+        expect(initArg.messages).toEqual(initial);
     });
 });
