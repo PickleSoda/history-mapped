@@ -1,4 +1,4 @@
-import type { UIMessage } from '@ai-sdk/react';
+import type { UIMessage } from 'ai';
 import { parseProposal } from '@/components/ai/proposal-card';
 
 export type SessionMessage = {
