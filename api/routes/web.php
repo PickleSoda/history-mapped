@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\Reference\WritingSystemController;
 use App\Http\Controllers\Admin\RelationshipController;
 use App\Http\Controllers\Web\ChronicleController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 Route::inertia('/', 'welcome', [
@@ -76,6 +77,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('permission:entities.write')->group(function () {
         Route::post('ai/chat', [AiChatController::class, 'chat'])->name('ai.chat');
     });
+
+    // ── Create with AI page ───────────────────────────────────────────────────
+    Route::get('ai', fn () => Inertia::render('ai/index'))->name('ai.index');
 
     // ── AI Proposals ─────────────────────────────────────────────────────────
     Route::prefix('ai')->name('ai.')->group(function () {

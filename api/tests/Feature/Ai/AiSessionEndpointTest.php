@@ -205,4 +205,14 @@ class AiSessionEndpointTest extends TestCase
         $this->actingAs($intruder)->deleteJson('/ai/sessions/'.$session->id)->assertForbidden();
         $this->assertDatabaseHas('agent_conversations', ['id' => $session->id]);
     }
+
+    public function test_ai_index_page_is_accessible_to_authenticated_users(): void
+    {
+        $user = $this->userWithPermissions(['entities.write']);
+
+        $response = $this->actingAs($user)->get('/ai');
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page->component('ai/index'));
+    }
 }
