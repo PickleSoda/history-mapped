@@ -215,4 +215,11 @@ class AiSessionEndpointTest extends TestCase
         $response->assertOk();
         $response->assertInertia(fn ($page) => $page->component('ai/index'));
     }
+
+    public function test_ai_index_requires_entities_write(): void
+    {
+        $user = $this->userWithRole('user');
+
+        $this->actingAs($user)->get('/ai')->assertForbidden();
+    }
 }

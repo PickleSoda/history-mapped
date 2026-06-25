@@ -88,6 +88,9 @@ class AiChatController extends Controller
         $mode = $data['mode'] ?? 'edit';
         $kind = $data['kind'] ?? null;
 
+        // `kind` values other than 'global' are accepted by the validator but only anchor the
+        // `required_unless:kind,global` rule — routing to entity/chronicle agents is driven by
+        // `context_type`, not `kind`.
         // Global sessions have no bound record and no context_type/context_id.
         $isGlobal = $kind === 'global';
 
