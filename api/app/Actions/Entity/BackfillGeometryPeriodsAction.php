@@ -6,10 +6,8 @@ namespace App\Actions\Entity;
 
 use App\Enums\EntityGroup;
 use App\Models\Entity;
-use App\Models\EntityRelationship;
 use App\Models\EntityTemporalRange;
 use App\Models\GeometryPeriod;
-use Illuminate\Support\Collection;
 
 class BackfillGeometryPeriodsAction
 {
@@ -104,8 +102,6 @@ class BackfillGeometryPeriodsAction
         }
 
         if ($inserted > 0) {
-            $inserted += $this->backfillDerivedPresencePeriods($entity, $ranges, $geom, $territoryGeom);
-
             return $inserted;
         }
 
@@ -130,91 +126,10 @@ class BackfillGeometryPeriodsAction
                     'created_by' => 'backfill:entity',
                 ]);
 
-                return 1 + $this->backfillDerivedPresencePeriods($entity, $ranges, $geom, $territoryGeom);
+                return 1;
             }
         }
 
-        return $this->backfillDerivedPresencePeriods($entity, $ranges, $geom, $territoryGeom);
-    }
-
-    /**
-     * @param  Collection<int, EntityTemporalRange>  $ranges
-     */
-    private function backfillDerivedPresencePeriods(Entity $entity, $ranges, ?array $geom, ?array $territoryGeom): int
-    {
-        $primaryRange = $ranges->firstWhere('is_primary', true) ?? $ranges->first();
-
-        $fallbackStart = $primaryRange?->start_year ?? $entity->primaryTemporalRange?->start_year;
-        $fallbackEnd = $primaryRange?->end_year ?? $entity->primaryTemporalRange?->end_year;
-
-        $relationships = EntityRelationship::query()
-            ->with([
-                'sourceEntity' => fn ($query) => $query
-                    ->withoutGlobalScopes()
-                    ->with(['primaryLocation', 'primaryTemporalRange']),
-                'targetEntity' => fn ($query) => $query
-                    ->withoutGlobalScopes()
-                    ->with(['primaryLocation', 'primaryTemporalRange']),
-            ])
-            // Derived presence periods are unique per relationship_id, so create from source side only.
-            ->where('source_entity_id', $entity->entity_id)
-            ->get();
-
-        $inserted = 0;
-
-        foreach ($relationships as $relationship) {
-            $startYear = $relationship->start_year ?? $fallbackStart ?? $relationship->end_year ?? $fallbackEnd;
-            $endYear = $relationship->end_year ?? $fallbackEnd ?? $relationship->start_year ?? $fallbackStart;
-
-            $counterparty = $relationship->targetEntity;
-
-            $derivedGeom = $counterparty?->primaryLocation?->geom ?? $geom;
-            $derivedTerritory = $counterparty?->primaryLocation?->territory_geom ?? $territoryGeom;
-
-            if ($startYear === null || $endYear === null) {
-                continue;
-            }
-
-            if ($derivedGeom === null && $derivedTerritory === null) {
-                continue;
-            }
-
-            $existing = GeometryPeriod::query()
-                ->where('relationship_id', $relationship->relationship_id)
-                ->where('period_type', 'presence')
-                ->where('provenance_mode', 'derived')
-                ->first();
-
-            if ($existing !== null) {
-                $existing->update([
-                    'entity_id' => $entity->entity_id,
-                    'start_year' => $startYear,
-                    'end_year' => $endYear,
-                    'geom' => $derivedGeom,
-                    'territory_geom' => $derivedTerritory,
-                    'description' => $relationship->description,
-                    'created_by' => 'backfill:entity',
-                ]);
-
-                continue;
-            }
-
-            GeometryPeriod::query()->create([
-                'entity_id' => $entity->entity_id,
-                'period_type' => 'presence',
-                'start_year' => $startYear,
-                'end_year' => $endYear,
-                'geom' => $derivedGeom,
-                'territory_geom' => $derivedTerritory,
-                'description' => $relationship->description,
-                'provenance_mode' => 'derived',
-                'relationship_id' => $relationship->relationship_id,
-                'created_by' => 'backfill:entity',
-            ]);
-
-            $inserted++;
-        }
-
-        return $inserted;
+        return 0;
     }
 }
