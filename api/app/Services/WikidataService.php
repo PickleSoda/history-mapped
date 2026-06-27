@@ -8,8 +8,26 @@ class WikidataService
 {
     public function fetch(string $qid): ?array
     {
-        $res = Http::acceptJson()->get("https://www.wikidata.org/wiki/Special:EntityData/{$qid}.json");
-        $entity = $res->json("entities.{$qid}");
+        // Wikidata always keys the JSON under the canonical uppercase QID, so a
+        // lowercase/padded id (or a merged id that redirects to a new QID) won't
+        // match a naive entities.{$qid} lookup. Normalise, then fall back to the
+        // single entity the API actually returned.
+        $qid = strtoupper(trim($qid));
+
+        // Wikimedia rejects requests without a descriptive User-Agent with a 403
+        // (policy https://w.wiki/4wJS, phabricator T400119), which would make
+        // every QID look "not found". Mirror the pipeline's WIKIDATA_USER_AGENT.
+        $userAgent = env('WIKIDATA_USER_AGENT', 'history-mapped/1.0 (https://github.com/PickleSoda/history-mapped)');
+
+        $res = Http::acceptJson()
+            ->withUserAgent($userAgent)
+            ->get("https://www.wikidata.org/wiki/Special:EntityData/{$qid}.json");
+        $entities = $res->json('entities');
+        if (! is_array($entities)) {
+            return null;
+        }
+
+        $entity = $entities[$qid] ?? (count($entities) === 1 ? reset($entities) : null);
         if (! is_array($entity)) {
             return null;
         }
