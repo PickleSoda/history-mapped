@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 import { parseAsTime } from '@/lib/url/params';
 import type { TimeState } from '@/types/atlas';
 
-const DEFAULT_TIME: TimeState = { kind: 'instant', year: 0 };
+const DEFAULT_TIME: TimeState = { kind: 'instant', year: 1121 };
 
 /**
  * Timeline position <-> URL `t` (instant or range). Written with `replace`
