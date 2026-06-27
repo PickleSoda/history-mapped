@@ -87,4 +87,40 @@ describe('AiChatPanel', () => {
 
         expect(screen.getByTestId('pc').getAttribute('data-mode')).toBe('create');
     });
+
+    it('shows a typing indicator while the response is being fetched', () => {
+        mockUseChat.mockReturnValue({
+            messages: [{ id: 'u1', role: 'user', parts: [{ type: 'text', text: 'hi' }] }],
+            sendMessage: vi.fn(),
+            status: 'submitted',
+            stop: vi.fn(),
+        });
+
+        render(<AiChatPanel chat={{} as Chat<UIMessage>} kind="entity" sessionId={null} />);
+
+        expect(screen.getByRole('status', { name: /assistant is typing/i })).toBeInTheDocument();
+    });
+
+    it('does not show the typing indicator when idle', () => {
+        render(<AiChatPanel chat={{} as Chat<UIMessage>} kind="entity" sessionId={null} />);
+
+        expect(screen.queryByRole('status', { name: /assistant is typing/i })).not.toBeInTheDocument();
+    });
+
+    it('shows an error banner and logs to the console when the request errors', () => {
+        const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        mockUseChat.mockReturnValue({
+            messages: [],
+            sendMessage: vi.fn(),
+            status: 'error',
+            stop: vi.fn(),
+            error: new Error('boom'),
+        });
+
+        render(<AiChatPanel chat={{} as Chat<UIMessage>} kind="entity" sessionId={null} />);
+
+        expect(screen.getByRole('alert')).toBeInTheDocument();
+        expect(spy).toHaveBeenCalled();
+        spy.mockRestore();
+    });
 });

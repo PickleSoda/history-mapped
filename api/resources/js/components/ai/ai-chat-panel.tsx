@@ -1,7 +1,7 @@
 import { useChat } from '@ai-sdk/react';
 import type { Chat, UIMessage } from '@ai-sdk/react';
 import { SendHorizonal, Square } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { parseProposal, ProposalCard } from '@/components/ai/proposal-card';
 import type { CreatedRef } from '@/components/ai/proposal-card';
 import {
@@ -36,12 +36,23 @@ type Props = {
  * header, or close button — those are concerns of the parent.
  */
 export function AiChatPanel({ chat, kind, sessionId: _sessionId, onCreatedRef, proposalMode = 'edit', className }: Props) {
-    const { messages, sendMessage, status, stop } = useChat({ chat });
+    const { messages, sendMessage, status, stop, error } = useChat({ chat });
     const [input, setInput] = useState('');
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     const isStreaming = status === 'streaming' || status === 'submitted';
     const canSend = !isStreaming && input.trim().length > 0;
+    // Show a typing indicator after the request is sent but before the first
+    // token streams back (status 'submitted').
+    const isAwaitingResponse = status === 'submitted';
+
+    // Surface request failures: log to the console for diagnostics and show a
+    // banner (see below). useChat exposes the last error on `error`.
+    useEffect(() => {
+        if (error) {
+            console.error('[AI chat] request failed:', error);
+        }
+    }, [error]);
 
     function handleSubmit() {
         if (!canSend) {
@@ -142,9 +153,26 @@ export function AiChatPanel({ chat, kind, sessionId: _sessionId, onCreatedRef, p
                             </MessageContent>
                         </Message>
                     ))}
+
+                    {isAwaitingResponse && (
+                        <Message from="assistant">
+                            <MessageContent>
+                                <TypingIndicator />
+                            </MessageContent>
+                        </Message>
+                    )}
                 </ConversationContent>
                 <ConversationScrollButton />
             </Conversation>
+
+            {error && (
+                <div
+                    role="alert"
+                    className="mx-3 mb-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+                >
+                    The assistant hit an error. Please try again.
+                </div>
+            )}
 
             <div className="border-t p-3">
                 <div className="flex items-end gap-2">
@@ -181,5 +209,23 @@ export function AiChatPanel({ chat, kind, sessionId: _sessionId, onCreatedRef, p
                 </div>
             </div>
         </div>
+    );
+}
+
+/**
+ * Three bouncing dots shown while awaiting the assistant's first token.
+ * role="status" + aria-label make it announced to screen readers.
+ */
+function TypingIndicator() {
+    return (
+        <span
+            role="status"
+            aria-label="Assistant is typing"
+            className="inline-flex items-center gap-1 px-1 py-2 text-muted-foreground"
+        >
+            <span className="size-1.5 animate-bounce rounded-full bg-current opacity-60 [animation-delay:-0.3s]" />
+            <span className="size-1.5 animate-bounce rounded-full bg-current opacity-60 [animation-delay:-0.15s]" />
+            <span className="size-1.5 animate-bounce rounded-full bg-current opacity-60" />
+        </span>
     );
 }
