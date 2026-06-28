@@ -39,7 +39,11 @@ describe('useAiContext', () => {
 
         const { result } = renderHook(() => useAiContext());
 
-        expect(result.current).toEqual({ type: 'entity', id: '42', mode: 'edit' });
+        expect(result.current).toEqual({
+            type: 'entity',
+            id: '42',
+            mode: 'edit',
+        });
     });
 
     it('returns chronicle context when ai_context has chronicle type', () => {
@@ -85,17 +89,27 @@ describe('useAiContext', () => {
 
         const { result } = renderHook(() => useAiContext());
 
-        expect(result.current).toEqual({ type: 'entity', id: null, mode: 'create' });
+        expect(result.current).toEqual({
+            type: 'entity',
+            id: null,
+            mode: 'create',
+        });
     });
 
     it('returns create-mode context for chronicle type with null id', () => {
         mockUsePage.mockReturnValue({
-            props: { ai_context: { type: 'chronicle', id: null, mode: 'create' } },
+            props: {
+                ai_context: { type: 'chronicle', id: null, mode: 'create' },
+            },
         });
 
         const { result } = renderHook(() => useAiContext());
 
-        expect(result.current).toEqual({ type: 'chronicle', id: null, mode: 'create' });
+        expect(result.current).toEqual({
+            type: 'chronicle',
+            id: null,
+            mode: 'create',
+        });
     });
 
     it('defaults mode to edit when mode field is absent', () => {

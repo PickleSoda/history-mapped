@@ -5,7 +5,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const startNewChat = vi.fn();
 vi.mock('@/hooks/use-scoped-session-chat', () => ({
-    useScopedSessionChat: () => ({ chat: {}, sessionId: 's1', resolved: true, startNewChat }),
+    useScopedSessionChat: () => ({
+        chat: {},
+        sessionId: 's1',
+        resolved: true,
+        startNewChat,
+    }),
 }));
 vi.mock('@/components/ai/ai-chat-panel', () => ({
     AiChatPanel: ({ proposalMode }: { proposalMode?: string }) => (
@@ -30,8 +35,12 @@ describe('AiSidebar', () => {
         render(<AiSidebar />);
 
         expect(screen.getByTestId('panel')).toBeInTheDocument();
-        expect(screen.getByTestId('panel').getAttribute('data-proposalmode')).toBe('edit');
-        expect(screen.getByRole('button', { name: /new chat/i })).toBeInTheDocument();
+        expect(
+            screen.getByTestId('panel').getAttribute('data-proposalmode'),
+        ).toBe('edit');
+        expect(
+            screen.getByRole('button', { name: /new chat/i }),
+        ).toBeInTheDocument();
         expect(screen.getByText(/entity/i)).toBeInTheDocument(); // scoped badge
 
         fireEvent.click(screen.getByRole('button', { name: /new chat/i }));
@@ -43,6 +52,8 @@ describe('AiSidebar', () => {
         render(<AiSidebar />);
 
         expect(screen.queryByTestId('panel')).not.toBeInTheDocument();
-        expect(screen.getByText(/navigate to an entity or chronicle/i)).toBeInTheDocument();
+        expect(
+            screen.getByText(/navigate to an entity or chronicle/i),
+        ).toBeInTheDocument();
     });
 });

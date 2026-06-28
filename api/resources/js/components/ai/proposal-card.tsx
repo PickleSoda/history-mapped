@@ -76,19 +76,21 @@ export function ProposalCard({
     mode?: 'edit' | 'create';
     onCreatedRef?: (ref: CreatedRef) => void;
 }) {
-    const [partStatus, setPartStatus] = useState<Record<string, PartStatus>>(() => {
-        // Seed from any stored status on historical (replayed) parts so applied /
-        // discarded parts render locked. Live proposals carry no status → actionable.
-        const seed: Record<string, PartStatus> = {};
+    const [partStatus, setPartStatus] = useState<Record<string, PartStatus>>(
+        () => {
+            // Seed from any stored status on historical (replayed) parts so applied /
+            // discarded parts render locked. Live proposals carry no status → actionable.
+            const seed: Record<string, PartStatus> = {};
 
-        for (const part of proposal.parts) {
-            if (part.status === 'applied' || part.status === 'discarded') {
-                seed[part.key] = part.status;
+            for (const part of proposal.parts) {
+                if (part.status === 'applied' || part.status === 'discarded') {
+                    seed[part.key] = part.status;
+                }
             }
-        }
 
-        return seed;
-    });
+            return seed;
+        },
+    );
     const csrfRef = useRef<string>('');
 
     // Lazily read the CSRF token the first time we need it (same pattern as
@@ -156,7 +158,10 @@ export function ProposalCard({
                     // Global session: surface the created record to the parent
                     // chat panel as an inline link — do NOT navigate away.
                     onCreatedRef(json.created_ref);
-                } else if (mode === 'create' && typeof json.redirect_url === 'string') {
+                } else if (
+                    mode === 'create' &&
+                    typeof json.redirect_url === 'string'
+                ) {
                     // Navigate to the newly-created record after apply in create mode.
                     router.visit(json.redirect_url);
                 } else {

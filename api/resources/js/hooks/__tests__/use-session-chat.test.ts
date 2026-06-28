@@ -63,8 +63,12 @@ describe('useSessionChat', () => {
         );
 
         // Grab the fetch function from the transport options captured by the mock.
-        const transportOpts = vi.mocked(DefaultChatTransport).mock.calls[0][0] as {
-            fetch: (input: unknown, init: unknown) => Promise<{ headers: { get: (k: string) => string | null } }>;
+        const transportOpts = vi.mocked(DefaultChatTransport).mock
+            .calls[0][0] as {
+            fetch: (
+                input: unknown,
+                init: unknown,
+            ) => Promise<{ headers: { get: (k: string) => string | null } }>;
         };
         expect(typeof transportOpts.fetch).toBe('function');
 
@@ -98,7 +102,9 @@ describe('useSessionChat', () => {
 
     it('seeds the Chat with initialMessages', () => {
         const chatMock = vi.mocked(Chat);
-        const initial = [{ id: 'm1', role: 'user', parts: [{ type: 'text', text: 'hi' }] }];
+        const initial = [
+            { id: 'm1', role: 'user', parts: [{ type: 'text', text: 'hi' }] },
+        ];
 
         renderHook(() =>
             useSessionChat({
@@ -117,10 +123,18 @@ describe('useSessionChat', () => {
         const transportMock = vi.mocked(DefaultChatTransport);
 
         renderHook(() =>
-            useSessionChat({ sessionId: null, kind: 'entity', contextType: 'entity', contextId: 'e1', mode: 'edit' }),
+            useSessionChat({
+                sessionId: null,
+                kind: 'entity',
+                contextType: 'entity',
+                contextId: 'e1',
+                mode: 'edit',
+            }),
         );
 
-        const opts = transportMock.mock.calls[0][0] as { body: () => Record<string, unknown> };
+        const opts = transportMock.mock.calls[0][0] as {
+            body: () => Record<string, unknown>;
+        };
         const body = opts.body();
         expect(body.mode).toBe('edit');
         expect(body.context_type).toBe('entity');
@@ -132,13 +146,21 @@ describe('useSessionChat', () => {
 
         renderHook(() => useSessionChat({ sessionId: null, kind: 'global' }));
 
-        const opts = transportMock.mock.calls.at(-1)![0] as { body: () => Record<string, unknown> };
+        const opts = transportMock.mock.calls.at(-1)![0] as {
+            body: () => Record<string, unknown>;
+        };
         expect('mode' in opts.body()).toBe(false);
     });
 
     it('syncs the returned sessionId when the sessionId prop changes', () => {
         const { result, rerender } = renderHook(
-            ({ sid }) => useSessionChat({ sessionId: sid, kind: 'entity', contextType: 'entity', contextId: 'e1' }),
+            ({ sid }) =>
+                useSessionChat({
+                    sessionId: sid,
+                    kind: 'entity',
+                    contextType: 'entity',
+                    contextId: 'e1',
+                }),
             { initialProps: { sid: 's1' as string | null } },
         );
 

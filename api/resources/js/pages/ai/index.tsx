@@ -29,7 +29,10 @@ function kindLabel(kind: string | null): string {
 }
 
 function getCsrfToken(): string {
-    return document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
+    return (
+        document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
+            ?.content ?? ''
+    );
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -58,28 +61,30 @@ export default function CreateWithAi() {
     // Created-record links to display above the chat.
     const [createdRefs, setCreatedRefs] = useState<CreatedRef[]>([]);
     // Active session scope — drives useSessionChat's kind/context binding.
-    const [activeKind, setActiveKind] = useState<'global' | 'entity' | 'chronicle'>('global');
-    const [activeContextType, setActiveContextType] = useState<string | undefined>(undefined);
+    const [activeKind, setActiveKind] = useState<
+        'global' | 'entity' | 'chronicle'
+    >('global');
+    const [activeContextType, setActiveContextType] = useState<
+        string | undefined
+    >(undefined);
     const [activeContextId, setActiveContextId] = useState<string | null>(null);
     const [initialMessages, setInitialMessages] = useState<UIMessage[]>([]);
 
-    const {
-        data: sessionsData,
-        refetch: refetchSessions,
-    } = useQuery<SessionsResponse>({
-        queryKey: ['ai-sessions'],
-        queryFn: async () => {
-            const res = await fetch('/ai/sessions', {
-                headers: { Accept: 'application/json' },
-            });
+    const { data: sessionsData, refetch: refetchSessions } =
+        useQuery<SessionsResponse>({
+            queryKey: ['ai-sessions'],
+            queryFn: async () => {
+                const res = await fetch('/ai/sessions', {
+                    headers: { Accept: 'application/json' },
+                });
 
-            if (!res.ok) {
-                throw new Error('Failed to load sessions');
-            }
+                if (!res.ok) {
+                    throw new Error('Failed to load sessions');
+                }
 
-            return res.json() as Promise<SessionsResponse>;
-        },
-    });
+                return res.json() as Promise<SessionsResponse>;
+            },
+        });
 
     const sessions = sessionsData?.data ?? [];
 
@@ -114,7 +119,10 @@ export default function CreateWithAi() {
             return;
         }
 
-        const kind = (session.kind ?? 'global') as 'global' | 'entity' | 'chronicle';
+        const kind = (session.kind ?? 'global') as
+            | 'global'
+            | 'entity'
+            | 'chronicle';
 
         let messages: UIMessage[] = [];
 
@@ -194,17 +202,21 @@ export default function CreateWithAi() {
                             </li>
                         )}
                         {sessions.map((s) => (
-                            <li key={s.id} className="group relative flex items-center">
+                            <li
+                                key={s.id}
+                                className="group relative flex items-center"
+                            >
                                 <button
                                     type="button"
                                     onClick={() => void handleSelectSession(s)}
                                     className={cn(
                                         'min-w-0 flex-1 px-4 py-2 text-left text-sm transition-colors hover:bg-muted',
-                                        activeSessionId === s.id && 'bg-muted font-medium',
+                                        activeSessionId === s.id &&
+                                            'bg-muted font-medium',
                                     )}
                                 >
                                     <div className="flex items-center gap-1.5">
-                                        <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                                        <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
                                             {kindLabel(s.kind)}
                                         </span>
                                         <span className="truncate font-medium">
@@ -219,8 +231,10 @@ export default function CreateWithAi() {
                                     type="button"
                                     aria-label="Delete session"
                                     title="Delete session"
-                                    onClick={(e) => void handleDeleteSession(s, e)}
-                                    className="absolute right-1 rounded p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+                                    onClick={(e) =>
+                                        void handleDeleteSession(s, e)
+                                    }
+                                    className="absolute right-1 rounded p-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive"
                                 >
                                     <Trash2 className="size-3.5" />
                                 </button>
@@ -240,7 +254,9 @@ export default function CreateWithAi() {
                                     href={ref.url}
                                     className="inline-flex items-center gap-1 rounded-full border border-green-300 bg-green-50 px-3 py-1 text-xs font-medium text-green-800 hover:bg-green-100 dark:border-green-700 dark:bg-green-950/30 dark:text-green-300"
                                 >
-                                    <span className="capitalize">{ref.type}:</span>
+                                    <span className="capitalize">
+                                        {ref.type}:
+                                    </span>
                                     {ref.label}
                                     <span className="ml-1 opacity-60">→</span>
                                 </Link>

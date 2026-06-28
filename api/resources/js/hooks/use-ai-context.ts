@@ -1,6 +1,10 @@
 import { usePage } from '@inertiajs/react';
 
-export type AiContext = { type: 'entity' | 'chronicle'; id: string | null; mode: 'edit' | 'create' };
+export type AiContext = {
+    type: 'entity' | 'chronicle';
+    id: string | null;
+    mode: 'edit' | 'create';
+};
 
 /**
  * Reads the `ai_context` prop injected by the server (Task 10) from Inertia
@@ -12,7 +16,9 @@ export type AiContext = { type: 'entity' | 'chronicle'; id: string | null; mode:
  */
 export function useAiContext(): AiContext | null {
     const ctx = (
-        usePage().props as { ai_context?: { type?: unknown; id?: unknown; mode?: unknown } }
+        usePage().props as {
+            ai_context?: { type?: unknown; id?: unknown; mode?: unknown };
+        }
     ).ai_context;
 
     if (!ctx || (ctx.type !== 'entity' && ctx.type !== 'chronicle')) {
@@ -25,5 +31,9 @@ export function useAiContext(): AiContext | null {
         return null;
     }
 
-    return { type: ctx.type, id: typeof ctx.id === 'string' ? ctx.id : null, mode };
+    return {
+        type: ctx.type,
+        id: typeof ctx.id === 'string' ? ctx.id : null,
+        mode,
+    };
 }

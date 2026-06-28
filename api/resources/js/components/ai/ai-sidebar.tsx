@@ -52,7 +52,13 @@ export function AiSidebar() {
     );
 }
 
-function ScopedSidebarBody({ aiCtx, onClose }: { aiCtx: AiContext; onClose: () => void }) {
+function ScopedSidebarBody({
+    aiCtx,
+    onClose,
+}: {
+    aiCtx: AiContext;
+    onClose: () => void;
+}) {
     const { chat, sessionId, resolved, startNewChat } = useScopedSessionChat({
         type: aiCtx.type,
         id: aiCtx.id,
@@ -64,8 +70,10 @@ function ScopedSidebarBody({ aiCtx, onClose }: { aiCtx: AiContext; onClose: () =
             <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-semibold">
                 <BotMessageSquare className="size-4 text-primary" />
                 Ask AI
-                <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-xs font-normal capitalize text-muted-foreground">
-                    {aiCtx.mode === 'create' ? `New ${aiCtx.type}` : `Scoped: ${aiCtx.type}`}
+                <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-xs font-normal text-muted-foreground capitalize">
+                    {aiCtx.mode === 'create'
+                        ? `New ${aiCtx.type}`
+                        : `Scoped: ${aiCtx.type}`}
                 </span>
                 <Button
                     variant="ghost"
@@ -77,7 +85,13 @@ function ScopedSidebarBody({ aiCtx, onClose }: { aiCtx: AiContext; onClose: () =
                 >
                     <Plus className="size-4" />
                 </Button>
-                <Button variant="ghost" size="icon" className="size-7" onClick={onClose} title="Close">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-7"
+                    onClick={onClose}
+                    title="Close"
+                >
                     <X className="size-4" />
                 </Button>
             </div>
@@ -105,13 +119,21 @@ function EmptySidebarBody({ onClose }: { onClose: () => void }) {
             <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-semibold">
                 <BotMessageSquare className="size-4 text-primary" />
                 Ask AI
-                <Button variant="ghost" size="icon" className="ml-auto size-7" onClick={onClose} title="Close">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="ml-auto size-7"
+                    onClick={onClose}
+                    title="Close"
+                >
                     <X className="size-4" />
                 </Button>
             </div>
             <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center text-muted-foreground">
                 <BotMessageSquare className="size-8" />
-                <p className="text-sm">Navigate to an entity or chronicle to use the AI assistant.</p>
+                <p className="text-sm">
+                    Navigate to an entity or chronicle to use the AI assistant.
+                </p>
             </div>
         </>
     );
