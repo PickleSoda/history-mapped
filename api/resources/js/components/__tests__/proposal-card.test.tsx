@@ -193,7 +193,10 @@ describe('ProposalCard', () => {
 
         fetchMock.mockResolvedValueOnce({
             ok: true,
-            json: async () => ({ status: 'applied', redirect_url: '/entities/99/edit' }),
+            json: async () => ({
+                status: 'applied',
+                redirect_url: '/entities/99/edit',
+            }),
         } as Response);
 
         render(<ProposalCard proposal={proposal} mode="create" />);
@@ -358,25 +361,39 @@ describe('ProposalCard', () => {
         const historical = {
             proposal_id: 'prop-h',
             parts: [
-                { key: 'k1', human_diff: { summary: 'Did a thing' }, status: 'applied' as const },
+                {
+                    key: 'k1',
+                    human_diff: { summary: 'Did a thing' },
+                    status: 'applied' as const,
+                },
             ],
         };
         render(<ProposalCard proposal={historical} mode="edit" />);
 
         expect(screen.getByText('Did a thing')).toBeInTheDocument();
-        expect(screen.queryByRole('button', { name: /apply/i })).not.toBeInTheDocument();
-        expect(screen.queryByRole('button', { name: /discard/i })).not.toBeInTheDocument();
+        expect(
+            screen.queryByRole('button', { name: /apply/i }),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByRole('button', { name: /discard/i }),
+        ).not.toBeInTheDocument();
     });
 
     it('renders pending historical part as actionable (Apply present)', () => {
         const historical = {
             proposal_id: 'prop-p',
             parts: [
-                { key: 'k1', human_diff: { summary: 'Awaiting' }, status: 'pending' as const },
+                {
+                    key: 'k1',
+                    human_diff: { summary: 'Awaiting' },
+                    status: 'pending' as const,
+                },
             ],
         };
         render(<ProposalCard proposal={historical} mode="edit" />);
 
-        expect(screen.getByRole('button', { name: /apply/i })).toBeInTheDocument();
+        expect(
+            screen.getByRole('button', { name: /apply/i }),
+        ).toBeInTheDocument();
     });
 });

@@ -35,7 +35,14 @@ type Props = {
  * page (rendered as a full-height column). Does NOT include the sidebar wrapper,
  * header, or close button — those are concerns of the parent.
  */
-export function AiChatPanel({ chat, kind, sessionId: _sessionId, onCreatedRef, proposalMode = 'edit', className }: Props) {
+export function AiChatPanel({
+    chat,
+    kind,
+    sessionId: _sessionId,
+    onCreatedRef,
+    proposalMode = 'edit',
+    className,
+}: Props) {
     const { messages, sendMessage, status, stop, error } = useChat({ chat });
     const [input, setInput] = useState('');
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -112,7 +119,9 @@ export function AiChatPanel({ chat, kind, sessionId: _sessionId, onCreatedRef, p
                                         part.type === 'dynamic-tool' &&
                                         part.state === 'output-available'
                                     ) {
-                                        const proposal = parseProposal(part.output);
+                                        const proposal = parseProposal(
+                                            part.output,
+                                        );
 
                                         if (proposal) {
                                             return (
@@ -133,7 +142,8 @@ export function AiChatPanel({ chat, kind, sessionId: _sessionId, onCreatedRef, p
                                         'output' in part
                                     ) {
                                         const proposal = parseProposal(
-                                            (part as { output: unknown }).output,
+                                            (part as { output: unknown })
+                                                .output,
                                         );
 
                                         if (proposal) {

@@ -19,31 +19,53 @@ mockUseChat.mockReturnValue({
 });
 
 vi.mock('@/components/ui/ai/conversation', () => ({
-    Conversation: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-    ConversationContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-    ConversationEmptyState: ({ title }: { title: string }) => <div>{title}</div>,
+    Conversation: ({ children }: { children: React.ReactNode }) => (
+        <div>{children}</div>
+    ),
+    ConversationContent: ({ children }: { children: React.ReactNode }) => (
+        <div>{children}</div>
+    ),
+    ConversationEmptyState: ({ title }: { title: string }) => (
+        <div>{title}</div>
+    ),
     ConversationScrollButton: () => null,
 }));
 
 vi.mock('@/components/ui/ai/message', () => ({
-    Message: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-    MessageContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-    MessageResponse: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-}));
-
-vi.mock('@/components/ui/button', () => ({
-    Button: ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: React.ReactNode }) => (
-        <button {...props}>{children}</button>
+    Message: ({ children }: { children: React.ReactNode }) => (
+        <div>{children}</div>
+    ),
+    MessageContent: ({ children }: { children: React.ReactNode }) => (
+        <div>{children}</div>
+    ),
+    MessageResponse: ({ children }: { children: React.ReactNode }) => (
+        <div>{children}</div>
     ),
 }));
 
+vi.mock('@/components/ui/button', () => ({
+    Button: ({
+        children,
+        ...props
+    }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+        children: React.ReactNode;
+    }) => <button {...props}>{children}</button>,
+}));
+
 vi.mock('@/components/ui/textarea', () => ({
-    Textarea: (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => <textarea {...props} />,
+    Textarea: (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => (
+        <textarea {...props} />
+    ),
 }));
 
 vi.mock('@/components/ai/proposal-card', () => ({
-    parseProposal: () => ({ proposal_id: 'p1', parts: [{ key: 'k', human_diff: { summary: 's' } }] }),
-    ProposalCard: ({ mode }: { mode?: string }) => <div data-testid="pc" data-mode={mode} />,
+    parseProposal: () => ({
+        proposal_id: 'p1',
+        parts: [{ key: 'k', human_diff: { summary: 's' } }],
+    }),
+    ProposalCard: ({ mode }: { mode?: string }) => (
+        <div data-testid="pc" data-mode={mode} />
+    ),
 }));
 
 describe('AiChatPanel', () => {
@@ -59,13 +81,9 @@ describe('AiChatPanel', () => {
 
     it('renders the empty state for a global session', () => {
         const mockChat = {} as Chat<UIMessage>;
-        render(
-            <AiChatPanel chat={mockChat} kind="global" sessionId={null} />,
-        );
+        render(<AiChatPanel chat={mockChat} kind="global" sessionId={null} />);
 
-        expect(
-            screen.getByText(/ask anything/i),
-        ).toBeInTheDocument();
+        expect(screen.getByText(/ask anything/i)).toBeInTheDocument();
     });
 
     it('passes proposalMode through to ProposalCard', () => {
@@ -74,7 +92,13 @@ describe('AiChatPanel', () => {
                 {
                     id: 'm1',
                     role: 'assistant',
-                    parts: [{ type: 'dynamic-tool', state: 'output-available', output: {} }],
+                    parts: [
+                        {
+                            type: 'dynamic-tool',
+                            state: 'output-available',
+                            output: {},
+                        },
+                    ],
                 },
             ],
             sendMessage: vi.fn(),
@@ -83,28 +107,59 @@ describe('AiChatPanel', () => {
         });
 
         const mockChat = {} as Chat<UIMessage>;
-        render(<AiChatPanel chat={mockChat} kind="entity" sessionId={null} proposalMode="create" />);
+        render(
+            <AiChatPanel
+                chat={mockChat}
+                kind="entity"
+                sessionId={null}
+                proposalMode="create"
+            />,
+        );
 
-        expect(screen.getByTestId('pc').getAttribute('data-mode')).toBe('create');
+        expect(screen.getByTestId('pc').getAttribute('data-mode')).toBe(
+            'create',
+        );
     });
 
     it('shows a typing indicator while the response is being fetched', () => {
         mockUseChat.mockReturnValue({
-            messages: [{ id: 'u1', role: 'user', parts: [{ type: 'text', text: 'hi' }] }],
+            messages: [
+                {
+                    id: 'u1',
+                    role: 'user',
+                    parts: [{ type: 'text', text: 'hi' }],
+                },
+            ],
             sendMessage: vi.fn(),
             status: 'submitted',
             stop: vi.fn(),
         });
 
-        render(<AiChatPanel chat={{} as Chat<UIMessage>} kind="entity" sessionId={null} />);
+        render(
+            <AiChatPanel
+                chat={{} as Chat<UIMessage>}
+                kind="entity"
+                sessionId={null}
+            />,
+        );
 
-        expect(screen.getByRole('status', { name: /assistant is typing/i })).toBeInTheDocument();
+        expect(
+            screen.getByRole('status', { name: /assistant is typing/i }),
+        ).toBeInTheDocument();
     });
 
     it('does not show the typing indicator when idle', () => {
-        render(<AiChatPanel chat={{} as Chat<UIMessage>} kind="entity" sessionId={null} />);
+        render(
+            <AiChatPanel
+                chat={{} as Chat<UIMessage>}
+                kind="entity"
+                sessionId={null}
+            />,
+        );
 
-        expect(screen.queryByRole('status', { name: /assistant is typing/i })).not.toBeInTheDocument();
+        expect(
+            screen.queryByRole('status', { name: /assistant is typing/i }),
+        ).not.toBeInTheDocument();
     });
 
     it('shows an error banner and logs to the console when the request errors', () => {
@@ -117,7 +172,13 @@ describe('AiChatPanel', () => {
             error: new Error('boom'),
         });
 
-        render(<AiChatPanel chat={{} as Chat<UIMessage>} kind="entity" sessionId={null} />);
+        render(
+            <AiChatPanel
+                chat={{} as Chat<UIMessage>}
+                kind="entity"
+                sessionId={null}
+            />,
+        );
 
         expect(screen.getByRole('alert')).toBeInTheDocument();
         expect(spy).toHaveBeenCalled();

@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+    cleanup,
+    fireEvent,
+    render,
+    screen,
+    waitFor,
+} from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import CreateWithAi from '../index';
@@ -14,7 +20,9 @@ vi.mock('@inertiajs/react', () => ({
 }));
 
 vi.mock('@/layouts/app-layout', () => ({
-    default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    default: ({ children }: { children: React.ReactNode }) => (
+        <div>{children}</div>
+    ),
 }));
 
 vi.mock('@/components/ai/ai-chat-panel', () => ({
@@ -68,7 +76,9 @@ describe('Create with AI page', () => {
             expect(screen.getByTestId('chat-panel')).toBeInTheDocument();
         });
 
-        expect(screen.getByRole('button', { name: /new session/i })).toBeInTheDocument();
+        expect(
+            screen.getByRole('button', { name: /new session/i }),
+        ).toBeInTheDocument();
     });
 
     it('shows session list items when sessions are returned', async () => {
@@ -101,16 +111,35 @@ describe('Create with AI page', () => {
             .mockResolvedValueOnce({
                 ok: true,
                 json: async () => ({
-                    data: [{ id: 'sess-x', kind: 'global', context_id: null, context_label: 'Global', title: 'Chat X', updated_at: null }],
+                    data: [
+                        {
+                            id: 'sess-x',
+                            kind: 'global',
+                            context_id: null,
+                            context_label: 'Global',
+                            title: 'Chat X',
+                            updated_at: null,
+                        },
+                    ],
                 }),
             } as unknown as Response)
-            .mockResolvedValueOnce({ ok: true, json: async () => ({ deleted: true }) } as unknown as Response)
-            .mockResolvedValueOnce({ ok: true, json: async () => ({ data: [] }) } as unknown as Response);
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({ deleted: true }),
+            } as unknown as Response)
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({ data: [] }),
+            } as unknown as Response);
 
         renderPage();
-        await waitFor(() => expect(screen.getByText('Chat X')).toBeInTheDocument());
+        await waitFor(() =>
+            expect(screen.getByText('Chat X')).toBeInTheDocument(),
+        );
 
-        fireEvent.click(screen.getByRole('button', { name: /delete session/i }));
+        fireEvent.click(
+            screen.getByRole('button', { name: /delete session/i }),
+        );
 
         await waitFor(() =>
             expect(fetchMock).toHaveBeenCalledWith(
@@ -124,13 +153,24 @@ describe('Create with AI page', () => {
         fetchMock.mockResolvedValueOnce({
             ok: true,
             json: async () => ({
-                data: [{ id: 'sess-1', kind: 'entity', context_id: 'ent-1', context_label: 'Entity: Rome', title: 'Edit Rome', updated_at: null }],
+                data: [
+                    {
+                        id: 'sess-1',
+                        kind: 'entity',
+                        context_id: 'ent-1',
+                        context_label: 'Entity: Rome',
+                        title: 'Edit Rome',
+                        updated_at: null,
+                    },
+                ],
             }),
         } as unknown as Response);
 
         renderPage();
 
-        await waitFor(() => expect(screen.getByText('Edit Rome')).toBeInTheDocument());
+        await waitFor(() =>
+            expect(screen.getByText('Edit Rome')).toBeInTheDocument(),
+        );
         expect(screen.getByText('Entity')).toBeInTheDocument(); // kind badge
     });
 
@@ -140,26 +180,54 @@ describe('Create with AI page', () => {
             .mockResolvedValueOnce({
                 ok: true,
                 json: async () => ({
-                    data: [{ id: 'sess-e', kind: 'entity', context_id: 'ent-1', context_label: 'Entity: Rome', title: 'Edit Rome', updated_at: null }],
+                    data: [
+                        {
+                            id: 'sess-e',
+                            kind: 'entity',
+                            context_id: 'ent-1',
+                            context_label: 'Entity: Rome',
+                            title: 'Edit Rome',
+                            updated_at: null,
+                        },
+                    ],
                 }),
             } as unknown as Response)
             .mockResolvedValueOnce({
                 ok: true,
                 json: async () => ({
-                    session: { id: 'sess-e', kind: 'entity', context_id: 'ent-1', context_label: 'Entity: Rome', title: 'Edit Rome' },
-                    messages: [{ id: 'm1', role: 'user', content: 'hi', tool_results: [], created_at: null }],
+                    session: {
+                        id: 'sess-e',
+                        kind: 'entity',
+                        context_id: 'ent-1',
+                        context_label: 'Entity: Rome',
+                        title: 'Edit Rome',
+                    },
+                    messages: [
+                        {
+                            id: 'm1',
+                            role: 'user',
+                            content: 'hi',
+                            tool_results: [],
+                            created_at: null,
+                        },
+                    ],
                     proposals: [],
                 }),
             } as unknown as Response);
 
         renderPage();
 
-        await waitFor(() => expect(screen.getByText('Edit Rome')).toBeInTheDocument());
+        await waitFor(() =>
+            expect(screen.getByText('Edit Rome')).toBeInTheDocument(),
+        );
 
         fireEvent.click(screen.getByText('Edit Rome'));
 
         await waitFor(() =>
-            expect(fetchMock).toHaveBeenCalledWith('/ai/sessions/sess-e', expect.anything()),
+            expect(fetchMock).toHaveBeenCalledWith(
+                '/ai/sessions/sess-e',
+                expect.anything(),
+            ),
         );
     });
 });

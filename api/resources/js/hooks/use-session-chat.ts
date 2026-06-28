@@ -77,7 +77,10 @@ export function useSessionChat({
                         conversation_id: sessionIdRef.current,
                         ...(mode ? { mode } : {}),
                         ...(kind !== 'global' && contextType
-                            ? { context_type: contextType, context_id: contextId ?? null }
+                            ? {
+                                  context_type: contextType,
+                                  context_id: contextId ?? null,
+                              }
                             : {}),
                     }),
                     // Intercept responses to capture X-Conversation-Id from the

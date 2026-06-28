@@ -34,15 +34,26 @@ type ProposalStatus = 'pending' | 'applied' | 'discarded';
  * each proposal's per-part status merged from the `proposals[]` audit list so the
  * replayed ProposalCards render applied/discarded locked and pending actionable.
  */
-export function reconstructSessionMessages(payload: SessionShowPayload): UIMessage[] {
+export function reconstructSessionMessages(
+    payload: SessionShowPayload,
+): UIMessage[] {
     // Build lookup: proposal_id -> (part key -> {status, result_id})
-    const statusByProposal = new Map<string, Map<string, { status?: ProposalStatus; result_id?: string | null }>>();
+    const statusByProposal = new Map<
+        string,
+        Map<string, { status?: ProposalStatus; result_id?: string | null }>
+    >();
 
     for (const p of payload.proposals ?? []) {
-        const byKey = new Map<string, { status?: ProposalStatus; result_id?: string | null }>();
+        const byKey = new Map<
+            string,
+            { status?: ProposalStatus; result_id?: string | null }
+        >();
 
         for (const part of p.parts) {
-            byKey.set(part.key, { status: part.status as ProposalStatus | undefined, result_id: part.result_id });
+            byKey.set(part.key, {
+                status: part.status as ProposalStatus | undefined,
+                result_id: part.result_id,
+            });
         }
 
         statusByProposal.set(p.proposal_id, byKey);
@@ -51,44 +62,56 @@ export function reconstructSessionMessages(payload: SessionShowPayload): UIMessa
     return (payload.messages ?? [])
         .filter((msg) => msg.role === 'user' || msg.role === 'assistant')
         .map((msg, i): UIMessage => {
-        const parts: UIMessage['parts'] = [];
+            const parts: UIMessage['parts'] = [];
 
-        if (msg.content) {
-            parts.push({ type: 'text', text: msg.content } as UIMessage['parts'][number]);
-        }
-
-        const toolResults = Array.isArray(msg.tool_results) ? msg.tool_results : [];
-        (toolResults as Array<{ id?: string; result?: unknown }>).forEach((tr, j) => {
-            const proposal = parseProposal(tr.result);
-
-            if (!proposal) {
-                return;
+            if (msg.content) {
+                parts.push({
+                    type: 'text',
+                    text: msg.content,
+                } as UIMessage['parts'][number]);
             }
 
-            const byKey = statusByProposal.get(proposal.proposal_id);
+            const toolResults = Array.isArray(msg.tool_results)
+                ? msg.tool_results
+                : [];
+            (toolResults as Array<{ id?: string; result?: unknown }>).forEach(
+                (tr, j) => {
+                    const proposal = parseProposal(tr.result);
 
-            if (byKey) {
-                proposal.parts = proposal.parts.map((pt) => {
-                    const stored = byKey.get(pt.key);
+                    if (!proposal) {
+                        return;
+                    }
 
-                    return stored ? { ...pt, status: stored.status, result_id: stored.result_id } : pt;
-                });
-            }
+                    const byKey = statusByProposal.get(proposal.proposal_id);
 
-            parts.push({
-                type: 'dynamic-tool',
-                toolName: 'proposal',
-                toolCallId: tr.id ?? `tr-${i}-${j}`,
-                state: 'output-available',
-                output: proposal,
-            } as UIMessage['parts'][number]);
+                    if (byKey) {
+                        proposal.parts = proposal.parts.map((pt) => {
+                            const stored = byKey.get(pt.key);
+
+                            return stored
+                                ? {
+                                      ...pt,
+                                      status: stored.status,
+                                      result_id: stored.result_id,
+                                  }
+                                : pt;
+                        });
+                    }
+
+                    parts.push({
+                        type: 'dynamic-tool',
+                        toolName: 'proposal',
+                        toolCallId: tr.id ?? `tr-${i}-${j}`,
+                        state: 'output-available',
+                        output: proposal,
+                    } as UIMessage['parts'][number]);
+                },
+            );
+
+            return {
+                id: msg.id,
+                role: msg.role === 'user' ? 'user' : 'assistant',
+                parts,
+            };
         });
-
-        return {
-            id: msg.id,
-            role: msg.role === 'user' ? 'user' : 'assistant',
-            parts,
-        };
-    });
 }
-

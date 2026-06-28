@@ -4,7 +4,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { useSessionChat } from '@/hooks/use-session-chat';
 import { reconstructSessionMessages } from '@/lib/reconstruct-session-messages';
 
-type Args = { type: 'entity' | 'chronicle'; id: string | null; mode: 'edit' | 'create' };
+type Args = {
+    type: 'entity' | 'chronicle';
+    id: string | null;
+    mode: 'edit' | 'create';
+};
 
 type Result = {
     chat: Chat<UIMessage>;
@@ -65,7 +69,9 @@ export function useScopedSessionChat({ type, id, mode }: Args): Result {
                     `/ai/sessions?context_type=${type}&context_id=${encodeURIComponent(id)}`,
                     { headers: { Accept: 'application/json' } },
                 );
-                const latest = listRes.ok ? (await listRes.json()).data?.[0] : undefined;
+                const latest = listRes.ok
+                    ? (await listRes.json()).data?.[0]
+                    : undefined;
 
                 if (!latest) {
                     seed([], null);
@@ -83,7 +89,10 @@ export function useScopedSessionChat({ type, id, mode }: Args): Result {
                     return;
                 }
 
-                seed(reconstructSessionMessages(await showRes.json()), latest.id);
+                seed(
+                    reconstructSessionMessages(await showRes.json()),
+                    latest.id,
+                );
             } catch {
                 seed([], null); // open empty on any failure rather than break
             }
