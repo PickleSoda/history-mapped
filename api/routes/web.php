@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\Ai\AiChatController;
+use App\Http\Controllers\Admin\Ai\AiProposalController;
+use App\Http\Controllers\Admin\Ai\AiSessionController;
 use App\Http\Controllers\Admin\EntityController;
 use App\Http\Controllers\Admin\EntityGeometryPeriodController;
 use App\Http\Controllers\Admin\Reference\CalendarSystemController;
@@ -15,6 +18,7 @@ use App\Http\Controllers\Admin\Reference\WritingSystemController;
 use App\Http\Controllers\Admin\RelationshipController;
 use App\Http\Controllers\Web\ChronicleController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 Route::inertia('/', 'welcome', [
@@ -68,6 +72,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('reference/measurement-units', [MeasurementUnitController::class, 'index'])->name('reference.measurement-units.index');
     Route::get('reference/language-families', [LanguageFamilyController::class, 'index'])->name('reference.language-families.index');
     Route::get('reference/source-type-definitions', [SourceTypeDefinitionController::class, 'index'])->name('reference.source-type-definitions.index');
+
+    // ── AI Chat (streaming) + Create with AI page ────────────────────────────
+    Route::middleware('permission:entities.write')->group(function () {
+        Route::get('ai', fn () => Inertia::render('ai/index'))->name('ai.index');
+        Route::post('ai/chat', [AiChatController::class, 'chat'])->name('ai.chat');
+    });
+
+    // ── AI Proposals ─────────────────────────────────────────────────────────
+    Route::prefix('ai')->name('ai.')->group(function () {
+        Route::post('proposals/{change}/parts/{key}/discard', [AiProposalController::class, 'discard'])->name('proposals.discard');
+        Route::middleware('permission:entities.write')->group(function () {
+            Route::post('proposals/{change}/parts/{key}/apply', [AiProposalController::class, 'apply'])->name('proposals.apply');
+            Route::get('sessions', [AiSessionController::class, 'index'])->name('sessions.index');
+            Route::get('sessions/{conversation}', [AiSessionController::class, 'show'])->name('sessions.show');
+            Route::delete('sessions/{conversation}', [AiSessionController::class, 'destroy'])->name('sessions.destroy');
+        });
+    });
 
     // ── Chronicles ─────────────────────────────────────────────
     Route::get('/chronicles', [ChronicleController::class, 'index'])->name('chronicles.index');

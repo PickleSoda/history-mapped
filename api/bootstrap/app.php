@@ -19,6 +19,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Behind Nginx (TLS terminated at the proxy), trust the forwarded
+        // headers so Laravel sees the original https scheme — otherwise asset()
+        // / Vite emit http:// URLs that the browser blocks as mixed content.
+        $middleware->trustProxies(at: '*');
+
         $middleware->statefulApi();
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 

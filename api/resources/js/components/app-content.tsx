@@ -1,19 +1,34 @@
 import * as React from 'react';
 import { SidebarInset } from '@/components/ui/sidebar';
+import { cn } from '@/lib/utils';
 import type { AppVariant } from '@/types';
 
 type Props = React.ComponentProps<'main'> & {
     variant?: AppVariant;
 };
 
-export function AppContent({ variant = 'sidebar', children, ...props }: Props) {
+export function AppContent({
+    variant = 'sidebar',
+    children,
+    className,
+    ...props
+}: Props) {
     if (variant === 'sidebar') {
-        return <SidebarInset {...props}>{children}</SidebarInset>;
+        // min-w-0 lets the flex-1 inset actually shrink when the right-docked
+        // AI panel (a flex sibling) opens, instead of overflowing.
+        return (
+            <SidebarInset className={cn('min-w-0', className)} {...props}>
+                {children}
+            </SidebarInset>
+        );
     }
 
     return (
         <main
-            className="mx-auto flex h-full w-full max-w-7xl flex-1 flex-col gap-4 rounded-xl"
+            className={cn(
+                'mx-auto flex h-full w-full max-w-7xl flex-1 flex-col gap-4 rounded-xl',
+                className,
+            )}
             {...props}
         >
             {children}

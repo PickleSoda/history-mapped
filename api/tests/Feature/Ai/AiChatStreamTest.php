@@ -1,0 +1,609 @@
+<?php
+
+namespace Tests\Feature\Ai;
+
+use App\Ai\Agents\ChronicleCreatorAgent;
+use App\Ai\Agents\ChronicleEditorAgent;
+use App\Ai\Agents\EntityCreatorAgent;
+use App\Ai\Agents\EntityEditorAgent;
+use App\Ai\Agents\GlobalAgent;
+use App\Ai\Tools\CreateChronicleEntry;
+use App\Ai\Tools\CreateEntity;
+use App\Ai\Tools\CreateRelationship;
+use App\Ai\Tools\GetEntityContext;
+use App\Ai\Tools\MergeDuplicateEntities;
+use App\Ai\Tools\SetEntityLocation;
+use App\Ai\Tools\SetEntityWikidata;
+use App\Ai\Tools\UpdateChronicleEntry;
+use App\Ai\Tools\UpdateEntityFields;
+use App\Ai\Tools\VerifyWikidata;
+use App\Models\Chronicle;
+use App\Models\Entity;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
+use Laravel\Ai\Models\Conversation;
+use Tests\TestCase;
+
+class AiChatStreamTest extends TestCase
+{
+    use RefreshDatabase;
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private function fakeWikidata(): void
+    {
+        Http::fake(['*' => Http::response(['entities' => []])]);
+    }
+
+    private function makeEntity(): Entity
+    {
+        return Entity::factory()->create([
+            'name' => 'Roman Empire',
+            'entity_type' => 'political_entity',
+        ]);
+    }
+
+    /**
+     * Create a Chronicle with one entry that references the given entity.
+     */
+    private function makeChronicleWithEntity(Entity $entity): Chronicle
+    {
+        $chronicle = Chronicle::factory()->create([
+            'title' => 'Rise of Rome',
+        ]);
+
+        $entryId = (string) Str::uuid();
+
+        DB::table('chronicle_entries')->insert([
+            'entry_id' => $entryId,
+            'chronicle_id' => $chronicle->chronicle_id,
+            'sequence_order' => 1,
+            'narrative_text' => 'Rome was founded.',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('chronicle_entry_entities')->insert([
+            'entry_id' => $entryId,
+            'entity_id' => $entity->entity_id,
+            'role' => 'participant',
+        ]);
+
+        return $chronicle;
+    }
+
+    // ── Unit: agent construction ──────────────────────────────────────────────
+
+    /**
+     * EntityEditorAgent::tools() must return all expected tools with context
+     * properly injected into every staging tool.
+     */
+    public function test_entity_editor_agent_tools_have_context_injected(): void
+    {
+        $this->fakeWikidata();
+
+        $user = $this->userWithRole('admin');
+        $entity = $this->makeEntity();
+
+        $context = [
+            'user_id' => (string) $user->id,
+            'context_type' => 'entity',
+            'context_id' => $entity->entity_id,
+            'conversation_id' => null,
+        ];
+
+        $agent = new EntityEditorAgent($entity, $user, $context);
+        $tools = collect($agent->tools());
+
+        // Expect 8 tools.
+        $this->assertCount(8, $tools);
+
+        // Read-only tools present.
+        $this->assertTrue(
+            $tools->contains(fn ($t) => $t instanceof GetEntityContext),
+            'GetEntityContext must be in the tools list'
+        );
+        $this->assertTrue(
+            $tools->contains(fn ($t) => $t instanceof VerifyWikidata),
+            'VerifyWikidata must be in the tools list'
+        );
+
+        // Staging tools present.
+        foreach ([CreateEntity::class, SetEntityLocation::class, UpdateEntityFields::class, SetEntityWikidata::class, CreateRelationship::class, MergeDuplicateEntities::class] as $toolClass) {
+            $this->assertTrue(
+                $tools->contains(fn ($t) => $t instanceof $toolClass),
+                "{$toolClass} must be in the tools list"
+            );
+        }
+
+        // Every staging tool has the context injected.
+        $stagingTools = $tools->filter(fn ($t) => ! ($t instanceof GetEntityContext) && ! ($t instanceof VerifyWikidata));
+        foreach ($stagingTools as $tool) {
+            $reflection = new \ReflectionProperty($tool, 'context');
+            $reflection->setAccessible(true);
+            $injected = $reflection->getValue($tool);
+            $this->assertSame($context, $injected, get_class($tool).' must have context injected');
+        }
+    }
+
+    /**
+     * EntityEditorAgent::instructions() must include the entity ID so the model
+     * always knows which entity it is operating on.
+     */
+    public function test_entity_editor_agent_instructions_contain_entity_id(): void
+    {
+        $this->fakeWikidata();
+
+        $user = $this->userWithRole('admin');
+        $entity = $this->makeEntity();
+
+        $agent = new EntityEditorAgent($entity, $user, [
+            'user_id' => (string) $user->id,
+            'context_type' => 'entity',
+            'context_id' => $entity->entity_id,
+            'conversation_id' => null,
+        ]);
+
+        $instructions = $agent->instructions();
+
+        $this->assertStringContainsString($entity->entity_id, $instructions);
+        $this->assertStringContainsString('Roman Empire', $instructions);
+    }
+
+    // ── Feature: HTTP endpoint ────────────────────────────────────────────────
+
+    /**
+     * A valid entity chat POST returns a streaming 200 response.
+     * We fake the agent so no real provider call is made.
+     */
+    public function test_chat_endpoint_streams_200_for_entity_context(): void
+    {
+        $this->fakeWikidata();
+
+        // Fake the agent BEFORE the request so the FakeTextGateway intercepts.
+        EntityEditorAgent::fake(['Hello from the fake agent.']);
+
+        // Use a user with entities.write permission so the gate passes.
+        $user = $this->userWithPermissions(['entities.write']);
+        $entity = $this->makeEntity();
+
+        $response = $this->actingAs($user)
+            ->postJson('/ai/chat', [
+                'context_type' => 'entity',
+                'context_id' => $entity->entity_id,
+                'prompt' => 'Tell me about this entity.',
+            ]);
+
+        $response->assertOk();
+        $response->assertHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    }
+
+    /**
+     * A user without entities.write must be forbidden from using the chat endpoint.
+     */
+    public function test_chat_endpoint_returns_403_without_entities_write(): void
+    {
+        $this->fakeWikidata();
+
+        $user = $this->userWithRole('user');
+        $entity = $this->makeEntity();
+
+        $this->actingAs($user)
+            ->postJson('/ai/chat', [
+                'context_type' => 'entity',
+                'context_id' => $entity->entity_id,
+                'prompt' => 'Tell me about this entity.',
+            ])
+            ->assertForbidden();
+    }
+
+    /**
+     * A valid chronicle chat POST returns a streaming 200 response (Task 9: ChronicleEditorAgent).
+     * Previously this returned 422 — that placeholder has been replaced.
+     */
+    public function test_chat_endpoint_streams_200_for_chronicle_context(): void
+    {
+        $this->fakeWikidata();
+
+        ChronicleEditorAgent::fake(['Hello from the chronicle agent.']);
+
+        $user = $this->userWithPermissions(['entities.write']);
+        $entity = $this->makeEntity();
+        $chronicle = $this->makeChronicleWithEntity($entity);
+
+        $response = $this->actingAs($user)
+            ->postJson('/ai/chat', [
+                'context_type' => 'chronicle',
+                'context_id' => $chronicle->chronicle_id,
+                'prompt' => 'Help me curate the entities in this chronicle.',
+            ]);
+
+        $response->assertOk();
+        $response->assertHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    }
+
+    /**
+     * The v3 @ai-sdk/react DefaultChatTransport posts a `messages` array instead of
+     * a `prompt` string. The controller must extract the last user message text and
+     * stream a 200 response (not 422).
+     */
+    public function test_chat_endpoint_accepts_v3_messages_array(): void
+    {
+        $this->fakeWikidata();
+
+        EntityEditorAgent::fake(['Hello from the fake agent.']);
+
+        $user = $this->userWithPermissions(['entities.write']);
+        $entity = $this->makeEntity();
+
+        $response = $this->actingAs($user)
+            ->postJson('/ai/chat', [
+                'context_type' => 'entity',
+                'context_id' => $entity->entity_id,
+                'messages' => [
+                    [
+                        'role' => 'user',
+                        'parts' => [
+                            ['type' => 'text', 'text' => 'this is in Luxor'],
+                        ],
+                    ],
+                ],
+            ]);
+
+        $response->assertOk();
+        $response->assertHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    }
+
+    /**
+     * Unauthenticated requests must be redirected (standard Inertia/web auth behaviour).
+     */
+    public function test_chat_endpoint_requires_authentication(): void
+    {
+        $this->postJson('/ai/chat', [
+            'context_type' => 'entity',
+            'context_id' => 'any',
+            'prompt' => 'Hello',
+        ])->assertUnauthorized();
+    }
+
+    /**
+     * Missing required fields must return a validation error.
+     */
+    public function test_chat_endpoint_validates_required_fields(): void
+    {
+        $user = $this->userWithRole('admin');
+
+        $this->actingAs($user)
+            ->postJson('/ai/chat', [])
+            ->assertUnprocessable();
+    }
+
+    // ── Unit: ChronicleEditorAgent ────────────────────────────────────────────
+
+    /**
+     * ChronicleEditorAgent::instructions() must contain the chronicle ID, its title,
+     * and at least one referenced entity ID.
+     */
+    public function test_chronicle_editor_agent_instructions_contain_chronicle_and_entity_ids(): void
+    {
+        $this->fakeWikidata();
+
+        $user = $this->userWithRole('admin');
+        $entity = $this->makeEntity();
+        $chronicle = $this->makeChronicleWithEntity($entity);
+
+        $agent = new ChronicleEditorAgent($chronicle, $user, [
+            'user_id' => (string) $user->id,
+            'context_type' => 'chronicle',
+            'context_id' => $chronicle->chronicle_id,
+            'conversation_id' => null,
+        ]);
+
+        $instructions = $agent->instructions();
+
+        $this->assertStringContainsString($chronicle->chronicle_id, $instructions);
+        $this->assertStringContainsString('Rise of Rome', $instructions);
+        $this->assertStringContainsString($entity->entity_id, $instructions);
+    }
+
+    // ── Feature: create mode ─────────────────────────────────────────────────
+
+    /**
+     * POST /ai/chat with mode=create and context_type=entity (no context_id)
+     * must return a streaming 200 response using EntityCreatorAgent.
+     */
+    public function test_chat_endpoint_streams_200_for_entity_create_mode(): void
+    {
+        $this->fakeWikidata();
+
+        EntityCreatorAgent::fake(['Hello from the entity creator agent.']);
+
+        $user = $this->userWithPermissions(['entities.write']);
+
+        $response = $this->actingAs($user)
+            ->postJson('/ai/chat', [
+                'context_type' => 'entity',
+                'mode' => 'create',
+                'messages' => [
+                    [
+                        'role' => 'user',
+                        'parts' => [
+                            ['type' => 'text', 'text' => 'create the Maya civilization'],
+                        ],
+                    ],
+                ],
+            ]);
+
+        $response->assertOk();
+        $response->assertHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    }
+
+    /**
+     * POST /ai/chat with mode=create and context_type=chronicle (no context_id)
+     * must return a streaming 200 response using ChronicleCreatorAgent.
+     */
+    public function test_chat_endpoint_streams_200_for_chronicle_create_mode(): void
+    {
+        $this->fakeWikidata();
+
+        ChronicleCreatorAgent::fake(['Hello from the chronicle creator agent.']);
+
+        $user = $this->userWithPermissions(['entities.write']);
+
+        $response = $this->actingAs($user)
+            ->postJson('/ai/chat', [
+                'context_type' => 'chronicle',
+                'mode' => 'create',
+                'messages' => [
+                    [
+                        'role' => 'user',
+                        'parts' => [
+                            ['type' => 'text', 'text' => 'create a chronicle about Rome'],
+                        ],
+                    ],
+                ],
+            ]);
+
+        $response->assertOk();
+        $response->assertHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    }
+
+    /**
+     * POST /ai/chat in edit mode (default) without context_id must return 422.
+     */
+    public function test_chat_endpoint_returns_422_for_edit_mode_without_context_id(): void
+    {
+        $this->fakeWikidata();
+
+        $user = $this->userWithPermissions(['entities.write']);
+
+        $response = $this->actingAs($user)
+            ->postJson('/ai/chat', [
+                'context_type' => 'entity',
+                'mode' => 'edit',
+                'messages' => [
+                    [
+                        'role' => 'user',
+                        'parts' => [
+                            ['type' => 'text', 'text' => 'tell me about this entity'],
+                        ],
+                    ],
+                ],
+            ]);
+
+        $response->assertUnprocessable();
+    }
+
+    // ── Feature: session ownership ────────────────────────────────────────────
+
+    public function test_chat_creates_and_returns_a_session_for_a_new_conversation(): void
+    {
+        $this->fakeWikidata();
+        EntityEditorAgent::fake(['Hello from the fake agent.']);
+
+        $user = $this->userWithPermissions(['entities.write']);
+        $entity = $this->makeEntity();
+
+        $response = $this->actingAs($user)->postJson('/ai/chat', [
+            'context_type' => 'entity',
+            'context_id' => $entity->entity_id,
+            'prompt' => 'Tell me about this entity.',
+        ]);
+
+        $response->assertOk();
+        $response->assertHeader('X-Conversation-Id');
+
+        $sessionId = $response->headers->get('X-Conversation-Id');
+        $this->assertNotEmpty($sessionId);
+        $this->assertDatabaseHas('agent_conversations', [
+            'id' => $sessionId,
+            'user_id' => $user->id,
+            'context_type' => 'entity',
+            'context_id' => $entity->entity_id,
+        ]);
+    }
+
+    public function test_chat_continues_a_session_the_user_owns_without_creating_a_new_row(): void
+    {
+        $this->fakeWikidata();
+        EntityEditorAgent::fake(['Continuing.']);
+
+        $user = $this->userWithPermissions(['entities.write']);
+        $entity = $this->makeEntity();
+
+        $existing = Conversation::create([
+            'id' => (string) Str::uuid7(),
+            'user_id' => $user->id,
+            'title' => 'Earlier chat',
+            'context_type' => 'entity',
+            'context_id' => $entity->entity_id,
+        ]);
+
+        $response = $this->actingAs($user)->postJson('/ai/chat', [
+            'context_type' => 'entity',
+            'context_id' => $entity->entity_id,
+            'conversation_id' => $existing->id,
+            'prompt' => 'Follow-up.',
+        ]);
+
+        $response->assertOk();
+        $this->assertSame($existing->id, $response->headers->get('X-Conversation-Id'));
+        $this->assertSame(1, Conversation::query()->count());
+    }
+
+    public function test_chat_with_unresolvable_edit_context_id_creates_no_session_row(): void
+    {
+        $this->fakeWikidata();
+        EntityEditorAgent::fake(['x']);
+
+        $user = $this->userWithPermissions(['entities.write']);
+
+        $this->actingAs($user)->postJson('/ai/chat', [
+            'context_type' => 'entity',
+            'context_id' => 'does-not-exist',
+            'prompt' => 'hi',
+        ])->assertNotFound();
+
+        $this->assertSame(0, Conversation::query()->count());
+    }
+
+    public function test_chat_rejects_continuing_a_session_owned_by_another_user(): void
+    {
+        $this->fakeWikidata();
+        EntityEditorAgent::fake(['nope']);
+
+        $owner = $this->userWithPermissions(['entities.write']);
+        $intruder = $this->userWithPermissions(['entities.write']);
+        $entity = $this->makeEntity();
+
+        $others = Conversation::create([
+            'id' => (string) Str::uuid7(),
+            'user_id' => $owner->id,
+            'title' => 'Owner chat',
+            'context_type' => 'entity',
+            'context_id' => $entity->entity_id,
+        ]);
+
+        $this->actingAs($intruder)->postJson('/ai/chat', [
+            'context_type' => 'entity',
+            'context_id' => $entity->entity_id,
+            'conversation_id' => $others->id,
+            'prompt' => 'let me in',
+        ])->assertForbidden();
+    }
+
+    // ── Feature: kind=global ─────────────────────────────────────────────────
+
+    public function test_kind_global_routes_to_global_agent_without_context_fields(): void
+    {
+        GlobalAgent::fake(['Hello from GlobalAgent.']);
+
+        $user = $this->userWithPermissions(['entities.write']);
+
+        $response = $this->actingAs($user)->postJson('/ai/chat', [
+            'kind' => 'global',
+            'prompt' => 'Tell me about the Roman Empire.',
+        ]);
+
+        $response->assertOk();
+        $response->assertHeader('X-Conversation-Id');
+
+        $sessionId = $response->headers->get('X-Conversation-Id');
+        $this->assertDatabaseHas('agent_conversations', [
+            'id' => $sessionId,
+            'user_id' => $user->id,
+            'context_type' => 'global',
+            'context_id' => null,
+        ]);
+    }
+
+    public function test_kind_global_with_session_id_continues_global_session(): void
+    {
+        GlobalAgent::fake(['Continuing global session.']);
+
+        $user = $this->userWithPermissions(['entities.write']);
+
+        $existing = Conversation::create([
+            'id' => (string) Str::uuid7(),
+            'user_id' => $user->id,
+            'title' => 'Earlier global chat',
+            'context_type' => 'global',
+            'context_id' => null,
+        ]);
+
+        $response = $this->actingAs($user)->postJson('/ai/chat', [
+            'kind' => 'global',
+            'conversation_id' => $existing->id,
+            'prompt' => 'Follow-up.',
+        ]);
+
+        $response->assertOk();
+        $this->assertSame($existing->id, $response->headers->get('X-Conversation-Id'));
+        $this->assertSame(1, Conversation::query()->count());
+    }
+
+    public function test_existing_entity_edit_mode_still_works_when_kind_omitted(): void
+    {
+        EntityEditorAgent::fake(['Edit mode fine.']);
+
+        $user = $this->userWithPermissions(['entities.write']);
+        $entity = $this->makeEntity();
+
+        $this->actingAs($user)->postJson('/ai/chat', [
+            'context_type' => 'entity',
+            'context_id' => $entity->entity_id,
+            'prompt' => 'Update this entity.',
+        ])->assertOk();
+    }
+
+    /**
+     * ChronicleEditorAgent::tools() must return 7 tools with context injected into
+     * every staging tool (all tools except VerifyWikidata).
+     */
+    public function test_chronicle_editor_agent_tools_have_context_injected(): void
+    {
+        $this->fakeWikidata();
+
+        $user = $this->userWithRole('admin');
+        $entity = $this->makeEntity();
+        $chronicle = $this->makeChronicleWithEntity($entity);
+
+        $context = [
+            'user_id' => (string) $user->id,
+            'context_type' => 'chronicle',
+            'context_id' => $chronicle->chronicle_id,
+            'conversation_id' => null,
+        ];
+
+        $agent = new ChronicleEditorAgent($chronicle, $user, $context);
+        $tools = collect($agent->tools());
+
+        // Expect 9 tools (no GetEntityContext, but VerifyWikidata + 8 staging tools).
+        $this->assertCount(9, $tools);
+
+        // VerifyWikidata present.
+        $this->assertTrue(
+            $tools->contains(fn ($t) => $t instanceof VerifyWikidata),
+            'VerifyWikidata must be in the tools list'
+        );
+
+        // All eight staging tools present.
+        foreach ([CreateEntity::class, SetEntityLocation::class, UpdateEntityFields::class, SetEntityWikidata::class, CreateRelationship::class, MergeDuplicateEntities::class, CreateChronicleEntry::class, UpdateChronicleEntry::class] as $toolClass) {
+            $this->assertTrue(
+                $tools->contains(fn ($t) => $t instanceof $toolClass),
+                "{$toolClass} must be in the tools list"
+            );
+        }
+
+        // Every staging tool (all except VerifyWikidata) has context injected.
+        $stagingTools = $tools->filter(fn ($t) => ! ($t instanceof VerifyWikidata));
+        foreach ($stagingTools as $tool) {
+            $reflection = new \ReflectionProperty($tool, 'context');
+            $reflection->setAccessible(true);
+            $injected = $reflection->getValue($tool);
+            $this->assertSame($context, $injected, get_class($tool).' must have context injected');
+        }
+    }
+}

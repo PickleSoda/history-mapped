@@ -88,6 +88,7 @@ class ChronicleController extends Controller
 
         return Inertia::render('chronicles/show', [
             'chronicle' => $this->serializeChronicle($chronicle),
+            'ai_context' => ['type' => 'chronicle', 'id' => $chronicle->chronicle_id],
         ]);
     }
 
@@ -105,6 +106,7 @@ class ChronicleController extends Controller
                 fn (SourceType $s) => ['value' => $s->value, 'label' => str_replace('_', ' ', ucfirst($s->value))],
                 SourceType::cases(),
             ),
+            'ai_context' => ['type' => 'chronicle', 'id' => null, 'mode' => 'create'],
         ]);
     }
 
@@ -137,6 +139,7 @@ class ChronicleController extends Controller
 
         return Inertia::render('chronicles/edit', [
             'chronicle' => $this->serializeChronicle($chronicle),
+            'ai_context' => ['type' => 'chronicle', 'id' => $chronicle->chronicle_id],
             'statuses' => array_map(
                 fn (ChronicleStatus $s) => ['value' => $s->value, 'label' => ucfirst($s->value)],
                 ChronicleStatus::cases(),

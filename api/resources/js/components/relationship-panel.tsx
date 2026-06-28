@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAiApplied } from '@/lib/ai-events';
 import type { ConfidenceLevel, Relationship } from '@/types/entity';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -252,6 +253,9 @@ export default function RelationshipPanel({
     useEffect(() => {
         void reload();
     }, [reload]);
+
+    // Re-fetch when the AI applies a change (e.g. a new relationship).
+    useAiApplied(() => void reload());
 
     function openCreate() {
         setForm(emptyForm());

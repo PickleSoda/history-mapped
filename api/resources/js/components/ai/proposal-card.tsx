@@ -1,0 +1,253 @@
+import { router } from '@inertiajs/react';
+import { CheckCircle, XCircle } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { emitAiApplied } from '@/lib/ai-events';
+
+export type CreatedRef = {
+    type: 'entity' | 'chronicle';
+    id: string;
+    url: string;
+    label: string;
+};
+
+export type ProposalPart = {
+    key: string;
+    human_diff: { summary: string };
+    status?: 'pending' | 'applied' | 'discarded';
+    result_id?: string | null;
+};
+
+export type Proposal = {
+    proposal_id: string;
+    parts: ProposalPart[];
+    note?: string;
+};
+
+type PartStatus = 'applied' | 'discarded' | 'error' | 'loading';
+
+/**
+ * Parse a raw tool output value into a Proposal, or return null if the
+ * shape doesn't match. The AI agent returns a JSON string so we handle
+ * both a string and a pre-parsed object.
+ */
+export function parseProposal(output: unknown): Proposal | null {
+    try {
+        const obj: unknown =
+            typeof output === 'string' ? JSON.parse(output) : output;
+
+        if (
+            obj !== null &&
+            typeof obj === 'object' &&
+            'proposal_id' in obj &&
+            'parts' in obj
+        ) {
+            return obj as Proposal;
+        }
+    } catch {
+        /* ignore */
+    }
+
+    return null;
+}
+
+/**
+ * Renders a proposal card for an AI staging result.
+ *
+ * The AI agent returns a JSON payload `{proposal_id, parts:[{key, human_diff:{summary}}], note}`
+ * when a staging tool is called. This component lets the user apply or discard
+ * each change part individually.
+ *
+ * On apply: POSTs to `/ai/proposals/{proposal_id}/parts/{key}/apply`, then
+ * calls `router.reload()` (edit mode) or `router.visit(redirect_url)` (create
+ * mode, when the response includes a redirect_url) so the page updates.
+ * If the apply response includes `created_ref` and an `onCreatedRef` callback
+ * is provided (global session), it calls `onCreatedRef(created_ref)` and does
+ * NOT navigate.
+ * On discard: POSTs to `/ai/proposals/{proposal_id}/parts/{key}/discard`.
+ */
+export function ProposalCard({
+    proposal,
+    mode = 'edit',
+    onCreatedRef,
+}: {
+    proposal: Proposal;
+    mode?: 'edit' | 'create';
+    onCreatedRef?: (ref: CreatedRef) => void;
+}) {
+    const [partStatus, setPartStatus] = useState<Record<string, PartStatus>>(
+        () => {
+            // Seed from any stored status on historical (replayed) parts so applied /
+            // discarded parts render locked. Live proposals carry no status → actionable.
+            const seed: Record<string, PartStatus> = {};
+
+            for (const part of proposal.parts) {
+                if (part.status === 'applied' || part.status === 'discarded') {
+                    seed[part.key] = part.status;
+                }
+            }
+
+            return seed;
+        },
+    );
+    const csrfRef = useRef<string>('');
+
+    // Lazily read the CSRF token the first time we need it (same pattern as
+    // relationship-panel and entity-geo-ref-editor).
+    function getCsrf(): string {
+        if (!csrfRef.current) {
+            const meta = document.querySelector<HTMLMetaElement>(
+                'meta[name="csrf-token"]',
+            );
+            csrfRef.current = meta?.content ?? '';
+        }
+
+        return csrfRef.current;
+    }
+
+    async function act(key: string, verb: 'apply' | 'discard') {
+        // Guard against concurrent or double calls (e.g. double-click).
+        const currentStatus = partStatus[key];
+
+        if (
+            currentStatus === 'loading' ||
+            currentStatus === 'applied' ||
+            currentStatus === 'discarded'
+        ) {
+            return;
+        }
+
+        setPartStatus((s) => ({ ...s, [key]: 'loading' }));
+
+        try {
+            const res = await fetch(
+                `/ai/proposals/${proposal.proposal_id}/parts/${encodeURIComponent(key)}/${verb}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': getCsrf(),
+                    },
+                },
+            );
+
+            if (!res.ok) {
+                setPartStatus((s) => ({ ...s, [key]: 'error' }));
+
+                return;
+            }
+
+            const json = (await res.json()) as {
+                status: string;
+                redirect_url?: string | null;
+                created_ref?: CreatedRef | null;
+            };
+            const status =
+                json.status === 'applied'
+                    ? 'applied'
+                    : json.status === 'discarded'
+                      ? 'discarded'
+                      : 'error';
+            setPartStatus((s) => ({ ...s, [key]: status }));
+
+            if (status === 'applied') {
+                if (json.created_ref && onCreatedRef) {
+                    // Global session: surface the created record to the parent
+                    // chat panel as an inline link — do NOT navigate away.
+                    onCreatedRef(json.created_ref);
+                } else if (
+                    mode === 'create' &&
+                    typeof json.redirect_url === 'string'
+                ) {
+                    // Navigate to the newly-created record after apply in create mode.
+                    router.visit(json.redirect_url);
+                } else {
+                    // Refresh Inertia page props so the entity data reflects the
+                    // applied change without a full navigation, and signal the
+                    // self-fetching panels (geometry periods, relationships,
+                    // timeline) to re-fetch their own state.
+                    router.reload();
+                    emitAiApplied();
+                }
+            }
+        } catch {
+            setPartStatus((s) => ({ ...s, [key]: 'error' }));
+        }
+    }
+
+    return (
+        <Card className="my-2 border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30">
+            <CardHeader className="pt-3 pb-2">
+                <CardTitle className="text-sm font-medium text-amber-900 dark:text-amber-200">
+                    Proposed changes
+                    {proposal.note ? (
+                        <span className="ml-2 font-normal text-amber-700 dark:text-amber-300">
+                            — {proposal.note}
+                        </span>
+                    ) : null}
+                </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 pb-3">
+                {proposal.parts.map((part) => {
+                    const status = partStatus[part.key];
+
+                    return (
+                        <div
+                            key={part.key}
+                            className="flex items-center justify-between gap-2"
+                        >
+                            <span className="min-w-0 flex-1 text-sm text-foreground">
+                                {part.human_diff.summary}
+                            </span>
+                            {status === 'loading' ? (
+                                <span className="text-xs text-muted-foreground">
+                                    Saving…
+                                </span>
+                            ) : status === 'applied' ? (
+                                <span className="flex items-center gap-1 text-xs text-green-600">
+                                    <CheckCircle className="size-3.5" />
+                                    Applied
+                                </span>
+                            ) : status === 'discarded' ? (
+                                <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                                    <XCircle className="size-3.5" />
+                                    Discarded
+                                </span>
+                            ) : status === 'error' ? (
+                                <span className="text-xs text-red-600">
+                                    Error — try again
+                                </span>
+                            ) : (
+                                <span className="flex shrink-0 gap-1">
+                                    <Button
+                                        size="sm"
+                                        variant="default"
+                                        className="h-7 px-2 text-xs"
+                                        onClick={() =>
+                                            void act(part.key, 'apply')
+                                        }
+                                    >
+                                        Apply
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-7 px-2 text-xs"
+                                        onClick={() =>
+                                            void act(part.key, 'discard')
+                                        }
+                                    >
+                                        Discard
+                                    </Button>
+                                </span>
+                            )}
+                        </div>
+                    );
+                })}
+            </CardContent>
+        </Card>
+    );
+}

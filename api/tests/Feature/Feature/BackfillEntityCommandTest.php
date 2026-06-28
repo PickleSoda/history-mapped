@@ -192,7 +192,7 @@ class BackfillEntityCommandTest extends TestCase
         ]);
     }
 
-    public function test_backfill_command_creates_derived_presence_periods_from_relationships_with_temporal_fallback(): void
+    public function test_backfill_command_does_not_derive_presence_periods_from_relationships(): void
     {
         $source = Entity::factory()->create();
         $target = Entity::factory()->create();
@@ -226,14 +226,24 @@ class BackfillEntityCommandTest extends TestCase
 
         $this->artisan('entity:backfill')->assertExitCode(0);
 
+        // Relationship-derived "presence" points were removed (commit 53a7a2c:
+        // they placed each entity at every counterparty's location — Carthage at
+        // Rome). Backfill must now derive a territory period from the entity's OWN
+        // location only, and never a relationship-keyed presence period.
         $this->assertDatabaseHas('geometry_periods', [
             'entity_id' => $source->entity_id,
-            'period_type' => 'presence',
-            'relationship_id' => $relationshipId,
+            'period_type' => 'territory',
             'start_year' => -100,
             'end_year' => -90,
-            'provenance_mode' => 'derived',
+            'provenance_mode' => 'manual',
             'created_by' => 'backfill:entity',
+        ]);
+        $this->assertDatabaseMissing('geometry_periods', [
+            'entity_id' => $source->entity_id,
+            'period_type' => 'presence',
+        ]);
+        $this->assertDatabaseMissing('geometry_periods', [
+            'relationship_id' => $relationshipId,
         ]);
     }
 
@@ -272,7 +282,7 @@ class BackfillEntityCommandTest extends TestCase
         $this->assertSame('territory_period', $entry->entry_kind);
     }
 
-    public function test_backfill_command_projects_derived_presence_periods_for_source_entity_when_relationship_is_incoming_to_another_entity(): void
+    public function test_backfill_command_does_not_project_presence_periods_from_relationships(): void
     {
         $source = Entity::factory()->create();
         $target = Entity::factory()->create();
@@ -318,18 +328,26 @@ class BackfillEntityCommandTest extends TestCase
 
         $this->artisan('entity:backfill')->assertExitCode(0);
 
+        // No presence period is projected from the relationship; only the source's
+        // own location yields a territory period (see commit 53a7a2c).
         $this->assertDatabaseHas('geometry_periods', [
             'entity_id' => $source->entity_id,
-            'period_type' => 'presence',
-            'relationship_id' => $relationshipId,
+            'period_type' => 'territory',
             'start_year' => 1453,
             'end_year' => 1453,
-            'provenance_mode' => 'derived',
+            'provenance_mode' => 'manual',
             'created_by' => 'backfill:entity',
+        ]);
+        $this->assertDatabaseMissing('geometry_periods', [
+            'entity_id' => $source->entity_id,
+            'period_type' => 'presence',
+        ]);
+        $this->assertDatabaseMissing('geometry_periods', [
+            'relationship_id' => $relationshipId,
         ]);
     }
 
-    public function test_backfill_command_uses_counterparty_geometry_for_derived_presence_periods(): void
+    public function test_backfill_command_does_not_use_counterparty_geometry_for_presence_periods(): void
     {
         $source = Entity::factory()->create();
         $target = Entity::factory()->create();
@@ -373,12 +391,22 @@ class BackfillEntityCommandTest extends TestCase
 
         $this->artisan('entity:backfill')->assertExitCode(0);
 
-        $period = GeometryPeriod::query()
+        // Counterparty geometry is no longer borrowed for presence points (commit
+        // 53a7a2c). No relationship-keyed period exists; the source keeps a
+        // territory period at its OWN location [10, 45], never the target's [30, 50].
+        $this->assertDatabaseMissing('geometry_periods', [
+            'relationship_id' => $relationshipId,
+        ]);
+        $this->assertDatabaseMissing('geometry_periods', [
+            'entity_id' => $source->entity_id,
+            'period_type' => 'presence',
+        ]);
+
+        $territory = GeometryPeriod::query()
             ->where('entity_id', $source->entity_id)
-            ->where('relationship_id', $relationshipId)
+            ->where('period_type', 'territory')
             ->firstOrFail();
 
-        $this->assertSame('Point', $period->geom['type'] ?? null);
-        $this->assertEquals([30.0, 50.0], $period->geom['coordinates'] ?? null);
+        $this->assertEquals([10.0, 45.0], $territory->geom['coordinates'] ?? null);
     }
 }
