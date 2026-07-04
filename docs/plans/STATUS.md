@@ -45,7 +45,7 @@
 
 ### Completed this cycle (archived → [`../archive/superpowers-plans/`](../archive/superpowers-plans/))
 
-`2026-06-09-historical-entity-agentic-pipeline` · `2026-06-10-chronicle-model-implementation` · `2026-06-11-chronicle-id-resolution` · `2026-06-11-chronicle-model-extension` · `2026-06-12-chronicle-data-model-completion` · `2026-06-12-temporal-semantics-unification` — all ✅. Their design specs moved to [`../archive/superpowers-specs/`](../archive/superpowers-specs/).
+`2026-06-09-historical-entity-agentic-pipeline` · `2026-06-10-chronicle-model-implementation` · `2026-06-11-chronicle-id-resolution` · `2026-06-11-chronicle-model-extension` · `2026-06-12-chronicle-data-model-completion` · `2026-06-12-temporal-semantics-unification` · `2026-07-04-web-pwa-caching` — all ✅. Their design specs moved to [`../archive/superpowers-specs/`](../archive/superpowers-specs/).
 
 ### Design specs without an active plan (`docs/superpowers/specs/`)
 
