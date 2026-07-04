@@ -8,5 +8,8 @@
     "dev:down": "docker compose -f docker/docker-compose.yml down --remove-orphans",
     "typecheck": "docker compose -f docker/docker-compose.yml exec web pnpm -r typecheck",
     "api:routes": "docker compose -f docker/docker-compose.yml exec app php artisan route:list"
+  },
+  "dependencies": {
+    "workbox-window": "^7.4.1"
   }
 }
