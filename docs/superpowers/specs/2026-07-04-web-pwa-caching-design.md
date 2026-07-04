@@ -36,9 +36,11 @@ Alternatives considered and rejected:
 | --- | --- | --- | --- | --- |
 | OHM vector tiles | requests to `*.openhistoricalmap.org` tile endpoints (`.pbf`/tile paths) and `tiles.openfreemap.org` (fallback basemap) | `CacheFirst` | `ohm-tiles` | `maxEntries: 2000`, `maxAgeSeconds: 30 days`, LRU purge on quota error |
 | OHM style / sprites / glyphs | any `GET` to an `*.openhistoricalmap.org` host that the tile rule did not match (style JSON, sprites, glyph PBFs) | `StaleWhileRevalidate` | `ohm-style-assets` | `maxAgeSeconds: 30 days` |
-| API reads | `GET` requests whose path starts with `/api/v1` (any origin — API is cross-origin `:8000` in dev, may be same-origin in prod) | `StaleWhileRevalidate` | `api-v1` | `maxEntries: 500`, `maxAgeSeconds: 7 days` |
+| API reads | `GET` requests whose path starts with `/api/v1`, excluding the authenticated `/api/v1/user` endpoint (any origin — API is cross-origin `:8000` in dev, may be same-origin in prod) | `StaleWhileRevalidate` | `api-v1` | `maxEntries: 500`, `maxAgeSeconds: 7 days` |
 
 Notes:
+
+- `/api/v1/user` is excluded via a negative lookahead in the match pattern so the authenticated current-user response is never disk-cached and never risks being served to a different user.
 
 - Tiles are immutable and heavy → `CacheFirst` is the big win: a cached tile never re-downloads within its TTL.
 - Entity data is nearly immutable, but the DB is actively edited via the admin → `StaleWhileRevalidate` serves from disk instantly and refreshes in the background; the next view is fresh. TanStack Query's in-memory cache sits on top unchanged.
@@ -52,13 +54,13 @@ Notes:
 
 ### 5. Update & failure behavior
 
-- `autoUpdate`: a new deploy's SW installs in the background and activates on the next navigation. No update-prompt UI.
+- `autoUpdate`: a new deploy's SW is detected at page load; once it activates, the page auto-reloads once to pick it up. No update-prompt UI.
 - If openhistoricalmap.org is unreachable, cached tiles/style keep serving; the existing code-level OpenFreeMap fallback in `web/src/lib/map-config.ts` is unchanged and remains the cold-cache fallback.
 - Offline with a cold cache degrades exactly as today (plus the precached shell renders).
 
 ## Error handling
 
-- SW registration failure is non-fatal: the app runs exactly as today (registration is fire-and-forget; log a console warning at most).
+- SW registration failure is non-fatal: the app runs exactly as today (`onRegisterError` logs a console warning; no other handling).
 - Cache quota pressure: Workbox `ExpirationPlugin` with `purgeOnQuotaError: true` on the tile cache (the only cache that can grow large).
 - A failed background revalidation in `StaleWhileRevalidate` leaves the cached response in place — no user-visible error.
 
