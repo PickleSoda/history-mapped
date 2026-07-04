@@ -34,7 +34,6 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'apple-touch-icon-180x180.png'],
       manifest: {
         name: 'History Mapped',
         short_name: 'History Mapped',
@@ -59,6 +58,7 @@ export default defineConfig({
         // Wireframe artifacts in public/ are not app assets.
         globIgnores: ['**/*.jsx', '**/Historical Atlas Wireframes.html'],
         navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/api\//, /^\/sanctum\//],
         // The MapLibre chunk exceeds workbox's 2 MB default.
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         runtimeCaching: [
@@ -127,9 +127,11 @@ export default defineConfig({
             },
           },
           // API reads. Anchored regex so cross-origin (:8000 in dev) matches;
-          // /sanctum/csrf-cookie is outside /api/v1 and stays uncached.
+          // /sanctum/csrf-cookie is outside /api/v1 and stays uncached. The
+          // authenticated /api/v1/user endpoint is also excluded so
+          // personalized responses are never disk-cached.
           {
-            urlPattern: /^https?:\/\/[^/]+\/api\/v1\//,
+            urlPattern: /^https?:\/\/[^/]+\/api\/v1\/(?!user\b)/,
             method: 'GET',
             handler: 'StaleWhileRevalidate',
             options: {
