@@ -7,7 +7,7 @@ and [../plans/STATUS.md](../plans/STATUS.md) for verified plan status.
 ## Subfolders
 
 - **[plans/](plans/)** — fully-executed numbered roadmap plans (01–09, 15, 16, 17). Verified shipped; see STATUS.md.
-- **[superpowers-plans/](superpowers-plans/)** — completed or superseded agent-driven implementation plans (April–June 2026 cycles).
+- **[superpowers-plans/](superpowers-plans/)** — completed or superseded agent-driven implementation plans (April–July 2026 cycles, including the June AI-agent/sessions program and the Atlas timeline/mobile work).
 - **[superpowers-specs/](superpowers-specs/)** — design specs whose work has shipped (paired with the archived plans above).
 - **[implementation-docs/](implementation-docs/)** — superseded runbooks and planning models.
 - **[entity-model/](entity-model/)** — historical entity-model proposals.

@@ -3,7 +3,7 @@
 **Date:** 2026-06-19
 **Status:** Approved (design); pending implementation plan
 **Surface:** `web/` (public Atlas SPA, React 19 + Vite)
-**Related:** [`2026-06-13-atlas-frontend-plumbing-design.md`](2026-06-13-atlas-frontend-plumbing-design.md) (the "spec §" the code comments reference), `web/public/wf-mobile.jsx` / `wf-screens.jsx` (wireframes)
+**Related:** [`2026-06-13-atlas-frontend-plumbing-design.md`](../../superpowers/specs/2026-06-13-atlas-frontend-plumbing-design.md) (the "spec §" the code comments reference), `web/public/wf-mobile.jsx` / `wf-screens.jsx` (wireframes)
 
 ## Problem
 

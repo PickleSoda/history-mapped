@@ -47,5 +47,8 @@ and [diagrams.md](./diagrams.md) §6.
 | [for-geodata-contributors.md](./for-geodata-contributors.md) | People entering geographic and spatial data — explains location fields, coordinate systems, and territory geometry |
 | [attributes.md](./attributes.md) | Full reference for every attribute (field) on an entity, with allowed values and notes |
 | [relationships.md](./relationships.md) | Full reference for all 76 relationship types with examples |
-| [../archive/entity-model/schema-proposal-strict-write-derived-timeline.md](../archive/entity-model/schema-proposal-strict-write-derived-timeline.md) | Historical proposal that informed the normalized write model and derived timeline direction |
+| [reference-tables.md](./reference-tables.md) | Reference tables (calendar systems, historical periods, geographic regions, writing systems, …) |
+| [diagrams.md](./diagrams.md) | Entity-model ER and flow diagrams |
+| [entity-specification.md](./entity-specification.md) | The canonical 30-type / 5-group specification — single source of truth |
 | [implementation-status.md](./implementation-status.md) | Current implementation status and remaining cleanup items for the canonical entity model |
+| [../archive/entity-model/schema-proposal-strict-write-derived-timeline.md](../archive/entity-model/schema-proposal-strict-write-derived-timeline.md) | Historical proposal that informed the normalized write model and derived timeline direction |

@@ -3,11 +3,11 @@
 **Date:** 2026-06-19
 **Status:** Approved (design); pending implementation plan
 **Surface:** `web/` (public Atlas SPA, React 19 + Vite)
-**Related:** [`2026-06-13-atlas-frontend-plumbing-design.md`](2026-06-13-atlas-frontend-plumbing-design.md) (time-state / ephemeral plumbing), [`2026-06-19-mobile-responsive-drawer-design.md`](2026-06-19-mobile-responsive-drawer-design.md) (shares the bottom-spine slot)
+**Related:** [`2026-06-13-atlas-frontend-plumbing-design.md`](../../superpowers/specs/2026-06-13-atlas-frontend-plumbing-design.md) (time-state / ephemeral plumbing), [`2026-06-19-mobile-responsive-drawer-design.md`](2026-06-19-mobile-responsive-drawer-design.md) (shares the bottom-spine slot)
 
 ## Problem
 
-The Atlas bottom spine ([`web/src/components/atlas/Timeline.tsx`](../../../web/src/components/atlas/Timeline.tsx), 56px) renders era bands, tick marks, and a scrubber handle, but **has no interactivity** — you cannot drag to change the year, and it shows no per-entity temporal context. Time is changed only by the TopBar ±10yr buttons. We want a richer, interactive bottom timeline and a way to visualise entity lifespans (a gantt), and to evaluate the `timescope` canvas library for this.
+The Atlas bottom spine (`web/src/components/atlas/Timeline.tsx` — since replaced by `TimelineScope.tsx`, 56px) renders era bands, tick marks, and a scrubber handle, but **has no interactivity** — you cannot drag to change the year, and it shows no per-entity temporal context. Time is changed only by the TopBar ±10yr buttons. We want a richer, interactive bottom timeline and a way to visualise entity lifespans (a gantt), and to evaluate the `timescope` canvas library for this.
 
 ## Goals
 

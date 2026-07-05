@@ -1,6 +1,6 @@
 # Plan Status Index
 
-> **Verified:** 2026-06-15 against the live codebase (`api/`, `web/`, `pipeline/`); structure refreshed 2026-06-18.
+> **Verified:** 2026-07-05 against the live codebase (`api/`, `web/`, `pipeline/`); previous full pass 2026-06-15.
 > Plan checkboxes/headers are not authoritative — this index reflects what actually exists in code.
 >
 > Legend: ✅ Executed · 🟡 Partial (work remains) · ⬜ Not started
@@ -45,12 +45,18 @@
 
 ### Completed this cycle (archived → [`../archive/superpowers-plans/`](../archive/superpowers-plans/))
 
-`2026-06-09-historical-entity-agentic-pipeline` · `2026-06-10-chronicle-model-implementation` · `2026-06-11-chronicle-id-resolution` · `2026-06-11-chronicle-model-extension` · `2026-06-12-chronicle-data-model-completion` · `2026-06-12-temporal-semantics-unification` · `2026-07-04-web-pwa-caching` — all ✅. Their design specs moved to [`../archive/superpowers-specs/`](../archive/superpowers-specs/).
+`2026-06-09-historical-entity-agentic-pipeline` · `2026-06-10-chronicle-model-implementation` · `2026-06-11-chronicle-id-resolution` · `2026-06-11-chronicle-model-extension` · `2026-06-12-chronicle-data-model-completion` · `2026-06-12-temporal-semantics-unification` · `2026-06-19-bottom-timeline-timescope` · `2026-06-19-mobile-responsive-drawer` · `2026-06-24-admin-ai-agent` · `2026-06-24-ai-create-mode` · `2026-06-24-ai-sessions-phase-a` · `2026-06-25-create-with-ai-page` (Phase B) · `2026-06-25-ai-sessions-replay-phase-c` · `2026-06-25-ai-sidebar-sessions-phase-d` · `2026-07-04-web-pwa-caching` — all ✅ (verified against merge commits and live code, 2026-07-05). Their design specs moved to [`../archive/superpowers-specs/`](../archive/superpowers-specs/).
+
+The AI program (admin agent → create mode → sessions phases A–D) is now operated per
+[../implementation-docs/admin-ai-agent.md](../implementation-docs/admin-ai-agent.md); the Atlas SPA timeline/mobile work is described in
+[../architecture/frontend-app.md](../architecture/frontend-app.md).
 
 ### Design specs without an active plan (`docs/superpowers/specs/`)
 
 Forward-looking / partial design material kept live for direction:
-- **Web/Atlas frontend** (unbuilt): `2026-06-12-web-interaction-model-design`, `2026-06-12-web-frontend-design-brief`, `2026-06-13-atlas-frontend-plumbing-design` → see [architecture/frontend-app.md](../architecture/frontend-app.md).
+
+- **Web/Atlas frontend foundation**: `2026-06-12-web-interaction-model-design`, `2026-06-12-web-frontend-design-brief`, `2026-06-13-atlas-frontend-plumbing-design` — the SPA foundation they describe has since shipped (shells, timeline, chronicle player); kept live as the design rationale → see [architecture/frontend-app.md](../architecture/frontend-app.md) for the as-built description.
+- **`2026-06-28-ai-proposal-visual-diff-design`** — visual (field-level) diff in the AI proposal apply UI. **Not implemented** (proposal cards render only `human_diff.summary` text); no plan yet.
 - **`2026-06-02-standalone-relationship-resolution-design`** — partial: the standalone `pipeline:resolve-relationships` / `report-relationship-hints` CLI is **not** implemented (the original plan is archived). Open remainder; no active plan.
 - **`2026-06-12-audit-open-questions-decisions`** — cross-cutting decision record.
 
