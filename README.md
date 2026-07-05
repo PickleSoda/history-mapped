@@ -9,7 +9,7 @@ An interactive historical atlas and editorial platform for mapping entities, eve
 | Layer | Current Stack |
 |-------|---------------|
 | **API + Admin** | Laravel 13, PHP 8.4 container runtime, Inertia.js + React, PostgreSQL 16 with PostGIS + pgvector |
-| **Customer Web** | React 19, Vite, TanStack Query, Axios |
+| **Public Atlas SPA** | React 19, Vite, MapLibre GL, TanStack Query, Axios, PWA (workbox) |
 | **Data Pipeline** | Python CLI for Wikidata/Wikipedia scraping, topic extraction, and staged OHM borders processing |
 | **Infrastructure** | Docker Compose, Nginx, Redis, Mailpit, CloudBeaver, RedisInsight |
 
@@ -120,19 +120,19 @@ docker compose -f docker/docker-compose.yml exec app php artisan migrate:fresh -
 
 All `python -m pipeline ...` examples assume your current working directory is the repository root.
 
-```powershell
-py -m venv pipeline/.venv
-.\pipeline\.venv\Scripts\Activate.ps1
+```bash
+python -m venv pipeline/.venv
+source pipeline/.venv/bin/activate          # Windows: .\pipeline\.venv\Scripts\Activate.ps1
 pip install -r pipeline/requirements.txt
 ```
 
 Main entry points:
 
-```powershell
-py -m pipeline scrape --type political_entity --limit 100
-py -m pipeline topic "Late Bronze Age Collapse"
-py -m pipeline borders run --run-id global-2026-04-15 --parse-workers 8 --enrich-names
-py -m pipeline borders relations-run --run-id global-2026-04-15 --resume
+```bash
+python -m pipeline scrape --type political_entity --limit 100
+python -m pipeline topic "Late Bronze Age Collapse"
+python -m pipeline borders run --run-id global-2026-04-15 --parse-workers 8 --enrich-names
+python -m pipeline borders relations-run --run-id global-2026-04-15 --resume
 ```
 
 With the default `pipeline/.env`, pipeline outputs go to the repository-level `output/` directory when commands are run from the repo root.
@@ -146,23 +146,23 @@ Pipeline-specific docs:
 
 Run the country/entity import first, then the relation import for the same `run_id`.
 
-```powershell
+```bash
 # 1. Build importer-ready country/entity output
-py -m pipeline borders run --run-id global-2026-04-15 --parse-workers 8 --enrich-names
+python -m pipeline borders run --run-id global-2026-04-15 --parse-workers 8 --enrich-names
 
 # 2. Import country entities into Laravel
-docker compose -f docker/docker-compose.yml exec app `
-  php -d memory_limit=1024M artisan pipeline:import-borders `
-  /var/www/html/output/ohm_borders/global-2026-04-15/final/ohm_borders.jsonl `
+docker compose -f docker/docker-compose.yml exec app \
+  php -d memory_limit=1024M artisan pipeline:import-borders \
+  /var/www/html/output/ohm_borders/global-2026-04-15/final/ohm_borders.jsonl \
   --sync --batch-id=global-2026-04-15
 
 # 3. Build importer-ready relation outputs
-py -m pipeline borders relations-run --run-id global-2026-04-15 --resume
+python -m pipeline borders relations-run --run-id global-2026-04-15 --resume
 
 # 4. Import relation entities, stage hints, and resolve relationships
-docker compose -f docker/docker-compose.yml exec app `
-  php -d memory_limit=1024M artisan pipeline:import-border-relations `
-  /var/www/html/output/ohm_borders/global-2026-04-15/relations_final `
+docker compose -f docker/docker-compose.yml exec app \
+  php -d memory_limit=1024M artisan pipeline:import-border-relations \
+  /var/www/html/output/ohm_borders/global-2026-04-15/relations_final \
   --sync --batch-id=global-2026-04-15
 ```
 
@@ -203,7 +203,18 @@ Docker Compose defaults are defined in `docker/docker-compose.yml`. Override the
 | [docs/entity-model/README.md](docs/entity-model/README.md) | Entity model overview and companion references |
 | [docs/schemas/README.md](docs/schemas/README.md) | Pipeline and API schema documentation |
 | [docs/implementation-docs/ohm-country-subgraph-runbook.md](docs/implementation-docs/ohm-country-subgraph-runbook.md) | OHM country subgraph extraction workflow |
-| [docs/TODO.md](docs/TODO.md) | Current task backlog |
+| [docs/plans/STATUS.md](docs/plans/STATUS.md) | Verified execution status of every roadmap and implementation plan |
+| [docs/TODO.md](docs/TODO.md) | Fine-grained engineering backlog |
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow, branch/commit conventions,
+test commands, and documentation rules. Contributing historical **data** (entities, borders,
+geometry) is covered separately in
+[docs/implementation-docs/data-contributor-guide.md](docs/implementation-docs/data-contributor-guide.md)
+and [docs/entity-model/for-historians.md](docs/entity-model/for-historians.md).
 
 ---
 
@@ -211,15 +222,19 @@ Docker Compose defaults are defined in `docker/docker-compose.yml`. Override the
 
 ### `api/` — Laravel Backend and Admin
 
+- See [api/README.md](api/README.md)
 - REST API lives under `/api/v1`
 - Inertia admin UI is served from Laravel at `http://localhost:8000`
 - Admin-side React includes the richer historical map, timeline, relationship, and reference-table tooling
 
-### `web/` — Standalone Customer SPA
+### `web/` — Public Atlas SPA
 
-- Vite + React 19 app with TanStack Query and Axios
-- Current implementation is a small bootstrap client that checks `GET /api/v1/health`
-- Prepared for cookie-based Laravel auth with `withCredentials: true` and CSRF helper support
+- See [web/README.md](web/README.md)
+- Vite + React 19 app (`@history-mapped/web`) with TanStack Query and Axios
+- Interactive historical atlas: MapLibre map with OHM historical borders, time scrubber /
+  entity-lifespan timeline, chronicle player, entity detail panels, desktop + mobile shells
+- Installable PWA with service-worker caching of OHM tiles and `/api/v1` entity responses
+- Architecture: [docs/architecture/frontend-app.md](docs/architecture/frontend-app.md)
 
 ### `pipeline/` — Python Ingestion and Processing
 
