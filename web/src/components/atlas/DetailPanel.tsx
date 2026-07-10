@@ -226,7 +226,9 @@ export function DetailPanelContent() {
           {/* Title block */}
           <div className="px-4 pb-4">
             <TypeBadge group={entity.entity_group} type={entity.entity_type} />
-            <h2 className="mt-3 text-lg font-semibold leading-tight">{entity.name}</h2>
+            <h2 className="mt-3 font-heading text-xl font-semibold leading-tight">
+              {entity.name}
+            </h2>
             <div className="mt-2.5 flex flex-wrap gap-1.5">
               {temporalText(entity) && (
                 <Pill

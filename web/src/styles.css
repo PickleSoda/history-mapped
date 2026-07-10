@@ -3,11 +3,12 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/geist-mono";
+@import "@fontsource-variable/fraunces";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: var(--font-sans);
+    --font-heading: 'Fraunces Variable', serif;
     --font-sans: 'Geist Variable', sans-serif;
     --font-mono: 'Geist Mono Variable', ui-monospace, monospace;
 
@@ -69,108 +70,108 @@
 }
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
+    --background: #faf9f6;
+    --foreground: #2a2722;
+    --card: #fdfcf9;
+    --card-foreground: #2a2722;
+    --popover: #fdfcf9;
+    --popover-foreground: #2a2722;
+    --primary: #2a2722;
+    --primary-foreground: #faf9f6;
+    --secondary: #f0ede6;
+    --secondary-foreground: #2a2722;
+    --muted: #f0ede6;
+    --muted-foreground: #6f685f;
+    --accent: #e9e3d8;
+    --accent-foreground: #2a2722;
+    --destructive: #b3402e;
+    --border: #e6e1d8;
+    --input: #e6e1d8;
+    --ring: #b8ab97;
+    --chart-1: #d8cfc0;
+    --chart-2: #a89e8c;
+    --chart-3: #8a7f6d;
+    --chart-4: #6f6555;
+    --chart-5: #4a4238;
     --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    --sidebar: #f7f5f0;
+    --sidebar-foreground: #2a2722;
+    --sidebar-primary: #2a2722;
+    --sidebar-primary-foreground: #faf9f6;
+    --sidebar-accent: #e9e3d8;
+    --sidebar-accent-foreground: #2a2722;
+    --sidebar-border: #e6e1d8;
+    --sidebar-ring: #b8ab97;
 
-    /* Entity-group accents (muted cartographic) */
+    /* Entity-group accents (warm cartographic) */
     --g-polity: #b4543f;
-    --g-place: #2f7d6b;
-    --g-event: #b07d23;
-    --g-economy: #3f6db4;
-    --g-culture: #7a57ad;
-    --g-polity-bg: #f7ece9;
-    --g-place-bg: #e7f1ee;
-    --g-event-bg: #f6efe0;
-    --g-economy-bg: #e9eff8;
-    --g-culture-bg: #f1ebf7;
+    --g-place: #6b7f4a;
+    --g-event: #bd8a2c;
+    --g-economy: #4d6a86;
+    --g-culture: #8a5673;
+    --g-polity-bg: #f6eae6;
+    --g-place-bg: #eef0e4;
+    --g-event-bg: #f6efdd;
+    --g-economy-bg: #e6ecf1;
+    --g-culture-bg: #f2e9ef;
 
-    /* Basemap */
-    --map-water: #eef1f4;
-    --map-land: #e2e7ec;
-    --map-coast: #c5ccd5;
-    --map-grid: #e6eaef;
+    /* Basemap (warm parchment; currently unused by OHM style) */
+    --map-water: #eceae4;
+    --map-land: #e6e1d6;
+    --map-coast: #cfc7b8;
+    --map-grid: #e9e4d9;
 }
 
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    --background: #2a2722;
+    --foreground: #faf9f6;
+    --card: #34302a;
+    --card-foreground: #faf9f6;
+    --popover: #34302a;
+    --popover-foreground: #faf9f6;
+    --primary: #faf9f6;
+    --primary-foreground: #2a2722;
+    --secondary: #3a362f;
+    --secondary-foreground: #faf9f6;
+    --muted: #3a362f;
+    --muted-foreground: #a8a094;
+    --accent: #423d35;
+    --accent-foreground: #faf9f6;
+    --destructive: #e0664f;
+    --border: #423d35;
+    --input: #4a443b;
+    --ring: #6b6252;
+    --chart-1: #d8cfc0;
+    --chart-2: #a89e8c;
+    --chart-3: #8a7f6d;
+    --chart-4: #6f6555;
+    --chart-5: #4a4238;
+    --sidebar: #302c27;
+    --sidebar-foreground: #faf9f6;
+    --sidebar-primary: #faf9f6;
+    --sidebar-primary-foreground: #2a2722;
+    --sidebar-accent: #423d35;
+    --sidebar-accent-foreground: #faf9f6;
+    --sidebar-border: #423d35;
+    --sidebar-ring: #6b6252;
 
-    /* Entity-group accents (brightened for dark) */
-    --g-polity: #cf6b53;
-    --g-place: #46a08a;
-    --g-event: #cba04a;
-    --g-economy: #5a8ad6;
-    --g-culture: #a07bd0;
-    --g-polity-bg: #2a1d19;
-    --g-place-bg: #142420;
-    --g-event-bg: #28220f;
-    --g-economy-bg: #15202e;
-    --g-culture-bg: #221a2b;
+    /* Entity-group accents (brightened for charcoal) */
+    --g-polity: #d47a63;
+    --g-place: #9cae6f;
+    --g-event: #d9a94e;
+    --g-economy: #7d9db8;
+    --g-culture: #bb87a3;
+    --g-polity-bg: #3a221b;
+    --g-place-bg: #242a17;
+    --g-event-bg: #332a14;
+    --g-economy-bg: #1c2530;
+    --g-culture-bg: #2c1f28;
 
     /* Basemap */
-    --map-water: #111116;
-    --map-land: #1b1b21;
-    --map-coast: #34343d;
-    --map-grid: #19191f;
+    --map-water: #1c1a17;
+    --map-land: #24211c;
+    --map-coast: #3a352d;
+    --map-grid: #201e1a;
 }
 
 @layer base {
@@ -183,4 +184,10 @@
   html {
     @apply font-sans;
     }
+}
+
+/* In dark mode the external OHM basemap stays light — dim it into the charcoal
+   chrome. Targets only the WebGL canvas, so DOM controls stay crisp. */
+.dark .maplibregl-canvas {
+  filter: brightness(0.82) contrast(1.05) sepia(0.08);
 }

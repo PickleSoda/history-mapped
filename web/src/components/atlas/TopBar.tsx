@@ -38,7 +38,9 @@ export function TopBar() {
         <span className="grid size-[30px] place-items-center rounded-lg bg-primary text-primary-foreground">
           <Compass size={17} />
         </span>
-        <span className="text-[15px] font-bold tracking-tight">History Mapped</span>
+        <span className="font-heading text-[17px] font-semibold tracking-tight">
+          History Mapped
+        </span>
       </div>
 
       {/* Center: omni-search */}
