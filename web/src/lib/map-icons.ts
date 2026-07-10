@@ -98,19 +98,8 @@ export async function registerGroupMarkers(map: MapLibreMap): Promise<void> {
   );
 }
 
-// Bumped on every refreshGroupMarkers call so a slow-resolving earlier call
-// can detect it was superseded (see below) — guards against a fast
-// double-toggle where an in-flight loadImage from an older call wins the
-// registerGroupMarkers `hasImage` race and stomps the newer colors.
-let markerGeneration = 0;
-
-/**
- * Re-render every group marker for the current theme. Removes the cached images
- * (which `registerGroupMarkers` would otherwise skip) then re-registers them, so
- * a theme toggle recolors the point icons.
- */
-export async function refreshGroupMarkers(map: MapLibreMap): Promise<void> {
-  const gen = ++markerGeneration;
+/** The actual remove-all + re-register work; see `refreshGroupMarkers`. */
+async function doRefreshGroupMarkers(map: MapLibreMap): Promise<void> {
   const ids = [
     ...Object.keys(GROUP_GLYPHS).map((g) => markerImageId(g)),
     'marker-DEFAULT',
@@ -119,8 +108,20 @@ export async function refreshGroupMarkers(map: MapLibreMap): Promise<void> {
     if (map.hasImage(id)) map.removeImage(id);
   }
   await registerGroupMarkers(map);
-  // A newer refresh started while we were awaiting image loads — its colors
-  // may have been clobbered by ours finishing last. Redo once so the LAST
-  // call's colors always win.
-  if (gen !== markerGeneration) await refreshGroupMarkers(map);
+}
+
+// Serializes refreshes: overlapping theme toggles can't interleave their
+// remove/register phases (an older call's in-flight loadImage would otherwise
+// win the registerGroupMarkers `hasImage` race and stomp the newer colors).
+// The last call runs last and wins.
+let refreshQueue: Promise<void> = Promise.resolve();
+
+/**
+ * Re-render every group marker for the current theme. Removes the cached images
+ * (which `registerGroupMarkers` would otherwise skip) then re-registers them, so
+ * a theme toggle recolors the point icons.
+ */
+export function refreshGroupMarkers(map: MapLibreMap): Promise<void> {
+  refreshQueue = refreshQueue.then(() => doRefreshGroupMarkers(map));
+  return refreshQueue;
 }
