@@ -66,10 +66,10 @@ function groupColors(): Record<string, string> {
     root.getPropertyValue(name).trim() || fallback;
   return {
     POLITY: c('--g-polity', '#b4543f'),
-    PLACE: c('--g-place', '#2f7d6b'),
-    EVENT: c('--g-event', '#b07d23'),
-    ECONOMY: c('--g-economy', '#3f6db4'),
-    CULTURE: c('--g-culture', '#7a57ad'),
+    PLACE: c('--g-place', '#6b7f4a'),
+    EVENT: c('--g-event', '#bd8a2c'),
+    ECONOMY: c('--g-economy', '#4d6a86'),
+    CULTURE: c('--g-culture', '#8a5673'),
     DEFAULT: '#71717a',
   };
 }
@@ -96,4 +96,20 @@ export async function registerGroupMarkers(map: MapLibreMap): Promise<void> {
       if (!map.hasImage(id)) map.addImage(id, img, { pixelRatio: 2 });
     }),
   );
+}
+
+/**
+ * Re-render every group marker for the current theme. Removes the cached images
+ * (which `registerGroupMarkers` would otherwise skip) then re-registers them, so
+ * a theme toggle recolors the point icons.
+ */
+export async function refreshGroupMarkers(map: MapLibreMap): Promise<void> {
+  const ids = [
+    ...Object.keys(GROUP_GLYPHS).map((g) => markerImageId(g)),
+    'marker-DEFAULT',
+  ];
+  for (const id of ids) {
+    if (map.hasImage(id)) map.removeImage(id);
+  }
+  await registerGroupMarkers(map);
 }

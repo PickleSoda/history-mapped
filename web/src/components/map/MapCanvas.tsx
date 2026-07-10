@@ -12,10 +12,11 @@ import {
 } from '@/hooks';
 import { instantYear } from '@/lib/format';
 import { loadHistoricalBasemapStyle } from '@/lib/map-config';
-import { registerGroupMarkers } from '@/lib/map-icons';
+import { registerGroupMarkers, refreshGroupMarkers } from '@/lib/map-icons';
 import { yearToOhmDate } from '@/lib/ohm-date';
 import { applyOhmLayerDateFilter } from '@/lib/ohm-layer-date-filter';
 import { resolveOhmClickToEntity } from '@/lib/ohm-resolve';
+import { useTheme } from '@/lib/theme';
 
 const SOURCE_ID = 'entities';
 const FILL_LAYER = 'entities-fill';
@@ -39,10 +40,10 @@ function groupColorExpression(): maplibregl.ExpressionSpecification {
     'match',
     ['get', 'entity_group'],
     'POLITY', c('--g-polity', '#b4543f'),
-    'PLACE', c('--g-place', '#2f7d6b'),
-    'EVENT', c('--g-event', '#b07d23'),
-    'ECONOMY', c('--g-economy', '#3f6db4'),
-    'CULTURE', c('--g-culture', '#7a57ad'),
+    'PLACE', c('--g-place', '#6b7f4a'),
+    'EVENT', c('--g-event', '#bd8a2c'),
+    'ECONOMY', c('--g-economy', '#4d6a86'),
+    'CULTURE', c('--g-culture', '#8a5673'),
     // Literal hex default — maplibre cannot parse the oklch() theme tokens, so
     // never feed it --muted-foreground / other oklch vars here.
     '#71717a',
@@ -62,6 +63,7 @@ export function MapCanvas() {
   const { time } = useTimeState();
   const { select } = useSelection();
   const { data } = useEntitiesInView();
+  const theme = useTheme((s) => s.theme);
 
   const year = instantYear(time);
 
@@ -154,8 +156,12 @@ export function MapCanvas() {
             'text-max-width': 8,
           },
           paint: {
-            'text-color': '#1b1b1b',
-            'text-halo-color': '#ffffff',
+            'text-color': document.documentElement.classList.contains('dark')
+              ? '#faf9f6'
+              : '#2a2722',
+            'text-halo-color': document.documentElement.classList.contains('dark')
+              ? '#2a2722'
+              : '#ffffff',
             'text-halo-width': 1.4,
           },
         });
@@ -244,6 +250,29 @@ export function MapCanvas() {
     const source = map.getSource(SOURCE_ID) as GeoJSONSource | undefined;
     source?.setData(data as FeatureCollection);
   }, [data]);
+
+  // ── recolor overlays when the theme changes (WebGL can't read CSS vars) ─────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded()) return;
+    const groupColor = groupColorExpression();
+    if (map.getLayer(FILL_LAYER)) {
+      map.setPaintProperty(FILL_LAYER, 'fill-color', groupColor);
+    }
+    if (map.getLayer(LINE_LAYER)) {
+      map.setPaintProperty(LINE_LAYER, 'line-color', groupColor);
+    }
+    if (map.getLayer(SYMBOL_LAYER)) {
+      const dark = theme === 'dark';
+      map.setPaintProperty(SYMBOL_LAYER, 'text-color', dark ? '#faf9f6' : '#2a2722');
+      map.setPaintProperty(
+        SYMBOL_LAYER,
+        'text-halo-color',
+        dark ? '#2a2722' : '#ffffff',
+      );
+    }
+    void refreshGroupMarkers(map);
+  }, [theme]);
 
   return <div ref={containerRef} className="absolute inset-0 h-full w-full" />;
 }
