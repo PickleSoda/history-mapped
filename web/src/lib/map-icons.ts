@@ -98,12 +98,19 @@ export async function registerGroupMarkers(map: MapLibreMap): Promise<void> {
   );
 }
 
+// Bumped on every refreshGroupMarkers call so a slow-resolving earlier call
+// can detect it was superseded (see below) — guards against a fast
+// double-toggle where an in-flight loadImage from an older call wins the
+// registerGroupMarkers `hasImage` race and stomps the newer colors.
+let markerGeneration = 0;
+
 /**
  * Re-render every group marker for the current theme. Removes the cached images
  * (which `registerGroupMarkers` would otherwise skip) then re-registers them, so
  * a theme toggle recolors the point icons.
  */
 export async function refreshGroupMarkers(map: MapLibreMap): Promise<void> {
+  const gen = ++markerGeneration;
   const ids = [
     ...Object.keys(GROUP_GLYPHS).map((g) => markerImageId(g)),
     'marker-DEFAULT',
@@ -112,4 +119,8 @@ export async function refreshGroupMarkers(map: MapLibreMap): Promise<void> {
     if (map.hasImage(id)) map.removeImage(id);
   }
   await registerGroupMarkers(map);
+  // A newer refresh started while we were awaiting image loads — its colors
+  // may have been clobbered by ours finishing last. Redo once so the LAST
+  // call's colors always win.
+  if (gen !== markerGeneration) await refreshGroupMarkers(map);
 }

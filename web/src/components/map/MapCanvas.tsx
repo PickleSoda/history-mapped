@@ -254,7 +254,11 @@ export function MapCanvas() {
   // ── recolor overlays when the theme changes (WebGL can't read CSS vars) ─────
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !map.isStyleLoaded()) return;
+    // No isStyleLoaded() gate here: it's false whenever ANY tiles are in
+    // flight (common during pan/zoom), which would silently skip the recolor
+    // with nothing to re-fire it later. Every mutation below is already
+    // guarded by map.getLayer(...), so a bare map-exists check is sufficient.
+    if (!map) return;
     const groupColor = groupColorExpression();
     if (map.getLayer(FILL_LAYER)) {
       map.setPaintProperty(FILL_LAYER, 'fill-color', groupColor);

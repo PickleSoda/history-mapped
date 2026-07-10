@@ -291,7 +291,7 @@ export function DetailPanelContent() {
             <>
               <div className="h-px bg-border" />
               <div className="px-4 py-4">
-                <h4 className="mb-2 text-xs font-semibold text-muted-foreground">
+                <h4 className="mb-2 text-xs font-semibold font-heading text-muted-foreground">
                   Summary
                 </h4>
                 <p className="text-[13px] leading-relaxed text-foreground/90">
@@ -306,7 +306,7 @@ export function DetailPanelContent() {
             <>
               <div className="h-px bg-border" />
               <div className="px-4 py-4">
-                <h4 className="mb-3 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                <h4 className="mb-3 flex items-center gap-1.5 text-xs font-semibold font-heading text-muted-foreground">
                   Relationships
                   <span className="rounded-full bg-muted px-1.5 py-0.5 font-mono text-[10px]">
                     {connections.data.length}

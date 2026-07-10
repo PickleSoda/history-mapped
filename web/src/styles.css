@@ -70,6 +70,7 @@
 }
 
 :root {
+    color-scheme: light;
     --background: #faf9f6;
     --foreground: #2a2722;
     --card: #fdfcf9;
@@ -123,6 +124,7 @@
 }
 
 .dark {
+    color-scheme: dark;
     --background: #2a2722;
     --foreground: #faf9f6;
     --card: #34302a;
@@ -183,6 +185,11 @@
     }
   html {
     @apply font-sans;
+    }
+  h1, h2, h3 {
+    @apply font-heading;
+    font-optical-sizing: auto;
+    font-variation-settings: 'SOFT' 30, 'WONK' 0;
     }
 }
 

@@ -82,12 +82,16 @@ export const useTheme = create<ThemeState>((set, get) => ({
 
 // Follow the OS preference until the user makes an explicit choice.
 if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
-  window
-    .matchMedia('(prefers-color-scheme: dark)')
-    .addEventListener('change', () => {
-      if (storedTheme()) return;
-      const next = systemTheme();
-      applyTheme(next);
-      useTheme.setState({ theme: next });
-    });
+  try {
+    window
+      .matchMedia('(prefers-color-scheme: dark)')
+      .addEventListener('change', () => {
+        if (storedTheme()) return;
+        const next = systemTheme();
+        applyTheme(next);
+        useTheme.setState({ theme: next });
+      });
+  } catch {
+    /* MediaQueryList#addEventListener missing (old Safari) — non-fatal */
+  }
 }

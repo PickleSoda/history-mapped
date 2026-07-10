@@ -83,6 +83,7 @@ export function TimelineScope() {
         },
       },
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- theme drives axis colors read via DOM helpers
     [theme],
   );
 
@@ -105,6 +106,9 @@ export function TimelineScope() {
         }}
       >
         <Timescope
+          // Remount on theme toggle: the canvas reads `tracks` (axis colors)
+          // only once at mount, so this forces a fresh paint with the new
+          // theme's colors — don't simplify this away.
           key={theme}
           width="100%"
           height={`${BAR_PX}px`}
