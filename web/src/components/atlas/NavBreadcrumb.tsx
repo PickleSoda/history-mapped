@@ -71,7 +71,7 @@ export function NavBreadcrumb({
                   style={{ background: color ?? 'var(--muted-foreground)' }}
                 />
               )}
-              <span className="truncate">{c.label}</span>
+              <span className="truncate font-heading">{c.label}</span>
             </button>
           </Fragment>
         );
