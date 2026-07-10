@@ -122,6 +122,7 @@ let refreshQueue: Promise<void> = Promise.resolve();
  * a theme toggle recolors the point icons.
  */
 export function refreshGroupMarkers(map: MapLibreMap): Promise<void> {
-  refreshQueue = refreshQueue.then(() => doRefreshGroupMarkers(map));
-  return refreshQueue;
+  const run = refreshQueue.then(() => doRefreshGroupMarkers(map));
+  refreshQueue = run.catch(() => {}); // a failed refresh must not poison later ones
+  return run;
 }
