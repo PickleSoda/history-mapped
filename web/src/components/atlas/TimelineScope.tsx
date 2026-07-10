@@ -2,6 +2,7 @@ import { Timescope } from '@timescope/react';
 import { useEffect, useMemo, useRef } from 'react';
 import { useLiveScrub, useTimeState } from '@/hooks';
 import { eraFor, formatYear, instantYear } from '@/lib/format';
+import { useTheme } from '@/lib/theme';
 import {
   APP_FONT_FAMILY,
   axisLabelColor,
@@ -28,6 +29,7 @@ const EMPTY = {};
  */
 export function TimelineScope() {
   const { time } = useTimeState();
+  const theme = useTheme((s) => s.theme);
   const { liveScrub, setLiveScrub, commit } = useLiveScrub();
   const committedYear = instantYear(time);
   const displayYear = liveScrub ?? committedYear;
@@ -63,8 +65,8 @@ export function TimelineScope() {
   }, []);
 
   // Canvas-themed axis: muted line/ticks, muted-foreground Geist labels.
-  // Memoised so @timescope/react effects keep a stable identity (colours read
-  // once at mount; they reflect the active light/dark theme).
+  // Memoised on `theme` so colours re-derive whenever the light/dark theme
+  // toggles, instead of staying frozen at whatever was active on mount.
   const tracks = useMemo(
     () => ({
       [TRACK]: {
@@ -81,7 +83,7 @@ export function TimelineScope() {
         },
       },
     }),
-    [],
+    [theme],
   );
 
   return (
@@ -103,10 +105,12 @@ export function TimelineScope() {
         }}
       >
         <Timescope
+          key={theme}
           width="100%"
           height={`${BAR_PX}px`}
           time={committedYear}
           timeRange={TIME_RANGE}
+          background="transparent"
           indicator
           onTimeChanging={(v) => {
             if (!scrubbingRef.current) return;
