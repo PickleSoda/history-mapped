@@ -1,4 +1,5 @@
 import { Compass, Globe, Layers, MapPin, Search, SlidersHorizontal } from 'lucide-react';
+import { ThemeToggle } from '@/components/atlas/ThemeToggle';
 import { useCommandPalette, useView } from '@/hooks';
 import { cn } from '@/lib/utils';
 import type { ViewMode } from '@/types/atlas';
@@ -61,6 +62,7 @@ export function TopBar() {
       {/* Right: view toggle + tools */}
       <div className="flex items-center gap-2">
         <ViewToggle />
+        <ThemeToggle />
         <button
           type="button"
           className="grid size-9 place-items-center rounded-lg text-muted-foreground hover:bg-muted"

@@ -1,5 +1,6 @@
 import { Compass, Globe, Layers, MapPin, Search, SlidersHorizontal } from 'lucide-react';
 import { useState } from 'react';
+import { ThemeToggle } from '@/components/atlas/ThemeToggle';
 import { useCommandPalette, useView } from '@/hooks';
 import { cn } from '@/lib/utils';
 
@@ -22,6 +23,7 @@ export function MobileTopBar() {
         <Search size={15} />
         <span className="flex-1 text-left">Search History Mapped…</span>
       </button>
+      <ThemeToggle className="flex-none border bg-card" />
       <button
         type="button"
         onClick={() => setTools((v) => !v)}
