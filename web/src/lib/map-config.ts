@@ -117,13 +117,50 @@ function excludeKnownOhmFeatures(layer: StyleLayer): StyleLayer {
     } as StyleLayer;
 }
 
+/**
+ * Muted antique turquoise for the sea, tuned to sit on the woodblock paper
+ * texture. The open ocean is the `background` wash (land draws over it);
+ * lakes/inland seas are the two water_areas fills; rivers/canals are lines.
+ */
+const SEA_COLOR = 'rgba(101, 165, 158, 1)';
+const SEA_WASH_OPACITY = 0.45;
+
+const WATER_PAINT_OVERRIDES: Record<string, Record<string, unknown>> = {
+    background: {
+        'background-color': SEA_COLOR,
+        'background-opacity': SEA_WASH_OPACITY,
+    },
+    water_areas: { 'fill-color': SEA_COLOR, 'fill-opacity': SEA_WASH_OPACITY },
+    'water_areas-ne': {
+        'fill-color': SEA_COLOR,
+        'fill-opacity': SEA_WASH_OPACITY,
+    },
+    water_lines_river: { 'line-color': SEA_COLOR },
+    water_lines_stream: { 'line-color': SEA_COLOR },
+    water_lines_canal: { 'line-color': SEA_COLOR },
+};
+
+function recolorWater(layer: StyleLayer): StyleLayer {
+    const overrides = WATER_PAINT_OVERRIDES[layer.id];
+    if (!overrides) {
+        return layer;
+    }
+
+    return {
+        ...layer,
+        paint: { ...layer.paint, ...overrides },
+    } as StyleLayer;
+}
+
 function normalizeOhmLabels(style: StyleSpecification): StyleSpecification {
     return {
         ...style,
         layers: (style.layers ?? [])
             .filter((layer) => !OHM_HIDDEN_LAYER_IDS.has(layer.id))
             .map((layer) =>
-                excludeKnownOhmFeatures(normalizeLabelFieldToEnglish(layer)),
+                recolorWater(
+                    excludeKnownOhmFeatures(normalizeLabelFieldToEnglish(layer)),
+                ),
             ),
     };
 }
