@@ -1,6 +1,7 @@
 # Woodblock Basemap with Theme-Aware Recoloring
 
 **Date:** 2026-07-11
+**Outcome (2026-07-11): scrapped.** The runtime dark-recoloring approach was abandoned after the woodblock style proved to separate land/ocean only via semi-transparent sprite washes that resist per-layer recoloring. Shipped instead: a URL-only switch to the woodblock style, rendered in its authentic light colors in both UI themes (dark mode keeps the pre-existing CSS dim filter).
 **Surface:** `web/` (public Atlas SPA) only.
 **Status:** Design approved (scope, palette, and approach chosen by user), pending implementation plan.
 

@@ -1,12 +1,12 @@
 import type { FilterSpecification, StyleSpecification } from 'maplibre-gl';
 
 /**
- * OpenHistoricalMap main basemap style.
+ * OpenHistoricalMap woodblock basemap style.
  *
  * Backed by OHM vector tiles with `start_date`/`end_date` properties.
  */
 export const OHM_STYLE_URL =
-    'https://www.openhistoricalmap.org/map-styles/main/main.json';
+    'https://www.openhistoricalmap.org/map-styles/woodblock/woodblock.json';
 export const HISTORICAL_BASEMAP_FALLBACK_STYLE_URL =
     'https://tiles.openfreemap.org/styles/liberty';
 
