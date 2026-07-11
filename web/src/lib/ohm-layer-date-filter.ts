@@ -26,6 +26,20 @@ const originalLayerFilters = new WeakMap<
     Map<string, FilterSpecification | null>
 >();
 
+/**
+ * Only layers backed by the time-aware `ohm` vector source carry
+ * start/end-date attributes. Styles like woodblock also include timeless
+ * sources (`ne` Natural Earth, `osm_land` coastlines) — date-filtering those
+ * silently erases their features (e.g. all land polygons) after load.
+ */
+function isTimeAwareLayer(layer: object): boolean {
+    return (
+        'source-layer' in layer &&
+        'source' in layer &&
+        (layer as { source?: string }).source === 'ohm'
+    );
+}
+
 function getOriginalFilters(
     map: MapLibreMap,
 ): Map<string, FilterSpecification | null> {
@@ -37,7 +51,7 @@ function getOriginalFilters(
     }
 
     for (const layer of map.getStyle().layers ?? []) {
-        if (!('source-layer' in layer)) {
+        if (!isTimeAwareLayer(layer)) {
             continue;
         }
 
@@ -333,7 +347,7 @@ export function applyOhmLayerDateFilter(
     const filters = getOriginalFilters(map);
 
     for (const layer of map.getStyle().layers ?? []) {
-        if (!('source-layer' in layer)) {
+        if (!isTimeAwareLayer(layer)) {
             continue;
         }
 
