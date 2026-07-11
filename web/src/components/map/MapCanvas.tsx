@@ -156,12 +156,10 @@ export function MapCanvas() {
             'text-max-width': 8,
           },
           paint: {
-            'text-color': document.documentElement.classList.contains('dark')
-              ? '#faf9f6'
-              : '#2a2722',
-            'text-halo-color': document.documentElement.classList.contains('dark')
-              ? '#2a2722'
-              : '#ffffff',
+            // The woodblock basemap stays light in both UI themes, so map
+            // labels keep light-map colors regardless of the app theme.
+            'text-color': '#2a2722',
+            'text-halo-color': '#ffffff',
             'text-halo-width': 1.4,
           },
         });
@@ -266,15 +264,7 @@ export function MapCanvas() {
     if (map.getLayer(LINE_LAYER)) {
       map.setPaintProperty(LINE_LAYER, 'line-color', groupColor);
     }
-    if (map.getLayer(SYMBOL_LAYER)) {
-      const dark = theme === 'dark';
-      map.setPaintProperty(SYMBOL_LAYER, 'text-color', dark ? '#faf9f6' : '#2a2722');
-      map.setPaintProperty(
-        SYMBOL_LAYER,
-        'text-halo-color',
-        dark ? '#2a2722' : '#ffffff',
-      );
-    }
+    // Symbol label colors stay fixed: the basemap is light in both UI themes.
     void refreshGroupMarkers(map);
   }, [theme]);
 
