@@ -50,6 +50,39 @@ class GetEntityContextToolTest extends TestCase
         $this->assertEqualsWithDelta(41.01, $data['location']['lat'], 0.001);
     }
 
+    public function test_handle_resolves_entity_by_id_when_not_bound(): void
+    {
+        // Global-agent path: the tool is registered WITHOUT forEntity(); the
+        // model supplies entity_id. Previously this fatally accessed the
+        // uninitialized $entity property and hung the stream.
+        $entity = Entity::factory()->create(['name' => 'Byzantine Empire']);
+
+        $tool = app(GetEntityContext::class);
+        $json = $tool->handle(new Request(['entity_id' => $entity->entity_id]));
+
+        $data = json_decode($json, true);
+        $this->assertSame('Byzantine Empire', $data['name']);
+        $this->assertSame($entity->entity_id, $data['entity_id']);
+    }
+
+    public function test_handle_returns_error_when_no_entity_bound_and_no_id(): void
+    {
+        $tool = app(GetEntityContext::class);
+        $json = $tool->handle(new Request([]));
+
+        $data = json_decode($json, true);
+        $this->assertArrayHasKey('error', $data);
+    }
+
+    public function test_handle_returns_error_for_unknown_entity_id(): void
+    {
+        $tool = app(GetEntityContext::class);
+        $json = $tool->handle(new Request(['entity_id' => '00000000-0000-0000-0000-000000000000']));
+
+        $data = json_decode($json, true);
+        $this->assertArrayHasKey('error', $data);
+    }
+
     public function test_build_parts_throws_logic_exception(): void
     {
         $entity = Entity::factory()->create();

@@ -31,15 +31,36 @@ class GetEntityContext extends AgentTool
 
     public function schema(JsonSchema $schema): array
     {
-        return [];
+        return [
+            'entity_id' => $schema->string()->description('UUID of the entity to fetch. Optional when the session is already scoped to a single entity.'),
+        ];
     }
 
     /**
      * Read-only: return entity context JSON directly, no proposal staged.
+     *
+     * Resolves the target entity from the `entity_id` argument when given
+     * (global sessions), otherwise falls back to a bound entity (entity-scoped
+     * sessions). Returns an error payload — never a fatal — when neither yields
+     * an entity, so a tool call can't abort the stream.
      */
     public function handle(Request $request): Stringable|string
     {
-        $entity = $this->entity->load([
+        $entityId = $request['entity_id'] ?? null;
+
+        if ($entityId !== null) {
+            $entity = Entity::find($entityId);
+
+            if ($entity === null) {
+                return json_encode(['error' => "Entity {$entityId} not found."], JSON_THROW_ON_ERROR);
+            }
+        } elseif (isset($this->entity)) {
+            $entity = $this->entity;
+        } else {
+            return json_encode(['error' => 'No entity specified. Provide an entity_id.'], JSON_THROW_ON_ERROR);
+        }
+
+        $entity->load([
             'primaryLocation',
             'primaryTemporalRange',
             'outgoingRelationships.targetEntity',
