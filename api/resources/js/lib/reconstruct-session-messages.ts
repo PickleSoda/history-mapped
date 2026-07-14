@@ -14,7 +14,7 @@ export type SessionProposal = {
     parts: Array<{
         key: string;
         tool: string;
-        human_diff: { summary: string };
+        human_diff: { summary: string } & Record<string, unknown>;
         status?: 'pending' | 'applied' | 'discarded';
         result_id?: string | null;
     }>;
