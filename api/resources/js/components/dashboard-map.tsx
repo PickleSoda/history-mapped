@@ -294,10 +294,13 @@ export default function DashboardMap({
     // The ref'd div stays a dedicated MapLibre mount node (no React-managed
     // children inside it); the error pill overlays it from a relative parent.
     return (
-        <div className={`relative ${className ?? ''}`}>
+        <div className={['relative', className].filter(Boolean).join(' ')}>
             <div ref={containerRef} className="h-full w-full" />
             {entitiesQuery.isError && (
-                <div className="pointer-events-none absolute inset-x-0 top-2 z-10 mx-auto w-fit rounded-md bg-white/90 px-3 py-1 text-xs text-red-700 shadow dark:bg-stone-900/90 dark:text-red-400">
+                <div
+                    role="status"
+                    className="pointer-events-none absolute inset-x-0 top-2 z-10 mx-auto w-fit rounded-md bg-white/90 px-3 py-1 text-xs text-red-700 shadow dark:bg-stone-900/90 dark:text-red-400"
+                >
                     Failed to load map entities — pan or change the year to
                     retry.
                 </div>
