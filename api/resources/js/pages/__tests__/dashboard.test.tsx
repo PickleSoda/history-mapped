@@ -151,5 +151,8 @@ describe('Dashboard', () => {
                 screen.queryByText('Nothing selected yet'),
             ).not.toBeInTheDocument();
         });
+
+        // The side panel must actually render the fetched entity record.
+        expect(await screen.findByText('Entity One')).toBeInTheDocument();
     });
 });

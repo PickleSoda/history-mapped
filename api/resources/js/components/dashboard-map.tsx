@@ -63,147 +63,162 @@ export default function DashboardMap({
         let mapInstance: maplibregl.Map | null = null;
         let timer: ReturnType<typeof setTimeout>;
 
-        void loadHistoricalBasemapStyle().then((style) => {
-            if (cancelled) {
-                return;
-            }
+        void loadHistoricalBasemapStyle()
+            .then((style) => {
+                if (cancelled) {
+                    return;
+                }
 
-            const map = new maplibregl.Map({
-                container,
-                style,
-                center: [15, 45],
-                zoom: 3.2,
-                attributionControl: { compact: true },
-            });
-            mapInstance = map;
-            mapRef.current = map;
-
-            map.on('load', () => {
-                void registerGroupMarkers(map).then(() => {
-                    if (cancelled) {
-                        return;
-                    }
-
-                    map.addSource(SOURCE_ID, {
-                        type: 'geojson',
-                        data: EMPTY_FC as never,
-                    });
-
-                    const groupColor = groupColorExpression();
-                    map.addLayer({
-                        id: FILL_LAYER,
-                        type: 'fill',
-                        source: SOURCE_ID,
-                        filter: [
-                            'match',
-                            ['geometry-type'],
-                            ['Polygon', 'MultiPolygon'],
-                            true,
-                            false,
-                        ],
-                        paint: {
-                            'fill-color': groupColor,
-                            'fill-opacity': 0.15,
-                        },
-                    });
-                    map.addLayer({
-                        id: LINE_LAYER,
-                        type: 'line',
-                        source: SOURCE_ID,
-                        filter: [
-                            'match',
-                            ['geometry-type'],
-                            ['Polygon', 'MultiPolygon'],
-                            true,
-                            false,
-                        ],
-                        paint: { 'line-color': groupColor, 'line-width': 1 },
-                    });
-                    map.addLayer({
-                        id: SYMBOL_LAYER,
-                        type: 'symbol',
-                        source: SOURCE_ID,
-                        filter: [
-                            'match',
-                            ['geometry-type'],
-                            ['Point', 'MultiPoint'],
-                            true,
-                            false,
-                        ],
-                        layout: {
-                            'icon-image': [
-                                'coalesce',
-                                [
-                                    'image',
-                                    [
-                                        'concat',
-                                        'marker-',
-                                        ['get', 'entity_group'],
-                                    ],
-                                ],
-                                ['image', 'marker-DEFAULT'],
-                            ],
-                            'icon-size': 0.8,
-                            'icon-allow-overlap': true,
-                            'icon-anchor': 'bottom',
-                            'text-field': ['get', 'name'],
-                            'text-size': 11,
-                            'text-offset': [0, 0.4],
-                            'text-anchor': 'top',
-                            'text-optional': true,
-                            'text-max-width': 8,
-                        },
-                        paint: {
-                            'text-color': '#2a2722',
-                            'text-halo-color': '#ffffff',
-                            'text-halo-width': 1.4,
-                        },
-                    });
-
-                    for (const layerId of [SYMBOL_LAYER, FILL_LAYER]) {
-                        map.on('mouseenter', layerId, () => {
-                            map.getCanvas().style.cursor = 'pointer';
-                        });
-                        map.on('mouseleave', layerId, () => {
-                            map.getCanvas().style.cursor = '';
-                        });
-                    }
-
-                    map.on('click', (e) => {
-                        const layers = [SYMBOL_LAYER, FILL_LAYER].filter((l) =>
-                            map.getLayer(l),
-                        );
-                        const hit = layers.length
-                            ? map.queryRenderedFeatures(e.point, { layers })[0]
-                            : undefined;
-                        const id = hit?.properties?.id;
-                        onSelectRef.current(
-                            typeof id === 'string' && id ? id : null,
-                        );
-                    });
-
-                    // The initial OHM date filter is applied by the year
-                    // effect below as soon as mapReady flips true.
-                    const publishViewport = () => {
-                        const b = map.getBounds();
-                        setBbox({
-                            w: b.getWest(),
-                            s: b.getSouth(),
-                            e: b.getEast(),
-                            n: b.getNorth(),
-                        });
-                        setZoom(Math.round(map.getZoom()));
-                    };
-                    publishViewport();
-                    map.on('moveend', () => {
-                        clearTimeout(timer);
-                        timer = setTimeout(publishViewport, MOVE_DEBOUNCE_MS);
-                    });
-
-                    setMapReady(true);
+                const map = new maplibregl.Map({
+                    container,
+                    style,
+                    center: [15, 45],
+                    zoom: 3.2,
+                    attributionControl: { compact: true },
                 });
+                mapInstance = map;
+                mapRef.current = map;
+
+                map.on('load', () => {
+                    void registerGroupMarkers(map).then(() => {
+                        if (cancelled) {
+                            return;
+                        }
+
+                        map.addSource(SOURCE_ID, {
+                            type: 'geojson',
+                            data: EMPTY_FC as never,
+                        });
+
+                        const groupColor = groupColorExpression();
+                        map.addLayer({
+                            id: FILL_LAYER,
+                            type: 'fill',
+                            source: SOURCE_ID,
+                            filter: [
+                                'match',
+                                ['geometry-type'],
+                                ['Polygon', 'MultiPolygon'],
+                                true,
+                                false,
+                            ],
+                            paint: {
+                                'fill-color': groupColor,
+                                'fill-opacity': 0.15,
+                            },
+                        });
+                        map.addLayer({
+                            id: LINE_LAYER,
+                            type: 'line',
+                            source: SOURCE_ID,
+                            filter: [
+                                'match',
+                                ['geometry-type'],
+                                ['Polygon', 'MultiPolygon'],
+                                true,
+                                false,
+                            ],
+                            paint: {
+                                'line-color': groupColor,
+                                'line-width': 1,
+                            },
+                        });
+                        map.addLayer({
+                            id: SYMBOL_LAYER,
+                            type: 'symbol',
+                            source: SOURCE_ID,
+                            filter: [
+                                'match',
+                                ['geometry-type'],
+                                ['Point', 'MultiPoint'],
+                                true,
+                                false,
+                            ],
+                            layout: {
+                                'icon-image': [
+                                    'coalesce',
+                                    [
+                                        'image',
+                                        [
+                                            'concat',
+                                            'marker-',
+                                            ['get', 'entity_group'],
+                                        ],
+                                    ],
+                                    ['image', 'marker-DEFAULT'],
+                                ],
+                                'icon-size': 0.8,
+                                'icon-allow-overlap': true,
+                                'icon-anchor': 'bottom',
+                                'text-field': ['get', 'name'],
+                                'text-size': 11,
+                                'text-offset': [0, 0.4],
+                                'text-anchor': 'top',
+                                'text-optional': true,
+                                'text-max-width': 8,
+                            },
+                            paint: {
+                                'text-color': '#2a2722',
+                                'text-halo-color': '#ffffff',
+                                'text-halo-width': 1.4,
+                            },
+                        });
+
+                        for (const layerId of [SYMBOL_LAYER, FILL_LAYER]) {
+                            map.on('mouseenter', layerId, () => {
+                                map.getCanvas().style.cursor = 'pointer';
+                            });
+                            map.on('mouseleave', layerId, () => {
+                                map.getCanvas().style.cursor = '';
+                            });
+                        }
+
+                        map.on('click', (e) => {
+                            const layers = [SYMBOL_LAYER, FILL_LAYER].filter(
+                                (l) => map.getLayer(l),
+                            );
+                            const hit = layers.length
+                                ? map.queryRenderedFeatures(e.point, {
+                                      layers,
+                                  })[0]
+                                : undefined;
+                            const id = hit?.properties?.id;
+                            onSelectRef.current(
+                                typeof id === 'string' && id ? id : null,
+                            );
+                        });
+
+                        // The initial OHM date filter is applied by the year
+                        // effect below as soon as mapReady flips true.
+                        const publishViewport = () => {
+                            const b = map.getBounds();
+                            setBbox({
+                                w: b.getWest(),
+                                s: b.getSouth(),
+                                e: b.getEast(),
+                                n: b.getNorth(),
+                            });
+                            setZoom(Math.round(map.getZoom()));
+                        };
+                        publishViewport();
+                        map.on('moveend', () => {
+                            clearTimeout(timer);
+                            timer = setTimeout(
+                                publishViewport,
+                                MOVE_DEBOUNCE_MS,
+                            );
+                        });
+
+                        setMapReady(true);
+                    });
+                });
+            })
+            .catch((error: unknown) => {
+                console.error(
+                    '[dashboard-map] basemap style failed to load',
+                    error,
+                );
             });
-        });
 
         return () => {
             cancelled = true;
@@ -276,5 +291,17 @@ export default function DashboardMap({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data, mapReady]);
 
-    return <div ref={containerRef} className={className} />;
+    // The ref'd div stays a dedicated MapLibre mount node (no React-managed
+    // children inside it); the error pill overlays it from a relative parent.
+    return (
+        <div className={`relative ${className ?? ''}`}>
+            <div ref={containerRef} className="h-full w-full" />
+            {entitiesQuery.isError && (
+                <div className="pointer-events-none absolute inset-x-0 top-2 z-10 mx-auto w-fit rounded-md bg-white/90 px-3 py-1 text-xs text-red-700 shadow dark:bg-stone-900/90 dark:text-red-400">
+                    Failed to load map entities — pan or change the year to
+                    retry.
+                </div>
+            )}
+        </div>
+    );
 }

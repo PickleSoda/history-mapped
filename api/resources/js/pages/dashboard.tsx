@@ -137,7 +137,7 @@ export default function Dashboard() {
                                     .
                                 </div>
                                 <div className="text-xs tracking-[0.18em] text-stone-500 uppercase dark:text-stone-400">
-                                    Global extent • debounced live refresh
+                                    Viewport extent • debounced live refresh
                                 </div>
                             </div>
                         </div>

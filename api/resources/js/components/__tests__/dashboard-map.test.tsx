@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { normalizeOhmDate, yearToOhmDate } from '@/lib/ohm-date';
@@ -173,5 +173,14 @@ describe('DashboardMap', () => {
             | string
             | undefined;
         expect(normalizeOhmDate(passedDate)).not.toBeNull();
+    });
+
+    it('shows an error pill when the viewport query fails', async () => {
+        fetchMock.mockRejectedValueOnce(new Error('network down'));
+        renderMap();
+
+        expect(
+            await screen.findByText(/Failed to load map entities/),
+        ).toBeInTheDocument();
     });
 });
