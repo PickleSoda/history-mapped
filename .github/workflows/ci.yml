@@ -340,7 +340,12 @@ jobs:
             COMPOSE="docker compose --env-file docker/.env.prod -f docker/docker-compose.prod.yml"
 
             # Pull the pinned API image.
-            $COMPOSE pull app
+            # `</dev/null`: drone-ssh pipes this whole script to the remote shell
+            # via stdin, so any command that reads stdin swallows the rest of the
+            # script. When `pull` actually transfers layers (no TTY) its progress
+            # reader consumes stdin and bash dies right after "Pulled" with exit 1.
+            # Detach stdin — same reason the migrate/web-build runs below do.
+            $COMPOSE pull app </dev/null
 
             # Rebuild the customer SPA only when its built bundle is stale vs the
             # current checkout — not merely when *this pull* touched web/. We
@@ -367,7 +372,7 @@ jobs:
 
             # Migrate before the new code takes traffic, then roll the services.
             $COMPOSE --profile setup run --rm -T migrate </dev/null
-            $COMPOSE up -d --remove-orphans
+            $COMPOSE up -d --remove-orphans </dev/null
 
             # Health gate: probe /up directly instead of waiting on Docker's
             # health state machine. The container healthcheck's first probe only
@@ -376,7 +381,7 @@ jobs:
             # Probing /up ourselves goes true the instant the app responds.
             echo "waiting for /up to respond…"
             for i in $(seq 1 40); do
-              if $COMPOSE exec -T app php -r "exit(@file_get_contents('http://127.0.0.1:8080/up') !== false ? 0 : 1);" 2>/dev/null; then
+              if $COMPOSE exec -T app php -r "exit(@file_get_contents('http://127.0.0.1:8080/up') !== false ? 0 : 1);" </dev/null 2>/dev/null; then
                 echo "app healthy"; break
               fi
               if [ "$i" = "40" ]; then
