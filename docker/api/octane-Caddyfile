@@ -1,0 +1,70 @@
+# Custom FrankenPHP Caddyfile for Laravel Octane (production).
+#
+# This is a copy of Octane's stock stub
+# (vendor/laravel/octane/src/Commands/stubs/Caddyfile) with ONE change: the
+# `encode` directive is scoped with an `@compressible` matcher so it never
+# compresses the AI chat SSE endpoint (`/ai/chat`). Compressing a
+# Server-Sent-Events stream forces the whole response to be buffered to
+# compress it, so the browser only receives tokens once the stream closes —
+# i.e. "200 but no streaming".
+#
+# It is passed to Octane via `--caddyfile=` in docker/api/Dockerfile.prod. The
+# `{$CADDY_*}` / `{$APP_*}` placeholders are injected by
+# StartFrankenPhpCommand at runtime — do not fill them in here.
+#
+# The edge Caddy proxy (docker/Caddyfile) skips compression for the same path;
+# BOTH layers must skip it or the stream gets re-buffered.
+#
+# Keep in sync with the upstream stub when bumping laravel/octane.
+{
+	{$CADDY_GLOBAL_OPTIONS}
+
+	admin {$CADDY_SERVER_ADMIN_HOST}:{$CADDY_SERVER_ADMIN_PORT}
+
+	frankenphp {
+		worker {
+			file "{$APP_PUBLIC_PATH}/frankenphp-worker.php"
+			{$CADDY_SERVER_WORKER_DIRECTIVE}
+			{$CADDY_SERVER_WATCH_DIRECTIVES}
+		}
+	}
+}
+
+{$CADDY_EXTRA_CONFIG}
+
+{$CADDY_SERVER_SERVER_NAME} {
+	log {
+		level {$CADDY_SERVER_LOG_LEVEL}
+
+		# Redact the authorization query parameter that can be set by Mercure...
+		format filter {
+			wrap {$CADDY_SERVER_LOGGER}
+			fields {
+				uri query {
+					replace authorization REDACTED
+				}
+			}
+		}
+	}
+
+	# Do not compress Server-Sent Event streams (e.g. the AI chat endpoint):
+	# compression buffers the whole response, defeating incremental streaming.
+	@compressible {
+		not path /ai/chat
+	}
+
+	route {
+		root * "{$APP_PUBLIC_PATH}"
+		encode @compressible zstd br gzip
+
+		# Mercure configuration is injected here...
+		{$CADDY_SERVER_EXTRA_DIRECTIVES}
+
+		php_server {
+			index frankenphp-worker.php
+			try_files {path} frankenphp-worker.php
+			# Required for the public/storage/ directory...
+			resolve_root_symlink
+		}
+	}
+}
