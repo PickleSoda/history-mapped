@@ -8,8 +8,11 @@
 # compress it, so the browser only receives tokens once the stream closes —
 # i.e. "200 but no streaming".
 #
-# It is passed to Octane via `--caddyfile=` in docker/api/Dockerfile.prod. The
-# `{$CADDY_*}` / `{$APP_*}` placeholders are injected by
+# It is passed to Octane via `--caddyfile=` in docker/api/Dockerfile.prod, which
+# COPYs it to a path whose basename is exactly `Caddyfile` — required, because
+# octane runs `frankenphp run -c <file>` with no `--adapter`, so FrankenPHP picks
+# the parser from the basename (any other name is parsed as JSON and crashes on
+# the leading `#`). The `{$CADDY_*}` / `{$APP_*}` placeholders are injected by
 # StartFrankenPhpCommand at runtime — do not fill them in here.
 #
 # The edge Caddy proxy (docker/Caddyfile) skips compression for the same path;
