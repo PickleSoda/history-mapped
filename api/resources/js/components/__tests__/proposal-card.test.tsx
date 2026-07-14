@@ -396,4 +396,48 @@ describe('ProposalCard', () => {
             screen.getByRole('button', { name: /apply/i }),
         ).toBeInTheDocument();
     });
+
+    it('renders an expandable diff for a part with structured human_diff', () => {
+        const withDiff: Proposal = {
+            proposal_id: 'prop-diff',
+            parts: [
+                {
+                    key: 'fields',
+                    tool: 'update_entity_fields',
+                    human_diff: {
+                        summary: 'Update fields on Georgian SSR',
+                        diff: { founding_year: { from: 1921, to: 1922 } },
+                    },
+                },
+            ],
+        };
+        render(<ProposalCard proposal={withDiff} />);
+
+        // Summary still shown; diff collapsed until toggled.
+        expect(
+            screen.getByText('Update fields on Georgian SSR'),
+        ).toBeInTheDocument();
+        expect(screen.queryByText(/1922/)).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', { name: /show changes/i }));
+        expect(screen.getByText(/1922/)).toBeInTheDocument();
+    });
+
+    it('shows no diff toggle for a summary-only part', () => {
+        const summaryOnly: Proposal = {
+            proposal_id: 'prop-summary',
+            parts: [
+                {
+                    key: 'rel',
+                    tool: 'create_relationship',
+                    human_diff: { summary: 'Link founder → person' },
+                },
+            ],
+        };
+        render(<ProposalCard proposal={summaryOnly} />);
+
+        expect(
+            screen.queryByRole('button', { name: /show changes/i }),
+        ).not.toBeInTheDocument();
+    });
 });

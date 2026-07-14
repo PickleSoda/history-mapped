@@ -8,6 +8,7 @@ use Illuminate\JsonSchema\Types\Type;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
 use Stringable;
+use Throwable;
 
 abstract class AgentTool implements Tool
 {
@@ -42,13 +43,26 @@ abstract class AgentTool implements Tool
      */
     public function handle(Request $request): Stringable|string
     {
+        // Build the parts BEFORE creating the change so a failure stages nothing
+        // (no orphaned ProposedChange) and — critically — a thrown exception here
+        // is caught rather than aborting the SSE stream and hanging the chat.
+        try {
+            $parts = $this->buildParts($request->all());
+        } catch (Throwable $e) {
+            report($e);
+
+            return json_encode([
+                'error' => 'Could not prepare this change — the referenced record may not exist or an argument was invalid. Verify ids with get_entity_context.',
+            ], JSON_THROW_ON_ERROR);
+        }
+
         $change = ProposedChange::create([
             'user_id' => $this->context['user_id'],
             'conversation_id' => $this->context['conversation_id'] ?? null,
             'context_type' => $this->context['context_type'],
             'context_id' => $this->context['context_id'],
         ]);
-        foreach ($this->buildParts($request->all()) as $part) {
+        foreach ($parts as $part) {
             $change->parts()->create([
                 'key' => $part['key'], 'tool' => $part['tool'],
                 'payload' => $part['payload'], 'human_diff' => $part['human_diff'],

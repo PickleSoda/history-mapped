@@ -2,11 +2,10 @@ import { Head, Link } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
 import { CalendarDays, ExternalLink, MapPinned } from 'lucide-react';
 import { startTransition, useEffect, useState } from 'react';
-import HistoricalMapViewer from '@/components/historical-map-viewer';
+import DashboardMap from '@/components/dashboard-map';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
-import type { GeoJsonLike } from '@/lib/geojson';
 import { dashboard } from '@/routes';
 import { show as showEntity } from '@/routes/entities';
 import type { BreadcrumbItem, EntityDetail } from '@/types';
@@ -17,27 +16,6 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: dashboard(),
     },
 ];
-
-type MapFeature = {
-    type: 'Feature';
-    id: string;
-    geometry: GeoJSON.Geometry | null;
-    properties: {
-        id: string;
-        name: string;
-        entity_type: string | null;
-        entity_group: string | null;
-        temporal_start: string | null;
-        temporal_end: string | null;
-        impact_score: number | null;
-        entity_color: string | null;
-    };
-};
-
-type MapResponse = {
-    type: 'FeatureCollection';
-    features: MapFeature[];
-};
 
 type EntityApiResponse = {
     data: EntityDetail;
@@ -52,6 +30,7 @@ export default function Dashboard() {
     const [selectedEntityId, setSelectedEntityId] = useState<string | null>(
         null,
     );
+    const [featureCount, setFeatureCount] = useState(0);
 
     useEffect(() => {
         const initialYear = getInitialDashboardYear();
@@ -69,27 +48,6 @@ export default function Dashboard() {
     }, [selectedYear]);
 
     const activeYear = selectedYear ?? DEFAULT_DASHBOARD_YEAR;
-
-    const mapQuery = useQuery({
-        queryKey: ['dashboard-map', activeYear],
-        enabled: selectedYear !== null,
-        placeholderData: (previousData) => previousData,
-        queryFn: async () => {
-            const url = `/api/v1/entities/map/year?${new URLSearchParams({
-                year: String(activeYear),
-            }).toString()}`;
-
-            const response = await fetch(url, {
-                headers: { Accept: 'application/json' },
-            });
-
-            if (!response.ok) {
-                throw new Error(`Failed to load map data (${response.status})`);
-            }
-
-            return (await response.json()) as MapResponse;
-        },
-    });
 
     const selectedEntityQuery = useQuery({
         queryKey: ['dashboard-entity', selectedEntityId],
@@ -116,19 +74,7 @@ export default function Dashboard() {
         },
     });
 
-    const mapFeatures = mapQuery.data?.features ?? [];
     const selectedEntity = selectedEntityQuery.data ?? null;
-    const hasMapData = mapQuery.data !== undefined;
-
-    const handleFeatureClick = (
-        feature: { id?: string; properties?: { id?: string } } | null,
-    ) => {
-        const nextId = feature?.properties?.id ?? feature?.id ?? null;
-
-        startTransition(() => {
-            setSelectedEntityId(nextId);
-        });
-    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -182,7 +128,7 @@ export default function Dashboard() {
                                 <div>
                                     Showing{' '}
                                     <span className="font-semibold text-stone-900 dark:text-stone-100">
-                                        {mapFeatures.length}
+                                        {featureCount}
                                     </span>{' '}
                                     mapped entities for{' '}
                                     <span className="font-semibold text-stone-900 dark:text-stone-100">
@@ -191,7 +137,7 @@ export default function Dashboard() {
                                     .
                                 </div>
                                 <div className="text-xs tracking-[0.18em] text-stone-500 uppercase dark:text-stone-400">
-                                    Global extent • debounced live refresh
+                                    Viewport extent • debounced live refresh
                                 </div>
                             </div>
                         </div>
@@ -199,7 +145,7 @@ export default function Dashboard() {
                 </section>
 
                 <section className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
-                    <div className="overflow-hidden rounded-3xl border border-sidebar-border/70 bg-white shadow-sm dark:border-sidebar-border dark:bg-stone-950">
+                    <div className="flex flex-col overflow-hidden rounded-3xl border border-sidebar-border/70 bg-white shadow-sm dark:border-sidebar-border dark:bg-stone-950">
                         <div className="flex items-center justify-between border-b border-sidebar-border/70 px-4 py-3 dark:border-sidebar-border">
                             <div>
                                 <h2 className="text-sm font-semibold text-stone-900 dark:text-stone-100">
@@ -210,43 +156,16 @@ export default function Dashboard() {
                                     record.
                                 </p>
                             </div>
-                            {mapQuery.isFetching && (
-                                <div className="text-xs tracking-[0.18em] text-amber-700 uppercase dark:text-amber-300">
-                                    Refreshing
-                                </div>
-                            )}
                         </div>
 
-                        {mapQuery.isError ? (
-                            <div className="flex h-[calc(100vh-18rem)] items-center justify-center px-6 text-center text-sm text-destructive">
-                                {(mapQuery.error as Error).message}
-                            </div>
-                        ) : !hasMapData && mapQuery.isLoading ? (
-                            <div className="flex h-[calc(100vh-18rem)] items-center justify-center">
-                                <div className="space-y-3 text-center">
-                                    <div className="mx-auto size-10 animate-spin rounded-full border-4 border-stone-200 border-t-amber-600 dark:border-stone-800 dark:border-t-amber-400" />
-                                    <p className="text-sm text-muted-foreground">
-                                        Building the historical layer…
-                                    </p>
-                                </div>
-                            </div>
-                        ) : mapFeatures.length > 0 ? (
-                            <HistoricalMapViewer
-                                className="h-[calc(100vh-18rem)]"
-                                baseGeometries={
-                                    mapFeatures as unknown as GeoJsonLike[]
-                                }
-                                timeframeDate={yearToTimeframe(activeYear)}
-                                fitBoundsKey={activeYear}
-                                dataVersion={mapQuery.dataUpdatedAt}
-                                onFeatureClick={handleFeatureClick}
-                            />
-                        ) : (
-                            <div className="flex h-[calc(100vh-18rem)] items-center justify-center px-8 text-center text-sm text-muted-foreground">
-                                No mapped entities are active in{' '}
-                                {formatYearLabel(activeYear)}.
-                            </div>
-                        )}
+                        <DashboardMap
+                            year={activeYear}
+                            onSelect={(id) =>
+                                startTransition(() => setSelectedEntityId(id))
+                            }
+                            onCountChange={setFeatureCount}
+                            className="min-h-0 w-full flex-1"
+                        />
                     </div>
 
                     <aside className="flex min-h-0 flex-col overflow-hidden rounded-3xl border border-sidebar-border/70 bg-stone-50 shadow-sm dark:border-sidebar-border dark:bg-stone-950">
@@ -264,7 +183,7 @@ export default function Dashboard() {
                             {selectedEntityId === null ? (
                                 <EmptySelectionState
                                     year={activeYear}
-                                    featureCount={mapFeatures.length}
+                                    featureCount={featureCount}
                                 />
                             ) : selectedEntityQuery.isLoading ? (
                                 <div className="space-y-3 rounded-2xl border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
@@ -450,10 +369,6 @@ function getInitialDashboardYear(): number {
     const storedYear = window.sessionStorage.getItem(YEAR_STORAGE_KEY);
 
     return clampYear(storedYear ?? String(DEFAULT_DASHBOARD_YEAR));
-}
-
-function yearToTimeframe(year: number): string {
-    return `${year}-01-01`;
 }
 
 function formatTypeLabel(value: string | null | undefined): string {

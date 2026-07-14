@@ -544,6 +544,43 @@ class AiChatStreamTest extends TestCase
         $this->assertSame(1, Conversation::query()->count());
     }
 
+    /**
+     * Regression (prod chat returned HTTP 200 with an empty body under FrankenPHP):
+     * Laravel 13's ResponseFactory::stream() hands the raw generator to the
+     * StreamedResponse under Octane and relies on the Octane client to iterate it.
+     * The FrankenPHP client only calls send(), so without the controller's
+     * drainGeneratorUnderFrankenPhp() workaround the streamed body is empty. With
+     * the Octane env marker set, the streamed body must actually contain the agent
+     * output and the terminating [DONE] event.
+     */
+    public function test_chat_stream_body_is_not_empty_under_octane(): void
+    {
+        $this->fakeWikidata();
+        GlobalAgent::fake(['Hello from GlobalAgent.']);
+
+        $user = $this->userWithPermissions(['entities.write']);
+
+        $_SERVER['LARAVEL_OCTANE'] = 1;
+
+        try {
+            $response = $this->actingAs($user)->postJson('/ai/chat', [
+                'kind' => 'global',
+                'prompt' => 'Say hello.',
+            ]);
+
+            $response->assertOk();
+            $response->assertHeader('Content-Type', 'text/event-stream; charset=utf-8');
+
+            $body = $response->streamedContent();
+
+            $this->assertNotSame('', $body, 'Streamed body must not be empty under Octane.');
+            $this->assertStringContainsString('data:', $body);
+            $this->assertStringContainsString('[DONE]', $body);
+        } finally {
+            unset($_SERVER['LARAVEL_OCTANE']);
+        }
+    }
+
     public function test_existing_entity_edit_mode_still_works_when_kind_omitted(): void
     {
         EntityEditorAgent::fake(['Edit mode fine.']);

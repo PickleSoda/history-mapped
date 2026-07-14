@@ -7,8 +7,23 @@
 
 # API + admin (Inertia) + OpenAPI docs — the FrankenPHP/Octane app on :8080.
 {$APP_DOMAIN} {
-	encode zstd gzip
-	reverse_proxy app:8080
+	# The AI chat endpoint streams Server-Sent Events (text/event-stream). The
+	# `encode` directive buffers the whole response to compress it, which defeats
+	# incremental streaming (the browser only sees tokens once the stream closes).
+	# Route SSE through its own handler with no compression and immediate flushing.
+	# NOTE: Octane's own FrankenPHP Caddyfile must ALSO skip compression for this
+	# path — see docker/api/octane-Caddyfile.
+	@sse path /ai/chat
+	handle @sse {
+		reverse_proxy app:8080 {
+			flush_interval -1
+		}
+	}
+
+	handle {
+		encode zstd gzip
+		reverse_proxy app:8080
+	}
 }
 
 # Public customer SPA — static files built into the web_dist volume.
