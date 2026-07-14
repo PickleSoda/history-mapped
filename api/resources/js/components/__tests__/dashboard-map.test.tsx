@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { normalizeOhmDate, yearToOhmDate } from '@/lib/ohm-date';
 import DashboardMap from '../dashboard-map';
 
 const mapState = vi.hoisted(() => ({
@@ -95,26 +96,32 @@ vi.mock('@/lib/map-config', () => ({
     OHM_ATTRIBUTION: 'ohm',
 }));
 
+const applyOhmLayerDateFilterMock = vi.hoisted(() => vi.fn());
+vi.mock('@/lib/ohm-layer-date-filter', () => ({
+    applyOhmLayerDateFilter: applyOhmLayerDateFilterMock,
+}));
+
 const fetchMock = vi.fn(async (..._args: unknown[]) => ({
     ok: true,
     json: async () => ({ type: 'FeatureCollection', features: [] }),
 }));
 vi.stubGlobal('fetch', fetchMock);
 
-function renderMap() {
+function renderMap(year = 1121) {
     const qc = new QueryClient({
         defaultOptions: { queries: { retry: false } },
     });
 
     return render(
         <QueryClientProvider client={qc}>
-            <DashboardMap year={1121} onSelect={() => {}} />
+            <DashboardMap year={year} onSelect={() => {}} />
         </QueryClientProvider>,
     );
 }
 
 afterEach(() => {
     fetchMock.mockClear();
+    applyOhmLayerDateFilterMock.mockClear();
     mapState.instance = null;
 });
 
@@ -147,5 +154,24 @@ describe('DashboardMap', () => {
         expect(url).toContain('year=1121');
         expect(url).toContain('min_results=24');
         expect(url).toContain('limit=2000');
+    });
+
+    it('applies the OHM date filter with a normalizable date for sub-4-digit years', async () => {
+        renderMap(100);
+        await waitFor(() => {
+            expect(applyOhmLayerDateFilterMock).toHaveBeenCalled();
+        });
+
+        // String(100) would fail normalizeOhmDate (4+ digit minimum) and
+        // silently reset the basemap filter — the padded form must be used.
+        expect(applyOhmLayerDateFilterMock).toHaveBeenCalledWith(
+            expect.anything(),
+            yearToOhmDate(100),
+        );
+
+        const passedDate = applyOhmLayerDateFilterMock.mock.calls.at(-1)![1] as
+            | string
+            | undefined;
+        expect(normalizeOhmDate(passedDate)).not.toBeNull();
     });
 });

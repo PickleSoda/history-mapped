@@ -12,6 +12,7 @@ import {
     registerGroupMarkers,
 } from '@/lib/entity-map-icons';
 import { loadHistoricalBasemapStyle } from '@/lib/map-config';
+import { yearToOhmDate } from '@/lib/ohm-date';
 import { applyOhmLayerDateFilter } from '@/lib/ohm-layer-date-filter';
 
 const SOURCE_ID = 'entities';
@@ -49,8 +50,6 @@ export default function DashboardMap({
 
     const onSelectRef = useRef(onSelect);
     onSelectRef.current = onSelect;
-    const yearRef = useRef(year);
-    yearRef.current = year;
 
     // ── init map once ─────────────────────────────────────────────────────────
     useEffect(() => {
@@ -183,8 +182,8 @@ export default function DashboardMap({
                         );
                     });
 
-                    applyOhmLayerDateFilter(map, String(yearRef.current));
-
+                    // The initial OHM date filter is applied by the year
+                    // effect below as soon as mapReady flips true.
                     const publishViewport = () => {
                         const b = map.getBounds();
                         setBbox({
@@ -223,7 +222,9 @@ export default function DashboardMap({
             return;
         }
 
-        applyOhmLayerDateFilter(map, String(year));
+        // yearToOhmDate pads to 4+ digits — normalizeOhmDate rejects e.g.
+        // '100' and would silently reset the basemap to unfiltered.
+        applyOhmLayerDateFilter(map, yearToOhmDate(year));
     }, [year, mapReady]);
 
     // ── viewport query (same endpoint + params as the public SPA) ─────────────

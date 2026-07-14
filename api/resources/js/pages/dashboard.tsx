@@ -145,7 +145,7 @@ export default function Dashboard() {
                 </section>
 
                 <section className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
-                    <div className="overflow-hidden rounded-3xl border border-sidebar-border/70 bg-white shadow-sm dark:border-sidebar-border dark:bg-stone-950">
+                    <div className="flex flex-col overflow-hidden rounded-3xl border border-sidebar-border/70 bg-white shadow-sm dark:border-sidebar-border dark:bg-stone-950">
                         <div className="flex items-center justify-between border-b border-sidebar-border/70 px-4 py-3 dark:border-sidebar-border">
                             <div>
                                 <h2 className="text-sm font-semibold text-stone-900 dark:text-stone-100">
@@ -164,7 +164,7 @@ export default function Dashboard() {
                                 startTransition(() => setSelectedEntityId(id))
                             }
                             onCountChange={setFeatureCount}
-                            className="h-full w-full"
+                            className="min-h-0 w-full flex-1"
                         />
                     </div>
 
