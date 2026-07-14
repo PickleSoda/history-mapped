@@ -43,9 +43,11 @@ const GROUP_GLYPHS: Record<string, string> = {
     // star
     EVENT: '<path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.79 21.61a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.554 10.4a.53.53 0 0 1 .294-.904l5.166-.756a2.122 2.122 0 0 0 1.597-1.16z"/>',
     // coins
-    ECONOMY: '<circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/>',
+    ECONOMY:
+        '<circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/>',
     // landmark
-    CULTURE: '<path d="M10 18v-7"/><path d="M11.12 2.198a2 2 0 0 1 1.76.006l7.866 3.847c.476.233.31.949-.22.949H3.474c-.53 0-.695-.716-.22-.949z"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/>',
+    CULTURE:
+        '<path d="M10 18v-7"/><path d="M11.12 2.198a2 2 0 0 1 1.76.006l7.866 3.847c.476.233.31.949-.22.949H3.474c-.53 0-.695-.716-.22-.949z"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/>',
 };
 
 /** Plain dot fallback for any group without a dedicated glyph. */
@@ -97,7 +99,11 @@ export async function registerGroupMarkers(map: MarkerHost): Promise<void> {
             color: GROUP_COLORS[g] ?? GROUP_COLORS.DEFAULT,
             glyph: GROUP_GLYPHS[g],
         })),
-        { id: 'marker-DEFAULT', color: GROUP_COLORS.DEFAULT, glyph: DEFAULT_GLYPH },
+        {
+            id: 'marker-DEFAULT',
+            color: GROUP_COLORS.DEFAULT,
+            glyph: DEFAULT_GLYPH,
+        },
     ];
 
     await Promise.all(
