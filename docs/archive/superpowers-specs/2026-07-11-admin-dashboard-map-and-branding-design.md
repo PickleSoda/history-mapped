@@ -2,6 +2,7 @@
 
 **Date:** 2026-07-11
 **Surface:** Inertia admin app (`api/resources/js`) only. The public `web/` SPA is untouched.
+> **Deviation note (ratified at merge):** the spec's "empty state keeps working off the count" was intentionally dropped — under viewport-driven loading a full-panel empty state would block panning to where entities exist; the side-panel count readout covers it.
 **Status:** Design approved pending user spec review.
 
 ## Goal

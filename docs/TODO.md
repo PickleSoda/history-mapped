@@ -50,3 +50,4 @@
 
 For map-query, agentic-pipeline, and OHM-phase work items, see the corresponding plans in
 [plans/](plans/) and the priority view in [plans/STATUS.md](plans/STATUS.md).
+- Replace the Laravel logomark SVG in `api/resources/js/components/app-logo-icon.tsx` with a History Mapped mark (sidebar still shows the starter icon next to the rebranded text).
