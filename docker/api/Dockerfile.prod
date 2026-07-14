@@ -131,7 +131,12 @@ COPY --from=build --chown=www-data:www-data /app/api/ ./
 # Custom Octane/FrankenPHP Caddyfile: same as Octane's stub but excludes the
 # AI chat SSE endpoint from compression (compression buffers the stream). Passed
 # to octane:start via --caddyfile below. See docker/api/octane-Caddyfile.
-COPY --chown=www-data:www-data docker/api/octane-Caddyfile /app/docker/octane-Caddyfile
+#
+# IMPORTANT: the in-image filename MUST be exactly "Caddyfile". Octane runs
+# `frankenphp run -c <file>` with no `--adapter`, so FrankenPHP auto-detects the
+# config format from the basename; anything other than "Caddyfile" is parsed as
+# JSON and octane:start crashes ("config is not valid JSON: … '#' at offset 1").
+COPY --chown=www-data:www-data docker/api/octane-Caddyfile /app/docker/octane/Caddyfile
 
 # Run as non-root: keep FrankenPHP/Caddy state under storage (writable) and own
 # Laravel's writable dirs.
@@ -149,4 +154,4 @@ EXPOSE 8080
 # (App Platform sets it); defaults to 8080. --max-requests recycles workers
 # periodically as a safety net against any latent per-request state leaks.
 ENV PORT=8080
-CMD ["sh", "-c", "php artisan octane:start --server=frankenphp --caddyfile=/app/docker/octane-Caddyfile --host=0.0.0.0 --port=${PORT} --workers=auto --max-requests=500"]
+CMD ["sh", "-c", "php artisan octane:start --server=frankenphp --caddyfile=/app/docker/octane/Caddyfile --host=0.0.0.0 --port=${PORT} --workers=auto --max-requests=500"]
