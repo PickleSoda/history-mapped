@@ -1,33 +1,45 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom/vitest';
 import {
-    afterAll,
-    afterEach,
-    beforeAll,
-    describe,
-    expect,
-    it,
-    vi,
-} from 'vitest';
+    cleanup,
+    fireEvent,
+    render,
+    screen,
+    waitFor,
+} from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import Dashboard from '../dashboard';
 
 const YEAR_STORAGE_KEY = 'historical-dashboard:selected-year';
 
-const historicalMapViewerMock = vi.fn(
+const dashboardMapMock = vi.fn(
     ({
-        timeframeDate,
-        baseGeometries,
+        year,
+        onSelect,
+        onCountChange,
     }: {
-        timeframeDate?: string;
-        baseGeometries?: unknown[];
+        year: number;
+        onSelect: (id: string | null) => void;
+        onCountChange?: (n: number) => void;
     }) => (
-        <div
-            data-testid="mock-map-viewer"
-            data-feature-count={String(baseGeometries?.length ?? 0)}
-            data-timeframe={timeframeDate ?? ''}
-        />
+        <>
+            <button
+                type="button"
+                data-testid="mock-select-button"
+                onClick={() => onSelect('entity-1')}
+            >
+                select entity
+            </button>
+            <button
+                type="button"
+                data-testid="mock-count-button"
+                onClick={() => onCountChange?.(7)}
+            >
+                report count
+            </button>
+            <div data-testid="mock-dashboard-map" data-year={String(year)} />
+        </>
     ),
 );
 
@@ -38,9 +50,12 @@ vi.mock('@inertiajs/react', () => ({
     ),
 }));
 
-vi.mock('@/components/historical-map-viewer', () => ({
-    default: (props: { timeframeDate?: string; baseGeometries?: unknown[] }) =>
-        historicalMapViewerMock(props),
+vi.mock('@/components/dashboard-map', () => ({
+    default: (props: {
+        year: number;
+        onSelect: (id: string | null) => void;
+        onCountChange?: (n: number) => void;
+    }) => dashboardMapMock(props),
 }));
 
 vi.mock('@/layouts/app-layout', () => ({
@@ -57,20 +72,16 @@ vi.mock('@/routes/entities', () => ({
     show: (id: string) => ({ url: `/entities/${id}` }),
 }));
 
-let fetchMock: ReturnType<typeof vi.fn>;
-
-beforeAll(() => {
-    fetchMock = vi.fn();
-    global.fetch = fetchMock as unknown as typeof fetch;
-});
-
-afterAll(() => {
-    fetchMock.mockRestore();
-});
+const fetchMock = vi.fn(async () => ({
+    ok: true,
+    json: async () => ({ data: { id: 'entity-1', name: 'Entity One' } }),
+}));
+vi.stubGlobal('fetch', fetchMock);
 
 afterEach(() => {
-    fetchMock.mockReset();
-    historicalMapViewerMock.mockClear();
+    cleanup();
+    dashboardMapMock.mockClear();
+    fetchMock.mockClear();
     window.sessionStorage.clear();
 });
 
@@ -91,40 +102,8 @@ function renderDashboard() {
 }
 
 describe('Dashboard', () => {
-    it('restores the selected year from session storage and re-renders the map when the year changes', async () => {
+    it('restores the selected year from session storage and passes it to the map', async () => {
         window.sessionStorage.setItem(YEAR_STORAGE_KEY, '250');
-
-        fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
-            const url = new URL(String(input), 'http://localhost');
-            const year = url.searchParams.get('year') ?? '0';
-
-            return {
-                ok: true,
-                json: async () => ({
-                    type: 'FeatureCollection',
-                    features: [
-                        {
-                            type: 'Feature',
-                            id: `entity-${year}`,
-                            geometry: {
-                                type: 'Point',
-                                coordinates: [Number(year), 10],
-                            },
-                            properties: {
-                                id: `entity-${year}`,
-                                name: `Entity ${year}`,
-                                entity_type: 'polity',
-                                entity_group: 'place',
-                                temporal_start: null,
-                                temporal_end: null,
-                                impact_score: 50,
-                                entity_color: null,
-                            },
-                        },
-                    ],
-                }),
-            } as Response;
-        });
 
         renderDashboard();
 
@@ -132,39 +111,45 @@ describe('Dashboard', () => {
         expect(yearInput).toHaveValue(250);
 
         await waitFor(() => {
-            expect(fetchMock).toHaveBeenCalledWith(
-                '/api/v1/entities/map/year?year=250',
-                expect.objectContaining({
-                    headers: { Accept: 'application/json' },
-                }),
-            );
-        });
-
-        await waitFor(() => {
-            expect(screen.getByTestId('mock-map-viewer')).toHaveAttribute(
-                'data-timeframe',
-                '250-01-01',
+            expect(screen.getByTestId('mock-dashboard-map')).toHaveAttribute(
+                'data-year',
+                '250',
             );
         });
 
         fireEvent.change(yearInput, { target: { value: '500' } });
 
         await waitFor(() => {
-            expect(fetchMock).toHaveBeenCalledWith(
-                '/api/v1/entities/map/year?year=500',
-                expect.objectContaining({
-                    headers: { Accept: 'application/json' },
-                }),
+            expect(screen.getByTestId('mock-dashboard-map')).toHaveAttribute(
+                'data-year',
+                '500',
             );
         });
 
         expect(window.sessionStorage.getItem(YEAR_STORAGE_KEY)).toBe('500');
+    });
+
+    it('reflects the map feature count and forwards selection into the side panel', async () => {
+        window.sessionStorage.setItem(YEAR_STORAGE_KEY, '250');
+
+        renderDashboard();
+
+        await screen.findByTestId('mock-dashboard-map');
+
+        fireEvent.click(screen.getByTestId('mock-count-button'));
 
         await waitFor(() => {
-            expect(screen.getByTestId('mock-map-viewer')).toHaveAttribute(
-                'data-timeframe',
-                '500-01-01',
-            );
+            expect(
+                screen.getByText(/entities are currently visible/),
+            ).toHaveTextContent('7 entities are currently visible.');
+        });
+
+        fireEvent.click(screen.getByTestId('mock-select-button'));
+
+        await waitFor(() => {
+            expect(
+                screen.queryByText('Nothing selected yet'),
+            ).not.toBeInTheDocument();
         });
     });
 });
