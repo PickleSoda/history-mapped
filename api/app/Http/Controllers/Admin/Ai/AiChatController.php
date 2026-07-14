@@ -13,7 +13,9 @@ use App\Models\Entity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Laravel\Ai\Models\Conversation;
+use ReflectionFunction;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AiChatController extends Controller
 {
@@ -165,6 +167,51 @@ class AiChatController extends Controller
 
         $response = $agent->stream($promptText)->usingVercelDataProtocol()->toResponse($request);
         $response->headers->set('X-Conversation-Id', $conversationId);
+
+        return $this->drainGeneratorUnderFrankenPhp($response);
+    }
+
+    /**
+     * Work around a laravel/octane FrankenPHP streaming incompatibility.
+     *
+     * Under Octane, Laravel's ResponseFactory::stream() hands the raw generator
+     * to the StreamedResponse and relies on the Octane client to iterate it. The
+     * Swoole and RoadRunner clients do (resolveStreamResponseCallback), but
+     * FrankenPhpClient::respond() just calls $response->send(), and Symfony's
+     * sendContent() invokes the generator callback without iterating it — so the
+     * stream body is empty (HTTP 200, no tokens). Re-wrap the callback in a plain
+     * closure that drains the generator with echo + flush, mirroring Laravel's
+     * non-Octane branch. No-op off Octane or for non-generator streams.
+     */
+    private function drainGeneratorUnderFrankenPhp(Response $response): Response
+    {
+        if (! $response instanceof StreamedResponse || ! isset($_SERVER['LARAVEL_OCTANE'])) {
+            return $response;
+        }
+
+        $callback = $response->getCallback();
+
+        if ($callback === null || ! (new ReflectionFunction($callback))->isGenerator()) {
+            return $response;
+        }
+
+        $response->setCallback(static function () use ($callback): void {
+            $stream = $callback();
+
+            if (! $stream instanceof \Generator) {
+                return;
+            }
+
+            foreach ($stream as $chunk) {
+                echo $chunk;
+
+                if (ob_get_level() > 0) {
+                    ob_flush();
+                }
+
+                flush();
+            }
+        });
 
         return $response;
     }
