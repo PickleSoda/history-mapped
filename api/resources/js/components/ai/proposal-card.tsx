@@ -1,6 +1,7 @@
 import { router } from '@inertiajs/react';
 import { CheckCircle, XCircle } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { ProposalDiff } from '@/components/ai/proposal-diff';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { emitAiApplied } from '@/lib/ai-events';
@@ -14,7 +15,8 @@ export type CreatedRef = {
 
 export type ProposalPart = {
     key: string;
-    human_diff: { summary: string };
+    tool?: string;
+    human_diff: { summary: string } & Record<string, unknown>;
     status?: 'pending' | 'applied' | 'discarded';
     result_id?: string | null;
 };
@@ -195,55 +197,58 @@ export function ProposalCard({
                     const status = partStatus[part.key];
 
                     return (
-                        <div
-                            key={part.key}
-                            className="flex items-center justify-between gap-2"
-                        >
-                            <span className="min-w-0 flex-1 text-sm text-foreground">
-                                {part.human_diff.summary}
-                            </span>
-                            {status === 'loading' ? (
-                                <span className="text-xs text-muted-foreground">
-                                    Saving…
+                        <div key={part.key}>
+                            <div className="flex items-center justify-between gap-2">
+                                <span className="min-w-0 flex-1 text-sm text-foreground">
+                                    {part.human_diff.summary}
                                 </span>
-                            ) : status === 'applied' ? (
-                                <span className="flex items-center gap-1 text-xs text-green-600">
-                                    <CheckCircle className="size-3.5" />
-                                    Applied
-                                </span>
-                            ) : status === 'discarded' ? (
-                                <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                                    <XCircle className="size-3.5" />
-                                    Discarded
-                                </span>
-                            ) : status === 'error' ? (
-                                <span className="text-xs text-red-600">
-                                    Error — try again
-                                </span>
-                            ) : (
-                                <span className="flex shrink-0 gap-1">
-                                    <Button
-                                        size="sm"
-                                        variant="default"
-                                        className="h-7 px-2 text-xs"
-                                        onClick={() =>
-                                            void act(part.key, 'apply')
-                                        }
-                                    >
-                                        Apply
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        className="h-7 px-2 text-xs"
-                                        onClick={() =>
-                                            void act(part.key, 'discard')
-                                        }
-                                    >
-                                        Discard
-                                    </Button>
-                                </span>
-                            )}
+                                {status === 'loading' ? (
+                                    <span className="text-xs text-muted-foreground">
+                                        Saving…
+                                    </span>
+                                ) : status === 'applied' ? (
+                                    <span className="flex items-center gap-1 text-xs text-green-600">
+                                        <CheckCircle className="size-3.5" />
+                                        Applied
+                                    </span>
+                                ) : status === 'discarded' ? (
+                                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                                        <XCircle className="size-3.5" />
+                                        Discarded
+                                    </span>
+                                ) : status === 'error' ? (
+                                    <span className="text-xs text-red-600">
+                                        Error — try again
+                                    </span>
+                                ) : (
+                                    <span className="flex shrink-0 gap-1">
+                                        <Button
+                                            size="sm"
+                                            variant="default"
+                                            className="h-7 px-2 text-xs"
+                                            onClick={() =>
+                                                void act(part.key, 'apply')
+                                            }
+                                        >
+                                            Apply
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-7 px-2 text-xs"
+                                            onClick={() =>
+                                                void act(part.key, 'discard')
+                                            }
+                                        >
+                                            Discard
+                                        </Button>
+                                    </span>
+                                )}
+                            </div>
+                            <ProposalDiff
+                                tool={part.tool}
+                                humanDiff={part.human_diff}
+                            />
                         </div>
                     );
                 })}
