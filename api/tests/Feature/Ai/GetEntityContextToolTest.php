@@ -83,6 +83,45 @@ class GetEntityContextToolTest extends TestCase
         $this->assertArrayHasKey('error', $data);
     }
 
+    public function test_handle_resolves_entity_by_name(): void
+    {
+        // Global instructions tell the model to "use get_entity_context to
+        // resolve a name to an id", so it passes a name, not a UUID.
+        $entity = Entity::factory()->create(['name' => 'France']);
+
+        $tool = app(GetEntityContext::class);
+        $json = $tool->handle(new Request(['name' => 'France']));
+
+        $data = json_decode($json, true);
+        $this->assertSame($entity->entity_id, $data['entity_id']);
+        $this->assertSame('France', $data['name']);
+    }
+
+    public function test_handle_treats_a_non_uuid_entity_id_as_a_name(): void
+    {
+        // Reproduces the production hang: the model passed entity_id => 'france'
+        // (a name). Entity::find('france') threw a QueryException (invalid uuid)
+        // mid-stream. Must resolve by name and never throw.
+        $entity = Entity::factory()->create(['name' => 'France']);
+
+        $tool = app(GetEntityContext::class);
+        $json = $tool->handle(new Request(['entity_id' => 'france']));
+
+        $data = json_decode($json, true);
+        $this->assertSame($entity->entity_id, $data['entity_id']);
+    }
+
+    public function test_handle_returns_error_for_unresolvable_non_uuid_without_throwing(): void
+    {
+        // A non-UUID value with no matching entity must degrade to an error
+        // payload, never a QueryException that aborts the stream.
+        $tool = app(GetEntityContext::class);
+        $json = $tool->handle(new Request(['entity_id' => 'no-such-place']));
+
+        $data = json_decode($json, true);
+        $this->assertArrayHasKey('error', $data);
+    }
+
     public function test_build_parts_throws_logic_exception(): void
     {
         $entity = Entity::factory()->create();
