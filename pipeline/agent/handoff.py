@@ -9,9 +9,11 @@ schemas; hydrate_state builds an AgentRunState ready for the deterministic tail
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from pydantic import BaseModel, Field
 
+from pipeline.agent.graph.state import AgentRunState, empty_state
 from pipeline.agent.schemas.entities import CandidateEntity, ParsedEvent
 from pipeline.agent.schemas.relations import CandidateRelation
 
@@ -25,7 +27,7 @@ class HandoffDocument(BaseModel):
     candidate_entities: list[CandidateEntity] = Field(default_factory=list)
     candidate_relations: list[CandidateRelation] = Field(default_factory=list)
     summaries: dict[str, dict[str, str]] = Field(default_factory=dict)
-    self_audit: dict = Field(default_factory=dict)
+    self_audit: dict[str, Any] = Field(default_factory=dict)
 
 
 def load_handoff(path: str | Path) -> HandoffDocument:
@@ -37,29 +39,15 @@ def hydrate_state(
     raw_input: str,
     create_chronicle: bool = True,
     refresh: bool = False,
-) -> dict:
-    """Build a complete AgentRunState dict from a validated handoff document."""
-    return {
-        "run_id": doc.run_id,
-        "raw_input": raw_input,
-        "date_hints": [],
-        "parsed_events": doc.parsed_events,
-        "candidate_entities": doc.candidate_entities,
-        "candidate_relations": doc.candidate_relations,
-        "enriched_entities": [],
-        "validation_results": [],
-        "proposed_diff": None,
-        "committed": [],
-        "chronicle": None,
-        "audit_log": [],
-        "errors": [],
-        "title": doc.title,
-        "create_chronicle": create_chronicle,
-        "refresh": refresh,
-        "entity_id_map": {},
-        "relation_id_map": {},
-        "critic_iterations": int(doc.self_audit.get("critic_iterations", 0)),
-        "critic_done": True,
-        "summaries": doc.summaries,
-        "summaries_precomputed": doc.summaries_precomputed,
-    }
+) -> AgentRunState:
+    """Build a complete AgentRunState from a validated handoff document."""
+    state = empty_state(doc.run_id, raw_input, title=doc.title,
+                        create_chronicle=create_chronicle, refresh=refresh)
+    state["parsed_events"] = doc.parsed_events
+    state["candidate_entities"] = doc.candidate_entities
+    state["candidate_relations"] = doc.candidate_relations
+    state["critic_iterations"] = int(doc.self_audit.get("critic_iterations", 0))
+    state["critic_done"] = True
+    state["summaries"] = doc.summaries
+    state["summaries_precomputed"] = doc.summaries_precomputed
+    return state

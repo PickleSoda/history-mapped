@@ -42,3 +42,39 @@ class AgentRunState(TypedDict):
     # label, plus the flag telling generate_content to skip its LLM calls.
     summaries: dict[str, dict[str, str]]
     summaries_precomputed: bool
+
+
+def empty_state(run_id: str, raw_input: str, title: str | None = None,
+                create_chronicle: bool = True, refresh: bool = False) -> AgentRunState:
+    """Fresh AgentRunState with every channel initialised.
+
+    Single source of truth for every entry point (run_agent,
+    run_agent_from_candidates, handoff hydration): graph nodes read channels
+    straight off this dict at runtime, so a key missing here surfaces as a
+    KeyError mid-run instead of at construction — and per-entry-point copies
+    can't drift apart as the TypedDict grows.
+    """
+    return {
+        "run_id": run_id,
+        "raw_input": raw_input,
+        "date_hints": [],
+        "parsed_events": [],
+        "candidate_entities": [],
+        "candidate_relations": [],
+        "enriched_entities": [],
+        "validation_results": [],
+        "proposed_diff": None,
+        "committed": [],
+        "chronicle": None,
+        "audit_log": [],
+        "errors": [],
+        "title": title,
+        "create_chronicle": create_chronicle,
+        "refresh": refresh,
+        "entity_id_map": {},
+        "relation_id_map": {},
+        "critic_iterations": 0,
+        "critic_done": False,
+        "summaries": {},
+        "summaries_precomputed": False,
+    }

@@ -1,8 +1,6 @@
 import json
 from pathlib import Path
 
-import pytest
-
 from pipeline.agent.handoff import HandoffDocument, hydrate_state, load_handoff
 
 
@@ -69,6 +67,7 @@ def test_hydrate_state_produces_full_tail_state(tmp_path: Path):
     state = hydrate_state(doc, raw_input="raw transcript text")
     assert state["run_id"] == "campaign_test"
     assert state["title"] == "Test Chronicle"
+    assert state["critic_iterations"] == 2
     assert state["critic_done"] is True
     assert state["summaries_precomputed"] is True
     assert "David IV of Georgia" in state["summaries"]
