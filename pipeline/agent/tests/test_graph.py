@@ -30,6 +30,12 @@ def test_build_workflow_default_entry_unchanged():
     assert entries == {"preprocess_transcript"}
 
 
+def test_build_workflow_rejects_unknown_entry_point():
+    import pytest as _pytest
+    with _pytest.raises(ValueError):
+        build_workflow(entry_point="db_lookup")
+
+
 @patch("pipeline.agent.llm.ChatOpenAI")
 @patch("pipeline.agent.graph.nodes.db_lookup.search_entity_by_name")
 @patch("pipeline.agent.graph.nodes.resolve_wikidata.search_wikidata_by_name")

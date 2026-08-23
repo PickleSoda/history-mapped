@@ -37,6 +37,8 @@ def build_workflow(entry_point: str = "full") -> StateGraph:
     already executed offline (--from-candidates). Upstream nodes stay registered
     but are never reached from the tail entry point.
     """
+    if entry_point not in ("full", "tail"):
+        raise ValueError(f"Unknown entry_point: {entry_point!r} (expected 'full' or 'tail')")
     workflow = StateGraph(AgentRunState)
 
     # Register all nodes with error capture wrapper
