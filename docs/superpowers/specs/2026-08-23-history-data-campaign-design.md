@@ -54,7 +54,7 @@ Location: `output/transcripts/campaign/<era>__<topic>.txt`. Kebab-case topics. S
 
 **Thematic overlays (~20):** Silk Road; trans-Saharan trade; Indian Ocean trade; spread of Buddhism; spread of Christianity; rise of Islam; major wars (per era); epidemics; technology diffusion; migrations; revolutions; etc.
 
-Cells are populated only where historically meaningful (not every era × region is dense). Driver manifest records expected fact count per file (~60–150). Total ≈ 300 files ≈ 30k facts.
+Cells are populated only where historically meaningful (not every era × region is dense). Driver manifest records expected fact count per file (~60–150). Total ≈ 300 files ≈ 30k facts. Era boundary years (e.g. 330 BCE in E04 and E05) resolve by the tie-break: **an era owns its start year** — a fact dated exactly at the boundary belongs to the later era's transcript.
 
 ### 3.2 Waves
 
@@ -93,16 +93,18 @@ Path: `output/campaign/extractions/<run_id>/candidates.json`
   "parsed_events": [ { "label": "...", "description": "...", "start_date": "-750", "end_date": null, "mentioned_entities": ["..."], "date_uncertain": false } ],
   "candidate_entities": [ { "label": "Athens", "entity_type": "political_entity", "start_date": "-750", "end_date": null, "source_event": "...", "aliases": ["..."], "wikidata_id": null, "confidence": 0.0 } ],
   "candidate_relations": [ { "source_label": "Athens", "target_label": "Sparta", "relationship_type": "at_war_with", "start_date": "-431", "end_date": "-404", "source_event": "...", "description": "...", "confidence": 0.0 } ],
+  "summaries": { "Athens": { "summary": "...", "significance": "..." } },
   "self_audit": { "critic_iterations": 2, "orphan_check_done": true }
 }
 ```
 
 Binding rules:
 - Item shapes are exactly `ParsedEvent`, `CandidateEntity`, `CandidateRelation` from `pipeline/agent/schemas/entities.py` / `relations.py` (pydantic). Type normalisation (`normalize_entity_type`) happens at model construction, same as the live nodes.
-- `summaries_precomputed: true` requires every candidate entity to carry non-null `summary` + `significance` (stored alongside candidates in the handoff under each enriched entry — see §5 note).
+- Pre-generated prose lives in a top-level `"summaries"` map keyed by entity label: `{ "<label>": { "summary": str, "significance": str } }`. (`CandidateEntity` has no such fields by design; pydantic ignores extra keys, so the validation gate checks this map explicitly.) `summaries_precomputed: true` requires every candidate label to appear in the map with both values non-empty.
 - `entity_type` values should already be canonical (the taxonomy in `schemas/entities.py:_CANONICAL_ENTITY_TYPES`); `relationship_type` values must be in `validate.ALLOWED_RELATION_TYPES`.
 - Years as strings matching the existing date convention (`"-331"` = 331 BCE); sign errors are the #1 historical defect class (remediation F2) — extractions double-check CE/BCE polarity.
 - `wikidata_id` stays `null`. Extraction never fabricates QIDs or geometry.
+- `self_audit` is provenance metadata only — recorded in the run manifest, consumed by no node.
 
 ### 4.2 Validation gate
 
@@ -143,7 +145,7 @@ Re-run the remediation doc's §2 measurement queries after each wave:
 | Fabricated `-01-01` dates on year-only facts | ~100% | ~0 |
 | CE/BCE sign errors | intermittent | 0 found in spot-checks |
 | Orphan entities | 48% | <15% |
-| Relations resolved at import | ~50% | >90% |
+| Relations resolved at import | ~50% (current code path with G3 fix measured ~94%) | >90% |
 | Chronicle impact distinct values | 4 | >10 |
 | Off-taxonomy types blocked | ~20% | 0 |
 
