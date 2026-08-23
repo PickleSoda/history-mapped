@@ -8,7 +8,6 @@ from langgraph.graph import StateGraph, END
 from pipeline.agent.log_config import get_logger
 from pipeline.agent.config import AgentConfig
 from pipeline.agent.graph.state import AgentRunState, empty_state
-from pipeline.agent.handoff import hydrate_state, load_handoff
 
 logger = get_logger(__name__)
 from pipeline.agent.graph.nodes.preprocess_transcript import preprocess_transcript
@@ -160,6 +159,11 @@ def run_agent_from_candidates(handoff_path, run_id=None, create_chronicle=True,
 
     Idempotency mirrors run_agent(): a clean existing manifest short-circuits.
     """
+    # Imported here, not at module top: handoff -> graph.state triggers this
+    # package's __init__, which imports workflow — a module-top import would be
+    # circular (workflow suspended mid-import when graph/__init__ asks for it).
+    from pipeline.agent.handoff import hydrate_state, load_handoff
+
     cfg = AgentConfig()
     doc = load_handoff(handoff_path)
     run_id = run_id or doc.run_id
