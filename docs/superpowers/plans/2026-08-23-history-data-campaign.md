@@ -988,6 +988,25 @@ Expected: hundreds of entities across ≥6 types; 3 chronicles.
 
 - [ ] **Step 6: Record results** — append measured numbers + go/no-go to this plan file's Task 9 section; commit.
 
+### Wave-0 results (2026-08-24) — **GO**
+
+Machinery tasks 1–7 shipped on `feat/history-data-campaign` (commits 7fcb5f2…37a300b + pilot work). Three pilots ingested against fresh DB:
+
+| Run | Events | Entities committed | Relations created/resolved | Chronicle |
+|-----|--------|--------------------|---------------------------|-----------|
+| campaign_e01__mesopotamia__neolithic-settlements | 29 | 35 | 11/13 | ✓ 29 entries |
+| campaign_e04__aegean__classical-greece | 36 | 95 | 69/71 | ✓ 36 entries |
+| campaign_e10__global__modern-revolutions | 63 | 117 | 70/72 | ✓ 63 entries |
+| **Total** | | **247** (97% with QID) | 150 (~95%) | 3 |
+
+Measured vs acceptance: fabricated dates 0; sign errors 0; off-taxonomy 0; geo ~100%; orphans 17%; chronicle impact spread healthy. Spot-check of QIDs (Jericho Q5687, Çatalhöyük Q192522, Göbekli Tepe Q214944, Uruk Q168518, Ur-city Q632044…) all correct; abstract tech-events honestly left QID-less rather than fabricating.
+
+Notes for waves:
+1. `infrastructure_monument` and other types missing from `ENTITY_RISK_POLICIES` fall back to the 0.95 global threshold → uncorroborated monuments (Eye Temple, Eanna district) held as review_items. Consider adding policies for the ~20 unlisted allowed types before mass waves.
+2. Relation density drives orphan rate; extraction guidance should target ≥1.5 relations/entity.
+3. Subagent OOM instability observed on this device → extraction sessions should be one-file-per-dispatch or inline.
+4. LangSmith telemetry 403 noise is unrelated (env config).
+
 ---
 
 ### Task 10: Docs update

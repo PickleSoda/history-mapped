@@ -266,6 +266,25 @@ OPENAI_API_KEY=not-needed
 
 The LLM layer is provider-agnostic via `pipeline/agent/llm.py:create_llm()`, which wraps `langchain_openai.ChatOpenAI` with configurable `base_url`, `model`, and `api_key`.
 
+## Handoff Mode (--from-candidates)
+
+For campaign-scale generation, an opencode session performs the LLM stages offline (parse, extract, completeness-critic recall loop, summaries per `style_guide.md`) and writes a handoff file; the graph then runs its deterministic tail (db_lookup → … → audit_logger) with **zero LLM calls**.
+
+```bash
+# 1. Author output/campaign/extractions/<run_id>/candidates.json
+#    (schema contract: docs/superpowers/specs/2026-08-23-history-data-campaign-design.md §4.1)
+# 2. Validate the gate:
+pipeline/.venv/bin/python -m pipeline.agent.validate_handoff output/campaign/extractions/<run_id>/candidates.json
+# 3. Run the deterministic tail:
+pipeline/.venv/bin/python -m pipeline agent --from-candidates \
+  output/campaign/extractions/<run_id>/candidates.json --run-id <run_id>
+# Batch: bash run_campaign.sh   (processes every pending extraction sequentially)
+```
+
+Handoff binding rules: items match `ParsedEvent`/`CandidateEntity`/`CandidateRelation` pydantic schemas; `relationship_type` ∈ `validate.ALLOWED_RELATION_TYPES`; relation endpoints must all be extracted entities; when `summaries_precomputed` is true a top-level `"summaries"` map keyed by entity label supplies `summary`+`significance` for every candidate (generate_content skips its LLM entirely). Idempotency matches `run_agent()`: a clean manifest short-circuits re-runs (`--refresh` overrides). See the campaign design spec and `docs/superpowers/plans/2026-08-23-history-data-campaign.md` for the full workflow and measured pilot results.
+
+---
+
 ### Model Fallback Chains
 
 Each LLM node has a primary model and an ordered fallback chain. If the primary model fails (rate limit, timeout, 5xx, etc.), the pipeline automatically retries and then falls back to the next model in the chain.
