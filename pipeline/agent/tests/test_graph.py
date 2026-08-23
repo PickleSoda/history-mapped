@@ -1,6 +1,9 @@
 from unittest.mock import patch, MagicMock
 import json
+import shutil
+from pathlib import Path
 
+from pipeline.agent.config import AgentConfig
 from pipeline.agent.graph.workflow import build_workflow, run_agent
 from pipeline.agent.graph.state import AgentRunState
 
@@ -102,3 +105,40 @@ def test_run_agent_end_to_end(mock_run, mock_resolve_polity, mock_enrich, mock_w
     assert "relation_id_map" in result
     assert isinstance(result["entity_id_map"], dict)
     assert isinstance(result["relation_id_map"], dict)
+
+
+@patch("pipeline.agent.llm.ChatOpenAI")
+@patch("pipeline.agent.graph.nodes.db_lookup.search_entity_by_name")
+@patch("pipeline.agent.graph.nodes.resolve_wikidata.search_wikidata_by_name")
+@patch("pipeline.agent.graph.nodes.resolve_wikidata.enrich_wikidata_entities")
+@patch("pipeline.agent.graph.nodes.resolve_ohm.resolve_polity")
+@patch("pipeline.agent.graph.nodes.chronicle_writer.run_artisan_command")
+@patch("pipeline.agent.graph.nodes.commit_writer.run_artisan_command")
+def test_run_agent_from_candidates_end_to_end(mock_run, mock_chron_run, mock_resolve_polity,
+                                              mock_enrich, mock_wd, mock_db, mock_chat, tmp_path):
+    """The sample handoff is fully precomputed (summaries + descriptions + title),
+    so the tail must run WITHOUT constructing any LLM."""
+    from pipeline.agent.graph.workflow import run_agent_from_candidates
+    from pipeline.agent.tests.test_handoff import _sample_doc
+
+    mock_db.return_value = []
+    mock_wd.return_value = [{"qid": "Q405", "label": "David IV of Georgia", "description": "King"}]
+    mock_enrich.return_value = {"Q405": {"label": "David IV of Georgia", "description": "King"}}
+    mock_resolve_polity.return_value = None
+    mock_run.return_value = {"returncode": 0, "stdout": "OK", "stderr": ""}
+    mock_chron_run.return_value = {"returncode": 0, "stdout": "OK", "stderr": ""}
+
+    handoff_path = tmp_path / "candidates.json"
+    handoff_path.write_text(json.dumps(_sample_doc()), encoding="utf-8")
+
+    cfg = AgentConfig()
+    prev = Path(cfg.output_dir) / "campaign_test"
+    if prev.exists():
+        shutil.rmtree(prev)
+
+    result = run_agent_from_candidates(str(handoff_path))
+    assert result["run_id"] == "campaign_test"
+    assert len(result["enriched_entities"]) == 3
+    assert all(e.summary and e.significance for e in result["enriched_entities"])
+    assert result["errors"] == []
+    mock_chat.assert_not_called()

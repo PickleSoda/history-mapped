@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from langgraph.graph import StateGraph, END
 
 from pipeline.agent.log_config import get_logger
 from pipeline.agent.config import AgentConfig
-from pipeline.agent.graph.state import AgentRunState
+from pipeline.agent.graph.state import AgentRunState, empty_state
+from pipeline.agent.handoff import hydrate_state, load_handoff
 
 logger = get_logger(__name__)
 from pipeline.agent.graph.nodes.preprocess_transcript import preprocess_transcript
@@ -143,30 +145,51 @@ def run_agent(raw_input: str, run_id: str, title: str | None = None, create_chro
                 "critic_done": True,
             }
 
-    initial_state: AgentRunState = {
-        "run_id": run_id,
-        "raw_input": raw_input,
-        "date_hints": [],
-        "parsed_events": [],
-        "candidate_entities": [],
-        "candidate_relations": [],
-        "enriched_entities": [],
-        "validation_results": [],
-        "proposed_diff": None,
-        "committed": [],
-        "chronicle": None,
-        "audit_log": [],
-        "errors": [],
-        "title": title,
-        "create_chronicle": create_chronicle,
-        "refresh": refresh,
-        "entity_id_map": {},
-        "relation_id_map": {},
-        "critic_iterations": 0,
-        "critic_done": False,
-    }
+    initial_state = empty_state(run_id, raw_input, title=title,
+                                create_chronicle=create_chronicle, refresh=refresh)
     result = workflow.invoke(initial_state, config={"configurable": {"thread_id": run_id}})
     logger.info("Workflow complete: run_id=%s errors=%d committed=%d chronicle=%s",
                 run_id, len(result.get("errors", [])), len(result.get("committed", [])),
                 result.get("chronicle") is not None)
+    return result
+
+
+def run_agent_from_candidates(handoff_path, run_id=None, create_chronicle=True,
+                              refresh=False) -> AgentRunState:
+    """Run the deterministic tail from an opencode-authored handoff file.
+
+    Idempotency mirrors run_agent(): a clean existing manifest short-circuits.
+    """
+    cfg = AgentConfig()
+    doc = load_handoff(handoff_path)
+    run_id = run_id or doc.run_id
+
+    output_root = Path(cfg.output_dir) / run_id
+    manifest_path = output_root / "manifest.json"
+    if not refresh and manifest_path.exists():
+        with open(manifest_path) as f:
+            manifest = json.load(f)
+        if manifest.get("errors_count", 0) == 0:
+            logger.info("Run %s already completed successfully, skipping", run_id)
+            return {"run_id": run_id, "raw_input": "", "parsed_events": doc.parsed_events,
+                    "candidate_entities": doc.candidate_entities,
+                    "candidate_relations": doc.candidate_relations,
+                    "enriched_entities": [], "validation_results": [],
+                    "proposed_diff": None, "committed": [], "chronicle": None,
+                    "audit_log": [], "errors": [], "title": doc.title,
+                    "create_chronicle": create_chronicle, "entity_id_map": {},
+                    "relation_id_map": {}, "critic_iterations": 0, "critic_done": True}
+
+    raw_input = ""
+    if doc.source_transcript and os.path.exists(doc.source_transcript):
+        raw_input = Path(doc.source_transcript).read_text(encoding="utf-8")
+
+    initial_state = hydrate_state(doc, raw_input=raw_input,
+                                  create_chronicle=create_chronicle, refresh=refresh)
+    initial_state["run_id"] = run_id
+
+    workflow = build_workflow(entry_point="tail")
+    result = workflow.invoke(initial_state, config={"configurable": {"thread_id": run_id}})
+    logger.info("Handoff workflow complete: run_id=%s errors=%d committed=%d",
+                run_id, len(result.get("errors", [])), len(result.get("committed", [])))
     return result
