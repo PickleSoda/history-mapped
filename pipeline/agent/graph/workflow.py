@@ -29,8 +29,14 @@ from pipeline.agent.graph.node_wrapper import with_error_capture
 from langgraph.checkpoint.memory import MemorySaver
 
 
-def build_workflow() -> StateGraph:
-    """Build and return the compiled agent workflow graph."""
+def build_workflow(entry_point: str = "full") -> StateGraph:
+    """Build and return the compiled agent workflow graph.
+
+    entry_point="full" (default): complete graph starting at preprocess_transcript.
+    entry_point="tail": starts at db_lookup — handoff runs where the LLM stages
+    already executed offline (--from-candidates). Upstream nodes stay registered
+    but are never reached from the tail entry point.
+    """
     workflow = StateGraph(AgentRunState)
 
     # Register all nodes with error capture wrapper
@@ -52,7 +58,9 @@ def build_workflow() -> StateGraph:
     workflow.add_node("audit_logger", with_error_capture(audit_logger))
 
     # Define edges
-    workflow.set_entry_point("preprocess_transcript")
+    workflow.set_entry_point(
+        "preprocess_transcript" if entry_point == "full" else "db_lookup"
+    )
     workflow.add_edge("preprocess_transcript", "parse_sequence")
     workflow.add_edge("parse_sequence", "extract_candidates")
     workflow.add_edge("extract_candidates", "completeness_critic")

@@ -14,6 +14,22 @@ def test_build_workflow_compiles():
     assert "chronicle_writer" in nodes
 
 
+def test_build_workflow_tail_entry_point():
+    workflow = build_workflow(entry_point="tail")
+    graph = workflow.get_graph()
+    nodes = {n for n in graph.nodes}
+    assert "db_lookup" in nodes and "audit_logger" in nodes
+    entries = {e.target for e in graph.edges if e.source == "__start__"}
+    assert entries == {"db_lookup"}
+
+
+def test_build_workflow_default_entry_unchanged():
+    workflow = build_workflow()
+    graph = workflow.get_graph()
+    entries = {e.target for e in graph.edges if e.source == "__start__"}
+    assert entries == {"preprocess_transcript"}
+
+
 @patch("pipeline.agent.llm.ChatOpenAI")
 @patch("pipeline.agent.graph.nodes.db_lookup.search_entity_by_name")
 @patch("pipeline.agent.graph.nodes.resolve_wikidata.search_wikidata_by_name")
