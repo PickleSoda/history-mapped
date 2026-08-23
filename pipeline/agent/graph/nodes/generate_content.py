@@ -112,6 +112,22 @@ def _sentence_count(text: str | None) -> int:
     return len(re.findall(r"[.!?](?:\s|$)", text.strip()))
 
 
+def _apply_precomputed_summaries(entities: list, summaries: dict[str, dict[str, str]]) -> int:
+    """Apply handoff-authored summary/significance onto enriched candidates."""
+    applied = 0
+    for e in entities:
+        fields = summaries.get(e.candidate.label)
+        if not isinstance(fields, dict):
+            continue
+        if fields.get("summary") and not e.summary:
+            e.summary = fields["summary"]
+        if fields.get("significance") and not e.significance:
+            e.significance = fields["significance"]
+        if e.summary:
+            applied += 1
+    return applied
+
+
 def _apply_summary_pass(llm, prompt: str, by_label: dict, state: AgentRunState, stage: str) -> None:
     """Run one summary/significance LLM call and merge results, keeping the longer
     summary so a retry never regresses an entity to a shorter one."""
@@ -144,52 +160,67 @@ def _apply_summary_pass(llm, prompt: str, by_label: dict, state: AgentRunState, 
 
 def generate_content(state: AgentRunState) -> AgentRunState:
     cfg = AgentConfig()
-    llm = create_llm_with_fallbacks("generate_model", cfg, max_tokens=cfg.generate_max_tokens,
-                                    reasoning_effort=cfg.reasoning_effort)
-    style_guide = _load_style_guide()
     entities = state["enriched_entities"]
     relations = state["candidate_relations"]
-    logger.info("LLM call: generate_content (model=%s, entities=%d, relations=%d, chunk=%d)",
-                cfg.generate_model, len(entities), len(relations), ENTITY_CHUNK_SIZE)
+    logger.info("generate_content (entities=%d, relations=%d)", len(entities), len(relations))
 
     event_text = _event_text_by_label(state["parsed_events"])
     rels_by_entity = _relations_by_entity(relations)
     by_label = {e.candidate.label: e for e in entities}
 
-    # ── Entity summaries + significance, in small chunks for depth ──────────
-    for chunk in _chunked(entities, ENTITY_CHUNK_SIZE):
-        context = json.dumps(
-            [_entity_context(e, event_text, rels_by_entity) for e in chunk],
-            default=str,
-        )
-        prompt = _ENTITY_PROMPT.format(style_guide=style_guide, entities=context)
-        _apply_summary_pass(llm, prompt, by_label, state, "summary")
+    llm = None  # lazily constructed; never built when everything is precomputed
 
-    # ── Guard: re-request any summary that came back too short (<3 sentences).
-    # The model intermittently returns a one-liner despite the prompt; one extra
-    # targeted pass over just the deficient entities enforces the floor without
-    # regenerating everything.
-    deficient = [e for e in entities if _sentence_count(e.summary) < 3]
-    if deficient:
-        logger.info("Re-requesting %d short summaries (<3 sentences)", len(deficient))
-        for chunk in _chunked(deficient, ENTITY_CHUNK_SIZE):
+    def _llm():
+        nonlocal llm
+        if llm is None:
+            llm = create_llm_with_fallbacks("generate_model", cfg,
+                                            max_tokens=cfg.generate_max_tokens,
+                                            reasoning_effort=cfg.reasoning_effort)
+        return llm
+
+    pre_summaries = state.get("summaries") or {}
+    if state.get("summaries_precomputed"):
+        applied = _apply_precomputed_summaries(entities, pre_summaries)
+        missing = [e.candidate.label for e in entities if not e.summary]
+        logger.info("Handoff summaries applied to %d/%d entities (%d missing)",
+                    applied, len(entities), len(missing))
+        if missing:
+            context = json.dumps(
+                [_entity_context(e, event_text, rels_by_entity)
+                 for e in entities if not e.summary],
+                default=str,
+            )
+            prompt = _ENTITY_PROMPT.format(style_guide=_load_style_guide(), entities=context)
+            _apply_summary_pass(_llm(), prompt, by_label, state, "summary_gapfill")
+    else:
+        for chunk in _chunked(entities, ENTITY_CHUNK_SIZE):
             context = json.dumps(
                 [_entity_context(e, event_text, rels_by_entity) for e in chunk],
                 default=str,
             )
-            prompt = _ENTITY_PROMPT.format(style_guide=style_guide, entities=context) + (
-                "\n\nIMPORTANT: a previous attempt returned summaries that were too short. Write a NEW summary "
-                "of at least THREE full sentences for EVERY entity above."
-            )
-            _apply_summary_pass(llm, prompt, by_label, state, "summary_retry")
+            prompt = _ENTITY_PROMPT.format(style_guide=_load_style_guide(), entities=context)
+            _apply_summary_pass(_llm(), prompt, by_label, state, "summary")
 
-    # ── Relation descriptions (short; one pass) ─────────────────────────────
-    if relations:
+        deficient = [e for e in entities if _sentence_count(e.summary) < 3]
+        if deficient:
+            logger.info("Re-requesting %d short summaries (<3 sentences)", len(deficient))
+            for chunk in _chunked(deficient, ENTITY_CHUNK_SIZE):
+                context = json.dumps(
+                    [_entity_context(e, event_text, rels_by_entity) for e in chunk],
+                    default=str,
+                )
+                prompt = _ENTITY_PROMPT.format(style_guide=_load_style_guide(), entities=context) + (
+                    "\n\nIMPORTANT: a previous attempt returned summaries that were too short. "
+                    "Write a NEW summary of at least THREE full sentences for EVERY entity above."
+                )
+                _apply_summary_pass(_llm(), prompt, by_label, state, "summary_retry")
+
+    if relations and any(not r.description for r in relations):
         relations_context = json.dumps(
             [
                 {"source": r.source_label, "target": r.target_label, "type": r.relationship_type,
                  "dates": {"start": r.start_date, "end": r.end_date}}
-                for r in relations
+                for r in relations if not r.description
             ],
             default=str,
         )
@@ -200,27 +231,22 @@ def generate_content(state: AgentRunState) -> AgentRunState:
             'Output strictly as JSON:\n{"relation_descriptions": {"Source|relationship_type|Target": "..."}}\n'
         )
         try:
-            data = llm.invoke_json(
+            data = _llm().invoke_json(
                 [HumanMessage(content=rel_prompt)],
                 validate=lambda d: isinstance(d, dict) and "relation_descriptions" in d,
             )
             rel_descs = data.get("relation_descriptions", {})
             for relation in relations:
+                if relation.description:
+                    continue
                 key = f"{relation.source_label}|{relation.relationship_type}|{relation.target_label}"
                 relation.description = rel_descs.get(key)
         except Exception as exc:
             state["errors"].append(
-                PipelineError(
-                    node="generate_content",
-                    error_type="json_parse",
-                    message=str(exc),
-                    context={"stage": "relation_descriptions"},
-                )
+                PipelineError(node="generate_content", error_type="json_parse",
+                              message=str(exc), context={"stage": "relation_descriptions"})
             )
 
-    # ── Engaging chronicle title when the caller didn't supply one ──────────
-    # The fallback (first event's label) produces flat titles like "Plague of
-    # Athens"; an LLM title over the whole entity set reads far better.
     if not (state.get("title") or "").strip() and entities:
         names = ", ".join(e.candidate.label for e in entities[:14])
         title_prompt = (
@@ -231,7 +257,7 @@ def generate_content(state: AgentRunState) -> AgentRunState:
             'Output strictly as JSON: {"title": "..."}'
         )
         try:
-            data = llm.invoke_json(
+            data = _llm().invoke_json(
                 [HumanMessage(content=title_prompt)],
                 validate=lambda d: isinstance(d, dict) and "title" in d,
             )
@@ -241,10 +267,8 @@ def generate_content(state: AgentRunState) -> AgentRunState:
                 logger.info("Generated chronicle title: %s", title)
         except Exception as exc:
             state["errors"].append(
-                PipelineError(
-                    node="generate_content", error_type="json_parse",
-                    message=str(exc), context={"stage": "title"},
-                )
+                PipelineError(node="generate_content", error_type="json_parse",
+                              message=str(exc), context={"stage": "title"})
             )
 
     summarised = sum(1 for e in entities if e.summary)

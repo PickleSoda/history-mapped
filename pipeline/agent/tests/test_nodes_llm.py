@@ -5,6 +5,7 @@ import json
 from pipeline.agent.graph.nodes.extract_candidates import extract_candidates
 from pipeline.agent.graph.nodes.generate_content import generate_content, _sentence_count
 from pipeline.agent.graph.nodes.parse_sequence import parse_sequence
+from pipeline.agent.llm import create_llm_with_fallbacks
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.entities import CandidateEntity, EnrichedCandidate, ParsedEvent
 from pipeline.agent.schemas.relations import CandidateRelation
@@ -130,3 +131,67 @@ def test_short_summary_is_retried_until_three_sentences(mock_chat):
     state["enriched_entities"] = [EnrichedCandidate(candidate=CandidateEntity(label="Cnut", entity_type="person"))]
     new_state = generate_content(state)
     assert _sentence_count(new_state["enriched_entities"][0].summary) >= 3
+
+
+def test_generate_content_passthrough_skips_llm():
+    from pipeline.agent.graph.nodes.generate_content import generate_content
+    from pipeline.agent.schemas.entities import CandidateEntity, EnrichedCandidate
+    from pipeline.agent.schemas.relations import CandidateRelation
+
+    entity = EnrichedCandidate(candidate=CandidateEntity(label="Athens", entity_type="city"))
+    relation = CandidateRelation(source_label="Athens", target_label="Sparta",
+                                 relationship_type="at_war_with", description="Long rivalry.")
+    state = {
+        "run_id": "t", "parsed_events": [], "enriched_entities": [entity],
+        "candidate_relations": [relation],
+        "title": "Given Title",
+        "summaries_precomputed": True,
+        "summaries": {"Athens": {"summary": "Athens was a Greek polis. It pioneered democracy. Its fleet ruled the Aegean.",
+                                  "significance": "Cradle of democracy."}},
+        "audit_log": [], "errors": [],
+    }
+    with patch("pipeline.agent.graph.nodes.generate_content.create_llm_with_fallbacks") as mk:
+        result = generate_content(state)
+        mk.assert_not_called()
+    assert result["enriched_entities"][0].summary.startswith("Athens was a Greek polis")
+    assert result["enriched_entities"][0].significance == "Cradle of democracy."
+    assert any(a.action == "content_generated" for a in result["audit_log"])
+
+
+@patch("pipeline.agent.llm.ChatOpenAI")
+def test_generate_content_gapfill_uses_llm_for_missing(mock_chat):
+    # entity without precomputed summary -> factory IS called, missing entity
+    # receives summary/significance from the mocked response
+    mock_llm = MagicMock()
+    entities_response = json.dumps({
+        "entities": {"Athens": {
+            "summary": "Generated summary here. Second sentence. Third sentence.",
+            "significance": "Generated sig.",
+        }}
+    })
+    relations_response = json.dumps({
+        "relation_descriptions": {"Athens|at_war_with|Sparta": "Generated desc."}
+    })
+    mock_llm.invoke.side_effect = [
+        MagicMock(content=entities_response), MagicMock(content=relations_response),
+    ]
+    mock_chat.return_value = mock_llm
+
+    entity = EnrichedCandidate(candidate=CandidateEntity(label="Athens", entity_type="city"))
+    relation = CandidateRelation(source_label="Athens", target_label="Sparta",
+                                 relationship_type="at_war_with", description=None)
+    state = {
+        "run_id": "t", "parsed_events": [], "enriched_entities": [entity],
+        "candidate_relations": [relation],
+        "title": "Given Title",
+        "summaries_precomputed": True,
+        "summaries": {},
+        "audit_log": [], "errors": [],
+    }
+    with patch("pipeline.agent.graph.nodes.generate_content.create_llm_with_fallbacks",
+               side_effect=create_llm_with_fallbacks) as mk:
+        result = generate_content(state)
+    assert mk.called
+    assert result["enriched_entities"][0].summary.startswith("Generated summary here.")
+    assert result["enriched_entities"][0].significance == "Generated sig."
+    assert result["candidate_relations"][0].description == "Generated desc."
