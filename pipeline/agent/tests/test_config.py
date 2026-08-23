@@ -17,6 +17,16 @@ def test_risk_policies():
     assert ENTITY_RISK_POLICIES["person"]["risk_level"] == "high"
 
 
+def test_every_allowed_entity_type_has_a_risk_policy():
+    # Types without a policy fall back to the global 0.95 auto-commit threshold,
+    # so uncorroborated candidates of those types pile up as review_items instead
+    # of committing at their proper risk tier.
+    from pipeline.agent.graph.nodes.validate import ALLOWED_ENTITY_TYPES
+
+    missing = ALLOWED_ENTITY_TYPES - set(ENTITY_RISK_POLICIES)
+    assert not missing, f"entity types without risk policies: {sorted(missing)}"
+
+
 def test_config_accepts_custom_base_url():
     cfg = AgentConfig(
         parse_model="meta-llama/llama-3.1-70b-instruct",
