@@ -38,3 +38,7 @@ class AgentRunState(TypedDict):
     # whether the loop is finished (no new items found, or the cap was hit).
     critic_iterations: int
     critic_done: bool
+    # Handoff mode (--from-candidates): pre-generated summaries keyed by entity
+    # label, plus the flag telling generate_content to skip its LLM calls.
+    summaries: dict[str, dict[str, str]]
+    summaries_precomputed: bool
