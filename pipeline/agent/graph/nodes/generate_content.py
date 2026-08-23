@@ -176,44 +176,42 @@ def generate_content(state: AgentRunState) -> AgentRunState:
             llm = create_llm_with_fallbacks("generate_model", cfg,
                                             max_tokens=cfg.generate_max_tokens,
                                             reasoning_effort=cfg.reasoning_effort)
+            logger.info("Constructed generate LLM (model=%s)", cfg.generate_model)
         return llm
 
     pre_summaries = state.get("summaries") or {}
     if state.get("summaries_precomputed"):
         applied = _apply_precomputed_summaries(entities, pre_summaries)
-        missing = [e.candidate.label for e in entities if not e.summary]
+        missing_entities = [e for e in entities if not e.summary]
         logger.info("Handoff summaries applied to %d/%d entities (%d missing)",
-                    applied, len(entities), len(missing))
-        if missing:
-            context = json.dumps(
-                [_entity_context(e, event_text, rels_by_entity)
-                 for e in entities if not e.summary],
-                default=str,
-            )
-            prompt = _ENTITY_PROMPT.format(style_guide=_load_style_guide(), entities=context)
-            _apply_summary_pass(_llm(), prompt, by_label, state, "summary_gapfill")
+                    applied, len(entities), len(missing_entities))
     else:
-        for chunk in _chunked(entities, ENTITY_CHUNK_SIZE):
+        missing_entities = entities
+
+    style_guide = _load_style_guide()
+
+    for chunk in _chunked(missing_entities, ENTITY_CHUNK_SIZE):
+        context = json.dumps(
+            [_entity_context(e, event_text, rels_by_entity) for e in chunk],
+            default=str,
+        )
+        prompt = _ENTITY_PROMPT.format(style_guide=style_guide, entities=context)
+        _apply_summary_pass(_llm(), prompt, by_label, state,
+                            "summary_gapfill" if state.get("summaries_precomputed") else "summary")
+
+    deficient = [e for e in entities if _sentence_count(e.summary) < 3]
+    if deficient:
+        logger.info("Re-requesting %d short summaries (<3 sentences)", len(deficient))
+        for chunk in _chunked(deficient, ENTITY_CHUNK_SIZE):
             context = json.dumps(
                 [_entity_context(e, event_text, rels_by_entity) for e in chunk],
                 default=str,
             )
-            prompt = _ENTITY_PROMPT.format(style_guide=_load_style_guide(), entities=context)
-            _apply_summary_pass(_llm(), prompt, by_label, state, "summary")
-
-        deficient = [e for e in entities if _sentence_count(e.summary) < 3]
-        if deficient:
-            logger.info("Re-requesting %d short summaries (<3 sentences)", len(deficient))
-            for chunk in _chunked(deficient, ENTITY_CHUNK_SIZE):
-                context = json.dumps(
-                    [_entity_context(e, event_text, rels_by_entity) for e in chunk],
-                    default=str,
-                )
-                prompt = _ENTITY_PROMPT.format(style_guide=_load_style_guide(), entities=context) + (
-                    "\n\nIMPORTANT: a previous attempt returned summaries that were too short. "
-                    "Write a NEW summary of at least THREE full sentences for EVERY entity above."
-                )
-                _apply_summary_pass(_llm(), prompt, by_label, state, "summary_retry")
+            prompt = _ENTITY_PROMPT.format(style_guide=style_guide, entities=context) + (
+                "\n\nIMPORTANT: a previous attempt returned summaries that were too short. "
+                "Write a NEW summary of at least THREE full sentences for EVERY entity above."
+            )
+            _apply_summary_pass(_llm(), prompt, by_label, state, "summary_retry")
 
     if relations and any(not r.description for r in relations):
         relations_context = json.dumps(
