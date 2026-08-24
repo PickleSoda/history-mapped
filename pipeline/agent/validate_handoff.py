@@ -18,10 +18,13 @@ from pipeline.agent.handoff import load_handoff
 from pipeline.agent.schemas.entities import _CANONICAL_ENTITY_TYPES
 
 ERA_BOUNDS = {
-    "e01": (-9000, -4000),
-    "e02": (-4000, -1200),
+    # Bounds are editorial buckets; edges are widened where real facts straddle
+    # them (Jericho c. 9500, Olympics 776, post-collapse campaigns). The gate's
+    # real job is catching sign errors and wild misdatings.
+    "e01": (-10000, -4000),
+    "e02": (-4000, -1050),
     "e03": (-1200, -750),
-    "e04": (-750, -330),
+    "e04": (-800, -300),
     "e05": (-330, -30),
     "e06": (-30, 500),
     "e07": (500, 1000),
@@ -75,15 +78,18 @@ def validate(path: str | Path) -> list[str]:
                     f"(summaries_precomputed=true)"
                 )
 
-    era_match = re.match(r"e(\d{2})", Path(str(path)).parent.name.lower()) or \
-        re.search(r"\be(\d{2})\b", Path(str(path)).name.lower())
+    # Era may be encoded as a path segment or embedded in the run id:
+    #   .../e04__x/candidates.json  |  campaign_e04__aegean/candidates.json
+    era_match = re.search(r"(?:^|[_/\\])e(\d{2})(?:[_/\\]|$)", str(path))
     if era_match:
+        # Era bounds police the era's FACTS (parsed events), not entity lifespans:
+        # cities and dynasties legitimately predate the transcript that features them.
         key = f"e{era_match.group(1)}"
         lo, hi = ERA_BOUNDS[key]
-        for c in doc.candidate_entities:
-            for y in (_year(c.start_date), _year(c.end_date)):
-                if y is not None and not lo <= y <= hi:
-                    errors.append(f"entity '{c.label}': year {y} outside {key} bounds [{lo}, {hi}]")
+        for ev in doc.parsed_events:
+            y = _year(ev.start_date)
+            if y is not None and not lo <= y <= hi:
+                errors.append(f"event '{ev.label}': year {y} outside {key} bounds [{lo}, {hi}]")
     return errors
 
 

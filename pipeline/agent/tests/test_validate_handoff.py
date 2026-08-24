@@ -61,6 +61,17 @@ def test_era_bounds_checked_when_encoded_in_filename(tmp_path):
     d.mkdir()
     p = d / "candidates.json"
     doc = _sample_doc()
-    doc["candidate_entities"][0]["start_date"] = "-3000"
+    doc["parsed_events"][0]["start_date"] = "-3000"
     p.write_text(json.dumps(doc), encoding="utf-8")
     assert main(str(p)) == 1
+
+
+def test_entity_dates_may_precede_era_bounds(tmp_path):
+    d = tmp_path / "e04__x"
+    d.mkdir()
+    p = d / "candidates.json"
+    doc = _sample_doc()
+    doc["candidate_entities"][0]["start_date"] = "-3000"
+    doc["parsed_events"][0]["start_date"] = "-500"
+    p.write_text(json.dumps(doc), encoding="utf-8")
+    assert main(str(p)) == 0
