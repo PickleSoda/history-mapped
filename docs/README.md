@@ -37,7 +37,7 @@ Start here, in order, for the project as it exists today:
 
 - Setup & deploy: [setup.md](implementation-docs/setup.md) · [deployment-runbook.md](implementation-docs/deployment-runbook.md) · [content-data-transfer.md](implementation-docs/content-data-transfer.md)
 - Admin AI agent: [admin-ai-agent.md](implementation-docs/admin-ai-agent.md)
-- Agentic pipeline: [agentic-pipeline-runbook.md](implementation-docs/agentic-pipeline-runbook.md) · [pipeline-eval-iterations.md](implementation-docs/pipeline-eval-iterations.md) · [entity-reresolution.md](implementation-docs/entity-reresolution.md) · [data-quality-runbook.md](implementation-docs/data-quality-runbook.md)
+- Agentic pipeline: [agentic-pipeline-runbook.md](implementation-docs/agentic-pipeline-runbook.md) · [pipeline-eval-iterations.md](implementation-docs/pipeline-eval-iterations.md) · [campaign-orchestration.md](implementation-docs/campaign-orchestration.md) · [entity-reresolution.md](implementation-docs/entity-reresolution.md) · [data-quality-runbook.md](implementation-docs/data-quality-runbook.md)
 - OHM: [ohm-border-extraction.md](implementation-docs/ohm-border-extraction.md) · [ohm-country-subgraph-runbook.md](implementation-docs/ohm-country-subgraph-runbook.md) · [ohm-egypt-collection-runbook.md](implementation-docs/ohm-egypt-collection-runbook.md) · [egypt-wikidata-fallback-runbook.md](implementation-docs/egypt-wikidata-fallback-runbook.md)
 - Data contribution: [data-contributor-guide.md](implementation-docs/data-contributor-guide.md)
 

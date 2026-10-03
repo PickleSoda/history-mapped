@@ -135,6 +135,8 @@ python -m pipeline borders run --run-id global-2026-04-15 --parse-workers 8 --en
 python -m pipeline borders relations-run --run-id global-2026-04-15 --resume
 ```
 
+For LLM-free batch ingestion of pre-extracted handoff files (campaign mode): `bash run_campaign.sh` — see the [agentic pipeline runbook](docs/implementation-docs/agentic-pipeline-runbook.md) handoff section.
+
 With the default `pipeline/.env`, pipeline outputs go to the repository-level `output/` directory when commands are run from the repo root.
 
 Pipeline-specific docs:

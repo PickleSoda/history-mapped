@@ -281,7 +281,51 @@ pipeline/.venv/bin/python -m pipeline agent --from-candidates \
 # Batch: bash run_campaign.sh   (processes every pending extraction sequentially)
 ```
 
+Events may carry a campaign-only `"fact": N` (the transcript fact number), which the slice commands use as the transcript-to-handoff join key. `ParsedEvent` ignores unknown keys, so the validator and the graph never see it.
+
 Handoff binding rules: items match `ParsedEvent`/`CandidateEntity`/`CandidateRelation` pydantic schemas; `relationship_type` ∈ `validate.ALLOWED_RELATION_TYPES`; relation endpoints must all be extracted entities; when `summaries_precomputed` is true a top-level `"summaries"` map keyed by entity label supplies `summary`+`significance` for every candidate (generate_content skips its LLM entirely). Idempotency matches `run_agent()`: a clean manifest short-circuits re-runs (`--refresh` overrides). See the campaign design spec and `docs/superpowers/plans/2026-08-23-history-data-campaign.md` for the full workflow and measured pilot results.
+
+### Campaign tooling
+
+`pipeline/.venv/bin/python -m pipeline.campaign <command>`, run from the repo root, is the agent-facing CLI for authoring and operating the campaign. Every `RUN` accepts `campaign_<slug>` or the bare slug. Agent roles and the review loop are described in [campaign-orchestration.md](campaign-orchestration.md).
+
+Run pytest and any heavy python through the memory-capped wrapper, with a wall-clock limit, one suite per process: `timeout 300 scripts/capped.sh pipeline/.venv/bin/python -m pytest pipeline/campaign/ -q`. The wrapper uses a systemd scope with `MemoryMax=3G` and no swap (override with `MEM_MAX`, at most 4G), so a runaway process is killed on its own and doesn't take the session down with it.
+
+| Command | Purpose |
+|---------|---------|
+| `types [--relations-help]` | Allowed entity types (by group) and relation types, read from code; `--relations-help` adds source → target hints from `docs/entity-model/relationships.md` |
+| `wiki TITLE... [--dated] [--max-chars 6000] [--section NAME]`, `wiki-search QUERY [--limit 5]` | en.wikipedia plain-text extracts / search, cached in `output/campaign/cache/wiki/`, throttled to ≤1 req/s |
+| `transcript-check RUN` | Transcript lint: errors (exit 1) for facts with no explicit BCE/CE year or repeated numbers; warnings for numbering gaps, fewer than 60 or more than 120 facts, a first year outside the era's hard bounds (`out-of-era`) or span (`era-edge`), and out-of-order facts. Year detection is heuristic, so era and order findings are prompts to verify, never grounds to move a date |
+| `handoff init RUN --title T [--force]` | Empty `candidates.json` skeleton; `--force` first moves the old file to `candidates.prev.json` |
+| `handoff add RUN {events,entities,relations,summaries} FILE\|-` | Upsert a JSON array, validated per item against the pipeline models + type lists. Keys: label; relations `SOURCE\|TYPE\|TARGET`. Updates merge the given fields (`--replace` swaps the whole item). Valid items are written, rejects are itemised, exit 1 |
+| `handoff rm RUN {events,entities,relations} KEY...` | Removing an entity cascades to its relations + summary; removing an event clears `source_event` references |
+| `handoff slice RUN --facts 21-40` | One extraction slice without reading the whole transcript or handoff. Prints those numbered facts verbatim, the events already tagged with them, and every existing entity label grouped by type |
+| `handoff rm-slice RUN --facts 21-40` | Undoes a slice's extraction so it can be redone without duplicates. Removes the events tagged with those facts and the relations whose `source_event` is one of them. Entities first mentioned there are removed unless another fact still uses them; those keep a repointed `source_event` |
+| `handoff rename RUN OLD NEW [--merge]`, `handoff rename-event RUN OLD NEW [--merge]` | Relabel everywhere (relation endpoints, summaries, `mentioned_entities` / `source_event`); `--merge` folds OLD into an existing NEW |
+| `handoff show RUN [--part P] [--labels-only]`, `handoff get RUN PART KEY...` | One line per item / full stored JSON of specific items |
+| `handoff check RUN [--all] [--facts A-B]` | Fast lint. Errors exit 1 (dangling endpoints, bad types/dates, era bounds, missing summaries, duplicate labels). Warnings exit 0: orphans (tagged `(fact N)`), r/e < 1.3, near-duplicate labels, unknown `source_event`, `mention-missing` (a `mentioned_entities` label that isn't an entity), event coverage, and the fact-tag checks `fact-missing` / `fact-uncovered` / `fact-range`. `--facts` lints only what that slice owns (its events, the entities first mentioned there, and relations whose `source_event` is one of its events) and adds `slice-density` (relations/fact ≥ 2, relations/new entity ≥ 1.5) |
+| `handoff finalize RUN [--critic-iterations 2]` | Stamps `self_audit`, then runs `validate_handoff`; exit code mirrors the gate |
+| `status [--era eNN] [--thin] [--validate] [--json]` | One row per run (facts, events, entities, relations, r/e, latest review verdict, ingest `clean`/`failed`/`-`) plus an era × region grid; lists handoffs edited after a clean ingest |
+| `validate-all [--era eNN]` | Gate every handoff, print failures only |
+| `review-record RUN --verdict {PASS,FIXED,REGATHER,ESCALATE} --model M [--issue T]... [--fixed T]...` | Append to the run's `review.json` history |
+| `measure` | Spec §7 acceptance metrics via `docker compose ... exec -T db psql`; exit 2 if the DB is not running |
+
+`bash run_campaign.sh` environment:
+
+| Variable | Effect |
+|----------|--------|
+| `ONLY=<regex>` | Only run ids matching the bash ERE, e.g. `ONLY='^campaign_e0[45]__'` |
+| `RETRY_FAILED=1` | Add `--refresh` for runs whose manifest recorded errors |
+| `RUN_TIMEOUT=1800` | Per-run limit in seconds; a run that hits it is recorded as `TIMEOUT` |
+| `EXTRA_AGENT_FLAGS` | Extra flags for every run (e.g. `--refresh`) |
+| `DRY_RUN=1` | List what would run, without Docker |
+| `SKIP_PREFLIGHT=1` | Skip the check that the compose `app` and `db` services are running (by default the driver exits 2 when either is down) |
+| `CAMPAIGN_LOG_DIR` | Defaults to `output/campaign/logs/<YYYYmmdd-HHMMSS>/`, which holds one `<run_id>.log` per run plus `summary.txt` |
+| `CAMPAIGN_SUMMARY`, `EXTRACTIONS_DIR` | Override the summary path / handoff root |
+
+Each run is recorded in the summary as `ok`, `ERR rc=N`, `INVALID handoff`, `TIMEOUT` or `skip (clean manifest)`. The driver exits non-zero if any run failed.
+
+Manifest behaviour: `run_agent_from_candidates` short-circuits only when `<AgentConfig.output_dir>/<run_id>/manifest.json` exists with `errors_count == 0`. A manifest with errors does **not** block a re-run: the run simply executes again in normal (non-refresh) mode. The driver skips clean manifests itself unless `--refresh` is in the flags. `RETRY_FAILED=1` adds `--refresh` to errored runs, so rows left by the partial first attempt are re-resolved and updated in place. A handoff edited after a clean ingest is never re-ingested automatically. `status` lists such runs as stale; re-ingest them with `ONLY=<run_id> EXTRA_AGENT_FLAGS=--refresh bash run_campaign.sh`.
 
 ---
 
