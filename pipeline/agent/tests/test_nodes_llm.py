@@ -158,6 +158,31 @@ def test_generate_content_passthrough_skips_llm():
     assert any(a.action == "content_generated" for a in result["audit_log"])
 
 
+def test_generate_content_keeps_short_precomputed_summaries():
+    # Handoff summaries are reviewed 1–2 sentence text; the <3-sentence retry must
+    # not rewrite them (or their significance) with LLM prose.
+    from pipeline.agent.graph.nodes.generate_content import generate_content
+    from pipeline.agent.schemas.entities import CandidateEntity, EnrichedCandidate
+
+    entity = EnrichedCandidate(candidate=CandidateEntity(label="Yin Zhong", entity_type="person"))
+    state = {
+        "run_id": "t", "parsed_events": [], "enriched_entities": [entity],
+        "candidate_relations": [], "title": "Given Title",
+        "summaries_precomputed": True,
+        "summaries": {"Yin Zhong": {
+            "summary": "Chancellor under Emperor Cheng who committed suicide in 29 BCE after the Jin Dyke burst.",
+            "significance": "His death marked the political cost of the 29 BCE Yellow River flood.",
+        }},
+        "audit_log": [], "errors": [],
+    }
+    with patch("pipeline.agent.graph.nodes.generate_content.create_llm_with_fallbacks") as mk:
+        result = generate_content(state)
+        mk.assert_not_called()
+    e = result["enriched_entities"][0]
+    assert e.summary == "Chancellor under Emperor Cheng who committed suicide in 29 BCE after the Jin Dyke burst."
+    assert e.significance == "His death marked the political cost of the 29 BCE Yellow River flood."
+
+
 @patch("pipeline.agent.llm.ChatOpenAI")
 def test_generate_content_gapfill_uses_llm_for_missing(mock_chat):
     # entity without precomputed summary -> factory IS called, missing entity

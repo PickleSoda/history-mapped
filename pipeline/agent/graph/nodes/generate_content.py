@@ -199,7 +199,10 @@ def generate_content(state: AgentRunState) -> AgentRunState:
         _apply_summary_pass(_llm(), prompt, by_label, state,
                             "summary_gapfill" if state.get("summaries_precomputed") else "summary")
 
-    deficient = [e for e in entities if _sentence_count(e.summary) < 3]
+    # Handoff summaries are reviewed 1–2 sentence text by contract; only LLM-written
+    # (gap-filled) summaries are held to the three-sentence floor.
+    retry_pool = missing_entities if state.get("summaries_precomputed") else entities
+    deficient = [e for e in retry_pool if _sentence_count(e.summary) < 3]
     if deficient:
         logger.info("Re-requesting %d short summaries (<3 sentences)", len(deficient))
         for chunk in _chunked(deficient, ENTITY_CHUNK_SIZE):

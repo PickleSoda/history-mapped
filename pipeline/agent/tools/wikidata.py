@@ -17,16 +17,36 @@ WIKIDATA_API = "https://www.wikidata.org/w/api.php"
 WIKIDATA_ENTITY_API = "https://www.wikidata.org/wiki/Special:EntityData"
 
 
-def _wikidata_get(params: dict[str, str], timeout: int = 10) -> dict[str, Any] | None:
-    """Make a GET request to the Wikidata action API."""
-    try:
-        t0 = time.time()
+_THROTTLE_STATUSES = {429, 503}
+_THROTTLE_RETRIES = 3
+
+
+def _get_honoring_retry_after(url: str, params: dict[str, str] | None, timeout: int) -> requests.Response:
+    """GET that backs off on 429/503 (Retry-After, default 5s) so parallel ingests slow
+    down instead of silently dropping resolutions."""
+    for attempt in range(_THROTTLE_RETRIES + 1):
         response = requests.get(
-            WIKIDATA_API,
+            url,
             params=params,
             headers={"User-Agent": settings.wikidata_user_agent},
             timeout=timeout,
         )
+        if response.status_code not in _THROTTLE_STATUSES or attempt == _THROTTLE_RETRIES:
+            return response
+        try:
+            wait = min(float(response.headers.get("Retry-After", 5)), 60.0)
+        except ValueError:
+            wait = 5.0
+        logger.warning("Wikidata throttled (%d); retrying in %.0fs", response.status_code, wait)
+        time.sleep(wait)
+    return response
+
+
+def _wikidata_get(params: dict[str, str], timeout: int = 10) -> dict[str, Any] | None:
+    """Make a GET request to the Wikidata action API."""
+    try:
+        t0 = time.time()
+        response = _get_honoring_retry_after(WIKIDATA_API, params, timeout)
         response.raise_for_status()
         elapsed = time.time() - t0
         logger.info("Wikidata API OK (%.1fs): %s", elapsed, params.get("action", ""))
@@ -303,11 +323,7 @@ def enrich_wikidata_entities(qids: list[str]) -> dict[str, dict[str, Any]]:
         url = f"{WIKIDATA_ENTITY_API}/{qid}.json"
         try:
             t0 = time.time()
-            response = requests.get(
-                url,
-                headers={"User-Agent": settings.wikidata_user_agent},
-                timeout=10,
-            )
+            response = _get_honoring_retry_after(url, None, 10)
             response.raise_for_status()
             entity = response.json().get("entities", {}).get(qid, {})
             elapsed = time.time() - t0

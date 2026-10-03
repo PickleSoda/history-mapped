@@ -1,4 +1,5 @@
 from __future__ import annotations
+import fcntl
 import json
 from pathlib import Path
 from typing import Any
@@ -279,6 +280,20 @@ def _relation_to_jsonl_record(relation, run_id: str) -> dict[str, Any]:
     }
 
 
+def _run_import_locked(cmd: list[str], output_dir: str | Path) -> dict[str, Any]:
+    """Run an import artisan command under a host-wide file lock.
+
+    The importers dedup with check-then-insert (no unique constraint on name/type or
+    wikidata_id), so two runs committing at once could both create "Rome". Parallel
+    ingests serialise only here; the slow resolve stages still overlap.
+    """
+    lock_path = Path(output_dir) / ".import.lock"
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    with lock_path.open("w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        return run_artisan_command(cmd)
+
+
 def commit_writer(state: AgentRunState) -> AgentRunState:
     cfg = AgentConfig()
     output_root = Path(cfg.output_dir) / state["run_id"]
@@ -322,7 +337,7 @@ def commit_writer(state: AgentRunState) -> AgentRunState:
         cmd = build_artisan_command("pipeline:import", container_entity_path, sync=True,
                                     batch_id=state["run_id"], force=state.get("refresh", False))
         logger.info("Docker import entities (%d records): %s", len(entity_records), " ".join(cmd))
-        result = run_artisan_command(cmd)
+        result = _run_import_locked(cmd, cfg.output_dir)
         logger.info("Docker import entities result: returncode=%d stdout=%s stderr=%s",
                     result["returncode"], result["stdout"][:200], result["stderr"][:200])
 
@@ -354,7 +369,7 @@ def commit_writer(state: AgentRunState) -> AgentRunState:
         # NB: no sync=True — pipeline:import-relations runs inline and has no --sync flag.
         cmd = build_artisan_command("pipeline:import-relations", container_relations_path, batch_id=state["run_id"])
         logger.info("Docker import relations (%d records): %s", len(relation_records), " ".join(cmd))
-        result = run_artisan_command(cmd)
+        result = _run_import_locked(cmd, cfg.output_dir)
         logger.info("Docker import relations result: returncode=%d stdout=%s stderr=%s",
                     result["returncode"], result["stdout"][:200], result["stderr"][:200])
 

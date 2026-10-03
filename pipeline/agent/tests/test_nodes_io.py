@@ -97,3 +97,27 @@ def test_audit_logger_writes_manifest():
     with open(output_dir / "manifest.json") as f:
         manifest = json.load(f)
     assert manifest["run_id"] == "test_run_1"
+
+
+def test_import_lock_serialises_concurrent_imports(tmp_path):
+    import threading, time
+    from pipeline.agent.graph.nodes.commit_writer import _run_import_locked
+    active, peak = [0], [0]
+    guard = threading.Lock()
+
+    def fake_run(cmd):
+        with guard:
+            active[0] += 1
+            peak[0] = max(peak[0], active[0])
+        time.sleep(0.05)
+        with guard:
+            active[0] -= 1
+        return {"returncode": 0, "stdout": "", "stderr": ""}
+
+    with patch("pipeline.agent.graph.nodes.commit_writer.run_artisan_command", side_effect=fake_run):
+        threads = [threading.Thread(target=_run_import_locked, args=(["x"], tmp_path)) for _ in range(3)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+    assert peak[0] == 1

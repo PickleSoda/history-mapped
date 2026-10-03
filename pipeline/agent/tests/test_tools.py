@@ -141,3 +141,16 @@ def test_run_artisan_command_uses_timeout_and_surfaces_returncode(monkeypatch):
     out = run_artisan_command(["pipeline:import", "x"])
     assert calls.get("timeout") is not None
     assert out["returncode"] == 1 and out["stderr"] == "boom"
+
+
+@patch("pipeline.agent.tools.wikidata.time.sleep")
+@patch("pipeline.agent.tools.wikidata.requests.get")
+def test_wikidata_get_backs_off_on_429(mock_get, mock_sleep):
+    from pipeline.agent.tools.wikidata import _wikidata_get
+    throttled = MagicMock(status_code=429, headers={"Retry-After": "2"})
+    ok = MagicMock(status_code=200)
+    ok.json.return_value = {"search": []}
+    mock_get.side_effect = [throttled, ok]
+    assert _wikidata_get({"action": "wbsearchentities"}) == {"search": []}
+    assert mock_get.call_count == 2
+    mock_sleep.assert_called_once_with(2.0)
