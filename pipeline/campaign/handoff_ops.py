@@ -26,6 +26,8 @@ from pipeline.agent.schemas.entities import (
 )
 from pipeline.agent.schemas.relations import CandidateRelation
 from pipeline.agent.validate_handoff import ERA_BOUNDS, _year
+from pipeline.campaign.dates import depad, jan1_years
+from pipeline.campaign.labels import CODE as AMBIGUOUS_LABEL, ambiguous_label
 
 PARTS = {
     "events": "parsed_events",
@@ -157,20 +159,55 @@ class Ctx:
     events: set[str]
     entities: set[str]
     era: str | None = None
+    # Transcript facts {number: line} (None = transcript unknown), each event's fact
+    # number, and the years some fact states "1 January <year>" for explicitly.
+    fact_text: dict[int, str] | None = None
+    event_facts: dict[str, int] = field(default_factory=dict)
+    jan1_years: frozenset[int] = frozenset()
 
     @classmethod
-    def from_doc(cls, doc: dict, era: str | None) -> "Ctx":
+    def from_doc(cls, doc: dict, era: str | None, fact_map: dict[int, str] | None = None) -> "Ctx":
+        events = [e for e in doc.get("parsed_events") or [] if isinstance(e, dict)]
         return cls(
-            events={e.get("label") for e in doc.get("parsed_events") or []},
+            events={e.get("label") for e in events},
             entities={e.get("label") for e in doc.get("candidate_entities") or []},
             era=era if era in ERA_BOUNDS else None,
+            fact_text=fact_map,
+            event_facts={e.get("label"): n for e in events if (n := _fact_number(e.get("fact"))) is not None},
+            jan1_years=frozenset(jan1_years(fact_map.values())) if fact_map else frozenset(),
         )
 
     def register(self, part: str, item: dict) -> None:
         if part == "events":
             self.events.add(item["label"])
+            if _fact_number(item.get("fact")) is not None:
+                self.event_facts[item["label"]] = _fact_number(item["fact"])
         elif part == "entities":
             self.entities.add(item["label"])
+
+    def fact_of(self, part: str, item: dict) -> int | None:
+        """The transcript fact an item comes from: an event's own `fact`, else its
+        source_event's."""
+        if part == "events":
+            return _fact_number(item.get("fact"))
+        return self.event_facts.get(item.get("source_event"))
+
+    def padded_dates(self, part: str, item: dict) -> list[tuple[str, str, str, int | None]]:
+        """(field, value, fix, fact) for each start/end date padded to -01-01 that no
+        transcript fact backs with "1 January <year>" (see pipeline.campaign.dates)."""
+        n = self.fact_of(part, item)
+        text = (self.fact_text or {}).get(n) if n is not None else None
+        out = []
+        for f in ("start_date", "end_date"):
+            fix = depad(item.get(f), text, self.jan1_years)
+            if fix is not None:
+                out.append((f, item[f], fix, n))
+        return out
+
+
+def _padded_msg(f: str, old: str, new: str, n: int | None) -> str:
+    where = f"fact {n}" if n is not None else "its fact"
+    return f"{f} {old!r} -> {new!r} ({where} states no 1 January; never pad a year or month to -01-01)"
 
 
 def _strip(part: str, item: dict) -> dict:
@@ -202,7 +239,7 @@ def _date_problems(item: dict) -> list[Problem]:
         v = item.get(f)
         if v is not None and not DATE_RE.match(v):
             probs.append(("E", "date-format",
-                          f"{f} {v!r} must be a year string like '-331' (BCE negative), '1453' or '1896-03-01'"))
+                          f"{f} {v!r} must be a year string like '-331' (BCE negative), '1453', '1896-03' or '1896-03-14'"))
     sy, ey = _year(item.get("start_date")), _year(item.get("end_date"))
     if sy is not None and ey is not None and sy > ey:
         probs.append(("E", "start>end", f"start {sy} > end {ey}"))
@@ -237,6 +274,8 @@ def check_item(part: str, item: Any, ctx: Ctx) -> tuple[dict | None, list[Proble
     if part in ("events", "entities") and not clean["label"]:
         probs.append(("E", "schema", "label is empty"))
     probs += _date_problems(clean)
+    for f, old, new, n in ctx.padded_dates(part, clean):
+        probs.append(("E", "padded-date", f"{_padded_msg(f, old, new, n)}; fix: `handoff fix-dates RUN --apply`"))
 
     if part == "events" and ctx.era:
         lo, hi = ERA_BOUNDS[ctx.era]
@@ -256,6 +295,10 @@ def check_item(part: str, item: Any, ctx: Ctx) -> tuple[dict | None, list[Proble
                           f"source_event {clean['source_event']!r} is not an event label (add the event first or use null)"))
         if clean.get("wikidata_id"):
             probs.append(("A", "wikidata-id", "wikidata_id must stay null (resolution is the pipeline's job)"))
+        # 'Philip II' links to whichever namesake the DB holds (pipeline.campaign.labels).
+        why = ambiguous_label(clean["label"], clean["entity_type"])
+        if why:
+            probs.append(("W", AMBIGUOUS_LABEL, why))
 
     elif part == "relations":
         if clean["relationship_type"] not in ALLOWED_RELATION_TYPES:
@@ -302,6 +345,8 @@ class AddResult:
     updated: int = 0
     rejected: list[tuple[int, str, str]] = field(default_factory=list)
     notes: list[tuple[int, str, str]] = field(default_factory=list)
+    # Non-blocking label advice (ambiguous-label): the item IS written.
+    hints: list[tuple[int, str, str]] = field(default_factory=list)
 
 
 def _summary_items(payload: Any) -> list[tuple[str, Any]]:
@@ -323,11 +368,13 @@ def _summary_items(payload: Any) -> list[tuple[str, Any]]:
 
 
 def upsert(doc: dict, part: str, payload: Any, *, era: str | None = None,
-           replace: bool = False) -> AddResult:
+           replace: bool = False, fact_map: dict[int, str] | None = None) -> AddResult:
     """Insert or update items by key. Updates merge given fields over the stored
-    item (explicit null clears a field) unless replace=True."""
+    item (explicit null clears a field) unless replace=True. A date padded to
+    -01-01 that its fact (fact_map) doesn't state is written as the year (or
+    year-month) instead, with a note."""
     res = AddResult()
-    ctx = Ctx.from_doc(doc, era)
+    ctx = Ctx.from_doc(doc, era, fact_map)
 
     if part == "summaries":
         store = doc.setdefault("summaries", {})
@@ -363,13 +410,17 @@ def upsert(doc: dict, part: str, payload: Any, *, era: str | None = None,
         key = item_key(part, raw)
         pos = index.get(key)
         merged = raw if pos is None or replace else {**items[pos], **raw}
+        depadded = ctx.padded_dates(part, merged)
+        merged = {**merged, **{f: new for f, _, new, _ in depadded}}
         clean, probs = check_item(part, merged, ctx)
         label = display(part, raw)
         blocking = [m for s, _, m in probs if s in ("E", "A")]
         if blocking or clean is None:
             res.rejected.append((i, label, "; ".join(blocking)))
             continue
-        res.notes += [(i, label, m) for s, _, m in probs if s == "W"]
+        res.notes += [(i, label, m) for s, c, m in probs if s == "W" and c != AMBIGUOUS_LABEL]
+        res.hints += [(i, label, f"{c}: {m}") for s, c, m in probs if c == AMBIGUOUS_LABEL]
+        res.notes += [(i, label, f"padded-date {_padded_msg(*d)}") for d in depadded]
         if pos is None:
             items.append(clean)
             index[key] = len(items) - 1
@@ -379,6 +430,21 @@ def upsert(doc: dict, part: str, payload: Any, *, era: str | None = None,
             res.updated += 1
         ctx.register(part, clean)
     return res
+
+
+def fix_padded_dates(doc: dict, fact_map: dict[int, str] | None) -> list[str]:
+    """Rewrite every start/end date padded to -01-01 that no transcript fact backs
+    (events, entities, relations) to its year or year-month. Returns one line per fix."""
+    ctx = Ctx.from_doc(doc, None, fact_map)
+    report: list[str] = []
+    for part in ("events", "entities", "relations"):
+        for item in doc.get(PARTS[part]) or []:
+            if not isinstance(item, dict):
+                continue
+            for f, old, new, n in ctx.padded_dates(part, item):
+                item[f] = new
+                report.append(f"{SINGULAR[part]} {display(part, item)!r}: {_padded_msg(f, old, new, n)}")
+    return report
 
 
 # ── rm / rename ─────────────────────────────────────────────────────────────
@@ -692,12 +758,13 @@ class LintReport:
 
 
 def lint(doc: dict, *, era: str | None = None, facts: int | None = None,
-         fact_numbers: Iterable[int] | None = None, scope: SliceScope | None = None) -> LintReport:
+         fact_numbers: Iterable[int] | None = None, scope: SliceScope | None = None,
+         fact_map: dict[int, str] | None = None) -> LintReport:
     """Lint the whole handoff, or (scope) only what one fact slice owns: its items'
     problems, summaries, orphans, near-duplicates and mentions, plus slice density
     (relations per fact / per new entity) instead of the global ratios."""
     rep = LintReport()
-    ctx = Ctx.from_doc(doc, era)
+    ctx = Ctx.from_doc(doc, era, fact_map)
     events = doc.get("parsed_events") or []
     entities = doc.get("candidate_entities") or []
     relations = doc.get("candidate_relations") or []

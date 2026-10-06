@@ -4,6 +4,11 @@
 # INGEST_WORKERS=N (default 3) drivers run side by side on disjoint run lists. Wikidata
 # backs off on 429 by itself; OHM Nominatim asks for <=1 req/s in total, so its
 # per-process limit is split across workers. DB imports serialise on a lock file.
+# --refresh policy: a FIRST-TIME ingest (no manifest, or a manifest with errors) runs WITHOUT
+# --refresh, so entities already in the DB are kept as-is (first writer wins, no Wikidata
+# re-resolution for them) while the run's relations and chronicle still link to them by name.
+# --refresh (= --force downstream) is passed ONLY for a run whose manifest is already clean,
+# i.e. a re-ingest because its handoff/review changed ("stale") or INGEST_REFRESH_BEFORE.
 cd "$(dirname "$0")/.."
 PY=pipeline/.venv/bin/python
 LOG=output/campaign/logs/ingest-loop.log
@@ -22,14 +27,31 @@ while [ ! -e output/campaign/INGEST_STOP ]; do
             PART=()
             for ((i = w; i < ${#RUNS[@]}; i += WORKERS)); do PART+=("${RUNS[i]}"); done
             [ "${#PART[@]}" -gt 0 ] || continue
-            RE="^($(IFS='|'; echo "${PART[*]}"))\$"
             mkdir -p "$D/w$w"
-            ONLY="$RE" RUN_TIMEOUT=2400 EXTRA_AGENT_FLAGS=--refresh CAMPAIGN_LOG_DIR="$D/w$w" \
-                OHM_REQUESTS_PER_MINUTE=$OHM_RPM \
-                bash scripts/capped.sh bash run_campaign.sh > "$D/w$w/driver.out" 2>&1 &
+            # first-time runs: no --refresh; clean-manifest (stale) runs: --refresh
+            RE_FIRST=""; RE_STALE=""
+            for r in "${PART[@]}"; do
+                if [ -f "api/storage/app/pipeline/agent_runs/$r/manifest.json" ] && \
+                   PYTHONPATH=. "$PY" -c 'import json,sys; m=json.load(open(sys.argv[1])); sys.exit(1 if m.get("errors") or m.get("errors_count") else 0)' \
+                       "api/storage/app/pipeline/agent_runs/$r/manifest.json" 2>/dev/null; then
+                    RE_STALE+="${RE_STALE:+|}$r"
+                else
+                    RE_FIRST+="${RE_FIRST:+|}$r"
+                fi
+            done
+            (
+                for MODE in first stale; do
+                    if [ "$MODE" = first ]; then RX=$RE_FIRST; FL=""; else RX=$RE_STALE; FL="--refresh"; fi
+                    [ -n "$RX" ] || continue
+                    mkdir -p "$D/w$w/$MODE"
+                    ONLY="^($RX)\$" RUN_TIMEOUT=2400 EXTRA_AGENT_FLAGS="$FL" CAMPAIGN_LOG_DIR="$D/w$w/$MODE" \
+                        OHM_REQUESTS_PER_MINUTE=$OHM_RPM \
+                        bash scripts/capped.sh bash run_campaign.sh > "$D/w$w/$MODE/driver.out" 2>&1
+                done
+            ) &
         done
         wait
-        cat "$D"/w*/summary.txt > "$D/summary.txt" 2>/dev/null
+        cat "$D"/w*/*/summary.txt > "$D/summary.txt" 2>/dev/null
         OK=$(grep -c '\] ok$' "$D/summary.txt"); FAILED=$(grep -cE '\] (ERR|TIMEOUT|INVALID)' "$D/summary.txt")
     fi
     echo "$TS ready=$N ok=$OK failed=$FAILED workers=$WORKERS runs=[$READY]" >> "$LOG"

@@ -191,7 +191,8 @@ def handoff_add(run: str, part: str, source, replace: bool):
     with ops.locked(path.parent):
         doc = ops.load_doc(path)
         try:
-            res = ops.upsert(doc, part, payload, era=paths.era_of(run), replace=replace)
+            res = ops.upsert(doc, part, payload, era=paths.era_of(run), replace=replace,
+                             fact_map=paths.fact_lines(paths.transcript_path(run)))
         except ops.OpError as exc:
             _fail(f"{exc} (nothing written)")
         if res.added or res.updated:
@@ -200,6 +201,8 @@ def handoff_add(run: str, part: str, source, replace: bool):
         click.echo(f"rejected [{i}] {label}: {reason}")
     for i, label, note in res.notes:
         click.echo(f"note [{i}] {label}: {note}")
+    for i, label, hint in res.hints:
+        click.echo(f"hint [{i}] {label}: {hint}")
     click.echo(f"{part}: added={res.added} updated={res.updated} rejected={len(res.rejected)}")
     click.echo(ops.counts_line(doc))
     if res.rejected:
@@ -323,7 +326,7 @@ def handoff_check(run: str, show_all: bool, facts_spec: str | None):
     tpath = paths.transcript_path(run)
     fact_map = paths.fact_lines(tpath)
     kwargs = dict(era=paths.era_of(run), facts=paths.count_facts(tpath),
-                  fact_numbers=None if fact_map is None else list(fact_map))
+                  fact_numbers=None if fact_map is None else list(fact_map), fact_map=fact_map)
     scope = ops.slice_scope(doc, _parse_facts_opt(facts_spec)) if facts_spec else None
     rep = ops.lint(doc, scope=scope, **kwargs)
     stats = " ".join(f"{k}={'-' if v is None else v}" for k, v in rep.stats.items())
@@ -385,6 +388,29 @@ def handoff_rm_slice(run: str, facts_spec: str):
     for line in report:
         click.echo(line)
     click.echo(ops.counts_line(doc))
+
+
+@handoff.command("fix-dates")
+@click.argument("run")
+@click.option("--apply", "apply_", is_flag=True, help="Write the fixes (default: only list them).")
+def handoff_fix_dates(run: str, apply_: bool):
+    """Un-pad -01-01 dates: a date whose fact doesn't state 1 January of that year
+    becomes the bare year ("1873"), or year-month ("1873-01") when the fact says
+    January. Lists the fixes; --apply writes them."""
+    ops = _ops()
+    path = _require_handoff(run)
+    fact_map = paths.fact_lines(paths.transcript_path(run))
+    if fact_map is None:
+        click.echo(f"warning: transcript {paths.transcript_rel(run)} not found; every -01-01 date counts as padded")
+    with ops.locked(path.parent):
+        doc = ops.load_doc(path)
+        report = ops.fix_padded_dates(doc, fact_map)
+        if apply_ and report:
+            ops.save_doc(path, doc)
+    for line in report:
+        click.echo(f"  {line}")
+    verb = "fixed" if apply_ else "would fix (rerun with --apply)"
+    click.echo(f"fix-dates {paths.run_id_of(run)}: {verb} {len(report)} padded date(s)")
 
 
 @handoff.command("finalize")
@@ -493,7 +519,9 @@ def review_record_cmd(run: str, verdict: str, model: str, issues: tuple[str, ...
 
 
 @cli.command("measure")
-def measure_cmd():
+@click.option("--jan1-csv", "jan1_csv", type=click.Path(dir_okay=False, path_type=Path), default=None,
+              help="Also write every -01-01 date with its verdict and corrected value (a repair list; nothing is applied).")
+def measure_cmd(jan1_csv: Path | None):
     """Acceptance metrics against the running compose DB (exit 2 if it's down)."""
     from pipeline.campaign import measure
 
@@ -503,6 +531,10 @@ def measure_cmd():
         _fail(f"measure: {exc}", code=2)
     for line in measure.report_lines(rows):
         click.echo(line)
+    if jan1_csv is not None:
+        fixes = measure.classify_jan1([r for r in rows if r and r[0] in ("jan1_range_row", "jan1_rel_row")])
+        measure.write_jan1_csv(fixes, jan1_csv)
+        click.echo(f"wrote {len(fixes)} -01-01 value(s) to {_rel(jan1_csv)}")
 
 
 if __name__ == "__main__":
