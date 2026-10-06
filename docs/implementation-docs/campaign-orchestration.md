@@ -12,12 +12,12 @@ How the main Claude Code session drives the history-data campaign. It dispatches
 
 ## Roster (v2 tiering)
 
-Each model gets the work it is good at: cheap bulk extraction (Haiku), judgement-heavy authoring and review (Sonnet), and Opus only on escalation. See *Canary findings* for why.
+Each model gets the work it is good at: authoring, slice extraction and review (Sonnet), and Opus only on escalation. See *Canary findings* for why.
 
 | Agent | Model | Role | Dispatch when |
 |-------|-------|------|---------------|
 | `campaign-author` | sonnet | Writes or extends the transcript only. Every fact is discrete, dated, in-era and wiki-grounded (`wiki --dated`); no filler. A sparse topic stops short (floor 60) instead of padding. Records Spillover, Corrections and Uncertain in notes.md and gates on `transcript-check` | Every run: `new` or `extend` |
-| `campaign-gatherer` | haiku | Extraction-only worker. `extract` handles one fact slice: events tagged `fact`, entities, summaries and relations, gated by `check --facts`. `close` runs the whole-handoff critic pass (orphans, density, near-duplicates) and then `finalize` | Per slice, sequentially, after the author; then one `close` |
+| `campaign-gatherer` | sonnet (haiku until 2026-10-05) | Extraction-only worker. `extract` handles one fact slice: events tagged `fact`, entities, summaries and relations, gated by `check --facts`. `close` runs the whole-handoff critic pass (orphans, density, near-duplicates) and then `finalize` | Per slice, sequentially, after the author; then one `close` |
 | `campaign-reviewer` | sonnet | Audits accuracy, coverage, fidelity, direction and style. Fixes ≤ ~15 items (transcript or handoff). Returns REGATHER for extraction problems, naming slices; ESCALATE when the transcript needs more than ~15 fact fixes | Right after `close` |
 | `campaign-fixer` | opus | Repairs the root cause (may rebuild the run); fixes `pipeline/campaign/` bugs with tests; reports pipeline/validator changes | On ESCALATE, a second failure, or an ingestion failure caused by a handoff defect |
 | `campaign-ops` | sonnet | Docker bring-up, detached ingestion and polling, single-run debug, `measure` vs §7, repair passes | Per wave, and on ingestion failures |
@@ -134,7 +134,7 @@ scope: <the exact scope line>
 ```
 task: ingest                      # bringup | ingest | ingest-status | debug | measure | repair (combinable)
 runs: ONLY='e0[1-3]__'            # regex, or explicit run ids
-options: RUN_TIMEOUT=1800 RETRY_FAILED=1     # EXTRA_AGENT_FLAGS=--refresh only to re-ingest changed handoffs in place
+options: RUN_TIMEOUT=1800 RETRY_FAILED=1     # EXTRA_AGENT_FLAGS=--refresh only to re-ingest changed handoffs in place (never for first-time ingests; the continuous loop applies it automatically to clean-manifest runs only)
 destructive: no                   # or the exact approved op, e.g. "migrate:fresh --force (user approved 2026-10-05)"
 ```
 
@@ -234,6 +234,7 @@ Three pilot runs used v1 tiering, where Haiku gathered (authored and extracted),
   - REGATHER re-extracts named slices only (`rm-slice`, so nothing duplicates).
   - Transcript trouble beyond ~15 facts goes straight to Opus.
 - **e04** still holds the unreviewed v1 output. Redo it under v2: author `mode: extend`, then the slices.
+- **Wave 2 (2026-10-05): Sonnet now extracts by default.** Even in 20-fact slices, Haiku's relations kept failing review. Reviewers sent many runs back for whole-run REGATHER, citing reversed `part_of`, nonsense links between unrelated sites, and battle sites typed as cities, so most runs paid for two extractions and two reviews. Every slice is now extracted with Sonnet.
 
 ## Backups
 
@@ -242,3 +243,77 @@ Three pilot runs used v1 tiering, where Haiku gathered (authored and extracted),
   - To restore, extract over the tree.
 - **Per run:** `candidates.prev.json` (from `handoff init --force`) and `transcript.prev.txt` (from the author).
 - **DB:** ops writes `output/history-mapped-backup-<ts>-<label>.sql` via `pg_dump` before any destructive or `--apply` operation.
+
+## 2026-10-05 QID repair
+
+Applied `output/campaign/audit/qid-repair-plan.md` to the live DB with ingestion paused (`INGEST_STOP`).
+
+- **Repaired:**
+  - clear-qid: 306 rows (299 high/medium plus the 7 collapsed split rows). The wrong QID moved to `attributes._rejected_wikidata_id`; Wikidata geo-refs were deactivated. The 38 low-confidence rows are untouched.
+  - rename: 10 rows restored from their QID's own record via `UpdateEntityAction`; the 7 skip-list rows were left alone. The "Mithridates V" row became Mithridates VI of Pontus: the e04 "Mithridates" is a different person, so it was split out too.
+  - split: 39 rows. 46 new rows came through `pipeline:import` (batch `qid-repair-20261005-split`); 6 movers re-pointed to existing rows. 84 relations and 244 chronicle links moved by exact attribution; 11 links were added where an entry names both; 0 were ambiguous.
+  - backfill: 1,205 entities the approval gate had held, imported via `pipeline:import` (batch `qid-repair-20261005-backfill`, `needs_review` plus `validation_flags`). None has geometry.
+  - re-link: `--additive-recovery` and `--link-missing` over the 72 runs (batch `recovery-20261005:<run>`) added 2,964 relations and 1,449 links. For runs whose links moved, `--link-missing` read patched copies of `chronicle.json`, so the old UUIDs could not re-attach moved links.
+- **Files:**
+  - backup: `output/campaign-backups/db-pre-qid-repair-20261005.sql.gz`;
+  - per-change log with before/after values: `output/campaign/audit/qid-repair-applied-20261005.csv`;
+  - ambiguous links: `output/campaign/audit/qid-split-ambiguous-links.csv`;
+  - post-repair audit: `output/campaign/audit/qid-corruption-20261005-post-repair.csv`;
+  - ops, inputs and re-link logs: `api/storage/app/pipeline/qid-repair-20261005/` and `output/campaign/logs/relation-recovery-20261005/`.
+- **Reverse:**
+  - Replay the change log backwards: set each `before` value back. For an `(insert)` row, delete the inserted link.
+  - Created rows carry `created_by = pipeline:qid-repair-20261005-{split,backfill}`.
+  - Re-linked relations carry `created_by LIKE 'pipeline:recovery-20261005:%'`.
+  - A full rollback is a restore of the backup. That is destructive and needs the user's approval.
+- **Open items:**
+  - The "Suleiman" row (Q8474) holds the Safavid Suleiman I's content and was not in the audit.
+  - The e08 "Qi" (the 1130s puppet state) shares the Zhou-era "Qi" row.
+  - 371 relation records (74 endpoint names) and 3 chronicle refs remain unresolved. Their QID sits on a differently named row that the guard rejects (Tell Halaf→Guzana, Middle Kingdom→China), or their record merged into another row.
+
+## 2026-10-06 namesake/date/geometry repair
+
+Applied with ingestion paused (`INGEST_STOP`, 2026-10-06 00:05–01:57 +04, after the 61-run Wave 3 batch drained). Inputs: `output/campaign/audit/namesake-repair-plan.md` and its SQL, `fabricated-jan1-20261005.csv`, and `geometry:derive-located-at`.
+
+- **Namesake repair.** All 506 guarded forward statements were re-checked against the live DB just before applying. None had drifted. Each part ran in one transaction, and inside it every statement was re-checked to match exactly one row before it ran.
+  - PART 1: 106 entity fixes (QIDs, date ranges, 4 renames).
+  - New people: 27 created through `pipeline:import --sync --skip-relationships --batch-id=namesake-repair-20261005` (`needs_review`, `created_by = pipeline:namesake-repair-20261005`). The importer skipped 5 as duplicates of rows that campaign runs created after the dry run, with the same QID and dates: Arghun `4bfa9291`, Charles VI HRE `fd1f6fa3`, Francis II of France `fa8f9bf8`, Henry IV of England `d0eb6810`, Liu Yan `8b4e7782`. Their relations and links were re-pointed to those rows (`namesake-repair-adopted-20261006.json`).
+  - PART 2: 342 re-points and date fixes (192 relations, 150 chronicle links) and the 14 approved relation deletes.
+  - dateless-first: the 31 date updates. The 3 flagged rows were not touched.
+  - Timelines were rebuilt for the 348 touched entities, because raw SQL bypasses the observers.
+- **Held back** (deletes beyond the 14 approved; still guarded in the plan SQL, apply only with approval):
+  - the 4 alias removals A0021, A0044, A0056, A0109;
+  - the 8 collateral duplicate/self-loop relation deletes A0366–A0369, A0379, A0383, A0389, A0434;
+  - the duplicate chronicle link A0529.
+- **Dates.**
+  - `handoff fix-dates --apply` de-padded 140 values in 7 handoffs:
+    - `e09__europe__hundred-years-war-and-hussites`;
+    - `e10__americas__us-civil-war-and-reconstruction`;
+    - `e10__anatolia__late-ottoman-reform-and-turkey`;
+    - `e10__east-asia__meiji-restoration-industrial-japan`;
+    - `e10__oceania__australia-new-zealand-and-pacific`;
+    - `e10__south-asia__post-independence-south-asia`;
+    - `e10__southeast-asia__khmer-rouge-asean-new-order`.
+  - The originals are in `output/campaign-backups/handoffs-pre-fixdates-20261006/`. Each `candidates.json` mtime was restored, so the loop does not re-ingest these runs with `--refresh`.
+  - The DB list came from `measure --jan1-csv` (`fabricated-jan1-20261006.csv`), regenerated from the current DB *before* the handoffs were fixed. Entity ranges are judged by matching handoff values, so a fixed handoff would misclassify them.
+  - Applied: 98 values on 61 rows (74 relation values, 24 range values), only `PADDED` with a fact that names the year. The bare year (`1873`), or `YYYY-01` when the fact names January, matches the DB convention; the trigger keeps `start_year`/`end_year` in sync.
+  - Skipped: 28 values whose cited fact names another year, and the Gregorian-calendar 1 January 1873 KEEPs.
+- **Geometry:** `geometry:derive-located-at --apply --precise-only` inserted 947 periods (`created_by = derive:located_at`): 417 battles, 228 monuments, 77 rebellions, 76 wars, 39 legal reforms, 34 cities, 23 treaties, 20 natural disasters, 13 educational institutions and 20 others. The dry run on 2026-10-05 planned 619; the DB has grown since.
+- **Files** (`output/campaign/audit/` unless noted):
+  - backup: `output/campaign-backups/db-pre-namesake-dates-geo-20261006.sql.gz` (32.9 MB);
+  - logs: `namesake-repair-applied-20261006.csv` (every statement, with status and full before/after rows), `jan1-repair-applied-20261006.csv`;
+  - ids: `namesake-repair-created-20261006.json` (created rows), `geometry-derived-ids-20261006.json` (inserted periods);
+  - `namesake-needs-review-dups-20261006.csv`: `needs_review` rows from campaign runs after 2026-10-05 21:00 +04 that are now same-name and date-compatible with a repaired row. They are reported, not merged.
+- **Reverse:**
+  - Run `repair-rollback-20261006.sql` through `psql -f -`. It undoes, in reverse order: geometry → dates → dateless → PART 2 → created entities → PART 1. Every statement is guarded on the value the repair wrote. A test run inside a rolled-back transaction touched exactly 577 updates, 14 re-inserts, 27 entities and 947 periods.
+  - Then run `timeline:rebuild` for the ids in `api/storage/app/pipeline/namesake-repair-20261005/timeline-ids-20261006.json`.
+  - Restore the handoffs with `cp -p` from the backup folder.
+  - The prepared `namesake-repair-rollback.sql` is still valid for PART 1/2. Its created-entity step does not cover the 5 adopted rows, which were not created by this repair.
+  - A full restore of the dump is destructive and needs the user's approval.
+- **Open items:**
+  - Merges listed in plan §B are still pending (e.g. `bdc385a2` ← `6537823e`, `a287d544`; `f43eb5ec` ← `c48c586e`).
+  - There is no Charles V of France row. His France relations (rules France 1364–1380, Kingdom of France, parent of Charles VI) are still on the Emperor row `6537823e`.
+  - 4 re-pointed relations now duplicate a relation the adopted row already had: Arghun rules Ilkhanate, Henry IV of England rules England, and Liu Yan rules / founded Southern Han.
+  - `fa8f9bf8` and `d0eb6810` keep their correct QID in `_rejected_wikidata_id`. It is now free to restore.
+  - `needs_review` "Muhammad Ali" `ca866502` carries the boxer's QID Q36107, which is also on `6e744003`.
+  - The Meiji handoff's "Gregorian calendar adoption" was de-padded to `1873` by fix-dates. The DB keeps the real 1 January 1873. Amend fact 49 to "On 1 January 1873 CE".
+  - The 4 renamed rows need fresh embeddings.
