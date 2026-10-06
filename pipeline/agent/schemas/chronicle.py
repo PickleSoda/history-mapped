@@ -4,9 +4,13 @@ from pydantic import BaseModel, Field
 
 
 class ChronicleEntryEntity(BaseModel):
+    # A resolved DB uuid, or the candidate label when unresolved (legacy shape).
     entity_id: str
     role: str = "participant"  # participant, mentioned, location, outcome
     sequence_in_entry: int | None = None
+    # Identity fallbacks for chronicles:import (entity_id → wikidata_id → name).
+    name: str | None = None
+    wikidata_id: str | None = None
 
 
 class ChronicleEntry(BaseModel):

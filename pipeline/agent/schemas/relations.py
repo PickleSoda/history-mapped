@@ -18,6 +18,11 @@ class CandidateRelation(BaseModel):
     final_confidence: float = 0.0
     source_wikidata_id: str | None = None
     target_wikidata_id: str | None = None
+    # Set only by approval_gate (it resets any other value): a reviewed campaign
+    # relation committed below its predicate's auto-commit threshold is imported
+    # with this relationships.confidence level. Excluded from dumps, so handoff
+    # files (candidates.json) never carry it.
+    commit_confidence: str | None = Field(default=None, exclude=True)
 
 
 class CommittedChange(BaseModel):

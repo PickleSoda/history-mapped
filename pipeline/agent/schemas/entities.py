@@ -148,3 +148,17 @@ class EnrichedCandidate(BaseModel):
     final_confidence: float = 0.0
     validation_errors: list[str] = Field(default_factory=list)
     existing_entity: bool = False  # Set by db_lookup when entity already exists
+    # Set by approval_gate when a campaign entity is committed despite a
+    # Wikidata/geometry shortfall: imported with this status (needs_review) and
+    # these flags (attributes.validation_flags) instead of being held.
+    verification_status: str | None = None
+    validation_flags: list[str] = Field(default_factory=list)
+    # Set by db_lookup when same-name DB rows exist but none / several of them
+    # are date-compatible ('namesake_ambiguous' — e.g. 'Philip II' of Macedon vs
+    # of Spain): the candidate becomes a new entity and approval_gate commits it
+    # as needs_review.
+    namesake_flag: str | None = None
+    # [start, end] year span db_lookup judged identity by: the candidate's dates,
+    # else its contemporaneous relations' / source event's. Passed to the
+    # importer as _identity_span when the record itself is undated.
+    identity_span: list[int] | None = None

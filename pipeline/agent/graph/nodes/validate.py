@@ -35,6 +35,26 @@ ALLOWED_RELATION_TYPES = set(RELATION_RISK_POLICIES.keys()) | {
 }
 
 
+# Entity confidence = BASE_CONFIDENCE + Wikidata bonuses (system_confidence)
+# - MISSING_GEOMETRY_PENALTY for a geo-sensitive type without geometry.
+# approval_gate reuses these to tell which shortfall held an entity.
+BASE_CONFIDENCE = 0.95
+MISSING_GEOMETRY_PENALTY = 0.05
+GEO_SENSITIVE_TYPES = {"political_entity", "city", "infrastructure_monument", "event_battle", "trade_route"}
+
+# Relation confidence: a valid relation scores BASE_CONFIDENCE, plus
+# RELATION_CORROBORATION_BONUS when both ends carry a Wikidata QID (the resolved
+# match, or the existing DB row's). Like the high-risk entity types (0.97), the
+# high-risk predicates (rules/governed_by, 0.97) then auto-commit only with that
+# external corroboration; at a flat 0.95 they could never auto-commit.
+RELATION_CORROBORATION_BONUS = 0.02
+
+
+def _endpoint_qid(enriched) -> str | None:
+    match = enriched.wikidata_match or {}
+    return match.get("qid") or (match.get("existing_entity") or {}).get("wikidata_id")
+
+
 def validate(state: AgentRunState) -> AgentRunState:
     results = []
     for enriched in state["enriched_entities"]:
@@ -42,17 +62,16 @@ def validate(state: AgentRunState) -> AgentRunState:
         warnings = []
         # Base confidence: combine fixed floor with external enrichment bonuses
         # system_confidence accumulates: +0.3 (Wikidata label), +0.1 (Wikidata desc), +0.2 (OHM geom)
-        confidence = 0.95 + enriched.system_confidence
+        confidence = BASE_CONFIDENCE + enriched.system_confidence
         if enriched.candidate.entity_type not in ALLOWED_ENTITY_TYPES:
             errors.append(f"Invalid entity type: {enriched.candidate.entity_type}")
         policy = ENTITY_RISK_POLICIES.get(enriched.candidate.entity_type, {})
         if policy.get("requires_wikidata") and not enriched.wikidata_match:
             errors.append("Missing Wikidata ID")
             confidence -= 0.3
-        geo_sensitive = {"political_entity", "city", "infrastructure_monument", "event_battle", "trade_route"}
-        if enriched.candidate.entity_type in geo_sensitive and not enriched.geometry:
+        if enriched.candidate.entity_type in GEO_SENSITIVE_TYPES and not enriched.geometry:
             warnings.append("Missing geometry for geography-sensitive entity")
-            confidence -= 0.05
+            confidence -= MISSING_GEOMETRY_PENALTY
         confidence = max(0.0, min(1.0, confidence))
         enriched.final_confidence = confidence
         results.append(ValidationResult(
@@ -61,6 +80,7 @@ def validate(state: AgentRunState) -> AgentRunState:
             errors=errors,
             warnings=warnings,
         ))
+    qids = {e.candidate.label: _endpoint_qid(e) for e in state["enriched_entities"]}
     for relation in state["candidate_relations"]:
         errors = []
         if relation.relationship_type not in ALLOWED_RELATION_TYPES:
@@ -76,8 +96,12 @@ def validate(state: AgentRunState) -> AgentRunState:
             errors.append(f"Source entity not found: {relation.source_label}")
         if relation.target_label not in entity_labels:
             errors.append(f"Target entity not found: {relation.target_label}")
-        # Set confidence based on validation (high enough to pass most thresholds)
-        relation.final_confidence = 0.95 if len(errors) == 0 else 0.3
+        if errors:
+            relation.final_confidence = 0.3
+        else:
+            corroborated = all(qids.get(label) for label in (relation.source_label, relation.target_label))
+            bonus = RELATION_CORROBORATION_BONUS if corroborated else 0.0
+            relation.final_confidence = round(BASE_CONFIDENCE + bonus, 4)
         results.append(ValidationResult(
             candidate_id=f"{relation.source_label}|{relation.relationship_type}|{relation.target_label}",
             passed=len(errors) == 0,
