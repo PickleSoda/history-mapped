@@ -8,9 +8,11 @@ use App\Actions\Entity\CreateEntityAction;
 use App\Actions\Entity\UpdateEntityAction;
 use App\Actions\EntityGeoRef\ImportGeoResolutionAction;
 use App\DTOs\EntityData;
+use App\Enums\VerificationStatus;
 use App\Models\Entity;
 use App\Models\EntityTemporalRange;
 use App\Models\GeometryPeriod;
+use App\Services\EntityReferenceResolver;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -63,7 +65,7 @@ class ImportEntityJob implements ShouldQueue
             $geoResolution = $record['_geo_resolution'] ?? null;
 
             $entityRecord = $record;
-            unset($entityRecord['_relationship_hints'], $entityRecord['_geo_resolution']);
+            unset($entityRecord['_relationship_hints'], $entityRecord['_geo_resolution'], $entityRecord['_identity_span']);
 
             if (isset($entityRecord['attributes']['_infobox'])) {
                 unset($entityRecord['attributes']['_infobox']);
@@ -71,15 +73,39 @@ class ImportEntityJob implements ShouldQueue
 
             $entityRecord = $this->normalizePipelineRecord($entityRecord);
 
-            // ── Ensure pipeline_draft status ────────────────────────────
-            $entityRecord['verification_status'] = 'pipeline_draft';
+            // ── Status: pipeline_draft, or needs_review when the pipeline ─
+            // committed the record unverified (campaign approval gate). No other
+            // value is honoured: an import must never self-promote a row.
+            $entityRecord['verification_status'] = ($record['verification_status'] ?? null) === VerificationStatus::NeedsReview->value
+                ? VerificationStatus::NeedsReview->value
+                : VerificationStatus::PipelineDraft->value;
+
+            // ── Find the row to merge into (identity-guarded) ───────────
+            ['entity' => $existingEntity, 'rejected_qid' => $rejectedQid, 'namesake' => $namesake] = $this->findExisting($record);
+
+            if ($existingEntity === null && $namesake !== null) {
+                // Same-name / same-QID rows exist but none (or several) are of
+                // this record's era: a new entity whose identity is in doubt.
+                $entityRecord['verification_status'] = VerificationStatus::NeedsReview->value;
+                $flags = is_array($entityRecord['validation_flags'] ?? null) ? $entityRecord['validation_flags'] : [];
+                $entityRecord['validation_flags'] = array_values(array_unique([...$flags, $namesake]));
+            }
+
+            if ($rejectedQid !== null) {
+                // The QID already belongs to a row with a different name: the
+                // record's QID is wrong (or that row is) — never write it here,
+                // keep it for review instead.
+                $entityRecord['wikidata_id'] = null;
+                $entityRecord['attributes'] = [
+                    ...(is_array($entityRecord['attributes'] ?? null) ? $entityRecord['attributes'] : []),
+                    '_rejected_wikidata_id' => $rejectedQid,
+                ];
+            }
 
             // ── Build EntityData DTO ────────────────────────────────────
             $entityData = EntityData::fromArray($entityRecord);
 
             // ── Create or overwrite ─────────────────────────────────────
-            $existingEntity = $this->findExisting($record);
-
             if ($existingEntity !== null) {
                 if (! $this->force) {
                     $wikidataId = $record['wikidata_id'] ?? 'no QID';
@@ -146,14 +172,58 @@ class ImportEntityJob implements ShouldQueue
      * Critically, a wikidata_id MISS no longer short-circuits to null — it falls
      * through to the OHM-id and name+era checks (the previous behaviour created
      * the cross-transcript duplicates).
+     *
+     * Identity guard: a row found by QID or OHM id is only merged into when its
+     * name/aliases match the record (EntityReferenceResolver::recordMatchesRow)
+     * — pipeline QIDs are sometimes wrong ("World War I" carried World War II's
+     * QID, "Romagna" shared Romania's OHM feature) and a --force merge would
+     * overwrite the other entity's name/summary. A rejected QID is reported back
+     * so the caller drops it from the record (it belongs to the other row).
+     *
+     * Temporal namesake guard (EntityReferenceResolver::temporalFit, keep in
+     * sync with pipeline db_lookup): a QID / OHM / name match whose dates are
+     * clearly incompatible with the record's (its temporal_start/end, else the
+     * pipeline's `_identity_span`) is refused — 'Philip II' of Spain never
+     * merges into the Macedonian. For date-checked types (persons, dynasties,
+     * events…) the name path picks the date-compatible row among namesakes
+     * (pickNamesake: a slightly different date still matches), and none /
+     * several dated namesakes yield `namesake` = 'namesake_ambiguous' so the
+     * new row is created as needs_review. Public so the command's pre-import
+     * dedup (ImportEntitiesCommand::isDuplicate) applies the very same rules.
+     *
+     * @return array{entity: Entity|null, rejected_qid: string|null, namesake: string|null}
      */
-    private function findExisting(array $record): ?Entity
+    public function findExisting(array $record): array
     {
+        $name = is_string($record['name'] ?? null) ? $record['name'] : '';
+        $altNames = $this->identityAltNames($record);
+        $rejectedQid = null;
+        $namesake = null;
+        $span = $this->recordSpan($record);
+
         $wikidataId = $record['wikidata_id'] ?? null;
         if ($wikidataId) {
-            $byWikidata = Entity::query()->where('wikidata_id', $wikidataId)->first();
-            if ($byWikidata !== null) {
-                return $byWikidata;
+            $byWikidata = Entity::query()->where('wikidata_id', $wikidataId)->with('primaryTemporalRange')->orderBy('created_at')->get();
+            $otherEra = null;
+            foreach ($byWikidata as $candidate) {
+                if (EntityReferenceResolver::recordMatchesRow($name, $altNames, EntityReferenceResolver::namesOfRow($candidate->entity_id))) {
+                    if ($this->ofAnotherEra($candidate, $span)) {
+                        $otherEra ??= $candidate;
+
+                        continue;
+                    }
+
+                    return ['entity' => $candidate, 'rejected_qid' => null, 'namesake' => null];
+                }
+            }
+            if ($byWikidata->isNotEmpty()) {
+                $rejectedQid = (string) $wikidataId;
+                if ($otherEra !== null) {
+                    $namesake = EntityReferenceResolver::NAMESAKE_AMBIGUOUS;
+                    Log::warning("[Pipeline] Namesake guard: {$wikidataId} is '{$otherEra->name}' of another era (".EntityReferenceResolver::describeSpan($this->entitySpan($otherEra)).' vs '.EntityReferenceResolver::describeSpan($span).") — not merging '{$name}'; importing without the QID");
+                } else {
+                    Log::warning("[Pipeline] Identity guard: {$wikidataId} is '{$byWikidata->first()->name}', not '{$name}' — not merging; importing without the QID");
+                }
             }
         }
 
@@ -163,9 +233,16 @@ class ImportEntityJob implements ShouldQueue
                 ->whereHas('geoRefs', function ($query) use ($ohmExternalId) {
                     $query->where('provider', 'ohm')->where('external_id', $ohmExternalId);
                 })
-                ->first();
-            if ($byOhm !== null) {
-                return $byOhm;
+                ->orderBy('created_at')
+                ->get();
+            foreach ($byOhm as $candidate) {
+                if (EntityReferenceResolver::recordMatchesRow($name, $altNames, EntityReferenceResolver::namesOfRow($candidate->entity_id))
+                    && ! $this->ofAnotherEra($candidate, $span)) {
+                    return ['entity' => $candidate, 'rejected_qid' => $rejectedQid, 'namesake' => null];
+                }
+            }
+            if ($byOhm->isNotEmpty()) {
+                Log::warning("[Pipeline] Identity guard: OHM {$ohmExternalId} is '{$byOhm->first()->name}', not '{$name}' (or of another era) — not merging");
             }
         }
 
@@ -179,16 +256,113 @@ class ImportEntityJob implements ShouldQueue
                 ->where('name', $name)
                 ->where('entity_type', $type)
                 ->with('primaryTemporalRange')
+                ->orderBy('created_at')
+                ->orderBy('entity_id')
                 ->get();
 
-            foreach ($candidates as $candidate) {
-                if ($this->erasOverlap($startYear, $endYear, $candidate)) {
-                    return $candidate;
+            if (array_key_exists((string) $type, EntityReferenceResolver::NAMESAKE_TOLERANCE_YEARS)) {
+                // Date-checked type: namesakes are told apart by date, with the
+                // type's tolerance (the same person with slightly different
+                // dates still merges).
+                $rows = $candidates->map(fn (Entity $c): array => [
+                    'entity_id' => $c->entity_id,
+                    'entity_type' => $type,
+                    'start_year' => $c->primaryTemporalRange?->start_year,
+                    'end_year' => $c->primaryTemporalRange?->end_year,
+                ])->all();
+                [$row, $verdict] = EntityReferenceResolver::pickNamesake(array_values($rows), $span, (string) $type);
+                if ($row !== null) {
+                    return ['entity' => $candidates->firstWhere('entity_id', $row['entity_id']), 'rejected_qid' => $rejectedQid, 'namesake' => null];
+                }
+                if ($verdict === EntityReferenceResolver::NAMESAKE_AMBIGUOUS) {
+                    $namesake = $verdict;
+                    Log::warning("[Pipeline] Namesake guard: {$candidates->count()} '{$name}' {$type} row(s) of other eras / several eras (record ".EntityReferenceResolver::describeSpan($span).') — importing a new row for review');
+                }
+            } else {
+                foreach ($candidates as $candidate) {
+                    if ($this->erasOverlap($startYear, $endYear, $candidate)) {
+                        return ['entity' => $candidate, 'rejected_qid' => $rejectedQid, 'namesake' => null];
+                    }
                 }
             }
         }
 
-        return null;
+        return ['entity' => null, 'rejected_qid' => $rejectedQid, 'namesake' => $namesake];
+    }
+
+    /**
+     * The record's year span: its temporal_start/end, else the `_identity_span`
+     * the pipeline derived for an undated record (its relations' dates).
+     *
+     * @return array{0: int, 1: int}|null
+     */
+    private function recordSpan(array $record): ?array
+    {
+        $span = EntityReferenceResolver::yearSpan(
+            $this->parseYear($record['temporal_start'] ?? null),
+            $this->parseYear($record['temporal_end'] ?? null),
+        );
+        if ($span !== null) {
+            return $span;
+        }
+
+        $derived = $record['_identity_span'] ?? null;
+        if (! is_array($derived)) {
+            return null;
+        }
+        $derived = array_values($derived);
+
+        return EntityReferenceResolver::yearSpan(
+            $this->parseYear($derived[0] ?? null),
+            $this->parseYear($derived[1] ?? null),
+        );
+    }
+
+    /**
+     * @return array{0: int, 1: int}|null
+     */
+    private function entitySpan(Entity $entity): ?array
+    {
+        $range = $entity->primaryTemporalRange;
+
+        return EntityReferenceResolver::yearSpan($range?->start_year, $range?->end_year);
+    }
+
+    /**
+     * Whether a row found by QID / OHM id is clearly of another era than the
+     * record (a namesake): never merged into.
+     *
+     * @param  array{0: int, 1: int}|null  $span
+     */
+    private function ofAnotherEra(Entity $candidate, ?array $span): bool
+    {
+        $type = $candidate->entity_type instanceof \BackedEnum ? $candidate->entity_type->value : (string) $candidate->entity_type;
+
+        return EntityReferenceResolver::temporallyIncompatible($type, $span, $this->entitySpan($candidate));
+    }
+
+    /**
+     * The record's alternative names usable as identity evidence: the OHM
+     * canonical name recorded as an alias by the pipeline's OHM match is left
+     * out — it derives from the very match being checked, so two entities that
+     * share a (wrong) OHM feature would otherwise "match" through it.
+     *
+     * @return list<string>
+     */
+    private function identityAltNames(array $record): array
+    {
+        $alts = array_values(array_filter(
+            is_array($record['alternative_names'] ?? null) ? $record['alternative_names'] : [],
+            static fn (mixed $a): bool => is_string($a) && trim($a) !== '',
+        ));
+
+        $display = $record['_geo_resolution']['geo_ref']['source_meta']['display_name'] ?? null;
+        if (! is_string($display) || trim($display) === '') {
+            return $alts;
+        }
+        $ohmName = mb_strtolower(trim(explode(',', $display)[0]));
+
+        return array_values(array_filter($alts, static fn (string $a): bool => mb_strtolower(trim($a)) !== $ohmName));
     }
 
     /**

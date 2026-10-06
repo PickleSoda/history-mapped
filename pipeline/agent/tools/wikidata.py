@@ -84,6 +84,9 @@ def search_wikidata_by_name(name: str, limit: int = 10) -> list[dict[str, Any]]:
                 "description": item.get("description", ""),
                 "aliases": item.get("aliases", []),
                 "match_type": match_info.get("type", ""),
+                # The label/alias (any language) the search actually matched —
+                # lets the name guard tell an exact hit from a prefix hit.
+                "match_text": match_info.get("text", ""),
             })
     logger.info("Wikidata search: '%s' → %d results", name, len(results))
     return results
@@ -257,13 +260,19 @@ def _parse_geo(claims: dict[str, Any]) -> tuple[str | None, str | None]:
     return coordinates, location_qid
 
 
+def _en_aliases(entity: dict[str, Any]) -> list[str]:
+    """English aliases of a Wikidata entity JSON (wbgetentities / EntityData)."""
+    aliases = (entity.get("aliases", {}) or {}).get("en", []) or []
+    return [a.get("value", "") for a in aliases if isinstance(a, dict) and a.get("value")]
+
+
 def fetch_entity_meta(qids: list[str]) -> dict[str, dict[str, Any]]:
     """Batched fetch of disambiguation/verification metadata via wbgetentities.
 
     One API call per 50 QIDs (vs enrich's one-call-per-QID), returning for each:
     ``p31`` (instance-of QIDs), ``sitelinks`` (count — a popularity prior),
     ``start_date``/``end_date``, ``coordinates``, ``location_qid``, ``label``,
-    ``description``. Used both to re-rank search candidates by type (resolve
+    ``aliases`` (English), ``description``. Used both to re-rank search candidates by type (resolve
     node) and to verify/repair already-committed QIDs (repair pass).
     """
     if not qids:
@@ -274,7 +283,7 @@ def fetch_entity_meta(qids: list[str]) -> dict[str, dict[str, Any]]:
         data = _wikidata_get({
             "action": "wbgetentities",
             "ids": "|".join(batch),
-            "props": "claims|sitelinks|labels|descriptions",
+            "props": "claims|sitelinks|labels|descriptions|aliases",
             "languages": "en",
             "format": "json",
         })
@@ -296,6 +305,7 @@ def fetch_entity_meta(qids: list[str]) -> dict[str, dict[str, Any]]:
             descriptions = ent.get("descriptions", {}) or {}
             out[qid] = {
                 "label": labels.get("en", {}).get("value", ""),
+                "aliases": _en_aliases(ent),
                 "description": descriptions.get("en", {}).get("value", ""),
                 "p31": p31,
                 "sitelinks": len(ent.get("sitelinks", {}) or {}),
@@ -383,6 +393,7 @@ def enrich_wikidata_entities(qids: list[str]) -> dict[str, dict[str, Any]]:
 
             results[qid] = {
                 "label": label,
+                "aliases": _en_aliases(entity),
                 "description": description,
                 "coordinates": coordinates,
                 "location_qid": location_qid,

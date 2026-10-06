@@ -191,3 +191,50 @@ def test_resolve_ohm_keeps_readable_name_over_non_latin_ohm_name(mock_resolve):
     enriched = new_state["enriched_entities"][0]
     assert enriched.candidate.label == "Achaemenid Dynasty"  # non-Latin name not adopted
     assert enriched.geo_resolution is not None  # geometry/id still attached
+
+
+@patch("pipeline.agent.graph.nodes.db_lookup.search_entity_by_wikidata_id")
+@patch("pipeline.agent.graph.nodes.db_lookup.search_entity_by_name")
+def test_db_lookup_ignores_substring_only_matches(mock_search, mock_qid):
+    # The DB search is ILIKE %label%: "Franks" also returns "Kingdom of the Franks".
+    # A substring hit must NOT mark the candidate as existing (it would be dropped
+    # from the diff and every relation/chronicle link to "Franks" would miss).
+    mock_search.return_value = [
+        {"entity_id": "E1", "name": "Kingdom of the Franks",
+         "entity_type": "political_entity", "wikidata_id": "Q146246"},
+    ]
+    mock_qid.return_value = []
+    state = make_base_state()
+    state["candidate_entities"] = [CandidateEntity(label="Franks", entity_type="political_entity")]
+    new_state = db_lookup(state)
+    enriched = new_state["enriched_entities"][0]
+    assert enriched.existing_entity is False
+    assert enriched.wikidata_match is None
+
+
+@patch("pipeline.agent.graph.nodes.db_lookup.search_entity_by_name")
+def test_db_lookup_picks_exact_case_insensitive_match_not_first_row(mock_search):
+    # Unordered LIMIT 10: the exact row may come after substring rows.
+    mock_search.return_value = [
+        {"entity_id": "E1", "name": "Kingdom of the Franks",
+         "entity_type": "political_entity", "wikidata_id": "Q146246"},
+        {"entity_id": "E2", "name": "franks",
+         "entity_type": "political_entity", "wikidata_id": None},
+    ]
+    state = make_base_state()
+    state["candidate_entities"] = [CandidateEntity(label=" Franks ", entity_type="political_entity")]
+    new_state = db_lookup(state)
+    enriched = new_state["enriched_entities"][0]
+    assert enriched.existing_entity is True
+    assert enriched.wikidata_match["existing_entity"]["entity_id"] == "E2"
+
+
+@patch("pipeline.agent.graph.nodes.db_lookup.search_entity_by_name")
+def test_db_lookup_rejects_exact_name_of_another_type(mock_search):
+    mock_search.return_value = [
+        {"entity_id": "E9", "name": "Franks", "entity_type": "ethnic_group", "wikidata_id": None},
+    ]
+    state = make_base_state()
+    state["candidate_entities"] = [CandidateEntity(label="Franks", entity_type="political_entity")]
+    new_state = db_lookup(state)
+    assert new_state["enriched_entities"][0].existing_entity is False

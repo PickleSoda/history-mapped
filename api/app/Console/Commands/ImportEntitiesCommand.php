@@ -7,7 +7,6 @@ namespace App\Console\Commands;
 use App\Jobs\ImportEntityJob;
 use App\Jobs\ResolveRelationshipsJob;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -270,30 +269,19 @@ class ImportEntitiesCommand extends Command
     }
 
     /**
-     * Check if an entity already exists (by wikidata_id or exact name + type).
+     * Check if an entity already exists — exactly the row ImportEntityJob would
+     * merge into (findExisting: name-guarded QID, OHM id, then name + type
+     * with the era / namesake guard), so a record the job would import as a
+     * new entity (a wrong QID, a namesake of another era) is never skipped
+     * here as a "duplicate".
      */
     private function isDuplicate(array $record): bool
     {
-        $wikidataId = $record['wikidata_id'] ?? null;
-
-        if ($wikidataId) {
-            return DB::table('entities')
-                ->where('wikidata_id', $wikidataId)
-                ->exists();
+        if (! is_string($record['name'] ?? null) || ! is_string($record['entity_type'] ?? null)) {
+            return false;
         }
 
-        // Fallback: exact name + type match
-        $name = $record['name'] ?? null;
-        $type = $record['entity_type'] ?? null;
-
-        if ($name && $type) {
-            return DB::table('entities')
-                ->where('name', $name)
-                ->where('entity_type', $type)
-                ->exists();
-        }
-
-        return false;
+        return (new ImportEntityJob($record, 'dedup-check'))->findExisting($record)['entity'] !== null;
     }
 
     /**

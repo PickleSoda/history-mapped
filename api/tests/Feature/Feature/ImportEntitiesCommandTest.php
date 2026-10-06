@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Feature;
 
+use App\Enums\VerificationStatus;
 use App\Jobs\ImportEntityJob;
 use App\Models\Entity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -239,6 +240,31 @@ class ImportEntitiesCommandTest extends TestCase
         ])->assertExitCode(0);
     }
 
+    public function test_unverified_pipeline_record_keeps_needs_review_and_its_flags(): void
+    {
+        // Campaign approval gate: committed without a vetted QID/geometry.
+        $this->importRecord([
+            'name' => 'Amphipolis',
+            'entity_type' => 'city',
+            'entity_group' => 'PLACE',
+            'summary' => 'A city in Macedonia.',
+            'verification_status' => 'needs_review',
+            'validation_flags' => ['no_wikidata_match', 'missing_geometry'],
+        ]);
+
+        $entity = Entity::query()->where('name', 'Amphipolis')->firstOrFail();
+        $this->assertSame(VerificationStatus::NeedsReview, $entity->verification_status);
+        $this->assertSame(['no_wikidata_match', 'missing_geometry'], $entity->getAttribute('attributes')['validation_flags'] ?? null);
+    }
+
+    public function test_pipeline_record_cannot_self_promote_its_status(): void
+    {
+        $this->importRecord(array_replace($this->record, ['verification_status' => 'human_verified']));
+
+        $entity = Entity::query()->where('wikidata_id', 'Q1059758')->firstOrFail();
+        $this->assertSame(VerificationStatus::PipelineDraft, $entity->verification_status);
+    }
+
     public function test_dedup_by_ohm_external_id_when_wikidata_differs(): void
     {
         $base = [
@@ -307,6 +333,114 @@ class ImportEntitiesCommandTest extends TestCase
         ]));
 
         $this->assertDatabaseCount('entities', 2);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function warRecord(string $name, string $qid, string $summary): array
+    {
+        return [
+            'name' => $name,
+            'entity_type' => 'event_war',
+            'entity_group' => 'EVENT',
+            'wikidata_id' => $qid,
+            'summary' => $summary,
+            'verification_status' => 'pipeline_draft',
+            'confidence' => 'medium',
+        ];
+    }
+
+    private function importForced(array $record, bool $force = true): void
+    {
+        file_put_contents($this->jsonlFile, json_encode($record)."\n");
+
+        $this->artisan('pipeline:import', [
+            'path' => $this->jsonlFile,
+            '--sync' => true,
+            '--skip-relationships' => true,
+            '--force' => $force,
+        ])->assertExitCode(0);
+    }
+
+    public function test_force_never_merges_by_qid_into_a_differently_named_row(): void
+    {
+        $ww2 = Entity::factory()->create([
+            'name' => 'World War II',
+            'wikidata_id' => 'Q362',
+            'summary' => 'Global war 1939-1945.',
+        ]);
+
+        // The pipeline gave World War I World War II's QID.
+        $this->importForced($this->warRecord('World War I', 'Q362', 'Global war 1914-1918.'));
+
+        $ww2->refresh();
+        $this->assertSame('World War II', $ww2->name);
+        $this->assertSame('Global war 1939-1945.', $ww2->summary);
+
+        $ww1 = Entity::query()->where('name', 'World War I')->firstOrFail();
+        $this->assertNotSame($ww2->entity_id, $ww1->entity_id);
+        $this->assertNull($ww1->wikidata_id);
+        $this->assertSame('Q362', $ww1->getAttribute('attributes')['_rejected_wikidata_id'] ?? null);
+        $this->assertSame(1, Entity::query()->where('wikidata_id', 'Q362')->count());
+    }
+
+    public function test_wrong_qid_record_is_not_skipped_as_a_duplicate_without_force(): void
+    {
+        Entity::factory()->create(['name' => 'World War II', 'wikidata_id' => 'Q362']);
+
+        $this->importForced($this->warRecord('World War I', 'Q362', 'Global war 1914-1918.'), force: false);
+
+        $this->assertDatabaseHas('entities', ['name' => 'World War I', 'wikidata_id' => null]);
+        $this->assertDatabaseCount('entities', 2);
+    }
+
+    public function test_qid_merge_still_happens_when_an_alias_names_the_row(): void
+    {
+        $row = Entity::factory()->create([
+            'name' => 'Yongle Emperor',
+            'wikidata_id' => 'Q9726',
+            'summary' => 'Third Ming emperor.',
+        ]);
+
+        $record = array_replace($this->warRecord('Zhu Di', 'Q9726', 'Ming emperor who moved the capital.'), [
+            'entity_type' => 'person',
+            'entity_group' => 'POLITY',
+            'alternative_names' => ['Yongle Emperor'],
+        ]);
+        $this->importForced($record);
+
+        $this->assertDatabaseCount('entities', 1);
+        $this->assertSame('Ming emperor who moved the capital.', $row->refresh()->summary);
+    }
+
+    public function test_ohm_id_merge_is_name_guarded(): void
+    {
+        $romania = [
+            'name' => 'Romania',
+            'entity_type' => 'political_entity',
+            'entity_group' => 'POLITY',
+            'wikidata_id' => 'Q218',
+            'summary' => 'Balkan state.',
+            'alternative_names' => ['Romagne'],
+            'verification_status' => 'pipeline_draft',
+            'confidence' => 'medium',
+            '_geo_resolution' => $this->geoResolutionManifest([
+                'geo_ref' => ['external_id' => '2851901', 'source_meta' => ['display_name' => 'Romagne, Imperium Romanum']],
+            ]),
+        ];
+        $this->importRecord($romania);
+
+        // Same OHM feature, different polity: the shared OHM alias is no evidence.
+        $this->importForced(array_replace($romania, [
+            'name' => 'Romagna',
+            'wikidata_id' => 'Q1952',
+            'summary' => 'Italian region.',
+        ]));
+
+        $this->assertDatabaseCount('entities', 2);
+        $this->assertDatabaseHas('entities', ['name' => 'Romania', 'summary' => 'Balkan state.']);
+        $this->assertDatabaseHas('entities', ['name' => 'Romagna', 'wikidata_id' => 'Q1952']);
     }
 
     public function test_sync_import_skips_geo_ref_creation_when_manifest_reports_no_match(): void

@@ -21,7 +21,7 @@ from typing import Any
 _POINT_WKT_RE = re.compile(r"point\(\s*(-?[\d.]+)\s+(-?[\d.]+)\s*\)", re.IGNORECASE)
 
 from pipeline.agent.log_config import get_logger
-from pipeline.agent.tools.disambiguation import era_year
+from pipeline.agent.tools.disambiguation import era_year, names_compatible, names_conflict
 from pipeline.wikidata.resolver.ohm_client import search_by_name, _normalize_name
 
 logger = get_logger(__name__)
@@ -105,6 +105,21 @@ def relevance(candidate: dict[str, Any], query: str, target_era: int | None,
     wd = (candidate.get("external_tags") or {}).get("wikidata")
     if entity_wikidata and wd and wd == entity_wikidata:
         return 1.0
+
+    # Identity vetoes. Era may carry a wholly different canonical name (OHM's
+    # Latin/native 'Imperium Romanum Orientale' for the Byzantine Empire), but
+    # not a feature that positively denotes a different entity:
+    #  * a different regnal/ordinal number in the names (Second vs First …);
+    #  * a different Wikidata id than the entity's own, unless the names match —
+    #    'Romania' (Q218) must not take the 1861-69 'Romagne' feature
+    #    (Q244482) on era alone: the shared OHM id then merged Romagna's
+    #    record into the Romania row at import.
+    # (Token near-misses are NOT vetoed here: OHM's canonical is often the
+    # foreign spelling of the right answer — Romagne for Romagna.)
+    if names_conflict(query, label) == "markers":
+        return 0.0
+    if entity_wikidata and wd and wd != entity_wikidata and not names_compatible(query, label):
+        return 0.0
 
     # Veto a known, large era mismatch: a perfect name match to a wrong-era
     # namesake (ancient "Egypt" vs the 1843 US village "Egypt") must not win on

@@ -39,7 +39,8 @@ from pipeline.agent.tools.wikidata import (
     search_wikidata_by_name, fetch_entity_meta, _rank_candidates,
 )
 from pipeline.agent.tools.disambiguation import (
-    EXPECTED_P31, rerank_by_type, rerank_by_era, era_year, is_ambiguous,
+    BOUNDED_LIFETIME_TYPES, EXPECTED_P31, rerank_by_type, rerank_by_era, era_year, is_ambiguous,
+    screen_candidates,
 )
 from pipeline.agent.graph.nodes.commit_writer import ENTITY_TYPE_TO_GROUP
 
@@ -122,6 +123,10 @@ def reresolve(name: str, type_hint: str, era: int | None) -> dict | None:
     rerank_by_type(ranked, type_hint, meta)
     if is_ambiguous(ranked) and era is not None:
         rerank_by_era(ranked, era, meta)
+    # Same name guard as resolve_wikidata: never re-point a row at a candidate
+    # whose name disagrees with it (Qi → Qing dynasty, Abbas II → Abbas I).
+    ranked, _ = screen_candidates(ranked, name, None, meta,
+                                  target_era=era if type_hint in BOUNDED_LIFETIME_TYPES else None)
     if not ranked:
         return None
     top = ranked[0]

@@ -9,7 +9,8 @@ from pipeline.agent.tools.wikidata import (
     search_wikidata_by_name, enrich_wikidata_entities, fetch_entity_meta, _rank_candidates,
 )
 from pipeline.agent.tools.disambiguation import (
-    context_era, era_year, rerank_by_era, rerank_by_type, is_ambiguous,
+    BOUNDED_LIFETIME_TYPES, candidate_name_ok, context_era, era_year, rerank_by_era,
+    rerank_by_type, is_ambiguous, screen_candidates,
 )
 
 logger = get_logger(__name__)
@@ -50,14 +51,25 @@ def resolve_wikidata(state: AgentRunState) -> AgentRunState:
     for i, enriched in enumerate(state["enriched_entities"]):
         logger.info("  [%d/%d] %s (type=%s)", i + 1, entity_count, enriched.candidate.label, enriched.candidate.entity_type)
 
+        item_names = [enriched.candidate.label, *(enriched.candidate.aliases or [])]
+
         if enriched.candidate.wikidata_id:
             qid = enriched.candidate.wikidata_id
-            full = enrich_wikidata_entities([qid])
-            enriched.wikidata_match = full.get(qid, {})
-            enriched.wikidata_match["qid"] = qid
-            enriched.system_confidence += 0.3 if enriched.wikidata_match.get("description") else 0.1
-            logger.info("    → pre-assigned QID=%s label=%s", qid, enriched.wikidata_match.get("label", ""))
-            continue
+            record = enrich_wikidata_entities([qid]).get(qid, {})
+            # A pre-assigned QID is name-guarded like a searched one: an LLM- or
+            # handoff-supplied QID for the wrong item (World War II's for "World
+            # War I") must not become this entity's identity. Unverifiable (no
+            # label fetched) keeps the old behaviour.
+            ok, why = (candidate_name_ok(item_names, [record.get("label", ""), *record.get("aliases", [])])
+                       if record.get("label") else (True, "unverified"))
+            if ok:
+                enriched.wikidata_match = record
+                enriched.wikidata_match["qid"] = qid
+                enriched.system_confidence += 0.3 if enriched.wikidata_match.get("description") else 0.1
+                logger.info("    → pre-assigned QID=%s label=%s", qid, enriched.wikidata_match.get("label", ""))
+                continue
+            logger.warning("    → pre-assigned QID=%s label=%s REJECTED (name guard: %s); re-searching",
+                           qid, record.get("label", ""), why)
 
         # Skip if db_lookup already found an existing entity in the DB
         if enriched.existing_entity:
@@ -94,16 +106,28 @@ def resolve_wikidata(state: AgentRunState) -> AgentRunState:
             # "Philip II of Macedon" vs "Philip II of Spain"), prefer the one
             # nearest the entity's era — reusing meta dates, no extra fetch. Skipped
             # for persistent places whose inception date misleads it.
+            own_era = era_year(enriched.candidate.start_date) or era_year(enriched.candidate.end_date)
+            target_era = own_era if own_era is not None else context_era_year
             if is_ambiguous(ranked) and enriched.candidate.entity_type not in _PERSISTENT_PLACE_TYPES:
-                target_era = (
-                    era_year(enriched.candidate.start_date)
-                    or era_year(enriched.candidate.end_date)
-                    or context_era_year
-                )
                 if target_era is not None:
                     rerank_by_era(ranked, target_era, meta_by_qid)
                     logger.info("    → era rerank (era=%s) top: %s", target_era,
                                 [(c["qid"], c["label"], c.get("score", 0)) for c in ranked[:3]])
+            # Name guard: drop candidates whose names disagree with the item's
+            # (prefix hits 'Qi'→'Qing dynasty', regnal 'Abbas II'→'Abbas I',
+            # 'World War I'→'World War II') before picking the best — so the
+            # right namesake further down the ranking can still win. Era veto
+            # only for lifetime-bounded kinds; a transcript-median era (no own
+            # date) gets a wider tolerance.
+            bounded = enriched.candidate.entity_type in BOUNDED_LIFETIME_TYPES
+            ranked, rejected = screen_candidates(
+                ranked, enriched.candidate.label, enriched.candidate.aliases, meta_by_qid,
+                target_era=target_era if bounded else None,
+                era_tolerance=400 if own_era is not None else 600,
+            )
+            if rejected:
+                logger.info("    → name guard rejected: %s",
+                            [(c["qid"], c.get("label", ""), why) for c, why in rejected[:5]])
             logger.info("    → search='%s' top: %s", search_name,
                         [(c["qid"], c["label"], c.get("score", 0)) for c in ranked[:3]])
 

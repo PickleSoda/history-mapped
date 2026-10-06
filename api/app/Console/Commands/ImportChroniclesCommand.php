@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use App\Actions\Chronicle\EnrichChronicleMetadataAction;
 use App\Models\Chronicle;
 use App\Models\ChronicleEntry;
+use App\Services\EntityReferenceResolver;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -19,6 +20,16 @@ use Illuminate\Support\Str;
  *   php artisan chronicles:import output/agent_runs/run_id/chronicle.json
  *   php artisan chronicles:import output/agent_runs/ --all
  *   php artisan chronicles:import output/agent_runs/run_id/chronicle.json --dry-run
+ *   php artisan chronicles:import output/agent_runs/run_id/chronicle.json --link-missing
+ *
+ * Secondary entities resolve identity-first (EntityReferenceResolver):
+ * entity_id uuid -> wikidata_id -> exact name -> case-insensitive name -> unique
+ * alternative name. Legacy refs that carry the label in entity_id still work.
+ *
+ * --link-missing is the additive repair mode: for an EXISTING chronicle it only
+ * attaches secondary entities missing from entries matched by identical
+ * narrative_text. It never creates or deletes chronicles/entries/links and does
+ * not touch chronicle metadata.
  */
 class ImportChroniclesCommand extends Command
 {
@@ -27,9 +38,15 @@ class ImportChroniclesCommand extends Command
         {--all : Import all chronicle.json files in the directory}
         {--force : Overwrite existing chronicles (match by slug)}
         {--dry-run : Show what would be imported without writing}
-        {--sync : Process synchronously (default: sync for import command)}';
+        {--sync : Process synchronously (default: sync for import command)}
+        {--link-missing : Additive repair: only attach missing secondary entities to existing entries}';
 
     protected $description = 'Import chronicle artifacts from the agent pipeline into the database';
+
+    private ?EntityReferenceResolver $resolver = null;
+
+    /** @var array<string, string> ref => reason, for refs that matched no entity */
+    private array $unresolvedRefs = [];
 
     public function handle(): int
     {
@@ -37,6 +54,13 @@ class ImportChroniclesCommand extends Command
         $isAll = (bool) $this->option('all');
         $force = (bool) $this->option('force');
         $dryRun = (bool) $this->option('dry-run');
+        $linkMissing = (bool) $this->option('link-missing');
+
+        if ($linkMissing && $force) {
+            $this->error('--link-missing is additive and cannot be combined with --force.');
+
+            return self::FAILURE;
+        }
 
         $files = $this->resolveFiles($path, $isAll);
 
@@ -81,7 +105,9 @@ class ImportChroniclesCommand extends Command
             }
 
             try {
-                $result = $this->importChronicle($data, $force);
+                $result = $linkMissing
+                    ? $this->linkMissingEntities($data)
+                    : $this->importChronicle($data, $force);
                 $totalChronicles++;
                 $totalEntries += $result['entries_imported'];
 
@@ -99,6 +125,17 @@ class ImportChroniclesCommand extends Command
         $this->newLine();
         $this->info("Chronicles: {$totalChronicles} imported, {$totalSkipped} skipped, {$totalFailed} failed");
         $this->info("Total entries imported: {$totalEntries}");
+
+        if ($this->unresolvedRefs !== []) {
+            $this->line('CHRONICLE_UNRESOLVED '.json_encode(
+                array_map(
+                    static fn (string $ref, string $reason): string => "{$ref} ({$reason})",
+                    array_keys($this->unresolvedRefs),
+                    array_values($this->unresolvedRefs),
+                ),
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+            ));
+        }
 
         // Non-zero exit on real failure so the pipeline does not report false
         // success (e.g. an invalid-UUID primary_relationship_id raising 22P02).
@@ -284,55 +321,122 @@ class ImportChroniclesCommand extends Command
     }
 
     /**
+     * Additive repair for an existing chronicle: attach the file's secondary
+     * entities that are missing from the matching DB entries (same chronicle,
+     * identical narrative_text — sequence_order breaks ties). Never creates or
+     * deletes anything else.
+     *
+     * @return array{status: string, entries_imported: int}
+     */
+    private function linkMissingEntities(array $data): array
+    {
+        $slug = $data['slug'] ?? null;
+        if (! $slug) {
+            throw new \RuntimeException('Chronicle missing "slug" field.');
+        }
+
+        $chronicle = Chronicle::where('slug', $slug)->first();
+        if ($chronicle === null) {
+            return ['status' => 'not found (link-missing never creates)', 'entries_imported' => 0];
+        }
+
+        $byText = [];
+        foreach (ChronicleEntry::where('chronicle_id', $chronicle->chronicle_id)->get() as $entry) {
+            $byText[(string) $entry->narrative_text][] = $entry;
+        }
+
+        $linked = 0;
+        $unmatched = 0;
+
+        DB::transaction(function () use ($data, $byText, &$linked, &$unmatched): void {
+            foreach ($data['entries'] ?? [] as $entryData) {
+                $candidates = $byText[(string) ($entryData['narrative_text'] ?? '')] ?? [];
+                if (count($candidates) > 1) {
+                    $seq = $entryData['sequence_order'] ?? null;
+                    $candidates = array_values(array_filter(
+                        $candidates,
+                        static fn (ChronicleEntry $e): bool => $e->sequence_order === $seq,
+                    ));
+                }
+                if (count($candidates) !== 1) {
+                    $unmatched++;
+
+                    continue;
+                }
+
+                $linked += $this->syncSecondaryEntities($candidates[0], $entryData['secondary_entities'] ?? [], onlyMissing: true);
+            }
+        });
+
+        return [
+            'status' => "links added: {$linked}".($unmatched > 0 ? ", unmatched entries: {$unmatched}" : ''),
+            'entries_imported' => 0,
+        ];
+    }
+
+    /**
      * Sync secondary entities for a chronicle entry.
      *
-     * The pipeline now resolves entity_id to a real UUID (falling back to the
-     * label when unresolved), so look up by entity_id first, then by name.
-     * Skips entities that don't exist in the DB (with a warning).
+     * Each ref resolves identity-first via EntityReferenceResolver: entity_id
+     * (a uuid, or the label for legacy/unresolved refs) -> wikidata_id -> name
+     * -> case-insensitive name -> unique alias; the QID / name / alias matches
+     * are date-guarded by the entry's years (no namesake of another era). Unresolved refs are skipped with
+     * a warning naming the reason. With $onlyMissing, pairs already linked are
+     * left alone (additive repair). Returns the number of links attached.
      */
-    private function syncSecondaryEntities(ChronicleEntry $entry, array $secondaryEntities): void
+    private function syncSecondaryEntities(ChronicleEntry $entry, array $secondaryEntities, bool $onlyMissing = false): int
     {
+        $this->resolver ??= new EntityReferenceResolver;
         $pivotData = [];
+        $span = EntityReferenceResolver::yearSpan(
+            is_numeric($entry->start_year) ? (int) $entry->start_year : null,
+            is_numeric($entry->end_year) ? (int) $entry->end_year : null,
+        );
 
         foreach ($secondaryEntities as $sec) {
             $ref = $sec['entity_id'] ?? null; // a UUID (resolved) or a name (fallback)
             $role = $sec['role'] ?? 'participant';
             $sequence = $sec['sequence_in_entry'] ?? null;
+            $wikidataId = is_string($sec['wikidata_id'] ?? null) ? $sec['wikidata_id'] : null;
+            $name = is_string($sec['name'] ?? null) ? $sec['name'] : null;
 
-            if (! is_string($ref) || $ref === '') {
+            if ((! is_string($ref) || $ref === '') && $wikidataId === null && $name === null) {
                 continue;
             }
 
-            $entity = null;
+            // The entry's years guard name / QID matches against namesakes of
+            // another era (EntityReferenceResolver::pickNamesake).
+            $resolved = $this->resolver->resolve(is_string($ref) ? $ref : null, $wikidataId, $name, $span);
 
-            // Resolved entity_id → direct lookup (guarded so a name doesn't hit
-            // the uuid column and raise a 22P02 invalid-uuid error).
-            if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $ref)) {
-                $entity = DB::table('entities')->where('entity_id', $ref)->first();
-            }
-
-            // Fall back to a name match (case-insensitive).
-            if (! $entity) {
-                $entity = DB::table('entities')
-                    ->where('name', $ref)
-                    ->orWhere('name', 'ilike', $ref)
-                    ->first();
-            }
-
-            if (! $entity) {
-                $this->warn("  Entity not found: {$ref} (skipping secondary entity)");
+            if ($resolved['id'] === null) {
+                $label = $name ?? (is_string($ref) && $ref !== '' ? $ref : (string) $wikidataId);
+                $this->unresolvedRefs[$label] ??= (string) $resolved['reason'];
+                $this->warn("  Entity not found: {$label} ({$resolved['reason']}; skipping secondary entity)");
 
                 continue;
             }
 
-            $pivotData[$entity->entity_id] = [
+            $pivotData[$resolved['id']] ??= [
                 'role' => $role,
                 'sequence_in_entry' => $sequence,
             ];
         }
 
+        if ($onlyMissing && $pivotData !== []) {
+            $existing = DB::table('chronicle_entry_entities')
+                ->where('entry_id', $entry->entry_id)
+                ->whereIn('entity_id', array_keys($pivotData))
+                ->pluck('entity_id')
+                ->all();
+            foreach ($existing as $entityId) {
+                unset($pivotData[(string) $entityId]);
+            }
+        }
+
         if (! empty($pivotData)) {
             $entry->secondaryEntities()->attach($pivotData);
         }
+
+        return count($pivotData);
     }
 }

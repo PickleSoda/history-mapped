@@ -62,50 +62,51 @@ def ensure_schema() -> None:
         conn.close()
 
 
+def _entity_row(row: tuple[Any, ...]) -> dict[str, Any]:
+    """entities row (+ optional start_year, end_year) as a dict."""
+    return {
+        "entity_id": row[0],
+        "name": row[1],
+        "entity_type": row[2],
+        "wikidata_id": row[3],
+        "start_year": row[4] if len(row) > 4 else None,
+        "end_year": row[5] if len(row) > 5 else None,
+    }
+
+
 def search_entity_by_name(
     name: str,
     entity_type: str | None = None,
 ) -> list[dict[str, Any]]:
-    """Search for existing entities by name, optionally filtering by type.
+    """Search for existing entities by name (substring), optionally by type.
 
+    Exact case-insensitive name matches come first (then oldest first), so the
+    LIMIT never drops them behind substring hits ('Philip II' also matches
+    'Philip III of Spain'). Each row carries its primary temporal range
+    (start_year / end_year, None when undated) for the namesake guard.
     Raises DbUnavailable on connection/query failure.
     """
     conn = _get_db_connection()
     if conn is None:
         raise DbUnavailable("No database connection available")
 
+    type_clause = "AND e.entity_type = %s" if entity_type else ""
+    params: tuple[Any, ...] = (f"%{name}%", entity_type, name) if entity_type else (f"%{name}%", name)
     try:
         with conn.cursor() as cursor:
-            if entity_type:
-                cursor.execute(
-                    """
-                    SELECT entity_id, name, entity_type, wikidata_id
-                    FROM entities
-                    WHERE name ILIKE %s AND entity_type = %s
-                    LIMIT 10
-                    """,
-                    (f"%{name}%", entity_type),
-                )
-            else:
-                cursor.execute(
-                    """
-                    SELECT entity_id, name, entity_type, wikidata_id
-                    FROM entities
-                    WHERE name ILIKE %s
-                    LIMIT 10
-                    """,
-                    (f"%{name}%",),
-                )
+            cursor.execute(
+                f"""
+                SELECT e.entity_id, e.name, e.entity_type, e.wikidata_id, t.start_year, t.end_year
+                FROM entities e
+                LEFT JOIN entity_temporal_ranges t ON t.entity_id = e.entity_id AND t.is_primary
+                WHERE e.name ILIKE %s {type_clause}
+                ORDER BY (LOWER(e.name) = LOWER(%s)) DESC, e.created_at, e.entity_id
+                LIMIT 10
+                """,
+                params,
+            )
             rows = cursor.fetchall()
-            return [
-                {
-                    "entity_id": row[0],
-                    "name": row[1],
-                    "entity_type": row[2],
-                    "wikidata_id": row[3],
-                }
-                for row in rows
-            ]
+            return [_entity_row(row) for row in rows]
     except psycopg.Error as e:
         logger.warning("DB query failed for search_entity_by_name: %s", e)
         raise DbUnavailable(f"Query failed: {e}") from e
@@ -124,19 +125,20 @@ def search_entity_by_wikidata_id(wikidata_id: str) -> list[dict[str, Any]]:
 
     try:
         with conn.cursor() as cursor:
+            # Every row carrying the QID (duplicates exist), oldest first, with
+            # its primary temporal range for the namesake guard.
             cursor.execute(
                 """
-                SELECT entity_id, name, entity_type, wikidata_id
-                FROM entities
-                WHERE wikidata_id = %s
-                LIMIT 1
+                SELECT e.entity_id, e.name, e.entity_type, e.wikidata_id, t.start_year, t.end_year
+                FROM entities e
+                LEFT JOIN entity_temporal_ranges t ON t.entity_id = e.entity_id AND t.is_primary
+                WHERE e.wikidata_id = %s
+                ORDER BY e.created_at, e.entity_id
+                LIMIT 10
                 """,
                 (wikidata_id,),
             )
-            row = cursor.fetchone()
-            if row:
-                return [{"entity_id": row[0], "name": row[1], "entity_type": row[2], "wikidata_id": row[3]}]
-            return []
+            return [_entity_row(row) for row in cursor.fetchall()]
     except psycopg.Error as e:
         logger.warning("DB query failed for search_entity_by_wikidata_id: %s", e)
         raise DbUnavailable(f"Query failed: {e}") from e
@@ -177,6 +179,43 @@ def search_relationship_by_labels(
             return []
     except psycopg.Error as e:
         logger.warning("DB query failed for search_relationship_by_labels: %s", e)
+        raise DbUnavailable(f"Query failed: {e}") from e
+    finally:
+        conn.close()
+
+
+def search_relationship_by_entity_ids(
+    source_entity_id: str,
+    target_entity_id: str,
+    relationship_type: str,
+) -> list[dict[str, Any]]:
+    """Find a relationship by its endpoint entity ids and type.
+
+    Identity-keyed counterpart of search_relationship_by_labels: works when an
+    endpoint row carries a different name than the candidate label (QID merge).
+    Raises DbUnavailable on connection/query failure.
+    """
+    conn = _get_db_connection()
+    if conn is None:
+        raise DbUnavailable("No database connection available")
+
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT relationship_id, source_entity_id, target_entity_id, relationship_type
+                FROM relationships
+                WHERE source_entity_id = %s AND target_entity_id = %s AND relationship_type = %s
+                LIMIT 1
+                """,
+                (source_entity_id, target_entity_id, relationship_type),
+            )
+            row = cursor.fetchone()
+            if row:
+                return [{"relationship_id": row[0], "source_entity_id": row[1], "target_entity_id": row[2], "relationship_type": row[3]}]
+            return []
+    except psycopg.Error as e:
+        logger.warning("DB query failed for search_relationship_by_entity_ids: %s", e)
         raise DbUnavailable(f"Query failed: {e}") from e
     finally:
         conn.close()

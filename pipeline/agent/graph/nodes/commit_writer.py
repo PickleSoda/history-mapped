@@ -6,7 +6,7 @@ from typing import Any
 from datetime import datetime, timezone
 from pipeline.agent.config import AgentConfig
 from pipeline.agent.date_utils import normalize_historical_date
-from pipeline.agent.tools.disambiguation import era_year
+from pipeline.agent.tools.disambiguation import era_year, span_of_dates
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.schemas.relations import CommittedChange
 from pipeline.agent.schemas.validation import AuditEvent, PipelineError
@@ -226,6 +226,10 @@ def _relation_source_citations(relation, run_id: str) -> dict[str, Any]:
         citations["source_wikidata_id"] = relation.source_wikidata_id
     if relation.target_wikidata_id:
         citations["target_wikidata_id"] = relation.target_wikidata_id
+    if getattr(relation, "commit_confidence", None):
+        # Committed on the campaign review, below the predicate's auto-commit
+        # threshold (approval_gate); the auto-committed ones carry no marker.
+        citations["approval"] = "campaign_review"
     return citations
 
 
@@ -261,15 +265,74 @@ def _entity_to_jsonl_record(enriched, run_id: str) -> dict[str, Any]:
     geo_resolution = getattr(enriched, "geo_resolution", None)
     if geo_resolution:
         record["_geo_resolution"] = geo_resolution
+    # An undated record still carries the span db_lookup judged its identity by
+    # (its relations' / source event's dates), so ImportEntityJob's dedup can
+    # tell it from a same-name row of another era. Never stored on the entity.
+    identity_span = getattr(enriched, "identity_span", None)
+    if identity_span and not (temporal_start or temporal_end):
+        record["_identity_span"] = list(identity_span)
+    # Committed unverified by the approval gate (campaign runs): ImportEntityJob
+    # keeps needs_review instead of pipeline_draft; EntityData moves
+    # validation_flags into attributes.
+    verification_status = getattr(enriched, "verification_status", None)
+    if verification_status:
+        record["verification_status"] = verification_status
+        record["validation_flags"] = list(getattr(enriched, "validation_flags", None) or [])
     return record
 
 
-def _relation_to_jsonl_record(relation, run_id: str) -> dict[str, Any]:
-    """Name-keyed relation record consumed by `php artisan pipeline:import-relations`."""
+def _record_identity_span(record: dict[str, Any]) -> list[int] | None:
+    """[start, end] years an imported entity record is identified by: its own
+    dates, else the _identity_span db_lookup derived for it."""
+    span = span_of_dates(record.get("temporal_start"), record.get("temporal_end"))
+    if span is not None:
+        return list(span)
+    derived = record.get("_identity_span")
+    return list(derived) if derived else None
+
+
+def _endpoint_identity_index(enriched_entities, create_entities) -> dict[str, dict[str, str]]:
+    """label (lowercased) → known identity {"entity_id"?, "wikidata_id"?} of every
+    entity this run will actually have in the DB.
+
+    * Existing matches (db_lookup): the matched row's entity_id (+ its QID).
+    * Entities being created: the QID they are imported with. The import dedups
+      by QID, so the row may end up under a different name ("Tell Halaf" →
+      existing "Guzana"); the QID still finds it, the label would not.
+
+    Entities held for review (not in create_entities) get NO identity — their
+    resolved QID was never vetted, and a QID hit on them would link relations to
+    a row the import itself never chose.
+    """
+    index: dict[str, dict[str, str]] = {}
+    for enriched in enriched_entities or []:
+        existing = (enriched.wikidata_match or {}).get("existing_entity") if enriched.existing_entity else None
+        if not existing or not existing.get("entity_id"):
+            continue
+        ident = {"entity_id": str(existing["entity_id"])}
+        if existing.get("wikidata_id"):
+            ident["wikidata_id"] = str(existing["wikidata_id"])
+        index[enriched.candidate.label.lower()] = ident
+    for enriched in create_entities or []:
+        qid = (enriched.wikidata_match or {}).get("qid")
+        if qid:
+            index.setdefault(enriched.candidate.label.lower(), {"wikidata_id": str(qid)})
+    return index
+
+
+def _relation_to_jsonl_record(
+    relation, run_id: str, endpoints: dict[str, dict[str, str]] | None = None
+) -> dict[str, Any]:
+    """Relation record consumed by `php artisan pipeline:import-relations`.
+
+    Ends are named (source_name/target_name) and, when known, identified:
+    source_/target_entity_id and source_/target_wikidata_id. The importer
+    resolves identity first (entity_id → wikidata_id → name → alias).
+    """
     start_date, end_date = _consistent_dates(relation.start_date, relation.end_date)
     start_date, end_date = _collapse_relation_dates(relation.relationship_type, start_date, end_date)
     description = relation.description or _fallback_relation_description(relation, start_date, end_date)
-    return {
+    record: dict[str, Any] = {
         "source_name": relation.source_label,
         "target_name": relation.target_label,
         "relationship_type": relation.relationship_type,
@@ -278,6 +341,17 @@ def _relation_to_jsonl_record(relation, run_id: str) -> dict[str, Any]:
         "description": description,
         "source_citations": _relation_source_citations(relation, run_id),
     }
+    # relationships.confidence: set only for a campaign relation the gate
+    # committed below its threshold; otherwise the importer's default applies.
+    commit_confidence = getattr(relation, "commit_confidence", None)
+    if commit_confidence:
+        record["confidence"] = commit_confidence
+    for side, label in (("source", relation.source_label), ("target", relation.target_label)):
+        ident = (endpoints or {}).get((label or "").lower()) or {}
+        for key in ("entity_id", "wikidata_id"):
+            if ident.get(key):
+                record[f"{side}_{key}"] = ident[key]
+    return record
 
 
 def _run_import_locked(cmd: list[str], output_dir: str | Path) -> dict[str, Any]:
@@ -320,13 +394,28 @@ def commit_writer(state: AgentRunState) -> AgentRunState:
         for record in entity_records:
             f.write(json.dumps(record, default=str) + "\n")
 
-    # Name-keyed relations: the agent rarely has a Wikidata QID for both ends,
-    # so we resolve relations by entity name (see pipeline:import-relations).
-    relation_records = [_relation_to_jsonl_record(r, state["run_id"]) for r in diff.create_relations]
+    # Relations carry each end's identity (existing entity_id / import QID) next
+    # to its name, so the importer links the right row even when the import
+    # merged the entity into a differently named one (see pipeline:import-relations).
+    endpoints = _endpoint_identity_index(state.get("enriched_entities"), diff.create_entities)
+    relation_records = [
+        _relation_to_jsonl_record(r, state["run_id"], endpoints) for r in diff.create_relations
+    ]
     relations_path = output_root / "relations.jsonl"
     with relations_path.open("w", encoding="utf-8") as f:
         for record in relation_records:
             f.write(json.dumps(record, default=str) + "\n")
+
+    # Items the approval gate held back are otherwise only counted in the audit
+    # log; persist them so held entities (and the relation/chronicle links that
+    # miss because of them) can be reviewed instead of silently vanishing.
+    review_path = output_root / "review_items.jsonl"
+    if diff.review_items:
+        with review_path.open("w", encoding="utf-8") as f:
+            for item in diff.review_items:
+                f.write(json.dumps(item, default=str) + "\n")
+    elif review_path.exists():
+        review_path.unlink()
 
     if entity_records:
         # Use container-visible absolute path
@@ -343,7 +432,7 @@ def commit_writer(state: AgentRunState) -> AgentRunState:
 
         # Gate on returncode - only record committed if successful
         if result["returncode"] == 0:
-            for entity in diff.create_entities:
+            for entity, entity_record in zip(diff.create_entities, entity_records):
                 state["committed"].append(CommittedChange(
                     change_type="entity",
                     record={
@@ -352,6 +441,9 @@ def commit_writer(state: AgentRunState) -> AgentRunState:
                         "name": entity.candidate.label,
                         "entity_type": entity.candidate.entity_type,
                         "wikidata_id": entity.wikidata_match.get("qid") if entity.wikidata_match else None,
+                        # resolve_entity_ids tells this row from a same-name
+                        # namesake of another era by it.
+                        "identity_span": _record_identity_span(entity_record),
                     },
                     committed_at=datetime.now(timezone.utc).isoformat(),
                     batch_id=state["run_id"],

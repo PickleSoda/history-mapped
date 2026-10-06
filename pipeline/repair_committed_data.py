@@ -48,11 +48,13 @@ from pipeline.agent.tools.wikidata import (
     _rank_candidates,
 )
 from pipeline.agent.tools.disambiguation import (
+    BOUNDED_LIFETIME_TYPES,
     UNIVERSAL_BLOCK_P31,
     rerank_by_type,
     rerank_by_era,
     era_year,
     is_ambiguous,
+    screen_candidates,
 )
 
 DSN = "postgresql://history-mapped:secret@localhost:5432/history-mapped"
@@ -110,6 +112,9 @@ def reresolve(name: str, entity_type: str, era: int | None) -> dict | None:
     rerank_by_type(ranked, entity_type, meta)
     if is_ambiguous(ranked) and era is not None:
         rerank_by_era(ranked, era, meta)
+    # Same name guard as resolve_wikidata (Qi → Qing dynasty, Abbas II → Abbas I).
+    ranked, _ = screen_candidates(ranked, name, None, meta,
+                                  target_era=era if entity_type in BOUNDED_LIFETIME_TYPES else None)
     if ranked and ranked[0].get("score", 0) >= RERESOLVE_ACCEPT:
         return ranked[0]
     return None

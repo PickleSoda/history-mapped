@@ -81,7 +81,25 @@ def _entity_names(enriched) -> list[str]:
     return [n for n in names if isinstance(n, str) and n.strip()]
 
 
-def _collect_secondary_entities(event, enriched_entities, entity_id_map):
+def _identity_qids(state) -> dict[str, str]:
+    """label → QID for entities that actually reached the DB: committed creates
+    (the QID they were imported with) and db_lookup's existing matches. Held-for-
+    review entities get none (their QID was never vetted)."""
+    qids: dict[str, str] = {}
+    for commit in state.get("committed") or []:
+        # CommittedChange models in the graph; plain dicts in some callers/tests.
+        change_type = commit.get("change_type") if isinstance(commit, dict) else commit.change_type
+        record = (commit.get("record") if isinstance(commit, dict) else commit.record) or {}
+        if change_type == "entity" and record.get("wikidata_id"):
+            qids[record.get("name", "")] = str(record["wikidata_id"])
+    for enriched in state.get("enriched_entities") or []:
+        existing = (enriched.wikidata_match or {}).get("existing_entity") if enriched.existing_entity else None
+        if existing and existing.get("wikidata_id"):
+            qids.setdefault(enriched.candidate.label, str(existing["wikidata_id"]))
+    return qids
+
+
+def _collect_secondary_entities(event, enriched_entities, entity_id_map, qid_map=None):
     """Attach every entity the event mentions OR that appears by name in the
     narrative.
 
@@ -110,6 +128,8 @@ def _collect_secondary_entities(event, enriched_entities, entity_id_map):
                 ChronicleEntryEntity(
                     entity_id=entity_id_map.get(label, label),
                     role="participant",
+                    name=label,
+                    wikidata_id=(qid_map or {}).get(label),
                 )
             )
     return result
@@ -154,6 +174,7 @@ def chronicle_builder(state: AgentRunState) -> AgentRunState:
     entries = []
     orphan_count = 0
     dropped_count = 0
+    qid_map = _identity_qids(state)
 
     for i, event in enumerate(events):
         primary_rel_id = _find_primary_relationship(
@@ -167,6 +188,7 @@ def chronicle_builder(state: AgentRunState) -> AgentRunState:
             event,
             state["enriched_entities"],
             state["entity_id_map"],
+            qid_map,
         )
 
         # An entry with neither a resolved relationship nor any attached entity is

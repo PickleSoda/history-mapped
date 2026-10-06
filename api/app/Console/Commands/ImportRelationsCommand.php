@@ -4,19 +4,33 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Services\EntityReferenceResolver;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Import name-keyed relationships produced by the agent pipeline.
+ * Import relationships produced by the agent pipeline.
  *
- * The agent emits relations between entities it has just imported, referenced
- * by NAME (e.g. {"source_name":"Alexander the Great","target_name":"Battle of
- * Issus","relationship_type":"victorious_at"}). It usually has no Wikidata QID
- * for either end, so the QID-keyed pipeline:import-border-relations command
- * drops every one of them. This command instead resolves each end by name to a
- * real entity_id and writes a relationships row with a real UUID, so the
- * chronicle's primary_relationship_id can point at it.
+ * Each record names its ends (source_name / target_name) and, when the pipeline
+ * knows them, carries their identity too: source_entity_id / target_entity_id
+ * (an existing DB row) and source_wikidata_id / target_wikidata_id (the QID the
+ * entity was imported with). Each end resolves identity-first via
+ * EntityReferenceResolver: entity_id -> wikidata_id -> exact name ->
+ * case-insensitive name -> unique alternative name. For relation types that
+ * imply both ends existed at the relation's date (rules, fought_at, …) the
+ * QID / name / alias matches are date-guarded: a namesake of another era is
+ * never linked, and an end with only such namesakes (or several dated ones)
+ * stays unresolved as 'namesake_ambiguous'. Identity matters because
+ * the entity import dedups by QID, so the row can carry a different name than
+ * the label ("Tell Halaf" imported into the existing "Guzana" row).
+ *
+ * Legacy files carry no ids; --entities-file (the run's entities_to_create.jsonl)
+ * backfills each end's wikidata_id by name. Existing (source,target,type) rows
+ * are skipped, so re-running over old artifacts only ADDS missing relations;
+ * --additive-recovery resolves each end by name first (exactly what the
+ * original name-keyed import did) and uses ids only where the name finds
+ * nothing, so a re-run never re-points a record the old import already linked
+ * (no parallel copies) and only fills the gaps.
  *
  * Records that cannot be resolved (entity missing) or carry an invalid
  * relationship_type are reported but do not abort the batch. A non-zero exit is
@@ -25,13 +39,16 @@ use Illuminate\Support\Facades\DB;
  *
  * Usage:
  *   php artisan pipeline:import-relations storage/app/pipeline/.../relations.jsonl --batch-id=run_123
+ *   php artisan pipeline:import-relations <run>/relations.jsonl --entities-file=<run>/entities_to_create.jsonl
  */
 class ImportRelationsCommand extends Command
 {
     protected $signature = 'pipeline:import-relations
         {path : Path to a relations JSONL file}
         {--batch-id= : Custom batch identifier (default: auto-generated)}
-        {--force : Insert even if an identical (source,target,type) relationship exists}';
+        {--force : Insert even if an identical (source,target,type) relationship exists}
+        {--entities-file= : Entities JSONL whose name -> wikidata_id backfills ends that carry no ids (legacy relations.jsonl)}
+        {--additive-recovery : Re-run mode: resolve ends by name first (legacy behaviour) and fall back to ids only where the name finds nothing}';
 
     protected $description = 'Import name-keyed relationships from a pipeline JSONL file into the relationships table';
 
@@ -50,14 +67,34 @@ class ImportRelationsCommand extends Command
 
         $batchId = (string) ($this->option('batch-id') ?: 'relations-'.now()->format('Ymd-His'));
         $force = (bool) $this->option('force');
+        $additiveRecovery = (bool) $this->option('additive-recovery');
 
         $validTypes = $this->validRelationshipTypes();
+        $resolver = new EntityReferenceResolver;
+
+        $qidByName = [];
+        $entitiesFile = $this->option('entities-file');
+        if (is_string($entitiesFile) && $entitiesFile !== '') {
+            $entitiesPath = str_starts_with($entitiesFile, '/') ? $entitiesFile : base_path($entitiesFile);
+            if (! is_file($entitiesPath)) {
+                $this->error("Entities file not found: {$entitiesFile}");
+
+                return self::FAILURE;
+            }
+            $qidByName = $this->qidIndex($entitiesPath);
+        }
+
+        /** @var array<string, string> $unresolvedNames name => reason */
+        $unresolvedNames = [];
+        /** @var array<string, int> $resolvedVia */
+        $resolvedVia = [];
 
         $created = 0;
         $skipped = 0;
         $unresolved = 0;
         $invalid = 0;
         $failed = 0;
+        $selfLoops = 0;
 
         foreach ($this->readJsonl($fullPath) as $record) {
             $sourceName = $this->stringField($record, 'source_name');
@@ -77,11 +114,34 @@ class ImportRelationsCommand extends Command
                 continue;
             }
 
-            $sourceId = $this->resolveEntityId($sourceName);
-            $targetId = $this->resolveEntityId($targetName);
+            // Namesake guard: a contemporaneous relation's dates must fit each
+            // end's lifespan ('Philip II rules Spain 1556' is never the
+            // Macedonian); see EntityReferenceResolver::pickNamesake.
+            $span = EntityReferenceResolver::relationSpan($type, $record['start_date'] ?? null, $record['end_date'] ?? null);
+            $source = $this->resolveEnd($resolver, $record, 'source', $sourceName, $qidByName, $additiveRecovery, $span);
+            $target = $this->resolveEnd($resolver, $record, 'target', $targetName, $qidByName, $additiveRecovery, $span);
+
+            foreach ([[$sourceName, $source], [$targetName, $target]] as [$endName, $end]) {
+                if ($end['id'] === null) {
+                    $unresolvedNames[$endName] ??= (string) $end['reason'];
+                } else {
+                    $resolvedVia[$end['via']] = ($resolvedVia[$end['via']] ?? 0) + 1;
+                }
+            }
+
+            $sourceId = $source['id'];
+            $targetId = $target['id'];
 
             if ($sourceId === null || $targetId === null) {
                 $unresolved++;
+
+                continue;
+            }
+
+            // Two labels can collapse onto one row (QID dedup); never write a
+            // self-loop.
+            if ($sourceId === $targetId) {
+                $selfLoops++;
 
                 continue;
             }
@@ -127,25 +187,82 @@ class ImportRelationsCommand extends Command
             'unresolved' => $unresolved,
             'invalid' => $invalid,
             'failed' => $failed,
+            'self_loops' => $selfLoops,
+            'unresolved_names' => count($unresolvedNames),
+            'resolved_via' => $resolvedVia,
         ]));
+
+        if ($unresolvedNames !== []) {
+            // Compact per-run list: every endpoint that matched nothing, with why.
+            $this->line('RELATION_UNRESOLVED '.json_encode(
+                array_map(
+                    static fn (string $name, string $reason): string => "{$name} ({$reason})",
+                    array_keys($unresolvedNames),
+                    array_values($unresolvedNames),
+                ),
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+            ));
+        }
 
         return $failed > 0 ? self::FAILURE : self::SUCCESS;
     }
 
     /**
-     * Resolve an entity name to its UUID. Exact match first, then a
-     * case-insensitive fallback. Returns null when nothing matches.
+     * Resolve one end of a relation record, identity first — or, in
+     * additive-recovery mode, name first with identity as the fallback.
+     *
+     * @param  array<string, mixed>  $record
+     * @param  array<string, string>  $qidByName  lowercased name => wikidata_id (from --entities-file)
+     * @param  array{0: int, 1: int}|null  $span  the relation's years when its type implies both ends existed then
+     * @return array{id: string|null, via: string, reason: string|null}
      */
-    private function resolveEntityId(string $name): ?string
-    {
-        $id = DB::table('entities')->where('name', $name)->value('entity_id');
-        if (is_string($id) && $id !== '') {
-            return $id;
+    private function resolveEnd(
+        EntityReferenceResolver $resolver,
+        array $record,
+        string $side,
+        string $name,
+        array $qidByName,
+        bool $nameFirst = false,
+        ?array $span = null,
+    ): array {
+        if ($nameFirst) {
+            $byName = $resolver->resolve(null, null, $name, $span);
+            if ($byName['id'] !== null) {
+                return $byName;
+            }
         }
 
-        $id = DB::table('entities')->whereRaw('LOWER(name) = LOWER(?)', [$name])->value('entity_id');
+        $wikidataId = $this->stringField($record, "{$side}_wikidata_id")
+            ?? ($qidByName[mb_strtolower($name)] ?? null);
 
-        return is_string($id) && $id !== '' ? $id : null;
+        return $resolver->resolve(
+            $this->stringField($record, "{$side}_entity_id"),
+            $wikidataId,
+            $name,
+            $span,
+        );
+    }
+
+    /**
+     * name (lowercased) => wikidata_id for every record in an entities JSONL.
+     * Only primary names: relation ends are candidate labels, and indexing
+     * aliases could hand a held-for-review namesake another entity's QID.
+     *
+     * @return array<string, string>
+     */
+    private function qidIndex(string $path): array
+    {
+        $index = [];
+
+        foreach ($this->readJsonl($path) as $record) {
+            $qid = $this->stringField($record, 'wikidata_id');
+            $name = $this->stringField($record, 'name');
+            if ($qid !== null && $name !== null) {
+                $index[mb_strtolower($name)] = $qid;
+            }
+        }
+
+        return $index;
     }
 
     private function relationshipExists(string $sourceId, string $targetId, string $type): bool
