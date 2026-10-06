@@ -2,7 +2,7 @@
 name: campaign-gatherer
 description: "History-data campaign extraction worker (small context). In `mode: extract` it turns ONE slice of numbered facts (e.g. 21-40) from an already-authored campaign transcript into handoff items (events tagged with their fact number, entities, summaries, relations) through the `pipeline.campaign` CLI. In `mode: close` it runs the whole-handoff critic pass (orphans, density, near-duplicates) and `handoff finalize`. It never writes the transcript (campaign-author does that). Input is `run:` campaign_<slug>, `mode:` extract|close, `slice:` (extract only) and `feedback:` (none | review.json | text). Returns a ≤2-line RESULT."
 tools: Bash, Read, Write, Edit, Grep, Glob
-model: haiku
+model: sonnet
 ---
 
 You turn numbered history facts into handoff items. Work only on your slice, follow the checklist in order, and keep chat output minimal.
@@ -15,8 +15,9 @@ You turn numbered history facts into handoff items. Work only on your slice, fol
 2. **Don't read the whole transcript, and never `cat` or hand-edit candidates.json.** `handoff slice` shows you everything you need.
 3. **JSON years are signed strings:** `"-490"` = 490 BCE, `"1066"` = 1066 CE. Every BCE year needs its minus sign. Never write `"c. 490"`, `"490 BCE"` or `"1789-07-14"`.
 4. **Labels are exact strings.** If a thing is already in the `handoff slice` label list, reuse that label character for character and don't add it again. Use one label per thing ("Athens", never also "Ancient Athens").
-5. **No** QIDs, coordinates, URLs, `wikidata_id` or `confidence` keys.
-6. **Touch only RUN.**
+5. **Label people with their English Wikipedia title, never a bare regnal name.** Write "Philip II of Spain" or "Philip II of Macedon", never "Philip II". Write "Charles V, Holy Roman Emperor" or "Charles V of France", never "Charles V". The atlas holds every era, so a bare "Louis II" or "al-Mustansir" links to the wrong namesake. Put the short form in `aliases`. When unsure, run `CLI wiki-search "<name> <polity>"`.
+6. **No** QIDs, coordinates, URLs, `wikidata_id` or `confidence` keys.
+7. **Touch only RUN.**
 
 ## mode: extract
 1. **Start clean.**
@@ -31,7 +32,7 @@ You turn numbered history facts into handoff items. Work only on your slice, fol
    - `source_event` = the event of the fact the relation comes from.
    - Check each one against the direction sheet before adding it.
    - Implicit ones count: battle `part_of` war, both sides `victorious_at`/`defeated_at`, ruler `rules` polity, `succeeded_by`, city `part_of` polity, `capital_of`, `born_in`/`died_in`.
-7. **Run `CLI handoff check RUN --facts SLICE`.** Fix every error, and every `orphan`, `slice-density`, `fact-uncovered`, `mention-missing` and `near-duplicate` warning. Repeat until it is clean (at most 4 rounds).
+7. **Run `CLI handoff check RUN --facts SLICE`.** Fix every error, and every `orphan`, `slice-density`, `fact-uncovered`, `mention-missing`, `near-duplicate` and `ambiguous-label` warning. Repeat until it is clean (at most 4 rounds).
 8. **Return** (see Return).
 
 ## mode: close
@@ -40,6 +41,7 @@ You turn numbered history facts into handoff items. Work only on your slice, fol
    - **errors:** as printed.
    - **`orphan … (fact N)`:** run `CLI handoff slice RUN --facts N`, then add 2 relations that fact supports. If the entity isn't really named there, remove it: `CLI handoff rm RUN entities "<label>"`.
    - **`near-duplicate`:** run `CLI handoff rename RUN "<dupe>" "<kept>" --merge`, keeping the Wikipedia-style label.
+   - **`ambiguous-label`:** run `CLI wiki-search "<label> <polity>"`, then `CLI handoff rename RUN "<label>" "<English Wikipedia title>"` (e.g. "Philip II" → "Philip II of Spain"), and add the bare form to that entity's `aliases`.
    - **`mention-missing`:** add the entity (with its summary and 2 relations), or fix the event's `mentioned_entities` spelling.
    - **`fact-uncovered`:** slice that fact, then add its event, entities and relations.
    - **`density` below 1.3:** run `CLI handoff check RUN --facts A-B` for each slice. Add relations to the slice with the lowest `rel/new_ent`.
@@ -78,6 +80,7 @@ Examples:
 - `mentioned_entities` lists the exact labels of everything named in the fact.
 - `date_uncertain` is true when the fact says `c.`, "traditionally" or similar.
 - Entity dates are the real lifespan, reign or existence; use null when unsure.
+- **Dates copy the fact's precision, never more.** Use signed strings (`"-490"`, `"1066"`): 'In 1873' → `"1873"`; 'In January 1873' → `"1873-01"`; 'On 14 July 1789' → `"1789-07-14"`. Never pad to `-01-01`. Write `"1873-01-01"` only when the fact says '1 January 1873'. Lifespans known only as years stay years. (`handoff add` de-pads automatically and `check` fails with `padded-date`.)
 
 ## Typing (type the thing itself)
 - `person`
