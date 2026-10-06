@@ -12,7 +12,7 @@ use App\Models\Entity;
 class GetEntityAction
 {
     /**
-     * @param  list<string>  $with  Relations to eager-load
+     * @param  array<int|string, mixed>  $with  Relations to eager-load
      */
     public function __invoke(string $entityId, array $with = []): Entity
     {

@@ -6,6 +6,7 @@ namespace App\Actions\Entity;
 
 use App\DTOs\EntityFilterData;
 use App\Models\Entity;
+use App\Models\EntityRelationship;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 /**
@@ -85,7 +86,10 @@ class ListEntitiesAction
 
         // ── Eager loading ────────────────────────────────────
         if ($filters->includeRelationships) {
-            $query->with(['outgoingRelationships.targetEntity', 'incomingRelationships.sourceEntity']);
+            $query->with([
+                'outgoingRelationships' => fn ($q) => $q->with(EntityRelationship::withSummaryEnds()),
+                'incomingRelationships' => fn ($q) => $q->with(EntityRelationship::withSummaryEnds()),
+            ]);
         }
 
         // ── Sorting ──────────────────────────────────────────

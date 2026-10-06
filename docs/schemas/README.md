@@ -12,6 +12,7 @@ Schema specifications for pipeline payloads, import contracts, and georef API re
 ## API
 
 - [entity-georef-write-request.md](entity-georef-write-request.md) — georef write-request payload.
+- [relation-graph-api.md](relation-graph-api.md) — `GET /entities/{uuid}/graph` and `GET /chronicles/{slug}/graph` response contracts.
 
 ## Experimental
 

@@ -22,6 +22,7 @@ use App\Http\Api\V1\Resources\EntityResource;
 use App\Http\Api\V1\Resources\EntitySummaryResource;
 use App\Http\Controllers\Controller;
 use App\Models\Entity;
+use App\Models\EntityRelationship;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -185,7 +186,10 @@ class EntityController extends Controller
         $with = [];
 
         if (request()->boolean('include_relationships')) {
-            $with = ['outgoingRelationships.targetEntity', 'incomingRelationships.sourceEntity'];
+            $with = [
+                'outgoingRelationships' => fn ($q) => $q->with(EntityRelationship::withSummaryEnds()),
+                'incomingRelationships' => fn ($q) => $q->with(EntityRelationship::withSummaryEnds()),
+            ];
         }
 
         return new EntityResource($action($entity, $with));

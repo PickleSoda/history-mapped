@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Api\V1\Resources\ChronicleResource;
 use App\Http\Controllers\Controller;
 use App\Models\Chronicle;
+use App\Models\EntityRelationship;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -24,8 +25,7 @@ class ChronicleController extends Controller
     public function show(string $slug): JsonResponse
     {
         $chronicle = Chronicle::with([
-            'entries.primaryRelationship.sourceEntity',
-            'entries.primaryRelationship.targetEntity',
+            ...EntityRelationship::withSummaryEnds('entries.primaryRelationship.'),
             'entries.secondaryEntities',
         ])
             ->where('slug', $slug)

@@ -328,6 +328,23 @@ class EntityBuilder extends Builder
             ));
     }
 
+    /**
+     * Minimal columns for relation-graph nodes: identity, type/group, impact and
+     * the primary temporal range as integer years (`start_year` / `end_year`).
+     */
+    public function selectForGraph(): self
+    {
+        return $this->select([
+            'entities.entity_id',
+            'entities.name',
+            'entities.entity_type',
+            'entities.entity_group',
+            'entities.impact_score',
+        ])
+            ->selectRaw(sprintf('%s AS start_year', self::primaryTemporalStartYearSql()))
+            ->selectRaw(sprintf('%s AS end_year', self::primaryTemporalEndYearSql()));
+    }
+
     private static function primaryTemporalStartYearSql(): string
     {
         return '(SELECT etr.start_year FROM entity_temporal_ranges etr WHERE etr.entity_id = entities.entity_id AND etr.is_primary = true ORDER BY etr.updated_at DESC NULLS LAST, etr.created_at DESC NULLS LAST LIMIT 1)';

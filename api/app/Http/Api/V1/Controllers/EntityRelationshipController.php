@@ -28,7 +28,7 @@ class EntityRelationshipController extends Controller
         $relationships = EntityRelationship::query()
             ->where('source_entity_id', $entityModel->entity_id)
             ->orWhere('target_entity_id', $entityModel->entity_id)
-            ->with(['sourceEntity', 'targetEntity'])
+            ->with(EntityRelationship::withSummaryEnds())
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -57,7 +57,7 @@ class EntityRelationshipController extends Controller
 
         $relationship = $action($data, $request->user()?->id);
 
-        return (new RelationshipResource($relationship->load(['sourceEntity', 'targetEntity'])))
+        return (new RelationshipResource($relationship->load(EntityRelationship::withSummaryEnds())))
             ->response()
             ->setStatusCode(201);
     }

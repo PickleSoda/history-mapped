@@ -72,4 +72,20 @@ class EntityRelationship extends Model
     {
         return $this->belongsTo(Entity::class, 'target_entity_id', 'entity_id');
     }
+
+    /**
+     * Eager-load spec for both relationship ends in the shape EntitySummaryResource
+     * needs (temporal_start/end, location_name, geom, tags) without N+1 queries.
+     *
+     * @return array<string, \Closure>
+     */
+    public static function withSummaryEnds(string $prefix = ''): array
+    {
+        $load = fn ($query) => $query->withGeoJson();
+
+        return [
+            $prefix.'sourceEntity' => $load,
+            $prefix.'targetEntity' => $load,
+        ];
+    }
 }
