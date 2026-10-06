@@ -317,3 +317,29 @@ Applied with ingestion paused (`INGEST_STOP`, 2026-10-06 00:05–01:57 +04, afte
   - `needs_review` "Muhammad Ali" `ca866502` carries the boxer's QID Q36107, which is also on `6e744003`.
   - The Meiji handoff's "Gregorian calendar adoption" was de-padded to `1873` by fix-dates. The DB keeps the real 1 January 1873. Amend fact 49 to "On 1 January 1873 CE".
   - The 4 renamed rows need fresh embeddings.
+
+## 2026-10-06 small fixes
+
+Applied with ingestion paused (`INGEST_STOP`, 15:25–15:41 +04). This closes the open items of the repair above. Every statement was guarded on its before-value and had to touch the expected number of rows.
+
+- **Held deletes.** The 8 relation deletes (A0366–A0369, A0379, A0383, A0389, A0434), the chronicle link A0529 and the 4 alias removals (A0021, A0044, A0056, A0109) were applied after a full-row match against `row_before`. Five chronicle entries used a deleted relation as their primary one. They now point at the surviving duplicate, or, for the Leo I self-loops, at "Leo I, King of Armenia rules Cilician Armenia".
+- **Charles V of France** `da654c34` (Q167782, 1338–1380, `needs_review`) was created through `pipeline:import --sync --skip-relationships --batch-id=small-fixes-20261006`. Q160349 was not used: it is Charles VI of France and already sits on `6c7ce622`. His 9 relations (1357–1380) and 7 chronicle links moved off `6537823e`.
+- **Merges.** These ran with `pipeline.merge_entities.merge()`. The loser's geo was namesake-derived (Vincennes, Louisville), so it was dropped with the loser rather than moved. Where a merge collided with an existing relation, the better-dated copy was kept.
+  - `6537823e` → `bdc385a2` (Q32500). After the split, `6537823e` was only the Emperor.
+  - `167aa371` → `bdc385a2`.
+  - `c5e114eb` → `fd1f6fa3` (Q150665).
+  - `ca866502` → `1c5a834d` (Muhammad Ali of Egypt, Q182781). The campaign meant the wali, and the boxer's QID Q36107 went with the deleted row.
+- **Duplicate relations.** For Arghun rules Ilkhanate, the day-precise copy was kept. For Henry IV rules England and Liu Yan rules / founded Southern Han, the copies the repair had re-pointed were dropped.
+- **Meiji fact 49** now reads "On 1 January 1873 CE". The handoff event, entity and relation dates were set back to `1873-01-01` with `handoff add`. Both files' mtimes were restored, and the run is not stale.
+- **Timelines** were rebuilt for 77 entities (`api/storage/app/pipeline/small-fixes-20261006/timeline-ids-20261006.json`).
+- **Files:**
+  - backup: `output/campaign-backups/db-pre-small-fixes-20261006.sql.gz` (34.1 MB);
+  - log: `output/campaign/audit/small-fixes-applied-20261006.csv` (251 row changes, full before/after rows);
+  - Meiji originals: `output/campaign-backups/small-fixes-20261006/`.
+- **Reverse:**
+  - Run `small-fixes-rollback-20261006.sql` through `psql -f -`, then `timeline:rebuild` the listed ids and the 4 merged-away ids.
+  - A test run inside a rolled-back transaction restored the pre-apply snapshot exactly, apart from the intended removal of the created Charles V of France row.
+- **Still open:**
+  - `a287d544` "Charles I" still mixes Charles V content with Charles I of England's 1625–1649 relations.
+  - `bdc385a2` carries duplicate pairs from earlier runs: Diet of Worms and rules Holy Roman Empire.
+  - "Ibrahim Pasha" `28b6250c` (Pargalı, Q311789) is wrongly `child_of` Muhammad Ali of Egypt.
