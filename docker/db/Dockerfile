@@ -2,7 +2,15 @@ FROM postgis/postgis:16-3.5 AS pgvector-builder
 
 ARG PGVECTOR_VERSION=v0.8.2
 
-RUN apt-get update \
+# The base image is Debian bullseye, which is end-of-life: apt.postgresql.org
+# (bullseye-pgdg) and deb.debian.org now return 404, and the packages live on
+# apt-archive.postgresql.org and archive.debian.org. Only this build stage is
+# repointed. The runtime stage keeps the stock base so prod's glibc and
+# collations are unchanged.
+RUN sed -i 's#apt.postgresql.org/pub/repos/apt#apt-archive.postgresql.org/pub/repos/apt#' \
+        /etc/apt/sources.list.d/*.list \
+    && sed -i -e 's#deb.debian.org#archive.debian.org#' -e '/bullseye-updates/d' /etc/apt/sources.list \
+    && apt-get -o Acquire::Check-Valid-Until=false update \
     && apt-get install -y --no-install-recommends \
         build-essential \
         ca-certificates \
