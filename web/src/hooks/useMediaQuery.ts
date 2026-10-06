@@ -18,3 +18,8 @@ export function useMediaQuery(query: string): boolean {
 export function useIsMobile(): boolean {
   return useMediaQuery('(max-width: 767px)');
 }
+
+/** True when the user asked the OS for reduced motion (no animated layouts). */
+export function useReducedMotion(): boolean {
+  return useMediaQuery('(prefers-reduced-motion: reduce)');
+}

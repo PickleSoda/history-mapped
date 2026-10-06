@@ -2,12 +2,18 @@
 import {
   EntityDetailSchema,
   EntityListSchema,
+  EntityTimelineSchema,
   RelationshipsSchema
   
   
   
 } from '@/lib/schemas/entity';
-import type {EntityDetail, EntityList, Relationships} from '@/lib/schemas/entity';
+import type {
+  EntityDetail,
+  EntityList,
+  EntityTimeline,
+  Relationships,
+} from '@/lib/schemas/entity';
 import { asFeatureCollection  } from '@/lib/schemas/map';
 import type {MapFeatureCollection} from '@/lib/schemas/map';
 import type { Scope } from '@/types/atlas';
@@ -71,4 +77,16 @@ export async function entityConnections(
     { signal },
   );
   return RelationshipsSchema.parse(data);
+}
+
+/** GET /entities/{id}/timeline — the entity's derived timeline rows. */
+export async function entityTimeline(
+  id: string,
+  signal?: AbortSignal,
+): Promise<EntityTimeline> {
+  const { data } = await api.get(
+    `/api/v1/entities/${encodeURIComponent(id)}/timeline`,
+    { signal },
+  );
+  return EntityTimelineSchema.parse(data);
 }

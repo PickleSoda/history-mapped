@@ -1,4 +1,4 @@
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Maximize2 } from 'lucide-react';
 import { useState } from 'react';
 import { BrowseTab } from '@/components/atlas/BrowseTab';
 import { ChronicleList } from '@/components/atlas/ChronicleList';
@@ -6,8 +6,19 @@ import {
   ChroniclePlayerContent,
 } from '@/components/atlas/ChroniclePlayer';
 import { DetailPanelContent } from '@/components/atlas/DetailPanel';
+import {
+  preloadChroniclePage,
+  preloadEntityPage,
+  useFocusPage,
+} from '@/components/atlas/FullPage';
 import { NavBreadcrumb } from '@/components/atlas/NavBreadcrumb';
-import { useChronicleNav, useSelection, useSheetContent } from '@/hooks';
+import {
+  useChronicleNav,
+  useFullPage,
+  useSelection,
+  useSheet,
+  useSheetContent,
+} from '@/hooks';
 import { cn } from '@/lib/utils';
 
 type Tab = 'entities' | 'chronicles';
@@ -17,15 +28,24 @@ type Tab = 'entities' | 'chronicles';
 function SheetDetail() {
   const { clear } = useSelection();
   const { isActive } = useChronicleNav();
+  const { expand } = useFullPage();
   return (
     <div className="flex h-full flex-col">
-      <div className="flex flex-none items-center px-2 py-1.5">
+      <div className="flex flex-none items-center justify-between px-2 py-1.5">
         <button
           type="button"
           onClick={clear}
           className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[13px] text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           <ChevronLeft size={15} /> {isActive ? 'Back to tour' : 'Results'}
+        </button>
+        <button
+          type="button"
+          onClick={expand}
+          onPointerDown={preloadEntityPage}
+          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[13px] text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          <Maximize2 size={14} /> Expand
         </button>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
@@ -40,15 +60,24 @@ function SheetDetail() {
  *  sheet doesn't mount — without this bar there is no way out on mobile.) */
 function SheetChronicle() {
   const { exit } = useChronicleNav();
+  const { expandChronicle } = useFullPage();
   return (
     <div className="flex h-full flex-col">
-      <div className="flex flex-none items-center px-2 py-1.5">
+      <div className="flex flex-none items-center justify-between px-2 py-1.5">
         <button
           type="button"
           onClick={exit}
           className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[13px] text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           <ChevronLeft size={15} /> Exit tour
+        </button>
+        <button
+          type="button"
+          onClick={expandChronicle}
+          onPointerDown={preloadChroniclePage}
+          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[13px] text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          <Maximize2 size={14} /> Expand
         </button>
       </div>
       <div className="min-h-0 flex-1">
@@ -86,11 +115,16 @@ function SheetList() {
 }
 
 /** Sheet body: a navigation trail (when there's one) over the chronicle tour,
- *  entity detail, or the list. */
+ *  entity detail, or the list. At the full snap, a focus with a full page
+ *  (the entity page) renders that page instead. */
 export function SheetContent() {
   const kind = useSheetContent();
+  const { sheet } = useSheet();
+  const page = useFocusPage();
   const body =
-    kind === 'chronicle' ? (
+    sheet === 'full' && page ? (
+      <page.Page id={page.id} variant="sheet" />
+    ) : kind === 'chronicle' ? (
       <SheetChronicle />
     ) : kind === 'detail' ? (
       <SheetDetail />

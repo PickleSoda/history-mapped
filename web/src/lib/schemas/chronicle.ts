@@ -28,10 +28,17 @@ export const ChronicleSchema = z.object({
   chronicle_id: z.string(),
   title: z.string(),
   slug: z.string(),
+  /** SourceType enum, e.g. "video_transcript". */
+  source_type: z.string().nullable().catch(null),
+  /** Free text: a URL, a citation, or an excerpt of the source transcript. */
+  source_reference: z.string().nullable().catch(null),
+  status: z.string().nullable().catch(null),
   start_year: z.number().nullable().default(null),
   end_year: z.number().nullable().default(null),
   impact_score: z.number().nullable().default(null),
   approximate_location: z.unknown().nullable().default(null),
+  /** Generation stats (event_count, generated_at, …); shape not fixed. */
+  metadata: z.record(z.string(), z.unknown()).nullable().catch(null),
   entries: z.array(ChronicleEntrySchema).default([]),
 });
 export type Chronicle = z.infer<typeof ChronicleSchema>;

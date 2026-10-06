@@ -1,6 +1,9 @@
+import { useEffect, useRef } from 'react';
 import { Drawer } from 'vaul';
+import { useFocusPage } from '@/components/atlas/FullPage';
 import { SheetContent } from '@/components/atlas/SheetContent';
-import { useSheet } from '@/hooks';
+import { useFullPage, useSheet } from '@/hooks';
+import { fullForSheet, nextSheetForFull } from '@/lib/full-page';
 import { heightToSnap, SNAP_POINTS, snapToHeight } from '@/lib/sheet';
 
 /**
@@ -18,10 +21,34 @@ function visibleHeightCss(snap: number | string): string {
  * Persistent, non-modal bottom sheet (peek/half/full). Replaces the desktop
  * sidebar + right panel below `md`. Height is the shared `sheet` ephemeral
  * state; vaul's active snap point is bound two-way to it.
+ *
+ * The full snap doubles as the full page (`?full=1`): the flag snaps the sheet
+ * to full (deep link, Expand, Back), dragging onto full sets it, and leaving
+ * the full snap removes it.
  */
 export function MobileSheet() {
   const { sheet, setSheet } = useSheet();
+  const { full, expand, collapse } = useFullPage();
+  const hasPage = useFocusPage() != null;
   const snap = heightToSnap(sheet);
+
+  // URL → sheet. `prevFull` starts false so a `?full=1` deep link snaps open.
+  const prevFull = useRef(false);
+  useEffect(() => {
+    const next = nextSheetForFull({ prevFull: prevFull.current, nextFull: full, hasPage, current: sheet });
+    prevFull.current = full;
+    if (next !== sheet) setSheet(next);
+  }, [full, hasPage, sheet, setSheet]);
+
+  // Sheet → URL, on the user's own drags only.
+  const onSnap = (next: number | string | null) => {
+    const height = snapToHeight(next);
+    setSheet(height);
+    const want = fullForSheet({ height, full, hasPage });
+    if (want === true) void expand();
+    else if (want === false) void collapse();
+  };
+
   return (
     <Drawer.Root
       open
@@ -29,9 +56,7 @@ export function MobileSheet() {
       dismissible={false}
       snapPoints={[...SNAP_POINTS]}
       activeSnapPoint={snap}
-      setActiveSnapPoint={(next) =>
-        setSheet(snapToHeight(next as number | string | null))
-      }
+      setActiveSnapPoint={(next) => onSnap(next as number | string | null)}
     >
       <Drawer.Portal>
         <Drawer.Content

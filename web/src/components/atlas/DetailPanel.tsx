@@ -1,20 +1,24 @@
-import { Clock, FileText, MapPin, ScrollText, Sparkles, X } from 'lucide-react';
+import { Clock, FileText, Maximize2, MapPin, ScrollText, Sparkles, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import type { ReactNode } from 'react';
-import { GroupDot, TypeBadge } from '@/components/atlas/GroupBadge';
+import { preloadEntityPage } from '@/components/atlas/FullPage';
+import { TypeBadge } from '@/components/atlas/GroupBadge';
+import {
+  chronicleByRelationship,
+  RelationshipTimeline,
+} from '@/components/atlas/RelationshipTimeline';
 import {
   useChronicleNav,
   useEntity,
   useEntityChronicles,
   useEntityConnections,
+  useFullPage,
   useMapFocus,
   useSelection,
   useTimeState,
 } from '@/hooks';
-import { formatYear } from '@/lib/format';
-import { GROUPS } from '@/lib/groups';
-import type { EntityDetail, Relationship } from '@/lib/schemas/entity';
+import { numericYear, temporalText } from '@/lib/entity-format';
 import { cn } from '@/lib/utils';
 
 /** A compact icon pill; a button when `onClick` is given, else static text. */
@@ -50,131 +54,6 @@ function Pill({
   );
 }
 
-/** A year (number) or raw date string → display text. */
-function yearText(v: number | string | null): string | null {
-  if (v == null) return null;
-  return typeof v === 'number' ? formatYear(v) : v;
-}
-
-/** Extract a numeric year from a year number or a date string (null if none). */
-function numericYear(v: number | string | null): number | null {
-  if (typeof v === 'number') return v;
-  if (typeof v === 'string') {
-    const m = v.match(/-?\d{1,6}/);
-    if (m) return parseInt(m[0], 10);
-  }
-  return null;
-}
-
-/** Numeric sort key for a relationship's start (unknown → sorts last). */
-function relStart(rel: Relationship): number {
-  const v = rel.temporal_start;
-  if (typeof v === 'number') return v;
-  if (typeof v === 'string') {
-    const m = v.match(/-?\d{1,6}/);
-    if (m) return parseInt(m[0], 10);
-  }
-  return Number.POSITIVE_INFINITY;
-}
-
-function temporalText(d: EntityDetail): string | null {
-  if (d.temporal_display_range) return d.temporal_display_range;
-  const s = yearText(d.temporal_start);
-  const e = yearText(d.temporal_end);
-  if (s && e) return `${s} – ${e}`;
-  return s ?? e ?? d.era_label ?? null;
-}
-
-/** Pick the entity on the far side of a relationship from the selected one. */
-function otherSide(rel: Relationship, selfId: string) {
-  return rel.source_entity_id === selfId ? rel.target_entity : rel.source_entity;
-}
-
-/** Vertical timeline of the entity's relationships, ordered by start year. Rows
- *  carry a chronicle badge when the relationship is part of a chronicle. */
-function RelationshipTimeline({
-  rels,
-  selfId,
-  relChronicle,
-}: {
-  rels: Relationship[];
-  selfId: string;
-  relChronicle: Map<string, { title: string; slug: string }>;
-}) {
-  const { select } = useSelection();
-  const { enter } = useChronicleNav();
-  const sorted = useMemo(
-    () => [...rels].sort((a, b) => relStart(a) - relStart(b)),
-    [rels],
-  );
-
-  return (
-    <div className="relative pl-5">
-      <span className="absolute bottom-2 left-2 top-2 w-px bg-border" />
-      <div className="space-y-3">
-        {sorted.map((rel) => {
-          const other = otherSide(rel, selfId);
-          const year = yearText(rel.temporal_start);
-          const chronicle = relChronicle.get(rel.id);
-          return (
-            <div key={rel.id} className="relative">
-              <span
-                className="absolute -left-[15px] top-1.5 size-2.5 rounded-full border-2 border-card"
-                style={{
-                  background: other ? GROUPS[other.entity_group].color : 'var(--border)',
-                }}
-              />
-              <div className="flex items-center gap-2">
-                {year && (
-                  <span className="font-mono text-[10px] text-muted-foreground">{year}</span>
-                )}
-                {rel.relationship_type && (
-                  <span className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
-                    {rel.relationship_type.replace(/_/g, ' ')}
-                  </span>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={() => other && select(other.id)}
-                disabled={!other}
-                className="mt-0.5 flex w-full items-center gap-2 rounded-md px-1.5 py-1 text-left hover:bg-muted/60 disabled:cursor-default"
-              >
-                {other ? (
-                  <GroupDot group={other.entity_group} />
-                ) : (
-                  <span className="size-[7px]" />
-                )}
-                <span className="min-w-0 flex-1 truncate text-[13px]">
-                  {other?.name ?? '—'}
-                </span>
-                {other && (
-                  <TypeBadge group={other.entity_group} type={other.entity_type} />
-                )}
-              </button>
-              {rel.description && (
-                <p className="ml-1.5 mt-1 text-[12px] leading-snug text-foreground/70">
-                  {rel.description}
-                </p>
-              )}
-              {chronicle && (
-                <button
-                  type="button"
-                  onClick={() => enter(chronicle.slug)}
-                  className="ml-1.5 mt-1 inline-flex items-center gap-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground"
-                  title="Open chronicle"
-                >
-                  <ScrollText size={11} /> {chronicle.title}
-                </button>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 /** Chrome-less detail body — shared by the desktop aside and the mobile sheet.
  *  Reads the selection itself; renders nothing when nothing is selected. */
 export function DetailPanelContent() {
@@ -197,15 +76,7 @@ export function DetailPanelContent() {
   }, [entity?.id, entity?.geom, focusGeometries]);
 
   // relationship id → chronicle (first match wins).
-  const relChronicle = useMemo(() => {
-    const m = new Map<string, { title: string; slug: string }>();
-    chronicles?.data.forEach((c) =>
-      c.relationship_ids.forEach((rid) => {
-        if (!m.has(rid)) m.set(rid, { title: c.title, slug: c.slug });
-      }),
-    );
-    return m;
-  }, [chronicles]);
+  const relChronicle = useMemo(() => chronicleByRelationship(chronicles?.data), [chronicles]);
 
   if (!sel) return null;
 
@@ -333,19 +204,32 @@ export function DetailPanelContent() {
 /** Desktop right aside: chrome + the shared content. */
 export function DetailPanel() {
   const { sel, clear } = useSelection();
+  const { expand } = useFullPage();
   if (!sel) return null;
   return (
     <aside className="flex h-full w-[380px] max-w-[90vw] flex-none flex-col overflow-y-auto border-l bg-card">
       <div className="flex items-center justify-between px-3 py-2.5">
         <span className="px-1.5 text-xs font-medium text-muted-foreground">Detail</span>
-        <button
-          type="button"
-          onClick={clear}
-          className="grid size-7 place-items-center rounded-md text-muted-foreground hover:bg-muted"
-          aria-label="Close detail"
-        >
-          <X size={16} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={expand}
+            onPointerEnter={preloadEntityPage}
+            onFocus={preloadEntityPage}
+            className="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+            title="Open the full page"
+          >
+            <Maximize2 size={14} /> Expand
+          </button>
+          <button
+            type="button"
+            onClick={clear}
+            className="grid size-7 place-items-center rounded-md text-muted-foreground hover:bg-muted"
+            aria-label="Close detail"
+          >
+            <X size={16} />
+          </button>
+        </div>
       </div>
       <DetailPanelContent />
     </aside>

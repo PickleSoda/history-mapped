@@ -8,6 +8,7 @@ export { useSelection } from './useSelection';
 export { useSearchQuery } from './useSearchQuery';
 export { useChronicleNav } from './useChronicleNav';
 export { useView } from './useView';
+export { useFullPage } from './useFullPage';
 
 // Derived
 export { useScope } from './useScope';
@@ -23,6 +24,8 @@ export { useEntitySearch } from './useEntitySearch';
 export { useChronicle } from './useChronicle';
 export { useChronicleList } from './useChronicleList';
 export { useEntityChronicles } from './useEntityChronicles';
+export { useEntityTimeline } from './useEntityTimeline';
+export { useEntityGraph, useChronicleGraph, useFetchNeighbourhood } from './useGraph';
 export { usePrefetchEntity } from './usePrefetchEntity';
 export { useHistoricalPeriods } from './useHistoricalPeriods';
 
@@ -41,4 +44,5 @@ export { useSheetContent } from './useSheetContent';
 export { useSheetSelectionSync } from './useSheetSelectionSync';
 
 // Responsive
-export { useMediaQuery, useIsMobile } from './useMediaQuery';
+export { useMediaQuery, useIsMobile, useReducedMotion } from './useMediaQuery';
+export { useNearViewport } from './useNearViewport';

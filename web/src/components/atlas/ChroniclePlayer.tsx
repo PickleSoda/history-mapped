@@ -1,11 +1,13 @@
-import { ChevronLeft, MoveRight, Route } from 'lucide-react';
+import { ChevronLeft, Maximize2, MoveRight, Route } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
+import { preloadChroniclePage } from '@/components/atlas/FullPage';
 import { GroupDot } from '@/components/atlas/GroupBadge';
 import { NavBreadcrumb } from '@/components/atlas/NavBreadcrumb';
 import {
   useChronicle,
   useChronicleNav,
   useEntityGeometries,
+  useFullPage,
   useMapFocus,
   useSelection,
   useTimeState,
@@ -48,8 +50,9 @@ function StepEntities({ entities }: { entities: SecondaryEntity[] }) {
   );
 }
 
-/** "What changed here" — the step's primary relationship, source → target. */
-function WhatChanged({ rel }: { rel: Relationship }) {
+/** "What changed here" — the step's primary relationship, source → target.
+ *  Shared with the chronicle page's step list. */
+export function WhatChanged({ rel }: { rel: Relationship }) {
   const { select } = useSelection();
   const src = rel.source_entity;
   const tgt = rel.target_entity;
@@ -220,6 +223,7 @@ export function ChroniclePlayerContent() {
  */
 export function ChroniclePlayer() {
   const { exit } = useChronicleNav();
+  const { expandChronicle } = useFullPage();
   return (
     <aside className="flex h-full w-[380px] max-w-[90vw] flex-none flex-col border-r bg-card">
       <NavBreadcrumb className="flex-none" />
@@ -231,9 +235,21 @@ export function ChroniclePlayer() {
         >
           <ChevronLeft size={15} /> Exit tour
         </button>
-        <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] text-muted-foreground">
-          <Route size={12} /> Chronicle
-        </span>
+        <div className="flex items-center gap-1.5">
+          <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] text-muted-foreground">
+            <Route size={12} /> Chronicle
+          </span>
+          <button
+            type="button"
+            onClick={expandChronicle}
+            onPointerEnter={preloadChroniclePage}
+            onFocus={preloadChroniclePage}
+            className="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+            title="Open the chronicle page: its whole graph and every step"
+          >
+            <Maximize2 size={14} /> Expand
+          </button>
+        </div>
       </div>
       <ChroniclePlayerContent />
     </aside>

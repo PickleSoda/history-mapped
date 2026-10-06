@@ -1,5 +1,6 @@
 /**
- * nuqs parsers — the typed URL schema (spec §2).
+ * nuqs parsers — the typed URL schema (spec §2): bbox, t, g, sel, q, chron,
+ * step, full, view.
  *
  * Each search param has a parser here. Hooks in `@/hooks` consume these so that
  * a component subscribing to `sel` is not woken when `bbox` changes. History
@@ -42,6 +43,16 @@ export const parseAsChronicle = parseAsString;
 
 /** step = chronicle step index. */
 export const parseAsStep = parseAsInteger;
+
+/**
+ * full = "1" — the selected entity (or active chronicle) is expanded into its
+ * full page. Absent = collapsed; with `withDefault(false)` + nuqs' default
+ * clear-on-default, setting false removes the key.
+ */
+export const parseAsFull = createParser<boolean>({
+  parse: (v) => (v === '1' || v === 'true' ? true : v === '0' || v === 'false' ? false : null),
+  serialize: (v) => (v ? '1' : '0'),
+}).withDefault(false);
 
 /** view = "map" | "globe" */
 export const parseAsView = parseAsStringLiteral(['map', 'globe'] as const);
