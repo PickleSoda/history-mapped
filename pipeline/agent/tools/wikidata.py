@@ -213,28 +213,113 @@ def _wikidata_date(value: dict[str, Any]) -> str | None:
     return time_str
 
 
+START_DATE_PROPS = ("P571", "P569", "P585")   # inception → birth → point in time
+END_DATE_PROPS = ("P576", "P570")             # dissolved → death
+
+# Wikidata time precision: 6 millennium, 7 century, 8 decade, 9 year, 10 month, 11 day.
+# A century value is stored as one year of it ("1st century BCE" = -0100, "7th
+# century" = +0601 or +0700), so read as a year it is off by up to 99 years.
+CENTURY_PRECISION = 7
+DECADE_PRECISION = 8
+
+
+def _claim_time(statements: Any) -> dict[str, Any] | None:
+    """The time value to read from a property's statements: a preferred-rank one
+    first, else the first normal one; deprecated statements never (they are the
+    values Wikidata editors marked wrong, e.g. a superseded birth year)."""
+    if not isinstance(statements, list):
+        return None
+    usable = [s for s in statements if isinstance(s, dict) and s.get("rank") != "deprecated"]
+    preferred = [s for s in usable if s.get("rank") == "preferred"]
+    for statement in preferred + usable:
+        try:
+            value = statement["mainsnak"]["datavalue"]["value"]
+        except (KeyError, TypeError):
+            continue
+        if isinstance(value, dict) and value.get("time"):
+            return value
+    return None
+
+
+def _first_claim_date(claims: dict[str, Any], props: tuple[str, ...]) -> tuple[str | None, int | None]:
+    """(date, precision) of the first of `props` that has a usable time value."""
+    for prop in props:
+        value = _claim_time(claims.get(prop))
+        if value is None:
+            continue
+        date = _wikidata_date(value)
+        if date:
+            precision = value.get("precision")
+            return date, precision if isinstance(precision, int) else None
+    return None, None
+
+
+def _claim_dates(claims: dict[str, Any]) -> dict[str, Any]:
+    """start/end dates of a claims dict plus their Wikidata precision."""
+    start_date, start_precision = _first_claim_date(claims, START_DATE_PROPS)
+    end_date, end_precision = _first_claim_date(claims, END_DATE_PROPS)
+    return {"start_date": start_date, "end_date": end_date,
+            "start_precision": start_precision, "end_precision": end_precision}
+
+
 def _parse_claim_dates(claims: dict[str, Any]) -> tuple[str | None, str | None]:
     """Extract (start_date, end_date) from a claims dict, mirroring enrich order:
     start = P571 → P569 → P585; end = P576 → P570."""
-    start_date = None
-    for prop in ("P571", "P569", "P585"):
-        if prop in claims:
-            try:
-                start_date = _wikidata_date(claims[prop][0]["mainsnak"]["datavalue"]["value"])
-                if start_date:
-                    break
-            except (KeyError, IndexError, TypeError):
-                pass
-    end_date = None
-    for prop in ("P576", "P570"):
-        if prop in claims:
-            try:
-                end_date = _wikidata_date(claims[prop][0]["mainsnak"]["datavalue"]["value"])
-                if end_date:
-                    break
-            except (KeyError, IndexError, TypeError):
-                pass
-    return start_date, end_date
+    dates = _claim_dates(claims)
+    return dates["start_date"], dates["end_date"]
+
+
+def min_storable_precision(entity_type: str | None) -> int:
+    """Coarsest Wikidata precision whose year may be stored as the entity's date.
+
+    A person's birth/death of "1st century BCE" is not a year: stored as -100 it
+    gave Coponius -100..100 (200 years). Decades are close enough (≤ 9 years off).
+    For polities, cities and other long-lived types a century still places the
+    entity on the map; a millennium (+0001 = "1st millennium") does not.
+    """
+    return DECADE_PRECISION if entity_type == "person" else CENTURY_PRECISION
+
+
+def storable_wikidata_dates(record: dict[str, Any] | None,
+                            entity_type: str | None) -> tuple[str | None, str | None]:
+    """(start, end) from a Wikidata record that may be written as the entity's dates.
+
+    Drops a bound coarser than min_storable_precision (an unknown precision, from
+    an older cached record, is kept) and, for a person, both bounds when the
+    record's own lifespan is impossible (over 110 years, or a sign split: Shuttarna
+    II's death is entered as +1375 against a -1350 birth). Disambiguation keeps
+    using the raw start_date/end_date, where a century is still era evidence.
+    """
+    from pipeline.agent.date_utils import MAX_PERSON_LIFESPAN, lifespan_problem
+    from pipeline.agent.tools.disambiguation import era_year
+
+    if not record:
+        return None, None
+    floor = min_storable_precision(entity_type)
+    out: list[str | None] = []
+    for key in ("start", "end"):
+        date = record.get(f"{key}_date")
+        precision = record.get(f"{key}_precision")
+        out.append(date if date and (not isinstance(precision, int) or precision >= floor) else None)
+    start, end = out
+    if entity_type == "person":
+        # Read each raw bound as the interval its precision allows ("-0100" at
+        # century precision = 1st century BCE); if even the closest points give
+        # an impossible life, the record itself is wrong (an unsigned BCE year:
+        # Shuttarna II "14th century BCE" .. +1375).
+        s, e = era_year(record.get("start_date")), era_year(record.get("end_date"))
+        if s is not None and e is not None:
+            s_slack = _PRECISION_SLACK.get(record.get("start_precision"), 0)
+            e_slack = _PRECISION_SLACK.get(record.get("end_precision"), 0)
+            if s - s_slack > e + e_slack or (e - e_slack) - (s + s_slack) > MAX_PERSON_LIFESPAN:
+                return None, None
+    if lifespan_problem(entity_type, era_year(start), era_year(end)):
+        return None, None
+    return start, end
+
+
+# Years a coarse Wikidata value may be off by, per precision (millennium, century, decade).
+_PRECISION_SLACK = {6: 1000, 7: 100, 8: 10}
 
 
 def _parse_geo(claims: dict[str, Any]) -> tuple[str | None, str | None]:
@@ -299,7 +384,7 @@ def fetch_entity_meta(qids: list[str]) -> dict[str, dict[str, Any]]:
                     p31.append(c["mainsnak"]["datavalue"]["value"]["id"])
                 except (KeyError, IndexError, TypeError):
                     pass
-            start_date, end_date = _parse_claim_dates(claims)
+            dates = _claim_dates(claims)
             coordinates, location_qid = _parse_geo(claims)
             labels = ent.get("labels", {}) or {}
             descriptions = ent.get("descriptions", {}) or {}
@@ -309,8 +394,7 @@ def fetch_entity_meta(qids: list[str]) -> dict[str, dict[str, Any]]:
                 "description": descriptions.get("en", {}).get("value", ""),
                 "p31": p31,
                 "sitelinks": len(ent.get("sitelinks", {}) or {}),
-                "start_date": start_date,
-                "end_date": end_date,
+                **dates,
                 "coordinates": coordinates,
                 "location_qid": location_qid,
             }
@@ -369,36 +453,15 @@ def enrich_wikidata_entities(qids: list[str]) -> dict[str, dict[str, Any]]:
                         except (KeyError, IndexError, TypeError):
                             pass
 
-            # Start date: try P571 (inception) → P569 (birth) → P585 (point in time)
-            start_date = None
-            for prop in ("P571", "P569", "P585"):
-                if prop in claims:
-                    try:
-                        start_date = _wikidata_date(claims[prop][0]["mainsnak"]["datavalue"]["value"])
-                        if start_date:
-                            break
-                    except (KeyError, IndexError, TypeError):
-                        pass
-
-            # End date: try P576 (dissolved) → P570 (death)
-            end_date = None
-            for prop in ("P576", "P570"):
-                if prop in claims:
-                    try:
-                        end_date = _wikidata_date(claims[prop][0]["mainsnak"]["datavalue"]["value"])
-                        if end_date:
-                            break
-                    except (KeyError, IndexError, TypeError):
-                        pass
-
+            # Start: P571 (inception) → P569 (birth) → P585 (point in time);
+            # end: P576 (dissolved) → P570 (death). Rank-aware, with precision.
             results[qid] = {
                 "label": label,
                 "aliases": _en_aliases(entity),
                 "description": description,
                 "coordinates": coordinates,
                 "location_qid": location_qid,
-                "start_date": start_date,
-                "end_date": end_date,
+                **_claim_dates(claims),
             }
             logger.info("Wikidata enrich: %s → %s (%.1fs)", qid, label, elapsed)
 

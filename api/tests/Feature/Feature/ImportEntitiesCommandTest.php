@@ -257,6 +257,41 @@ class ImportEntitiesCommandTest extends TestCase
         $this->assertSame(['no_wikidata_match', 'missing_geometry'], $entity->getAttribute('attributes')['validation_flags'] ?? null);
     }
 
+    public function test_person_with_sign_split_lifespan_is_held_for_review(): void
+    {
+        // Bagrat IV of Georgia (1018-1072) arrived as "-1015".."1072": a stray minus.
+        $this->importRecord([
+            'name' => 'Bagrat IV',
+            'entity_type' => 'person',
+            'entity_group' => 'POLITY',
+            'summary' => 'King of Georgia.',
+            'temporal_start' => '-1015',
+            'temporal_end' => '1072',
+        ]);
+
+        $entity = Entity::query()->where('name', 'Bagrat IV')->firstOrFail();
+        $this->assertSame(VerificationStatus::NeedsReview, $entity->verification_status);
+        $this->assertSame([ImportEntityJob::IMPLAUSIBLE_LIFESPAN_FLAG], $entity->getAttribute('attributes')['validation_flags'] ?? null);
+        $this->assertSame(-1015, $entity->primaryTemporalRange?->start_year);
+    }
+
+    public function test_person_spanning_year_zero_within_a_lifetime_is_not_flagged(): void
+    {
+        $this->importRecord([
+            'name' => 'Augustus',
+            'entity_type' => 'person',
+            'entity_group' => 'POLITY',
+            'summary' => 'First Roman emperor.',
+            'temporal_start' => '-63',
+            'temporal_end' => '14',
+        ]);
+
+        $entity = Entity::query()->where('name', 'Augustus')->firstOrFail();
+        $this->assertSame(VerificationStatus::PipelineDraft, $entity->verification_status);
+        $this->assertNull($entity->getAttribute('attributes')['validation_flags'] ?? null);
+        $this->assertSame([-63, 14], [$entity->primaryTemporalRange?->start_year, $entity->primaryTemporalRange?->end_year]);
+    }
+
     public function test_pipeline_record_cannot_self_promote_its_status(): void
     {
         $this->importRecord(array_replace($this->record, ['verification_status' => 'human_verified']));

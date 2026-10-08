@@ -46,6 +46,7 @@ from pipeline.agent.tools.wikidata import (
     search_wikidata_by_name,
     fetch_entity_meta,
     _rank_candidates,
+    storable_wikidata_dates,
 )
 from pipeline.agent.tools.disambiguation import (
     BOUNDED_LIFETIME_TYPES,
@@ -231,8 +232,9 @@ def main() -> int:
                                     "primary_geo_ref_id": r["primary_geo_ref_id"]})
 
         # ── Dates: refresh from corrected QID; fix BCE/CE sign flips ─────────
-        wd_start_y = era_year(final_meta.get("start_date"))
-        wd_end_y = era_year(final_meta.get("end_date"))
+        # Storable only (no century-precision lifespans, no impossible ones).
+        wd_start, wd_end = storable_wikidata_dates(final_meta, etype)
+        wd_start_y, wd_end_y = era_year(wd_start), era_year(wd_end)
         cur_start_y, cur_end_y = r["start_year"], r["end_year"]
         new_start_y, new_end_y = cur_start_y, cur_end_y
         date_reason = []

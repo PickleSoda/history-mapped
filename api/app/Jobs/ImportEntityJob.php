@@ -32,6 +32,11 @@ class ImportEntityJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    /** No real person lives longer; see implausibleLifespan(). */
+    public const MAX_PERSON_LIFESPAN_YEARS = 110;
+
+    public const IMPLAUSIBLE_LIFESPAN_FLAG = 'implausible_lifespan';
+
     public int $tries = 3;
 
     public int $backoff = 10;
@@ -79,6 +84,17 @@ class ImportEntityJob implements ShouldQueue
             $entityRecord['verification_status'] = ($record['verification_status'] ?? null) === VerificationStatus::NeedsReview->value
                 ? VerificationStatus::NeedsReview->value
                 : VerificationStatus::PipelineDraft->value;
+
+            // ── Lifespan guard: a person spanning over 110 years (or ending
+            // before birth) carries a BCE/CE sign slip, a namesake's date or a
+            // window given as birth/death. Imported, but held for review.
+            $lifespanProblem = $this->implausibleLifespan($entityRecord);
+            if ($lifespanProblem !== null) {
+                Log::warning("[Pipeline] Implausible lifespan for {$name}: {$lifespanProblem}; flagged for review");
+                $entityRecord['verification_status'] = VerificationStatus::NeedsReview->value;
+                $flags = is_array($entityRecord['validation_flags'] ?? null) ? $entityRecord['validation_flags'] : [];
+                $entityRecord['validation_flags'] = array_values(array_unique([...$flags, self::IMPLAUSIBLE_LIFESPAN_FLAG]));
+            }
 
             // ── Find the row to merge into (identity-guarded) ───────────
             ['entity' => $existingEntity, 'rejected_qid' => $rejectedQid, 'namesake' => $namesake] = $this->findExisting($record);
@@ -644,6 +660,39 @@ class ImportEntityJob implements ShouldQueue
             'confidence' => 'medium',
             'created_by' => "pipeline:{$this->batchId}",
         ]);
+    }
+
+    /**
+     * Why a person record's lifespan cannot be real, or null. Mirrors
+     * pipeline.agent.date_utils.lifespan_problem (MAX_PERSON_LIFESPAN = 110).
+     *
+     * @param  array<string, mixed>  $record
+     */
+    private function implausibleLifespan(array $record): ?string
+    {
+        if (($record['entity_type'] ?? null) !== 'person') {
+            return null;
+        }
+
+        $start = $this->parseYear($record['temporal_start'] ?? null);
+        $end = $this->parseYear($record['temporal_end'] ?? null);
+        if ($start === null || $end === null) {
+            return null;
+        }
+
+        if ($start > $end) {
+            return "start {$start} > end {$end}";
+        }
+
+        if ($end - $start > self::MAX_PERSON_LIFESPAN_YEARS) {
+            $span = $end - $start;
+
+            return $start < 0 && $end > 0
+                ? "sign split {$start}..{$end} ({$span} years across year 0)"
+                : "lifespan {$start}..{$end} is {$span} years";
+        }
+
+        return null;
     }
 
     private function parseYear(mixed $value): ?int

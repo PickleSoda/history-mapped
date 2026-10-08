@@ -2,7 +2,8 @@
 
 Checks (spec §4.2): schema parse, canonical entity types, allowed relation
 types, referential integrity, summary completeness when precomputed, date
-sanity (start <= end, plausible years, era bounds when the path encodes an era).
+sanity (start <= end, plausible years, person lifespans <= 110 years, era bounds
+when the path encodes an era).
 
 Usage: python -m pipeline.agent.validate_handoff <path/to/candidates.json>
 Exit 0 = clean; exit 1 = itemised errors.
@@ -13,6 +14,7 @@ import re
 import sys
 from pathlib import Path
 
+from pipeline.agent.date_utils import lifespan_problem
 from pipeline.agent.graph.nodes.validate import ALLOWED_RELATION_TYPES
 from pipeline.agent.handoff import load_handoff
 from pipeline.agent.schemas.entities import _CANONICAL_ENTITY_TYPES
@@ -55,6 +57,10 @@ def validate(path: str | Path) -> list[str]:
         sy, ey = _year(c.start_date), _year(c.end_date)
         if sy is not None and ey is not None and sy > ey:
             errors.append(f"entity '{c.label}': start_year {sy} > end_year {ey}")
+        elif c.entity_type == "person" and lifespan_problem("person", sy, ey):
+            # Over 110 years is a BCE/CE sign slip or a window (reign, floruit,
+            # radiocarbon range) given as birth/death — never a real lifespan.
+            errors.append(f"entity '{c.label}': {lifespan_problem('person', sy, ey)}")
         for y in (sy, ey):
             if y is not None and not -10000 < y <= 2100:
                 errors.append(f"entity '{c.label}': implausible year {y}")

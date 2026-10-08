@@ -25,6 +25,8 @@ from pipeline.agent.schemas.entities import (
     _CANONICAL_ENTITY_TYPES,
 )
 from pipeline.agent.schemas.relations import CandidateRelation
+from pipeline.agent.date_utils import lifespan_problem
+from pipeline.agent.tools.disambiguation import CONTEMPORANEOUS_RELATION_TYPES
 from pipeline.agent.validate_handoff import ERA_BOUNDS, _year
 from pipeline.campaign.dates import depad, jan1_years
 from pipeline.campaign.labels import CODE as AMBIGUOUS_LABEL, ambiguous_label
@@ -58,6 +60,15 @@ SINGULAR = {"events": "event", "entities": "entity", "relations": "relation"}
 # Severities: E blocks add and fails check; A blocks add but is only a warning in
 # check (authoring-time strictness the validator doesn't enforce); W never blocks.
 Problem = tuple[str, str, str]
+# BCE/CE sign guards (2026-10-07): a date whose sign its fact or its person
+# endpoint's lifespan contradicts; a person lifespan over 110 years (also a
+# validate_handoff error); a BCE start in a CE-era run that mirrors cleanly.
+SIGN_MISMATCH = "sign-mismatch"
+IMPLAUSIBLE_LIFESPAN = "implausible-lifespan"
+SIGN_SPLIT = "sign-split"
+# A relation year outside its person endpoint's lifespan by more than this,
+# whose mirror falls inside it, has the wrong sign.
+LIFESPAN_SLACK_YEARS = 10
 
 
 class OpError(Exception):
@@ -205,6 +216,86 @@ class Ctx:
         return out
 
 
+    def sign_mismatches(self, part: str, item: dict) -> list[tuple[str, str, str, int | None]]:
+        """(field, value, fix, fact) for each start/end date whose sign its own fact
+        contradicts (see sign_mismatches)."""
+        n = self.fact_of(part, item)
+        text = (self.fact_text or {}).get(n) if n is not None else None
+        return [(f, v, fix, n) for f, v, fix in sign_mismatches(item, text)]
+
+
+# "430 BCE", "c. 130–100 BCE", "between 595 and 589 BCE", "41 to 54 CE": every
+# number before an era marker carries that era (a range shares its marker).
+_ERA_STATED = re.compile(
+    r"(?<![\d.])(\d{1,5})(?:\s*(?:[–—-]|to|and)\s*(\d{1,5}))?\s*(BCE|BC|CE|AD)\b", re.IGNORECASE)
+
+
+def stated_eras(text: str | None) -> dict[int, set[str]]:
+    """{year magnitude: {"bce", "ce"}} for the years a fact states with an era marker."""
+    out: dict[int, set[str]] = {}
+    for m in _ERA_STATED.finditer(text or ""):
+        era = "bce" if m.group(3).lower().startswith("b") else "ce"
+        for g in (m.group(1), m.group(2)):
+            if g:
+                out.setdefault(int(g), set()).add(era)
+    return out
+
+
+def _flip_sign(value: str) -> str:
+    return value[1:] if value.startswith("-") else f"-{value}"
+
+
+def sign_mismatches(item: dict, fact_text: str | None) -> list[tuple[str, str, str]]:
+    """(field, value, fix) for each date whose sign its fact contradicts: the fact
+    states that year only as BCE but the date is positive ("27" for "In 27 BCE"),
+    or only as CE but the date is negative ("-1384" for "in 1384 CE"). A mirrored
+    span (-500..500) is skipped: the fact's mention belongs to the other bound."""
+    eras = stated_eras(fact_text)
+    if not eras:
+        return []
+    years = {f: _year(item.get(f)) for f in ("start_date", "end_date")}
+    out = []
+    for f, other in (("start_date", "end_date"), ("end_date", "start_date")):
+        y, value = years[f], item.get(f)
+        if not y or not isinstance(value, str):
+            continue
+        if years[other] == -y:
+            continue
+        got = eras.get(abs(y), set())
+        if (y > 0 and got == {"bce"}) or (y < 0 and got == {"ce"}):
+            out.append((f, value, _flip_sign(value)))
+    return out
+
+
+def relation_sign_mismatches(relation: dict, lifespans: dict[str, tuple[int | None, int | None]]
+                             ) -> list[tuple[str, str, str, str]]:
+    """(field, value, fix, person) for each date of a contemporaneous relation that
+    lies outside a person endpoint's lifespan while its mirror lies inside it
+    ("Ismail I rules Safavid dynasty" -1501 for Ismail I 1487..1524)."""
+    if relation.get("relationship_type") not in CONTEMPORANEOUS_RELATION_TYPES:
+        return []
+    out = []
+    for f in ("start_date", "end_date"):
+        value, y = relation.get(f), _year(relation.get(f))
+        if not y or not isinstance(value, str):
+            continue
+        for end in ("source_label", "target_label"):
+            sy, ey = lifespans.get(relation.get(end), (None, None))
+            if sy is None or ey is None or sy > ey:
+                continue
+            lo, hi = sy - LIFESPAN_SLACK_YEARS, ey + LIFESPAN_SLACK_YEARS
+            if not lo <= y <= hi and lo <= -y <= hi:
+                out.append((f, value, _flip_sign(value), relation[end]))
+                break
+    return out
+
+
+def _sign_msg(f: str, old: str, new: str, n: int | None) -> str:
+    era = "BCE" if new.startswith("-") else "CE"
+    where = f"fact {n}" if n is not None else "its fact"
+    return f"{f} {old!r} -> {new!r}? ({where} states {old.lstrip('-').split('-')[0]} {era}; BCE years are negative, CE years never are)"
+
+
 def _padded_msg(f: str, old: str, new: str, n: int | None) -> str:
     where = f"fact {n}" if n is not None else "its fact"
     return f"{f} {old!r} -> {new!r} ({where} states no 1 January; never pad a year or month to -01-01)"
@@ -276,6 +367,25 @@ def check_item(part: str, item: Any, ctx: Ctx) -> tuple[dict | None, list[Proble
     probs += _date_problems(clean)
     for f, old, new, n in ctx.padded_dates(part, clean):
         probs.append(("E", "padded-date", f"{_padded_msg(f, old, new, n)}; fix: `handoff fix-dates RUN --apply`"))
+    # An event or relation is dated by its own fact, so a contradicting sign is an
+    # error; an entity's lifespan often runs past its source fact (Monte Albán
+    # from -500 cited by a "500 CE" fact), so there it is a warning.
+    for f, old, new, n in ctx.sign_mismatches(part, clean):
+        probs.append(("W" if part == "entities" else "E", SIGN_MISMATCH, _sign_msg(f, old, new, n)))
+    sy, ey = _year(clean.get("start_date")), _year(clean.get("end_date"))
+    is_person = part == "entities" and clean.get("entity_type") == "person"
+    if is_person and sy is not None and ey is not None and sy <= ey:
+        problem = lifespan_problem("person", sy, ey)
+        if problem:
+            probs.append(("E", IMPLAUSIBLE_LIFESPAN,
+                          f"{problem}. Give birth/death only; a reign, floruit or radiocarbon window is not a "
+                          "lifespan (date the relation instead), and check each bound's BCE minus"))
+    elif (not is_person and ctx.era and ERA_BOUNDS[ctx.era][0] >= 500
+          and sy is not None and ey is not None and sy < 0 < ey and -sy <= ey):
+        # CE-era run: a BCE start whose mirror still precedes the end is usually a
+        # stray minus ("Byzantine Empire" -330..1453, "Ismail I rules" -1501..1524).
+        probs.append(("W", SIGN_SPLIT, f"start {sy} is BCE in a CE-era run and {-sy}..{ey} would also be "
+                      "ordered; check the minus"))
 
     if part == "events" and ctx.era:
         lo, hi = ERA_BOUNDS[ctx.era]
@@ -798,6 +908,19 @@ def lint(doc: dict, *, era: str | None = None, facts: int | None = None,
                     add("W", "duplicate", f"relation {rel_key_str(key)!r} x{n} (importer keeps only the first)")
                 else:
                     add("E", "duplicate", f"{SINGULAR[part]} label {key!r} appears {n} times")
+
+    lifespans = {e.get("label"): (_year(e.get("start_date")), _year(e.get("end_date")))
+                 for e in entities if isinstance(e, dict) and e.get("entity_type") == "person"}
+    for r in relations:
+        if not isinstance(r, dict) or not mine("relations", r):
+            continue
+        by_fact = {(f, v) for f, v, _, _ in ctx.sign_mismatches("relations", r)}
+        for f, old, new, person in relation_sign_mismatches(r, lifespans):
+            if (f, old) not in by_fact:
+                sy, ey = lifespans[person]
+                # A warning: a wrong relation (Agrippa I child_of Herod, 37) trips it too.
+                add("W", SIGN_MISMATCH, f"relation {display('relations', r)!r}: {f} {old!r} -> {new!r}? "
+                    f"({old} lies outside {person}'s lifespan {sy}..{ey}; {new} lies inside)")
 
     entity_labels = [e.get("label") for e in entities if isinstance(e, dict)]
     if doc.get("summaries_precomputed"):

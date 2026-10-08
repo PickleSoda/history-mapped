@@ -521,7 +521,9 @@ def review_record_cmd(run: str, verdict: str, model: str, issues: tuple[str, ...
 @cli.command("measure")
 @click.option("--jan1-csv", "jan1_csv", type=click.Path(dir_okay=False, path_type=Path), default=None,
               help="Also write every -01-01 date with its verdict and corrected value (a repair list; nothing is applied).")
-def measure_cmd(jan1_csv: Path | None):
+@click.option("--sign-csv", "sign_csv", type=click.Path(dir_okay=False, path_type=Path), default=None,
+              help="Also write every impossible person lifespan and relation sign slip with its verdict (a triage list).")
+def measure_cmd(jan1_csv: Path | None, sign_csv: Path | None):
     """Acceptance metrics against the running compose DB (exit 2 if it's down)."""
     from pipeline.campaign import measure
 
@@ -535,6 +537,10 @@ def measure_cmd(jan1_csv: Path | None):
         fixes = measure.classify_jan1([r for r in rows if r and r[0] in ("jan1_range_row", "jan1_rel_row")])
         measure.write_jan1_csv(fixes, jan1_csv)
         click.echo(f"wrote {len(fixes)} -01-01 value(s) to {_rel(jan1_csv)}")
+    if sign_csv is not None:
+        findings = measure.classify_lifespans([r for r in rows if r and r[0] in ("lifespan_row", "rel_sign_row")])
+        measure.write_sign_csv(findings, sign_csv)
+        click.echo(f"wrote {len(findings)} lifespan/sign finding(s) to {_rel(sign_csv)}")
 
 
 if __name__ == "__main__":

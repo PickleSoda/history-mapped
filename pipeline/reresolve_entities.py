@@ -36,7 +36,7 @@ if str(_REPO_ROOT) not in sys.path:
 import psycopg
 
 from pipeline.agent.tools.wikidata import (
-    search_wikidata_by_name, fetch_entity_meta, _rank_candidates,
+    search_wikidata_by_name, fetch_entity_meta, _rank_candidates, storable_wikidata_dates,
 )
 from pipeline.agent.tools.disambiguation import (
     BOUNDED_LIFETIME_TYPES, EXPECTED_P31, rerank_by_type, rerank_by_era, era_year, is_ambiguous,
@@ -171,7 +171,10 @@ def _plan(eid, ename, etype, egroup, old_qid, sy, ey, has_geom, settled_qid, met
     new_type = derive_type(meta.get("p31", []), etype)
     new_group = ENTITY_TYPE_TO_GROUP.get(new_type, egroup)
     wkt, geo_src = real_coord(settled_qid, meta, place_cache)
-    wd_sy, wd_ey = era_year(meta.get("start_date")), era_year(meta.get("end_date"))
+    # Storable only: a century-precision birth is not a year, and an impossible
+    # Wikidata lifespan (sign slip) must not overwrite the row.
+    wd_start, wd_end = storable_wikidata_dates(meta, new_type)
+    wd_sy, wd_ey = era_year(wd_start), era_year(wd_end)
     return {
         "entity_id": eid, "name": ename, "old_qid": old_qid, "new_qid": settled_qid,
         "new_label": label, "old_type": etype, "new_type": new_type, "new_group": new_group,

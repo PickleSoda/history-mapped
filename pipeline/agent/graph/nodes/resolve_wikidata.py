@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from pipeline.agent.date_utils import lifespan_problem
 from pipeline.agent.graph.state import AgentRunState
 from pipeline.agent.log_config import get_logger
 from pipeline.agent.schemas.validation import AuditEvent
 from pipeline.agent.tools.wikidata import (
     search_wikidata_by_name, enrich_wikidata_entities, fetch_entity_meta, _rank_candidates,
+    storable_wikidata_dates,
 )
 from pipeline.agent.tools.disambiguation import (
     BOUNDED_LIFETIME_TYPES, candidate_name_ok, context_era, era_year, rerank_by_era,
@@ -41,6 +43,57 @@ def _sign_corrected(llm_date: str | None, wd_date: str | None) -> str | None:
     if llm_year != wd_year and abs(llm_year) == abs(wd_year):
         return wd_date
     return None
+
+
+# A person's Wikidata birth/death must agree this closely with a date the
+# transcript gives for the same bound; otherwise the QID is a namesake (Lewis
+# Powell b. 1576 for the 1865 conspirator, Lysias the orator for the Seleucid
+# regent) and its other bound would be glued onto this person's lifespan.
+WD_DATE_AGREEMENT_YEARS = 30
+# An undated person's Wikidata lifespan must come within this of the dates the
+# run gives them (relations, source event — EnrichedCandidate.identity_span).
+WD_IDENTITY_SLACK_YEARS = 60
+
+
+def _wikidata_fill(enriched) -> tuple[str | None, str | None, str | None]:
+    """(start, end, refusal) — the Wikidata dates that may fill the candidate's gaps.
+
+    storable_wikidata_dates drops coarse-precision bounds (a century is not a
+    birth year) and impossible Wikidata lifespans. For a person the match must
+    also be the same person: its dates agree with the transcript's own bound
+    (WD_DATE_AGREEMENT_YEARS) or, for an undated person, fall near the run's
+    identity span; and the filled lifespan must be possible (lifespan_problem).
+    Any failure → no Wikidata date at all, with the reason.
+    """
+    match = enriched.wikidata_match or {}
+    entity_type = enriched.candidate.entity_type
+    start, end = storable_wikidata_dates(match, entity_type)
+    if not start and not end:
+        if match.get("start_date") or match.get("end_date"):
+            return None, None, "coarse precision or impossible Wikidata lifespan"
+        return None, None, None
+    if entity_type != "person":
+        return start, end, None
+    own_start, own_end = enriched.candidate.start_date, enriched.candidate.end_date
+    for own, wd, side in ((own_start, start, "start"), (own_end, end, "end")):
+        own_y, wd_y = era_year(own), era_year(wd)
+        # Sign-insensitive: a mirrored year is the extractor's sign slip, which
+        # the caller corrects from Wikidata (_sign_corrected), not a namesake.
+        if own_y is not None and wd_y is not None \
+                and min(abs(own_y - wd_y), abs(-own_y - wd_y)) > WD_DATE_AGREEMENT_YEARS:
+            return None, None, f"Wikidata {side} {wd} disagrees with the transcript's {own} (namesake QID?)"
+    if own_start is None and own_end is None and enriched.identity_span:
+        lo, hi = min(enriched.identity_span), max(enriched.identity_span)
+        wd_lo = era_year(start) if start else era_year(end)
+        wd_hi = era_year(end) if end else era_year(start)
+        if wd_hi < lo - WD_IDENTITY_SLACK_YEARS or wd_lo > hi + WD_IDENTITY_SLACK_YEARS:
+            return None, None, f"Wikidata lifespan {start}..{end} is far from the run's dates {lo}..{hi} (namesake QID?)"
+    filled_start = _sign_corrected(own_start, start) or own_start or start
+    filled_end = _sign_corrected(own_end, end) or own_end or end
+    problem = lifespan_problem(entity_type, era_year(filled_start), era_year(filled_end))
+    if problem:
+        return None, None, problem
+    return start, end, None
 
 
 def resolve_wikidata(state: AgentRunState) -> AgentRunState:
@@ -147,9 +200,14 @@ def resolve_wikidata(state: AgentRunState) -> AgentRunState:
                 enriched.system_confidence += 0.3
             if enriched.wikidata_match.get("description"):
                 enriched.system_confidence += 0.1
-            # Pass dates from wikidata to the candidate if missing
-            wd_start = enriched.wikidata_match.get("start_date")
-            wd_end = enriched.wikidata_match.get("end_date")
+            # Pass dates from wikidata to the candidate if missing — only dates
+            # that are storable (precision, lifespan) and that fit what the
+            # transcript already says about this entity (_wikidata_fill).
+            wd_start, wd_end, refused = _wikidata_fill(enriched)
+            if refused:
+                logger.info("    → Wikidata dates %s..%s not used: %s",
+                            enriched.wikidata_match.get("start_date"),
+                            enriched.wikidata_match.get("end_date"), refused)
             if wd_start and not enriched.candidate.start_date:
                 enriched.candidate.start_date = wd_start
             if wd_end and not enriched.candidate.end_date:

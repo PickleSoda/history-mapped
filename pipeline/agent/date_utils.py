@@ -46,3 +46,36 @@ def normalize_historical_date(value: str | None) -> str | None:
     s = _CE_SUFFIX_RE.sub("", s).strip()
 
     return s
+
+
+# ── Lifespan sanity ──────────────────────────────────────────────────────────
+# A person's stored [start, end] is a lifespan. Over 110 years it is never real:
+# it is a BCE/CE sign slip ("-1015".."1072" for Bagrat IV, born 1018 CE), a
+# Wikidata namesake's birth glued to the transcript's death date, a century-
+# precision Wikidata date stored as a year ("-0100".."0100" = "1st century BCE"
+# .."1st century"), or a radiocarbon/floruit window given as birth and death.
+# The same limit is enforced by `handoff check`, validate_handoff, the Wikidata
+# date fill (resolve_wikidata), the campaign measure and ImportEntityJob
+# (MAX_PERSON_LIFESPAN_YEARS there).
+MAX_PERSON_LIFESPAN = 110
+
+
+def lifespan_problem(entity_type: str | None, start_year: int | None,
+                     end_year: int | None) -> str | None:
+    """Why a dated span can't be stored as-is, or None when it is fine.
+
+    Any type: start after end. Persons only: a span over MAX_PERSON_LIFESPAN
+    years, described as a sign split when it crosses year 0 (one bound BCE, the
+    other CE: the classic missing/extra minus).
+    """
+    if start_year is None or end_year is None:
+        return None
+    if start_year > end_year:
+        return f"start {start_year} > end {end_year}"
+    if entity_type == "person" and end_year - start_year > MAX_PERSON_LIFESPAN:
+        span = end_year - start_year
+        if start_year < 0 < end_year:
+            return (f"sign split: lifespan {start_year}..{end_year} ({span} years) crosses year 0; "
+                    "one bound is probably missing or carrying a minus")
+        return f"lifespan {start_year}..{end_year} is {span} years (> {MAX_PERSON_LIFESPAN})"
+    return None

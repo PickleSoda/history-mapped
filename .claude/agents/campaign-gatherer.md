@@ -80,6 +80,7 @@ Examples:
 - `mentioned_entities` lists the exact labels of everything named in the fact.
 - `date_uncertain` is true when the fact says `c.`, "traditionally" or similar.
 - Entity dates are the real lifespan, reign or existence; use null when unsure.
+- **A person's dates are birth and death, at most 110 years apart.** Never use a reign, floruit or radiocarbon window. CE years never carry a minus: re-read every '-' on a year after 1 CE. (`handoff check` fails on `implausible-lifespan` and `sign-mismatch`.)
 - **Dates copy the fact's precision, never more.** Use signed strings (`"-490"`, `"1066"`): 'In 1873' → `"1873"`; 'In January 1873' → `"1873-01"`; 'On 14 July 1789' → `"1789-07-14"`. Never pad to `-01-01`. Write `"1873-01-01"` only when the fact says '1 January 1873'. Lifespans known only as years stay years. (`handoff add` de-pads automatically and `check` fails with `padded-date`.)
 
 ## Typing (type the thing itself)
