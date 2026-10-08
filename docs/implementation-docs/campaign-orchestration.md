@@ -343,3 +343,41 @@ Applied with ingestion paused (`INGEST_STOP`, 15:25–15:41 +04). This closes th
   - `a287d544` "Charles I" still mixes Charles V content with Charles I of England's 1625–1649 relations.
   - `bdc385a2` carries duplicate pairs from earlier runs: Diet of Worms and rules Holy Roman Empire.
   - "Ibrahim Pasha" `28b6250c` (Pargalı, Q311789) is wrongly `child_of` Muhammad Ali of Egypt.
+
+## 2026-10-07 BCE/CE sign fix
+
+Persons showed spans of several centuries (Coponius -100..100, Bagrat IV -1015..1072). Applied with ingestion paused (`INGEST_STOP`, 23:04–23:07 +04).
+
+- **Causes.** Not a range parser: `date_utils`, the year triggers, `ImportEntityJob::parseYear` and `depad`/`fix-dates`/the jan-1 repair all keep the sign (0 sign changes in `jan1-repair-applied-20261006.csv`). Wikidata's JSON uses historical numbering (-0063 = 63 BCE), so there is no year-0 shift.
+  - Wikidata century/millennium dates stored as years: `_wikidata_date` kept the year at any precision, and `resolve_wikidata` filled a missing bound from it. "1st century BCE" (-0100) and "7th century" (+0601) became birth years. This caused 177 of the 214 repaired values.
+  - Namesake QIDs: the fill glued another person's birth to the transcript's death (Lewis Powell 1576..1865, Joseph Smith 1682..1844).
+  - Wikidata's own unsigned BCE years (Bofu +0771, Shuttarna II +1375, Prince Zhuang +0305). The first statement was read regardless of rank.
+  - Gatherer sign slips: a stray minus on CE years (Bagrat IV -1015, Kingdom of Ireland -1171, Ismail I rules -1501) or a missing one (Gallia Belgica 27 for 27 BCE). Nothing checked them, and `_consistent_dates`/the import silently dropped an end that then preceded the start (Boukman).
+- **Code.**
+  - `tools/wikidata.py`: rank-aware claims with precision (`_claim_dates`) and `storable_wikidata_dates`. A person keeps no bound coarser than a decade, and no Wikidata lifespan that is impossible even at its precision.
+  - `resolve_wikidata._wikidata_fill`: a person's Wikidata dates must agree with the transcript's own bound (30 years) or the run's identity span. Otherwise none are used.
+  - `date_utils.lifespan_problem` (110 years) is used by `validate_handoff` (error), `handoff check` (`implausible-lifespan` E; `sign-mismatch` E for events/relations against their fact, W for entities and for relation years whose mirror fits a person endpoint's lifespan; `sign-split` W for a mirrorable BCE start in e07–e10) and `ImportEntityJob` (holds the person as `needs_review` + `implausible_lifespan`).
+  - `measure` reports person lifespans >110y by source, relation sign slips, CE-era BCE starts and year-0 dates; `--sign-csv` writes the list.
+  - `reresolve_entities` and `repair_committed_data` also take storable dates only.
+- **DB** (388 logged changes, every UPDATE guarded on its before-value):
+  - 214 range values on 191 entities: 177 century values cleared, 24 namesake/conflicting Wikidata bounds cleared, 3 Wikidata sign fixes, 6 gatherer sign fixes, 2 unsupported handoff ends replaced from Wikidata (Li Jinglong 1424, Opechancanough 1646), and 2 residues of QIDs cleared on 10-05.
+  - 13 values on 10 relations.
+  - 161 auto-generated territory periods now follow their range (start ?? end, end).
+  - Timelines were rebuilt for 209 entities (`api/storage/app/pipeline/sign-fix-20261007/timeline-ids-20261007.json`).
+- **Handoffs:** 41 edits in 27 files: the sign slips above, the Byzantine Empire -330, Novgorod, Goryeo, Qing, Sasanian Empire, Anastasius I, Genghis Khan, Napoleon, Mendaña, Bolívar, Boukman and Egypt -30. Originals are in `output/campaign-backups/sign-fix-20261007/`, and mtimes were restored, so no run is stale.
+- **Files** (`output/campaign/audit/`):
+  - backup: `output/campaign-backups/db-pre-sign-fix-20261007.sql.gz` (34.2 MB);
+  - `sign-fix-applied-20261007.csv` (before/after + evidence);
+  - `sign-fix-rollback-20261007.sql` (tested inside a rolled-back transaction: 362 statements restore the pre-apply snapshot exactly);
+  - `sign-measure-before/after-20261007.csv`.
+- **Measure:** person lifespans >110y 193 → 22 (all in review); relation sign slips 17 → 6 (false positives: wrong relations, not signs).
+- **Open** (`sign-fix-review-20261007.csv`, 88 rows):
+  - traditional or window lifespans (Zhang Daoling, Nathamuni, Botai 14, Scorpion I). Nine runs now fail `validate_handoff` until these are rewritten.
+  - 24 territory periods of persons left with no dates still carry the old span. Deleting them needs approval.
+  - chronology conflicts (Simuka, Kabir), merges (Suleiman Q8474, Council of Five Hundred, Khorezm, Geumseong), and Ottoman controlled_by Belgrade -1453.
+  - `sign-fix-coarse-followup-20261007.csv`: 1,240 century-precision Wikidata bounds on persons whose span is plausible. NULL is proposed but not applied.
+- **2026-10-08 follow-up** (user-approved, loop paused 16:09–16:10 +04, backup `output/campaign-backups/db-pre-sign-followup-20261008.sql.gz`):
+  - Deleted the 24 territory periods of now-dateless persons.
+  - Of the 1,240 follow-up century dates, 94 were cleared: in each, the run's handoff gives the person's death before that century birth. Their dropped handoff death years were restored, and 93 territory periods were moved to the death year. The other 1,146 were kept, because the run gives no conflicting year.
+  - Log: `sign-fix-applied-20261008.csv`. Rollback: `sign-fix-rollback-20261008.sql`, which re-inserts the full deleted rows and was tested in a rolled-back transaction. Timelines were rebuilt for 118 entities.
+  - Content dump: `output/history-mapped-content-20261008-1611.sql`.
