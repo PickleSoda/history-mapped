@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\Ai\AiChatController;
 use App\Http\Controllers\Admin\Ai\AiProposalController;
 use App\Http\Controllers\Admin\Ai\AiSessionController;
+use App\Http\Controllers\Admin\ContributionController;
 use App\Http\Controllers\Admin\EntityController;
 use App\Http\Controllers\Admin\EntityGeometryPeriodController;
 use App\Http\Controllers\Admin\Reference\CalendarSystemController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\Admin\Reference\ReligiousTraditionController;
 use App\Http\Controllers\Admin\Reference\SourceTypeDefinitionController;
 use App\Http\Controllers\Admin\Reference\WritingSystemController;
 use App\Http\Controllers\Admin\RelationshipController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Web\ChronicleController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -25,11 +27,12 @@ Route::inertia('/', 'welcome', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('home');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+// The admin panel is for staff: `admin.access` gates every page (regular
+// registered users only hold the `user` role and use the public SPA).
+// Write verbs are further permission-gated; `admin` bypasses via Gate::before.
+Route::middleware(['auth', 'verified', 'permission:admin.access'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
 
-    // Read-only pages are open to any authenticated, verified user.
-    // Write verbs are permission-gated; `admin` bypasses via Gate::before.
     Route::get('entities', [EntityController::class, 'index'])->name('entities.index');
     Route::get('entities/create', [EntityController::class, 'create'])->name('entities.create');
     Route::get('entities/{entity}', [EntityController::class, 'show'])->name('entities.show');
@@ -99,6 +102,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/chronicles', [ChronicleController::class, 'store'])->name('chronicles.store');
         Route::put('/chronicles/{slug}', [ChronicleController::class, 'update'])->name('chronicles.update');
         Route::delete('/chronicles/{slug}', [ChronicleController::class, 'destroy'])->name('chronicles.destroy');
+    });
+
+    // ── Contributions (text corrections submitted from the atlas) ────────
+    Route::middleware('permission:contributions.review')->group(function () {
+        Route::get('/contributions', [ContributionController::class, 'index'])->name('contributions.index');
+        Route::get('/contributions/{contribution}', [ContributionController::class, 'show'])->whereNumber('contribution')->name('contributions.show');
+        Route::post('/contributions/{contribution}/approve', [ContributionController::class, 'approve'])->whereNumber('contribution')->name('contributions.approve');
+        Route::post('/contributions/{contribution}/reject', [ContributionController::class, 'reject'])->whereNumber('contribution')->name('contributions.reject');
+    });
+
+    // ── Users (accounts, roles, direct permissions) ──────────────────────
+    Route::middleware('permission:users.manage')->group(function () {
+        Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::get('/users/{user}', [UserController::class, 'show'])->whereNumber('user')->name('users.show');
+        Route::get('/users/{user}/edit', [UserController::class, 'edit'])->whereNumber('user')->name('users.edit');
+        Route::put('/users/{user}', [UserController::class, 'update'])->whereNumber('user')->name('users.update');
     });
 });
 

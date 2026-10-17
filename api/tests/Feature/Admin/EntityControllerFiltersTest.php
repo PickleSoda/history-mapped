@@ -19,10 +19,10 @@ class EntityControllerFiltersTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
+        $this->user = $this->userWithPermissions(['admin.access']);
     }
 
-    public function test_index_is_accessible_to_authenticated_users(): void
+    public function test_index_is_accessible_to_staff(): void
     {
         $this->actingAs($this->user)
             ->get(route('entities.index'))

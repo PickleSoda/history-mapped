@@ -1,14 +1,23 @@
-import { Compass, Globe, Layers, MapPin, Search, SlidersHorizontal } from 'lucide-react';
+import { Compass, Globe, Layers, LogIn, LogOut, MapPin, Search, SlidersHorizontal } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { accountLinks } from '@/components/account/UserMenu';
 import { ThemeToggle } from '@/components/atlas/ThemeToggle';
-import { useCommandPalette, useView } from '@/hooks';
+import { useAuthActions, useCommandPalette, useLoginRedirect, useMe, useView } from '@/hooks';
 import { cn } from '@/lib/utils';
 
-/** Mobile header: brand mark · search pill (opens ⌘K palette) · tools menu. */
+const TOOL_ROW =
+  'mt-1 flex w-full items-center gap-2 rounded-md px-2 py-2 text-[13px] text-muted-foreground hover:bg-muted';
+
+/** Mobile header: brand mark · search pill (opens ⌘K palette) · tools menu
+ *  (view, layers, and the account links). */
 export function MobileTopBar() {
   const { setOpen } = useCommandPalette();
   const { view, setView } = useView();
   const [tools, setTools] = useState(false);
+  const { me } = useMe();
+  const toLogin = useLoginRedirect();
+  const { signOut } = useAuthActions();
 
   return (
     <header className="relative flex h-[52px] flex-none items-center gap-2 border-b bg-card px-3">
@@ -35,7 +44,7 @@ export function MobileTopBar() {
       </button>
 
       {tools && (
-        <div className="absolute right-3 top-[54px] z-30 w-44 rounded-xl border bg-popover p-1.5 shadow-lg">
+        <div className="absolute right-3 top-[54px] z-30 w-52 rounded-xl border bg-popover p-1.5 shadow-lg">
           <div className="flex gap-0.5 rounded-lg bg-muted p-0.5">
             {([['map', 'Map', MapPin], ['globe', 'Globe', Globe]] as const).map(
               ([v, label, Icon]) => (
@@ -56,12 +65,38 @@ export function MobileTopBar() {
               ),
             )}
           </div>
-          <button
-            type="button"
-            className="mt-1 flex w-full items-center gap-2 rounded-md px-2 py-2 text-[13px] text-muted-foreground hover:bg-muted"
-          >
+          <button type="button" className={TOOL_ROW}>
             <Layers size={15} /> Layers
           </button>
+
+          <div className="-mx-1.5 my-1 h-px bg-border" />
+          {me ? (
+            <>
+              <p className="truncate px-2 pt-1 text-[12px] font-medium">{me.name}</p>
+              {accountLinks(me).map((l) =>
+                'to' in l ? (
+                  <Link key={l.label} to={l.to} className={TOOL_ROW} onClick={() => setTools(false)}>
+                    <l.icon size={15} /> {l.label}
+                  </Link>
+                ) : (
+                  <a key={l.label} href={l.href} className={TOOL_ROW}>
+                    <l.icon size={15} /> {l.label}
+                  </a>
+                ),
+              )}
+              <button
+                type="button"
+                className={TOOL_ROW}
+                onClick={() => signOut.mutate(undefined, { onSuccess: () => setTools(false) })}
+              >
+                <LogOut size={15} /> Sign out
+              </button>
+            </>
+          ) : (
+            <button type="button" className={TOOL_ROW} onClick={toLogin}>
+              <LogIn size={15} /> Sign in
+            </button>
+          )}
         </div>
       )}
     </header>

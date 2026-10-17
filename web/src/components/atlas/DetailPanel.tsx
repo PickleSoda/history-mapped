@@ -2,6 +2,7 @@ import { Clock, FileText, Maximize2, MapPin, ScrollText, Sparkles, X } from 'luc
 import type { LucideIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import type { ReactNode } from 'react';
+import { SaveControls } from '@/components/account/SaveControls';
 import { preloadEntityPage } from '@/components/atlas/FullPage';
 import { TypeBadge } from '@/components/atlas/GroupBadge';
 import {
@@ -96,7 +97,10 @@ export function DetailPanelContent() {
         <>
           {/* Title block */}
           <div className="px-4 pb-4">
-            <TypeBadge group={entity.entity_group} type={entity.entity_type} />
+            <div className="flex items-center justify-between gap-2">
+              <TypeBadge group={entity.entity_group} type={entity.entity_type} />
+              <SaveControls type="entity" id={entity.id} compact />
+            </div>
             <h2 className="mt-3 font-heading text-xl font-semibold leading-tight">
               {entity.name}
             </h2>

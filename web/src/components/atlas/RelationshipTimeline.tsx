@@ -1,11 +1,14 @@
 import { ScrollText } from 'lucide-react';
 import { useMemo } from 'react';
+import { StarButton } from '@/components/account/SaveControls';
+import { SuggestEditButton } from '@/components/account/SuggestEdit';
 import { GroupDot, TypeBadge } from '@/components/atlas/GroupBadge';
-import { useChronicleNav, useSelection } from '@/hooks';
+import { useChronicleNav, useSelection, useStarState } from '@/hooks';
 import { yearText } from '@/lib/entity-format';
 import { GROUPS } from '@/lib/groups';
 import type { EntityChronicleRef } from '@/lib/schemas/chronicle';
 import type { Relationship } from '@/lib/schemas/entity';
+import { cn } from '@/lib/utils';
 
 /** relationship id → the chronicle it appears in (first match wins). */
 export function chronicleByRelationship(
@@ -36,6 +39,34 @@ function otherSide(rel: Relationship, selfId: string) {
   return rel.source_entity_id === selfId ? rel.target_entity : rel.source_entity;
 }
 
+/** A row's star + suggest-edit controls. On hover devices they stay hidden
+ *  until the row is hovered or focused — unless the row is starred. */
+function RowActions({ rel }: { rel: Relationship }) {
+  const { starred } = useStarState('relationship', rel.id);
+  const label = `${rel.source_entity?.name ?? '—'} → ${rel.target_entity?.name ?? '—'}`;
+  return (
+    <span
+      className={cn(
+        'ml-auto flex items-center',
+        !starred &&
+          '[@media(hover:hover)]:opacity-0 group-focus-within:opacity-100 group-hover:opacity-100',
+      )}
+    >
+      <SuggestEditButton
+        compact
+        targetType="relationship"
+        targetId={rel.id}
+        field="description"
+        fieldLabel="Description"
+        targetLabel={label}
+        currentText={rel.description ?? ''}
+        label={rel.description ? undefined : 'Suggest a description'}
+      />
+      <StarButton dense type="relationship" id={rel.id} />
+    </span>
+  );
+}
+
 /** Vertical timeline of the entity's relationships, ordered by start year. Rows
  *  carry a chronicle badge when the relationship is part of a chronicle. */
 export function RelationshipTimeline({
@@ -63,14 +94,14 @@ export function RelationshipTimeline({
           const year = yearText(rel.temporal_start);
           const chronicle = relChronicle.get(rel.id);
           return (
-            <div key={rel.id} className="relative">
+            <div key={rel.id} className="group relative">
               <span
                 className="absolute -left-[15px] top-1.5 size-2.5 rounded-full border-2 border-card"
                 style={{
                   background: other ? GROUPS[other.entity_group].color : 'var(--border)',
                 }}
               />
-              <div className="flex items-center gap-2">
+              <div className="flex min-h-6 items-center gap-2">
                 {year && (
                   <span className="font-mono text-[10px] text-muted-foreground">{year}</span>
                 )}
@@ -79,6 +110,7 @@ export function RelationshipTimeline({
                     {rel.relationship_type.replace(/_/g, ' ')}
                   </span>
                 )}
+                <RowActions rel={rel} />
               </div>
               <button
                 type="button"

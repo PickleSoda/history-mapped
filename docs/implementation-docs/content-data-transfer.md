@@ -35,6 +35,7 @@ What's deliberately **excluded** from the dump, and why:
 | Excluded | Why |
 |----------|-----|
 | `users`, `roles`, `permissions`, `model_has_*`, `role_has_permissions` | Keep prod's own admin accounts — don't clobber them |
+| `stars`, `saved_folders`, `saved_folder_star`, `contributions` | Per-user data created on prod (saved items, suggested edits) — never overwrite it, and never ship local test rows |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs`, `sessions`, `password_reset_tokens` | Laravel runtime/volatile state — rebuilt on demand |
 | `migrations` | Prod's migration ledger is managed by `migrate`, not us |
 | `spatial_ref_sys` + `tiger.*`, `tiger_data.*`, `topology.*` schemas | PostGIS extension-owned; already present on prod, would conflict |
@@ -58,7 +59,8 @@ STAMP=$(date +%Y%m%d)
 OUT=output/history-mapped-content-$STAMP.sql
 EXCLUDES="cache cache_locks failed_jobs job_batches jobs migrations \
 password_reset_tokens sessions spatial_ref_sys users roles permissions \
-model_has_permissions model_has_roles role_has_permissions"
+model_has_permissions model_has_roles role_has_permissions \
+stars saved_folders saved_folder_star contributions"
 ARGS=""
 for t in $EXCLUDES; do ARGS="$ARGS --exclude-table-data=public.$t"; done
 
@@ -150,3 +152,11 @@ cat output/truncate-content.sql output/prod-content-backup-<stamp>.sql \
   hand-entered content worth keeping (true while `migrate` is the only seeding
   path). The auto-backup covers you regardless.
 - Auth/admin users are **not** transferred — create prod admins separately.
+- **Approved contributions live in prod content.** A reviewer approving a
+  suggested edit on prod writes to prod's `entities` / `relationships` /
+  `chronicles` / `chronicle_entries` / `entity_aliases`; the next full replace
+  from local overwrites those edits. Before a replace, pull prod's approved
+  `contributions` (`base_text` → `proposed_text` per target/field) and apply
+  them locally, or review on prod only between replaces. User saved items
+  reference content by UUID without FKs, so they survive a replace and show as
+  "no longer available" only if a target's id disappears.

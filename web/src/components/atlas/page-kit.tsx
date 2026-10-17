@@ -94,6 +94,7 @@ export function PageFrame({
   onCollapse,
   onClose,
   closeLabel = 'Close',
+  actions,
   children,
 }: {
   variant: PageVariant;
@@ -107,6 +108,8 @@ export function PageFrame({
   onCollapse: () => void;
   onClose: () => void;
   closeLabel?: string;
+  /** Extra header controls (star / save) shown before Collapse. */
+  actions?: ReactNode;
   children: ReactNode;
 }) {
   const [scrollRoot, setScrollRoot] = useState<HTMLDivElement | null>(null);
@@ -160,6 +163,7 @@ export function PageFrame({
                 </>
               )}
             </div>
+            {actions}
             <HeaderButton icon={ChevronDown} label="Collapse" onClick={onCollapse} compact={sheet} />
             <HeaderButton icon={X} label={closeLabel} onClick={onClose} compact />
           </div>

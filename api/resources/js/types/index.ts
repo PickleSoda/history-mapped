@@ -4,3 +4,5 @@ export type * from './navigation';
 export type * from './reference';
 export type * from './ui';
 export type * from './chronicle';
+export type * from './contribution';
+export type * from './user-admin';

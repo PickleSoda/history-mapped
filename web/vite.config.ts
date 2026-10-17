@@ -128,10 +128,11 @@ export default defineConfig({
           },
           // API reads. Anchored regex so cross-origin (:8000 in dev) matches;
           // /sanctum/csrf-cookie is outside /api/v1 and stays uncached. The
-          // authenticated /api/v1/user endpoint is also excluded so
-          // personalized responses are never disk-cached.
+          // authenticated /api/v1/user and /api/v1/me* endpoints (profile,
+          // stars, folders, contributions) are also excluded so personalized
+          // responses are never disk-cached.
           {
-            urlPattern: /^https?:\/\/[^/]+\/api\/v1\/(?!user\b)/,
+            urlPattern: /^https?:\/\/[^/]+\/api\/v1\/(?!user\b|me\b)/,
             method: 'GET',
             handler: 'StaleWhileRevalidate',
             options: {

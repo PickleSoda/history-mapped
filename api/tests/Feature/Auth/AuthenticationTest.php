@@ -21,7 +21,7 @@ class AuthenticationTest extends TestCase
 
     public function test_users_can_authenticate_using_the_login_screen()
     {
-        $user = User::factory()->create();
+        $user = $this->userWithPermissions(['admin.access']);
 
         $response = $this->post(route('login.store'), [
             'email' => $user->email,
@@ -30,6 +30,31 @@ class AuthenticationTest extends TestCase
 
         $this->assertAuthenticated();
         $response->assertRedirect(route('dashboard', absolute: false));
+    }
+
+    public function test_non_staff_users_are_sent_to_the_atlas_after_login()
+    {
+        $user = $this->userWithRole('user');
+
+        $response = $this->post(route('login.store'), [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertRedirect(config('app.frontend_url').'/');
+    }
+
+    public function test_spa_login_returns_json()
+    {
+        $user = $this->userWithRole('user');
+
+        $this->postJson(route('login.store'), [
+            'email' => $user->email,
+            'password' => 'password',
+        ])->assertOk()->assertExactJson(['two_factor' => false]);
+
+        $this->assertAuthenticated();
     }
 
     public function test_users_with_two_factor_enabled_are_redirected_to_two_factor_challenge()

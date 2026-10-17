@@ -26,23 +26,33 @@ class PermissionSeeder extends Seeder
         'chronicles.write',      // create/update/delete chronicles + entries
         'sources.write',         // create/update sources
         'reference.manage',      // reference-table admin + cache clearing
+        'admin.access',          // enter the Inertia admin panel (read pages)
+        'contributions.create',  // submit text corrections from the public atlas
+        'contributions.review',  // approve / reject submitted corrections
+        'users.manage',          // admin user management (no role by default — admin only)
     ];
 
     /**
      * Role → permission matrix. Tune as the editorial workflow matures.
+     * `user` is the default role of every registered account.
      */
     public const ROLE_PERMISSIONS = [
         'moderator' => [
             'entities.write', 'entities.verify', 'relationships.write',
             'chronicles.write', 'sources.write',
+            'admin.access', 'contributions.create', 'contributions.review',
         ],
         'history_moderator' => [
             'entities.write', 'relationships.write', 'chronicles.write', 'sources.write',
+            'admin.access', 'contributions.create', 'contributions.review',
         ],
         'geo_moderator' => [
             'geometry.write',
+            'admin.access', 'contributions.create',
         ],
-        'user' => [],
+        'user' => [
+            'contributions.create',
+        ],
     ];
 
     public function run(): void

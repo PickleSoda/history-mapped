@@ -1,4 +1,5 @@
 import { Compass, Globe, Layers, MapPin, Search, SlidersHorizontal } from 'lucide-react';
+import { UserMenu } from '@/components/account/UserMenu';
 import { ThemeToggle } from '@/components/atlas/ThemeToggle';
 import { useCommandPalette, useView } from '@/hooks';
 import { cn } from '@/lib/utils';
@@ -77,7 +78,7 @@ export function TopBar() {
         >
           <SlidersHorizontal size={16} />
         </button>
-        <span className="size-8 rounded-full bg-muted" />
+        <UserMenu />
       </div>
     </header>
   );

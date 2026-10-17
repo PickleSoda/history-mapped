@@ -29,6 +29,27 @@ export { useEntityGraph, useChronicleGraph, useFetchNeighbourhood } from './useG
 export { usePrefetchEntity } from './usePrefetchEntity';
 export { useHistoricalPeriods } from './useHistoricalPeriods';
 
+// Account (personal, signed-in)
+export { useMe, useLoginRedirect, safeNext } from './useMe';
+export { useAuthActions } from './useAuthActions';
+export {
+  starKey,
+  useStarKeys,
+  useStarState,
+  useToggleStar,
+  useFolderMembership,
+  useFolders,
+  useCreateFolder,
+  useUpdateFolder,
+  useDeleteFolder,
+  useStars,
+} from './useSaved';
+export {
+  useMyContributions,
+  useSubmitContribution,
+  useWithdrawContribution,
+} from './useContributions';
+
 // Ephemeral / imperative
 export {
   useMapInstance,

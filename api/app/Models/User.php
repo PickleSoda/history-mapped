@@ -8,6 +8,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -32,5 +33,23 @@ class User extends Authenticatable
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
         ];
+    }
+
+    /** @return HasMany<Star, $this> */
+    public function stars(): HasMany
+    {
+        return $this->hasMany(Star::class);
+    }
+
+    /** @return HasMany<SavedFolder, $this> */
+    public function savedFolders(): HasMany
+    {
+        return $this->hasMany(SavedFolder::class);
+    }
+
+    /** @return HasMany<Contribution, $this> */
+    public function contributions(): HasMany
+    {
+        return $this->hasMany(Contribution::class);
     }
 }

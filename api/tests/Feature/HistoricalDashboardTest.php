@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\Entity;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -39,10 +38,9 @@ class HistoricalDashboardTest extends TestCase
         );
     }
 
-    public function test_authenticated_user_can_view_dashboard(): void
+    public function test_staff_user_can_view_dashboard(): void
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
+        $this->actingAs($this->userWithPermissions(['admin.access']));
 
         $this->get(route('dashboard'))
             ->assertOk()

@@ -12,7 +12,11 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'login', 'logout', 'sanctum/csrf-cookie'],
+    // Fortify's JSON auth endpoints are called cross-origin by the SPA too.
+    'paths' => [
+        'api/*', 'sanctum/csrf-cookie',
+        'login', 'logout', 'register', 'two-factor-challenge', 'forgot-password',
+    ],
 
     'allowed_methods' => ['*'],
 

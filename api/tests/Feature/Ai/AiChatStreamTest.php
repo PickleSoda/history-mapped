@@ -166,7 +166,7 @@ class AiChatStreamTest extends TestCase
         EntityEditorAgent::fake(['Hello from the fake agent.']);
 
         // Use a user with entities.write permission so the gate passes.
-        $user = $this->userWithPermissions(['entities.write']);
+        $user = $this->userWithPermissions(['admin.access', 'entities.write']);
         $entity = $this->makeEntity();
 
         $response = $this->actingAs($user)
@@ -187,7 +187,7 @@ class AiChatStreamTest extends TestCase
     {
         $this->fakeWikidata();
 
-        $user = $this->userWithRole('user');
+        $user = $this->userWithPermissions(['admin.access']);
         $entity = $this->makeEntity();
 
         $this->actingAs($user)
@@ -209,7 +209,7 @@ class AiChatStreamTest extends TestCase
 
         ChronicleEditorAgent::fake(['Hello from the chronicle agent.']);
 
-        $user = $this->userWithPermissions(['entities.write']);
+        $user = $this->userWithPermissions(['admin.access', 'entities.write']);
         $entity = $this->makeEntity();
         $chronicle = $this->makeChronicleWithEntity($entity);
 
@@ -235,7 +235,7 @@ class AiChatStreamTest extends TestCase
 
         EntityEditorAgent::fake(['Hello from the fake agent.']);
 
-        $user = $this->userWithPermissions(['entities.write']);
+        $user = $this->userWithPermissions(['admin.access', 'entities.write']);
         $entity = $this->makeEntity();
 
         $response = $this->actingAs($user)
@@ -320,7 +320,7 @@ class AiChatStreamTest extends TestCase
 
         EntityCreatorAgent::fake(['Hello from the entity creator agent.']);
 
-        $user = $this->userWithPermissions(['entities.write']);
+        $user = $this->userWithPermissions(['admin.access', 'entities.write']);
 
         $response = $this->actingAs($user)
             ->postJson('/ai/chat', [
@@ -350,7 +350,7 @@ class AiChatStreamTest extends TestCase
 
         ChronicleCreatorAgent::fake(['Hello from the chronicle creator agent.']);
 
-        $user = $this->userWithPermissions(['entities.write']);
+        $user = $this->userWithPermissions(['admin.access', 'entities.write']);
 
         $response = $this->actingAs($user)
             ->postJson('/ai/chat', [
@@ -377,7 +377,7 @@ class AiChatStreamTest extends TestCase
     {
         $this->fakeWikidata();
 
-        $user = $this->userWithPermissions(['entities.write']);
+        $user = $this->userWithPermissions(['admin.access', 'entities.write']);
 
         $response = $this->actingAs($user)
             ->postJson('/ai/chat', [
@@ -403,7 +403,7 @@ class AiChatStreamTest extends TestCase
         $this->fakeWikidata();
         EntityEditorAgent::fake(['Hello from the fake agent.']);
 
-        $user = $this->userWithPermissions(['entities.write']);
+        $user = $this->userWithPermissions(['admin.access', 'entities.write']);
         $entity = $this->makeEntity();
 
         $response = $this->actingAs($user)->postJson('/ai/chat', [
@@ -430,7 +430,7 @@ class AiChatStreamTest extends TestCase
         $this->fakeWikidata();
         EntityEditorAgent::fake(['Continuing.']);
 
-        $user = $this->userWithPermissions(['entities.write']);
+        $user = $this->userWithPermissions(['admin.access', 'entities.write']);
         $entity = $this->makeEntity();
 
         $existing = Conversation::create([
@@ -458,7 +458,7 @@ class AiChatStreamTest extends TestCase
         $this->fakeWikidata();
         EntityEditorAgent::fake(['x']);
 
-        $user = $this->userWithPermissions(['entities.write']);
+        $user = $this->userWithPermissions(['admin.access', 'entities.write']);
 
         $this->actingAs($user)->postJson('/ai/chat', [
             'context_type' => 'entity',
@@ -474,8 +474,8 @@ class AiChatStreamTest extends TestCase
         $this->fakeWikidata();
         EntityEditorAgent::fake(['nope']);
 
-        $owner = $this->userWithPermissions(['entities.write']);
-        $intruder = $this->userWithPermissions(['entities.write']);
+        $owner = $this->userWithPermissions(['admin.access', 'entities.write']);
+        $intruder = $this->userWithPermissions(['admin.access', 'entities.write']);
         $entity = $this->makeEntity();
 
         $others = Conversation::create([
@@ -500,7 +500,7 @@ class AiChatStreamTest extends TestCase
     {
         GlobalAgent::fake(['Hello from GlobalAgent.']);
 
-        $user = $this->userWithPermissions(['entities.write']);
+        $user = $this->userWithPermissions(['admin.access', 'entities.write']);
 
         $response = $this->actingAs($user)->postJson('/ai/chat', [
             'kind' => 'global',
@@ -523,7 +523,7 @@ class AiChatStreamTest extends TestCase
     {
         GlobalAgent::fake(['Continuing global session.']);
 
-        $user = $this->userWithPermissions(['entities.write']);
+        $user = $this->userWithPermissions(['admin.access', 'entities.write']);
 
         $existing = Conversation::create([
             'id' => (string) Str::uuid7(),
@@ -558,7 +558,7 @@ class AiChatStreamTest extends TestCase
         $this->fakeWikidata();
         GlobalAgent::fake(['Hello from GlobalAgent.']);
 
-        $user = $this->userWithPermissions(['entities.write']);
+        $user = $this->userWithPermissions(['admin.access', 'entities.write']);
 
         $_SERVER['LARAVEL_OCTANE'] = 1;
 
@@ -585,7 +585,7 @@ class AiChatStreamTest extends TestCase
     {
         EntityEditorAgent::fake(['Edit mode fine.']);
 
-        $user = $this->userWithPermissions(['entities.write']);
+        $user = $this->userWithPermissions(['admin.access', 'entities.write']);
         $entity = $this->makeEntity();
 
         $this->actingAs($user)->postJson('/ai/chat', [

@@ -40,6 +40,12 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'auth' => [
                 'user' => $request->user(),
+                // Capability flags for nav visibility (routes enforce them).
+                'can' => [
+                    'access_admin' => (bool) $request->user()?->can('admin.access'),
+                    'review_contributions' => (bool) $request->user()?->can('contributions.review'),
+                    'manage_users' => (bool) $request->user()?->can('users.manage'),
+                ],
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

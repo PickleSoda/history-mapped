@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     BookOpen,
     BotMessageSquare,
@@ -14,6 +14,8 @@ import {
     Languages,
     BookMarked,
     MapPin,
+    MessageSquareDiff,
+    Users,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
@@ -63,6 +65,20 @@ const mainNavItems: NavItem[] = [
         icon: BookOpen,
     },
 ];
+
+/** Review queue for user-submitted text corrections (contributions.review). */
+const contributionsNavItem: NavItem = {
+    title: 'Contributions',
+    href: '/contributions',
+    icon: MessageSquareDiff,
+};
+
+/** Account and role management (users.manage). */
+const usersNavItem: NavItem = {
+    title: 'Users',
+    href: '/users',
+    icon: Users,
+};
 
 const referenceNavItems: NavItem[] = [
     {
@@ -131,6 +147,13 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const { auth } = usePage().props;
+    const navItems = [
+        ...mainNavItems,
+        ...(auth.can?.review_contributions ? [contributionsNavItem] : []),
+        ...(auth.can?.manage_users ? [usersNavItem] : []),
+    ];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -146,7 +169,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={navItems} />
                 <NavMain items={referenceNavItems} label="Reference Data" />
             </SidebarContent>
 

@@ -112,7 +112,7 @@ class AiProposalEndpointTest extends TestCase
     public function test_apply_runs_action_and_wires_acting_user_provenance(): void
     {
         $this->fakeWikidata();
-        $user = $this->userWithPermissions(['entities.write']);
+        $user = $this->userWithPermissions(['admin.access', 'entities.write']);
 
         [$change, $part] = $this->stageCreateEntityProposal($user);
 
@@ -135,7 +135,7 @@ class AiProposalEndpointTest extends TestCase
     public function test_discard_marks_part_discarded_and_creates_no_entity(): void
     {
         $this->fakeWikidata();
-        $user = $this->userWithPermissions(['entities.write']);
+        $user = $this->userWithPermissions(['admin.access', 'entities.write']);
 
         [$change, $part] = $this->stageCreateEntityProposal($user);
 
@@ -152,8 +152,8 @@ class AiProposalEndpointTest extends TestCase
     public function test_apply_requires_entities_write_permission(): void
     {
         $this->fakeWikidata();
-        // 'user' role has no extra permissions
-        $user = $this->userWithRole('user');
+        // Panel access only — no write permissions
+        $user = $this->userWithPermissions(['admin.access']);
 
         [$change, $part] = $this->stageCreateEntityProposal($user);
 
@@ -165,8 +165,8 @@ class AiProposalEndpointTest extends TestCase
     public function test_apply_rejects_another_users_proposal(): void
     {
         $this->fakeWikidata();
-        $owner = $this->userWithPermissions(['entities.write']);
-        $other = $this->userWithPermissions(['entities.write']);
+        $owner = $this->userWithPermissions(['admin.access', 'entities.write']);
+        $other = $this->userWithPermissions(['admin.access', 'entities.write']);
 
         [$change, $part] = $this->stageCreateEntityProposal($owner);
 
@@ -178,8 +178,8 @@ class AiProposalEndpointTest extends TestCase
 
     public function test_discard_rejects_another_users_proposal(): void
     {
-        $owner = $this->userWithRole('user');
-        $other = $this->userWithRole('user');
+        $owner = $this->userWithPermissions(['admin.access']);
+        $other = $this->userWithPermissions(['admin.access']);
 
         [$change, $part] = $this->stageCreateEntityProposal($owner);
 
@@ -190,7 +190,7 @@ class AiProposalEndpointTest extends TestCase
 
     public function test_discard_allowed_for_owner_without_entities_write(): void
     {
-        $user = $this->userWithRole('user');
+        $user = $this->userWithPermissions(['admin.access']);
 
         [$change, $part] = $this->stageCreateEntityProposal($user);
 
@@ -205,7 +205,7 @@ class AiProposalEndpointTest extends TestCase
     public function test_apply_create_entity_returns_redirect_url(): void
     {
         $this->fakeWikidata();
-        $user = $this->userWithPermissions(['entities.write']);
+        $user = $this->userWithPermissions(['admin.access', 'entities.write']);
 
         [$change, $part] = $this->stageCreateEntityProposal($user);
 
@@ -224,7 +224,7 @@ class AiProposalEndpointTest extends TestCase
 
     public function test_apply_create_chronicle_returns_redirect_url(): void
     {
-        $user = $this->userWithPermissions(['entities.write']);
+        $user = $this->userWithPermissions(['admin.access', 'entities.write']);
 
         [$change, $part] = $this->stageCreateChronicleProposal($user);
 
@@ -245,7 +245,7 @@ class AiProposalEndpointTest extends TestCase
     public function test_apply_returns_created_ref_for_global_session_create_entity(): void
     {
         $this->fakeWikidata();
-        $user = $this->userWithPermissions(['entities.write']);
+        $user = $this->userWithPermissions(['admin.access', 'entities.write']);
 
         $change = ProposedChange::create([
             'user_id' => $user->id,
@@ -280,7 +280,7 @@ class AiProposalEndpointTest extends TestCase
     public function test_apply_returns_redirect_url_not_created_ref_for_scoped_session(): void
     {
         $this->fakeWikidata();
-        $user = $this->userWithPermissions(['entities.write']);
+        $user = $this->userWithPermissions(['admin.access', 'entities.write']);
 
         $change = ProposedChange::create([
             'user_id' => $user->id,
@@ -311,7 +311,7 @@ class AiProposalEndpointTest extends TestCase
     public function test_apply_non_creator_tool_returns_null_redirect_url(): void
     {
         $this->fakeWikidata();
-        $user = $this->userWithPermissions(['entities.write']);
+        $user = $this->userWithPermissions(['admin.access', 'entities.write']);
 
         // First create an entity to reference in the location update.
         [$createChange, $createPart] = $this->stageCreateEntityProposal($user);

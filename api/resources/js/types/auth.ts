@@ -10,8 +10,16 @@ export type User = {
     [key: string]: unknown;
 };
 
+export type AuthCan = {
+    access_admin: boolean;
+    review_contributions: boolean;
+    manage_users?: boolean;
+};
+
 export type Auth = {
     user: User;
+    /** Capabilities shared by HandleInertiaRequests (optional on older payloads). */
+    can?: AuthCan;
 };
 
 export type TwoFactorSetupData = {

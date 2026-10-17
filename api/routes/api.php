@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Api\V1\Controllers\ChronicleGraphController;
+use App\Http\Api\V1\Controllers\ContributionController;
 use App\Http\Api\V1\Controllers\EntityChronicleController;
 use App\Http\Api\V1\Controllers\EntityController;
 use App\Http\Api\V1\Controllers\EntityGeoRefController;
@@ -8,8 +9,11 @@ use App\Http\Api\V1\Controllers\EntityGraphController;
 use App\Http\Api\V1\Controllers\EntityRelationshipController;
 use App\Http\Api\V1\Controllers\EntityTimelineController;
 use App\Http\Api\V1\Controllers\MapResolutionController;
+use App\Http\Api\V1\Controllers\MeController;
 use App\Http\Api\V1\Controllers\ReferenceController;
+use App\Http\Api\V1\Controllers\SavedFolderController;
 use App\Http\Api\V1\Controllers\SourceController;
+use App\Http\Api\V1\Controllers\StarController;
 use App\Http\Controllers\Api\V1\ChronicleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -97,6 +101,41 @@ Route::prefix('v1')->group(function () {
 
         Route::get('/user', fn (Request $request) => $request->user())
             ->name('api.v1.user');
+
+        // ── The signed-in account (public SPA) ───────────────
+        // Personal data: authentication is the only gate. The PWA service
+        // worker never caches /api/v1/me*.
+        Route::get('/me', [MeController::class, 'show'])->name('api.v1.me');
+
+        Route::prefix('me')->name('api.v1.me.')->group(function () {
+            $type = 'entity|chronicle|relationship';
+
+            Route::get('/stars/keys', [StarController::class, 'keys'])->name('stars.keys');
+            Route::get('/stars', [StarController::class, 'index'])->name('stars.index');
+            Route::post('/stars', [StarController::class, 'store'])->name('stars.store');
+            Route::delete('/stars/{type}/{id}', [StarController::class, 'destroy'])
+                ->where('type', $type)->whereUuid('id')->name('stars.destroy');
+
+            Route::get('/folders', [SavedFolderController::class, 'index'])->name('folders.index');
+            Route::post('/folders', [SavedFolderController::class, 'store'])->name('folders.store');
+            Route::patch('/folders/{folder}', [SavedFolderController::class, 'update'])
+                ->whereNumber('folder')->name('folders.update');
+            Route::delete('/folders/{folder}', [SavedFolderController::class, 'destroy'])
+                ->whereNumber('folder')->name('folders.destroy');
+            Route::put('/folders/{folder}/items/{type}/{id}', [SavedFolderController::class, 'addItem'])
+                ->whereNumber('folder')->where('type', $type)->whereUuid('id')->name('folders.items.store');
+            Route::delete('/folders/{folder}/items/{type}/{id}', [SavedFolderController::class, 'removeItem'])
+                ->whereNumber('folder')->where('type', $type)->whereUuid('id')->name('folders.items.destroy');
+
+            Route::get('/contributions', [ContributionController::class, 'mine'])->name('contributions.index');
+            Route::post('/contributions/{contribution}/withdraw', [ContributionController::class, 'withdraw'])
+                ->whereNumber('contribution')->name('contributions.withdraw');
+        });
+
+        // Text corrections from the atlas, reviewed in the admin panel.
+        Route::post('/contributions', [ContributionController::class, 'store'])
+            ->middleware(['permission:contributions.create', 'throttle:10,1'])
+            ->name('api.v1.contributions.store');
 
         // Entities CRUD
         Route::middleware('permission:entities.write')->group(function () {

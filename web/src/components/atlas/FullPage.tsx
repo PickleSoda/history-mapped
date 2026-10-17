@@ -142,7 +142,9 @@ function PageLayer({
       aria-hidden={!active}
       inert={!active}
       onKeyDown={(e) => {
-        if (e.key === 'Escape' && active) collapse();
+        // React bubbles events out of portals: Esc in a dialog / popover
+        // opened from the page must close that popup, not the page.
+        if (e.key === 'Escape' && active && e.currentTarget.contains(e.target as Node)) collapse();
       }}
       onTransitionEnd={(e) => {
         if (e.target === e.currentTarget && !isOpen) setShown(null);

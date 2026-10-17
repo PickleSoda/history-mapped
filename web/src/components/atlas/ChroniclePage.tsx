@@ -7,6 +7,8 @@ import {
   Route,
 } from 'lucide-react';
 import { memo, useCallback, useMemo, useRef, useState } from 'react';
+import { SaveControls } from '@/components/account/SaveControls';
+import { SuggestEditButton } from '@/components/account/SuggestEdit';
 import { WhatChanged } from '@/components/atlas/ChroniclePlayer';
 import {
   ImpactMeter,
@@ -72,7 +74,19 @@ function Hero({ chronicle, graph }: { chronicle: Chronicle; graph: ChronicleGrap
           </span>
         )}
       </div>
-      <PageTitle>{chronicle.title}</PageTitle>
+      <div className="flex items-start gap-2">
+        <PageTitle className="min-w-0 flex-1">{chronicle.title}</PageTitle>
+        <SuggestEditButton
+          compact
+          className="mt-6 md:mt-8"
+          targetType="chronicle"
+          targetId={chronicle.chronicle_id}
+          field="title"
+          fieldLabel="Title"
+          targetLabel={chronicle.title}
+          currentText={chronicle.title}
+        />
+      </div>
       <p className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[12.5px] text-foreground/80">
         {span && <span>{span}</span>}
         {years && <span className="text-muted-foreground">{years}</span>}
@@ -344,12 +358,14 @@ function StepGraph({ graph, row, height }: { graph: ChronicleGraph; row: StepRow
 const StepItem = memo(function StepItem({
   row,
   total,
+  chronicleTitle,
   graph,
   focused,
   onFocus,
 }: {
   row: StepRow;
   total: number;
+  chronicleTitle: string;
   graph: ChronicleGraph | undefined;
   focused: boolean;
   onFocus: (index: number) => void;
@@ -377,10 +393,37 @@ const StepItem = memo(function StepItem({
               In focus
             </span>
           )}
+          {entry.narrative_text && (
+            <SuggestEditButton
+              className="ml-auto self-center"
+              targetType="chronicle_entry"
+              targetId={entry.entry_id}
+              field="narrative_text"
+              fieldLabel="Narrative"
+              targetLabel={`Step ${index + 1} of ${chronicleTitle}`}
+              currentText={entry.narrative_text}
+            />
+          )}
         </div>
-        <p className="mt-3 whitespace-pre-line text-[14px] leading-relaxed text-foreground/90">
-          {entry.narrative_text ?? 'No narrative for this step.'}
-        </p>
+        {entry.narrative_text ? (
+          <p className="mt-3 whitespace-pre-line text-[14px] leading-relaxed text-foreground/90">
+            {entry.narrative_text}
+          </p>
+        ) : (
+          <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-muted-foreground">
+            No narrative for this step.
+            <SuggestEditButton
+              className="-ml-1"
+              targetType="chronicle_entry"
+              targetId={entry.entry_id}
+              field="narrative_text"
+              fieldLabel="Narrative"
+              targetLabel={`Step ${index + 1} of ${chronicleTitle}`}
+              currentText=""
+              label="Suggest one"
+            />
+          </p>
+        )}
         {entry.primary_relationship && <WhatChanged rel={entry.primary_relationship} />}
         {graph && (
           <button
@@ -496,6 +539,11 @@ export function ChroniclePage({ id: slug, variant = 'page' }: { id: string; vari
       onCollapse={() => collapseChronicle(focus ?? cursor)}
       onClose={closeChronicle}
       closeLabel="Exit tour"
+      actions={
+        chronicle && (
+          <SaveControls type="chronicle" id={chronicle.chronicle_id} compact={variant === 'sheet'} />
+        )
+      }
     >
       {isLoading && <PageSkeleton />}
       {isError && <p className="pt-8 text-sm text-destructive">Could not load this chronicle.</p>}
@@ -533,6 +581,7 @@ export function ChroniclePage({ id: slug, variant = 'page' }: { id: string; vari
                   key={row.entry.entry_id}
                   row={row}
                   total={rows.length}
+                  chronicleTitle={chronicle.title}
                   graph={graph}
                   focused={focus === row.index}
                   onFocus={focusInGraph}

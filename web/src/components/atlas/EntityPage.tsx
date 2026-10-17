@@ -1,5 +1,7 @@
 import { Clock, ExternalLink, Hash, ImageIcon, MapPin, ScrollText } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { SaveControls } from '@/components/account/SaveControls';
+import { SuggestEditButton } from '@/components/account/SuggestEdit';
 import { TypeBadge } from '@/components/atlas/GroupBadge';
 import {
   ImpactMeter,
@@ -46,6 +48,7 @@ import type {
   EntityTimelineEntry,
   VerificationStatus,
 } from '@/lib/schemas/entity';
+import { listText } from '@/lib/text-diff';
 import { cn } from '@/lib/utils';
 
 export type { PageVariant } from '@/components/atlas/page-kit';
@@ -120,21 +123,45 @@ function Hero({ entity }: { entity: EntityDetail }) {
   const { collapse } = useFullPage();
   const { focusGeometries } = useMapFocus();
   const alt = entity.alternative_names.filter((n) => n !== entity.name);
+  // The suggestion edits the raw alias rows (which may include the name itself).
+  const aliasTarget = {
+    targetType: 'entity',
+    targetId: entity.id,
+    field: 'aliases',
+    fieldLabel: 'Other names',
+    targetLabel: entity.name,
+    currentText: listText(entity.alternative_names),
+  } as const;
   const startYear = numericYear(entity.temporal_start) ?? numericYear(entity.temporal_end);
   const span = spanText(entity.temporal_start, entity.temporal_end);
 
   return (
     <header className="pt-8">
       <TypeBadge group={entity.entity_group} type={entity.entity_type} />
-      <PageTitle>{entity.name}</PageTitle>
-      {alt.length > 0 && (
+      <div className="flex items-start gap-2">
+        <PageTitle className="min-w-0 flex-1">{entity.name}</PageTitle>
+        <SuggestEditButton
+          compact
+          className="mt-6 md:mt-8"
+          targetType="entity"
+          targetId={entity.id}
+          field="name"
+          fieldLabel="Name"
+          targetLabel={entity.name}
+          currentText={entity.name}
+        />
+      </div>
+      {alt.length > 0 ? (
         <p className="mt-2.5 font-heading text-[15px] italic text-muted-foreground">
           <span className="not-italic text-[11px] font-sans font-semibold uppercase tracking-wider">
             Also known as
           </span>{' '}
           {alt.slice(0, 8).join(' · ')}
           {alt.length > 8 && ` · +${alt.length - 8}`}
+          <SuggestEditButton compact className="ml-1 align-middle not-italic" {...aliasTarget} />
         </p>
+      ) : (
+        <SuggestEditButton className="mt-2 -ml-1.5" label="Add other names" {...aliasTarget} />
       )}
 
       <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-foreground/80">
@@ -204,28 +231,90 @@ function Hero({ entity }: { entity: EntityDetail }) {
   );
 }
 
+/** Suggest-edit trigger for one of the entity's prose fields. */
+function ProseEdit({
+  entity,
+  field,
+  fieldLabel,
+  label,
+}: {
+  entity: EntityDetail;
+  field: 'summary' | 'significance';
+  fieldLabel: string;
+  label?: string;
+}) {
+  return (
+    <SuggestEditButton
+      targetType="entity"
+      targetId={entity.id}
+      field={field}
+      fieldLabel={fieldLabel}
+      targetLabel={entity.name}
+      currentText={entity[field] ?? ''}
+      label={label}
+    />
+  );
+}
+
 function Prose({ entity }: { entity: EntityDetail }) {
   const g = GROUPS[entity.entity_group];
-  if (!entity.summary && !entity.significance) return null;
+
+  // Neither written yet: one quiet row instead of two empty sections.
+  if (!entity.summary && !entity.significance) {
+    return (
+      <div className="mt-10 flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl border border-dashed px-4 py-3 text-[13px] text-muted-foreground">
+        <span className="mr-auto">No summary or significance written yet.</span>
+        <ProseEdit entity={entity} field="summary" fieldLabel="Summary" label="Suggest a summary" />
+        <ProseEdit entity={entity} field="significance" fieldLabel="Significance" label="Suggest the significance" />
+      </div>
+    );
+  }
+
   return (
     <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-      {entity.summary && (
-        <Section title="Summary" className="mt-0">
+      <Section
+        title="Summary"
+        className="mt-0"
+        aside={
+          <ProseEdit
+            entity={entity}
+            field="summary"
+            fieldLabel="Summary"
+            label={entity.summary ? undefined : 'Suggest a summary'}
+          />
+        }
+      >
+        {entity.summary ? (
           <p className="font-heading text-[19px] leading-[1.6] text-foreground/90 [font-variation-settings:'SOFT'_50]">
             {entity.summary}
           </p>
-        </Section>
-      )}
-      {entity.significance && (
-        <Section title="Significance" className="mt-0">
+        ) : (
+          <p className="text-[13px] text-muted-foreground">No summary yet.</p>
+        )}
+      </Section>
+      <Section
+        title="Significance"
+        className="mt-0"
+        aside={
+          <ProseEdit
+            entity={entity}
+            field="significance"
+            fieldLabel="Significance"
+            label={entity.significance ? undefined : 'Suggest the significance'}
+          />
+        }
+      >
+        {entity.significance ? (
           <blockquote
             className="border-l-[3px] pl-4 text-[15px] leading-relaxed text-foreground/85"
             style={{ borderColor: g.color }}
           >
             {entity.significance}
           </blockquote>
-        </Section>
-      )}
+        ) : (
+          <p className="text-[13px] text-muted-foreground">No significance noted yet.</p>
+        )}
+      </Section>
     </div>
   );
 }
@@ -511,6 +600,7 @@ export function EntityPage({ id, variant = 'page' }: { id: string; variant?: Pag
       resetKey={id}
       onCollapse={collapse}
       onClose={closeEntity}
+      actions={entity && <SaveControls type="entity" id={entity.id} compact={variant === 'sheet'} />}
     >
       {isLoading && <PageSkeleton />}
       {isError && <p className="pt-8 text-sm text-destructive">Could not load this entity.</p>}

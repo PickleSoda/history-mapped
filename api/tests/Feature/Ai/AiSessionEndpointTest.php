@@ -23,8 +23,8 @@ class AiSessionEndpointTest extends TestCase
 
     public function test_sessions_index_lists_only_the_callers_sessions_newest_first(): void
     {
-        $user = $this->userWithPermissions(['entities.write']);
-        $other = $this->userWithPermissions(['entities.write']);
+        $user = $this->userWithPermissions(['admin.access', 'entities.write']);
+        $other = $this->userWithPermissions(['admin.access', 'entities.write']);
 
         $entity = Entity::factory()->create(['name' => 'Rome']);
 
@@ -56,7 +56,7 @@ class AiSessionEndpointTest extends TestCase
 
     public function test_sessions_index_filters_by_context(): void
     {
-        $user = $this->userWithPermissions(['entities.write']);
+        $user = $this->userWithPermissions(['admin.access', 'entities.write']);
         $e1 = Entity::factory()->create(['name' => 'Rome']);
         $e2 = Entity::factory()->create(['name' => 'Carthage']);
 
@@ -78,13 +78,13 @@ class AiSessionEndpointTest extends TestCase
 
     public function test_sessions_index_requires_entities_write(): void
     {
-        $user = $this->userWithRole('user');
+        $user = $this->userWithPermissions(['admin.access']);
         $this->actingAs($user)->getJson('/ai/sessions')->assertForbidden();
     }
 
     public function test_session_show_returns_messages_and_proposal_statuses(): void
     {
-        $user = $this->userWithPermissions(['entities.write']);
+        $user = $this->userWithPermissions(['admin.access', 'entities.write']);
         $entity = Entity::factory()->create(['name' => 'Rome']);
 
         $session = Conversation::create([
@@ -131,8 +131,8 @@ class AiSessionEndpointTest extends TestCase
 
     public function test_session_show_forbids_non_owner(): void
     {
-        $owner = $this->userWithPermissions(['entities.write']);
-        $intruder = $this->userWithPermissions(['entities.write']);
+        $owner = $this->userWithPermissions(['admin.access', 'entities.write']);
+        $intruder = $this->userWithPermissions(['admin.access', 'entities.write']);
 
         $session = Conversation::create([
             'id' => (string) Str::uuid7(),
@@ -145,7 +145,7 @@ class AiSessionEndpointTest extends TestCase
 
     public function test_session_destroy_removes_conversation_messages_and_pending_proposals_but_keeps_applied(): void
     {
-        $user = $this->userWithPermissions(['entities.write']);
+        $user = $this->userWithPermissions(['admin.access', 'entities.write']);
         $entity = Entity::factory()->create(['name' => 'Rome']);
 
         $session = Conversation::create([
@@ -193,8 +193,8 @@ class AiSessionEndpointTest extends TestCase
 
     public function test_session_destroy_forbids_non_owner_and_deletes_nothing(): void
     {
-        $owner = $this->userWithPermissions(['entities.write']);
-        $intruder = $this->userWithPermissions(['entities.write']);
+        $owner = $this->userWithPermissions(['admin.access', 'entities.write']);
+        $intruder = $this->userWithPermissions(['admin.access', 'entities.write']);
 
         $session = Conversation::create([
             'id' => (string) Str::uuid7(),
@@ -208,7 +208,7 @@ class AiSessionEndpointTest extends TestCase
 
     public function test_ai_index_page_is_accessible_to_authenticated_users(): void
     {
-        $user = $this->userWithPermissions(['entities.write']);
+        $user = $this->userWithPermissions(['admin.access', 'entities.write']);
 
         $response = $this->actingAs($user)->get('/ai');
 
@@ -218,7 +218,7 @@ class AiSessionEndpointTest extends TestCase
 
     public function test_ai_index_requires_entities_write(): void
     {
-        $user = $this->userWithRole('user');
+        $user = $this->userWithPermissions(['admin.access']);
 
         $this->actingAs($user)->get('/ai')->assertForbidden();
     }

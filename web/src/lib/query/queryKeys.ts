@@ -5,8 +5,10 @@
  * invalidation and prefetch line up. TanStack hashes object/array keys
  * deterministically, so passing the snapped `Scope` is stable.
  */
+import type { MyContributionsParams } from '@/lib/api/contributions';
 import type { ChronicleGraphParams, EntityGraphParams } from '@/lib/api/graph';
 import type { ListOptions } from '@/lib/api/params';
+import type { StarListParams } from '@/lib/api/saved';
 import type { Scope, TimeState } from '@/types/atlas';
 
 export const qk = {
@@ -35,4 +37,19 @@ export const qk = {
     ['chronicle', slug, 'graph', params] as const,
   /** Public historical-periods reference list (timeline gantt). */
   historicalPeriods: () => ['reference', 'historical-periods'] as const,
+
+  // ── Personal (signed-in) data — everything under the `me` root, so sign-out
+  //    can drop it in one `removeQueries({ queryKey: qk.personal() })`.
+  personal: () => ['me'] as const,
+  /** The signed-in user (null = guest). */
+  me: () => ['me', 'profile'] as const,
+  /** Every star + folder query (keys and lists). */
+  stars: () => ['me', 'stars'] as const,
+  starKeys: () => ['me', 'stars', 'keys'] as const,
+  starList: (params: StarListParams) => ['me', 'stars', 'list', params] as const,
+  folders: () => ['me', 'folders'] as const,
+  /** Every page of the user's own contributions. */
+  contributions: () => ['me', 'contributions'] as const,
+  myContributions: (params: MyContributionsParams) =>
+    ['me', 'contributions', params] as const,
 };
