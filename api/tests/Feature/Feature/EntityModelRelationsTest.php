@@ -11,6 +11,7 @@ use App\Models\EntityTag;
 use App\Models\EntityTemporalRange;
 use App\Models\EntityTimelineEntry;
 use App\Models\GeometryPeriod;
+use Database\Seeders\TagSeeder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -49,6 +50,8 @@ class EntityModelRelationsTest extends TestCase
 
     public function test_entity_has_many_entity_tags(): void
     {
+        $this->seed(TagSeeder::class);
+
         DB::table('entity_tags')->insert([
             ['entity_tag_id' => Str::uuid(), 'entity_id' => $this->entity->entity_id, 'tag' => 'bronze-age', 'created_at' => now(), 'updated_at' => now()],
             ['entity_tag_id' => Str::uuid(), 'entity_id' => $this->entity->entity_id, 'tag' => 'mediterranean', 'created_at' => now(), 'updated_at' => now()],
@@ -58,6 +61,7 @@ class EntityModelRelationsTest extends TestCase
 
         $this->assertCount(2, $tags);
         $this->assertInstanceOf(EntityTag::class, $tags->first());
+        $this->assertEqualsCanonicalizing(['bronze-age', 'mediterranean'], $this->entity->tags()->pluck('slug')->all());
     }
 
     // ── Entity → EntityTemporalRange ─────────────────────────

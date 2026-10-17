@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Actions\Entity;
 
+use App\Actions\Tag\SyncTagsAction;
 use App\DTOs\EntityData;
+use App\Enums\TagSource;
 use App\Models\Entity;
 use App\Models\EntityAlias;
 use App\Models\EntityLocation;
-use App\Models\EntityTag;
 use App\Models\EntityTemporalRange;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -88,16 +89,7 @@ class CreateEntityAction
         }
 
         if (is_array($data->tags)) {
-            foreach ($data->tags as $tag) {
-                if (! is_string($tag) || trim($tag) === '') {
-                    continue;
-                }
-
-                EntityTag::query()->firstOrCreate([
-                    'entity_id' => $entity->entity_id,
-                    'tag' => trim($tag),
-                ]);
-            }
+            app(SyncTagsAction::class)($entity, $data->tags, TagSource::Manual);
         }
 
         if ($data->temporalStart !== null || $data->temporalEnd !== null) {

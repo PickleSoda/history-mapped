@@ -4,20 +4,19 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Actions\Chronicle\ListChroniclesAction;
+use App\Http\Api\V1\Requests\ListChroniclesRequest;
 use App\Http\Api\V1\Resources\ChronicleResource;
 use App\Http\Controllers\Controller;
 use App\Models\Chronicle;
 use App\Models\EntityRelationship;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class ChronicleController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function index(ListChroniclesRequest $request, ListChroniclesAction $listChronicles): JsonResponse
     {
-        $chronicles = Chronicle::withCount('entries')
-            ->orderByDesc('created_at')
-            ->paginate($request->input('per_page', 20));
+        $chronicles = $listChronicles($request->validated());
 
         return ChronicleResource::collection($chronicles)->response();
     }
@@ -27,6 +26,7 @@ class ChronicleController extends Controller
         $chronicle = Chronicle::with([
             ...EntityRelationship::withSummaryEnds('entries.primaryRelationship.'),
             'entries.secondaryEntities',
+            'tags',
         ])
             ->where('slug', $slug)
             ->firstOrFail();

@@ -125,6 +125,7 @@ export type EntityFilters = {
     confidence: string;
     date_from: string;
     date_to: string;
+    image: string;
     sort: string;
     per_page: number;
 };

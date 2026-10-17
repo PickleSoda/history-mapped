@@ -22,6 +22,7 @@ import {
   useScrollRoot,
 } from '@/components/atlas/page-kit';
 import type { PageVariant } from '@/components/atlas/page-kit';
+import { TagPills } from '@/components/atlas/TagPills';
 import { RelationGraph } from '@/components/graph';
 import {
   useChronicle,
@@ -92,6 +93,7 @@ function Hero({ chronicle, graph }: { chronicle: Chronicle; graph: ChronicleGrap
         {years && <span className="text-muted-foreground">{years}</span>}
         <span className="text-muted-foreground">{chronicle.entries.length} steps</span>
       </p>
+      <TagPills slugs={chronicle.tags} className="mt-3" />
 
       <StatGrid>
         <Stat label="Began">{chronicle.start_year != null ? formatYear(chronicle.start_year) : '—'}</Stat>

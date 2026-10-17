@@ -1,5 +1,4 @@
 import { ChevronLeft, Maximize2 } from 'lucide-react';
-import { useState } from 'react';
 import { BrowseTab } from '@/components/atlas/BrowseTab';
 import { ChronicleList } from '@/components/atlas/ChronicleList';
 import {
@@ -13,6 +12,7 @@ import {
 } from '@/components/atlas/FullPage';
 import { NavBreadcrumb } from '@/components/atlas/NavBreadcrumb';
 import {
+  useBrowseTab,
   useChronicleNav,
   useFullPage,
   useSelection,
@@ -20,8 +20,6 @@ import {
   useSheetContent,
 } from '@/hooks';
 import { cn } from '@/lib/utils';
-
-type Tab = 'entities' | 'chronicles';
 
 /** Detail in the sheet: a back bar over the shared detail body. During a tour
  *  clearing the selection returns to the tour, so the label reflects that. */
@@ -89,7 +87,7 @@ function SheetChronicle() {
 
 /** List in the sheet: two tabs over the existing browse / chronicle lists. */
 function SheetList() {
-  const [tab, setTab] = useState<Tab>('entities');
+  const [tab, setTab] = useBrowseTab();
   return (
     <div className="flex h-full flex-col">
       <div className="flex flex-none gap-0.5 rounded-lg bg-muted p-0.5">

@@ -11,11 +11,29 @@ import type {
 } from '@/lib/schemas/chronicle';
 import { api } from './client';
 
-/** GET /chronicles — paginated listing for the Chronicles tab. */
-export async function chronicleList(signal?: AbortSignal): Promise<ChronicleList> {
+export interface ChronicleListParams {
+  /** Matches titles and tag names. */
+  search?: string;
+  /** Tag slugs: AND across facets, OR within a facet. */
+  tags?: string[];
+  sort?: 'chronological' | 'recent' | 'title' | 'impact';
+  page?: number;
+}
+
+/** GET /chronicles — paginated, filterable listing for the Chronicles tab. */
+export async function chronicleList(
+  { search, tags = [], sort = 'chronological', page = 1 }: ChronicleListParams = {},
+  signal?: AbortSignal,
+): Promise<ChronicleList> {
   const { data } = await api.get('/api/v1/chronicles', {
     signal,
-    params: { per_page: 50 },
+    params: {
+      per_page: 50,
+      page,
+      sort,
+      ...(search ? { search } : {}),
+      ...(tags.length > 0 ? { tags: tags.join(',') } : {}),
+    },
   });
   return ChronicleListSchema.parse(data);
 }

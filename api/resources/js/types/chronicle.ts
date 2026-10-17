@@ -12,13 +12,28 @@ export type ChronicleEntryRole =
     | 'location'
     | 'outcome';
 
+export type TagFacet = 'era' | 'region' | 'theme' | 'type' | 'topic';
+
+/** One vocabulary tag, as passed to the chronicle pages (`tagOptions`). */
+export type TagOption = {
+    slug: string;
+    name: string;
+    facet: TagFacet;
+    parent: string | null;
+    chronicle_count: number;
+};
+
 export type ChronicleSummary = {
     chronicle_id: string;
     title: string;
     slug: string;
     source_type: SourceType | null;
     status: ChronicleStatus | null;
+    start_year: number | null;
+    end_year: number | null;
     entry_count: number;
+    /** Most specific tag slugs (ancestors implied). */
+    tags: string[];
     created_at: string | null;
     updated_at: string | null;
 };
@@ -68,6 +83,8 @@ export type ChronicleDetail = {
     approximate_location: ApproximateLocation | null;
     metadata: Record<string, unknown>;
     entry_count: number;
+    /** Most specific tag slugs (ancestors implied). */
+    tags: string[];
     entries: ChronicleEntry[] | null;
     created_at: string | null;
     updated_at: string | null;
@@ -83,9 +100,13 @@ export type PaginatedChronicles = {
     to: number | null;
 };
 
+export type ChronicleSort = 'recent' | 'chronological' | 'title' | 'impact';
+
 export type ChronicleFilters = {
     search: string;
     status: string;
+    tags: string[];
+    sort: ChronicleSort;
     per_page: number;
     page: number;
 };
@@ -121,5 +142,6 @@ export type ChronicleFormData = {
     source_reference: string;
     status: string;
     metadata: string;
+    tags: string[];
     entries: ChronicleEntryFormData[];
 };

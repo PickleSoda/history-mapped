@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Actions\Chronicle;
 
+use App\Actions\Tag\SyncTagsAction;
 use App\DTOs\ChronicleData;
+use App\Enums\TagSource;
 use App\Models\Chronicle;
 use App\Models\ChronicleEntry;
 use App\Models\EntityRelationship;
@@ -35,6 +37,10 @@ class UpdateChronicleAction
                 // Fill derived impact_score / approximate_location (+ aggregate to
                 // the chronicle) from the freshly-attached relationships + entities.
                 app(EnrichChronicleMetadataAction::class)($chronicle);
+            }
+
+            if ($data->tags !== null) {
+                app(SyncTagsAction::class)($chronicle, $data->tags, TagSource::Manual);
             }
 
             return $chronicle->fresh();

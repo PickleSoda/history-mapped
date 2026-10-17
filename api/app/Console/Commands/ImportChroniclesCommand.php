@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Actions\Chronicle\EnrichChronicleMetadataAction;
+use App\Actions\Tag\DeriveTagsAction;
+use App\Actions\Tag\SyncTagsAction;
+use App\Enums\TagSource;
 use App\Models\Chronicle;
 use App\Models\ChronicleEntry;
 use App\Services\EntityReferenceResolver;
@@ -261,6 +264,8 @@ class ImportChroniclesCommand extends Command
             // from the now-attached relationships + entities.
             app(EnrichChronicleMetadataAction::class)($chronicle);
 
+            $this->syncTags($chronicle, $data);
+
             $status = $existing ? 'updated' : 'created';
 
             return ['status' => $status, 'entries_imported' => $entriesImported];
@@ -286,7 +291,27 @@ class ImportChroniclesCommand extends Command
         $chronicle->metadata = $data['metadata'] ?? $chronicle->metadata;
         $chronicle->save();
 
+        $this->syncTags($chronicle, $data);
+
         return ['status' => 'skipped (use --force to replace entries)', 'entries_imported' => 0];
+    }
+
+    /**
+     * Apply the artifact's optional `tags` (slugs or names) as Curated, unless
+     * an admin has tagged the chronicle; then derive era tags from its years
+     * for any chronicle still without one. Entity tags catch up on the next
+     * `tags:sync`.
+     */
+    private function syncTags(Chronicle $chronicle, array $data): void
+    {
+        $tags = $data['tags'] ?? null;
+        $adminTagged = $chronicle->tags()->wherePivot('source', TagSource::Manual->value)->exists();
+
+        if (is_array($tags) && ! $adminTagged) {
+            app(SyncTagsAction::class)($chronicle, $tags, TagSource::Curated);
+        }
+
+        app(DeriveTagsAction::class)->chronicles();
     }
 
     /**

@@ -8,3 +8,5 @@ For *how to run* things, see [../implementation-docs/](../implementation-docs/).
 - [data-pipeline.md](data-pipeline.md) — all pipeline tracks (Wikidata, OHM, agent) and the Laravel import layer.
 - [admin-map-editor.md](admin-map-editor.md) — the admin (Inertia) entity editor and map UI, as built.
 - [ohm-integration.md](ohm-integration.md) — OpenHistoricalMap tile / MapLibre integration reference.
+- [tags.md](tags.md) — the faceted tag vocabulary for chronicles and entities: storage, derivation, `tags:sync`, API filters, UI.
+- [entity-images.md](entity-images.md) — entity images linked (not copied) from Wikimedia Commons with author/license: `entity:fetch-images`, the admin Images panel, SPA display.

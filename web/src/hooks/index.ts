@@ -23,6 +23,8 @@ export { useSearch, useHighlights, useTimelineDensity } from './useDiscovery';
 export { useEntitySearch } from './useEntitySearch';
 export { useChronicle } from './useChronicle';
 export { useChronicleList } from './useChronicleList';
+export { useTags } from './useTags';
+export { useBrowseTab, useChronicleTags, useShowChroniclesTagged } from './useChronicleTags';
 export { useEntityChronicles } from './useEntityChronicles';
 export { useEntityTimeline } from './useEntityTimeline';
 export { useEntityGraph, useChronicleGraph, useFetchNeighbourhood } from './useGraph';

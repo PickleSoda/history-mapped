@@ -1,11 +1,11 @@
 import { List, PanelLeftClose, ScrollText } from 'lucide-react';
 import { useState } from 'react';
+import { useBrowseTab } from '@/hooks';
+import type { BrowseTab as Tab } from '@/hooks/useChronicleTags';
 import { cn } from '@/lib/utils';
 import { BrowseTab } from './BrowseTab';
 import { ChronicleList } from './ChronicleList';
 import { NavBreadcrumb } from './NavBreadcrumb';
-
-type Tab = 'entities' | 'chronicles';
 
 function TabButton({
   active,
@@ -70,7 +70,7 @@ function RailIcon({
  */
 export function LeftSidebar() {
   const [collapsed, setCollapsed] = useState(false);
-  const [tab, setTab] = useState<Tab>('entities');
+  const [tab, setTab] = useBrowseTab(() => setCollapsed(false));
 
   const openTab = (t: Tab) => {
     setTab(t);

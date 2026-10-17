@@ -13,6 +13,7 @@ use App\Enums\SourceType;
  * Used by CreateChronicleAction and UpdateChronicleAction.
  *
  * @param  list<array<string, mixed>>|null  $entries  Each entry: { sequence_order, narrative_text, notes, source_evidence, primary_relationship_id, secondary_entity_ids }
+ * @param  list<string>|null  $tags  Tag slugs or names; null leaves tags unchanged, [] clears them
  */
 readonly class ChronicleData
 {
@@ -28,6 +29,7 @@ readonly class ChronicleData
         public ?array $approximateLocation = null,
         public ?array $metadata = null,
         public ?array $entries = null,
+        public ?array $tags = null,
     ) {}
 
     /**
@@ -49,6 +51,7 @@ readonly class ChronicleData
             approximateLocation: $validated['approximate_location'] ?? null,
             metadata: $validated['metadata'] ?? null,
             entries: $validated['entries'] ?? null,
+            tags: $validated['tags'] ?? null,
         );
     }
 

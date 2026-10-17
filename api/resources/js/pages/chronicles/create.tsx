@@ -1,6 +1,7 @@
 import { Head, router } from '@inertiajs/react';
 import { Plus, Trash2, GripVertical } from 'lucide-react';
 import { useState } from 'react';
+import { TagPicker } from '@/components/tag-picker';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,6 +19,7 @@ import type {
     BreadcrumbItem,
     ChronicleEntryFormData,
     ChronicleFormData,
+    TagOption,
 } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -34,7 +36,11 @@ type JsonValue =
     | JsonValue[]
     | { [key: string]: JsonValue };
 
-export default function ChronicleCreate() {
+export default function ChronicleCreate({
+    tagOptions,
+}: {
+    tagOptions: TagOption[];
+}) {
     const [data, setData] = useState<ChronicleFormData>({
         title: '',
         slug: '',
@@ -42,6 +48,7 @@ export default function ChronicleCreate() {
         source_reference: '',
         status: 'draft',
         metadata: '{}',
+        tags: [],
         entries: [],
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -124,6 +131,7 @@ export default function ChronicleCreate() {
             source_reference: data.source_reference,
             status: data.status,
             metadata,
+            tags: data.tags,
             entries: data.entries.map((entry, i) => ({
                 sequence_order: i,
                 narrative_text: entry.narrative_text,
@@ -257,6 +265,29 @@ export default function ChronicleCreate() {
                                 </SelectItem>
                             </SelectContent>
                         </Select>
+                    </div>
+
+                    {/* Tags */}
+                    <div className="space-y-2">
+                        <Label htmlFor="tags">Tags</Label>
+                        <TagPicker
+                            id="tags"
+                            value={data.tags}
+                            onChange={(tags) =>
+                                setData((prev) => ({ ...prev, tags }))
+                            }
+                            options={tagOptions}
+                            allowCreate
+                        />
+                        <p className="text-xs text-muted-foreground">
+                            Era, region, theme and one type. Broader regions and
+                            eras are implied (China adds East Asia and Asia).
+                        </p>
+                        {errors.tags && (
+                            <p className="text-sm text-destructive">
+                                {errors.tags}
+                            </p>
+                        )}
                     </div>
 
                     {/* Metadata (JSON) */}

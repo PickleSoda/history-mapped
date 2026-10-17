@@ -1,7 +1,8 @@
-import { Clock, ExternalLink, Hash, ImageIcon, MapPin, ScrollText } from 'lucide-react';
+import { Clock, ExternalLink, ImageIcon, MapPin, ScrollText } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { SaveControls } from '@/components/account/SaveControls';
 import { SuggestEditButton } from '@/components/account/SuggestEdit';
+import { EntityImage, MediaCreditLine } from '@/components/atlas/EntityImage';
 import { TypeBadge } from '@/components/atlas/GroupBadge';
 import {
   ImpactMeter,
@@ -17,6 +18,7 @@ import {
   chronicleByRelationship,
   RelationshipTimeline,
 } from '@/components/atlas/RelationshipTimeline';
+import { TagPills } from '@/components/atlas/TagPills';
 import { RelationGraph } from '@/components/graph';
 import {
   useChronicleNav,
@@ -35,7 +37,10 @@ import {
   citationRows,
   dateText,
   humanise,
+  isEmblem,
   mediaItems,
+  mediaKindLabel,
+  primaryImage,
   numericYear,
   spanText,
 } from '@/lib/entity-format';
@@ -134,6 +139,7 @@ function Hero({ entity }: { entity: EntityDetail }) {
   } as const;
   const startYear = numericYear(entity.temporal_start) ?? numericYear(entity.temporal_end);
   const span = spanText(entity.temporal_start, entity.temporal_end);
+  const image = primaryImage(entity.media_refs);
 
   return (
     <header className="pt-8">
@@ -211,6 +217,15 @@ function Hero({ entity }: { entity: EntityDetail }) {
           </a>
         )}
       </div>
+
+      {image && (
+        <EntityImage
+          key={image.url}
+          item={image}
+          className="mt-6"
+          imgClassName={isEmblem(image.kind) ? 'max-h-44' : 'max-h-[420px]'}
+        />
+      )}
 
       {/* Stats block — the Civilopedia ledger. */}
       <StatGrid>
@@ -391,19 +406,7 @@ function AttributesAndTags({ entity }: { entity: EntityDetail }) {
           ))}
         </dl>
       )}
-      {entity.tags.length > 0 && (
-        <ul className={cn('flex flex-wrap gap-1.5', rows.length > 0 && 'mt-4')} aria-label="Tags">
-          {entity.tags.map((t) => (
-            <li
-              key={t}
-              className="inline-flex items-center gap-0.5 rounded-full border px-2 py-0.5 text-[11px] text-muted-foreground"
-            >
-              <Hash size={11} />
-              {t}
-            </li>
-          ))}
-        </ul>
-      )}
+      <TagPills slugs={entity.tags} className={cn(rows.length > 0 && 'mt-4')} />
     </Section>
   );
 }
@@ -511,7 +514,9 @@ function TimelineEntries({ id }: { id: string }) {
 
 function SourcesAndMedia({ entity }: { entity: EntityDetail }) {
   const rows = citationRows(entity.source_citations);
-  const media = mediaItems(entity.media_refs);
+  // The lead image is already in the hero, with its credit.
+  const lead = primaryImage(entity.media_refs)?.url;
+  const media = mediaItems(entity.media_refs).filter((m) => m.url !== lead);
   return (
     <Section title="Sources & media" count={rows.length + media.length || undefined}>
       {rows.length === 0 && media.length === 0 && (
@@ -543,29 +548,37 @@ function SourcesAndMedia({ entity }: { entity: EntityDetail }) {
       {media.length > 0 && (
         <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {media.map((m) => (
-            <li key={m.url}>
+            <li key={m.url} className="overflow-hidden rounded-lg border bg-card">
               <a
-                href={m.url}
+                href={m.credit?.pageUrl ?? m.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group block overflow-hidden rounded-lg border bg-card"
+                className="group block"
               >
                 {m.isImage ? (
                   <img
                     src={m.url}
-                    alt={m.caption ?? ''}
+                    alt={m.caption ?? mediaKindLabel(m.kind) ?? ''}
                     loading="lazy"
-                    className="aspect-[4/3] w-full object-cover transition-opacity group-hover:opacity-90"
+                    className={cn(
+                      'aspect-[4/3] w-full transition-opacity group-hover:opacity-90',
+                      isEmblem(m.kind) || m.kind === 'map' || m.kind === 'plan'
+                        ? 'bg-muted/30 object-contain p-2'
+                        : 'object-cover',
+                    )}
                   />
                 ) : (
                   <span className="grid aspect-[4/3] place-items-center text-muted-foreground">
                     <ImageIcon size={22} />
                   </span>
                 )}
-                <span className="block truncate px-2 py-1.5 text-[11px] text-muted-foreground">
-                  {m.caption ?? new URL(m.url).hostname}
-                </span>
               </a>
+              <div className="space-y-0.5 px-2 py-1.5">
+                <p className="truncate text-[11px] text-foreground/80">
+                  {mediaKindLabel(m.kind) ?? m.caption ?? new URL(m.url).hostname}
+                </p>
+                {m.credit && <MediaCreditLine item={m} className="line-clamp-2 block text-[10px]" />}
+              </div>
             </li>
           ))}
         </ul>

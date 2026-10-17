@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Actions\Chronicle;
 
+use App\Actions\Tag\SyncTagsAction;
 use App\DTOs\ChronicleData;
+use App\Enums\TagSource;
 use App\Models\Chronicle;
 use App\Models\ChronicleEntry;
 use Illuminate\Support\Facades\DB;
@@ -32,6 +34,10 @@ class CreateChronicleAction
             $chronicle = Chronicle::create($modelData);
 
             $this->syncEntries($chronicle, $data->entries);
+
+            if ($data->tags !== null) {
+                app(SyncTagsAction::class)($chronicle, $data->tags, TagSource::Manual);
+            }
 
             return $chronicle->fresh();
         });

@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Query\Builder;
@@ -139,6 +140,19 @@ class Entity extends Model
     public function entityTags(): HasMany
     {
         return $this->hasMany(EntityTag::class, 'entity_id', 'entity_id');
+    }
+
+    /**
+     * The same rows as entityTags(), resolved to vocabulary tags.
+     *
+     * @return BelongsToMany<Tag, $this>
+     */
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'entity_tags', 'entity_id', 'tag', 'entity_id', 'slug')
+            ->withPivot('source')
+            ->withTimestamps()
+            ->ordered();
     }
 
     /** @return HasMany<EntityTemporalRange, $this> */

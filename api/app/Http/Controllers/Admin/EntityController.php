@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Actions\Entity\BackfillEntityAction;
 use App\Actions\Entity\CreateEntityAction;
 use App\Actions\Entity\DeleteEntityAction;
+use App\Actions\Entity\FetchEntityImagesAction;
 use App\Actions\Entity\ListEntitiesAction;
 use App\Actions\Entity\UpdateEntityAction;
 use App\DTOs\EntityData;
@@ -18,6 +19,7 @@ use App\Enums\EntityGroup;
 use App\Enums\EntityType;
 use App\Enums\IconClass;
 use App\Enums\LocationResolutionMethod;
+use App\Enums\TagSource;
 use App\Enums\VerificationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreEntityRequest;
@@ -26,6 +28,7 @@ use App\Models\Entity;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -44,6 +47,11 @@ class EntityController extends Controller
             minConfidence: $request->filled('confidence') ? ConfidenceLevel::tryFrom($request->string('confidence')->value()) : null,
             temporalStart: $request->filled('date_from') ? (int) $request->string('date_from')->value() : null,
             temporalEnd: $request->filled('date_to') ? (int) $request->string('date_to')->value() : null,
+            hasImage: match ($request->string('image')->value()) {
+                'present' => true,
+                'missing' => false,
+                default => null,
+            },
             sort: $request->string('sort')->value() ?: 'impact',
             perPage: $request->integer('per_page', 25),
             page: $request->integer('page', 1),
@@ -77,6 +85,7 @@ class EntityController extends Controller
                 'confidence' => $request->string('confidence')->value() ?: '',
                 'date_from' => $request->string('date_from')->value() ?: '',
                 'date_to' => $request->string('date_to')->value() ?: '',
+                'image' => $request->string('image')->value() ?: '',
                 'sort' => $request->string('sort')->value() ?: 'impact',
                 'per_page' => $request->integer('per_page', 25),
             ],
@@ -245,9 +254,14 @@ class EntityController extends Controller
             'display_priority' => $entity->display_priority,
             'icon_class' => $entity->icon_class?->value,
             'entity_color' => $entity->attributes['entity_color'] ?? null,
-            'tags' => $entity->entityTags->pluck('tag')->values()->all(),
+            // Only manual tags are editable; derived ones are rebuilt by `tags:sync`.
+            'tags' => $entity->entityTags->where('source', TagSource::Manual->value)->pluck('tag')->values()->all(),
             'alternative_names' => $entity->aliases->pluck('name')->values()->all(),
-            'attributes' => $entity->attributes ?? [],
+            // Images are edited in their own panel; leaving them out of the
+            // form keeps a later form save from writing back a stale list.
+            'attributes' => is_array($entity->attributes)
+                ? Arr::except($entity->attributes, ['media_refs', FetchEntityImagesAction::CURATED_KEY])
+                : ($entity->attributes ?? []),
             'era_label' => $entity->attributes['era_label'] ?? null,
             'geojson' => $entity->primaryLocation?->geom,
             'territory_geojson' => $entity->primaryLocation?->territory_geom,

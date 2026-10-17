@@ -16,6 +16,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Web\StoreChronicleRequest;
 use App\Http\Requests\Web\UpdateChronicleRequest;
 use App\Models\Chronicle;
+use App\Models\Tag;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -31,6 +32,8 @@ class ChronicleController extends Controller
         $filters = [
             'search' => $request->string('search')->value() ?: null,
             'status' => $request->string('status')->value() ?: null,
+            'tags' => array_values(array_filter((array) $request->input('tags', []), 'is_string')),
+            'sort' => $request->string('sort')->value() ?: 'recent',
             'page' => $request->integer('page', 1),
             'per_page' => $request->integer('per_page', 20),
         ];
@@ -45,21 +48,27 @@ class ChronicleController extends Controller
                     'slug' => $c->slug,
                     'status' => $c->status?->value,
                     'source_type' => $c->source_type?->value,
-                    'entries_count' => $c->entries_count ?? 0,
+                    'start_year' => $c->start_year,
+                    'end_year' => $c->end_year,
+                    'entry_count' => $c->entries_count ?? 0,
+                    'tags' => Tag::leafSlugs($c->tags),
                     'created_at' => $c->created_at?->toISOString(),
                 ]),
                 'links' => $chronicles->linkCollection()->toArray(),
-                'meta' => [
-                    'current_page' => $chronicles->currentPage(),
-                    'per_page' => $chronicles->perPage(),
-                    'total' => $chronicles->total(),
-                    'last_page' => $chronicles->lastPage(),
-                ],
+                'current_page' => $chronicles->currentPage(),
+                'per_page' => $chronicles->perPage(),
+                'total' => $chronicles->total(),
+                'last_page' => $chronicles->lastPage(),
+                'from' => $chronicles->firstItem(),
+                'to' => $chronicles->lastItem(),
             ],
             'filters' => [
                 'search' => $filters['search'] ?? '',
                 'status' => $filters['status'] ?? '',
+                'tags' => $filters['tags'],
+                'sort' => $filters['sort'],
             ],
+            'tagOptions' => $this->tagOptions(),
             'filterOptions' => [
                 'statuses' => array_map(
                     fn (ChronicleStatus $s) => ['value' => $s->value, 'label' => ucfirst($s->value)],
@@ -82,12 +91,14 @@ class ChronicleController extends Controller
             'entries.primaryRelationship.sourceEntity',
             'entries.primaryRelationship.targetEntity',
             'entries.secondaryEntities',
+            'tags',
         ])
             ->where('slug', $slug)
             ->firstOrFail();
 
         return Inertia::render('chronicles/show', [
             'chronicle' => $this->serializeChronicle($chronicle),
+            'tagOptions' => $this->tagOptions(),
             'ai_context' => ['type' => 'chronicle', 'id' => $chronicle->chronicle_id],
         ]);
     }
@@ -107,6 +118,7 @@ class ChronicleController extends Controller
                 SourceType::cases(),
             ),
             'ai_context' => ['type' => 'chronicle', 'id' => null, 'mode' => 'create'],
+            'tagOptions' => $this->tagOptions(),
         ]);
     }
 
@@ -133,12 +145,14 @@ class ChronicleController extends Controller
             'entries.primaryRelationship.sourceEntity',
             'entries.primaryRelationship.targetEntity',
             'entries.secondaryEntities',
+            'tags',
         ])
             ->where('slug', $slug)
             ->firstOrFail();
 
         return Inertia::render('chronicles/edit', [
             'chronicle' => $this->serializeChronicle($chronicle),
+            'tagOptions' => $this->tagOptions(),
             'ai_context' => ['type' => 'chronicle', 'id' => $chronicle->chronicle_id],
             'statuses' => array_map(
                 fn (ChronicleStatus $s) => ['value' => $s->value, 'label' => ucfirst($s->value)],
@@ -186,6 +200,28 @@ class ChronicleController extends Controller
     }
 
     /**
+     * The tag vocabulary for pickers, with how many chronicles use each tag.
+     *
+     * @return list<array{slug: string, name: string, facet: string, parent: string|null, chronicle_count: int}>
+     */
+    private function tagOptions(): array
+    {
+        return Tag::query()
+            ->ordered()
+            ->withCount('chronicles')
+            ->get()
+            ->map(fn (Tag $t): array => [
+                'slug' => $t->slug,
+                'name' => $t->name,
+                'facet' => $t->facet->value,
+                'parent' => $t->parent_slug,
+                'chronicle_count' => $t->chronicles_count,
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
      * Serialize a Chronicle model for Inertia props.
      *
      * @return array<string, mixed>
@@ -207,6 +243,8 @@ class ChronicleController extends Controller
             'created_by' => $chronicle->created_by,
             'created_at' => $chronicle->created_at?->toISOString(),
             'updated_at' => $chronicle->updated_at?->toISOString(),
+            // Most specific tags only; ancestors are re-implied on save.
+            'tags' => $chronicle->relationLoaded('tags') ? Tag::leafSlugs($chronicle->tags) : [],
             'entries' => $chronicle->relationLoaded('entries')
                 ? $chronicle->entries->map(fn ($entry) => [
                     'entry_id' => $entry->entry_id,

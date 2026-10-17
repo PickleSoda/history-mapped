@@ -23,6 +23,13 @@ class ListEntitiesRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if (is_string($this->input('tags'))) {
+            $this->merge(['tags' => array_values(array_filter(explode(',', $this->input('tags'))))]);
+        }
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -43,8 +50,11 @@ class ListEntitiesRequest extends FormRequest
             'status' => ['sometimes', 'string', Rule::enum(VerificationStatus::class)],
             'min_confidence' => ['sometimes', 'string', Rule::enum(ConfidenceLevel::class)],
 
-            // Tags
+            // Tags: `tag` = one slug; `tags[]` = several (AND across facets,
+            // OR within a facet), also accepted comma-separated.
             'tag' => ['sometimes', 'string', 'max:100'],
+            'tags' => ['sometimes', 'array', 'max:20'],
+            'tags.*' => ['string', 'max:100'],
 
             // Spatial: bounding box (all four required together)
             'bbox_min_lng' => ['sometimes', 'required_with:bbox_min_lat,bbox_max_lng,bbox_max_lat', 'numeric', 'between:-180,180'],

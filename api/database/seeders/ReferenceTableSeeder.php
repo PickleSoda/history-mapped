@@ -9,7 +9,7 @@ use Illuminate\Database\Seeder;
 class ReferenceTableSeeder extends Seeder
 {
     /**
-     * Seed all 10 reference tables in FK-dependency order.
+     * Seed all 10 reference tables in FK-dependency order, then the tag vocabulary.
      *
      * Order rationale:
      * 1. GeographicRegion — no FKs to other ref tables
@@ -22,6 +22,7 @@ class ReferenceTableSeeder extends Seeder
      * 8. MeasurementUnit — no FKs
      * 9. LanguageFamily — self-ref parent_family_id, no other ref-table FKs
      * 10. SourceTypeDefinition — no FKs
+     * 11. Tag — self-ref parent_slug, no other ref-table FKs
      */
     public function run(): void
     {
@@ -36,6 +37,7 @@ class ReferenceTableSeeder extends Seeder
             MeasurementUnitSeeder::class,
             LanguageFamilySeeder::class,
             SourceTypeDefinitionSeeder::class,
+            TagSeeder::class,
         ]);
     }
 }

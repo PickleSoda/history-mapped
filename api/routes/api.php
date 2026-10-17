@@ -14,6 +14,7 @@ use App\Http\Api\V1\Controllers\ReferenceController;
 use App\Http\Api\V1\Controllers\SavedFolderController;
 use App\Http\Api\V1\Controllers\SourceController;
 use App\Http\Api\V1\Controllers\StarController;
+use App\Http\Api\V1\Controllers\TagController;
 use App\Http\Controllers\Api\V1\ChronicleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -86,6 +87,10 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/chronicles/{slug}', [ChronicleController::class, 'show'])
         ->name('api.v1.chronicles.show');
+
+    // Tags (vocabulary shared by chronicles and entities)
+    Route::get('/tags', [TagController::class, 'index'])
+        ->name('api.v1.tags.index');
 
     // Reference Tables (cached)
     Route::get('/reference', [ReferenceController::class, 'index'])

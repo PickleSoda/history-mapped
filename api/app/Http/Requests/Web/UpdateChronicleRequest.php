@@ -55,6 +55,8 @@ class UpdateChronicleRequest extends FormRequest
             'approximate_location.lat' => ['sometimes', 'nullable', 'numeric'],
             'approximate_location.lng' => ['sometimes', 'nullable', 'numeric'],
             'metadata' => ['sometimes', 'nullable', 'array'],
+            'tags' => ['sometimes', 'nullable', 'array', 'max:40'],
+            'tags.*' => ['string', 'max:100'],
             'entries' => ['sometimes', 'nullable', 'array'],
             'entries.*.sequence_order' => ['sometimes', 'integer', 'min:0'],
             'entries.*.narrative_text' => ['required', 'string', 'max:10000'],

@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Plus, Search, X } from 'lucide-react';
 import { useCallback, useState } from 'react';
+import { TagBadges, TagPicker } from '@/components/tag-picker';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,7 +17,9 @@ import type {
     BreadcrumbItem,
     PaginatedChronicles,
     ChronicleFilters,
+    ChronicleSort,
     FilterOption,
+    TagOption,
 } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -28,7 +31,19 @@ type Props = {
     chronicles: PaginatedChronicles;
     filters: ChronicleFilters;
     filterOptions: { statuses: FilterOption[]; sourceTypes: FilterOption[] };
+    tagOptions: TagOption[];
 };
+
+const SORT_OPTIONS: { value: ChronicleSort; label: string }[] = [
+    { value: 'recent', label: 'Recently added' },
+    { value: 'chronological', label: 'Chronological' },
+    { value: 'title', label: 'Title' },
+    { value: 'impact', label: 'Impact' },
+];
+
+function yearLabel(y: number): string {
+    return y < 0 ? `${-y} BCE` : `${y} CE`;
+}
 
 const statusColors: Record<string, string> = {
     draft: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200',
@@ -41,6 +56,7 @@ export default function ChroniclesIndex({
     chronicles,
     filters,
     filterOptions,
+    tagOptions,
 }: Props) {
     const [search, setSearch] = useState(filters.search);
     const [statusFilter, setStatusFilter] = useState(
@@ -48,15 +64,23 @@ export default function ChroniclesIndex({
     );
 
     const navigate = useCallback(
-        (params: Record<string, string | number>) => {
-            const query: Record<string, string | number> = {
+        (params: Record<string, string | number | string[]>) => {
+            const query: Record<string, string | number | string[]> = {
                 ...(filters.search && { search: filters.search }),
                 ...(filters.status && { status: filters.status }),
+                ...(filters.tags.length > 0 && { tags: filters.tags }),
+                ...(filters.sort !== 'recent' && { sort: filters.sort }),
                 ...params,
             };
 
             Object.keys(query).forEach((key) => {
-                if (query[key] === '' || query[key] === undefined) {
+                const v = query[key];
+
+                if (
+                    v === '' ||
+                    v === undefined ||
+                    (Array.isArray(v) && v.length === 0)
+                ) {
                     delete query[key];
                 }
             });
@@ -99,7 +123,8 @@ export default function ChroniclesIndex({
         );
     }, []);
 
-    const hasActiveFilters = filters.search || filters.status;
+    const hasActiveFilters =
+        filters.search || filters.status || filters.tags.length > 0;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -167,6 +192,33 @@ export default function ChroniclesIndex({
                         </SelectContent>
                     </Select>
 
+                    {/* Sort */}
+                    <Select
+                        value={filters.sort}
+                        onValueChange={(v) => navigate({ sort: v })}
+                    >
+                        <SelectTrigger className="w-44">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {SORT_OPTIONS.map((s) => (
+                                <SelectItem key={s.value} value={s.value}>
+                                    {s.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    {/* Tag filter: AND across facets, OR within a facet */}
+                    <div className="w-80">
+                        <TagPicker
+                            value={filters.tags}
+                            onChange={(tags) => navigate({ tags })}
+                            options={tagOptions}
+                            placeholder="Filter by tag…"
+                        />
+                    </div>
+
                     {/* Clear filters */}
                     {hasActiveFilters && (
                         <Button
@@ -223,7 +275,23 @@ export default function ChroniclesIndex({
                                                         {chronicle.status}
                                                     </Badge>
                                                 )}
+                                                {chronicle.start_year !==
+                                                    null && (
+                                                    <span className="font-mono text-xs text-muted-foreground">
+                                                        {yearLabel(
+                                                            chronicle.start_year,
+                                                        )}
+                                                        {chronicle.end_year !==
+                                                            null &&
+                                                            ` – ${yearLabel(chronicle.end_year)}`}
+                                                    </span>
+                                                )}
                                             </div>
+                                            <TagBadges
+                                                slugs={chronicle.tags}
+                                                options={tagOptions}
+                                                className="mt-2"
+                                            />
                                         </div>
                                         <div className="text-sm text-muted-foreground">
                                             {chronicle.entry_count}{' '}

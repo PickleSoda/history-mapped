@@ -11,7 +11,13 @@ export {
   entityTimeline,
 } from './entities';
 export { search, searchEntities, highlights, timelineDensity } from './discovery';
-export { chronicle, chronicleList, entityChronicles } from './chronicles';
+export {
+  chronicle,
+  chronicleList,
+  entityChronicles,
+  type ChronicleListParams,
+} from './chronicles';
+export { tagList } from './tags';
 export { historicalPeriods } from './reference';
 export {
   fetchEntityGraph,

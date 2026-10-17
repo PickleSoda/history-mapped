@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable([
     'entity_id',
     'tag',
+    'source',
 ])]
 class EntityTag extends Model
 {

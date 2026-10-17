@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Actions\Entity;
 
+use App\Actions\Tag\SyncTagsAction;
 use App\DTOs\EntityData;
+use App\Enums\TagSource;
 use App\Models\Entity;
 use App\Models\EntityAlias;
 use App\Models\EntityLocation;
-use App\Models\EntityTag;
 use App\Models\EntityTemporalRange;
 use Illuminate\Support\Facades\DB;
 
@@ -20,6 +21,15 @@ use Illuminate\Support\Facades\DB;
  */
 class UpdateEntityAction
 {
+    /**
+     * Attribute keys owned by the image fetcher and the admin Images panel. A
+     * write whose attributes omit them keeps the stored values, so a form save
+     * or a pipeline re-import doesn't drop linked images.
+     *
+     * @var list<string>
+     */
+    private const PRESERVED_ATTRIBUTES = ['media_refs', FetchEntityImagesAction::CURATED_KEY];
+
     /** @var list<string> */
     private const LEGACY_ENTITY_COLUMNS = [
         'tags',
@@ -44,6 +54,14 @@ class UpdateEntityAction
             $geojson = $data->geojson;
             $territoryGeojson = $data->territoryGeojson;
             unset($modelData['geojson'], $modelData['territory_geojson']);
+
+            if (is_array($modelData['attributes'] ?? null)) {
+                foreach (self::PRESERVED_ATTRIBUTES as $key) {
+                    if (! array_key_exists($key, $modelData['attributes']) && isset($entity->attributes[$key])) {
+                        $modelData['attributes'][$key] = $entity->attributes[$key];
+                    }
+                }
+            }
 
             $entity->update($modelData);
 
@@ -76,18 +94,7 @@ class UpdateEntityAction
         }
 
         if (is_array($data->tags)) {
-            EntityTag::query()->where('entity_id', $entity->entity_id)->delete();
-
-            foreach (array_unique($data->tags) as $tag) {
-                if (! is_string($tag) || trim($tag) === '') {
-                    continue;
-                }
-
-                EntityTag::query()->create([
-                    'entity_id' => $entity->entity_id,
-                    'tag' => trim($tag),
-                ]);
-            }
+            app(SyncTagsAction::class)($entity, $data->tags, TagSource::Manual);
         }
 
         if ($data->temporalStart !== null || $data->temporalEnd !== null) {

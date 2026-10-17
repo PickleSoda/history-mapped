@@ -3,6 +3,7 @@ import type { LucideIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { SaveControls } from '@/components/account/SaveControls';
+import { EntityImage } from '@/components/atlas/EntityImage';
 import { preloadEntityPage } from '@/components/atlas/FullPage';
 import { TypeBadge } from '@/components/atlas/GroupBadge';
 import {
@@ -19,7 +20,7 @@ import {
   useSelection,
   useTimeState,
 } from '@/hooks';
-import { numericYear, temporalText } from '@/lib/entity-format';
+import { isEmblem, numericYear, primaryImage, temporalText } from '@/lib/entity-format';
 import { cn } from '@/lib/utils';
 
 /** A compact icon pill; a button when `onClick` is given, else static text. */
@@ -81,6 +82,8 @@ export function DetailPanelContent() {
 
   if (!sel) return null;
 
+  const image = entity ? primaryImage(entity.media_refs) : null;
+
   // The year the date pill jumps the timeline to (entity's start, else end).
   const startYear = entity
     ? (numericYear(entity.temporal_start) ?? numericYear(entity.temporal_end))
@@ -101,6 +104,15 @@ export function DetailPanelContent() {
               <TypeBadge group={entity.entity_group} type={entity.entity_type} />
               <SaveControls type="entity" id={entity.id} compact />
             </div>
+            {image && (
+              <EntityImage
+                key={image.url}
+                item={image}
+                showCaption={false}
+                className="mt-3 rounded-lg"
+                imgClassName={isEmblem(image.kind) ? 'max-h-28' : 'max-h-48'}
+              />
+            )}
             <h2 className="mt-3 font-heading text-xl font-semibold leading-tight">
               {entity.name}
             </h2>

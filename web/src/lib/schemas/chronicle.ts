@@ -39,6 +39,8 @@ export const ChronicleSchema = z.object({
   approximate_location: z.unknown().nullable().default(null),
   /** Generation stats (event_count, generated_at, …); shape not fixed. */
   metadata: z.record(z.string(), z.unknown()).nullable().catch(null),
+  /** Tag slugs, ancestors included (resolve via GET /tags). */
+  tags: z.array(z.string()).default([]),
   entries: z.array(ChronicleEntrySchema).default([]),
 });
 export type Chronicle = z.infer<typeof ChronicleSchema>;
@@ -53,6 +55,8 @@ export const ChronicleSummarySchema = z.object({
   impact_score: z.number().nullable().default(null),
   entry_count: z.number().nullable().default(null),
   status: z.string().nullable().default(null),
+  /** Tag slugs, ancestors included (resolve via GET /tags). */
+  tags: z.array(z.string()).default([]),
 });
 export type ChronicleSummary = z.infer<typeof ChronicleSummarySchema>;
 

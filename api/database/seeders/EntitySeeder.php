@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Actions\Tag\ResolveTagsAction;
 use Database\Seeders\Traits\PgArrayLiteral;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -65,7 +66,8 @@ class EntitySeeder extends Seeder
                 ]);
             }
 
-            foreach ($this->parsePgTextArrayLiteral($legacyTags) as $tag) {
+            // Resolve against the vocabulary; unknown tags become topic tags.
+            foreach (app(ResolveTagsAction::class)($this->parsePgTextArrayLiteral($legacyTags)) as $tag) {
                 DB::table('entity_tags')->insert([
                     'entity_tag_id' => DB::raw('gen_random_uuid()'),
                     'entity_id' => $id,

@@ -5,6 +5,7 @@
  * invalidation and prefetch line up. TanStack hashes object/array keys
  * deterministically, so passing the snapped `Scope` is stable.
  */
+import type { ChronicleListParams } from '@/lib/api/chronicles';
 import type { MyContributionsParams } from '@/lib/api/contributions';
 import type { ChronicleGraphParams, EntityGraphParams } from '@/lib/api/graph';
 import type { ListOptions } from '@/lib/api/params';
@@ -32,6 +33,11 @@ export const qk = {
   highlights: (time: TimeState) => ['highlights', time] as const,
   density: (scope: Scope) => ['density', scope.bbox, scope.groups] as const,
   chronicle: (slug: string) => ['chronicle', slug] as const,
+  /** Filtered Chronicles-tab listing (pages are the infinite query's). */
+  chronicleList: (params: Omit<ChronicleListParams, 'page'>) =>
+    ['chronicles', 'list', params] as const,
+  /** Tag vocabulary (GET /tags). */
+  tags: () => ['tags'] as const,
   /** Whole-chronicle relation graph (params normalised, as above). */
   chronicleGraph: (slug: string, params: ChronicleGraphParams) =>
     ['chronicle', slug, 'graph', params] as const,

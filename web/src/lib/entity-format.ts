@@ -139,16 +139,31 @@ export function citationRows(value: unknown): CitationRow[] {
   return s ? [{ label: 'Source', value: s }] : [];
 }
 
+/** Who made a linked image and under which license. Shown wherever the
+ *  image is: we link to Wikimedia rather than copy, and the license asks
+ *  for the credit. */
+export interface MediaCredit {
+  author: string | null;
+  license: string | null;
+  licenseUrl: string | null;
+  /** The file's description page (e.g. on Wikimedia Commons). */
+  pageUrl: string | null;
+}
+
 export interface MediaItem {
   url: string;
   caption: string | null;
   isImage: boolean;
+  /** What a picture shows: image, flag, coat_of_arms, seal, logo, map or plan. */
+  kind?: string;
+  credit?: MediaCredit;
 }
 
 const IMAGE_EXT = /\.(png|jpe?g|gif|webp|avif|svg)(\?.*)?$/i;
 
 /** Flatten `media_refs` (a URL, a list of URLs, or {url, caption, type}
- *  objects) into renderable items. Non-URL junk is skipped. */
+ *  objects, optionally with author/license/page_url) into renderable items.
+ *  Non-URL junk is skipped. */
 export function mediaItems(value: unknown): MediaItem[] {
   const one = (v: unknown): MediaItem | null => {
     if (typeof v === 'string') {
@@ -158,17 +173,58 @@ export function mediaItems(value: unknown): MediaItem[] {
       const o = v as Record<string, unknown>;
       const url = scalar(o.url ?? o.src ?? o.href);
       if (!url || !isUrl(url)) return null;
-      const kind = scalar(o.type ?? o.kind ?? o.media_type);
-      return {
+      const type = scalar(o.type ?? o.kind ?? o.media_type);
+      const item: MediaItem = {
         url,
         caption: scalar(o.caption ?? o.title ?? o.alt ?? o.description),
-        isImage: (kind != null && /image|photo/i.test(kind)) || IMAGE_EXT.test(url),
+        isImage: (type != null && /image|photo/i.test(type)) || IMAGE_EXT.test(url),
       };
+      const kind = scalar(o.kind);
+      if (kind) item.kind = kind;
+      const pageUrl = scalar(o.page_url);
+      const credit: MediaCredit = {
+        author: scalar(o.author),
+        license: scalar(o.license),
+        licenseUrl: scalar(o.license_url),
+        pageUrl: pageUrl && isUrl(pageUrl) ? pageUrl : null,
+      };
+      if (credit.author || credit.license || credit.pageUrl) item.credit = credit;
+      return item;
     }
     return null;
   };
   const list = Array.isArray(value) ? value : value == null ? [] : [value];
   return list.map(one).filter((m): m is MediaItem => m !== null);
+}
+
+/** The image to lead with: the first picture in `media_refs`. */
+export function primaryImage(value: unknown): MediaItem | null {
+  return mediaItems(value).find((m) => m.isImage) ?? null;
+}
+
+const MEDIA_KIND_LABELS: Record<string, string> = {
+  flag: 'Flag',
+  coat_of_arms: 'Coat of arms',
+  seal: 'Seal',
+  logo: 'Logo',
+  map: 'Map',
+  plan: 'Plan',
+};
+
+/** "Flag", "Map"…; null for a plain picture. */
+export function mediaKindLabel(kind: string | undefined): string | null {
+  return (kind && MEDIA_KIND_LABELS[kind]) ?? null;
+}
+
+/** Flags, arms, seals and logos: shown whole and small, never cropped. */
+export function isEmblem(kind: string | undefined): boolean {
+  return kind === 'flag' || kind === 'coat_of_arms' || kind === 'seal' || kind === 'logo';
+}
+
+/** Where a credited image is hosted, for the "via …" part of a credit. */
+export function mediaHost(credit: MediaCredit | undefined, url: string): string {
+  const host = new URL(credit?.pageUrl ?? url).hostname;
+  return /(^|\.)wikimedia\.org$/.test(host) ? 'Wikimedia Commons' : host.replace(/^www\./, '');
 }
 
 /** Attribute keys already shown elsewhere on the page (or internal). */
@@ -192,7 +248,8 @@ export interface AttributeRow {
  *  already shows. Lists of scalars join with commas; booleans read Yes/No. */
 export function attributeRows(attrs: Record<string, unknown>): AttributeRow[] {
   return Object.entries(attrs).flatMap(([key, v]): AttributeRow[] => {
-    if (ATTRIBUTE_SKIP.has(key) || v == null || v === '') return [];
+    // `_`-prefixed keys are pipeline/admin bookkeeping.
+    if (ATTRIBUTE_SKIP.has(key) || key.startsWith('_') || v == null || v === '') return [];
     let value: string;
     if (typeof v === 'boolean') value = v ? 'Yes' : 'No';
     else if (typeof v === 'number') value = v.toLocaleString();

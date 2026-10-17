@@ -4,32 +4,29 @@ declare(strict_types=1);
 
 namespace App\Actions\Entity;
 
+use App\Actions\Tag\SyncTagsAction;
+use App\Enums\TagSource;
 use App\Models\Entity;
-use App\Models\EntityTag;
 
 class BackfillTagsAction
 {
+    public function __construct(private readonly SyncTagsAction $syncTags) {}
+
+    /**
+     * Re-normalise an entity's manual tags against the vocabulary (derived tags
+     * are owned by `tags:sync`).
+     */
     public function __invoke(Entity $entity): int
     {
-        $tags = $entity->entityTags->pluck('tag')->filter(fn ($t) => is_string($t) && trim($t) !== '')->all();
+        $tags = $entity->entityTags
+            ->filter(fn ($t): bool => $t->source === TagSource::Manual->value)
+            ->pluck('tag')
+            ->all();
 
         if ($tags === []) {
             return 0;
         }
 
-        EntityTag::query()->where('entity_id', $entity->entity_id)->delete();
-
-        $inserted = 0;
-
-        foreach (array_unique($tags) as $tag) {
-            EntityTag::query()->create([
-                'entity_id' => $entity->entity_id,
-                'tag' => trim($tag),
-            ]);
-
-            $inserted++;
-        }
-
-        return $inserted;
+        return count(($this->syncTags)($entity, $tags, TagSource::Manual));
     }
 }

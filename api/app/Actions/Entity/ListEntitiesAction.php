@@ -57,6 +57,14 @@ class ListEntitiesAction
             $query->hasTag($filters->tag);
         }
 
+        if ($filters->tags !== null && $filters->tags !== []) {
+            $query->withTags($filters->tags);
+        }
+
+        if ($filters->hasImage !== null) {
+            $query->withImage($filters->hasImage);
+        }
+
         // ── Spatial filters ──────────────────────────────────
         if ($filters->hasBbox()) {
             $query->inBbox(

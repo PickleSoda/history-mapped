@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Feature;
 
+use App\Enums\TagFacet;
 use App\Models\Entity;
 use App\Models\EntityAlias;
 use App\Models\EntityLocation;
@@ -12,6 +13,7 @@ use App\Models\EntityTag;
 use App\Models\EntityTemporalRange;
 use App\Models\EntityTimelineEntry;
 use App\Models\GeometryPeriod;
+use App\Models\Tag;
 use Database\Seeders\DemoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
@@ -38,6 +40,7 @@ class BackfillEntityCommandTest extends TestCase
             'is_primary' => false,
         ]);
 
+        Tag::query()->create(['slug' => 'rome', 'name' => 'Rome', 'facet' => TagFacet::Topic]);
         EntityTag::query()->create([
             'entity_id' => $entity->entity_id,
             'tag' => 'rome',

@@ -27,6 +27,8 @@ class ChronicleResource extends JsonResource
             'approximate_location' => $this->approximate_location,
             'metadata' => $this->metadata,
             'entry_count' => $this->whenCounted('entries'),
+            // Tag slugs (with ancestors); names/facets come from GET /tags.
+            'tags' => $this->whenLoaded('tags', fn () => $this->tags->pluck('slug')->values()->all()),
             'entries' => $this->when(
                 $this->relationLoaded('entries'),
                 fn () => ChronicleEntryResource::collection($this->entries),

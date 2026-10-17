@@ -8,7 +8,9 @@ use App\Enums\ConfidenceLevel;
 use App\Enums\EntityGroup;
 use App\Enums\EntityType;
 use App\Enums\VerificationStatus;
+use App\Models\Tag;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 
 /**
  * Custom query builder for Entity model.
@@ -253,17 +255,53 @@ class EntityBuilder extends Builder
     }
 
     /**
-     * Filter entities that have a specific tag.
-     * Uses the text[] array contains operator.
+     * Filter entities that have a specific tag slug.
      */
     public function hasTag(string $tag): self
     {
-        return $this->whereExists(function (Builder $query) use ($tag): void {
+        return $this->whereExists(function (QueryBuilder $query) use ($tag): void {
             $query->selectRaw('1')
                 ->from('entity_tags as et')
                 ->whereColumn('et.entity_id', 'entities.entity_id')
                 ->where('et.tag', $tag);
         });
+    }
+
+    /**
+     * Entities with (or without) at least one linked image in `attributes.media_refs`.
+     */
+    public function withImage(bool $has = true): self
+    {
+        // CASE, not AND: Postgres may evaluate jsonb_array_length() on a scalar first.
+        $sql = "CASE WHEN jsonb_typeof(attributes->'media_refs') = 'array' THEN jsonb_array_length(attributes->'media_refs') > 0 ELSE false END";
+
+        return $this->whereRaw($has ? $sql : "NOT ({$sql})");
+    }
+
+    /**
+     * Filter by several tags: one tag from every facet group must match (AND
+     * across facets, OR within one; see Tag::filterGroups()). Unknown slugs
+     * match nothing.
+     *
+     * @param  list<string>  $slugs
+     */
+    public function withTags(array $slugs): self
+    {
+        $groups = Tag::filterGroups($slugs);
+        if ($groups === null) {
+            return $this->whereRaw('false');
+        }
+
+        foreach ($groups as $group) {
+            $this->whereExists(function (QueryBuilder $query) use ($group): void {
+                $query->selectRaw('1')
+                    ->from('entity_tags as etf')
+                    ->whereColumn('etf.entity_id', 'entities.entity_id')
+                    ->whereIn('etf.tag', $group);
+            });
+        }
+
+        return $this;
     }
 
     // ── Sorting Presets ──────────────────────────────────────

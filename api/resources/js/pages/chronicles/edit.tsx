@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { ArrowLeft, GripVertical, Plus, Trash2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { TagPicker } from '@/components/tag-picker';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +23,7 @@ import type {
     ChronicleEntryNewRelationship,
     ChronicleEntrySecondaryForm,
     ChronicleFormData,
+    TagOption,
 } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -43,6 +45,7 @@ type JsonValue =
 type Props = {
     chronicle: ChronicleDetail;
     relationshipTypes: string[];
+    tagOptions: TagOption[];
 };
 
 type EntitySearchResult = {
@@ -142,7 +145,11 @@ function EntityPicker({
     );
 }
 
-export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
+export default function ChronicleEdit({
+    chronicle,
+    relationshipTypes,
+    tagOptions,
+}: Props) {
     const [data, setData] = useState<ChronicleFormData>({
         title: chronicle.title ?? '',
         slug: chronicle.slug ?? '',
@@ -150,6 +157,7 @@ export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
         source_reference: chronicle.source_reference ?? '',
         status: chronicle.status ?? 'draft',
         metadata: JSON.stringify(chronicle.metadata ?? {}),
+        tags: chronicle.tags ?? [],
         entries:
             chronicle.entries?.map((e) => ({
                 entry_id: e.entry_id,
@@ -341,6 +349,7 @@ export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
             source_reference: data.source_reference,
             status: data.status,
             metadata,
+            tags: data.tags,
             entries: data.entries.map((entry, i) => ({
                 entry_id: entry.entry_id,
                 sequence_order: i,
@@ -487,6 +496,31 @@ export default function ChronicleEdit({ chronicle, relationshipTypes }: Props) {
                                 </SelectItem>
                             </SelectContent>
                         </Select>
+                    </div>
+
+                    {/* Tags */}
+                    <div className="space-y-2">
+                        <Label htmlFor="tags">Tags</Label>
+                        <TagPicker
+                            id="tags"
+                            value={data.tags}
+                            onChange={(tags) =>
+                                setData((prev) => ({ ...prev, tags }))
+                            }
+                            options={tagOptions}
+                            allowCreate
+                        />
+                        <p className="text-xs text-muted-foreground">
+                            Era, region, theme and one type. Broader regions and
+                            eras are implied (China adds East Asia and Asia).
+                            Saving here makes these tags authoritative over the
+                            curated defaults.
+                        </p>
+                        {errors.tags && (
+                            <p className="text-sm text-destructive">
+                                {errors.tags}
+                            </p>
+                        )}
                     </div>
 
                     {/* Metadata (JSON) */}

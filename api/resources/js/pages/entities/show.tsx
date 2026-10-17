@@ -2,6 +2,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
 import { lazy, Suspense, useState } from 'react';
 import EntityGeometryPeriodsPanel from '@/components/entity-geometry-periods-panel';
+import EntityImagesPanel from '@/components/entity-images-panel';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -180,6 +181,11 @@ export default function EntityShow({ entity }: Props) {
                             timelineUrl={timelineUrl}
                         />
                     </Suspense>
+                </div>
+
+                <div className="rounded-lg border p-4">
+                    <h2 className="mb-3 text-sm font-semibold">Images</h2>
+                    <EntityImagesPanel entityId={entity.id} readOnly />
                 </div>
 
                 <div className="rounded-lg border p-4">

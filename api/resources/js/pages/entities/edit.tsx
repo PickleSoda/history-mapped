@@ -4,6 +4,7 @@ import EntityForm, { defaultFormData } from '@/components/entity-form';
 import type { EntityFormData } from '@/components/entity-form';
 import EntityGeoRefEditor from '@/components/entity-geo-ref-editor';
 import EntityGeometryPeriodsPanel from '@/components/entity-geometry-periods-panel';
+import EntityImagesPanel from '@/components/entity-images-panel';
 import HistoricalMapViewer from '@/components/historical-map-viewer';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
@@ -95,6 +96,7 @@ export default function EntityEdit({ entity, formOptions }: Props) {
         useState<GeoJsonLike[]>([]);
     const [mapOpen, setMapOpen] = useState(false);
     const [geometryPeriodsOpen, setGeometryPeriodsOpen] = useState(false);
+    const [imagesOpen, setImagesOpen] = useState(false);
     const [relationshipOpen, setRelationshipOpen] = useState(false);
     const entityStartYear = Number(entity.temporal_start);
     const timeframeDate = Number.isFinite(entityStartYear)
@@ -276,6 +278,26 @@ export default function EntityEdit({ entity, formOptions }: Props) {
                                     Save with geometry
                                 </Button>
                             </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Images — collapsible */}
+                <div className="mt-4 rounded-lg border">
+                    <button
+                        type="button"
+                        onClick={() => setImagesOpen((v) => !v)}
+                        className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium"
+                    >
+                        <span>Images</span>
+                        <span className="text-xs text-muted-foreground">
+                            {imagesOpen ? 'Collapse' : 'Expand'}
+                        </span>
+                    </button>
+
+                    {imagesOpen && (
+                        <div className="border-t p-4">
+                            <EntityImagesPanel entityId={entity.id} />
                         </div>
                     )}
                 </div>

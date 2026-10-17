@@ -30,6 +30,9 @@ readonly class EntityFilterData
         public ?VerificationStatus $status = null,
         public ?ConfidenceLevel $minConfidence = null,
         public ?string $tag = null,
+        /** @var list<string>|null */
+        public ?array $tags = null,
+        public ?bool $hasImage = null,
         // Spatial: bounding box
         public ?float $bboxMinLng = null,
         public ?float $bboxMinLat = null,
@@ -74,6 +77,7 @@ readonly class EntityFilterData
             status: isset($validated['status']) ? VerificationStatus::from($validated['status']) : null,
             minConfidence: isset($validated['min_confidence']) ? ConfidenceLevel::from($validated['min_confidence']) : null,
             tag: $validated['tag'] ?? null,
+            tags: $validated['tags'] ?? null,
             bboxMinLng: isset($validated['bbox_min_lng']) ? (float) $validated['bbox_min_lng'] : null,
             bboxMinLat: isset($validated['bbox_min_lat']) ? (float) $validated['bbox_min_lat'] : null,
             bboxMaxLng: isset($validated['bbox_max_lng']) ? (float) $validated['bbox_max_lng'] : null,

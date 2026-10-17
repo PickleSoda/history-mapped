@@ -4,8 +4,11 @@ import {
   citationRows,
   dateText,
   humanise,
+  isEmblem,
+  mediaHost,
   mediaItems,
   numericYear,
+  primaryImage,
   spanText,
   temporalText,
 } from './entity-format';
@@ -109,6 +112,37 @@ describe('mediaItems', () => {
     ]);
     expect(mediaItems(null)).toEqual([]);
   });
+
+  it('keeps the kind and credit of linked Commons images', () => {
+    const commons = {
+      type: 'image',
+      kind: 'flag',
+      url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Flag.svg/960px-Flag.svg.png',
+      page_url: 'https://commons.wikimedia.org/wiki/File:Flag.svg',
+      author: 'Someone',
+      license: 'CC BY-SA 4.0',
+      license_url: 'https://creativecommons.org/licenses/by-sa/4.0',
+    };
+    const [item] = mediaItems([commons]);
+    expect(item).toMatchObject({
+      isImage: true,
+      kind: 'flag',
+      credit: {
+        author: 'Someone',
+        license: 'CC BY-SA 4.0',
+        licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0',
+        pageUrl: 'https://commons.wikimedia.org/wiki/File:Flag.svg',
+      },
+    });
+    expect(isEmblem(item.kind)).toBe(true);
+    expect(mediaHost(item.credit, item.url)).toBe('Wikimedia Commons');
+    expect(mediaHost(undefined, 'https://www.example.org/a.jpg')).toBe('example.org');
+  });
+
+  it('leads with the first picture', () => {
+    expect(primaryImage(['https://x.example/doc.pdf', 'https://x.example/a.jpg'])?.url).toBe('https://x.example/a.jpg');
+    expect(primaryImage([])).toBeNull();
+  });
 });
 
 describe('attributeRows', () => {
@@ -123,6 +157,7 @@ describe('attributeRows', () => {
         nothing: null,
         none: [],
         nested: { a: 1 },
+        _backfill_runs: [{ at: 'x' }],
       }),
     ).toEqual([
       { key: 'capital', label: 'Capital', value: 'Persepolis' },

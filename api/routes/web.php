@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\Ai\AiSessionController;
 use App\Http\Controllers\Admin\ContributionController;
 use App\Http\Controllers\Admin\EntityController;
 use App\Http\Controllers\Admin\EntityGeometryPeriodController;
+use App\Http\Controllers\Admin\EntityImageController;
 use App\Http\Controllers\Admin\Reference\CalendarSystemController;
 use App\Http\Controllers\Admin\Reference\EraDateLookupController;
 use App\Http\Controllers\Admin\Reference\GeographicRegionController;
@@ -62,6 +63,14 @@ Route::middleware(['auth', 'verified', 'permission:admin.access'])->group(functi
         // Derive canonical tables (notably territory geometry periods from the
         // primary location) so a just-edited entity becomes map-visible.
         Route::post('entities/{entity}/backfill', [EntityController::class, 'backfill'])->name('entities.backfill');
+    });
+
+    // ── Images (JSON, the entity editor's Images panel) ──────────────
+    // Links to Wikimedia/external images plus their credits; nothing is copied.
+    Route::get('entities/{entity}/images', [EntityImageController::class, 'index'])->name('entities.images.index');
+    Route::get('entities/{entity}/images/candidates', [EntityImageController::class, 'candidates'])->name('entities.images.candidates');
+    Route::middleware('permission:entities.write')->group(function () {
+        Route::put('entities/{entity}/images', [EntityImageController::class, 'update'])->name('entities.images.update');
     });
 
     // ── Reference Tables ─────────────────────────────────────────────

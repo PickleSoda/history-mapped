@@ -119,6 +119,7 @@ export default function EntitiesIndex({
                 ...(filters.confidence && { confidence: filters.confidence }),
                 ...(filters.date_from && { date_from: filters.date_from }),
                 ...(filters.date_to && { date_to: filters.date_to }),
+                ...(filters.image && { image: filters.image }),
                 ...(filters.sort !== 'impact' && { sort: filters.sort }),
                 ...(filters.per_page !== 25 && { per_page: filters.per_page }),
                 ...params,
@@ -178,7 +179,8 @@ export default function EntitiesIndex({
         filters.status ||
         filters.confidence ||
         filters.date_from ||
-        filters.date_to;
+        filters.date_to ||
+        filters.image;
 
     const sortIcon = (field: string) => {
         if (filters.sort === field) {
@@ -324,6 +326,23 @@ export default function EntitiesIndex({
                                     {c.label}
                                 </SelectItem>
                             ))}
+                        </SelectContent>
+                    </Select>
+
+                    {/* Image filter — "missing" lists entities to pick images for */}
+                    <Select
+                        value={filters.image || '__all__'}
+                        onValueChange={(v) =>
+                            navigate({ image: v === '__all__' ? '' : v })
+                        }
+                    >
+                        <SelectTrigger className="w-36">
+                            <SelectValue placeholder="Any image" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="__all__">Any image</SelectItem>
+                            <SelectItem value="present">Has image</SelectItem>
+                            <SelectItem value="missing">No image</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>

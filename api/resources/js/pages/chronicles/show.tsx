@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { TagBadges } from '@/components/tag-picker';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,10 +14,11 @@ import {
 } from '@/components/ui/dialog';
 import AppLayout from '@/layouts/app-layout';
 import { destroy, edit } from '@/routes/chronicles';
-import type { BreadcrumbItem, ChronicleDetail } from '@/types';
+import type { BreadcrumbItem, ChronicleDetail, TagOption } from '@/types';
 
 type Props = {
     chronicle: ChronicleDetail;
+    tagOptions: TagOption[];
 };
 
 const statusColors: Record<string, string> = {
@@ -48,7 +50,7 @@ function formatYearRange(
     return s ?? e;
 }
 
-export default function ChronicleShow({ chronicle }: Props) {
+export default function ChronicleShow({ chronicle, tagOptions }: Props) {
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [deleting, setDeleting] = useState(false);
 
@@ -85,6 +87,11 @@ export default function ChronicleShow({ chronicle }: Props) {
                         <h1 className="text-2xl font-bold tracking-tight">
                             {chronicle.title}
                         </h1>
+                        <TagBadges
+                            slugs={chronicle.tags}
+                            options={tagOptions}
+                            className="my-1.5"
+                        />
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Badge variant="outline">
                                 {chronicle.source_type?.replace(/_/g, ' ') ||

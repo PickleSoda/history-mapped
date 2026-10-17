@@ -40,8 +40,9 @@ What's deliberately **excluded** from the dump, and why:
 | `migrations` | Prod's migration ledger is managed by `migrate`, not us |
 | `spatial_ref_sys` + `tiger.*`, `tiger_data.*`, `topology.*` schemas | PostGIS extension-owned; already present on prod, would conflict |
 
-What's **included** — the 24 content + reference tables: `entities`,
-`entity_aliases`, `entity_geo_refs`, `entity_locations`, `entity_tags`,
+What's **included** — the 26 content + reference tables: `entities`,
+`entity_aliases`, `entity_geo_refs`, `entity_locations`, `entity_tags`, `tags`,
+`chronicle_tags`,
 `entity_temporal_ranges`, `entity_timeline_entries`, `relationships`,
 `geometry_periods`, `chronicles`, `chronicle_entries`,
 `chronicle_entry_entities`, `sources`, `pipeline_relationship_hints`, and all
@@ -84,7 +85,7 @@ Flag notes:
 **Verify** the dump contains only the intended tables:
 
 ```bash
-grep '^COPY ' "$OUT" | sed 's/ (.*//' | sort   # should list the 24 content tables only
+grep '^COPY ' "$OUT" | sed 's/ (.*//' | sort   # should list the 26 content tables only
 ```
 
 `output/` is gitignored — the dump never lands in a commit.
@@ -95,7 +96,7 @@ Two files live in `output/` alongside the dump (committed as templates is
 unnecessary — regenerate or copy from this doc):
 
 - **`output/truncate-content.sql`** — `TRUNCATE ... RESTART IDENTITY CASCADE` over
-  exactly the 24 included tables. `CASCADE` resolves the circular FKs; the list
+  exactly the 26 included tables. `CASCADE` resolves the circular FKs; the list
   must stay in sync with the dump's table set.
 - **`output/load-content-on-droplet.sh`** — the loader (Step 3). Runs *on the
   droplet*.

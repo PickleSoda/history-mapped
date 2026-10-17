@@ -32,6 +32,8 @@ Start here, in order, for the project as it exists today:
 - [architecture/data-pipeline.md](architecture/data-pipeline.md) — all pipeline tracks + Laravel import layer
 - [architecture/admin-map-editor.md](architecture/admin-map-editor.md) — admin entity editor and map UI
 - [architecture/ohm-integration.md](architecture/ohm-integration.md) — OHM tile / MapLibre integration
+- [architecture/tags.md](architecture/tags.md) — faceted tags (era / region / theme / type) for chronicles and entities
+- [architecture/entity-images.md](architecture/entity-images.md) — linked Wikimedia Commons images with license credits: `entity:fetch-images`, the admin Images panel, display
 
 ## Operator runbooks ([implementation-docs/](implementation-docs/))
 
