@@ -6,6 +6,8 @@ namespace App\Support\ContentBundle\Validation;
 
 use App\Support\ContentBundle\BundleReader;
 use App\Support\ContentBundle\RecordType;
+use Illuminate\Database\DetectsLostConnections;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use stdClass;
 use Throwable;
@@ -31,9 +33,15 @@ use Throwable;
  */
 final class ReferenceChecks implements ValidationLayer
 {
+    use DetectsLostConnections;
+
     public const SITE_BATCH = 1000;
 
     public const GEOM_BATCH = 500;
+
+    public const PENDING_MAX = 10_000;
+
+    public const GEOM_BYTES = 8_000_000;
 
     private const SITE_CACHE_MAX = 50_000;
 
@@ -66,6 +74,10 @@ final class ReferenceChecks implements ValidationLayer
 
     private IssueSink $sink;
 
+    private int $pendingTotal = 0;
+
+    private int $geomBytes = 0;
+
     private bool $againstSite;
 
     /** @var array<string, array<string, string>> */
@@ -91,6 +103,12 @@ final class ReferenceChecks implements ValidationLayer
     /** @var list<array{string, int, string, string, string, ?string}> queued geometries [file, line, field, hash, json, record id] */
     private array $geoms = [];
 
+    /**
+     * @param  int  $pendingCap  flush queued outside references once this many are waiting, whatever their distinct ids
+     * @param  int  $geomByteCap  flush queued geometries once this many bytes of GeoJSON are waiting
+     */
+    public function __construct(private readonly int $pendingCap = self::PENDING_MAX, private readonly int $geomByteCap = self::GEOM_BYTES) {}
+
     public function name(): string
     {
         return Issue::REFERENCES;
@@ -101,7 +119,7 @@ final class ReferenceChecks implements ValidationLayer
         $this->sink = $sink;
         $this->againstSite = $againstSite;
         $this->live = $this->deleted = $this->candidates = $this->pending = $this->siteCache = $this->geoms = $this->outside = [];
-        $this->siteCacheSize = 0;
+        $this->siteCacheSize = $this->pendingTotal = $this->geomBytes = 0;
 
         foreach (RecordType::cases() as $type) {
             if ($bundle->has($type->file())) {
@@ -133,15 +151,16 @@ final class ReferenceChecks implements ValidationLayer
         $ownerBearing = $type === RecordType::GeoRefs || $type === RecordType::GeometryPeriods;
         foreach ($bundle->lines($type->file()) as $n => $line) {
             $d = json_decode($line, false);
-            if (! $d instanceof stdClass || ! isset($d->id) || ! is_string($d->id)) {
+            $id = $d instanceof stdClass ? self::uuid($d->id ?? null) : null;
+            if ($id === null) {
                 continue;
             }
             $packed = pack('N', $n).sha1($line, true);
             if (($d->_op ?? null) === 'delete') {
-                $this->deleted[$tv][strtolower($d->id)] = $packed;
+                $this->deleted[$tv][$id] = $packed;
             } else {
-                $owner = $ownerBearing && isset($d->entity_id) && is_string($d->entity_id) ? strtolower($d->entity_id) : '';
-                $this->live[$tv][strtolower($d->id)] = $packed.$owner;
+                $owner = $ownerBearing ? (self::uuid($d->entity_id ?? null) ?? '') : '';
+                $this->live[$tv][$id] = $packed.$owner;
             }
         }
     }
@@ -161,26 +180,28 @@ final class ReferenceChecks implements ValidationLayer
             if ($op === 'delete') {
                 continue;
             }
-            $id = isset($d->id) && is_string($d->id) ? strtolower($d->id) : null;
+            $id = self::uuid($d->id ?? null);
             if ($id !== null && isset($this->candidates[$tv][$id])) {
                 $this->excuse($tv, $id, $d, $op);
             }
 
             foreach (self::REFS[$tv] ?? [] as [$field, $target]) {
-                if (isset($d->$field) && is_string($d->$field)) {
+                $value = self::uuid($d->$field ?? null);
+                if ($value !== null) {
                     // Same-owner rules: primary_geo_ref_id must belong to this entity, geometry_period_id to this geo ref's entity.
                     $expected = match (true) {
                         $type === RecordType::Entities => $id,
-                        $type === RecordType::GeoRefs && $field === 'geometry_period_id' => isset($d->entity_id) && is_string($d->entity_id) ? strtolower($d->entity_id) : null,
+                        $type === RecordType::GeoRefs && $field === 'geometry_period_id' => self::uuid($d->entity_id ?? null),
                         default => null,
                     };
-                    $this->reference($type, $n, $line, "/{$field}", $target, $d->$field, $expected, $id);
+                    $this->reference($type, $n, $line, "/{$field}", $target, $value, $expected, $id);
                 }
             }
             if ($type === RecordType::ChronicleEntries && isset($d->entities) && is_array($d->entities)) {
                 foreach ($d->entities as $i => $item) {
-                    if ($item instanceof stdClass && isset($item->entity_id) && is_string($item->entity_id)) {
-                        $this->reference($type, $n, $line, "/entities/{$i}/entity_id", RecordType::Entities, $item->entity_id, null, $id);
+                    $entityId = $item instanceof stdClass ? self::uuid($item->entity_id ?? null) : null;
+                    if ($entityId !== null) {
+                        $this->reference($type, $n, $line, "/entities/{$i}/entity_id", RecordType::Entities, $entityId, null, $id);
                     }
                 }
             }
@@ -191,8 +212,10 @@ final class ReferenceChecks implements ValidationLayer
         }
 
         foreach ($this->outside as $field => [$count, $first]) {
-            $label = str_contains($field, '/entities/') ? '/entities/*/entity_id' : $field;
-            $this->sink->add(Issue::warning(Issue::REFERENCES, "{$count} references in `".ltrim($label, '/')."` point outside the bundle (first on line {$first}); they must exist on the site at import (run with --against-site to check them)", $file, null, $label));
+            $message = $count === 1
+                ? "1 reference points outside the bundle (first on line {$first}); it must exist on the site at import (run with --against-site to check it)"
+                : "{$count} references point outside the bundle (first on line {$first}); they must exist on the site at import (run with --against-site to check them)";
+            $this->sink->add(Issue::warning(Issue::REFERENCES, $message, $file, null, $field));
         }
         $this->outside = [];
     }
@@ -202,7 +225,7 @@ final class ReferenceChecks implements ValidationLayer
     {
         $file = $type->file();
         $tv = $target->value;
-        $key = strtolower($value);
+        $key = $value;
 
         if (isset($this->deleted[$tv][$key])) {
             $this->sink->addAcross(
@@ -231,8 +254,9 @@ final class ReferenceChecks implements ValidationLayer
         }
 
         if (! $this->againstSite) {
-            $this->outside[$field] ??= [0, $n];
-            $this->outside[$field][0]++;
+            $summaryField = (string) preg_replace('#^/entities/\d+/#', '/entities/*/', $field);
+            $this->outside[$summaryField] ??= [0, $n];
+            $this->outside[$summaryField][0]++;
 
             return;
         }
@@ -249,8 +273,14 @@ final class ReferenceChecks implements ValidationLayer
             return;
         }
         $this->pending[$tv][$key][] = $occurrence;
+        $this->pendingTotal++;
         if (count($this->pending[$tv]) >= self::SITE_BATCH) {
             $this->flushPending($tv);
+        }
+        if ($this->pendingTotal >= $this->pendingCap) {
+            foreach (array_keys($this->pending) as $other) {
+                $this->flushPending($other);
+            }
         }
     }
 
@@ -277,6 +307,7 @@ final class ReferenceChecks implements ValidationLayer
         foreach ($ids as $key) {
             $this->siteCache[$tv][$key] = $found[$key] ?? false;
             $this->siteCacheSize++;
+            $this->pendingTotal -= count($this->pending[$tv][$key]);
             foreach ($this->pending[$tv][$key] as $occurrence) {
                 $this->evaluate($tv, $key, $found[$key] ?? false, $occurrence);
             }
@@ -337,12 +368,12 @@ final class ReferenceChecks implements ValidationLayer
     {
         foreach ($this->candidates[$tv][$id] as $k => [$field, , $deletedId]) {
             if ($field === 'entities') {
-                $excused = isset($d->entities) && is_array($d->entities) && ! in_array($deletedId, array_map(
-                    fn ($item) => $item instanceof stdClass && is_string($item->entity_id ?? null) ? strtolower($item->entity_id) : '',
-                    $d->entities,
-                ), true);
+                // An absent list on a `replace` line empties it.
+                $excused = isset($d->entities) && is_array($d->entities)
+                    ? ! in_array($deletedId, array_map(fn ($item) => $item instanceof stdClass ? (self::uuid($item->entity_id ?? null) ?? '') : '', $d->entities), true)
+                    : $op === 'replace';
             } elseif (property_exists($d, $field)) {
-                $excused = ! is_string($d->$field) || strtolower($d->$field) !== $deletedId;
+                $excused = self::uuid($d->$field) !== $deletedId;
             } else {
                 $excused = $op === 'replace';
             }
@@ -356,8 +387,10 @@ final class ReferenceChecks implements ValidationLayer
         $counts = [];
         foreach ($this->candidates as $rows) {
             foreach ($rows as $refs) {
+                $counted = [];
                 foreach ($refs as [, $deletedType, $deletedId, $excused, $label]) {
-                    if (! $excused) {
+                    if (! $excused && ! isset($counted[$deletedType.$deletedId])) {
+                        $counted[$deletedType.$deletedId] = true;
                         $counts[$deletedType][$deletedId] ??= [0, $label];
                         $counts[$deletedType][$deletedId][0]++;
                     }
@@ -396,8 +429,10 @@ final class ReferenceChecks implements ValidationLayer
             }
         }
         foreach ($found as $field => $geometry) {
-            $this->geoms[] = [$type->file(), $n, $field, sha1($line, true), (string) json_encode($geometry), $id];
-            if (count($this->geoms) >= self::GEOM_BATCH) {
+            $json = (string) json_encode($geometry);
+            $this->geoms[] = [$type->file(), $n, $field, sha1($line, true), $json, $id];
+            $this->geomBytes += strlen($json);
+            if (count($this->geoms) >= self::GEOM_BATCH || $this->geomBytes >= $this->geomByteCap) {
                 $this->flushGeoms();
             }
         }
@@ -407,17 +442,20 @@ final class ReferenceChecks implements ValidationLayer
     {
         $batch = $this->geoms;
         $this->geoms = [];
+        $this->geomBytes = 0;
         if ($batch === []) {
             return;
         }
         try {
             $results = $this->validGeometries(array_column($batch, 4));
-        } catch (Throwable) {
+        } catch (QueryException $e) {
+            $this->rethrowConnectionLoss($e);
             $results = [];
             foreach ($batch as $i => $row) {
                 try {
                     $results[$i] = $this->validGeometries([$row[4]])[0];
-                } catch (Throwable $e) {
+                } catch (QueryException $e) {
+                    $this->rethrowConnectionLoss($e);
                     $results[$i] = 'unreadable GeoJSON: '.self::postgresMessage($e);
                 }
             }
@@ -447,6 +485,20 @@ final class ReferenceChecks implements ValidationLayer
         }
 
         return $out;
+    }
+
+    /** A lost connection says nothing about the GeoJSON; surface it instead of blaming a geometry. */
+    private function rethrowConnectionLoss(QueryException $e): void
+    {
+        if (str_starts_with((string) ($e->getPrevious()?->getCode() ?? ''), '08') || $this->causedByLostConnection($e)) {
+            throw $e;
+        }
+    }
+
+    /** The id when `$value` is a lowercase uuid as the bundle schema defines it, else null (the structure layer reported it). */
+    private static function uuid(mixed $value): ?string
+    {
+        return is_string($value) && preg_match('/\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/', $value) === 1 ? $value : null;
     }
 
     private static function postgresMessage(Throwable $e): string

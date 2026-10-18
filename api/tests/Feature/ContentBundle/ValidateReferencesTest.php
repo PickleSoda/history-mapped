@@ -156,7 +156,7 @@ class ValidateReferencesTest extends TestCase
         $r = $this->validate();
         $this->assertTrue($r->isValid());
         $this->assertSame(
-            ['relationships.jsonl: /target_entity_id: 2 references in `target_entity_id` point outside the bundle (first on line 1); they must exist on the site at import (run with --against-site to check them)'],
+            ['relationships.jsonl: /target_entity_id: 2 references point outside the bundle (first on line 1); they must exist on the site at import (run with --against-site to check them)'],
             $this->strings($r),
         );
         $this->assertNull($r->issues()[0]->line);
@@ -324,6 +324,110 @@ class ValidateReferencesTest extends TestCase
         $this->assertSame(1, DB::selectOne('select 1 as x')->x);
     }
 
+    public function test_entry_entity_references_collapse_to_one_summary_per_file_and_field(): void
+    {
+        $this->edit('chronicle_entries.jsonl', $this->entry, fn ($e) => [...$e, 'entities' => [
+            ['entity_id' => (string) Str::uuid(), 'role' => 'participant', 'sequence_in_entry' => 1],
+            ['entity_id' => (string) Str::uuid(), 'role' => 'participant', 'sequence_in_entry' => 2],
+        ]]);
+        $this->assertSame(
+            ['chronicle_entries.jsonl: /entities/*/entity_id: 2 references point outside the bundle (first on line 1); they must exist on the site at import (run with --against-site to check them)'],
+            $this->strings($this->validate()),
+        );
+    }
+
+    public function test_non_uuid_ids_in_base_do_not_reach_the_database(): void
+    {
+        // A hostile bundle copies schema-invalid lines into _base so their structure errors are downgraded.
+        $this->append('entities.jsonl', ['id' => 'not-a-uuid', '_op' => 'delete']);
+        $this->rebase('entities.jsonl');
+        $r = $this->validate(true);
+        $this->assertNotEmpty($r->issues());
+        $this->assertTrue($r->isValid());
+
+        $this->append('relationships.jsonl', ['id' => (string) Str::uuid(), 'source_entity_id' => $this->a, 'target_entity_id' => 'NOT-A-UUID', 'relationship_type' => 'allied_with', 'start_year' => 7]);
+        $this->rebase('relationships.jsonl');
+        $r = $this->validate(true);
+        $this->assertNotEmpty($r->issues());
+        $this->assertTrue($r->isValid());
+    }
+
+    public function test_geometry_batches_flush_on_a_byte_cap(): void
+    {
+        DB::enableQueryLog();
+        (new BundleValidator([new ReferenceChecks]))->validate(BundleReader::open($this->bundle), true);
+        $default = count(array_filter(DB::getQueryLog(), fn ($q) => str_contains($q['query'], 'ST_IsValid')));
+        DB::flushQueryLog();
+        $r = (new BundleValidator([new ReferenceChecks(geomByteCap: 100)]))->validate(BundleReader::open($this->bundle), true);
+        $capped = count(array_filter(DB::getQueryLog(), fn ($q) => str_contains($q['query'], 'ST_IsValid')));
+        DB::disableQueryLog();
+
+        $this->assertSame(1, $default);
+        $this->assertGreaterThan(1, $capped);
+        $this->assertSame([], $this->strings($r));
+    }
+
+    public function test_pending_queue_flushes_on_total_references_too(): void
+    {
+        $template = $this->read('relationships.jsonl')[0];
+        $lines = [];
+        for ($i = 0; $i < 12; $i++) {
+            $lines[] = [...$template, 'id' => (string) Str::uuid(), 'target_entity_id' => (string) Str::uuid(), 'start_year' => $i];
+        }
+        $this->write('relationships.jsonl', $lines);
+
+        DB::enableQueryLog();
+        $r = (new BundleValidator([new ReferenceChecks(pendingCap: 5)]))->validate(BundleReader::open($this->bundle), true);
+        $lookups = array_filter(DB::getQueryLog(), fn ($q) => str_contains($q['query'], 'any(') && str_contains($q['query'], 'from "entities"'));
+        DB::disableQueryLog();
+
+        $this->assertCount(3, $lookups);
+        $this->assertSame(12, $r->errorCount());
+    }
+
+    public function test_replace_entry_without_entities_excuses_entry_entity_referrers(): void
+    {
+        $z = Entity::factory()->create(['wikidata_id' => null])->entity_id;
+        DB::table('chronicle_entry_entities')->insert(['entry_id' => $this->entry, 'entity_id' => $z, 'role' => 'participant', 'sequence_in_entry' => 2]);
+        $this->append('entities.jsonl', ['id' => $z, '_op' => 'delete']);
+        $this->edit('chronicle_entries.jsonl', $this->entry, function ($e) {
+            unset($e['entities']);
+
+            return $e;
+        });
+        $this->assertCount(1, $this->validate(true)->errors());
+
+        $this->edit('chronicle_entries.jsonl', $this->entry, fn ($e) => [...$e, '_op' => 'replace']);
+        $this->assertSame([], $this->strings($this->validate(true)));
+    }
+
+    public function test_one_row_referencing_a_deleted_id_twice_counts_once(): void
+    {
+        $z = Entity::factory()->create(['wikidata_id' => null])->entity_id;
+        GeometryPeriod::query()->forceCreate([
+            'geometry_period_id' => (string) Str::uuid(), 'entity_id' => $z, 'period_type' => 'claim', 'start_year' => 1,
+            'provenance_mode' => 'derived', 'relationship_id' => $this->rel, 'source_event_id' => $z, 'geom' => self::POINT,
+        ]);
+        $this->append('entities.jsonl', ['id' => $z, '_op' => 'delete']);
+        $this->assertStringContainsString(': 1 site records still reference it (e.g. geometry_periods', $this->strings($this->validate(true))[0]);
+    }
+
+    public function test_issues_print_in_line_order_even_when_a_site_lookup_reports_late(): void
+    {
+        $template = $this->read('relationships.jsonl')[0];
+        $ghost = (string) Str::uuid();
+        $this->write('entities.jsonl', [...array_values(array_filter($this->read('entities.jsonl'), fn ($r) => $r['id'] !== $this->b)), ['id' => $this->b, '_op' => 'delete']]);
+        $this->write('relationships.jsonl', [
+            [...$template, 'target_entity_id' => $ghost, 'start_year' => 1],
+            [...$template, 'id' => (string) Str::uuid(), 'target_entity_id' => $this->b, 'start_year' => 2],
+        ]);
+
+        $lines = array_values(array_filter($this->strings($this->validate(true)), fn ($s) => str_starts_with($s, 'relationships.jsonl:')));
+        $this->assertStringStartsWith('relationships.jsonl:1:', $lines[0]);
+        $this->assertStringContainsString('neither in the bundle nor on the site', $lines[0]);
+        $this->assertStringStartsWith('relationships.jsonl:2:', $lines[1]);
+    }
+
     public function test_command_text_output_and_exit_codes(): void
     {
         $this->artisan('content:validate', ['path' => $this->bundle, '--against-site' => true])
@@ -338,7 +442,7 @@ class ValidateReferencesTest extends TestCase
             ->assertExitCode(1);
 
         $this->artisan('content:validate', ['path' => $this->bundle])
-            ->expectsOutputToContain('WARN relationships.jsonl: /target_entity_id: 1 references')
+            ->expectsOutputToContain('WARN relationships.jsonl: /target_entity_id: 1 reference points outside')
             ->expectsOutput('0 errors, 1 warnings')
             ->assertExitCode(0);
     }

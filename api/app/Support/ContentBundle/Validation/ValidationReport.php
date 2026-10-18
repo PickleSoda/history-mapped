@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Support\ContentBundle\Validation;
 
+use App\Support\ContentBundle\RecordType;
+
 /**
  * The ordered findings of one validation run. The issue list is capped per file by IssueSink; the counts
  * (errorCount(), warningCount(), toArray()) are the true totals, including issues dropped by the cap.
@@ -32,6 +34,29 @@ final class ValidationReport
         $this->summaries++;
         $this->droppedErrors += $droppedErrors;
         $this->droppedWarnings += $droppedWarnings;
+    }
+
+    /**
+     * Stable order for output: by layer (in order of first report), then record files in RecordType order before other files, then line
+     * with null last, then the order issues were reported in.
+     */
+    public function sort(): void
+    {
+        // Layers keep the order in which they first reported, so a package error found late stays last.
+        $layers = [];
+        foreach ($this->issues as $issue) {
+            $layers[$issue->layer] ??= count($layers);
+        }
+        $files = [];
+        foreach (RecordType::cases() as $i => $type) {
+            $files[$type->file()] = $i;
+        }
+        $keyed = [];
+        foreach ($this->issues as $i => $issue) {
+            $keyed[] = [$layers[$issue->layer], $files[$issue->file ?? ''] ?? count($files), $issue->line ?? PHP_INT_MAX, $i, $issue];
+        }
+        usort($keyed, fn (array $a, array $b) => [$a[0], $a[1], $a[2], $a[3]] <=> [$b[0], $b[1], $b[2], $b[3]]);
+        $this->issues = array_map(fn (array $k) => $k[4], $keyed);
     }
 
     /** @return list<Issue> */
