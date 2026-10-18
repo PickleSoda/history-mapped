@@ -35,6 +35,16 @@
     },
     "counts": {
       "type": "object",
+      "propertyNames": {
+        "enum": [
+          "entities",
+          "relationships",
+          "geometry_periods",
+          "geo_refs",
+          "chronicles",
+          "chronicle_entries"
+        ]
+      },
       "additionalProperties": {
         "type": "integer"
       }
@@ -51,7 +61,15 @@
     }
   },
   "required": [
-    "format"
+    "format",
+    "version",
+    "profile",
+    "exported_at",
+    "source",
+    "scope",
+    "base",
+    "counts",
+    "checksums"
   ],
   "additionalProperties": false
 }

@@ -311,9 +311,10 @@ class SchemasTest extends TestCase
         $this->assertFalse($this->valid(RecordType::Chronicles, ['id' => self::UUID, 'tags' => [['slug' => 'war', 'source' => 'derived']]]));
     }
 
-    public function test_manifest_schema(): void
+    /** @return array<string, mixed> */
+    private static function validManifest(): array
     {
-        $manifest = [
+        return [
             'format' => BundleFormat::FORMAT,
             'version' => 1,
             'profile' => 'full',
@@ -324,16 +325,47 @@ class SchemasTest extends TestCase
             'counts' => ['entities' => 3],
             'checksums' => ['_base/entities.jsonl' => 'sha256:'.str_repeat('a', 64)],
         ];
-        $check = fn (array $m) => Schemas::validator()
-            ->validate(json_decode(json_encode($m)), Schemas::manifestSchemaId())->isValid();
+    }
 
-        $this->assertTrue($check($manifest));
-        $this->assertFalse($check([...$manifest, 'format' => 'other']));
-        $this->assertFalse($check([...$manifest, 'extra' => 1]));
-        $this->assertFalse($check([...$manifest, 'base' => 'whatever']));
-        $this->assertTrue($check([...$manifest, 'base' => 'baseline:2026-q4']));
-        $this->assertFalse($check([...$manifest, 'checksums' => ['_base/entities.jsonl' => 'md5:abc']]));
-        $this->assertFalse($check([...$manifest, 'profile' => 'secret']));
+    /** @param array<string, mixed> $manifest */
+    private function manifestValid(array $manifest): bool
+    {
+        return Schemas::validator()
+            ->validate(json_decode(json_encode($manifest)), Schemas::manifestSchemaId())->isValid();
+    }
+
+    /** @return array<string, array{0: string}> */
+    public static function manifestKeys(): array
+    {
+        return array_combine(array_keys(self::validManifest()), array_map(fn ($k) => [$k], array_keys(self::validManifest())));
+    }
+
+    #[DataProvider('manifestKeys')]
+    public function test_manifest_requires_every_key(string $key): void
+    {
+        $manifest = self::validManifest();
+        $this->assertTrue($this->manifestValid($manifest));
+        unset($manifest[$key]);
+        $this->assertFalse($this->manifestValid($manifest));
+    }
+
+    public function test_manifest_schema(): void
+    {
+        $manifest = self::validManifest();
+
+        $this->assertFalse($this->manifestValid([...$manifest, 'format' => 'other']));
+        $this->assertFalse($this->manifestValid([...$manifest, 'extra' => 1]));
+        $this->assertFalse($this->manifestValid([...$manifest, 'base' => 'whatever']));
+        $this->assertTrue($this->manifestValid([...$manifest, 'base' => 'baseline:2026-q4']));
+        $this->assertFalse($this->manifestValid([...$manifest, 'checksums' => ['_base/entities.jsonl' => 'md5:abc']]));
+        $this->assertFalse($this->manifestValid([...$manifest, 'profile' => 'secret']));
+    }
+
+    public function test_manifest_counts_only_allow_record_stems(): void
+    {
+        $manifest = self::validManifest();
+        $this->assertTrue($this->manifestValid([...$manifest, 'counts' => ['geo_refs' => 1, 'chronicle_entries' => 2]]));
+        $this->assertFalse($this->manifestValid([...$manifest, 'counts' => ['widgets' => 1]]));
     }
 
     public function test_record_type_helpers(): void
