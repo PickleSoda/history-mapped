@@ -1,75 +1,72 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://history-mapped.local/schemas/content-bundle/v1/manifest.schema.json",
-  "title": "Content bundle manifest",
-  "type": "object",
-  "properties": {
-    "format": {
-      "const": "history-mapped/content-bundle"
-    },
-    "version": {
-      "type": "integer"
-    },
-    "profile": {
-      "enum": [
-        "full",
-        "public"
-      ]
-    },
-    "exported_at": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "source": {
-      "type": "string"
-    },
-    "scope": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "base": {
-      "type": "string",
-      "pattern": "^(export|baseline:[a-z0-9_-]+)$"
-    },
-    "counts": {
-      "type": "object",
-      "propertyNames": {
-        "enum": [
-          "entities",
-          "relationships",
-          "geometry_periods",
-          "geo_refs",
-          "chronicles",
-          "chronicle_entries"
-        ]
-      },
-      "additionalProperties": {
-        "type": "integer"
-      }
-    },
-    "checksums": {
-      "type": "object",
-      "patternProperties": {
-        "^_base/[a-z_]+\\.jsonl$": {
-          "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$"
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://history-mapped.local/schemas/content-bundle/v1/manifest.schema.json",
+    "title": "Content bundle manifest",
+    "type": "object",
+    "properties": {
+        "format": {
+            "const": "history-mapped/content-bundle"
+        },
+        "version": {
+            "type": "integer"
+        },
+        "profile": {
+            "enum": ["full", "public"]
+        },
+        "exported_at": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "source": {
+            "type": "string"
+        },
+        "scope": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "base": {
+            "type": "string",
+            "pattern": "^(export|baseline:[a-z0-9_-]+)$"
+        },
+        "counts": {
+            "type": "object",
+            "propertyNames": {
+                "enum": [
+                    "entities",
+                    "relationships",
+                    "geometry_periods",
+                    "geo_refs",
+                    "chronicles",
+                    "chronicle_entries"
+                ]
+            },
+            "additionalProperties": {
+                "type": "integer"
+            }
+        },
+        "checksums": {
+            "type": "object",
+            "patternProperties": {
+                "^_base/[a-z_]+\\.jsonl$": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                }
+            },
+            "additionalProperties": false
         }
-      },
-      "additionalProperties": false
-    }
-  },
-  "required": [
-    "format",
-    "version",
-    "profile",
-    "exported_at",
-    "source",
-    "scope",
-    "base",
-    "counts",
-    "checksums"
-  ],
-  "additionalProperties": false
+    },
+    "required": [
+        "format",
+        "version",
+        "profile",
+        "exported_at",
+        "source",
+        "scope",
+        "base",
+        "counts",
+        "checksums"
+    ],
+    "additionalProperties": false
 }

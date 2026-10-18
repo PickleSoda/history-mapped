@@ -1,127 +1,101 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://history-mapped.local/schemas/content-bundle/v1/common.schema.json",
-  "title": "Content bundle shared definitions",
-  "$defs": {
-    "uuid": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-    },
-    "year": {
-      "type": "integer",
-      "minimum": -20000,
-      "maximum": 3000,
-      "description": "Negative = BCE."
-    },
-    "slug": {
-      "type": "string",
-      "pattern": "^[^\\sA-Z/]+$",
-      "maxLength": 255
-    },
-    "confidence": {
-      "enum": [
-        "high",
-        "medium",
-        "low",
-        "unresolved"
-      ]
-    },
-    "date_method": {
-      "enum": [
-        "nlp_direct",
-        "nlp_approximate",
-        "llm_reign_resolution",
-        "era_table_lookup",
-        "llm_contextual_inference",
-        "human_assigned",
-        "source_database"
-      ]
-    },
-    "location_method": {
-      "enum": [
-        "ohm_nominatim",
-        "wikidata",
-        "geonames",
-        "pleiades",
-        "llm_disambiguation",
-        "human_assigned",
-        "source_database"
-      ]
-    },
-    "duration_type": {
-      "enum": [
-        "point",
-        "period",
-        "ongoing",
-        "uncertain"
-      ]
-    },
-    "qid": {
-      "type": "string",
-      "pattern": "^Q[1-9]\\d*$"
-    },
-    "op": {
-      "enum": [
-        "merge",
-        "replace",
-        "delete"
-      ]
-    },
-    "tag": {
-      "type": "object",
-      "properties": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://history-mapped.local/schemas/content-bundle/v1/common.schema.json",
+    "title": "Content bundle shared definitions",
+    "$defs": {
+        "uuid": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+        },
+        "year": {
+            "type": "integer",
+            "minimum": -20000,
+            "maximum": 3000,
+            "description": "Negative = BCE."
+        },
         "slug": {
-          "$ref": "#/$defs/slug"
+            "type": "string",
+            "pattern": "^[^\\sA-Z/]+$",
+            "maxLength": 255
         },
-        "source": {
-          "enum": [
-            "manual",
-            "curated"
-          ]
+        "confidence": {
+            "enum": ["high", "medium", "low", "unresolved"]
+        },
+        "date_method": {
+            "enum": [
+                "nlp_direct",
+                "nlp_approximate",
+                "llm_reign_resolution",
+                "era_table_lookup",
+                "llm_contextual_inference",
+                "human_assigned",
+                "source_database"
+            ]
+        },
+        "location_method": {
+            "enum": [
+                "ohm_nominatim",
+                "wikidata",
+                "geonames",
+                "pleiades",
+                "llm_disambiguation",
+                "human_assigned",
+                "source_database"
+            ]
+        },
+        "duration_type": {
+            "enum": ["point", "period", "ongoing", "uncertain"]
+        },
+        "qid": {
+            "type": "string",
+            "pattern": "^Q[1-9]\\d*$"
+        },
+        "op": {
+            "enum": ["merge", "replace", "delete"]
+        },
+        "tag": {
+            "type": "object",
+            "properties": {
+                "slug": {
+                    "$ref": "#/$defs/slug"
+                },
+                "source": {
+                    "enum": ["manual", "curated"]
+                }
+            },
+            "required": ["slug", "source"],
+            "additionalProperties": false
+        },
+        "geometry": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "enum": [
+                        "Point",
+                        "MultiPoint",
+                        "LineString",
+                        "MultiLineString",
+                        "Polygon",
+                        "MultiPolygon",
+                        "GeometryCollection"
+                    ]
+                },
+                "coordinates": {
+                    "type": "array"
+                },
+                "geometries": {
+                    "type": "array"
+                }
+            },
+            "required": ["type"],
+            "anyOf": [
+                {
+                    "required": ["coordinates"]
+                },
+                {
+                    "required": ["geometries"]
+                }
+            ]
         }
-      },
-      "required": [
-        "slug",
-        "source"
-      ],
-      "additionalProperties": false
-    },
-    "geometry": {
-      "type": "object",
-      "properties": {
-        "type": {
-          "enum": [
-            "Point",
-            "MultiPoint",
-            "LineString",
-            "MultiLineString",
-            "Polygon",
-            "MultiPolygon",
-            "GeometryCollection"
-          ]
-        },
-        "coordinates": {
-          "type": "array"
-        },
-        "geometries": {
-          "type": "array"
-        }
-      },
-      "required": [
-        "type"
-      ],
-      "anyOf": [
-        {
-          "required": [
-            "coordinates"
-          ]
-        },
-        {
-          "required": [
-            "geometries"
-          ]
-        }
-      ]
     }
-  }
 }

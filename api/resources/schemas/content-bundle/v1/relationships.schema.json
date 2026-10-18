@@ -1,210 +1,190 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://history-mapped.local/schemas/content-bundle/v1/relationships.schema.json",
-  "title": "Relationship line",
-  "type": "object",
-  "properties": {
-    "id": {
-      "$ref": "common.schema.json#/$defs/uuid"
-    },
-    "source_entity_id": {
-      "$ref": "common.schema.json#/$defs/uuid"
-    },
-    "target_entity_id": {
-      "$ref": "common.schema.json#/$defs/uuid"
-    },
-    "relationship_type": {
-      "enum": [
-        "rules",
-        "governed_by",
-        "vassal_of",
-        "suzerain_of",
-        "allied_with",
-        "at_war_with",
-        "succeeded_by",
-        "preceded_by",
-        "part_of",
-        "contains",
-        "capital_of",
-        "split_from",
-        "merged_into",
-        "born_in",
-        "died_in",
-        "resided_in",
-        "commanded",
-        "founded",
-        "authored",
-        "commissioned",
-        "married_to",
-        "parent_of",
-        "child_of",
-        "sibling_of",
-        "mentor_of",
-        "student_of",
-        "assassinated_by",
-        "member_of_dynasty",
-        "patron_of",
-        "participated_in",
-        "fought_at",
-        "defeated_at",
-        "victorious_at",
-        "stationed_at",
-        "recruited_from",
-        "commanded_by",
-        "trades_with",
-        "connects",
-        "produces",
-        "extracts",
-        "supplies",
-        "controlled_by",
-        "passes_through",
-        "minted_by",
-        "used_currency",
-        "adheres_to",
-        "official_religion_of",
-        "persecuted_by",
-        "influenced_by",
-        "inspired",
-        "schism_from",
-        "translated_into",
-        "located_at",
-        "built_by",
-        "destroyed_by",
-        "restored_by",
-        "caused",
-        "resulted_from",
-        "contributed_to",
-        "enabled",
-        "prevented",
-        "weakened",
-        "strengthened",
-        "invented",
-        "adopted",
-        "taught_at",
-        "spread_to",
-        "required_by",
-        "replaced_by",
-        "signed_by",
-        "violated_by",
-        "guaranteed_by",
-        "mediated_by",
-        "enforced_by"
-      ]
-    },
-    "temporal_start": {
-      "type": [
-        "string",
-        "null"
-      ]
-    },
-    "temporal_end": {
-      "type": [
-        "string",
-        "null"
-      ]
-    },
-    "start_year": {
-      "anyOf": [
-        {
-          "$ref": "common.schema.json#/$defs/year"
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://history-mapped.local/schemas/content-bundle/v1/relationships.schema.json",
+    "title": "Relationship line",
+    "type": "object",
+    "properties": {
+        "id": {
+            "$ref": "common.schema.json#/$defs/uuid"
         },
-        {
-          "type": "null"
+        "source_entity_id": {
+            "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "target_entity_id": {
+            "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "relationship_type": {
+            "enum": [
+                "rules",
+                "governed_by",
+                "vassal_of",
+                "suzerain_of",
+                "allied_with",
+                "at_war_with",
+                "succeeded_by",
+                "preceded_by",
+                "part_of",
+                "contains",
+                "capital_of",
+                "split_from",
+                "merged_into",
+                "born_in",
+                "died_in",
+                "resided_in",
+                "commanded",
+                "founded",
+                "authored",
+                "commissioned",
+                "married_to",
+                "parent_of",
+                "child_of",
+                "sibling_of",
+                "mentor_of",
+                "student_of",
+                "assassinated_by",
+                "member_of_dynasty",
+                "patron_of",
+                "participated_in",
+                "fought_at",
+                "defeated_at",
+                "victorious_at",
+                "stationed_at",
+                "recruited_from",
+                "commanded_by",
+                "trades_with",
+                "connects",
+                "produces",
+                "extracts",
+                "supplies",
+                "controlled_by",
+                "passes_through",
+                "minted_by",
+                "used_currency",
+                "adheres_to",
+                "official_religion_of",
+                "persecuted_by",
+                "influenced_by",
+                "inspired",
+                "schism_from",
+                "translated_into",
+                "located_at",
+                "built_by",
+                "destroyed_by",
+                "restored_by",
+                "caused",
+                "resulted_from",
+                "contributed_to",
+                "enabled",
+                "prevented",
+                "weakened",
+                "strengthened",
+                "invented",
+                "adopted",
+                "taught_at",
+                "spread_to",
+                "required_by",
+                "replaced_by",
+                "signed_by",
+                "violated_by",
+                "guaranteed_by",
+                "mediated_by",
+                "enforced_by"
+            ]
+        },
+        "temporal_start": {
+            "type": ["string", "null"]
+        },
+        "temporal_end": {
+            "type": ["string", "null"]
+        },
+        "start_year": {
+            "anyOf": [
+                {
+                    "$ref": "common.schema.json#/$defs/year"
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "end_year": {
+            "anyOf": [
+                {
+                    "$ref": "common.schema.json#/$defs/year"
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "description": {
+            "type": ["string", "null"]
+        },
+        "confidence": {
+            "anyOf": [
+                {
+                    "$ref": "common.schema.json#/$defs/confidence"
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "derive_geometry_period": {
+            "type": "boolean"
+        },
+        "source_citations": {
+            "type": ["object", "null"]
+        },
+        "_op": {
+            "$ref": "common.schema.json#/$defs/op"
         }
-      ]
     },
-    "end_year": {
-      "anyOf": [
+    "additionalProperties": false,
+    "allOf": [
         {
-          "$ref": "common.schema.json#/$defs/year"
+            "if": {
+                "properties": {
+                    "_op": {
+                        "const": "delete"
+                    }
+                },
+                "required": ["_op"]
+            },
+            "then": {
+                "required": ["id"]
+            }
         },
         {
-          "type": "null"
+            "if": {
+                "not": {
+                    "required": ["id"]
+                }
+            },
+            "then": {
+                "required": [
+                    "source_entity_id",
+                    "target_entity_id",
+                    "relationship_type"
+                ]
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "_op": {
+                        "const": "replace"
+                    }
+                },
+                "required": ["_op"]
+            },
+            "then": {
+                "required": [
+                    "source_entity_id",
+                    "target_entity_id",
+                    "relationship_type"
+                ]
+            }
         }
-      ]
-    },
-    "description": {
-      "type": [
-        "string",
-        "null"
-      ]
-    },
-    "confidence": {
-      "anyOf": [
-        {
-          "$ref": "common.schema.json#/$defs/confidence"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "derive_geometry_period": {
-      "type": "boolean"
-    },
-    "source_citations": {
-      "type": [
-        "object",
-        "null"
-      ]
-    },
-    "_op": {
-      "$ref": "common.schema.json#/$defs/op"
-    }
-  },
-  "additionalProperties": false,
-  "allOf": [
-    {
-      "if": {
-        "properties": {
-          "_op": {
-            "const": "delete"
-          }
-        },
-        "required": [
-          "_op"
-        ]
-      },
-      "then": {
-        "required": [
-          "id"
-        ]
-      }
-    },
-    {
-      "if": {
-        "not": {
-          "required": [
-            "id"
-          ]
-        }
-      },
-      "then": {
-        "required": [
-          "source_entity_id",
-          "target_entity_id",
-          "relationship_type"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "_op": {
-            "const": "replace"
-          }
-        },
-        "required": [
-          "_op"
-        ]
-      },
-      "then": {
-        "required": [
-          "source_entity_id",
-          "target_entity_id",
-          "relationship_type"
-        ]
-      }
-    }
-  ]
+    ]
 }
