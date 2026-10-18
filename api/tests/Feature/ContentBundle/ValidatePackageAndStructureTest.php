@@ -448,6 +448,32 @@ class ValidatePackageAndStructureTest extends TestCase
         $this->assertCount(201, $r->toArray()['issues']);
     }
 
+    public function test_replace_line_without_creation_fields_names_them(): void
+    {
+        $id = (string) Str::uuid();
+        $this->edit('entities.jsonl', fn (array $l) => [...$l, json_encode(['id' => $id, '_op' => 'replace', 'summary' => 'x'])]);
+        $strings = $this->strings($this->validate());
+        $this->assertCount(1, $strings);
+        $this->assertStringContainsString('a `replace` line needs `name`, `entity_type`', $strings[0]);
+    }
+
+    public function test_caps_are_scoped_to_layer_and_file(): void
+    {
+        $report = new ValidationReport;
+        $sink = new IssueSink($report, new BaseIndex(BundleReader::open($this->bundle)));
+        foreach ([Issue::STRUCTURE, Issue::RECORDS] as $layer) {
+            for ($i = 0; $i < 250; $i++) {
+                $sink->add(Issue::warning($layer, 'w', 'entities.jsonl', $i + 1));
+            }
+            $sink->finish();
+        }
+        $this->assertSame(500, $report->warningCount());
+        $this->assertCount(2 * 200 + 2, $report->issues());
+        $overflow = array_values(array_filter($report->issues(), fn (Issue $i) => str_contains($i->message, 'more warnings')));
+        $this->assertSame([Issue::STRUCTURE, Issue::RECORDS], array_map(fn (Issue $i) => $i->layer, $overflow));
+        $this->assertSame('…and 50 more warnings in this file', $overflow[1]->message);
+    }
+
     public function test_dropped_warnings_are_counted_separately(): void
     {
         $report = new ValidationReport;

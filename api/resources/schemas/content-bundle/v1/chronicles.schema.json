@@ -113,6 +113,25 @@
           "source_type"
         ]
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "_op": {
+            "const": "replace"
+          }
+        },
+        "required": [
+          "_op"
+        ]
+      },
+      "then": {
+        "required": [
+          "title",
+          "slug",
+          "source_type"
+        ]
+      }
     }
   ]
 }

@@ -432,6 +432,24 @@
           "entity_type"
         ]
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "_op": {
+            "const": "replace"
+          }
+        },
+        "required": [
+          "_op"
+        ]
+      },
+      "then": {
+        "required": [
+          "name",
+          "entity_type"
+        ]
+      }
     }
   ]
 }

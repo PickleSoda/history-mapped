@@ -55,6 +55,15 @@ class BundleReaderWriterTest extends TestCase
         yield 'zip' => ['bundle.zip'];
     }
 
+    public function test_public_license_source_survives_the_docker_image(): void
+    {
+        // The root .dockerignore has `**/*.md`, so a `.md` source would be missing from the prod image and
+        // `content:export --profile=public` would throw. The bundle still names its copy LICENSE.md.
+        $path = resource_path('content-bundle/LICENSE.public.txt');
+        $this->assertFileExists($path);
+        $this->assertStringEndsNotWith('.md', $path);
+    }
+
     #[DataProvider('targets')]
     public function test_round_trip(string $name): void
     {

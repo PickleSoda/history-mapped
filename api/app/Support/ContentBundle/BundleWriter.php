@@ -166,7 +166,7 @@ final class BundleWriter
             }
 
             if (($ordered['profile'] ?? null) === Profile::Public->value
-                && ! copy(resource_path('content-bundle/LICENSE.public.md'), $this->workDir.'/'.BundleFormat::LICENSE)) {
+                && ! copy(resource_path('content-bundle/LICENSE.public.txt'), $this->workDir.'/'.BundleFormat::LICENSE)) {
                 throw new RuntimeException('Cannot write LICENSE.md.');
             }
         } catch (\Throwable $e) {
@@ -194,7 +194,7 @@ final class BundleWriter
             throw $e;
         } finally {
             if ($this->zip && is_dir($this->workDir)) {
-                $this->removeTree($this->workDir);
+                self::rmTree($this->workDir);
             }
         }
     }
@@ -206,12 +206,12 @@ final class BundleWriter
             return;
         }
         if ($this->zip) {
-            $this->removeTree($this->workDir);
+            self::rmTree($this->workDir);
         } elseif ($this->createdDir) {
-            $this->removeTree($this->workDir);
+            self::rmTree($this->workDir);
         } else {
             foreach (array_diff(scandir($this->workDir) ?: [], ['.', '..']) as $child) {
-                $this->removeTree($this->workDir.'/'.$child);
+                self::rmTree($this->workDir.'/'.$child);
             }
         }
     }
@@ -285,10 +285,5 @@ final class BundleWriter
         }
 
         return $h;
-    }
-
-    private function removeTree(string $path): void
-    {
-        self::rmTree($path);
     }
 }

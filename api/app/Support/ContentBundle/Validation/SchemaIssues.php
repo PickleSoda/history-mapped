@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support\ContentBundle\Validation;
 
+use App\Support\ContentBundle\Scope\ExportScope;
 use Opis\JsonSchema\Errors\ErrorFormatter;
 use Opis\JsonSchema\Errors\ValidationError;
 
@@ -115,7 +116,10 @@ final class SchemaIssues
             case 'required':
                 $missing = array_values(array_map('strval', (array) ($args['missing'] ?? [])));
                 $list = implode(', ', array_map(fn (string $n) => "`{$n}`", $missing));
+                $data = $error->data()->value();
+                $isReplace = is_object($data) && ($data->_op ?? null) === 'replace';
                 $message = match (true) {
+                    $path === [] && $inThen && $isReplace && $missing !== ['id'] => "a `replace` line needs {$list}",
                     $path === [] && $inThen && $missing === ['id'] => 'a delete (`_op`: "delete") needs `id`',
                     $path === [] && $inThen => "a new record (no id) needs {$list}",
                     default => "missing required key {$list}",
@@ -144,7 +148,7 @@ final class SchemaIssues
                 $plain = match (true) {
                     str_contains($pattern, '[0-9a-f]{8}-') => 'must be a lowercase UUID',
                     str_starts_with($pattern, '^Q[1-9]') => 'must be a Wikidata id like Q42',
-                    $pattern === '^[^\\sA-Z/]+$' => 'must be a slug: lowercase, with no spaces or slashes',
+                    $pattern === ExportScope::SLUG_PATTERN => 'must be a slug: lowercase, with no spaces or slashes',
                     default => null,
                 };
                 if ($plain !== null) {
@@ -156,8 +160,8 @@ final class SchemaIssues
             case 'maximum':
                 $min = is_object($schema) ? ($schema->minimum ?? null) : null;
                 $max = is_object($schema) ? ($schema->maximum ?? null) : null;
-                if ($min === -20000 && $max === 3000) {
-                    return [[$field, 'must be a year between -20000 and 3000']];
+                if ($min === ExportScope::YEAR_MIN && $max === ExportScope::YEAR_MAX) {
+                    return [[$field, 'must be a year between '.ExportScope::YEAR_MIN.' and '.ExportScope::YEAR_MAX]];
                 }
                 break;
 

@@ -128,6 +128,26 @@
           "provenance_mode"
         ]
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "_op": {
+            "const": "replace"
+          }
+        },
+        "required": [
+          "_op"
+        ]
+      },
+      "then": {
+        "required": [
+          "entity_id",
+          "period_type",
+          "start_year",
+          "provenance_mode"
+        ]
+      }
     }
   ]
 }

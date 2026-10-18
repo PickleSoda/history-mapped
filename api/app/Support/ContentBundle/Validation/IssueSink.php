@@ -7,7 +7,7 @@ namespace App\Support\ContentBundle\Validation;
 /**
  * Where every layer reports. It is the one place that downgrades errors on lines unchanged since export
  * (the import never writes unchanged values, so old data problems must not block an export's round trip)
- * and that caps output per file: at most MAX_PER_FILE errors and MAX_PER_FILE warnings are kept, the rest
+ * and that caps output per layer and file: at most MAX_PER_FILE errors and MAX_PER_FILE warnings are kept, the rest
  * are counted and summarised by finish(). add() returns the severity the issue has after downgrading,
  * whether or not it was kept, so layers can count erroneous lines.
  *
@@ -21,7 +21,7 @@ final class IssueSink
 
     public const UNCHANGED_SUFFIX = ' (unchanged since export)';
 
-    /** @var array<string, array{error: int, warning: int, droppedErrors: int, droppedWarnings: int, layer: string, note: string}> */
+    /** @var array<string, array{error: int, warning: int, droppedErrors: int, droppedWarnings: int, layer: string, file: string, note: string}> */
     private array $files = [];
 
     public function __construct(private readonly ValidationReport $report, private readonly BaseIndex $base) {}
@@ -57,7 +57,6 @@ final class IssueSink
         }
 
         $state = &$this->state($issue->file ?? '', $issue->layer);
-        $state['layer'] = $issue->layer;
         if ($state[$issue->severity] >= self::MAX_PER_FILE) {
             $state[$issue->isError() ? 'droppedErrors' : 'droppedWarnings']++;
         } else {
@@ -89,7 +88,8 @@ final class IssueSink
     /** Adds the "and N more" lines for every file that overflowed. Call after each layer. */
     public function finish(): void
     {
-        foreach ($this->files as $file => &$state) {
+        foreach ($this->files as &$state) {
+            $file = $state['file'];
             $errors = $state['droppedErrors'];
             $warnings = $state['droppedWarnings'];
             $where = $file === '' ? null : (string) $file;
@@ -107,11 +107,11 @@ final class IssueSink
         }
     }
 
-    /** @return array{error: int, warning: int, droppedErrors: int, droppedWarnings: int, layer: string, note: string} */
+    /** @return array{error: int, warning: int, droppedErrors: int, droppedWarnings: int, layer: string, file: string, note: string} */
     private function &state(string $file, string $layer): array
     {
-        $this->files[$file] ??= ['error' => 0, 'warning' => 0, 'droppedErrors' => 0, 'droppedWarnings' => 0, 'layer' => $layer, 'note' => ''];
+        $this->files[$layer.'|'.$file] ??= ['file' => $file, 'error' => 0, 'warning' => 0, 'droppedErrors' => 0, 'droppedWarnings' => 0, 'layer' => $layer, 'note' => ''];
 
-        return $this->files[$file];
+        return $this->files[$layer.'|'.$file];
     }
 }

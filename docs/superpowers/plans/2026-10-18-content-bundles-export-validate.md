@@ -118,7 +118,7 @@ api/resources/schemas/content-bundle/v1/
   geo_refs.schema.json
   chronicles.schema.json
   chronicle_entries.schema.json
-api/resources/content-bundle/LICENSE.public.md   copied into public bundles
+api/resources/content-bundle/LICENSE.public.txt   copied into public bundles
 api/app/Support/ContentBundle/
   BundleFormat.php        constants: FORMAT, VERSION, MANIFEST, BASE_DIR, LICENSE, SCHEMA_DIR
   RecordType.php          enum: file(), primaryKey(), modelClass(), keys(), schemaPath()
@@ -318,16 +318,16 @@ docs/schemas/content-bundle.md            format guide + editing rules for peopl
 ### Task 5: Bundle writer, reader and `content:export`
 
 **Files:**
-- Create: `api/app/Support/ContentBundle/{BundleWriter,BundleReader}.php`, `api/resources/content-bundle/LICENSE.public.md`
+- Create: `api/app/Support/ContentBundle/{BundleWriter,BundleReader}.php`, `api/resources/content-bundle/LICENSE.public.txt`
 - Create: `api/app/Actions/ContentBundle/ExportContentBundleAction.php`, `api/app/Console/Commands/ContentExportCommand.php`
 - Test: `api/tests/Feature/ContentBundle/BundleReaderWriterTest.php`, `api/tests/Feature/ContentBundle/ContentExportCommandTest.php`
 
 - [ ] **`BundleWriter`:**
   - `open(string $path)`: a `.zip` path builds in a temp directory under `storage_path('app/tmp')` and zips on `close()`. Any other path is a directory, which must not exist or must be empty.
   - `writeRecords(RecordType, iterable<array> $records)`: streams lines plus `\n` into `<file>` and an identical copy into `_base/<file>`, and counts records.
-  - `close(array $manifest)`: writes `manifest.json` (pretty-printed, keys in schema order). The writer fills `counts` and `checksums` (`sha256:` of each `_base/*` file). For the public profile it also copies `LICENSE.md` from `resources/content-bundle/LICENSE.public.md`.
+  - `close(array $manifest)`: writes `manifest.json` (pretty-printed, keys in schema order). The writer fills `counts` and `checksums` (`sha256:` of each `_base/*` file). For the public profile it also copies `LICENSE.md` from `resources/content-bundle/LICENSE.public.txt`.
   - Files for types with zero records are still written (empty).
-- [ ] **`LICENSE.public.md`.** A short markdown note stating:
+- [ ] **`LICENSE.public.txt`.** A short markdown note stating:
   - the bundle comes from History Mapped;
   - Wikidata-derived facts are CC0;
   - prose derived from Wikipedia is CC BY-SA 4.0, attributed per record through `source_citations`;

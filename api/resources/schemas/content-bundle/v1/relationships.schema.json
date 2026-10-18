@@ -186,6 +186,25 @@
           "relationship_type"
         ]
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "_op": {
+            "const": "replace"
+          }
+        },
+        "required": [
+          "_op"
+        ]
+      },
+      "then": {
+        "required": [
+          "source_entity_id",
+          "target_entity_id",
+          "relationship_type"
+        ]
+      }
     }
   ]
 }

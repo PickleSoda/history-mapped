@@ -6,6 +6,7 @@ namespace App\Support\ContentBundle\Validation;
 
 use App\Support\ContentBundle\BundleReader;
 use App\Support\ContentBundle\RecordType;
+use App\Support\ContentBundle\Scope\ExportScope;
 use Illuminate\Database\DetectsLostConnections;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -498,7 +499,7 @@ final class ReferenceChecks implements ValidationLayer
     /** The id when `$value` is a lowercase uuid as the bundle schema defines it, else null (the structure layer reported it). */
     private static function uuid(mixed $value): ?string
     {
-        return is_string($value) && preg_match('/\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/', $value) === 1 ? $value : null;
+        return is_string($value) && preg_match(ExportScope::UUID_PATTERN, $value) === 1 ? $value : null;
     }
 
     private static function postgresMessage(Throwable $e): string

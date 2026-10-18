@@ -17,7 +17,8 @@ use InvalidArgumentException;
  */
 final class ExportScope
 {
-    private const UUID = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/';
+    /** Lowercase uuid as the bundle schema defines it. */
+    public const UUID_PATTERN = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/';
 
     /** Must equal `$defs/year` in common.schema.json (asserted by a test). */
     public const YEAR_MIN = -20000;
@@ -199,7 +200,7 @@ final class ExportScope
     private static function uuid(string $value, string $spec): string
     {
         $id = strtolower($value);
-        if (! preg_match(self::UUID, $id)) {
+        if (! preg_match(self::UUID_PATTERN, $id)) {
             throw new InvalidArgumentException("Invalid uuid in scope spec \"{$spec}\".");
         }
 
@@ -241,7 +242,7 @@ final class ExportScope
                 continue;
             }
             $id = strtolower($line);
-            if (! preg_match(self::UUID, $id)) {
+            if (! preg_match(self::UUID_PATTERN, $id)) {
                 throw new InvalidArgumentException('Invalid ids file '.$name.': line '.($i + 1).' is not a uuid.');
             }
             $ids[] = $id;

@@ -266,6 +266,20 @@ class SchemasTest extends TestCase
         }
     }
 
+    public function test_replace_line_needs_the_creation_fields(): void
+    {
+        foreach (RecordType::cases() as $type) {
+            $line = $this->minimalLines()[$type->value];
+            $this->assertTrue($this->valid($type, ['id' => self::UUID, '_op' => 'replace', ...$line]), $type->value.' full replace');
+            $this->assertFalse($this->valid($type, ['id' => self::UUID, '_op' => 'replace']), $type->value.' replace without fields');
+            foreach (array_keys($line) as $missing) {
+                $partial = array_diff_key($line, [$missing => 1]);
+                $this->assertFalse($this->valid($type, ['id' => self::UUID, '_op' => 'replace', ...$partial]), $type->value.' replace without '.$missing);
+            }
+            $this->assertTrue($this->valid($type, ['id' => self::UUID, '_op' => 'merge']), $type->value.' merge stays partial');
+        }
+    }
+
     public function test_unknown_keys_are_rejected(): void
     {
         foreach (RecordType::cases() as $type) {
@@ -423,7 +437,7 @@ class SchemasTest extends TestCase
     {
         foreach (RecordType::cases() as $type) {
             $this->assertFalse($this->valid($type, ['id' => self::UUID, '_op' => 'upsert']), $type->value);
-            $this->assertTrue($this->valid($type, ['id' => self::UUID, '_op' => 'replace']), $type->value);
+            $this->assertTrue($this->valid($type, ['id' => self::UUID, '_op' => 'merge']), $type->value);
         }
     }
 

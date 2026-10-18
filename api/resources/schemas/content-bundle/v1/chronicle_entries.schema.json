@@ -137,6 +137,24 @@
           "narrative_text"
         ]
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "_op": {
+            "const": "replace"
+          }
+        },
+        "required": [
+          "_op"
+        ]
+      },
+      "then": {
+        "required": [
+          "chronicle_id",
+          "narrative_text"
+        ]
+      }
     }
   ]
 }

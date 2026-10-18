@@ -151,6 +151,28 @@
           "retrieval_method"
         ]
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "_op": {
+            "const": "replace"
+          }
+        },
+        "required": [
+          "_op"
+        ]
+      },
+      "then": {
+        "required": [
+          "entity_id",
+          "provider",
+          "external_type",
+          "external_id",
+          "match_role",
+          "retrieval_method"
+        ]
+      }
     }
   ]
 }
