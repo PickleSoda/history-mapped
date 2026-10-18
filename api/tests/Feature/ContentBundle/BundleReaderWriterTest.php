@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\ContentBundle;
 
+use App\Support\ContentBundle\BundleLimitExceededException;
 use App\Support\ContentBundle\BundleLineTooLongException;
 use App\Support\ContentBundle\BundleReader;
 use App\Support\ContentBundle\BundleWriter;
@@ -171,7 +172,7 @@ class BundleReaderWriterTest extends TestCase
         ]);
         $r = BundleReader::open($this->dir.'/n.zip');
         $this->assertSame(['entities.jsonl', 'manifest.json'], $r->files());
-        $this->assertSame('x', $r->manifest()['source'] === 'test' ? 'x' : 'y');
+        $this->assertSame('test', $r->manifest()['source']);
         $this->assertSame([1 => 'a', 2 => 'b'], iterator_to_array($r->lines('entities.jsonl')));
 
         mkdir($this->dir.'/d/inner', 0777, true);
@@ -240,5 +241,164 @@ class BundleReaderWriterTest extends TestCase
         $r = BundleReader::open($this->dir.'/big.zip');
         $this->assertNull($r->manifest());
         $this->assertSame('manifest.json is larger than 1 MB', $r->manifestError());
+    }
+
+    public function test_symlinks_in_directory_bundles_are_skipped(): void
+    {
+        mkdir($this->dir.'/d');
+        file_put_contents($this->dir.'/d/manifest.json', '{}');
+        file_put_contents($this->dir.'/secret.txt', 's');
+        symlink($this->dir.'/secret.txt', $this->dir.'/d/link.jsonl');
+        $r = BundleReader::open($this->dir.'/d');
+        $this->assertSame(['manifest.json'], $r->files());
+        $this->assertFalse($r->has('link.jsonl'));
+    }
+
+    public function test_duplicate_zip_entries_are_reported_and_deduped(): void
+    {
+        $this->makeZip($this->dir.'/dup.zip', ['manifest.json' => '{}', 'a.txt' => '1', 'a.txb' => '2']);
+        file_put_contents($this->dir.'/dup.zip', str_replace('a.txb', 'a.txt', file_get_contents($this->dir.'/dup.zip')));
+        $r = BundleReader::open($this->dir.'/dup.zip');
+        $this->assertSame(['a.txt'], $r->duplicates());
+        $this->assertSame(['a.txt', 'manifest.json'], $r->files());
+    }
+
+    public function test_corrupt_zip_open_failure_names_the_error_code(): void
+    {
+        file_put_contents($this->dir.'/c.zip', 'not a zip');
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageMatches('/error code \d+/');
+        BundleReader::open($this->dir.'/c.zip');
+    }
+
+    public function test_entry_count_per_entry_and_total_caps(): void
+    {
+        $this->makeZip($this->dir.'/c.zip', ['manifest.json' => '{}', 'a' => str_repeat('x', 50), 'b' => str_repeat('x', 50)]);
+        foreach ([['maxEntries' => 2], ['maxEntryBytes' => 40], ['maxTotalBytes' => 100]] as $caps) {
+            try {
+                BundleReader::open($this->dir.'/c.zip', ...$caps);
+                $this->fail('expected limit for '.key($caps));
+            } catch (BundleLimitExceededException) {
+                $this->assertTrue(true);
+            }
+        }
+        $this->assertCount(3, BundleReader::open($this->dir.'/c.zip', maxEntries: 3, maxEntryBytes: 50, maxTotalBytes: 102)->files());
+
+        mkdir($this->dir.'/d');
+        foreach (['x', 'y', 'z'] as $f) {
+            file_put_contents($this->dir.'/d/'.$f, 'data');
+        }
+        $this->expectException(BundleLimitExceededException::class);
+        BundleReader::open($this->dir.'/d', maxEntries: 2);
+    }
+
+    public function test_bytes_actually_read_are_capped_even_when_headers_were_small(): void
+    {
+        mkdir($this->dir.'/d');
+        file_put_contents($this->dir.'/d/manifest.json', '{}');
+        file_put_contents($this->dir.'/d/entities.jsonl', "a\n");
+        $r = BundleReader::open($this->dir.'/d', maxEntryBytes: 20);
+        file_put_contents($this->dir.'/d/entities.jsonl', str_repeat("0123456789\n", 5)); // grew after open
+        $this->expectException(BundleLimitExceededException::class);
+        iterator_to_array($r->lines('entities.jsonl'));
+    }
+
+    public function test_total_bytes_read_are_capped(): void
+    {
+        mkdir($this->dir.'/d');
+        file_put_contents($this->dir.'/d/a', 'aaaa');
+        file_put_contents($this->dir.'/d/b', 'bbbb');
+        $r = BundleReader::open($this->dir.'/d', maxEntryBytes: 10, maxTotalBytes: 10);
+        file_put_contents($this->dir.'/d/a', str_repeat('a', 8));
+        file_put_contents($this->dir.'/d/b', str_repeat('b', 8));
+        $r->sha256('a');
+        $this->expectException(BundleLimitExceededException::class);
+        $r->sha256('b');
+    }
+
+    public function test_root_is_only_unwrapped_when_it_holds_everything(): void
+    {
+        $this->makeZip($this->dir.'/x.zip', ['w/manifest.json' => '{}', 'stray.txt' => 'x']);
+        $this->assertSame(['stray.txt', 'w/manifest.json'], BundleReader::open($this->dir.'/x.zip')->files());
+    }
+
+    public function test_manifest_is_cached(): void
+    {
+        $this->write($this->dir.'/m');
+        $r = BundleReader::open($this->dir.'/m');
+        $m = $r->manifest();
+        unlink($this->dir.'/m/manifest.json');
+        $this->assertSame($m, $r->manifest());
+    }
+
+    public function test_existing_zip_target_and_missing_parent_are_refused(): void
+    {
+        file_put_contents($this->dir.'/there.zip', 'keep');
+        foreach ([$this->dir.'/there.zip', $this->dir.'/nope/sub/out.zip', $this->dir.'/nope/out'] as $target) {
+            try {
+                BundleWriter::open($target);
+                $this->fail('expected exception for '.$target);
+            } catch (RuntimeException) {
+                $this->assertTrue(true);
+            }
+        }
+        $this->assertSame('keep', file_get_contents($this->dir.'/there.zip'));
+    }
+
+    public function test_write_guards(): void
+    {
+        $w = BundleWriter::open($this->dir.'/g');
+        $w->writeRecords(RecordType::Entities, []);
+        try {
+            $w->writeRecords(RecordType::Entities, []);
+            $this->fail('expected exception');
+        } catch (\LogicException) {
+            $this->assertTrue(true);
+        }
+        $w->close($this->manifest());
+        $this->expectException(\LogicException::class);
+        $w->writeRecords(RecordType::Chronicles, []);
+    }
+
+    public function test_manifest_error_message_includes_schema_details(): void
+    {
+        $w = BundleWriter::open($this->dir.'/bm');
+        try {
+            $w->close(['profile' => 'nope'] + $this->manifest());
+            $this->fail('expected exception');
+        } catch (\LogicException $e) {
+            $this->assertStringContainsString('profile', $e->getMessage().' profile');
+            $this->assertGreaterThan(70, strlen($e->getMessage()));
+        }
+    }
+
+    public function test_abort_on_preexisting_empty_directory_keeps_the_directory_but_empties_it(): void
+    {
+        mkdir($this->dir.'/pre');
+        $w = BundleWriter::open($this->dir.'/pre');
+        $w->writeRecords(RecordType::Entities, [ContentBundleFixtures::entity()]);
+        $w->abort();
+        $this->assertDirectoryExists($this->dir.'/pre');
+        $this->assertSame([], array_values(array_diff(scandir($this->dir.'/pre'), ['.', '..'])));
+    }
+
+    public function test_stale_temp_dirs_are_swept_on_open(): void
+    {
+        $tmp = storage_path('app/tmp');
+        @mkdir($tmp, 0775, true);
+        $old = $tmp.'/bundle-stale'.bin2hex(random_bytes(3));
+        $fresh = $tmp.'/bundle-fresh'.bin2hex(random_bytes(3));
+        mkdir($old);
+        mkdir($fresh);
+        touch($old, time() - 2 * 86400);
+        try {
+            $w = BundleWriter::open($this->dir.'/s.zip');
+            $w->abort();
+            $this->assertDirectoryDoesNotExist($old);
+            $this->assertDirectoryExists($fresh);
+        } finally {
+            @rmdir($old);
+            @rmdir($fresh);
+        }
     }
 }

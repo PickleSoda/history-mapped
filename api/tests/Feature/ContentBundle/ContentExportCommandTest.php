@@ -85,11 +85,20 @@ class ContentExportCommandTest extends TestCase
         $this->assertStringContainsString('_internal', implode("\n", iterator_to_array($r->lines('entities.jsonl'))));
     }
 
-    public function test_output_is_deterministic(): void
+    public function test_output_is_deterministic_even_when_nested_rows_are_inserted_in_another_order(): void
     {
+        $insert = fn (string $name) => DB::table('entity_aliases')->insert(['alias_id' => (string) Str::uuid(), 'entity_id' => $this->e1, 'name' => $name, 'language' => 'en', 'is_primary' => false]);
+        DB::table('entity_aliases')->where('entity_id', $this->e1)->delete();
+        $insert('Zed');
+        $insert('Alpha');
         $action = app(ExportContentBundleAction::class);
         $action($this->dir.'/a', ExportScope::parse([]), Profile::Full);
+
+        DB::table('entity_aliases')->where('entity_id', $this->e1)->delete();
+        $insert('Alpha');
+        $insert('Zed');
         $action($this->dir.'/b', ExportScope::parse([]), Profile::Full);
+
         foreach (RecordType::cases() as $type) {
             $this->assertSame(file_get_contents($this->dir.'/a/'.$type->file()), file_get_contents($this->dir.'/b/'.$type->file()));
             $this->assertSame(file_get_contents($this->dir.'/a/'.$type->file()), file_get_contents($this->dir.'/a/_base/'.$type->file()));
@@ -110,6 +119,9 @@ class ContentExportCommandTest extends TestCase
         $counts = BundleReader::open($this->dir.'/c')->manifest()['counts'];
         $this->assertSame(1, $counts['chronicles']);
         $this->assertSame(2, $counts['chronicle_entries']);
+        $this->assertSame(2, $counts['entities']);
+        $this->assertSame(1, $counts['geometry_periods']);
+        $this->assertSame(1, $counts['geo_refs']);
         $this->assertSame(1, $counts['relationships']);
     }
 

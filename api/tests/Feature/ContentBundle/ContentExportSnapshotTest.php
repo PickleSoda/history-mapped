@@ -7,15 +7,20 @@ namespace Tests\Feature\ContentBundle;
 use App\Actions\ContentBundle\ExportContentBundleAction;
 use App\Support\ContentBundle\Profile;
 use App\Support\ContentBundle\Scope\ExportScope;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
- * Deliberately not RefreshDatabase: SET TRANSACTION must be the first statement of a real top-level
- * transaction, which a wrapping test transaction would prevent. The scope matches nothing, so no rows are touched.
+ * RefreshDatabase migrates a fresh DB, but with no wrapping test transaction: SET TRANSACTION must be the
+ * first statement of a real top-level transaction. The scope matches nothing, so no rows are touched.
  */
 class ContentExportSnapshotTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected array $connectionsToTransact = [];
+
     public function test_export_runs_in_one_repeatable_read_read_only_transaction(): void
     {
         $this->assertSame(0, DB::transactionLevel());

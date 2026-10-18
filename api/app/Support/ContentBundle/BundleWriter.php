@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\ContentBundle;
 
 use LogicException;
+use Opis\JsonSchema\Errors\ErrorFormatter;
 use RuntimeException;
 use ZipArchive;
 
@@ -18,6 +19,11 @@ final class BundleWriter
     /** @var array<string, int> */
     private array $counts = [];
 
+    /** @var array<string, true> */
+    private array $written = [];
+
+    private bool $finalized = false;
+
     private bool $finished = false;
 
     private function __construct(
@@ -29,16 +35,21 @@ final class BundleWriter
 
     public static function open(string $path): self
     {
+        $parent = dirname(rtrim($path, '/'));
+        if (! is_dir($parent) || ! is_writable($parent)) {
+            throw new RuntimeException("Cannot write bundle: directory {$parent} does not exist or is not writable.");
+        }
         $zip = strtolower(pathinfo($path, PATHINFO_EXTENSION)) === 'zip';
 
         if ($zip) {
-            if (is_dir($path)) {
-                throw new RuntimeException("Cannot write bundle: {$path} is a directory.");
+            if (file_exists($path) || is_link($path)) {
+                throw new RuntimeException("Cannot write bundle: {$path} already exists.");
             }
             $tmpRoot = storage_path('app/tmp');
             if (! is_dir($tmpRoot) && ! @mkdir($tmpRoot, 0775, true) && ! is_dir($tmpRoot)) {
                 throw new RuntimeException("Cannot create temp directory {$tmpRoot}.");
             }
+            self::sweepStale($tmpRoot);
             $work = $tmpRoot.'/bundle-'.bin2hex(random_bytes(8));
             $created = true;
         } else {
@@ -66,6 +77,13 @@ final class BundleWriter
     /** @param iterable<array<string, mixed>> $records already-serialized lines (arrays), encoded with JsonLine */
     public function writeRecords(RecordType $type, iterable $records): int
     {
+        if ($this->finalized) {
+            throw new LogicException('Cannot write records after the bundle was closed.');
+        }
+        if (isset($this->written[$type->value])) {
+            throw new LogicException("Records for {$type->value} were already written.");
+        }
+        $this->written[$type->value] = true;
         $record = $this->handle($this->workDir.'/'.$type->file());
         $base = $this->handle($this->workDir.'/'.BundleFormat::BASE_DIR.'/'.$type->file());
         $count = 0;
@@ -86,25 +104,48 @@ final class BundleWriter
     }
 
     /**
-     * Fill counts and checksums, validate and write manifest.json, add the licence for the public profile,
-     * and zip when needed. Returns the manifest as written.
+     * Finalize the bundle contents then package it: finalize() followed by package().
      *
      * @param  array<string, mixed>  $manifest  format, version, profile, exported_at, source, scope, base
      * @return array<string, mixed>
      */
     public function close(array $manifest): array
     {
+        $written = $this->finalize($manifest);
+        $this->package();
+
+        return $written;
+    }
+
+    /**
+     * Fill counts and checksums, validate and write manifest.json, and add the licence for the public
+     * profile. No records can be written afterwards. Returns the manifest as written.
+     *
+     * @param  array<string, mixed>  $manifest  format, version, profile, exported_at, source, scope, base
+     * @return array<string, mixed>
+     */
+    public function finalize(array $manifest): array
+    {
+        if ($this->finalized) {
+            throw new LogicException('Bundle was already finalized.');
+        }
+        $this->finalized = true;
+
         try {
             $counts = $checksums = [];
             foreach (RecordType::cases() as $type) {
                 foreach ([$type->file(), BundleFormat::BASE_DIR.'/'.$type->file()] as $rel) {
-                    if (! is_file($this->workDir.'/'.$rel)) {
-                        touch($this->workDir.'/'.$rel);
+                    if (! is_file($this->workDir.'/'.$rel) && ! touch($this->workDir.'/'.$rel)) {
+                        throw new RuntimeException("Cannot create {$rel}.");
                     }
                 }
                 $counts[$type->value] = $this->counts[$type->value] ?? 0;
                 $rel = BundleFormat::BASE_DIR.'/'.$type->file();
-                $checksums[$rel] = 'sha256:'.hash_file('sha256', $this->workDir.'/'.$rel);
+                $hash = hash_file('sha256', $this->workDir.'/'.$rel);
+                if ($hash === false) {
+                    throw new RuntimeException("Cannot checksum {$rel}.");
+                }
+                $checksums[$rel] = 'sha256:'.$hash;
             }
 
             $ordered = [];
@@ -114,17 +155,36 @@ final class BundleWriter
             $ordered['counts'] = $counts;
             $ordered['checksums'] = $checksums;
 
-            $json = json_encode($ordered, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+            $json = json_encode($ordered, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)."\n";
             $result = Schemas::validator()->validate(json_decode($json), Schemas::manifestSchemaId());
             if (! $result->isValid()) {
-                throw new LogicException('Generated manifest does not match manifest.schema.json.');
+                $messages = (new ErrorFormatter)->formatFlat($result->error());
+                throw new LogicException('Generated manifest does not match manifest.schema.json: '.implode('; ', array_map('strval', $messages)));
             }
-            file_put_contents($this->workDir.'/'.BundleFormat::MANIFEST, $json."\n");
-
-            if (($ordered['profile'] ?? null) === Profile::Public->value) {
-                copy(resource_path('content-bundle/LICENSE.public.md'), $this->workDir.'/'.BundleFormat::LICENSE);
+            if (file_put_contents($this->workDir.'/'.BundleFormat::MANIFEST, $json) !== strlen($json)) {
+                throw new RuntimeException('Cannot write manifest.json.');
             }
 
+            if (($ordered['profile'] ?? null) === Profile::Public->value
+                && ! copy(resource_path('content-bundle/LICENSE.public.md'), $this->workDir.'/'.BundleFormat::LICENSE)) {
+                throw new RuntimeException('Cannot write LICENSE.md.');
+            }
+        } catch (\Throwable $e) {
+            $this->abort();
+            throw $e;
+        }
+
+        return $ordered;
+    }
+
+    /** Zip the finalized bundle (when the target is a zip) and remove the temp directory. */
+    public function package(): void
+    {
+        if (! $this->finalized) {
+            throw new LogicException('Bundle must be finalized before packaging.');
+        }
+
+        try {
             if ($this->zip) {
                 $this->buildZip();
             }
@@ -137,8 +197,6 @@ final class BundleWriter
                 $this->removeTree($this->workDir);
             }
         }
-
-        return $ordered;
     }
 
     /** Remove everything this writer created. Safe to call more than once. */
@@ -155,6 +213,30 @@ final class BundleWriter
             foreach (array_diff(scandir($this->workDir) ?: [], ['.', '..']) as $child) {
                 $this->removeTree($this->workDir.'/'.$child);
             }
+        }
+    }
+
+    private static function sweepStale(string $tmpRoot): void
+    {
+        foreach (glob($tmpRoot.'/bundle-*') ?: [] as $stale) {
+            if (filemtime($stale) < time() - 86400) {
+                self::rmTree($stale);
+            }
+        }
+    }
+
+    private static function rmTree(string $path): void
+    {
+        if (is_link($path) || is_file($path)) {
+            @unlink($path);
+
+            return;
+        }
+        if (is_dir($path)) {
+            foreach (array_diff(scandir($path) ?: [], ['.', '..']) as $child) {
+                self::rmTree($path.'/'.$child);
+            }
+            @rmdir($path);
         }
     }
 
@@ -175,8 +257,12 @@ final class BundleWriter
             }
         }
         foreach ($names as $name) {
-            $zip->addFile($this->workDir.'/'.$name, $name);
-            $zip->setCompressionName($name, ZipArchive::CM_DEFLATE);
+            if (! $zip->addFile($this->workDir.'/'.$name, $name) || ! $zip->setCompressionName($name, ZipArchive::CM_DEFLATE, 6)) {
+                $zip->unchangeAll();
+                $zip->close();
+                @unlink($tmpZip);
+                throw new RuntimeException("Cannot add {$name} to the zip.");
+            }
         }
         if (! $zip->close()) {
             @unlink($tmpZip);
@@ -201,17 +287,6 @@ final class BundleWriter
 
     private function removeTree(string $path): void
     {
-        if (is_link($path) || is_file($path)) {
-            @unlink($path);
-
-            return;
-        }
-        if (! is_dir($path)) {
-            return;
-        }
-        foreach (array_diff(scandir($path) ?: [], ['.', '..']) as $child) {
-            $this->removeTree($path.'/'.$child);
-        }
-        @rmdir($path);
+        self::rmTree($path);
     }
 }

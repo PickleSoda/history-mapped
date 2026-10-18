@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\DB;
  * REPEATABLE READ, READ ONLY transaction so all six files come from the same snapshot and a concurrent
  * edit cannot leave dangling references between them. When the caller already holds a transaction
  * (tests, nested use) the export joins it, because Postgres only allows SET TRANSACTION first.
- * Rows stream by primary key in chunks of 500; no file is ever built in memory.
+ * The zip is built after the transaction ends. Rows stream by primary key in chunks of 500; no file is ever built in memory.
  */
 final class ExportContentBundleAction
 {
@@ -33,7 +33,8 @@ final class ExportContentBundleAction
         $writer = BundleWriter::open($path);
 
         try {
-            return DB::transaction(function () use ($writer, $scope, $profile, $source) {
+            $manifest = DB::transaction(function () use ($writer, $scope, $profile, $source) {
+                $exportedAt = CarbonImmutable::now('UTC')->format('Y-m-d\TH:i:s\Z');
                 if (DB::transactionLevel() === 1) {
                     DB::statement('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY');
                 }
@@ -52,16 +53,19 @@ final class ExportContentBundleAction
                     })());
                 }
 
-                return $writer->close([
+                return $writer->finalize([
                     'format' => BundleFormat::FORMAT,
                     'version' => BundleFormat::VERSION,
                     'profile' => $profile->value,
-                    'exported_at' => CarbonImmutable::now('UTC')->format('Y-m-d\TH:i:s\Z'),
+                    'exported_at' => $exportedAt,
                     'source' => $source ?? (string) config('app.env'),
                     'scope' => $scope->specs(),
                     'base' => 'export',
                 ]);
             });
+            $writer->package();
+
+            return $manifest;
         } catch (\Throwable $e) {
             $writer->abort();
             throw $e;
