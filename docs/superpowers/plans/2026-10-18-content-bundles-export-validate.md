@@ -173,10 +173,10 @@ docs/schemas/content-bundle.md            format guide + editing rules for peopl
   - `type: object` and `additionalProperties: false`.
   - Every key from the table, plus `_op`. Nullable columns are `["<type>","null"]`.
   - Enum columns: a NOT NULL enum column is `{"enum":[…]}`. A nullable enum column is `{"anyOf":[{"enum":[…]},{"type":"null"}]}`. (`enum` is checked independently of `type`, so `type:["string","null"]` plus `enum` would reject null.)
-  - `geometry_periods.provenance_mode` is an enum of its DB check constraint values: `derived, manual, ohm_import`. Read each column's enum from the model casts in `app/Models/*` and the enum in `app/Enums/*`. A column with no PHP enum (e.g. `period_type`, `range_type`, `provenance_mode`, `relationships.temporal_start`) is a plain string.
+  - `geometry_periods.provenance_mode` is an enum of its DB check constraint values: `derived, manual, ohm_import`. Read each column's enum from the model casts in `app/Models/*` and the enum in `app/Enums/*`. A column with no PHP enum (e.g. `period_type`, `range_type`, `relationships.temporal_start`) is a plain string.
   - Nested list items are objects with `additionalProperties: false`.
   - `if {_op: const delete} then required [id]`.
-  - `if not required [id] then required [<creation fields>]`, using the creation fields derived as described under "`_op`" above.
+  - `if not required [id] then required [<creation fields>]`, using the creation fields listed under "`_op`" above.
   - References use `common#/$defs/uuid`.
 - [ ] **Step 4: Write `manifest.schema.json`** with these keys:
   - required `format` (const `history-mapped/content-bundle`);
