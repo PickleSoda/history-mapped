@@ -247,7 +247,7 @@ final class BundleReader
             while (! feof($h)) {
                 $chunk = $this->guarded($file, fn () => fread($h, 65536));
                 if ($chunk === false) {
-                    throw new BundleReadException("{$file} is corrupt or truncated");
+                    throw new BundleReadException("{$file} is corrupt or truncated", $file);
                 }
                 $read += strlen($chunk);
                 $this->account($file, $read);
@@ -349,7 +349,7 @@ final class BundleReader
             restore_error_handler();
         }
         if ($failed) {
-            throw new BundleReadException("{$file} is corrupt or truncated");
+            throw new BundleReadException("{$file} is corrupt or truncated", $file);
         }
 
         return $result;
@@ -386,7 +386,7 @@ final class BundleReader
             $h = $this->guarded($file, fn () => fopen($this->dir.'/'.$this->prefix.$file, 'rb'));
         }
         if ($h === false) {
-            throw new BundleReadException("{$file} is corrupt or truncated");
+            throw new BundleReadException("{$file} is corrupt or truncated", $file);
         }
 
         return $h;

@@ -7,7 +7,6 @@ namespace App\Support\ContentBundle\Validation;
 use App\Support\ContentBundle\BundleLimitExceededException;
 use App\Support\ContentBundle\BundleReader;
 use App\Support\ContentBundle\BundleReadException;
-use Closure;
 
 /**
  * Runs the validation layers in order (package, structure, records, references) and stops after the first
@@ -16,32 +15,29 @@ use Closure;
  * (size limits, corrupt or unreadable entries) become package errors; anything else is a bug or an outage
  * on our side and propagates.
  *
- * The records and references layers are closures `(BundleReader, IssueSink, bool $againstSite): void`
- * so they can be swapped out in tests; the defaults are the real layers.
+ * Layers are ValidationLayer objects run in the order given. The defaults are the four real layers, with a
+ * no-op references layer until ReferenceChecks exists; tests pass their own list. A layer's name() is the
+ * Issue layer its errors are counted under.
  */
 final class BundleValidator
 {
-    /** @var Closure(BundleReader, IssueSink, bool): void */
-    private readonly Closure $records;
-
-    /** @var Closure(BundleReader, IssueSink, bool): void */
-    private readonly Closure $references;
+    /** @var list<ValidationLayer> */
+    private readonly array $layers;
 
     private bool $baseOverflowReported = false;
 
-    /**
-     * @param  (Closure(BundleReader, IssueSink, bool): void)|null  $records
-     * @param  (Closure(BundleReader, IssueSink, bool): void)|null  $references
-     */
+    /** @param  list<ValidationLayer>|null  $layers */
     public function __construct(
-        ?Closure $records = null,
-        ?Closure $references = null,
-        private readonly int $maxErrorLines = StructureChecks::MAX_ERROR_LINES,
+        ?array $layers = null,
+        int $maxErrorLines = StructureChecks::MAX_ERROR_LINES,
         private readonly int $baseIndexMaxLines = BaseIndex::MAX_LINES,
     ) {
-        // Task 7 replaces these defaults with the records and references layers.
-        $this->records = $records ?? static function (BundleReader $bundle, IssueSink $sink, bool $againstSite): void {};
-        $this->references = $references ?? static function (BundleReader $bundle, IssueSink $sink, bool $againstSite): void {};
+        $this->layers = $layers ?? [
+            new PackageChecks,
+            new StructureChecks($maxErrorLines),
+            new RecordChecks,
+            new NoChecks(Issue::REFERENCES),
+        ];
     }
 
     /**
@@ -73,25 +69,18 @@ final class BundleValidator
         $base = new BaseIndex($bundle, $this->baseIndexMaxLines);
         $sink = new IssueSink($report, $base);
 
-        $layers = [
-            Issue::PACKAGE => fn () => (new PackageChecks)->run($bundle, $sink),
-            Issue::STRUCTURE => fn () => (new StructureChecks($this->maxErrorLines))->run($bundle, $sink),
-            Issue::RECORDS => fn () => ($this->records)($bundle, $sink, $againstSite),
-            Issue::REFERENCES => fn () => ($this->references)($bundle, $sink, $againstSite),
-        ];
-
         try {
-            foreach ($layers as $layer => $run) {
-                $run();
+            foreach ($this->layers as $layer) {
+                $layer->run($bundle, $sink, $againstSite);
                 $this->reportBaseOverflow($base, $sink);
                 $sink->finish();
-                if ($report->hasErrorsIn($layer)) {
+                if ($report->hasErrorsIn($layer->name())) {
                     break;
                 }
             }
         } catch (BundleLimitExceededException|BundleReadException $e) {
             $sink->finish();
-            $report->add(Issue::error(Issue::PACKAGE, $e->getMessage()));
+            $report->add(Issue::error(Issue::PACKAGE, $e->getMessage(), $e instanceof BundleReadException ? $e->entry : null));
         }
 
         return $report;

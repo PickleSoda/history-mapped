@@ -13,13 +13,18 @@ use App\Support\ContentBundle\Schemas;
  * The structure layer: every line of every root record file must be a JSON object that satisfies its
  * JSON Schema. Streams line by line; a file with MAX_ERROR_LINES erroneous lines is abandoned to bound the time.
  */
-final class StructureChecks
+final class StructureChecks implements ValidationLayer
 {
     public const MAX_ERROR_LINES = 10_000;
 
     public function __construct(private readonly int $maxErrorLines = self::MAX_ERROR_LINES) {}
 
-    public function run(BundleReader $bundle, IssueSink $sink): void
+    public function name(): string
+    {
+        return Issue::STRUCTURE;
+    }
+
+    public function run(BundleReader $bundle, IssueSink $sink, bool $againstSite = false): void
     {
         foreach (RecordType::cases() as $type) {
             if ($bundle->has($type->file())) {

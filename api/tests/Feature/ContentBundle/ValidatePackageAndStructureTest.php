@@ -11,12 +11,16 @@ use App\Models\Entity;
 use App\Models\EntityGeoRef;
 use App\Models\EntityRelationship;
 use App\Support\ContentBundle\BundleReader;
+use App\Support\ContentBundle\BundleReadException;
 use App\Support\ContentBundle\Profile;
 use App\Support\ContentBundle\Scope\ExportScope;
 use App\Support\ContentBundle\Validation\BaseIndex;
 use App\Support\ContentBundle\Validation\BundleValidator;
 use App\Support\ContentBundle\Validation\Issue;
 use App\Support\ContentBundle\Validation\IssueSink;
+use App\Support\ContentBundle\Validation\PackageChecks;
+use App\Support\ContentBundle\Validation\StructureChecks;
+use App\Support\ContentBundle\Validation\ValidationLayer;
 use App\Support\ContentBundle\Validation\ValidationReport;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -292,17 +296,38 @@ class ValidatePackageAndStructureTest extends TestCase
         $this->assertSame(1, $r->issues()[0]->line);
     }
 
+    /** @param  \Closure(BundleReader, IssueSink): void  $run */
+    private function layer(string $name, \Closure $run): ValidationLayer
+    {
+        return new class($name, $run) implements ValidationLayer
+        {
+            public function __construct(private string $name, private \Closure $run) {}
+
+            public function name(): string
+            {
+                return $this->name;
+            }
+
+            public function run(BundleReader $bundle, IssueSink $sink, bool $againstSite): void
+            {
+                ($this->run)($bundle, $sink);
+            }
+        };
+    }
+
     public function test_later_layers_do_not_run_when_structure_fails(): void
     {
         $ran = [];
-        $validator = new BundleValidator(
-            records: function () use (&$ran) {
+        $validator = new BundleValidator([
+            new PackageChecks,
+            new StructureChecks,
+            $this->layer(Issue::RECORDS, function () use (&$ran) {
                 $ran[] = 'records';
-            },
-            references: function () use (&$ran) {
+            }),
+            $this->layer(Issue::REFERENCES, function () use (&$ran) {
                 $ran[] = 'references';
-            },
-        );
+            }),
+        ]);
         $this->edit('chronicles.jsonl', fn (array $l) => [...$l, 'nope']);
         $r = $validator->validate(BundleReader::open($this->bundle));
         $this->assertTrue($r->hasErrorsIn(Issue::STRUCTURE));
@@ -312,36 +337,49 @@ class ValidatePackageAndStructureTest extends TestCase
     public function test_later_layers_run_in_order_and_records_errors_stop_references(): void
     {
         $ran = [];
-        $validator = new BundleValidator(
-            records: function ($b, IssueSink $sink) use (&$ran) {
+        $validator = new BundleValidator([
+            $this->layer(Issue::RECORDS, function ($b, IssueSink $sink) use (&$ran) {
                 $ran[] = 'records';
                 $sink->add(Issue::error(Issue::RECORDS, 'bad record', 'entities.jsonl', 1));
-            },
-            references: function () use (&$ran) {
+            }),
+            $this->layer(Issue::REFERENCES, function () use (&$ran) {
                 $ran[] = 'references';
-            },
-        );
+            }),
+        ]);
         $r = $validator->validate(BundleReader::open($this->bundle));
         $this->assertSame(['records'], $ran);
         $this->assertSame(['entities.jsonl:1: bad record'], $this->strings($r));
 
         $ran = [];
-        $validator = new BundleValidator(records: function () use (&$ran) {
-            $ran[] = 'records';
-        }, references: function () use (&$ran) {
-            $ran[] = 'references';
-        });
+        $validator = new BundleValidator([
+            $this->layer(Issue::RECORDS, function () use (&$ran) {
+                $ran[] = 'records';
+            }),
+            $this->layer(Issue::REFERENCES, function () use (&$ran) {
+                $ran[] = 'references';
+            }),
+        ]);
         $this->assertTrue($validator->validate(BundleReader::open($this->bundle))->isValid());
         $this->assertSame(['records', 'references'], $ran);
     }
 
     public function test_unexpected_exceptions_propagate(): void
     {
-        $validator = new BundleValidator(records: function () {
+        $validator = new BundleValidator([$this->layer(Issue::RECORDS, function () {
             throw new \RuntimeException('database is down');
-        });
+        })]);
         $this->expectExceptionMessage('database is down');
         $validator->validate(BundleReader::open($this->bundle));
+    }
+
+    public function test_read_failures_carry_the_failing_file(): void
+    {
+        $validator = new BundleValidator([$this->layer(Issue::RECORDS, function () {
+            throw new BundleReadException('entities.jsonl is corrupt or truncated', 'entities.jsonl');
+        })]);
+        $r = $validator->validate(BundleReader::open($this->bundle));
+        $this->assertSame('entities.jsonl', $r->issues()[0]->file);
+        $this->assertSame(Issue::PACKAGE, $r->issues()[0]->layer);
     }
 
     public function test_package_errors_stop_before_structure(): void
@@ -466,6 +504,7 @@ class ValidatePackageAndStructureTest extends TestCase
             // Lines read before the CRC failure surfaces (it is only detected at the end of the entry) may add noise.
             $last = $r->issues()[array_key_last($r->issues())];
             $this->assertSame("{$victim} is corrupt or truncated", $last->message, $victim);
+            $this->assertSame($victim, $last->file);
             $this->assertSame(Issue::PACKAGE, $last->layer);
         }
     }

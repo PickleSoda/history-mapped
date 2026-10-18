@@ -13,9 +13,14 @@ use App\Support\ContentBundle\Schemas;
  * The package layer: which files exist, whether their names are safe, and whether the manifest is valid
  * and its `_base/` checksums still match. Missing record files are fine (partial bundles drop files).
  */
-final class PackageChecks
+final class PackageChecks implements ValidationLayer
 {
-    public function run(BundleReader $bundle, IssueSink $sink): void
+    public function name(): string
+    {
+        return Issue::PACKAGE;
+    }
+
+    public function run(BundleReader $bundle, IssueSink $sink, bool $againstSite = false): void
     {
         $this->files($bundle, $sink);
         $manifest = $this->manifest($bundle, $sink);
