@@ -101,7 +101,7 @@ class ScopeResolverTest extends TestCase
     private function resolveIds(array $specs): array
     {
         $out = [];
-        foreach ((new ScopeResolver)->resolve(ExportScope::parse($specs)) as $key => $builder) {
+        foreach ((new ScopeResolver)->resolve(ExportScope::parse($specs, true)) as $key => $builder) {
             $type = RecordType::from($key);
             $ids = $builder->get()->map(fn ($m) => (string) $m->getAttribute($type->primaryKey()))->all();
             sort($ids);
@@ -236,6 +236,31 @@ class ScopeResolverTest extends TestCase
     {
         $path = tempnam(sys_get_temp_dir(), 'ids');
         file_put_contents($path, $this->e['e1']."\n".$this->e['e2']."\n".Str::uuid()."\n");
+
+        try {
+            $got = $this->resolveIds(['ids:'.$path]);
+        } finally {
+            unlink($path);
+        }
+
+        $this->assertClosure($got, ['e1', 'e2'], ['r1']);
+    }
+
+    public function test_unknown_entity_uuid_selects_nothing(): void
+    {
+        foreach ($this->resolveIds(['entity:'.Str::uuid()]) as $ids) {
+            $this->assertSame([], $ids);
+        }
+    }
+
+    public function test_very_large_id_lists_resolve(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'ids');
+        $lines = [$this->e['e1'], $this->e['e2']];
+        for ($i = 0; $i < 40000; $i++) {
+            $lines[] = (string) Str::uuid();
+        }
+        file_put_contents($path, implode("\n", $lines));
 
         try {
             $got = $this->resolveIds(['ids:'.$path]);

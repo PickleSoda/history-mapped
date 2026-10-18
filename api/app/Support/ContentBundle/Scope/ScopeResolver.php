@@ -12,21 +12,23 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Turns an ExportScope into one restricted query per record type, on top of each serializer's base
- * query. Every restriction is a `whereIn(<qualified column>, <subquery>)`; only an already-parsed
- * uuid list is ever bound directly. Types a scope leaves empty get a builder that matches nothing.
+ * query. Every restriction is a `whereIn(<qualified column>, <subquery>)` over the entity set E and
+ * chronicle set C, each built once. Slugs, types, groups, years and uuid lists are bound parameters
+ * (a uuid list as one array parameter, so size never hits the bind limit). Types a scope leaves
+ * empty get a builder that matches nothing.
  */
 final class ScopeResolver
 {
-    private const ID_CHUNK = 1000;
-
     /** @return array<string, Builder> keyed by RecordType value, in RecordType order */
     public function resolve(ExportScope $scope): array
     {
         $out = [];
+        $chronicles = $scope->isAll() ? null : $this->chronicleSet($scope);
+        $entities = $scope->isAll() ? null : $this->entitySet($scope, $chronicles);
         foreach (RecordType::cases() as $type) {
             $query = Serializers::for($type)->query();
             if (! $scope->isAll()) {
-                $this->restrict($type, $query, $scope);
+                $this->restrict($type, $query, $entities, $chronicles);
             }
             $out[$type->value] = $query;
         }
@@ -34,11 +36,8 @@ final class ScopeResolver
         return $out;
     }
 
-    private function restrict(RecordType $type, Builder $query, ExportScope $scope): void
+    private function restrict(RecordType $type, Builder $query, ?QueryBuilder $entities, ?QueryBuilder $chronicles): void
     {
-        $entities = $this->entitySet($scope);
-        $chronicles = $this->chronicleSet($scope);
-
         match ($type) {
             RecordType::Entities => $this->within($query, 'entities.entity_id', $entities),
             RecordType::GeometryPeriods => $this->within($query, 'geometry_periods.entity_id', $entities),
@@ -75,17 +74,18 @@ final class ScopeResolver
     }
 
     /** Entity ids selected by the scope, or null when it selects none. */
-    private function entitySet(ExportScope $scope): ?QueryBuilder
+    private function entitySet(ExportScope $scope, ?QueryBuilder $chronicles): ?QueryBuilder
     {
         $parts = [];
 
-        foreach (array_chunk($scope->entityIds(), self::ID_CHUNK) as $chunk) {
-            $parts[] = $this->entities()->whereIn('entity_id', $chunk);
+        if ($scope->entityIds() !== []) {
+            $parts[] = $this->anyOf($this->entities(), 'entity_id', $scope->entityIds());
         }
-        foreach (array_chunk($scope->neighbourIds(), self::ID_CHUNK) as $chunk) {
-            $parts[] = $this->entities()->whereIn('entity_id', $chunk);
-            $parts[] = DB::table('relationships')->select('target_entity_id')->whereIn('source_entity_id', $chunk);
-            $parts[] = DB::table('relationships')->select('source_entity_id')->whereIn('target_entity_id', $chunk);
+        if ($scope->neighbourIds() !== []) {
+            $ids = $scope->neighbourIds();
+            $parts[] = $this->anyOf($this->entities(), 'entity_id', $ids);
+            $parts[] = $this->anyOf(DB::table('relationships')->select('target_entity_id'), 'source_entity_id', $ids);
+            $parts[] = $this->anyOf(DB::table('relationships')->select('source_entity_id'), 'target_entity_id', $ids);
         }
         if ($scope->types() !== []) {
             $parts[] = $this->entities()->whereIn('entity_type', $scope->types());
@@ -102,7 +102,6 @@ final class ScopeResolver
                 ->where(fn ($q) => $q->whereNull('end_year')->orWhere('end_year', '>=', $from));
         }
 
-        $chronicles = $this->chronicleSet($scope);
         if ($chronicles !== null) {
             $entries = DB::table('chronicle_entries')->select('entry_id')->whereIn('chronicle_id', $chronicles);
             $parts[] = DB::table('chronicle_entry_entities')->select('entity_id')->whereIn('entry_id', $entries);
@@ -121,6 +120,12 @@ final class ScopeResolver
         }
 
         return $set;
+    }
+
+    /** @param list<string> $ids validated uuids, so the array literal is safe */
+    private function anyOf(QueryBuilder $query, string $column, array $ids): QueryBuilder
+    {
+        return $query->whereRaw("{$column} = any(?::uuid[])", ['{'.implode(',', $ids).'}']);
     }
 
     private function chronicleSet(ExportScope $scope): ?QueryBuilder
