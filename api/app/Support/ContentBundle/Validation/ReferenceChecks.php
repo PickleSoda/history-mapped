@@ -403,7 +403,7 @@ final class ReferenceChecks implements ValidationLayer
                 $packed = $this->deleted[$deletedType][$deletedId];
                 $line = unpack('N', $packed)[1];
                 $this->sink->add(
-                    Issue::error(Issue::REFERENCES, "{$count} site records still reference it (e.g. {$example}); delete or re-point them in this bundle", $file, $line, '/id', $deletedId),
+                    Issue::error(Issue::REFERENCES, ($count === 1 ? '1 site record still references it' : "{$count} site records still reference it")." (e.g. {$example}); delete or re-point them in this bundle", $file, $line, '/id', $deletedId),
                     substr($packed, 4, 20),
                 );
             }

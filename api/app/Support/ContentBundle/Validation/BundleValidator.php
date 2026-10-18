@@ -16,9 +16,9 @@ use App\Support\ContentBundle\BundleReadException;
  * on our side and propagates.
  *
  * Layers are ValidationLayer objects run in the order given; the defaults are the four real layers and tests
- * may pass their own list. A layer's name() is the Issue
- * layer its errors are counted under. Issues are finally ordered by layer, then file, then line (see
- * ValidationReport::sort()), because layers may report out of order (batched site lookups).
+ * may pass their own list. A layer's name() is the Issue layer its errors are counted under. Issues are
+ * finally ordered by layer, then file, then line (see ValidationReport::sort()), because layers may report
+ * out of order (batched site lookups).
  */
 final class BundleValidator
 {

@@ -230,7 +230,7 @@ class ValidateReferencesTest extends TestCase
 
         $this->assertSame([], $this->strings($this->validate()));
         $r = $this->validate(true);
-        $this->assertSame(["entities.jsonl:{$line}: /id: 1 site records still reference it (e.g. relationships {$rz}); delete or re-point them in this bundle"], $this->strings($r));
+        $this->assertSame(["entities.jsonl:{$line}: /id: 1 site record still references it (e.g. relationships {$rz}); delete or re-point them in this bundle"], $this->strings($r));
         $this->assertSame($z, $r->issues()[0]->id);
 
         // Deleting the relationship in the bundle excuses it.
@@ -264,7 +264,7 @@ class ValidateReferencesTest extends TestCase
             return $e;
         });
         $r = $this->validate(true);
-        $this->assertSame(["entities.jsonl:{$line}: /id: 1 site records still reference it (e.g. chronicle_entries {$this->entry}); delete or re-point them in this bundle"], $this->strings($r));
+        $this->assertSame(["entities.jsonl:{$line}: /id: 1 site record still references it (e.g. chronicle_entries {$this->entry}); delete or re-point them in this bundle"], $this->strings($r));
 
         $this->edit('chronicle_entries.jsonl', $this->entry, fn ($e) => [...$e, 'entities' => [['entity_id' => $this->a, 'role' => 'participant', 'sequence_in_entry' => 1]]]);
         $this->assertSame([], $this->strings($this->validate(true)));
@@ -409,7 +409,7 @@ class ValidateReferencesTest extends TestCase
             'provenance_mode' => 'derived', 'relationship_id' => $this->rel, 'source_event_id' => $z, 'geom' => self::POINT,
         ]);
         $this->append('entities.jsonl', ['id' => $z, '_op' => 'delete']);
-        $this->assertStringContainsString(': 1 site records still reference it (e.g. geometry_periods', $this->strings($this->validate(true))[0]);
+        $this->assertStringContainsString(': 1 site record still references it (e.g. geometry_periods', $this->strings($this->validate(true))[0]);
     }
 
     public function test_issues_print_in_line_order_even_when_a_site_lookup_reports_late(): void
