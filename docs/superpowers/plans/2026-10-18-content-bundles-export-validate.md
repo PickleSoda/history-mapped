@@ -71,8 +71,8 @@ Each bundle line is one JSON object with keys **in exactly this order**. Exports
 **Value rules:**
 - Enums are emitted as their string value.
 - Geometry is GeoJSON from `ST_AsGeoJSON(col, 7)`: select it as `<col>_geojson` so the `App\Casts\GeoJson` cast picks it up without an N+1. See the cast's `get()`.
-- **Free-form jsonb is decoded from the raw DB value with objects preserved.** Use `JsonLine::decodeJsonb($model->getRawOriginal('<col>'))`, never the model's `array` cast. The cast turns nested `{}` into `[]`, and 4,613 dev entities have nested `{}` in `attributes`.
-- **Object-typed columns go through `JsonLine::object()`**, which turns a top-level empty value into `{}`. Nested values stay exactly as stored. Check each jsonb column's real shape in the dev data before deciding object vs list (for example `source_citations` may be a list). Read-only check:
+- **Free-form jsonb is decoded from the raw DB value with objects preserved.** Use `Values::jsonb($model, '<col>')` (raw value, objects kept as `stdClass`), never the model's `array` cast. The cast turns nested `{}` into `[]`, and 4,613 dev entities have nested `{}` in `attributes`.
+- **Object-typed columns go through `Values::jsonbObject($model, '<col>')`**, which turns a top-level empty value into `{}`. Nested values stay exactly as stored. Check each jsonb column's real shape in the dev data before deciding object vs list (for example `source_citations` may be a list). Read-only check:
   ```bash
   cd /home/pickle/code/history-mapped && docker compose -f docker/docker-compose.yml exec -T db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -At -c "select jsonb_typeof(source_citations), count(*) from entities group by 1"'
   ```
@@ -133,6 +133,9 @@ api/app/Support/ContentBundle/
   Serializers/ChronicleSerializer.php
   Serializers/ChronicleEntrySerializer.php
   Serializers/Serializers.php             RecordType → serializer lookup
+  Serializers/Values.php                  raw/jsonb/jsonbObject/geojson/sortList: column reads that throw on a missing select
+  Serializers/TagList.php                 shared manual/curated tag list builder
+api/app/Models/{ChronicleTag,ChronicleEntryEntity}.php  export-only row models (no key)
   Scope/ExportScope.php                   parses --scope strings
   Scope/ScopeResolver.php                 scope → id queries per RecordType
   BundleWriter.php
@@ -340,7 +343,7 @@ docs/schemas/content-bundle.md            format guide + editing rules for peopl
   - `lines(string $file): Generator<int, string>` (1-based line number ⇒ line without the `\n`; a final empty line is not yielded);
   - `close()`.
 - [ ] **`ExportContentBundleAction(string $path, ExportScope $scope, Profile $profile, ?string $source = null): array`** returns the manifest written.
-  - For each RecordType in order, stream `ScopeResolver` builders with `lazyById(500, <pk>)`. `lazyById` orders by the PK, which gives the sort-by-id rule. Pass each model through its serializer into `writeRecords`.
+  - For each RecordType in order, stream `ScopeResolver` builders with `lazyById(500, '<table>.<pk>', '<pk>')`. The serializer selects are table-qualified, so a scope may join. `lazyById` orders by the PK, which gives the sort-by-id rule. Pass each model through its serializer into `writeRecords`.
   - Manifest: `format`, `version`, `profile`, `exported_at` (UTC ISO 8601), `source` (`$source ?? config('app.env')`), `scope` (`$scope->specs()`), `base: 'export'`, `counts`, `checksums`.
 - [ ] **`content:export {path} {--scope=*} {--profile=full} {--source=}`.**
   - Bad scope or profile → error line and exit 1.
