@@ -329,7 +329,9 @@ jobs:
           command_timeout: 30m
           envs: GHCR_USERNAME,GHCR_TOKEN,APP_DIR,APP_IMAGE
           script: |
-            set -euo pipefail
+            set -Eeuo pipefail
+            # drone-ssh only reports "Process exited with status 1"; name the command.
+            trap 'echo "::error::deploy failed (exit $?) at: $BASH_COMMAND"' ERR
             cd "${APP_DIR:-/opt/history-mapped}"
             export APP_IMAGE="${APP_IMAGE:?image tag not provided}"
 
@@ -349,7 +351,10 @@ jobs:
             # script. When `pull` actually transfers layers (no TTY) its progress
             # reader consumes stdin and bash dies right after "Pulled" with exit 1.
             # Detach stdin — same reason the migrate/web-build runs below do.
-            $COMPOSE pull app </dev/null
+            # That still wasn't enough: 0f4cdce's deploy died right after "Pulled"
+            # even when no layers moved. A pull is only a pre-fetch (`run` and `up`
+            # pull a missing image themselves), so don't let it abort the deploy.
+            $COMPOSE pull --quiet app </dev/null || echo "::warning::compose pull exited $? - continuing"
 
             # Rebuild the customer SPA only when its built bundle is stale vs the
             # current checkout — not merely when *this pull* touched web/. We
