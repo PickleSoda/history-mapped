@@ -71,7 +71,8 @@ Each bundle line is one JSON object with keys **in exactly this order**. Exports
 **Value rules:**
 - Enums are emitted as their string value.
 - Geometry is GeoJSON from `ST_AsGeoJSON(col, 7)`: select it as `<col>_geojson` so the `App\Casts\GeoJson` cast picks it up without an N+1. See the cast's `get()`.
-- Every jsonb column that is an object in the DB must be emitted as a JSON object even when empty. PHP decodes `{}` into `[]`, so serializers cast empty object-typed values with `(object) []`. Check each jsonb column's real shape in the dev data before deciding object vs list (for example `source_citations` may be a list). Read-only check:
+- **Free-form jsonb is decoded from the raw DB value with objects preserved.** Use `JsonLine::decodeJsonb($model->getRawOriginal('<col>'))`, never the model's `array` cast. The cast turns nested `{}` into `[]`, and 4,613 dev entities have nested `{}` in `attributes`.
+- **Object-typed columns go through `JsonLine::object()`**, which turns a top-level empty value into `{}`. Nested values stay exactly as stored. Check each jsonb column's real shape in the dev data before deciding object vs list (for example `source_citations` may be a list). Read-only check:
   ```bash
   cd /home/pickle/code/history-mapped && docker compose -f docker/docker-compose.yml exec -T db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -At -c "select jsonb_typeof(source_citations), count(*) from entities group by 1"'
   ```
