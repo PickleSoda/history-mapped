@@ -22,14 +22,20 @@ final class JsonLine
     }
 
     /**
-     * For object-typed jsonb columns: PHP decodes `{}` to `[]`, so an empty value is cast back to an
-     * object. Part 2's hashing must treat `[]` and `{}` as equal for these columns, because the DB may
-     * hold either (e.g. `entity_geo_refs.external_tags`).
-     *
-     * @param  array<array-key, mixed>|null  $value
-     * @return array<array-key, mixed>|object|null
+     * Decode a raw jsonb string keeping objects as stdClass, so a nested `{}` is not turned into `[]`.
+     * Feed it `$model->getRawOriginal(col)`, never the model's `array` cast.
      */
-    public static function object(?array $value): array|object|null
+    public static function decodeJsonb(?string $raw): mixed
+    {
+        return $raw === null ? null : json_decode($raw, false, 512, JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * For object-typed jsonb columns: a top-level empty value (`[]` or an empty stdClass) is emitted as
+     * `{}`. Nested values are left exactly as the DB holds them. Part 2's hashing must treat `[]` and
+     * `{}` as equal for these columns, because the DB may hold either (e.g. `entity_geo_refs.external_tags`).
+     */
+    public static function object(mixed $value): mixed
     {
         return $value === [] ? (object) [] : $value;
     }

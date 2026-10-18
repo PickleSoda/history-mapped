@@ -108,8 +108,8 @@ class EntitySerializerTest extends TestCase
         $e = $this->entity(['attributes' => ['_rejected_wikidata_id' => 'Q1', 'entity_color' => '#fff']]);
 
         // jsonb does not preserve key order, so compare unordered.
-        $this->assertEqualsCanonicalizing(['_rejected_wikidata_id' => 'Q1', 'entity_color' => '#fff'], $this->serialize($e, Profile::Full)['attributes']);
-        $this->assertSame(['entity_color' => '#fff'], $this->serialize($e, Profile::Public)['attributes']);
+        $this->assertEqualsCanonicalizing(['_rejected_wikidata_id' => 'Q1', 'entity_color' => '#fff'], (array) $this->serialize($e, Profile::Full)['attributes']);
+        $this->assertSame(['entity_color' => '#fff'], (array) $this->serialize($e, Profile::Public)['attributes']);
     }
 
     public function test_empty_attributes_encode_as_empty_object(): void
@@ -119,6 +119,23 @@ class EntitySerializerTest extends TestCase
 
         $this->assertStringContainsString('"attributes":{}', JsonLine::encode($this->serialize($e)));
         $this->assertStringContainsString('"attributes":{}', JsonLine::encode($this->serialize($onlyPrivate, Profile::Public)));
+    }
+
+    public function test_nested_empty_jsonb_values_are_kept_as_stored(): void
+    {
+        $raw = '{"a_obj":{},"b_list":[],"c_full":{"k":{},"l":[1]},"_p":{}}';
+        $e = $this->entity();
+        DB::table('entities')->where('entity_id', $e->entity_id)->update(['attributes' => DB::raw("'".$raw."'::jsonb")]);
+
+        $line = JsonLine::encode($this->serialize($e));
+        $this->assertStringContainsString('"a_obj":{}', $line);
+        $this->assertStringContainsString('"b_list":[]', $line);
+        $this->assertStringContainsString('"c_full":{"k":{},"l":[1]}', $line);
+        $this->assertSame($line, json_encode(json_decode($line), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRESERVE_ZERO_FRACTION));
+
+        $public = JsonLine::encode($this->serialize($e, Profile::Public));
+        $this->assertStringNotContainsString('"_p"', $public);
+        $this->assertStringContainsString('"a_obj":{}', $public);
     }
 
     public function test_source_citations_null_stays_null_and_empty_becomes_object(): void

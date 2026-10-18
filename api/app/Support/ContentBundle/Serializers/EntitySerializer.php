@@ -57,9 +57,9 @@ final class EntitySerializer implements RecordSerializer
         /** @var Entity $e */
         $e = $model;
 
-        $attributes = $e->attributes ?? [];
-        if ($profile === Profile::Public) {
-            $attributes = array_filter($attributes, fn ($key) => ! str_starts_with((string) $key, '_'), ARRAY_FILTER_USE_KEY);
+        $attributes = JsonLine::decodeJsonb($e->getRawOriginal('attributes')) ?? (object) [];
+        if ($profile === Profile::Public && $attributes instanceof \stdClass) {
+            $attributes = (object) array_filter((array) $attributes, fn ($key) => ! str_starts_with((string) $key, '_'), ARRAY_FILTER_USE_KEY);
         }
 
         return [
@@ -81,7 +81,7 @@ final class EntitySerializer implements RecordSerializer
             'location_confidence' => $e->location_confidence?->value,
             'primary_geo_ref_id' => $e->primary_geo_ref_id,
             'attributes' => JsonLine::object($attributes),
-            'source_citations' => JsonLine::object($e->source_citations),
+            'source_citations' => JsonLine::object(JsonLine::decodeJsonb($e->getRawOriginal('source_citations'))),
             'aliases' => $this->aliases($e),
             'tags' => $this->tags($e),
             'temporal_ranges' => $this->temporalRanges($e),
