@@ -411,6 +411,16 @@ docs/schemas/content-bundle.md            format guide + editing rules for peopl
   - **Warning**: the same `wikidata_id` on two entity lines.
   - `start_year > end_year` on any object that has both non-null. Year pairs: relationships `start_year/end_year`; geometry periods `start_year/end_year`; geo refs `temporal_start_year/temporal_end_year`; chronicles and entries `start_year/end_year`; each `entities.temporal_ranges` item `start_year/end_year`.
   - **Text year vs integer year.** Pairs: relationships `(temporal_start, start_year)` and `(temporal_end, end_year)`; geo refs `(temporal_start, temporal_start_year)` and `(temporal_end, temporal_end_year)`; temporal ranges `(start_date, start_year)` and `(end_date, end_year)`. When both are non-null, the leading signed integer of the text (`/^-?\d+/`, the rule from `EntityData::extractYear`) must equal the integer. If only the sign differs, the message says "BCE/CE sign mismatch: text says -0331, year is 331". Otherwise it says "year mismatch".
+  - **The DB CHECK constraints, mirrored** so a bad line fails validation instead of the import:
+    - `gp_has_geometry`: a geometry period needs `geom` or `territory_geom`.
+    - `gp_derived_requires_source`: `provenance_mode = derived` needs `relationship_id` or `source_event_id`.
+    - `gp_presence_requires_relationship`: `period_type = presence` needs `relationship_id`.
+    - `el_has_locator`: each `entities.locations` item needs `location_name`, `geom` or `territory_geom`.
+
+    **When to evaluate:**
+    - New-record lines (no `id`) and `replace` lines treat absent keys as null.
+    - `merge` lines are checked only when every key of the rule is present in the line. Partial merges are checked against the merged value by the part-2 planner.
+    - Nested `locations` are always checked, because a present list replaces the whole list.
 - [ ] **`ReferenceChecks`:**
   1. Collect the ids of every non-delete line per type (live ids) and every delete line (deleted ids).
   2. Reference fields:
