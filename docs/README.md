@@ -48,6 +48,7 @@ Start here, in order, for the project as it exists today:
 - [entity-model/README.md](entity-model/README.md) — entity model overview and companion references
 - [entity-model/entity-specification.md](entity-model/entity-specification.md) — the 30-type / 5-group canonical spec
 - [schemas/README.md](schemas/README.md) — pipeline and API payload schemas
+- [schemas/content-bundle.md](schemas/content-bundle.md) — content bundle format guide (export, edit, validate)
 
 ## Design references (not live)
 

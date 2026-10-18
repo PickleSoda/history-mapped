@@ -1,6 +1,6 @@
 # Content bundles: export, edit, validate, import — design
 
-Date: 2026-10-18 · Status: proposed
+Date: 2026-10-18 · Status: in progress — part 1 (export + validate) built; import not started
 
 Contributors can now change prod content: approved text corrections, missing
 fields, aliases. The only way content moves between environments today is the

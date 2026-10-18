@@ -41,6 +41,7 @@
 | [2026-06-02-ohm-border-event-extraction](../superpowers/plans/2026-06-02-ohm-border-event-extraction.md) | 🟡 | Extractor/scan/build + CLI exist; **enrich path is a stub** (`search_event_by_title` raises `NotImplementedError`). |
 | [2026-06-12-agentic-pipeline-write-path](../superpowers/plans/2026-06-12-agentic-pipeline-write-path.md) | 🟡 | Write-path gating + error capture + dead-code removal done; **state reducers (T10) and SqliteSaver checkpointer (T12)** deliberately not adopted; verify T4/T9/T13/T15. |
 | [2026-06-12-confidence-scoring-rework](../superpowers/plans/2026-06-12-confidence-scoring-rework.md) | ⬜ | Entire plan open — `validate.py` still seeds flat `0.95`; no weights/flags/scorer/hard-block. Depends on the write-path sub-project. |
+| [2026-10-18-content-bundles-export-validate](../superpowers/plans/2026-10-18-content-bundles-export-validate.md) | 🟡 | Part 1 built: `content:export` + `content:validate`, format guide [schemas/content-bundle.md](../schemas/content-bundle.md). **Import (part 2) not started.** Spec: `2026-10-18-content-bundles-import-export-design`. |
 | [2026-06-12-map-bbox-query-optimization](../superpowers/plans/2026-06-12-map-bbox-query-optimization.md) | 🟡 | Phases 1–3 shipped. **Remaining:** single-statement `ResolveOhmFeatureAction` (T12), EntityBuilder spatial EXISTS/LATERAL rewrite (T13), destructive borders-from-OHM storage migration (T15–17), admin dashboard FE (T10/11, intentionally skipped). |
 
 ### Completed this cycle (archived → [`../archive/superpowers-plans/`](../archive/superpowers-plans/))

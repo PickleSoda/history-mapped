@@ -8,6 +8,7 @@ Schema specifications for pipeline payloads, import contracts, and georef API re
 - [geo-resolution-manifest.md](geo-resolution-manifest.md) — geo-resolution manifest contract.
 - [relationship-hints-manifest.md](relationship-hints-manifest.md) — staged relationship-hint records.
 - [ref-table-record.md](ref-table-record.md) — reference-table (calendar systems, periods, regions, …) records.
+- [content-bundle.md](content-bundle.md) — content bundle format guide: export, edit and validate JSONL bundles (import is part 2, not built yet).
 
 ## API
 
