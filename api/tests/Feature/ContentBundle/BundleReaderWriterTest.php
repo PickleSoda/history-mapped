@@ -233,4 +233,12 @@ class BundleReaderWriterTest extends TestCase
         file_put_contents($this->dir.'/d/entities.jsonl', "a\nb");
         $this->assertSame([1 => 'a', 2 => 'b'], iterator_to_array(BundleReader::open($this->dir.'/d')->lines('entities.jsonl')));
     }
+
+    public function test_oversized_manifest_is_rejected_without_parsing(): void
+    {
+        $this->makeZip($this->dir.'/big.zip', ['manifest.json' => '{"a":"'.str_repeat('x', 1024 * 1024).'"}']);
+        $r = BundleReader::open($this->dir.'/big.zip');
+        $this->assertNull($r->manifest());
+        $this->assertSame('manifest.json is larger than 1 MB', $r->manifestError());
+    }
 }

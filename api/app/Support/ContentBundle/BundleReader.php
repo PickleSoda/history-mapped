@@ -13,13 +13,19 @@ use ZipArchive;
  * ZipArchive streams; entry names are only compared as strings, never resolved against the filesystem.
  * Hostile names (absolute, `..`, backslashes) are listed by files() unchanged so the validator can flag them,
  * but cannot be read from a directory bundle. A single wrapper directory holding manifest.json is the root.
- * Lines longer than the limit (default 8 MB) make lines() throw BundleLineTooLongException.
+ * Lines longer than the limit (default 8 MB) make lines() throw BundleLineTooLongException. manifest() reads at most 1 MB.
+ * The file listing is cached for the life of the reader.
  */
 final class BundleReader
 {
     public const MAX_LINE_BYTES = 8 * 1024 * 1024;
 
+    public const MAX_MANIFEST_BYTES = 1024 * 1024;
+
     private ?string $manifestError = null;
+
+    /** @var list<string>|null */
+    private ?array $files = null;
 
     private function __construct(
         private readonly ?ZipArchive $zip,
@@ -60,9 +66,16 @@ final class BundleReader
 
             return null;
         }
-        $raw = '';
-        foreach ($this->lines(BundleFormat::MANIFEST, true) as $line) {
-            $raw .= $line."\n";
+        $h = $this->stream(BundleFormat::MANIFEST);
+        try {
+            $raw = (string) stream_get_contents($h, self::MAX_MANIFEST_BYTES + 1);
+        } finally {
+            fclose($h);
+        }
+        if (strlen($raw) > self::MAX_MANIFEST_BYTES) {
+            $this->manifestError = 'manifest.json is larger than 1 MB';
+
+            return null;
         }
         $data = json_decode($raw, true);
         if (! is_array($data) || array_is_list($data) && $data !== []) {
@@ -82,6 +95,9 @@ final class BundleReader
     /** @return list<string> relative paths below the bundle root, `/` separators, directories excluded */
     public function files(): array
     {
+        if ($this->files !== null) {
+            return $this->files;
+        }
         $names = $this->zip !== null ? $this->zipNames() : self::listDir($this->dir);
         $out = [];
         foreach (self::filter($names) as $name) {
@@ -97,7 +113,7 @@ final class BundleReader
         }
         sort($out);
 
-        return $out;
+        return $this->files = $out;
     }
 
     public function has(string $file): bool
@@ -126,7 +142,7 @@ final class BundleReader
     }
 
     /** @return Generator<int, string> 1-based line number => line without "\n"; a final empty line is not yielded */
-    public function lines(string $file, bool $unbounded = false): Generator
+    public function lines(string $file): Generator
     {
         $h = $this->stream($file);
         $n = 0;
@@ -134,7 +150,7 @@ final class BundleReader
             while (($chunk = fgets($h, $this->maxLineBytes + 2)) !== false) {
                 $n++;
                 $terminated = str_ends_with($chunk, "\n");
-                if (! $unbounded && strlen($chunk) > $this->maxLineBytes && ! ($terminated && strlen($chunk) === $this->maxLineBytes + 1)) {
+                if (strlen($chunk) > $this->maxLineBytes && ! ($terminated && strlen($chunk) === $this->maxLineBytes + 1)) {
                     throw new BundleLineTooLongException($file, $n, $this->maxLineBytes);
                 }
                 yield $n => $terminated ? substr($chunk, 0, -1) : $chunk;
