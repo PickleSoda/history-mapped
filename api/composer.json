@@ -19,6 +19,7 @@
         "laravel/sanctum": "^4.3",
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.14",
+        "opis/json-schema": "^2.6",
         "pgvector/pgvector": "^0.2.2",
         "sebastian/diff": "^7.0",
         "spatie/laravel-permission": "^7.2",

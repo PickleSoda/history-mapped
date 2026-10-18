@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://history-mapped.local/schemas/content-bundle/v1/common.schema.json",
+  "title": "Content bundle shared definitions",
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "year": {
+      "type": "integer",
+      "minimum": -20000,
+      "maximum": 3000,
+      "description": "Negative = BCE."
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[^\\sA-Z/]+$",
+      "maxLength": 255
+    },
+    "qid": {
+      "type": "string",
+      "pattern": "^Q[1-9]\\d*$"
+    },
+    "op": {
+      "enum": [
+        "merge",
+        "replace",
+        "delete"
+      ]
+    },
+    "tag": {
+      "type": "object",
+      "properties": {
+        "slug": {
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "manual",
+            "curated"
+          ]
+        }
+      },
+      "required": [
+        "slug",
+        "source"
+      ],
+      "additionalProperties": false
+    },
+    "geometry": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "Point",
+            "MultiPoint",
+            "LineString",
+            "MultiLineString",
+            "Polygon",
+            "MultiPolygon",
+            "GeometryCollection"
+          ]
+        },
+        "coordinates": {
+          "type": "array"
+        },
+        "geometries": {
+          "type": "array"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "anyOf": [
+        {
+          "required": [
+            "coordinates"
+          ]
+        },
+        {
+          "required": [
+            "geometries"
+          ]
+        }
+      ]
+    }
+  }
+}
