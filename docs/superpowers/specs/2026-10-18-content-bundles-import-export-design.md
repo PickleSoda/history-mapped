@@ -70,7 +70,7 @@ get their own file.
 
 | File | Record | Nested | References |
 |---|---|---|---|
-| `entities.jsonl` | `entities` row: name, entity_type, wikidata_id, summary, significance, impact_score, display_priority, icon_class, confidence, date/location/duration method + confidence, verification_status, attributes, source_citations | `aliases` [{name, language, is_primary}], `tags` [slugs, manual/curated only], `temporal_ranges` […], `locations` [… geom as GeoJSON] | `primary_geo_ref_id` → geo_refs |
+| `entities.jsonl` | `entities` row: name, entity_type, wikidata_id, summary, significance, impact_score, display_priority, icon_class, confidence, date/location/duration method + confidence, verification_status, attributes, source_citations | `aliases` [{name, language, source, is_primary}], `tags` [slugs, manual/curated only], `temporal_ranges` […], `locations` [… geom as GeoJSON] | `primary_geo_ref_id` → geo_refs |
 | `relationships.jsonl` | source_entity_id, target_entity_id, relationship_type, temporal_start/end, start/end_year, description, confidence, derive_geometry_period, source_citations | — | entities |
 | `geometry_periods.jsonl` | entity_id, period_type, start/end_year, geom + territory_geom (GeoJSON, 7 dp), description, provenance_mode, confidence | — | entities, relationships, `source_event_id` → entities |
 | `geo_refs.jsonl` | entity_id, provider, external_id, external_type, match_role, temporal_*, external_tags, source_meta, match_score, is_active, retrieval_method | — | entities, geometry_periods |
@@ -109,26 +109,28 @@ sorted keys, geometry as GeoJSON rounded to 7 dp.
 
 ## 4. Validation (`content:validate`)
 
-The checks run in layers and stop early on structural failures. The CLI and
-the admin upload share one implementation (`App\Support\ContentBundle\…`).
+The checks run in layers. Validation stops after any layer that has errors, because later layers assume the earlier ones held. The CLI and the admin upload share one implementation (`App\Support\ContentBundle\Validation\`). The user-facing guide is `docs/schemas/content-bundle.md`.
 
-1. **Package**: manifest present, supported `version`, checksums match, file names known.
-2. **Structure**: every line is checked against the JSON Schema for its file. The schemas live in `api/resources/schemas/content-bundle/v1/*.schema.json`, as the single source of truth. They sit under `api/` so they ship with the app image, and the pipeline reads them from the repo. PHP validates with `opis/json-schema` (new dependency). The pipeline validates the bundles it writes with Python `jsonschema` against the same files. Enums come from the DB enum types (entity_type, relationship_type, confidence…), and a test asserts that the schema and the DB enums match.
-3. **Records**:
-   - no duplicate ids;
-   - no duplicate relationship (source, target, type);
-   - `start_year ≤ end_year`;
-   - the existing BCE/CE sign-slip guard runs on dates;
-   - QID format `Q\d+`;
-   - slug format;
-   - GeoJSON validity (PostGIS `ST_IsValid` on import);
-   - `_op` values (every record type supports all three).
-4. **References**: every id resolves to the bundle or (with `--against-site`) to the site. Deletes leave no dangling references.
-5. **Plan** (`--against-site`, or always in the admin upload): the dry run of §5, reporting creates, updates, unchanged rows, conflicts, deletes, and pending user contributions that the import would make stale.
+1. **Package**: manifest present and schema-valid, supported `version`, `_base/` checksums match, and file names are known and safe. Duplicate zip entries are errors. Size, entry-count and compression-ratio limits guard against zip bombs.
+2. **Structure**: every line is checked against the JSON Schema for its file. That covers types, enums, QID/slug/uuid formats, `_op` values, and the creation fields of lines without `id`.
+   - The schemas live in `api/resources/schemas/content-bundle/v1/*.schema.json`, as the single source of truth. They sit under `api/` so they ship with the app image, and the pipeline reads them from the repo.
+   - PHP validates with `opis/json-schema` (new dependency). The pipeline can validate the bundles it writes with Python `jsonschema` against the same files.
+   - Enums come from the PHP enums the models cast to, and a test asserts they match the Postgres enum types.
+3. **Records** (`RecordChecks`, with the per-record rules in `RecordRules` for reuse by the part-2 planner):
+   - no duplicate ids, relationships (source, target, type, start_year, end_year) or chronicle slugs; a duplicate Wikidata id is a warning;
+   - `start_year ≤ end_year`, and text years agree with integer years, including the BCE/CE sign-slip message;
+   - the DB CHECK constraints on geometry periods and entity locations, mirrored.
+4. **References** (`ReferenceChecks`):
+   - every id resolves to the bundle or, with `--against-site`, to the site;
+   - same-owner rules for primary geo refs and geo-ref periods;
+   - with `--against-site`: deletes leave no site row still referencing them, and every geometry passes PostGIS `ST_IsValid`.
 
-The report lists `file:line: field: message`. Exit code 0 means valid, 1
-means errors, 2 means valid with conflicts. `--json` produces machine-readable
-output for scripts and CI.
+   Without `--against-site`, references outside the bundle get one summary warning per file and field.
+5. **Plan** (part 2): the dry run of §5, reporting creates, updates, unchanged rows, conflicts, deletes, and pending user contributions that the import would make stale.
+
+**Unchanged lines are downgraded.** An error on a line that is byte-identical to its `_base/` line is downgraded to a warning, marked "(unchanged since export)". The import never writes unchanged values, and an export of a site with old data problems must still validate. A cross-line issue downgrades only when every line involved is unchanged. Per-file caps (200 issues each for errors and warnings) keep reports readable, and the totals stay exact.
+
+The report lists `file:line: field: message`, sorted by layer, file and line. Exit code 0 means valid (warnings allowed) and 1 means errors. Code 2 is reserved for the part-2 planner ("valid with conflicts"). `--json` produces machine-readable output for scripts and CI.
 
 ## 5. Import
 
