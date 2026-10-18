@@ -58,7 +58,7 @@ final class RecordChecks implements ValidationLayer
             $problems = [];
 
             if ($id !== null) {
-                $this->seen($ids, $id, $n, $hash, 'duplicate id', '/id', Issue::ERROR, $problems);
+                $this->seen($ids, $id, $n, $hash, "duplicate id `{$id}`", '/id', Issue::ERROR, $problems);
             }
 
             if ($op !== 'delete') {

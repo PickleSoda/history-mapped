@@ -15,8 +15,8 @@ use App\Support\ContentBundle\BundleReadException;
  * (size limits, corrupt or unreadable entries) become package errors; anything else is a bug or an outage
  * on our side and propagates.
  *
- * Layers are ValidationLayer objects run in the order given. The defaults are the four real layers, with a
- * no-op references layer until ReferenceChecks exists; tests pass their own list. A layer's name() is the
+ * Layers are ValidationLayer objects run in the order given; the defaults are the four real layers and tests
+ * may pass their own list. A layer's name() is the
  * Issue layer its errors are counted under.
  */
 final class BundleValidator
@@ -39,7 +39,7 @@ final class BundleValidator
             new PackageChecks,
             new StructureChecks($maxErrorLines ?? StructureChecks::MAX_ERROR_LINES),
             new RecordChecks,
-            new NoChecks(Issue::REFERENCES),
+            new ReferenceChecks,
         ];
     }
 

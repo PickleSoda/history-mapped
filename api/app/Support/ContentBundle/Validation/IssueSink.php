@@ -34,7 +34,25 @@ final class IssueSink
      */
     public function add(Issue $issue, string ...$lineHashes): string
     {
-        if ($issue->isError() && $lineHashes !== [] && $issue->file !== null && $this->allUnchanged($issue->file, $lineHashes)) {
+        $unchanged = $issue->file !== null && $lineHashes !== [] && $this->allUnchanged(array_map(fn (string $h) => [$issue->file, $h], $lineHashes));
+
+        return $this->record($issue, $unchanged);
+    }
+
+    /**
+     * Like add() for issues that involve lines of several files (a reference and the line it points at).
+     * Each `[file, hash]` pair is looked up in its own file's base; the downgrade needs all of them unchanged.
+     *
+     * @param  list<array{string, string}>  $lineRefs
+     */
+    public function addAcross(Issue $issue, array $lineRefs): string
+    {
+        return $this->record($issue, $lineRefs !== [] && $this->allUnchanged($lineRefs));
+    }
+
+    private function record(Issue $issue, bool $unchanged): string
+    {
+        if ($issue->isError() && $unchanged) {
             $issue = $issue->asWarning(self::UNCHANGED_SUFFIX);
         }
 
@@ -50,10 +68,10 @@ final class IssueSink
         return $issue->severity;
     }
 
-    /** @param  non-empty-list<string>  $hashes */
-    private function allUnchanged(string $file, array $hashes): bool
+    /** @param  non-empty-list<array{string, string}>  $lineRefs */
+    private function allUnchanged(array $lineRefs): bool
     {
-        foreach ($hashes as $hash) {
+        foreach ($lineRefs as [$file, $hash]) {
             if (! $this->base->has($file, $hash)) {
                 return false;
             }

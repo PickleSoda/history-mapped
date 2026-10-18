@@ -117,7 +117,7 @@ class ValidateRecordsTest extends TestCase
         $this->editFirst('chronicles.jsonl', fn ($r) => [$r, [...$r, 'slug' => 'other']]);
         $r = $this->validate();
         $id = $this->read('chronicles.jsonl')[0]['id'];
-        $this->assertSame(['chronicles.jsonl:2: /id: duplicate id: also on line 1'], $this->strings($r));
+        $this->assertSame(["chronicles.jsonl:2: /id: duplicate id `{$id}`: also on line 1"], $this->strings($r));
         $this->assertSame($id, $r->issues()[0]->id);
     }
 
@@ -298,10 +298,11 @@ class ValidateRecordsTest extends TestCase
         $cases = [
             ['chronicles.jsonl', ['id' => (string) Str::uuid()], '/slug', 'duplicate chronicle slug "rome": also on line 1'],
             ['relationships.jsonl', ['id' => (string) Str::uuid()], '/relationship_type', 'duplicate relationship: also on line 1'],
-            ['chronicles.jsonl', ['slug' => 'other'], '/id', 'duplicate id: also on line 1'],
+            ['chronicles.jsonl', ['slug' => 'other'], '/id', 'duplicate id `%ID%`: also on line 1'],
         ];
         foreach ($cases as [$file, $patch, $field, $message]) {
             $rows = $this->read($file);
+            $message = str_replace('%ID%', $rows[0]['id'], $message);
             $this->write($file, [[...$rows[0], ...$patch], ...$rows]);
             $r = $this->validate();
             $this->assertFalse($r->isValid(), $message);
