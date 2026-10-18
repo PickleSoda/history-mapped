@@ -382,6 +382,14 @@ docs/schemas/content-bundle.md            format guide + editing rules for peopl
   - A `_base/` file not listed in `checksums` is an error.
   - Unknown files are errors. Allowed: `manifest.json`, `LICENSE.md`, the six record files at the root, and the six under `_base/`.
   - Missing record files are fine, because partial bundles may drop files.
+- [ ] **Reader failure modes** (from Task 5's hardened `BundleReader`). These become issues, never uncaught exceptions:
+  - **Package errors:**
+    - `BundleReader::open()` failing (unreadable path, ZipArchive error code, `BundleLimitExceededException` for entry count, per-entry size, total size or compression ratio) gives one package error with the exception's message, and nothing else runs.
+    - Each name in `duplicates()` is an error, "duplicate zip entry <name>: tools disagree on which copy is read".
+    - File names that are absolute, contain `..` segments or backslashes are errors, "unsafe file name", instead of being treated as merely unknown.
+  - **During structure checks:**
+    - `BundleLineTooLongException` is an error at that `file:line` ("line is longer than N MB"). Stop reading that file.
+    - `BundleLimitExceededException` while reading is a package error, and stops validation.
 - [ ] **`StructureChecks`:** for every record file present (not `_base/`), each line:
   - must `json_decode` (error "invalid JSON: <msg>");
   - must be an object;
