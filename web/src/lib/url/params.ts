@@ -1,6 +1,6 @@
 /**
  * nuqs parsers — the typed URL schema (spec §2): bbox, t, g, sel, q, chron,
- * step, full, view, ct.
+ * step, full, view, base, ct.
  *
  * Each search param has a parser here. Hooks in `@/hooks` consume these so that
  * a component subscribing to `sel` is not woken when `bbox` changes. History
@@ -59,3 +59,6 @@ export const parseAsChronicleTags = parseAsArrayOf(parseAsString, ',');
 
 /** view = "map" | "globe" */
 export const parseAsView = parseAsStringLiteral(['map', 'globe'] as const);
+
+/** base = "woodblock" | "historical" | "railway" — the OHM basemap style. */
+export const parseAsBasemap = parseAsStringLiteral(['woodblock', 'historical', 'railway'] as const);

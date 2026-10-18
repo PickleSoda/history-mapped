@@ -1,12 +1,31 @@
 import type { FilterSpecification, StyleSpecification } from 'maplibre-gl';
+import type { BasemapId } from '@/types/atlas';
+
+const OHM_STYLES = 'https://www.openhistoricalmap.org/map-styles';
 
 /**
- * OpenHistoricalMap woodblock basemap style.
- *
- * Backed by OHM vector tiles with `start_date`/`end_date` properties.
+ * The OpenHistoricalMap house styles the atlas offers (Layers menu, URL
+ * `base`), in menu order. All are backed by the same OHM vector tiles with
+ * `start_date`/`end_date` properties, so the timeline filter works on each.
  */
-export const OHM_STYLE_URL =
-    'https://www.openhistoricalmap.org/map-styles/woodblock/woodblock.json';
+export const BASEMAPS: Record<BasemapId, { label: string; hint: string; url: string }> = {
+    woodblock: {
+        label: 'Woodblock',
+        hint: 'Hand-printed paper',
+        url: `${OHM_STYLES}/woodblock/woodblock.json`,
+    },
+    historical: {
+        label: 'Historical',
+        hint: 'OHM default, with relief',
+        url: `${OHM_STYLES}/historical/historical.json`,
+    },
+    railway: {
+        label: 'Railway',
+        hint: 'Rail lines picked out',
+        url: `${OHM_STYLES}/railway/railway.json`,
+    },
+};
+
 export const HISTORICAL_BASEMAP_FALLBACK_STYLE_URL =
     'https://tiles.openfreemap.org/styles/liberty';
 
@@ -121,6 +140,8 @@ function excludeKnownOhmFeatures(layer: StyleLayer): StyleLayer {
  * Muted antique turquoise for the sea, tuned to sit on the woodblock paper
  * texture. The open ocean is the `background` wash (land draws over it);
  * lakes/inland seas are the two water_areas fills; rivers/canals are lines.
+ * Woodblock only: the other styles have no paper layer under `background`,
+ * so the translucent wash would show the bare canvas there.
  */
 const SEA_COLOR = 'rgba(101, 165, 158, 1)';
 const SEA_WASH_OPACITY = 0.45;
@@ -152,27 +173,39 @@ function recolorWater(layer: StyleLayer): StyleLayer {
     } as StyleLayer;
 }
 
-function normalizeOhmLabels(style: StyleSpecification): StyleSpecification {
+function normalizeOhmLabels(
+    style: StyleSpecification,
+    basemap: BasemapId,
+): StyleSpecification {
     return {
         ...style,
         layers: (style.layers ?? [])
             .filter((layer) => !OHM_HIDDEN_LAYER_IDS.has(layer.id))
-            .map((layer) =>
-                recolorWater(
-                    excludeKnownOhmFeatures(normalizeLabelFieldToEnglish(layer)),
-                ),
-            ),
+            .map((layer) => {
+                const normalized = excludeKnownOhmFeatures(
+                    normalizeLabelFieldToEnglish(layer),
+                );
+
+                return basemap === 'woodblock'
+                    ? recolorWater(normalized)
+                    : normalized;
+            }),
     };
 }
 
 /**
- * Load and normalize the OHM basemap style document.
+ * Load and normalize an OHM basemap style document (woodblock by default).
  *
  * Ensures `projection` is always present for MapLibre v5 compatibility.
  */
-export async function loadHistoricalBasemapStyle(): Promise<StyleSpecification> {
+export async function loadHistoricalBasemapStyle(
+    basemap: BasemapId = 'woodblock',
+): Promise<StyleSpecification> {
     try {
-        const style = normalizeOhmLabels(await fetchStyle(OHM_STYLE_URL));
+        const style = normalizeOhmLabels(
+            await fetchStyle(BASEMAPS[basemap].url),
+            basemap,
+        );
 
         return {
             ...style,
@@ -195,7 +228,25 @@ export async function loadHistoricalBasemapStyle(): Promise<StyleSpecification> 
     }
 }
 
-async function fetchStyle(styleUrl: string): Promise<StyleSpecification> {
+/** Raw style documents by URL, so switching basemaps back and forth does not
+ *  refetch. A failed fetch is dropped so the next switch retries. */
+const styleCache = new Map<string, Promise<StyleSpecification>>();
+
+function fetchStyle(styleUrl: string): Promise<StyleSpecification> {
+    let style = styleCache.get(styleUrl);
+
+    if (!style) {
+        style = fetchStyleDocument(styleUrl);
+        styleCache.set(styleUrl, style);
+        style.catch(() => styleCache.delete(styleUrl));
+    }
+
+    return style;
+}
+
+async function fetchStyleDocument(
+    styleUrl: string,
+): Promise<StyleSpecification> {
     const response = await fetch(styleUrl);
 
     if (!response.ok) {

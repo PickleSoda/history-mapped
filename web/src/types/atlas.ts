@@ -43,3 +43,6 @@ export interface Scope {
 
 /** Map projection mode (URL `view` param). */
 export type ViewMode = 'map' | 'globe';
+
+/** OpenHistoricalMap basemap style (URL `base` param). */
+export type BasemapId = 'woodblock' | 'historical' | 'railway';

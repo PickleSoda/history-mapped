@@ -1,9 +1,28 @@
-import { Compass, Globe, Layers, LogIn, LogOut, MapPin, Search, SlidersHorizontal } from 'lucide-react';
+import {
+  Check,
+  Compass,
+  Globe,
+  Layers,
+  LogIn,
+  LogOut,
+  MapPin,
+  Search,
+  SlidersHorizontal,
+} from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { accountLinks } from '@/components/account/UserMenu';
+import { BASEMAP_IDS } from '@/components/atlas/LayersMenu';
 import { ThemeToggle } from '@/components/atlas/ThemeToggle';
-import { useAuthActions, useCommandPalette, useLoginRedirect, useMe, useView } from '@/hooks';
+import {
+  useAuthActions,
+  useBasemap,
+  useCommandPalette,
+  useLoginRedirect,
+  useMe,
+  useView,
+} from '@/hooks';
+import { BASEMAPS } from '@/lib/map-config';
 import { cn } from '@/lib/utils';
 
 const TOOL_ROW =
@@ -14,6 +33,7 @@ const TOOL_ROW =
 export function MobileTopBar() {
   const { setOpen } = useCommandPalette();
   const { view, setView } = useView();
+  const { basemap, setBasemap } = useBasemap();
   const [tools, setTools] = useState(false);
   const { me } = useMe();
   const toLogin = useLoginRedirect();
@@ -65,9 +85,24 @@ export function MobileTopBar() {
               ),
             )}
           </div>
-          <button type="button" className={TOOL_ROW}>
-            <Layers size={15} /> Layers
-          </button>
+          <p className="flex items-center gap-2 px-2 pb-0.5 pt-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <Layers size={13} /> Basemap
+          </p>
+          {BASEMAP_IDS.map((id) => (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={basemap === id}
+              onClick={() => {
+                setBasemap(id);
+                setTools(false);
+              }}
+              className={cn(TOOL_ROW, 'mt-0', basemap === id && 'text-foreground')}
+            >
+              <Check size={15} className={cn(basemap !== id && 'invisible')} />
+              {BASEMAPS[id].label}
+            </button>
+          ))}
 
           <div className="-mx-1.5 my-1 h-px bg-border" />
           {me ? (

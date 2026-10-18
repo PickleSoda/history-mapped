@@ -8,6 +8,7 @@ export { useSelection } from './useSelection';
 export { useSearchQuery } from './useSearchQuery';
 export { useChronicleNav } from './useChronicleNav';
 export { useView } from './useView';
+export { useBasemap } from './useBasemap';
 export { useFullPage } from './useFullPage';
 
 // Derived

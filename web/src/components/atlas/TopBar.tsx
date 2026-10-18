@@ -1,5 +1,6 @@
-import { Compass, Globe, Layers, MapPin, Search, SlidersHorizontal } from 'lucide-react';
+import { Compass, Globe, MapPin, Search, SlidersHorizontal } from 'lucide-react';
 import { UserMenu } from '@/components/account/UserMenu';
+import { LayersMenu } from '@/components/atlas/LayersMenu';
 import { ThemeToggle } from '@/components/atlas/ThemeToggle';
 import { useCommandPalette, useView } from '@/hooks';
 import { cn } from '@/lib/utils';
@@ -64,13 +65,7 @@ export function TopBar() {
       <div className="flex items-center gap-2">
         <ViewToggle />
         <ThemeToggle />
-        <button
-          type="button"
-          className="grid size-9 place-items-center rounded-lg text-muted-foreground hover:bg-muted"
-          aria-label="Layers"
-        >
-          <Layers size={16} />
-        </button>
+        <LayersMenu />
         <button
           type="button"
           className="grid size-9 place-items-center rounded-lg text-muted-foreground hover:bg-muted"

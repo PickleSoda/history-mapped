@@ -21,8 +21,14 @@ type ApplyOptions = {
     includeUndated?: boolean;
 };
 
+/**
+ * Each layer's own filter, before any date filter was layered on. Keyed by the
+ * map's Style instance: a basemap switch (`setStyle`) builds a new Style, so
+ * the new layers get a fresh cache instead of another style's filters under
+ * the same layer id.
+ */
 const originalLayerFilters = new WeakMap<
-    MapLibreMap,
+    MapLibreMap['style'],
     Map<string, FilterSpecification | null>
 >();
 
@@ -43,11 +49,11 @@ function isTimeAwareLayer(layer: object): boolean {
 function getOriginalFilters(
     map: MapLibreMap,
 ): Map<string, FilterSpecification | null> {
-    let filters = originalLayerFilters.get(map);
+    let filters = originalLayerFilters.get(map.style);
 
     if (!filters) {
         filters = new Map<string, FilterSpecification | null>();
-        originalLayerFilters.set(map, filters);
+        originalLayerFilters.set(map.style, filters);
     }
 
     for (const layer of map.getStyle().layers ?? []) {
