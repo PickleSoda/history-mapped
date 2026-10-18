@@ -31,7 +31,13 @@ function entityToFormData(entity: EntityDetail): EntityFormData {
 
     if (entity.attributes && typeof entity.attributes === 'object') {
         for (const [key, value] of Object.entries(entity.attributes)) {
-            if (value !== null && value !== undefined) {
+            // Lists and objects (pipeline flags, review data) aren't form
+            // fields; the server keeps every attribute the form doesn't send.
+            if (
+                value !== null &&
+                value !== undefined &&
+                typeof value !== 'object'
+            ) {
                 attrFields[`attr_${key}`] = String(value);
             }
         }
@@ -119,9 +125,11 @@ export default function EntityEdit({ entity, formOptions }: Props) {
         );
         const attributes: Record<string, unknown> = {};
 
+        // A cleared field is sent as null so the server removes it.
         for (const [key, value] of attrEntries) {
-            if (typeof value === 'string' && value.trim() !== '') {
-                attributes[key.replace(/^attr_/, '')] = value;
+            if (typeof value === 'string') {
+                attributes[key.replace(/^attr_/, '')] =
+                    value.trim() !== '' ? value : null;
             }
         }
 

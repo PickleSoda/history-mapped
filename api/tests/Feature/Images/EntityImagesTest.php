@@ -260,6 +260,47 @@ class EntityImagesTest extends TestCase
         $this->assertSame('male', $entity->fresh()->attributes['gender']);
     }
 
+    public function test_pipeline_import_links_images_for_the_entities_it_imported(): void
+    {
+        config(['services.wikimedia.fetch_images_on_import' => true]);
+        $this->fakeWikimedia();
+        $older = $this->entity('Q2', EntityType::Person);
+        DB::table('entities')->where('entity_id', $older->entity_id)->update(['updated_at' => now()->subHour()]);
+
+        $path = sys_get_temp_dir().'/images_import_'.uniqid().'.jsonl';
+        file_put_contents($path, json_encode([
+            'name' => 'Hagia Sophia', 'entity_type' => 'infrastructure_monument', 'entity_group' => 'PLACE',
+            'summary' => 's', 'wikidata_id' => 'Q1',
+        ])."\n");
+
+        $this->artisan('pipeline:import', ['path' => $path, '--sync' => true, '--skip-relationships' => true])
+            ->expectsOutputToContain('Images: linked for 1 of 1 entities')
+            ->assertExitCode(0);
+
+        $imported = Entity::query()->where('wikidata_id', 'Q1')->sole();
+        // Monuments don't use coats of arms (FetchEntityImagesAction::ORDER).
+        $this->assertSame(['Hagia Sophia Mars 2013.jpg'], array_column($this->media($imported), 'file'));
+        // Only this run's entities; older unchecked ones wait for entity:fetch-images.
+        $this->assertNull($this->media($older));
+    }
+
+    public function test_pipeline_import_can_skip_images(): void
+    {
+        config(['services.wikimedia.fetch_images_on_import' => true]);
+        Http::preventStrayRequests();
+
+        $path = sys_get_temp_dir().'/images_import_'.uniqid().'.jsonl';
+        file_put_contents($path, json_encode([
+            'name' => 'Hagia Sophia', 'entity_type' => 'infrastructure_monument', 'entity_group' => 'PLACE',
+            'summary' => 's', 'wikidata_id' => 'Q1',
+        ])."\n");
+
+        $this->artisan('pipeline:import', ['path' => $path, '--sync' => true, '--skip-relationships' => true, '--skip-images' => true])
+            ->assertExitCode(0);
+
+        $this->assertNull($this->media(Entity::query()->where('wikidata_id', 'Q1')->sole()));
+    }
+
     public function test_admin_index_filters_by_image_presence(): void
     {
         $this->actingAs($this->userWithRole('admin'));

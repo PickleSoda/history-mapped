@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Actions\Entity\FetchEntityImagesAction;
 use App\Jobs\ImportEntityJob;
 use App\Jobs\ResolveRelationshipsJob;
+use App\Services\WikimediaImages;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 /**
  * Import entities from pipeline-generated JSONL files.
@@ -31,6 +34,7 @@ class ImportEntitiesCommand extends Command
         {--force : Overwrite existing entities instead of skipping duplicates}
         {--skip-dedup : Skip database deduplication check}
         {--skip-relationships : Skip relationship resolution after import}
+        {--skip-images : Do not link Wikimedia images for the imported entities (--sync only)}
         {--batch-id= : Custom batch identifier (default: auto-generated)}
         {--chunk=100 : Number of records per job dispatch}';
 
@@ -74,6 +78,8 @@ class ImportEntitiesCommand extends Command
         }
 
         $batchId = $this->option('batch-id') ?? 'pipeline-'.now()->format('Ymd-His');
+        // Rows this run creates or rewrites have updated_at >= this.
+        $startedAt = now()->format('Y-m-d H:i:s');
         $chunkSize = (int) $this->option('chunk');
         $sync = (bool) $this->option('sync');
         $skipDedup = (bool) $this->option('skip-dedup');
@@ -157,6 +163,12 @@ class ImportEntitiesCommand extends Command
             } else {
                 ResolveRelationshipsJob::dispatch($batchId);
             }
+        }
+
+        // Jobs dispatched to the queue haven't run yet; the nightly
+        // `entity:fetch-images` picks those entities up instead.
+        if ($sync && ! $this->option('skip-images') && config('services.wikimedia.fetch_images_on_import')) {
+            $this->linkImages($startedAt);
         }
 
         // Machine-readable summary for the pipeline to detect partial failure.
@@ -287,12 +299,46 @@ class ImportEntitiesCommand extends Command
     /**
      * Import a single record synchronously (for --sync mode).
      */
+    /**
+     * Link Commons images to the entities this run created or rewrote that
+     * have a QID and haven't been checked. A Wikimedia outage never fails the
+     * import: those entities stay unchecked for `entity:fetch-images`.
+     */
+    private function linkImages(string $since): void
+    {
+        $entities = FetchEntityImagesAction::pending()
+            ->where('updated_at', '>=', $since)
+            ->get(['entity_id', 'wikidata_id', 'entity_type']);
+
+        if ($entities->isEmpty()) {
+            return;
+        }
+
+        $fetch = app(FetchEntityImagesAction::class);
+        $linked = 0;
+        $failed = 0;
+
+        foreach ($entities->chunk(WikimediaImages::BATCH) as $chunk) {
+            try {
+                $media = $fetch->find($chunk);
+                $fetch->save($media);
+                $linked += count(array_filter($media));
+            } catch (Throwable $e) {
+                $failed += $chunk->count();
+                $this->warn("  Images: {$e->getMessage()}");
+            }
+        }
+
+        $this->info("Images: linked for {$linked} of {$entities->count()} entities with a QID"
+            .($failed > 0 ? "; {$failed} left for `entity:fetch-images`" : ''));
+    }
+
     private function importSync(array $record, string $batchId, bool $force = false): void
     {
         try {
             $job = new ImportEntityJob($record, $batchId, $force);
             $job->handle();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $name = is_string($record['name'] ?? null) ? $record['name'] : 'unknown';
             $this->failedNames[] = $name;
             $this->error("  Failed to import {$name}: {$e->getMessage()}");

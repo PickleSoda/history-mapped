@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Entity;
 
 use App\Services\WikimediaImages;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -52,6 +53,18 @@ class FetchEntityImagesAction
     private const LEAD_LAST = ['political_entity', 'dynasty', 'military_unit'];
 
     public function __construct(private readonly WikimediaImages $wikimedia) {}
+
+    /**
+     * Entities the fetcher may fill: a Wikidata id, not curated by an admin
+     * and, unless refreshing, not checked yet.
+     */
+    public static function pending(bool $refresh = false): Builder
+    {
+        return DB::table('entities')
+            ->whereNotNull('wikidata_id')
+            ->whereRaw('attributes -> ? IS NULL', [self::CURATED_KEY])
+            ->when(! $refresh, fn (Builder $q) => $q->whereRaw("attributes -> 'media_refs' IS NULL"));
+    }
 
     /**
      * Images for up to WikimediaImages::BATCH entities.

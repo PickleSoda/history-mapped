@@ -45,4 +45,12 @@ return [
         'timeout' => env('OHM_HTTP_TIMEOUT', 20),
     ],
 
+    // Entity images linked from Wikimedia Commons (App\Services\WikimediaImages).
+    'wikimedia' => [
+        // Wikimedia answers 403 without a descriptive User-Agent (https://w.wiki/4wJS).
+        'user_agent' => env('WIKIDATA_USER_AGENT', 'history-mapped/1.0 (https://github.com/PickleSoda/history-mapped)'),
+        // `pipeline:import --sync` links images for the entities it imported.
+        'fetch_images_on_import' => (bool) env('WIKIMEDIA_FETCH_IMAGES_ON_IMPORT', true),
+    ],
+
 ];

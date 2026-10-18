@@ -21,6 +21,9 @@ use Throwable;
  *
  * Entities without a Wikidata id are not matched by name (namesake risk); pick
  * their images in the admin entity editor.
+ *
+ * `pipeline:import --sync` already links images for the entities it imports;
+ * this command (scheduled nightly) catches the rest, e.g. QIDs added later.
  */
 class FetchEntityImagesCommand extends Command
 {
@@ -43,10 +46,7 @@ class FetchEntityImagesCommand extends Command
         }
 
         $limit = (int) $this->option('limit');
-        $entities = DB::table('entities')
-            ->whereNotNull('wikidata_id')
-            ->whereRaw('attributes -> ? IS NULL', [FetchEntityImagesAction::CURATED_KEY])
-            ->when(! $this->option('refresh'), fn ($q) => $q->whereRaw("attributes -> 'media_refs' IS NULL"))
+        $entities = FetchEntityImagesAction::pending((bool) $this->option('refresh'))
             ->when($this->option('entity-id'), fn ($q, $ids) => $q->whereIn('entity_id', $ids))
             ->when($this->option('type'), fn ($q, $types) => $q->whereIn('entity_type', $types))
             ->orderByDesc(DB::raw('COALESCE(impact_score, 0)'))

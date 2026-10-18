@@ -57,6 +57,9 @@ readonly class EntityData
         public ?array $sourceCitations = null,
     ) {}
 
+    /** Top-level request fields stored inside the `attributes` JSONB. */
+    public const MOVED_KEYS = ['date_raw', 'confidence_notes', 'entity_color', 'media_refs', 'validation_flags', 'temporal_display_range', 'era_label'];
+
     /**
      * Create from validated request data.
      *
@@ -67,8 +70,7 @@ readonly class EntityData
         // Merge moved fields into the attributes bag
         $attributes = $validated['attributes'] ?? [];
 
-        $movedKeys = ['date_raw', 'confidence_notes', 'entity_color', 'media_refs', 'validation_flags', 'temporal_display_range', 'era_label'];
-        foreach ($movedKeys as $key) {
+        foreach (self::MOVED_KEYS as $key) {
             if (isset($validated[$key])) {
                 $attributes[$key] = $validated[$key];
             }

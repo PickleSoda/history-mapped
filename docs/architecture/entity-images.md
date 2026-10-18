@@ -34,9 +34,12 @@ first entry is the primary image. The API returns it as `media_refs`.
   entity has not been checked yet.
 - `attributes._media_curated_at` is set when an admin saves images. The fetcher
   never touches those entities again.
-- Entity writes that leave these two keys out keep them, so an admin form save
-  or a pipeline `--force` re-import does not drop linked images
-  (`UpdateEntityAction::PRESERVED_ATTRIBUTES`).
+- Entity writes that leave these two keys out keep them, so a pipeline
+  `--force` re-import does not drop linked images
+  (`UpdateEntityAction::PRESERVED_ATTRIBUTES`). The admin entity form merges
+  its fields into the stored attributes instead of replacing them, so it keeps
+  images and every other key it doesn't edit
+  (`Admin\EntityController::mergeFormAttributes`).
 
 ## Fetching (`entity:fetch-images`)
 
@@ -65,8 +68,19 @@ Each entity gets at most 4 images, one per property, in a per-type order
 matched by name, because the namesake risk is too high; pick their images in
 the admin. A batch that fails is not written, so the next run retries it.
 
-Run the command after a campaign ingest so new entities get images. Images
-reach production with the content dump (they are part of `entities`).
+**No manual run is needed after ingests:**
+
+- `pipeline:import --sync`, which the agentic and campaign pipelines run from
+  `commit_writer`, links images for the entities that import created or
+  rewrote (those with a QID that haven't been checked). It is turned off by
+  `--skip-images` or `WIKIMEDIA_FETCH_IMAGES_ON_IMPORT=false` (as in
+  `phpunit.xml`). A Wikimedia outage never fails the import; the affected
+  entities just stay unchecked.
+- The scheduler runs `entity:fetch-images --limit=2000` nightly at 03:30 for
+  everything else: async imports, and QIDs added later by repair passes or
+  admin edits.
+
+Images reach production with the content dump, since they are part of `entities`.
 
 ## Admin: choosing an image
 

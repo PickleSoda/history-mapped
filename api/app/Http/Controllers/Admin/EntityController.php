@@ -177,7 +177,7 @@ class EntityController extends Controller
                 'entity_group' => $entity->entity_group?->value,
             ],
             $validated,
-            ['attributes' => $validated['attributes'] ?? null],
+            ['attributes' => self::mergeFormAttributes(is_array($entity->attributes) ? $entity->attributes : [], $validated)],
         ));
 
         $updateEntity($entity, $data);
@@ -185,6 +185,53 @@ class EntityController extends Controller
         return redirect()
             ->route('entities.show', $entity->entity_id)
             ->with('success', 'Entity updated successfully.');
+    }
+
+    /**
+     * The form edits only flat, type-specific fields, so its `attributes` are
+     * merged into the stored ones instead of replacing them:
+     *  - keys the form doesn't send are kept (pipeline flags, review markers, images…);
+     *  - a key sent empty is removed;
+     *  - lists and objects, which the form can't edit, are never overwritten;
+     *  - an unchanged number or boolean keeps its type (the form sends text).
+     * A top-level field EntityData stores in attributes (date_raw,
+     * confidence_notes…) sent empty is removed too.
+     *
+     * @param  array<string, mixed>  $stored
+     * @param  array<string, mixed>  $validated
+     * @return array<string, mixed>
+     */
+    private static function mergeFormAttributes(array $stored, array $validated): array
+    {
+        $merged = $stored;
+
+        foreach ($validated['attributes'] ?? [] as $key => $value) {
+            $current = $stored[$key] ?? null;
+
+            if (is_array($current)) {
+                continue;
+            }
+
+            if ($value === null || $value === '') {
+                unset($merged[$key]);
+            } elseif (! (is_scalar($current) && ! is_string($current) && (string) $value === self::scalarText($current))) {
+                $merged[$key] = $value;
+            }
+        }
+
+        foreach (EntityData::MOVED_KEYS as $key) {
+            if (array_key_exists($key, $validated) && $validated[$key] === null) {
+                unset($merged[$key]);
+            }
+        }
+
+        return $merged;
+    }
+
+    /** A scalar as the form shows it (JavaScript's String()). */
+    private static function scalarText(bool|int|float $value): string
+    {
+        return is_bool($value) ? ($value ? 'true' : 'false') : (string) $value;
     }
 
     /**

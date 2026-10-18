@@ -485,7 +485,7 @@ class WikimediaImages
     {
         // Wikimedia rejects requests without a descriptive User-Agent (https://w.wiki/4wJS).
         return Http::acceptJson()
-            ->withUserAgent((string) env('WIKIDATA_USER_AGENT', 'history-mapped/1.0 (https://github.com/PickleSoda/history-mapped)'))
+            ->withUserAgent((string) config('services.wikimedia.user_agent'))
             ->timeout(30)
             ->retry(3, 2000, fn (Throwable $e): bool => ! $e instanceof RequestException
                 || $e->response->serverError() || $e->response->status() === 429, throw: false);
