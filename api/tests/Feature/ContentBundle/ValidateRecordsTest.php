@@ -117,7 +117,7 @@ class ValidateRecordsTest extends TestCase
         $this->editFirst('chronicles.jsonl', fn ($r) => [$r, [...$r, 'slug' => 'other']]);
         $r = $this->validate();
         $id = $this->read('chronicles.jsonl')[0]['id'];
-        $this->assertSame(["chronicles.jsonl:2: /id: duplicate id {$id} (lines 1 and 2)"], $this->strings($r));
+        $this->assertSame(['chronicles.jsonl:2: /id: duplicate id: also on line 1'], $this->strings($r));
         $this->assertSame($id, $r->issues()[0]->id);
     }
 
@@ -127,10 +127,10 @@ class ValidateRecordsTest extends TestCase
         $this->assertCount(1, $this->validate()->errors());
     }
 
-    public function test_duplicate_relationship_ignores_years_and_deleted_lines(): void
+    public function test_duplicate_relationship_considers_years_and_skips_deleted_lines(): void
     {
         $this->editFirst('relationships.jsonl', fn ($r) => [$r, [...$r, 'id' => (string) Str::uuid()]]);
-        $this->assertSame(['relationships.jsonl:2: /relationship_type: duplicate relationship: same source, target, type and years as line 1'], $this->strings($this->validate()));
+        $this->assertSame(['relationships.jsonl:2: /relationship_type: duplicate relationship: also on line 1'], $this->strings($this->validate()));
 
         // Same triple with different years is a second reign, not a duplicate.
         $this->editFirst('relationships.jsonl', fn ($r) => [[...$r, 'start_year' => 100, 'end_year' => 200], [...$r, 'id' => (string) Str::uuid(), 'start_year' => 300, 'end_year' => 400]]);
@@ -144,7 +144,7 @@ class ValidateRecordsTest extends TestCase
     public function test_duplicate_chronicle_slug(): void
     {
         $this->editFirst('chronicles.jsonl', fn ($r) => [$r, [...$r, 'id' => (string) Str::uuid()]]);
-        $this->assertSame(['chronicles.jsonl:2: /slug: duplicate chronicle slug "rome" (also on line 1)'], $this->strings($this->validate()));
+        $this->assertSame(['chronicles.jsonl:2: /slug: duplicate chronicle slug "rome": also on line 1'], $this->strings($this->validate()));
 
         $this->restore('chronicles.jsonl');
         $this->editFirst('chronicles.jsonl', fn ($r) => [$r, ['id' => (string) Str::uuid(), '_op' => 'delete']]);
@@ -156,7 +156,7 @@ class ValidateRecordsTest extends TestCase
         $this->editFirst('entities.jsonl', fn ($r) => [[...$r, 'wikidata_id' => 'Q42'], [...$r, 'id' => (string) Str::uuid(), 'wikidata_id' => 'Q42']]);
         $r = $this->validate();
         $this->assertTrue($r->isValid());
-        $this->assertSame(['entities.jsonl:2: /wikidata_id: wikidata_id Q42 is also used on line 1'], $this->strings($r));
+        $this->assertSame(['entities.jsonl:2: /wikidata_id: duplicate wikidata_id Q42: also on line 1'], $this->strings($r));
         $this->assertSame(Issue::WARNING, $r->issues()[0]->severity);
     }
 
@@ -170,7 +170,7 @@ class ValidateRecordsTest extends TestCase
         ];
         foreach ($cases as [$file, $patch, $field]) {
             $this->editFirst($file, fn ($r) => [[...$r, ...$patch]]);
-            $this->assertSame(["{$file}:1: {$field}: ".preg_replace('/^/', '', array_key_first($patch)).' 500 is after '.array_key_last($patch).' 400'], $this->strings($this->validate()), $file);
+            $this->assertSame(["{$file}:1: {$field}: `".array_key_first($patch).'` 500 is after `'.array_key_last($patch).'` 400'], $this->strings($this->validate()), $file);
             $this->restore($file);
         }
     }
@@ -178,7 +178,7 @@ class ValidateRecordsTest extends TestCase
     public function test_geometry_period_year_order(): void
     {
         $this->write('geometry_periods.jsonl', [['id' => (string) Str::uuid(), 'entity_id' => $this->a, 'period_type' => 'territory', 'start_year' => 500, 'end_year' => 400, 'provenance_mode' => 'manual', 'geom' => self::GEOM]]);
-        $this->assertSame(['geometry_periods.jsonl:1: /start_year: start_year 500 is after end_year 400'], $this->strings($this->validate()));
+        $this->assertSame(['geometry_periods.jsonl:1: /start_year: `start_year` 500 is after `end_year` 400'], $this->strings($this->validate()));
     }
 
     public function test_nested_temporal_range_year_pair_has_an_indexed_pointer(): void
@@ -187,26 +187,26 @@ class ValidateRecordsTest extends TestCase
             ['range_type' => 'existence', 'start_year' => 1, 'end_year' => 2],
             ['range_type' => 'rule', 'start_year' => 20, 'end_year' => 10],
         ]]]);
-        $this->assertSame(['entities.jsonl:1: /temporal_ranges/1/start_year: start_year 20 is after end_year 10'], $this->strings($this->validate()));
+        $this->assertSame(['entities.jsonl:1: /temporal_ranges/1/start_year: `start_year` 20 is after `end_year` 10'], $this->strings($this->validate()));
     }
 
     public function test_text_year_sign_slip_and_other_mismatch(): void
     {
         $this->editFirst('relationships.jsonl', fn ($r) => [[...$r, 'temporal_start' => '-0331', 'start_year' => 331, 'temporal_end' => '200 CE', 'end_year' => 400]]);
         $this->assertSame([
-            'relationships.jsonl:1: /temporal_start: BCE/CE sign mismatch: text says -0331, year is 331',
-            'relationships.jsonl:1: /temporal_end: year mismatch: text says 200, year is 400',
+            'relationships.jsonl:1: /temporal_start: BCE/CE sign mismatch: `temporal_start` "-0331" reads as -331, but `start_year` is 331',
+            'relationships.jsonl:1: /temporal_end: `temporal_end` "200 CE" reads as 200, but `end_year` is 400',
         ], $this->strings($this->validate()));
     }
 
     public function test_text_year_pairs_for_geo_refs_and_temporal_ranges(): void
     {
-        $this->editFirst('geo_refs.jsonl', fn ($r) => [[...$r, 'temporal_end' => '-12', 'temporal_end_year' => 12]]);
-        $this->assertSame(['geo_refs.jsonl:1: /temporal_end: BCE/CE sign mismatch: text says -12, year is 12'], $this->strings($this->validate()));
+        $this->editFirst('geo_refs.jsonl', fn ($r) => [[...$r, 'temporal_start' => '-100', 'temporal_start_year' => -100, 'temporal_end' => '-12', 'temporal_end_year' => 12]]);
+        $this->assertSame(['geo_refs.jsonl:1: /temporal_end: BCE/CE sign mismatch: `temporal_end` "-12" reads as -12, but `temporal_end_year` is 12'], $this->strings($this->validate()));
         $this->restore('geo_refs.jsonl');
 
         $this->editFirst('entities.jsonl', fn ($r) => [[...$r, 'temporal_ranges' => [['range_type' => 'existence', 'start_date' => '-0044-03-15', 'start_year' => 44]]]]);
-        $this->assertSame(['entities.jsonl:1: /temporal_ranges/0/start_date: BCE/CE sign mismatch: text says -0044, year is 44'], $this->strings($this->validate()));
+        $this->assertSame(['entities.jsonl:1: /temporal_ranges/0/start_date: BCE/CE sign mismatch: `start_date` "-0044-03-15" reads as -44, but `start_year` is 44'], $this->strings($this->validate()));
 
         // Matching values, and text without a leading number, are fine.
         $this->editFirst('entities.jsonl', fn ($r) => [[...$r, 'temporal_ranges' => [['range_type' => 'existence', 'start_date' => '-0044-03-15', 'start_year' => -44, 'end_date' => 'c. 30 BCE', 'end_year' => -30]]]]);
@@ -275,7 +275,7 @@ class ValidateRecordsTest extends TestCase
         $this->rebase('relationships.jsonl');
         $r = $this->validate();
         $this->assertTrue($r->isValid());
-        $this->assertSame(['relationships.jsonl:2: /relationship_type: duplicate relationship: same source, target, type and years as line 1 (unchanged since export)'], $this->strings($r));
+        $this->assertSame(['relationships.jsonl:2: /relationship_type: duplicate relationship: also on line 1 (unchanged since export)'], $this->strings($r));
         $this->assertTrue($r->issues()[0]->unchanged);
 
         // A start > end chronicle entry, also old data.
@@ -283,13 +283,44 @@ class ValidateRecordsTest extends TestCase
         $this->rebase('chronicle_entries.jsonl');
         $r = $this->validate();
         $this->assertTrue($r->isValid());
-        $this->assertContains('chronicle_entries.jsonl:1: /start_year: start_year 1642 is after end_year 1400 (unchanged since export)', $this->strings($r));
+        $this->assertContains('chronicle_entries.jsonl:1: /start_year: `start_year` 1642 is after `end_year` 1400 (unchanged since export)', $this->strings($r));
 
         // Editing one of the lines makes its error real again.
         $rows = $this->read('relationships.jsonl');
         $rows[1]['description'] = 'edited';
         $this->write('relationships.jsonl', $rows);
         $this->assertFalse($this->validate()->isValid());
+    }
+
+    public function test_new_duplicate_inserted_before_an_unchanged_line_stays_an_error(): void
+    {
+        // Existing line 1 is unchanged (it is in _base); the new line comes first, so the old line is the "later" one.
+        $cases = [
+            ['chronicles.jsonl', ['id' => (string) Str::uuid()], '/slug', 'duplicate chronicle slug "rome": also on line 1'],
+            ['relationships.jsonl', ['id' => (string) Str::uuid()], '/relationship_type', 'duplicate relationship: also on line 1'],
+            ['chronicles.jsonl', ['slug' => 'other'], '/id', 'duplicate id: also on line 1'],
+        ];
+        foreach ($cases as [$file, $patch, $field, $message]) {
+            $rows = $this->read($file);
+            $this->write($file, [[...$rows[0], ...$patch], ...$rows]);
+            $r = $this->validate();
+            $this->assertFalse($r->isValid(), $message);
+            // The unchanged old line is now line 2; the issue is on it but the new line's hash is not in _base.
+            $this->assertSame(["{$file}:2: {$field}: {$message}"], $this->strings($r));
+            $this->restore($file);
+        }
+    }
+
+    public function test_merge_relationship_line_without_all_keys_is_not_a_duplicate(): void
+    {
+        $this->editFirst('relationships.jsonl', fn ($r) => [$r, ['id' => (string) Str::uuid(), 'source_entity_id' => $r['source_entity_id'], 'target_entity_id' => $r['target_entity_id'], 'relationship_type' => $r['relationship_type']]]);
+        $this->assertSame([], $this->strings($this->validate()));
+
+        // The same line as a replace is complete (years read as null) and does collide.
+        $rows = $this->read('relationships.jsonl');
+        $rows[1]['_op'] = 'replace';
+        $this->write('relationships.jsonl', $rows);
+        $this->assertCount(1, $this->validate()->errors());
     }
 
     public function test_records_layer_does_not_run_when_structure_fails(): void

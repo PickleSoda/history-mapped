@@ -20,7 +20,7 @@ final class PackageChecks implements ValidationLayer
         return Issue::PACKAGE;
     }
 
-    public function run(BundleReader $bundle, IssueSink $sink, bool $againstSite = false): void
+    public function run(BundleReader $bundle, IssueSink $sink, bool $againstSite): void
     {
         $this->files($bundle, $sink);
         $manifest = $this->manifest($bundle, $sink);

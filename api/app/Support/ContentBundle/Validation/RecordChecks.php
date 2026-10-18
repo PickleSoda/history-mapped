@@ -8,17 +8,22 @@ use App\Support\ContentBundle\BundleReader;
 use App\Support\ContentBundle\RecordType;
 
 /**
- * The records layer: rules that look at one line (year order, text year against integer year, the CHECK
- * constraints the database enforces) or at duplicates across a file. Streams each file once and keeps only
- * first-seen line numbers keyed by compact hashes. It runs only when the structure layer found no errors, so
- * every line decodes to an object of the right shape.
+ * The records layer: per-line rules (RecordRules) plus duplicate detection across a file. Streams each
+ * file once and keeps, per duplicate rule, only a map from key to the first line's number and sha1 hash.
+ * It runs only when the structure layer found no errors, so every line decodes to an object of the right
+ * shape.
  *
- * The CHECK rules are evaluated on new-record and `replace` lines with absent keys read as null. A `merge`
- * line is checked only when every key of the rule is present; a partial merge is checked against the merged
- * value by the import planner. Nested `locations` always replace the whole list, so they are always checked.
+ * A duplicate involves two lines, so it is reported on the later one with both hashes: it is downgraded to
+ * a warning only when both lines are unchanged since export. Inserting a new duplicate ahead of an old line
+ * therefore stays an error.
+ *
+ * Absent keys read as null on new-record and `replace` lines. A `merge` line is checked only for the rules
+ * whose keys are all present; a partial merge is checked against the merged value by the import planner.
  */
 final class RecordChecks implements ValidationLayer
 {
+    private const RELATIONSHIP_KEYS = ['source_entity_id', 'target_entity_id', 'relationship_type', 'start_year', 'end_year'];
+
     public function name(): string
     {
         return Issue::RECORDS;
@@ -36,9 +41,9 @@ final class RecordChecks implements ValidationLayer
     private function file(BundleReader $bundle, IssueSink $sink, RecordType $type): void
     {
         $file = $type->file();
-        /** @var array<string, int> $ids */
+        /** @var array<string, string> $ids id => first line, packed */
         $ids = [];
-        /** @var array<string, int> $unique relationship keys, chronicle slugs or wikidata ids, by first line */
+        /** @var array<string, string> $unique relationship key, chronicle slug or wikidata id => first line, packed */
         $unique = [];
 
         foreach ($bundle->lines($file) as $n => $line) {
@@ -47,143 +52,70 @@ final class RecordChecks implements ValidationLayer
                 continue;
             }
             $id = isset($d->id) && is_string($d->id) ? $d->id : null;
-            $delete = ($d->_op ?? null) === 'delete';
+            $op = $d->_op ?? null;
+            $hash = sha1($line, true);
+            /** @var list<array{string, string, string, ?string}> $problems severity, message, field, first line's pack */
             $problems = [];
 
             if ($id !== null) {
-                $key = strtolower($id);
-                if (isset($ids[$key])) {
-                    $problems[] = [Issue::ERROR, "duplicate id {$id} (lines {$ids[$key]} and {$n})", '/id'];
-                } else {
-                    $ids[$key] = $n;
+                $this->seen($ids, $id, $n, $hash, 'duplicate id', '/id', Issue::ERROR, $problems);
+            }
+
+            if ($op !== 'delete') {
+                $this->duplicates($type, $d, $n, $hash, $id === null || $op === 'replace', $unique, $problems);
+                foreach (RecordRules::check($type, $d, $id === null || $op === 'replace') as $v) {
+                    $problems[] = [$v->severity, $v->message, $v->field, null];
                 }
             }
 
-            if (! $delete) {
-                $this->duplicates($type, $d, $n, $unique, $problems);
-                $this->years($type, $d, $problems);
-                $this->checks($type, $d, $id === null, $problems);
-            }
-
-            $hash = null;
-            foreach ($problems as [$severity, $message, $field]) {
+            foreach ($problems as [$severity, $message, $field, $first]) {
                 $issue = $severity === Issue::ERROR
                     ? Issue::error(Issue::RECORDS, $message, $file, $n, $field, $id)
                     : Issue::warning(Issue::RECORDS, $message, $file, $n, $field, $id);
-                $sink->add($issue, $hash ??= sha1($line, true));
+                $first === null ? $sink->add($issue, $hash) : $sink->add($issue, $hash, substr($first, 4));
             }
         }
     }
 
     /**
-     * @param  array<string, int>  $unique
-     * @param  list<array{string, string, string}>  $problems
+     * Records `$key` as seen at line `$n`, or adds a problem naming the first line when it was seen before.
+     *
+     * @param  array<string, string>  $seen
+     * @param  list<array{string, string, string, ?string}>  $problems
      */
-    private function duplicates(RecordType $type, \stdClass $d, int $n, array &$unique, array &$problems): void
+    private function seen(array &$seen, string $key, int $n, string $hash, string $what, string $field, string $severity, array &$problems): void
+    {
+        if (isset($seen[$key])) {
+            $first = unpack('N', $seen[$key])[1];
+            $problems[] = [$severity, "{$what}: also on line {$first}", $field, $seen[$key]];
+        } else {
+            $seen[$key] = pack('N', $n).$hash;
+        }
+    }
+
+    /**
+     * @param  array<string, string>  $unique
+     * @param  list<array{string, string, string, ?string}>  $problems
+     */
+    private function duplicates(RecordType $type, \stdClass $d, int $n, string $hash, bool $complete, array &$unique, array &$problems): void
     {
         if ($type === RecordType::Relationships) {
-            $parts = [];
+            // A merge line must carry every key to be comparable; otherwise the planner checks the merged value.
+            $present = array_filter(self::RELATIONSHIP_KEYS, fn ($k) => property_exists($d, $k));
+            if (! $complete && count($present) < count(self::RELATIONSHIP_KEYS)) {
+                return;
+            }
             foreach (['source_entity_id', 'target_entity_id', 'relationship_type'] as $k) {
                 if (! isset($d->$k) || ! is_string($d->$k)) {
                     return;
                 }
-                $parts[] = strtolower($d->$k);
             }
-            foreach (['start_year', 'end_year'] as $k) {
-                $parts[] = isset($d->$k) ? (string) $d->$k : '';
-            }
-            $key = sha1(implode("\0", $parts), true);
-            if (isset($unique[$key])) {
-                $problems[] = [Issue::ERROR, "duplicate relationship: same source, target, type and years as line {$unique[$key]}", '/relationship_type'];
-            } else {
-                $unique[$key] = $n;
-            }
+            $key = sha1(implode("\0", [$d->source_entity_id, $d->target_entity_id, $d->relationship_type, (string) ($d->start_year ?? ''), (string) ($d->end_year ?? '')]), true);
+            $this->seen($unique, $key, $n, $hash, 'duplicate relationship', '/relationship_type', Issue::ERROR, $problems);
         } elseif ($type === RecordType::Chronicles && isset($d->slug) && is_string($d->slug)) {
-            if (isset($unique[$d->slug])) {
-                $problems[] = [Issue::ERROR, "duplicate chronicle slug \"{$d->slug}\" (also on line {$unique[$d->slug]})", '/slug'];
-            } else {
-                $unique[$d->slug] = $n;
-            }
+            $this->seen($unique, $d->slug, $n, $hash, "duplicate chronicle slug \"{$d->slug}\"", '/slug', Issue::ERROR, $problems);
         } elseif ($type === RecordType::Entities && isset($d->wikidata_id) && is_string($d->wikidata_id)) {
-            $qid = strtoupper($d->wikidata_id);
-            if (isset($unique[$qid])) {
-                $problems[] = [Issue::WARNING, "wikidata_id {$d->wikidata_id} is also used on line {$unique[$qid]}", '/wikidata_id'];
-            } else {
-                $unique[$qid] = $n;
-            }
-        }
-    }
-
-    /** @param  list<array{string, string, string}>  $problems */
-    private function years(RecordType $type, \stdClass $d, array &$problems): void
-    {
-        match ($type) {
-            RecordType::Relationships => $this->yearPairs($d, '', 'start_year', 'end_year', 'temporal_start', 'temporal_end', $problems),
-            RecordType::GeoRefs => $this->yearPairs($d, '', 'temporal_start_year', 'temporal_end_year', 'temporal_start', 'temporal_end', $problems),
-            RecordType::GeometryPeriods, RecordType::Chronicles, RecordType::ChronicleEntries => $this->yearPairs($d, '', 'start_year', 'end_year', null, null, $problems),
-            RecordType::Entities => null,
-        };
-
-        if ($type === RecordType::Entities && isset($d->temporal_ranges) && is_array($d->temporal_ranges)) {
-            foreach ($d->temporal_ranges as $i => $range) {
-                if ($range instanceof \stdClass) {
-                    $this->yearPairs($range, "/temporal_ranges/{$i}", 'start_year', 'end_year', 'start_date', 'end_date', $problems);
-                }
-            }
-        }
-    }
-
-    /** @param  list<array{string, string, string}>  $problems */
-    private function yearPairs(\stdClass $o, string $at, string $startKey, string $endKey, ?string $startText, ?string $endText, array &$problems): void
-    {
-        $start = isset($o->$startKey) && is_int($o->$startKey) ? $o->$startKey : null;
-        $end = isset($o->$endKey) && is_int($o->$endKey) ? $o->$endKey : null;
-        if ($start !== null && $end !== null && $start > $end) {
-            $problems[] = [Issue::ERROR, "{$startKey} {$start} is after {$endKey} {$end}", "{$at}/{$startKey}"];
-        }
-
-        foreach ([[$startText, $start, $startKey], [$endText, $end, $endKey]] as [$textKey, $year, $yearKey]) {
-            if ($textKey === null || $year === null || ! isset($o->$textKey) || ! is_string($o->$textKey)) {
-                continue;
-            }
-            if (preg_match('/^-?\d+/', $o->$textKey, $m) !== 1 || (int) $m[0] === $year) {
-                continue;
-            }
-            $problems[] = [
-                Issue::ERROR,
-                abs((int) $m[0]) === abs($year)
-                    ? "BCE/CE sign mismatch: text says {$m[0]}, year is {$year}"
-                    : "year mismatch: text says {$m[0]}, year is {$year}",
-                "{$at}/{$textKey}",
-            ];
-        }
-    }
-
-    /** @param  list<array{string, string, string}>  $problems */
-    private function checks(RecordType $type, \stdClass $d, bool $isNew, array &$problems): void
-    {
-        if ($type === RecordType::GeometryPeriods) {
-            $full = $isNew || ($d->_op ?? null) === 'replace';
-            $has = fn (string ...$keys): bool => $full || count(array_filter($keys, fn ($k) => property_exists($d, $k))) === count($keys);
-
-            if ($has('geom', 'territory_geom') && ($d->geom ?? null) === null && ($d->territory_geom ?? null) === null) {
-                $problems[] = [Issue::ERROR, 'a geometry period needs `geom` or `territory_geom`', '/geom'];
-            }
-            if ($has('provenance_mode', 'relationship_id', 'source_event_id') && ($d->provenance_mode ?? null) === 'derived'
-                && ($d->relationship_id ?? null) === null && ($d->source_event_id ?? null) === null) {
-                $problems[] = [Issue::ERROR, 'a derived geometry period needs `relationship_id` or `source_event_id`', '/provenance_mode'];
-            }
-            if ($has('period_type', 'relationship_id') && ($d->period_type ?? null) === 'presence' && ($d->relationship_id ?? null) === null) {
-                $problems[] = [Issue::ERROR, 'a presence geometry period needs `relationship_id`', '/relationship_id'];
-            }
-        }
-
-        if ($type === RecordType::Entities && isset($d->locations) && is_array($d->locations)) {
-            foreach ($d->locations as $i => $loc) {
-                if ($loc instanceof \stdClass && ($loc->location_name ?? null) === null && ($loc->geom ?? null) === null && ($loc->territory_geom ?? null) === null) {
-                    $problems[] = [Issue::ERROR, 'a location needs `location_name`, `geom` or `territory_geom`', "/locations/{$i}"];
-                }
-            }
+            $this->seen($unique, $d->wikidata_id, $n, $hash, "duplicate wikidata_id {$d->wikidata_id}", '/wikidata_id', Issue::WARNING, $problems);
         }
     }
 }

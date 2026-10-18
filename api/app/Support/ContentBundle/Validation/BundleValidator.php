@@ -29,12 +29,15 @@ final class BundleValidator
     /** @param  list<ValidationLayer>|null  $layers */
     public function __construct(
         ?array $layers = null,
-        int $maxErrorLines = StructureChecks::MAX_ERROR_LINES,
+        ?int $maxErrorLines = null,
         private readonly int $baseIndexMaxLines = BaseIndex::MAX_LINES,
     ) {
+        if ($layers !== null && $maxErrorLines !== null) {
+            throw new \InvalidArgumentException('maxErrorLines only configures the default layers; pass it to StructureChecks when supplying $layers');
+        }
         $this->layers = $layers ?? [
             new PackageChecks,
-            new StructureChecks($maxErrorLines),
+            new StructureChecks($maxErrorLines ?? StructureChecks::MAX_ERROR_LINES),
             new RecordChecks,
             new NoChecks(Issue::REFERENCES),
         ];
@@ -80,7 +83,7 @@ final class BundleValidator
             }
         } catch (BundleLimitExceededException|BundleReadException $e) {
             $sink->finish();
-            $report->add(Issue::error(Issue::PACKAGE, $e->getMessage(), $e instanceof BundleReadException ? $e->entry : null));
+            $report->add(Issue::error(Issue::PACKAGE, $e->getMessage(), $e->entry));
         }
 
         return $report;

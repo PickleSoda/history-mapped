@@ -24,7 +24,7 @@ final class StructureChecks implements ValidationLayer
         return Issue::STRUCTURE;
     }
 
-    public function run(BundleReader $bundle, IssueSink $sink, bool $againstSite = false): void
+    public function run(BundleReader $bundle, IssueSink $sink, bool $againstSite): void
     {
         foreach (RecordType::cases() as $type) {
             if ($bundle->has($type->file())) {

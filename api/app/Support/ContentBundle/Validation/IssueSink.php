@@ -11,7 +11,7 @@ namespace App\Support\ContentBundle\Validation;
  * are counted and summarised by finish(). add() returns the severity the issue has after downgrading,
  * whether or not it was kept, so layers can count erroneous lines.
  *
- * The downgrade needs the hash `sha1($line, true)` of the line the issue is about (the normalised line as
+ * The downgrade needs the hash `sha1($line, true)` of each line the issue is about (the normalised line as
  * yielded by BundleReader::lines()). Layers that report later, such as reference checks, keep the hash
  * of each line they saw and pass it along.
  */
@@ -26,9 +26,15 @@ final class IssueSink
 
     public function __construct(private readonly ValidationReport $report, private readonly BaseIndex $base) {}
 
-    public function add(Issue $issue, ?string $lineHash = null): string
+    /**
+     * Cross-line issues (duplicates, dangling references) must pass the hash of EVERY line involved: the
+     * issue is downgraded only when all of them are unchanged since export, otherwise a new line that
+     * collides with an old one would be excused by the old line's hash. With no hash there is no downgrade.
+     * The hashes are looked up in `$issue->file`'s base, so all lines must belong to that file.
+     */
+    public function add(Issue $issue, string ...$lineHashes): string
     {
-        if ($issue->isError() && $lineHash !== null && $issue->file !== null && $this->base->has($issue->file, $lineHash)) {
+        if ($issue->isError() && $lineHashes !== [] && $issue->file !== null && $this->allUnchanged($issue->file, $lineHashes)) {
             $issue = $issue->asWarning(self::UNCHANGED_SUFFIX);
         }
 
@@ -42,6 +48,18 @@ final class IssueSink
         }
 
         return $issue->severity;
+    }
+
+    /** @param  non-empty-list<string>  $hashes */
+    private function allUnchanged(string $file, array $hashes): bool
+    {
+        foreach ($hashes as $hash) {
+            if (! $this->base->has($file, $hash)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /** Remember why validation of a file stopped early; shown in its summary. */

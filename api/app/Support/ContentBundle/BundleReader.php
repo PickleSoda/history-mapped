@@ -129,18 +129,18 @@ final class BundleReader
                 $compressed = (int) ($stat['comp_size'] ?? 0);
                 if ($size > self::RATIO_MIN_BYTES && $size > $maxCompressionRatio * max($compressed, 1)) {
                     $zip->close();
-                    throw new BundleLimitExceededException("Entry {$name} compresses more than {$maxCompressionRatio}:1.");
+                    throw new BundleLimitExceededException("Entry {$name} compresses more than {$maxCompressionRatio}:1.", (string) $name);
                 }
                 if (($stat['size'] ?? 0) > $maxEntryBytes) {
                     $zip->close();
-                    throw new BundleLimitExceededException("Entry {$name} is larger than {$maxEntryBytes} bytes uncompressed.");
+                    throw new BundleLimitExceededException("Entry {$name} is larger than {$maxEntryBytes} bytes uncompressed.", (string) $name);
                 }
             }
         }
 
         foreach ($sizes as $name => $size) {
             if ($size > $maxEntryBytes) {
-                throw new BundleLimitExceededException("Entry {$name} is larger than {$maxEntryBytes} bytes.");
+                throw new BundleLimitExceededException("Entry {$name} is larger than {$maxEntryBytes} bytes.", (string) $name);
             }
         }
         if (array_sum($sizes) > $maxTotalBytes) {
@@ -319,7 +319,7 @@ final class BundleReader
     private function account(string $file, int $read): void
     {
         if ($read > $this->maxEntryBytes) {
-            throw new BundleLimitExceededException("{$file} exceeds {$this->maxEntryBytes} bytes when read.");
+            throw new BundleLimitExceededException("{$file} exceeds {$this->maxEntryBytes} bytes when read.", $file);
         }
         $this->seen[$file] = max($this->seen[$file] ?? 0, $read);
         if (array_sum($this->seen) > $this->maxTotalBytes) {
