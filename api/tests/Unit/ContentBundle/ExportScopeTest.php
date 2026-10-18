@@ -51,7 +51,7 @@ class ExportScopeTest extends TestCase
         $this->assertSame([[-500, -100], [5, 7]], $scope->yearRanges());
     }
 
-    public function test_ids_file_is_read_and_spec_keeps_the_path(): void
+    public function test_ids_file_is_read_and_spec_records_the_basename(): void
     {
         $path = tempnam(sys_get_temp_dir(), 'ids');
         file_put_contents($path, "# comment\n\n".self::A."\n  ".strtoupper(self::B)."  \n");
@@ -147,6 +147,12 @@ class ExportScopeTest extends TestCase
         $this->assertSame($year['minimum'], ExportScope::YEAR_MIN);
         $this->assertSame($year['maximum'], ExportScope::YEAR_MAX);
         $this->assertSame([[-20000, 3000]], ExportScope::parse(['years:-20000..3000'])->yearRanges());
+    }
+
+    public function test_invalid_utf8_slug_is_rejected(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        ExportScope::parse(["chronicle:rome\xff"]);
     }
 
     public function test_slug_rule_matches_the_schema(): void

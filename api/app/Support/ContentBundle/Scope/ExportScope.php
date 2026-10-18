@@ -209,7 +209,7 @@ final class ExportScope
     private static function validSlug(string $slug): bool
     {
         return mb_strlen($slug) <= self::SLUG_MAX_LENGTH
-            && preg_match('~'.substr(self::SLUG_PATTERN, 0, -1).'\z~', $slug) === 1;
+            && preg_match('~'.substr(self::SLUG_PATTERN, 0, -1).'\z~u', $slug) === 1;
     }
 
     private static function year(string $digits, string $spec): int
