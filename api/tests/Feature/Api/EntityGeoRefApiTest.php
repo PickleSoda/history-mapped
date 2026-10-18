@@ -20,12 +20,16 @@ class EntityGeoRefApiTest extends TestCase
     {
         parent::setUp();
 
+        // Storing a geo ref looks the relation up on OHM; never reach the real service.
+        Http::preventStrayRequests();
+
         $this->user = $this->userWithRole('admin');
     }
 
     public function test_index_returns_geography_references_for_entity(): void
     {
         $entity = Entity::factory()->create();
+        $this->fakeEmptyOhmLookup();
 
         $this->actingAs($this->user)
             ->postJson(route('api.v1.entities.geography-references.store', $entity), [
@@ -92,6 +96,7 @@ class EntityGeoRefApiTest extends TestCase
     public function test_store_creates_geography_reference_and_sets_primary_pointer(): void
     {
         $entity = Entity::factory()->create();
+        $this->fakeEmptyOhmLookup();
 
         $response = $this->actingAs($this->user)
             ->postJson(route('api.v1.entities.geography-references.store', $entity), [
@@ -136,6 +141,7 @@ class EntityGeoRefApiTest extends TestCase
     public function test_delete_removes_reference_and_clears_primary_pointer(): void
     {
         $entity = Entity::factory()->create();
+        $this->fakeEmptyOhmLookup();
 
         $storeResponse = $this->actingAs($this->user)
             ->postJson(route('api.v1.entities.geography-references.store', $entity), [
@@ -206,5 +212,12 @@ class EntityGeoRefApiTest extends TestCase
 
         $this->assertIsArray($entity->primaryLocation?->territory_geom);
         $this->assertSame('Polygon', $entity->primaryLocation?->territory_geom['type'] ?? null);
+    }
+
+    private function fakeEmptyOhmLookup(): void
+    {
+        Http::fake([
+            'https://nominatim.openhistoricalmap.org/lookup*' => Http::response([], 200),
+        ]);
     }
 }
