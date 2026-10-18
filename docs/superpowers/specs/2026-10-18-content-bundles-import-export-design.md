@@ -327,3 +327,26 @@ data-provider test, one case per row.
 - **Upload size limits on prod** (Caddy and FrankenPHP) need raising for large pushes. Artisan on the droplet with scp is the fallback.
 - **Geometry conflicts** are shown as GeoJSON text until the map preview lands.
 - **Contributor-submitted bundles** (a signed-in user uploading an edited bundle for review) are a natural follow-up, but not part of this spec. For now the user sends the file to an admin.
+
+### Found while building part 1 (export + validate), for the part-2 planner
+
+- **`_base/` is untrusted input.** Anyone can edit `_base/` and recompute the manifest checksums. That has two effects:
+  - Schema-invalid lines can pass validation as "unchanged since export" warnings.
+  - In part 2, a doctored base can make site edits look untouched, so the import silently overwrites contributor edits instead of raising conflicts.
+
+  For admin imports that is no worse than override mode. Before bundles come from anyone else, though, the exporter should sign the `_base` checksums, for example with an HMAC keyed by the exporting site's `APP_KEY`. The importer then treats an unsigned or mismatched base as "no base", so every difference becomes a conflict.
+- **Equality rules for the three-way comparison:**
+  - `[]` and `{}` are equal for object-typed jsonb columns (`external_tags` stores both).
+  - Key order inside free-form jsonb is irrelevant.
+  - Geometry compares numerically (both sides through `ST_AsGeoJSON(…, 7)`), not as bytes. PHP re-encodes numbers such as `1.0e-5`.
+- **Rules that need the merged record, not the line.** `RecordRules::check($type, $record, complete: true)` already runs on a fully merged record. The planner must also cover:
+  - a geo-ref merge line that changes `geometry_period_id` without naming `entity_id`;
+  - a line that gives a geo ref or geometry period a new `entity_id` while site rows still pair it with the old owner. Both owner FKs are NO ACTION on update.
+- **Cascades.** Deleting a chronicle cascades to its entries, and the preview must show that count. A chronicle `replace` deletes entries that are not in the bundle, so their entry-entity links count as excused.
+- **Cost.** Validation runs at about 10k lines/s: about 20–30 s for a full export, with ~90 MB peak memory. A bundle that deletes every entity peaks at ~270 MB with site checks. The admin upload must therefore validate and import in the queue worker, with a raised memory limit, never in the web request.
+- **Data found by the first real-data validation**, all pre-existing and all reported as "unchanged since export" warnings:
+  - two entity pairs share a Wikidata id: Q299663 ("Piero de' Medici" / "Piero di Cosimo de' Medici") and Q16722863 ("Dom Jeronimo" / "Yusuf ibn al-Hasan");
+  - a Polynesian chronicle entry runs 1642 → 1400;
+  - one `commanded_by` relationship exists twice.
+
+  These are cleanup candidates.
