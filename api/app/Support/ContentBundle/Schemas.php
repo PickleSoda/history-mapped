@@ -8,7 +8,8 @@ use Opis\JsonSchema\Validator;
 
 /**
  * One shared opis Validator whose resolver maps the schemas' `$id` base URL to the schema directory,
- * so `$ref`s between schema files resolve locally. Validate decoded objects (stdClass), not arrays.
+ * so `$ref`s between schema files resolve locally. The instance is shared and configured once to collect
+ * all errors; callers must not mutate it. Validate decoded objects (stdClass), not arrays.
  */
 final class Schemas
 {
@@ -19,7 +20,7 @@ final class Schemas
     public static function validator(): Validator
     {
         if (self::$validator === null) {
-            $validator = new Validator;
+            $validator = new Validator(null, 1000, false); // collect every error, never stop at the first
             $validator->resolver()->registerPrefix(self::BASE_URL, BundleFormat::schemaDir());
             self::$validator = $validator;
         }
@@ -29,7 +30,7 @@ final class Schemas
 
     public static function recordSchemaId(RecordType $type): string
     {
-        return self::BASE_URL.$type->value.'.schema.json';
+        return self::BASE_URL.$type->schemaFile();
     }
 
     public static function manifestSchemaId(): string

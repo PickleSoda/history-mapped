@@ -94,7 +94,10 @@
             ]
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "required": [
+          "entity_id"
+        ]
       }
     },
     "_op": {

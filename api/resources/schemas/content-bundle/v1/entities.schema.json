@@ -122,12 +122,7 @@
     "confidence": {
       "anyOf": [
         {
-          "enum": [
-            "high",
-            "medium",
-            "low",
-            "unresolved"
-          ]
+          "$ref": "common.schema.json#/$defs/confidence"
         },
         {
           "type": "null"
@@ -151,15 +146,7 @@
     "date_method": {
       "anyOf": [
         {
-          "enum": [
-            "nlp_direct",
-            "nlp_approximate",
-            "llm_reign_resolution",
-            "era_table_lookup",
-            "llm_contextual_inference",
-            "human_assigned",
-            "source_database"
-          ]
+          "$ref": "common.schema.json#/$defs/date_method"
         },
         {
           "type": "null"
@@ -169,12 +156,7 @@
     "date_confidence": {
       "anyOf": [
         {
-          "enum": [
-            "high",
-            "medium",
-            "low",
-            "unresolved"
-          ]
+          "$ref": "common.schema.json#/$defs/confidence"
         },
         {
           "type": "null"
@@ -184,12 +166,7 @@
     "duration_type": {
       "anyOf": [
         {
-          "enum": [
-            "point",
-            "period",
-            "ongoing",
-            "uncertain"
-          ]
+          "$ref": "common.schema.json#/$defs/duration_type"
         },
         {
           "type": "null"
@@ -199,15 +176,7 @@
     "location_method": {
       "anyOf": [
         {
-          "enum": [
-            "ohm_nominatim",
-            "wikidata",
-            "geonames",
-            "pleiades",
-            "llm_disambiguation",
-            "human_assigned",
-            "source_database"
-          ]
+          "$ref": "common.schema.json#/$defs/location_method"
         },
         {
           "type": "null"
@@ -217,12 +186,7 @@
     "location_confidence": {
       "anyOf": [
         {
-          "enum": [
-            "high",
-            "medium",
-            "low",
-            "unresolved"
-          ]
+          "$ref": "common.schema.json#/$defs/confidence"
         },
         {
           "type": "null"
@@ -272,7 +236,10 @@
             "type": "boolean"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "required": [
+          "name"
+        ]
       }
     },
     "tags": {
@@ -324,12 +291,7 @@
           "duration_type": {
             "anyOf": [
               {
-                "enum": [
-                  "point",
-                  "period",
-                  "ongoing",
-                  "uncertain"
-                ]
+                "$ref": "common.schema.json#/$defs/duration_type"
               },
               {
                 "type": "null"
@@ -339,15 +301,7 @@
           "date_method": {
             "anyOf": [
               {
-                "enum": [
-                  "nlp_direct",
-                  "nlp_approximate",
-                  "llm_reign_resolution",
-                  "era_table_lookup",
-                  "llm_contextual_inference",
-                  "human_assigned",
-                  "source_database"
-                ]
+                "$ref": "common.schema.json#/$defs/date_method"
               },
               {
                 "type": "null"
@@ -357,12 +311,7 @@
           "date_confidence": {
             "anyOf": [
               {
-                "enum": [
-                  "high",
-                  "medium",
-                  "low",
-                  "unresolved"
-                ]
+                "$ref": "common.schema.json#/$defs/confidence"
               },
               {
                 "type": "null"
@@ -396,15 +345,7 @@
           "location_method": {
             "anyOf": [
               {
-                "enum": [
-                  "ohm_nominatim",
-                  "wikidata",
-                  "geonames",
-                  "pleiades",
-                  "llm_disambiguation",
-                  "human_assigned",
-                  "source_database"
-                ]
+                "$ref": "common.schema.json#/$defs/location_method"
               },
               {
                 "type": "null"
@@ -414,12 +355,7 @@
           "location_confidence": {
             "anyOf": [
               {
-                "enum": [
-                  "high",
-                  "medium",
-                  "low",
-                  "unresolved"
-                ]
+                "$ref": "common.schema.json#/$defs/confidence"
               },
               {
                 "type": "null"

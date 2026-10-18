@@ -5,7 +5,6 @@
   "$defs": {
     "uuid": {
       "type": "string",
-      "format": "uuid",
       "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
     },
     "year": {
@@ -18,6 +17,44 @@
       "type": "string",
       "pattern": "^[^\\sA-Z/]+$",
       "maxLength": 255
+    },
+    "confidence": {
+      "enum": [
+        "high",
+        "medium",
+        "low",
+        "unresolved"
+      ]
+    },
+    "date_method": {
+      "enum": [
+        "nlp_direct",
+        "nlp_approximate",
+        "llm_reign_resolution",
+        "era_table_lookup",
+        "llm_contextual_inference",
+        "human_assigned",
+        "source_database"
+      ]
+    },
+    "location_method": {
+      "enum": [
+        "ohm_nominatim",
+        "wikidata",
+        "geonames",
+        "pleiades",
+        "llm_disambiguation",
+        "human_assigned",
+        "source_database"
+      ]
+    },
+    "duration_type": {
+      "enum": [
+        "point",
+        "period",
+        "ongoing",
+        "uncertain"
+      ]
     },
     "qid": {
       "type": "string",
@@ -34,7 +71,7 @@
       "type": "object",
       "properties": {
         "slug": {
-          "type": "string"
+          "$ref": "#/$defs/slug"
         },
         "source": {
           "enum": [

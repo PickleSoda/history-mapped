@@ -132,12 +132,7 @@
     "confidence": {
       "anyOf": [
         {
-          "enum": [
-            "high",
-            "medium",
-            "low",
-            "unresolved"
-          ]
+          "$ref": "common.schema.json#/$defs/confidence"
         },
         {
           "type": "null"

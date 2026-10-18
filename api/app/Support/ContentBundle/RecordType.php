@@ -82,8 +82,34 @@ enum RecordType: string
         };
     }
 
+    /**
+     * Keys of each nested list's items, in emitted order, keyed by the nested field name.
+     *
+     * @return array<string, list<string>>
+     */
+    public function nestedKeys(): array
+    {
+        return match ($this) {
+            self::Entities => [
+                'aliases' => ['name', 'language', 'source', 'is_primary'],
+                'tags' => ['slug', 'source'],
+                'temporal_ranges' => ['range_type', 'start_year', 'end_year', 'start_date', 'end_date', 'duration_type', 'date_method', 'date_confidence', 'is_primary', 'notes'],
+                'locations' => ['location_name', 'location_method', 'location_confidence', 'is_primary', 'notes', 'geom', 'territory_geom'],
+            ],
+            self::Chronicles => ['tags' => ['slug', 'source']],
+            self::ChronicleEntries => ['entities' => ['entity_id', 'role', 'sequence_in_entry']],
+            default => [],
+        };
+    }
+
+    /** Schema file name, shared by the path on disk and the schema `$id`. */
+    public function schemaFile(): string
+    {
+        return $this->value.'.schema.json';
+    }
+
     public function schemaPath(): string
     {
-        return BundleFormat::schemaDir().'/'.$this->value.'.schema.json';
+        return BundleFormat::schemaDir().'/'.$this->schemaFile();
     }
 }

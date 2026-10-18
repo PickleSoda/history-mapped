@@ -32,7 +32,9 @@ use App\Support\ContentBundle\RecordType;
 use App\Support\ContentBundle\Schemas;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Opis\JsonSchema\Errors\ErrorFormatter;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Tests\Support\ContentBundleFixtures;
 use Tests\TestCase;
 
 class SchemasTest extends TestCase
@@ -101,12 +103,18 @@ class SchemasTest extends TestCase
     /** @return list<string> */
     private function enumValues(array $property): array
     {
+        if (isset($property['$ref'])) {
+            $this->assertStringStartsWith('common.schema.json#/$defs/', $property['$ref']);
+            $def = substr($property['$ref'], strlen('common.schema.json#/$defs/'));
+
+            return $this->load(BundleFormat::schemaDir().'/common.schema.json')['$defs'][$def]['enum'];
+        }
         if (isset($property['enum'])) {
             return $property['enum'];
         }
         foreach ($property['anyOf'] ?? [] as $branch) {
-            if (isset($branch['enum'])) {
-                return $branch['enum'];
+            if (isset($branch['$ref']) || isset($branch['enum'])) {
+                return $this->enumValues($branch);
             }
         }
         $this->fail('No enum in property '.json_encode($property));
@@ -131,11 +139,24 @@ class SchemasTest extends TestCase
         $files = glob(BundleFormat::schemaDir().'/*.schema.json');
         $this->assertCount(8, $files);
 
-        $validator = Schemas::validator();
         foreach ($files as $file) {
             $this->assertIsArray($this->load($file));
-            $id = Schemas::BASE_URL.basename($file);
-            $this->assertNotNull($validator->validate((object) [], $id));
+        }
+    }
+
+    public function test_fully_populated_line_is_valid_for_every_type(): void
+    {
+        foreach (RecordType::cases() as $type) {
+            $line = ContentBundleFixtures::all()[$type->value];
+            $this->assertSame($type->keys(), array_keys($line), $type->value.' fixture keys');
+            foreach ($line as $key => $value) {
+                $this->assertNotNull($value, $type->value.'.'.$key);
+            }
+            foreach (array_keys($type->nestedKeys()) as $field) {
+                $this->assertCount(1, $line[$field], $type->value.'.'.$field);
+            }
+            $result = Schemas::validator()->validate(json_decode(json_encode($line)), Schemas::recordSchemaId($type));
+            $this->assertTrue($result->isValid(), $type->value.': '.json_encode($result->error()?->message()));
         }
     }
 
@@ -152,9 +173,8 @@ class SchemasTest extends TestCase
 
         // Where the model casts the column, it must cast to this enum.
         $casts = (new $model)->getCasts();
-        if (isset($casts[$column])) {
-            $this->assertSame($enum, $casts[$column]);
-        }
+        $this->assertArrayHasKey($column, $casts);
+        $this->assertSame($enum, $casts[$column]);
 
         // Where Postgres has a native enum for the column, the labels must match too.
         $table = (new $model)->getTable();
@@ -366,6 +386,72 @@ class SchemasTest extends TestCase
         $manifest = self::validManifest();
         $this->assertTrue($this->manifestValid([...$manifest, 'counts' => ['geo_refs' => 1, 'chronicle_entries' => 2]]));
         $this->assertFalse($this->manifestValid([...$manifest, 'counts' => ['widgets' => 1]]));
+    }
+
+    public function test_nested_items_require_their_not_null_columns(): void
+    {
+        $entity = ContentBundleFixtures::entity();
+        $entry = ContentBundleFixtures::chronicleEntry();
+
+        $noName = $entity;
+        unset($noName['aliases'][0]['name']);
+        $this->assertFalse($this->valid(RecordType::Entities, $noName));
+
+        $noEntity = $entry;
+        unset($noEntity['entities'][0]['entity_id']);
+        $this->assertFalse($this->valid(RecordType::ChronicleEntries, $noEntity));
+
+        $noSlug = ContentBundleFixtures::chronicle();
+        unset($noSlug['tags'][0]['slug']);
+        $this->assertFalse($this->valid(RecordType::Chronicles, $noSlug));
+    }
+
+    public function test_null_in_non_null_nested_field_is_rejected(): void
+    {
+        $entity = ContentBundleFixtures::entity();
+        foreach ([['aliases', 'is_primary'], ['temporal_ranges', 'is_primary'], ['locations', 'is_primary'], ['temporal_ranges', 'range_type']] as [$list, $key]) {
+            $bad = $entity;
+            $bad[$list][0][$key] = null;
+            $this->assertFalse($this->valid(RecordType::Entities, $bad), $list.'.'.$key);
+        }
+        $entry = ContentBundleFixtures::chronicleEntry();
+        $entry['entities'][0]['role'] = null;
+        $this->assertFalse($this->valid(RecordType::ChronicleEntries, $entry));
+    }
+
+    public function test_invalid_op_is_rejected(): void
+    {
+        foreach (RecordType::cases() as $type) {
+            $this->assertFalse($this->valid($type, ['id' => self::UUID, '_op' => 'upsert']), $type->value);
+            $this->assertTrue($this->valid($type, ['id' => self::UUID, '_op' => 'replace']), $type->value);
+        }
+    }
+
+    public function test_validator_collects_all_errors(): void
+    {
+        $result = Schemas::validator()->validate(
+            json_decode(json_encode(['id' => 'bad', 'bogus' => 1, 'entity_type' => 'nope'])),
+            Schemas::recordSchemaId(RecordType::Entities)
+        );
+        $this->assertFalse($result->isValid());
+        $this->assertGreaterThan(1, count((new ErrorFormatter)->formatFlat($result->error())));
+    }
+
+    public function test_nested_keys_match_schema_item_property_order(): void
+    {
+        foreach (RecordType::cases() as $type) {
+            $schema = $this->load($type->schemaPath());
+            $expected = [];
+            foreach ($schema['properties'] as $key => $property) {
+                if (($property['type'] ?? null) === 'array') {
+                    $items = $property['items'];
+                    $expected[$key] = isset($items['$ref'])
+                        ? array_keys($this->load(BundleFormat::schemaDir().'/common.schema.json')['$defs']['tag']['properties'])
+                        : array_keys($items['properties']);
+                }
+            }
+            $this->assertSame($expected, $type->nestedKeys(), $type->value);
+        }
     }
 
     public function test_record_type_helpers(): void
