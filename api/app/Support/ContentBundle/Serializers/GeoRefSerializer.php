@@ -28,7 +28,7 @@ final class GeoRefSerializer implements RecordSerializer
 
     public function query(): Builder
     {
-        return EntityGeoRef::query()->select(self::COLUMNS);
+        return EntityGeoRef::query()->select((new EntityGeoRef)->qualifyColumns(self::COLUMNS));
     }
 
     public function serialize(Model $model, Profile $profile): array

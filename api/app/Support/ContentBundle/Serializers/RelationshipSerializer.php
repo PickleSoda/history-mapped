@@ -28,7 +28,7 @@ final class RelationshipSerializer implements RecordSerializer
 
     public function query(): Builder
     {
-        return EntityRelationship::query()->select(self::COLUMNS);
+        return EntityRelationship::query()->select((new EntityRelationship)->qualifyColumns(self::COLUMNS));
     }
 
     public function serialize(Model $model, Profile $profile): array

@@ -31,10 +31,10 @@ final class ChronicleSerializer implements RecordSerializer
     public function query(): Builder
     {
         return Chronicle::query()
-            ->select(self::COLUMNS)
-            ->with(['tagRows' => fn (Relation $q) => $q
-                ->select(['chronicle_id', 'tag', 'source'])
-                ->whereIn('source', TagSource::exported())]);
+            ->select((new Chronicle)->qualifyColumns(self::COLUMNS))
+            ->with(['chronicleTags' => fn (Relation $q) => $q
+                ->select($q->getModel()->qualifyColumns(['chronicle_id', 'tag', 'source']))
+                ->whereIn('chronicle_tags.source', TagSource::exported())]);
     }
 
     public function serialize(Model $model, Profile $profile): array
@@ -54,7 +54,7 @@ final class ChronicleSerializer implements RecordSerializer
             'impact_score' => $r('impact_score'),
             'approximate_location' => Values::jsonbObject($model, 'approximate_location'),
             'metadata' => Values::jsonbObject($model, 'metadata') ?? (object) [],
-            'tags' => TagList::build($model->tagRows),
+            'tags' => TagList::build($model->chronicleTags),
         ];
     }
 }

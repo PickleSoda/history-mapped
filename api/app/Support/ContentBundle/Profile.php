@@ -14,7 +14,7 @@ enum Profile: string
 
     /**
      * Apply the profile to a decoded `attributes` value: Public drops `_`-prefixed keys.
-     * Works on the stdClass that JsonLine::decodeJsonb() produces.
+     * Works on the stdClass that Values::decodeJsonb() produces.
      */
     public function filterAttributes(mixed $attributes): mixed
     {

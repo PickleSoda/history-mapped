@@ -47,7 +47,7 @@ class Chronicle extends Model
      *
      * @return HasMany<ChronicleTag, $this>
      */
-    public function tagRows(): HasMany
+    public function chronicleTags(): HasMany
     {
         return $this->hasMany(ChronicleTag::class, 'chronicle_id', 'chronicle_id');
     }

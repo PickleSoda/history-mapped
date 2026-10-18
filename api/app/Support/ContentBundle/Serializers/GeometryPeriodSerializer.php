@@ -29,9 +29,9 @@ final class GeometryPeriodSerializer implements RecordSerializer
     public function query(): Builder
     {
         return GeometryPeriod::query()
-            ->select(self::COLUMNS)
-            ->selectRaw('ST_AsGeoJSON(geom, 7) as geom_geojson')
-            ->selectRaw('ST_AsGeoJSON(territory_geom, 7) as territory_geom_geojson');
+            ->select((new GeometryPeriod)->qualifyColumns(self::COLUMNS))
+            ->selectRaw('ST_AsGeoJSON(geometry_periods.geom, 7) as geom_geojson')
+            ->selectRaw('ST_AsGeoJSON(geometry_periods.territory_geom, 7) as territory_geom_geojson');
     }
 
     public function serialize(Model $model, Profile $profile): array

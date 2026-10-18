@@ -32,8 +32,8 @@ final class ChronicleEntrySerializer implements RecordSerializer
     public function query(): Builder
     {
         return ChronicleEntry::query()
-            ->select(self::COLUMNS)
-            ->with(['entityLinks' => fn (Relation $q) => $q->select(['entry_id', ...RecordType::ChronicleEntries->nestedKeys()['entities']])]);
+            ->select((new ChronicleEntry)->qualifyColumns(self::COLUMNS))
+            ->with(['entityLinks' => fn (Relation $q) => $q->select($q->getModel()->qualifyColumns(['entry_id', ...RecordType::ChronicleEntries->nestedKeys()['entities']]))]);
     }
 
     public function serialize(Model $model, Profile $profile): array

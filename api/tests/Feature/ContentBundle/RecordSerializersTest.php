@@ -54,9 +54,11 @@ class RecordSerializersTest extends TestCase
     /** @return array<string, array{0: string}> */
     public static function types(): array
     {
+        $types = array_filter(RecordType::cases(), fn (RecordType $t) => $t !== RecordType::Entities);
+
         return array_combine(
-            array_map(fn (RecordType $t) => $t->value, array_slice(RecordType::cases(), 1)),
-            array_map(fn (RecordType $t) => [$t->value], array_slice(RecordType::cases(), 1)),
+            array_map(fn (RecordType $t) => $t->value, $types),
+            array_map(fn (RecordType $t) => [$t->value], $types),
         );
     }
 
@@ -233,6 +235,24 @@ class RecordSerializersTest extends TestCase
         foreach (array_diff($type->keys(), ['id'], self::special($type)) as $key) {
             $this->assertSame($row[$key], $r[$key], $key);
         }
+        // Non-empty free-form jsonb must survive byte for byte, including nested `{}`.
+        foreach (array_intersect(['source_citations', 'external_tags', 'source_meta', 'metadata', 'approximate_location'], array_keys($r)) as $k) {
+            $this->assertSame(JsonLine::encode(['v' => json_decode($row[$k])]), JsonLine::encode(['v' => $r[$k]]), $k);
+        }
+    }
+
+    public function test_lazy_by_id_works_with_qualified_selects(): void
+    {
+        foreach (range(1, 5) as $_) {
+            $this->period();
+        }
+        $s = $this->serializer(RecordType::GeometryPeriods);
+
+        $ids = $s->query()->lazyById(2, 'geometry_periods.geometry_period_id', 'geometry_period_id')
+            ->map(fn ($m) => $s->serialize($m, Profile::Full)['id'])->all();
+
+        $this->assertCount(5, $ids);
+        $this->assertCount(5, array_unique($ids));
     }
 
     #[DataProvider('types')]
@@ -389,8 +409,7 @@ class RecordSerializersTest extends TestCase
 
     public function test_source_evidence_is_emitted_exactly_as_stored(): void
     {
-        $cases = ['"event:0"' => 'event:0', '["a",{"b":{}}]' => null, '{"k":[]}' => null, 'null' => null];
-        foreach (array_keys($cases) as $json) {
+        foreach (['"event:0"', '["a",{"b":{}}]', '{"k":[]}', 'null'] as $json) {
             $entry = $this->entry();
             DB::table('chronicle_entries')->where('entry_id', $entry->entry_id)->update(['source_evidence' => DB::raw("'".$json."'::jsonb")]);
             $line = JsonLine::encode($this->serialize(RecordType::ChronicleEntries, $entry->entry_id));

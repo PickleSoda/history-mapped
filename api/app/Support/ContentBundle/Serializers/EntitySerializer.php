@@ -39,17 +39,17 @@ final class EntitySerializer implements RecordSerializer
         $nested = RecordType::Entities->nestedKeys();
 
         return Entity::query()
-            ->select(self::COLUMNS)
+            ->select((new Entity)->qualifyColumns(self::COLUMNS))
             ->with([
-                'aliases' => fn (Relation $q) => $q->select(['entity_id', ...$nested['aliases']]),
+                'aliases' => fn (Relation $q) => $q->select($q->getModel()->qualifyColumns(['entity_id', ...$nested['aliases']])),
                 'entityTags' => fn (Relation $q) => $q
-                    ->select(['entity_id', 'tag', 'source']) // `slug` is stored in column `tag`
-                    ->whereIn('source', TagSource::exported()),
-                'temporalRanges' => fn (Relation $q) => $q->select(['entity_id', ...$nested['temporal_ranges']]),
+                    ->select($q->getModel()->qualifyColumns(['entity_id', 'tag', 'source'])) // `slug` is stored in column `tag`
+                    ->whereIn('entity_tags.source', TagSource::exported()),
+                'temporalRanges' => fn (Relation $q) => $q->select($q->getModel()->qualifyColumns(['entity_id', ...$nested['temporal_ranges']])),
                 'locations' => fn (Relation $q) => $q
-                    ->select(['entity_id', ...array_diff($nested['locations'], ['geom', 'territory_geom'])])
-                    ->selectRaw('ST_AsGeoJSON(geom, 7) as geom_geojson')
-                    ->selectRaw('ST_AsGeoJSON(territory_geom, 7) as territory_geom_geojson'),
+                    ->select($q->getModel()->qualifyColumns(['entity_id', ...array_diff($nested['locations'], ['geom', 'territory_geom'])]))
+                    ->selectRaw('ST_AsGeoJSON(entity_locations.geom, 7) as geom_geojson')
+                    ->selectRaw('ST_AsGeoJSON(entity_locations.territory_geom, 7) as territory_geom_geojson'),
             ]);
     }
 
