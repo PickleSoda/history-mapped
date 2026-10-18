@@ -19,6 +19,6 @@ interface RecordSerializer
     /** Base query for this type: eager loads and geojson selects; callers add scope + ordering. */
     public function query(): Builder;
 
-    /** @return array<string, mixed> keys exactly RecordType::keys(), in order */
+    /** @return array<string, mixed> keys exactly RecordType::keys(), in order; implementations assert() their model class */
     public function serialize(Model $model, Profile $profile): array;
 }

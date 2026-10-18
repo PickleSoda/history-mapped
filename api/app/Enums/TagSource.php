@@ -16,4 +16,14 @@ enum TagSource: string
     case Curated = 'curated';
     /** Computed from dates, entity type, or the chronicles an entity appears in. */
     case Derived = 'derived';
+
+    /**
+     * Sources written to content bundles; Derived rows are recomputed by tags:sync and never exported.
+     *
+     * @return list<string>
+     */
+    public static function exported(): array
+    {
+        return [self::Manual->value, self::Curated->value];
+    }
 }

@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Tests\Feature\ContentBundle;
 
 use App\Models\Entity;
+use App\Models\EntityGeoRef;
 use App\Models\EntityLocation;
 use App\Support\ContentBundle\JsonLine;
 use App\Support\ContentBundle\Profile;
 use App\Support\ContentBundle\RecordType;
 use App\Support\ContentBundle\Schemas;
 use App\Support\ContentBundle\Serializers\EntitySerializer;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -20,6 +22,19 @@ use Tests\TestCase;
 class EntitySerializerTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // A column dropped from the serializer's select must throw, not export null.
+        Model::preventAccessingMissingAttributes();
+    }
+
+    protected function tearDown(): void
+    {
+        Model::preventAccessingMissingAttributes(false);
+        parent::tearDown();
+    }
 
     private function entity(array $attrs = []): Entity
     {
@@ -183,5 +198,90 @@ class EntitySerializerTest extends TestCase
 
         $this->assertSame($measure(1), $measure(5));
         $this->assertSame(5, $measure(5));
+    }
+
+    public function test_fully_populated_entity_matches_raw_rows(): void
+    {
+        $e = $this->entity(['wikidata_id' => 'Q123', 'source_citations' => ['k' => 'v']]);
+        $ref = EntityGeoRef::factory()->create(['entity_id' => $e->entity_id]);
+        $e->forceFill(['primary_geo_ref_id' => $ref->geo_ref_id])->save();
+        $e->update(['impact_score' => 7]);
+        DB::table('entity_aliases')->insert(['alias_id' => (string) Str::uuid(), 'entity_id' => $e->entity_id, 'name' => 'Rome', 'language' => 'en', 'source' => 'wikidata', 'is_primary' => true]);
+        DB::table('entity_temporal_ranges')->insert([
+            'temporal_range_id' => (string) Str::uuid(), 'entity_id' => $e->entity_id, 'range_type' => 'primary', 'start_year' => -509, 'end_year' => -27,
+            'start_date' => '-0509', 'end_date' => '-0027', 'duration_type' => 'period', 'date_method' => 'explicit', 'date_confidence' => 'high', 'is_primary' => true, 'notes' => 'n',
+        ]);
+        DB::table('entity_locations')->insert([
+            'location_id' => (string) Str::uuid(), 'entity_id' => $e->entity_id, 'location_name' => 'Rome', 'location_method' => 'explicit',
+            'location_confidence' => 'high', 'is_primary' => true, 'notes' => 'n',
+        ]);
+
+        $r = $this->serialize($e);
+        $row = (array) DB::table('entities')->where('entity_id', $e->entity_id)->first();
+
+        $scalars = array_diff(RecordType::Entities->keys(), ['id', 'attributes', 'source_citations', 'aliases', 'tags', 'temporal_ranges', 'locations']);
+        foreach ($scalars as $key) {
+            $this->assertNotNull($r[$key], $key);
+            $this->assertSame($row[$key], $r[$key], $key);
+        }
+        $this->assertSame($row['entity_id'], $r['id']);
+
+        $alias = (array) DB::table('entity_aliases')->where('entity_id', $e->entity_id)->first();
+        $this->assertSame(array_intersect_key($alias, array_flip(['name', 'language', 'source', 'is_primary'])), $r['aliases'][0]);
+        $range = (array) DB::table('entity_temporal_ranges')->where('entity_id', $e->entity_id)->first();
+        $this->assertSame(array_intersect_key($range, array_flip(RecordType::Entities->nestedKeys()['temporal_ranges'])), $r['temporal_ranges'][0]);
+        $loc = (array) DB::table('entity_locations')->where('entity_id', $e->entity_id)->first();
+        $expected = array_intersect_key($loc, array_flip(['location_name', 'location_method', 'location_confidence', 'is_primary', 'notes']));
+        $actual = array_diff_key($r['locations'][0], ['geom' => 1, 'territory_geom' => 1]);
+        $this->assertSame($expected, $actual);
+        foreach ([...$r['temporal_ranges'][0], ...$actual] as $k => $v) {
+            $this->assertNotNull($v, $k);
+        }
+        $this->assertNotNull($r['aliases'][0]['source']);
+    }
+
+    public function test_tied_items_serialize_identically_regardless_of_insert_order(): void
+    {
+        $make = function (bool $reverse): string {
+            $e = $this->entity(['attributes' => []]);
+            $aliases = [['source' => 'a'], ['source' => 'b']];
+            $ranges = [['notes' => 'x'], ['notes' => 'y']];
+            $locs = [['notes' => 'x'], ['notes' => 'y']];
+            foreach ($reverse ? [array_reverse($aliases), array_reverse($ranges), array_reverse($locs)] : [$aliases, $ranges, $locs] as $i => $list) {
+                foreach ($list as $row) {
+                    match ($i) {
+                        0 => DB::table('entity_aliases')->insert($row + ['alias_id' => (string) Str::uuid(), 'entity_id' => $e->entity_id, 'name' => 'Same', 'language' => 'en', 'is_primary' => false]),
+                        1 => DB::table('entity_temporal_ranges')->insert($row + ['temporal_range_id' => (string) Str::uuid(), 'entity_id' => $e->entity_id, 'range_type' => 'primary', 'start_year' => 1, 'end_year' => 2, 'is_primary' => false]),
+                        2 => DB::table('entity_locations')->insert($row + ['location_id' => (string) Str::uuid(), 'entity_id' => $e->entity_id, 'location_name' => 'Same', 'is_primary' => false]),
+                    };
+                }
+            }
+            $r = $this->serialize($e);
+
+            return JsonLine::encode([$r['aliases'], $r['temporal_ranges'], $r['locations']]);
+        };
+
+        $this->assertSame($make(false), $make(true));
+    }
+
+    public function test_unknown_enum_value_is_exported_as_is_and_fails_validation(): void
+    {
+        $e = $this->entity();
+        DB::table('entity_temporal_ranges')->insert(['temporal_range_id' => (string) Str::uuid(), 'entity_id' => $e->entity_id, 'range_type' => 'primary', 'is_primary' => true, 'date_method' => 'bogus_method']);
+
+        $r = $this->serialize($e);
+        $this->assertSame('bogus_method', $r['temporal_ranges'][0]['date_method']);
+
+        $result = Schemas::validator()->validate(json_decode(JsonLine::encode($r)), Schemas::recordSchemaId(RecordType::Entities));
+        $this->assertFalse($result->isValid());
+    }
+
+    public function test_entity_without_children_emits_empty_lists(): void
+    {
+        $line = JsonLine::encode($this->serialize($this->entity()));
+
+        foreach (['aliases', 'tags', 'temporal_ranges', 'locations'] as $field) {
+            $this->assertStringContainsString('"'.$field.'":[]', $line);
+        }
     }
 }

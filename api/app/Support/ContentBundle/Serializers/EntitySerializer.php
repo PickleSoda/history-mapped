@@ -8,7 +8,6 @@ use App\Enums\TagSource;
 use App\Models\Entity;
 use App\Models\EntityAlias;
 use App\Models\EntityLocation;
-use App\Models\EntityTag;
 use App\Models\EntityTemporalRange;
 use App\Support\ContentBundle\JsonLine;
 use App\Support\ContentBundle\Profile;
@@ -37,16 +36,19 @@ final class EntitySerializer implements RecordSerializer
 
     public function query(): Builder
     {
+        // Nested selects are built from RecordType::nestedKeys() plus explicit extras (the FK, geojson).
+        $nested = RecordType::Entities->nestedKeys();
+
         return Entity::query()
             ->select(self::COLUMNS)
             ->with([
-                'aliases' => fn (Relation $q) => $q->select(['entity_id', ...RecordType::Entities->nestedKeys()['aliases']]),
+                'aliases' => fn (Relation $q) => $q->select(['entity_id', ...$nested['aliases']]),
                 'entityTags' => fn (Relation $q) => $q
-                    ->select(['entity_id', 'tag', 'source'])
-                    ->whereIn('source', [TagSource::Manual->value, TagSource::Curated->value]),
-                'temporalRanges' => fn (Relation $q) => $q->select(['entity_id', ...RecordType::Entities->nestedKeys()['temporal_ranges']]),
+                    ->select(['entity_id', 'tag', 'source']) // `slug` is stored in column `tag`
+                    ->whereIn('source', TagSource::exported()),
+                'temporalRanges' => fn (Relation $q) => $q->select(['entity_id', ...$nested['temporal_ranges']]),
                 'locations' => fn (Relation $q) => $q
-                    ->select(['entity_id', 'location_name', 'location_method', 'location_confidence', 'is_primary', 'notes'])
+                    ->select(['entity_id', ...array_diff($nested['locations'], ['geom', 'territory_geom'])])
                     ->selectRaw('ST_AsGeoJSON(geom, 7) as geom_geojson')
                     ->selectRaw('ST_AsGeoJSON(territory_geom, 7) as territory_geom_geojson'),
             ]);
@@ -54,36 +56,34 @@ final class EntitySerializer implements RecordSerializer
 
     public function serialize(Model $model, Profile $profile): array
     {
-        /** @var Entity $e */
+        assert($model instanceof Entity);
         $e = $model;
-
-        $attributes = JsonLine::decodeJsonb($e->getRawOriginal('attributes')) ?? (object) [];
-        if ($profile === Profile::Public && $attributes instanceof \stdClass) {
-            $attributes = (object) array_filter((array) $attributes, fn ($key) => ! str_starts_with((string) $key, '_'), ARRAY_FILTER_USE_KEY);
-        }
+        // Enum and text columns are emitted from the raw DB value, so an unknown value is exported
+        // as-is and reported by the validator instead of aborting the export.
+        $r = fn (string $col) => JsonLine::raw($e, $col);
 
         return [
-            'id' => $e->entity_id,
-            'name' => $e->name,
-            'entity_type' => $e->entity_type?->value,
-            'wikidata_id' => $e->wikidata_id,
-            'summary' => $e->summary,
-            'significance' => $e->significance,
-            'impact_score' => $e->impact_score,
-            'display_priority' => $e->display_priority,
-            'icon_class' => $e->icon_class?->value,
-            'confidence' => $e->confidence?->value,
-            'verification_status' => $e->verification_status?->value,
-            'date_method' => $e->date_method?->value,
-            'date_confidence' => $e->date_confidence?->value,
-            'duration_type' => $e->duration_type?->value,
-            'location_method' => $e->location_method?->value,
-            'location_confidence' => $e->location_confidence?->value,
-            'primary_geo_ref_id' => $e->primary_geo_ref_id,
-            'attributes' => JsonLine::object($attributes),
-            'source_citations' => JsonLine::object(JsonLine::decodeJsonb($e->getRawOriginal('source_citations'))),
+            'id' => $r('entity_id'),
+            'name' => $r('name'),
+            'entity_type' => $r('entity_type'),
+            'wikidata_id' => $r('wikidata_id'),
+            'summary' => $r('summary'),
+            'significance' => $r('significance'),
+            'impact_score' => $r('impact_score'),
+            'display_priority' => $r('display_priority'),
+            'icon_class' => $r('icon_class'),
+            'confidence' => $r('confidence'),
+            'verification_status' => $r('verification_status'),
+            'date_method' => $r('date_method'),
+            'date_confidence' => $r('date_confidence'),
+            'duration_type' => $r('duration_type'),
+            'location_method' => $r('location_method'),
+            'location_confidence' => $r('location_confidence'),
+            'primary_geo_ref_id' => $r('primary_geo_ref_id'),
+            'attributes' => $profile->filterAttributes(JsonLine::jsonbObject($e, 'attributes') ?? (object) []),
+            'source_citations' => JsonLine::jsonbObject($e, 'source_citations'),
             'aliases' => $this->aliases($e),
-            'tags' => $this->tags($e),
+            'tags' => TagList::build($e->entityTags),
             'temporal_ranges' => $this->temporalRanges($e),
             'locations' => $this->locations($e),
         ];
@@ -92,67 +92,50 @@ final class EntitySerializer implements RecordSerializer
     /** @return list<array<string, mixed>> */
     private function aliases(Entity $e): array
     {
-        return $e->aliases
-            ->map(fn (EntityAlias $a) => [
-                'name' => $a->name,
-                'language' => $a->language,
-                'source' => $a->source,
-                'is_primary' => (bool) $a->is_primary,
-            ])
-            ->sort(fn (array $a, array $b) => [! $a['is_primary'], $a['name'], $a['language'] === null, $a['language']]
-                <=> [! $b['is_primary'], $b['name'], $b['language'] === null, $b['language']])
-            ->values()
-            ->all();
-    }
+        $items = $e->aliases->map(fn (EntityAlias $a) => [
+            'name' => JsonLine::raw($a, 'name'),
+            'language' => JsonLine::raw($a, 'language'),
+            'source' => JsonLine::raw($a, 'source'),
+            'is_primary' => (bool) JsonLine::raw($a, 'is_primary'),
+        ])->all();
 
-    /** @return list<array{slug: string, source: string}> */
-    private function tags(Entity $e): array
-    {
-        return $e->entityTags
-            ->map(fn (EntityTag $t) => ['slug' => $t->tag, 'source' => $t->source])
-            ->sortBy('slug', SORT_STRING)
-            ->values()
-            ->all();
+        return JsonLine::sortList($items, fn (array $a) => [! $a['is_primary'], $a['name'], $a['language'] === null, $a['language'] ?? '']);
     }
 
     /** @return list<array<string, mixed>> */
     private function temporalRanges(Entity $e): array
     {
-        return $e->temporalRanges
-            ->map(fn (EntityTemporalRange $r) => [
-                'range_type' => $r->range_type,
-                'start_year' => $r->start_year,
-                'end_year' => $r->end_year,
-                'start_date' => $r->start_date,
-                'end_date' => $r->end_date,
-                'duration_type' => $r->duration_type?->value,
-                'date_method' => $r->date_method?->value,
-                'date_confidence' => $r->date_confidence?->value,
-                'is_primary' => (bool) $r->is_primary,
-                'notes' => $r->notes,
-            ])
-            ->sort(fn (array $a, array $b) => [! $a['is_primary'], $a['range_type'], $a['start_year'] ?? PHP_INT_MIN, $a['end_year'] ?? PHP_INT_MIN]
-                <=> [! $b['is_primary'], $b['range_type'], $b['start_year'] ?? PHP_INT_MIN, $b['end_year'] ?? PHP_INT_MIN])
-            ->values()
-            ->all();
+        $items = $e->temporalRanges->map(fn (EntityTemporalRange $t) => [
+            'range_type' => JsonLine::raw($t, 'range_type'),
+            'start_year' => JsonLine::raw($t, 'start_year'),
+            'end_year' => JsonLine::raw($t, 'end_year'),
+            'start_date' => JsonLine::raw($t, 'start_date'),
+            'end_date' => JsonLine::raw($t, 'end_date'),
+            'duration_type' => JsonLine::raw($t, 'duration_type'),
+            'date_method' => JsonLine::raw($t, 'date_method'),
+            'date_confidence' => JsonLine::raw($t, 'date_confidence'),
+            'is_primary' => (bool) JsonLine::raw($t, 'is_primary'),
+            'notes' => JsonLine::raw($t, 'notes'),
+        ])->all();
+
+        // Null years sort lowest.
+        return JsonLine::sortList($items, fn (array $t) => [! $t['is_primary'], $t['range_type'], $t['start_year'] ?? PHP_INT_MIN, $t['end_year'] ?? PHP_INT_MIN]);
     }
 
     /** @return list<array<string, mixed>> */
     private function locations(Entity $e): array
     {
-        return $e->locations
-            ->map(fn (EntityLocation $l) => [
-                'location_name' => $l->location_name,
-                'location_method' => $l->location_method?->value,
-                'location_confidence' => $l->location_confidence?->value,
-                'is_primary' => (bool) $l->is_primary,
-                'notes' => $l->notes,
-                'geom' => $l->geom,
-                'territory_geom' => $l->territory_geom,
-            ])
-            ->sort(fn (array $a, array $b) => [! $a['is_primary'], $a['location_name'] ?? '']
-                <=> [! $b['is_primary'], $b['location_name'] ?? ''])
-            ->values()
-            ->all();
+        $items = $e->locations->map(fn (EntityLocation $l) => [
+            'location_name' => JsonLine::raw($l, 'location_name'),
+            'location_method' => JsonLine::raw($l, 'location_method'),
+            'location_confidence' => JsonLine::raw($l, 'location_confidence'),
+            'is_primary' => (bool) JsonLine::raw($l, 'is_primary'),
+            'notes' => JsonLine::raw($l, 'notes'),
+            'geom' => $l->geom, // GeoJson cast reads the pre-selected geom_geojson
+            'territory_geom' => $l->territory_geom,
+        ])->all();
+
+        // Null names sort as ''.
+        return JsonLine::sortList($items, fn (array $l) => [! $l['is_primary'], $l['location_name'] ?? '']);
     }
 }

@@ -29,6 +29,11 @@ class JsonLineTest extends TestCase
         $this->assertSame('{"a":{},"b":[]}', json_encode(JsonLine::decodeJsonb('{"a":{},"b":[]}')));
     }
 
+    public function test_nested_empty_object_encodes_exactly(): void
+    {
+        $this->assertSame('{"a":{}}', JsonLine::encode(['a' => (object) []]));
+    }
+
     public function test_object_helper_turns_empty_arrays_into_objects(): void
     {
         $this->assertEquals((object) [], JsonLine::object([]));

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Support\ContentBundle;
 
+use Illuminate\Database\Eloquent\Model;
+
 /**
  * The single JSON encoding used for bundle lines, so identical records always produce identical bytes.
  */
@@ -38,5 +40,59 @@ final class JsonLine
     public static function object(mixed $value): mixed
     {
         return $value === [] ? (object) [] : $value;
+    }
+
+    /**
+     * Raw stored value of a column, bypassing casts (so an unknown enum string is exported as-is).
+     * Throws if the column was not selected, so a dropped column cannot silently export null.
+     */
+    public static function raw(Model $model, string $column): mixed
+    {
+        if (! array_key_exists($column, $model->getAttributes())) {
+            throw new \LogicException(sprintf('Column %s.%s was not selected.', $model->getTable(), $column));
+        }
+
+        return $model->getRawOriginal($column);
+    }
+
+    /** A non-object jsonb column (list or scalar), decoded from the raw string. */
+    public static function jsonb(Model $model, string $column): mixed
+    {
+        $raw = self::raw($model, $column);
+
+        return self::decodeJsonb(is_string($raw) ? $raw : null);
+    }
+
+    /** An object-typed jsonb column: decoded from the raw string, top-level empty becomes `{}`. */
+    public static function jsonbObject(Model $model, string $column): mixed
+    {
+        return self::object(self::jsonb($model, $column));
+    }
+
+    /**
+     * Deterministic order for nested lists. `$key` returns a list of bool|int|string parts (map nulls
+     * yourself, e.g. `[$v === null, $v ?? '']` for nulls-last). Strings compare with strcmp, never `<=>`;
+     * remaining ties break on the encoded item, so physical row order never matters.
+     *
+     * @template T of array<string, mixed>
+     *
+     * @param  list<T>  $items
+     * @param  callable(T): list<bool|int|string>  $key
+     * @return list<T>
+     */
+    public static function sortList(array $items, callable $key): array
+    {
+        usort($items, function (array $a, array $b) use ($key): int {
+            foreach (array_map(null, $key($a), $key($b)) as [$x, $y]) {
+                $c = is_string($x) ? strcmp($x, (string) $y) : $x <=> $y;
+                if ($c !== 0) {
+                    return $c;
+                }
+            }
+
+            return strcmp(self::encode($a), self::encode($b));
+        });
+
+        return $items;
     }
 }
