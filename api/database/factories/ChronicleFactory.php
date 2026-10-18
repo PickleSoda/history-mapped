@@ -16,6 +16,9 @@ class ChronicleFactory extends Factory
 
     public function definition(): array
     {
+        $startYear = $this->faker->numberBetween(-3000, 1900);
+        $endYear = $startYear + $this->faker->numberBetween(0, 200);
+
         return [
             'chronicle_id' => (string) Str::uuid(),
             'title' => $this->faker->sentence(),
@@ -23,8 +26,8 @@ class ChronicleFactory extends Factory
             'source_type' => $this->faker->randomElement(SourceType::cases()),
             'source_reference' => $this->faker->word(),
             'status' => $this->faker->randomElement(ChronicleStatus::cases()),
-            'start_year' => $this->faker->year(),
-            'end_year' => $this->faker->year(),
+            'start_year' => $startYear,
+            'end_year' => $endYear,
             'impact_score' => $this->faker->numberBetween(1, 10),
             'approximate_location' => ['lat' => $this->faker->latitude(), 'lng' => $this->faker->longitude()],
             'metadata' => [],

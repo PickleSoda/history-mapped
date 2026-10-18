@@ -1,0 +1,170 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature\ContentBundle;
+
+use App\Models\Entity;
+use App\Models\EntityLocation;
+use App\Support\ContentBundle\JsonLine;
+use App\Support\ContentBundle\Profile;
+use App\Support\ContentBundle\RecordType;
+use App\Support\ContentBundle\Schemas;
+use App\Support\ContentBundle\Serializers\EntitySerializer;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Opis\JsonSchema\Errors\ErrorFormatter;
+use Tests\TestCase;
+
+class EntitySerializerTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private function entity(array $attrs = []): Entity
+    {
+        return Entity::factory()->create($attrs + ['wikidata_id' => null]);
+    }
+
+    private function seedChildren(Entity $e): void
+    {
+        $id = $e->entity_id;
+        foreach ([['zeta', 'manual'], ['alpha', 'curated'], ['mid', 'derived']] as [$slug, $_]) {
+            DB::table('tags')->insertOrIgnore(['slug' => $slug, 'name' => $slug, 'facet' => 'theme']);
+        }
+        foreach ([['zeta', 'manual'], ['alpha', 'curated'], ['mid', 'derived']] as [$slug, $source]) {
+            DB::table('entity_tags')->insert(['entity_tag_id' => (string) Str::uuid(), 'entity_id' => $id, 'tag' => $slug, 'source' => $source]);
+        }
+        foreach ([['Beta', null, false], ['Zed', 'el', true], ['Alpha', 'en', false], ['Alpha', null, false]] as [$name, $lang, $primary]) {
+            DB::table('entity_aliases')->insert(['alias_id' => (string) Str::uuid(), 'entity_id' => $id, 'name' => $name, 'language' => $lang, 'is_primary' => $primary]);
+        }
+        foreach ([['secondary', 10, 20, false], ['primary', 5, 30, true]] as [$type, $s, $en, $primary]) {
+            DB::table('entity_temporal_ranges')->insert(['temporal_range_id' => (string) Str::uuid(), 'entity_id' => $id, 'range_type' => $type, 'start_year' => $s, 'end_year' => $en, 'is_primary' => $primary]);
+        }
+        EntityLocation::query()->create(['entity_id' => $id, 'location_name' => 'Rome', 'is_primary' => true, 'geom' => ['type' => 'Point', 'coordinates' => [12.4963655, 41.9027835]]]);
+        EntityLocation::query()->create(['entity_id' => $id, 'location_name' => 'Alba', 'is_primary' => false]);
+    }
+
+    private function serialize(Entity $e, Profile $p = Profile::Full): array
+    {
+        $s = new EntitySerializer;
+
+        return $s->serialize($s->query()->whereKey($e->entity_id)->firstOrFail(), $p);
+    }
+
+    public function test_record_has_exact_key_order_and_nested_key_order(): void
+    {
+        $e = $this->entity();
+        $this->seedChildren($e);
+        $r = $this->serialize($e);
+
+        $this->assertSame(RecordType::Entities->keys(), array_keys($r));
+        foreach (RecordType::Entities->nestedKeys() as $field => $keys) {
+            $this->assertNotEmpty($r[$field]);
+            foreach ($r[$field] as $item) {
+                $this->assertSame($keys, array_keys($item), $field);
+            }
+        }
+        $this->assertSame($e->entity_id, $r['id']);
+        $this->assertSame($e->entity_type->value, $r['entity_type']);
+    }
+
+    public function test_nested_lists_are_sorted(): void
+    {
+        $e = $this->entity();
+        $this->seedChildren($e);
+        $r = $this->serialize($e);
+
+        $this->assertSame([['Zed', 'el'], ['Alpha', 'en'], ['Alpha', null], ['Beta', null]], array_map(fn ($a) => [$a['name'], $a['language']], $r['aliases']));
+        $this->assertSame(['primary', 'secondary'], array_column($r['temporal_ranges'], 'range_type'));
+        $this->assertSame(['Rome', 'Alba'], array_column($r['locations'], 'location_name'));
+    }
+
+    public function test_derived_tags_are_not_exported_and_tags_sorted(): void
+    {
+        $e = $this->entity();
+        $this->seedChildren($e);
+        $r = $this->serialize($e);
+
+        $this->assertSame([['slug' => 'alpha', 'source' => 'curated'], ['slug' => 'zeta', 'source' => 'manual']], $r['tags']);
+    }
+
+    public function test_geometry_is_geojson_with_at_most_seven_decimals(): void
+    {
+        $e = $this->entity();
+        $this->seedChildren($e);
+        $r = $this->serialize($e);
+
+        $geom = $r['locations'][0]['geom'];
+        $this->assertSame('Point', $geom['type']);
+        $this->assertSame([12.4963655, 41.9027835], $geom['coordinates']);
+        $this->assertNull($r['locations'][0]['territory_geom']);
+        $this->assertNull($r['locations'][1]['geom']);
+        $this->assertDoesNotMatchRegularExpression('/\.\d{8,}/', JsonLine::encode($r));
+    }
+
+    public function test_public_profile_drops_underscore_attributes_only(): void
+    {
+        $e = $this->entity(['attributes' => ['_rejected_wikidata_id' => 'Q1', 'entity_color' => '#fff']]);
+
+        // jsonb does not preserve key order, so compare unordered.
+        $this->assertEqualsCanonicalizing(['_rejected_wikidata_id' => 'Q1', 'entity_color' => '#fff'], $this->serialize($e, Profile::Full)['attributes']);
+        $this->assertSame(['entity_color' => '#fff'], $this->serialize($e, Profile::Public)['attributes']);
+    }
+
+    public function test_empty_attributes_encode_as_empty_object(): void
+    {
+        $e = $this->entity(['attributes' => []]);
+        $onlyPrivate = $this->entity(['attributes' => ['_x' => 1]]);
+
+        $this->assertStringContainsString('"attributes":{}', JsonLine::encode($this->serialize($e)));
+        $this->assertStringContainsString('"attributes":{}', JsonLine::encode($this->serialize($onlyPrivate, Profile::Public)));
+    }
+
+    public function test_source_citations_null_stays_null_and_empty_becomes_object(): void
+    {
+        $this->assertStringContainsString('"source_citations":null', JsonLine::encode($this->serialize($this->entity(['source_citations' => null]))));
+        $this->assertStringContainsString('"source_citations":{}', JsonLine::encode($this->serialize($this->entity(['source_citations' => []]))));
+    }
+
+    public function test_serialized_record_validates_against_schema(): void
+    {
+        $e = $this->entity(['attributes' => ['_rejected_wikidata_id' => 'Q1', 'k' => 'v'], 'source_citations' => ['wikipedia' => ['url' => 'https://en.wikipedia.org/wiki/X']]]);
+        $this->seedChildren($e);
+
+        foreach ([Profile::Full, Profile::Public] as $profile) {
+            $data = json_decode(JsonLine::encode($this->serialize($e, $profile)));
+            $result = Schemas::validator()->validate($data, Schemas::recordSchemaId(RecordType::Entities));
+            $this->assertTrue($result->isValid(), $result->isValid() ? '' : json_encode((new ErrorFormatter)->format($result->error())));
+        }
+    }
+
+    public function test_embedding_is_not_selected(): void
+    {
+        $e = $this->entity();
+        $model = (new EntitySerializer)->query()->whereKey($e->entity_id)->firstOrFail();
+
+        $this->assertArrayNotHasKey('embedding', $model->getAttributes());
+    }
+
+    public function test_query_count_is_constant(): void
+    {
+        $measure = function (int $n): int {
+            Entity::query()->delete();
+            foreach (range(1, $n) as $_) {
+                $this->seedChildren($this->entity());
+            }
+            $s = new EntitySerializer;
+            DB::flushQueryLog();
+            DB::enableQueryLog();
+            $s->query()->get()->each(fn ($m) => $s->serialize($m, Profile::Full));
+            $count = count(DB::getQueryLog());
+            DB::disableQueryLog();
+
+            return $count;
+        };
+
+        $this->assertSame($measure(1), $measure(5));
+        $this->assertSame(5, $measure(5));
+    }
+}
