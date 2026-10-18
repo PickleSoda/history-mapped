@@ -10,7 +10,7 @@ use RuntimeException;
 use ZipArchive;
 
 /**
- * Writes a content bundle to a directory or, for a `.zip` path, to a temp directory that is zipped on close().
+ * Writes a content bundle to a directory or, for a `.zip` path, to a temp directory that is zipped by package().
  * Records stream straight to the record file and its byte-identical `_base/` copy, never held in memory.
  * A failed zip build removes the temp directory and leaves nothing at the target path; call abort() on failure.
  */
@@ -219,7 +219,8 @@ final class BundleWriter
     private static function sweepStale(string $tmpRoot): void
     {
         foreach (glob($tmpRoot.'/bundle-*') ?: [] as $stale) {
-            if (filemtime($stale) < time() - 86400) {
+            $mtime = @filemtime($stale);
+            if ($mtime !== false && $mtime < time() - 86400) {
                 self::rmTree($stale);
             }
         }
@@ -244,8 +245,9 @@ final class BundleWriter
     {
         $tmpZip = $this->workDir.'.zip';
         $zip = new ZipArchive;
-        if ($zip->open($tmpZip, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
-            throw new RuntimeException("Cannot create zip {$tmpZip}.");
+        $code = $zip->open($tmpZip, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+        if ($code !== true) {
+            throw new RuntimeException("Cannot create zip {$tmpZip} (ZipArchive error code {$code}).");
         }
         $names = [BundleFormat::MANIFEST];
         if (is_file($this->workDir.'/'.BundleFormat::LICENSE)) {

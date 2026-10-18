@@ -238,7 +238,7 @@ class BundleReaderWriterTest extends TestCase
     public function test_oversized_manifest_is_rejected_without_parsing(): void
     {
         $this->makeZip($this->dir.'/big.zip', ['manifest.json' => '{"a":"'.str_repeat('x', 1024 * 1024).'"}']);
-        $r = BundleReader::open($this->dir.'/big.zip');
+        $r = BundleReader::open($this->dir.'/big.zip', maxCompressionRatio: PHP_INT_MAX >> 8);
         $this->assertNull($r->manifest());
         $this->assertSame('manifest.json is larger than 1 MB', $r->manifestError());
     }
@@ -367,8 +367,9 @@ class BundleReaderWriterTest extends TestCase
             $w->close(['profile' => 'nope'] + $this->manifest());
             $this->fail('expected exception');
         } catch (\LogicException $e) {
-            $this->assertStringContainsString('profile', $e->getMessage().' profile');
-            $this->assertGreaterThan(70, strlen($e->getMessage()));
+            $this->assertStringContainsString('manifest.schema.json: ', $e->getMessage());
+            $this->assertStringContainsString('profile', $e->getMessage());
+            $this->assertStringContainsString('The properties must match schema: profile', $e->getMessage());
         }
     }
 
@@ -400,5 +401,20 @@ class BundleReaderWriterTest extends TestCase
             @rmdir($old);
             @rmdir($fresh);
         }
+    }
+
+    public function test_highly_compressible_entries_are_refused_as_zip_bombs(): void
+    {
+        $this->makeZip($this->dir.'/bomb.zip', ['manifest.json' => '{}', 'entities.jsonl' => str_repeat('0', 8 * 1024 * 1024)]);
+        $this->expectException(BundleLimitExceededException::class);
+        BundleReader::open($this->dir.'/bomb.zip');
+    }
+
+    public function test_ratio_cap_is_overridable_and_real_exports_open(): void
+    {
+        $this->makeZip($this->dir.'/b.zip', ['manifest.json' => '{}', 'entities.jsonl' => str_repeat('0', 2 * 1024 * 1024)]);
+        $this->assertTrue(BundleReader::open($this->dir.'/b.zip', maxCompressionRatio: 100000)->has('entities.jsonl'));
+        $this->write($this->dir.'/real.zip');
+        $this->assertTrue(BundleReader::open($this->dir.'/real.zip')->has('manifest.json'));
     }
 }

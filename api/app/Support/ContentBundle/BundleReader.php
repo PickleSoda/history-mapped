@@ -17,7 +17,7 @@ use ZipArchive;
  *
  * Limits: at most MAX_ENTRIES entries, MAX_ENTRY_BYTES per entry and MAX_TOTAL_BYTES in total, checked from
  * headers at open() and again against the bytes actually read (headers can lie); breaches throw
- * BundleLimitExceededException. Lines longer than the line limit make lines() throw BundleLineTooLongException;
+ * BundleLimitExceededException; zip entries over 1 MB that compress more than 100:1 are refused. Lines longer than the line limit make lines() throw BundleLineTooLongException;
  * manifest() reads at most 1 MB and reports problems through manifestError(). Duplicate zip entry names are
  * collected in duplicates() (the zip is reopened without CHECKCONS only for that one error). The file listing is computed once per reader.
  */
@@ -32,6 +32,11 @@ final class BundleReader
     public const MAX_ENTRY_BYTES = 2 * 1024 * 1024 * 1024;
 
     public const MAX_TOTAL_BYTES = 4 * 1024 * 1024 * 1024;
+
+    /** Entries over RATIO_MIN_BYTES uncompressed may not exceed this uncompressed:compressed ratio (zip bombs). */
+    public const MAX_COMPRESSION_RATIO = 100;
+
+    public const RATIO_MIN_BYTES = 1024 * 1024;
 
     private bool $manifestLoaded = false;
 
@@ -64,6 +69,7 @@ final class BundleReader
         int $maxEntries = self::MAX_ENTRIES,
         int $maxEntryBytes = self::MAX_ENTRY_BYTES,
         int $maxTotalBytes = self::MAX_TOTAL_BYTES,
+        int $maxCompressionRatio = self::MAX_COMPRESSION_RATIO,
     ): self {
         $zip = null;
         $dir = '';
@@ -98,15 +104,22 @@ final class BundleReader
             if ($code !== true) {
                 throw new RuntimeException("Cannot open {$path} as a zip archive (ZipArchive error code {$code}).");
             }
-            if ($zip->numFiles > $maxEntries) {
+            $count = $zip->numFiles;
+            if ($count > $maxEntries) {
                 $zip->close();
-                throw new BundleLimitExceededException("Bundle has {$zip->numFiles} entries; the limit is {$maxEntries}.");
+                throw new BundleLimitExceededException("Bundle has {$count} entries; the limit is {$maxEntries}.");
             }
             for ($i = 0; $i < $zip->numFiles; $i++) {
                 $stat = $zip->statIndex($i);
                 $name = (string) ($stat['name'] ?? '');
                 $raw[] = $name;
                 $sizes[$name] = max($sizes[$name] ?? 0, (int) ($stat['size'] ?? 0));
+                $size = (int) ($stat['size'] ?? 0);
+                $compressed = (int) ($stat['comp_size'] ?? 0);
+                if ($size > self::RATIO_MIN_BYTES && $size > $maxCompressionRatio * max($compressed, 1)) {
+                    $zip->close();
+                    throw new BundleLimitExceededException("Entry {$name} compresses more than {$maxCompressionRatio}:1.");
+                }
                 if (($stat['size'] ?? 0) > $maxEntryBytes) {
                     $zip->close();
                     throw new BundleLimitExceededException("Entry {$name} is larger than {$maxEntryBytes} bytes uncompressed.");
