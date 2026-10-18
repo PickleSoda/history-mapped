@@ -322,7 +322,11 @@ jobs:
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
           port: ${{ secrets.DROPLET_SSH_PORT || 22 }}
-          script_stop: true
+          # No `script_stop`: drone-ssh implements it by adding an
+          # exit-if-$?-nonzero line after every script line, `else` included, so
+          # the "SPA bundle current" branch exited 1 silently (right after the
+          # image pull) on every deploy that didn't touch web/. The script's own
+          # `set -Eeuo pipefail` and ERR trap stop on failure instead.
           # The action's default is 10m. A deploy that pulls a new image and
           # rebuilds the SPA can take longer, and a timeout lands after the
           # build but before migrate/up, leaving the new SPA on the old API.
@@ -345,16 +349,9 @@ jobs:
 
             COMPOSE="docker compose --env-file docker/.env.prod -f docker/docker-compose.prod.yml"
 
-            # Pull the pinned API image.
-            # `</dev/null`: drone-ssh pipes this whole script to the remote shell
-            # via stdin, so any command that reads stdin swallows the rest of the
-            # script. When `pull` actually transfers layers (no TTY) its progress
-            # reader consumes stdin and bash dies right after "Pulled" with exit 1.
-            # Detach stdin — same reason the migrate/web-build runs below do.
-            # That still wasn't enough: 0f4cdce's deploy died right after "Pulled"
-            # even when no layers moved. A pull is only a pre-fetch (`run` and `up`
-            # pull a missing image themselves), so don't let it abort the deploy.
-            $COMPOSE pull --quiet app </dev/null || echo "::warning::compose pull exited $? - continuing"
+            # Pull the pinned API image. `</dev/null` keeps it (like the
+            # migrate/web-build runs below) off the SSH session's stdin.
+            $COMPOSE pull --quiet app </dev/null
 
             # Rebuild the customer SPA only when its built bundle is stale vs the
             # current checkout — not merely when *this pull* touched web/. We
