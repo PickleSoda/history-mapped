@@ -24,4 +24,10 @@ final class BundleFormat
     {
         return resource_path('schemas/content-bundle/v1');
     }
+
+    /** Absolute paths, `..` segments, backslashes, drive letters and control characters never belong in a bundle. */
+    public static function isUnsafePath(string $name): bool
+    {
+        return preg_match('~(^|/)\.\.(/|$)|^/|\\\\|^[A-Za-z]:|[\x00-\x1f]~', $name) === 1;
+    }
 }

@@ -30,6 +30,7 @@ final readonly class Issue
         public ?string $field,
         public string $message,
         public ?string $id = null,
+        public bool $unchanged = false,
     ) {}
 
     public static function error(string $layer, string $message, ?string $file = null, ?int $line = null, ?string $field = null, ?string $id = null): self
@@ -49,10 +50,10 @@ final readonly class Issue
 
     public function asWarning(string $suffix): self
     {
-        return new self(self::WARNING, $this->layer, $this->file, $this->line, $this->field, $this->message.$suffix, $this->id);
+        return new self(self::WARNING, $this->layer, $this->file, $this->line, $this->field, $this->message.$suffix, $this->id, true);
     }
 
-    /** @return array{severity: string, layer: string, file: ?string, line: ?int, field: ?string, message: string, id: ?string} */
+    /** @return array{severity: string, layer: string, file: ?string, line: ?int, field: ?string, message: string, id: ?string, unchanged: bool} */
     public function toArray(): array
     {
         return [
@@ -63,6 +64,7 @@ final readonly class Issue
             'field' => $this->field,
             'message' => $this->message,
             'id' => $this->id,
+            'unchanged' => $this->unchanged,
         ];
     }
 

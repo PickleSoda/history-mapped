@@ -10,64 +10,68 @@ use App\Support\ContentBundle\BundleReader;
 use App\Support\ContentBundle\RecordType;
 
 /**
- * Per record file, record id => sha1 of the raw `_base/` line, built lazily (only when an error needs
- * the unchanged-line check) by streaming. A line is "unchanged since export" when its bytes equal the
- * base line with the same id. The index is bounded; ids past the bound are simply never unchanged.
+ * Per record file, the set of sha1 hashes of the normalised `_base/` lines, built lazily (only when an error
+ * needs the unchanged-line check) by streaming. A bundle line whose bytes hash into the set is "unchanged
+ * since export": identical bytes imply an identical id, so no id is stored. Memory is bounded: past
+ * $maxLines base lines the whole index is dropped and downgrading is switched off (see overflowed()).
  */
 final class BaseIndex
 {
-    public const MAX_ENTRIES = 2_000_000;
+    public const MAX_LINES = 500_000;
 
-    /** @var array<string, array<string, string>> */
-    private array $index = [];
+    /** @var array<string, array<string, true>> */
+    private array $sets = [];
 
     private int $count = 0;
 
-    public function __construct(private readonly BundleReader $bundle) {}
+    private bool $overflowed = false;
 
-    public function isUnchanged(RecordType $type, string $id, string $rawLine): bool
+    public function __construct(private readonly BundleReader $bundle, private readonly int $maxLines = self::MAX_LINES) {}
+
+    /** @param string $file a root record file name such as `entities.jsonl`; $hash is `sha1($line, true)` */
+    public function has(string $file, string $hash): bool
     {
-        $hash = ($this->load($type))[$id] ?? null;
-
-        return $hash !== null && hash_equals($hash, sha1($rawLine, true));
+        return isset($this->load($file)[$hash]);
     }
 
-    /** @return array<string, string> */
-    private function load(RecordType $type): array
+    public function overflowed(): bool
     {
-        if (isset($this->index[$type->value])) {
-            return $this->index[$type->value];
+        return $this->overflowed;
+    }
+
+    public function maxLines(): int
+    {
+        return $this->maxLines;
+    }
+
+    /** @return array<string, true> */
+    private function load(string $file): array
+    {
+        if ($this->overflowed) {
+            return [];
         }
-        $map = [];
-        $file = BundleFormat::BASE_DIR.'/'.$type->file();
-        if ($this->bundle->has($file)) {
+        if (isset($this->sets[$file])) {
+            return $this->sets[$file];
+        }
+        $set = [];
+        $type = RecordType::fromFile($file);
+        $base = BundleFormat::BASE_DIR.'/'.$file;
+        if ($type !== null && $this->bundle->has($base)) {
             try {
-                foreach ($this->bundle->lines($file) as $line) {
-                    $id = self::idOf($line);
-                    if ($id === null) {
-                        continue;
+                foreach ($this->bundle->lines($base) as $line) {
+                    if (++$this->count > $this->maxLines) {
+                        $this->overflowed = true;
+                        $this->sets = [];
+
+                        return [];
                     }
-                    if ($this->count >= self::MAX_ENTRIES) {
-                        break;
-                    }
-                    $this->count++;
-                    $map[$id] = sha1($line, true);
+                    $set[sha1($line, true)] = true;
                 }
             } catch (BundleLineTooLongException) {
                 // The rest of an over-long base file stays unindexed.
             }
         }
 
-        return $this->index[$type->value] = $map;
-    }
-
-    private static function idOf(string $line): ?string
-    {
-        if (preg_match('/\A\{"id":"([^"\\\\]{1,64})"/', $line, $m) === 1) {
-            return $m[1];
-        }
-        $data = json_decode($line);
-
-        return is_object($data) && isset($data->id) && is_string($data->id) ? $data->id : null;
+        return $this->sets[$file] = $set;
     }
 }

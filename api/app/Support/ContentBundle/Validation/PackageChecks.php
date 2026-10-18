@@ -36,7 +36,7 @@ final class PackageChecks
             $allowed[BundleFormat::BASE_DIR.'/'.$type->file()] = 1;
         }
         foreach ($bundle->files() as $name) {
-            if (self::isUnsafe($name)) {
+            if (BundleFormat::isUnsafePath($name)) {
                 $sink->add(Issue::error(Issue::PACKAGE, 'unsafe file name', self::printable($name)));
             } elseif (! isset($allowed[$name])) {
                 $sink->add(Issue::error(Issue::PACKAGE, 'unknown file; a bundle holds only manifest.json, LICENSE.md, the record files and _base/', $name));
@@ -44,8 +44,8 @@ final class PackageChecks
         }
     }
 
-    /** @return array<string, mixed>|null the manifest when it could be read */
-    private function manifest(BundleReader $bundle, IssueSink $sink): ?array
+    /** @return \stdClass|null the manifest when it could be read */
+    private function manifest(BundleReader $bundle, IssueSink $sink): ?\stdClass
     {
         $file = BundleFormat::MANIFEST;
         if (! $bundle->has($file)) {
@@ -53,30 +53,21 @@ final class PackageChecks
 
             return null;
         }
-        $manifest = $bundle->manifest();
+        $manifest = $bundle->manifestObject();
         if ($manifest === null) {
             $sink->add(Issue::error(Issue::PACKAGE, 'cannot read manifest: '.($bundle->manifestError() ?? 'unknown error'), $file));
 
             return null;
         }
 
-        $data = json_decode((string) json_encode($manifest));
-        if (is_object($data)) {
-            // json_decode(…, true) turned empty objects into lists; these two are objects by schema.
-            foreach (['counts', 'checksums'] as $key) {
-                if (isset($data->$key) && $data->$key === []) {
-                    $data->$key = new \stdClass;
-                }
-            }
-        }
-        $result = Schemas::validator()->validate($data, Schemas::manifestSchemaId());
+        $result = Schemas::validator()->validate($manifest, Schemas::manifestSchemaId());
         if (! $result->isValid()) {
             foreach (SchemaIssues::map($result->error(), Issue::PACKAGE, $file, null, null) as $issue) {
                 $sink->add($issue);
             }
         }
 
-        $version = $manifest['version'] ?? null;
+        $version = $manifest->version ?? null;
         if (is_int($version) && $version !== BundleFormat::VERSION) {
             $sink->add(Issue::error(Issue::PACKAGE, "unsupported bundle version {$version}; this site reads version ".BundleFormat::VERSION, $file, null, '/version'));
         }
@@ -84,14 +75,13 @@ final class PackageChecks
         return $manifest;
     }
 
-    /** @param array<string, mixed> $manifest */
-    private function checksums(BundleReader $bundle, IssueSink $sink, array $manifest): void
+    private function checksums(BundleReader $bundle, IssueSink $sink, \stdClass $manifest): void
     {
-        $listed = is_array($manifest['checksums'] ?? null) ? $manifest['checksums'] : [];
+        $listed = isset($manifest->checksums) && is_object($manifest->checksums) ? (array) $manifest->checksums : [];
         $prefix = BundleFormat::BASE_DIR.'/';
         foreach ($listed as $name => $expected) {
             $name = (string) $name;
-            if (! str_starts_with($name, $prefix) || self::isUnsafe($name) || ! is_string($expected)) {
+            if (! str_starts_with($name, $prefix) || BundleFormat::isUnsafePath($name) || ! is_string($expected) || ! str_starts_with($expected, 'sha256:')) {
                 continue; // the schema layer already flagged it
             }
             if (! $bundle->has($name)) {
@@ -106,11 +96,6 @@ final class PackageChecks
                 $sink->add(Issue::error(Issue::PACKAGE, 'file is not listed in the manifest checksums', $name));
             }
         }
-    }
-
-    private static function isUnsafe(string $name): bool
-    {
-        return preg_match('~(^|/)\.\.(/|$)|^/|\\\\|^[A-Za-z]:|[\x00-\x1f]~', $name) === 1;
     }
 
     private static function printable(string $name): string

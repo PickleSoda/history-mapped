@@ -18,7 +18,10 @@ use ZipArchive;
  * Limits: at most MAX_ENTRIES entries, MAX_ENTRY_BYTES per entry and MAX_TOTAL_BYTES in total, checked from
  * headers at open() and again against the bytes actually read (headers can lie); breaches throw
  * BundleLimitExceededException; zip entries over 1 MB that compress more than 100:1 are refused. Lines longer than the line limit make lines() throw BundleLineTooLongException;
- * manifest() reads at most 1 MB and reports problems through manifestError(). Duplicate zip entry names are
+ * manifest() reads at most 1 MB and reports problems through manifestError().
+ * Read failures (a corrupt or truncated zip entry, bad CRC) and open failures throw BundleReadException.
+ * lines() normalises as the import will: a leading UTF-8 BOM and a `\r` before `\n` are stripped and blank lines are
+ * skipped (counted in blankLineCount(); line numbers stay physical). Duplicate zip entry names are
  * collected in duplicates() (the zip is reopened without CHECKCONS only for that one error). The file listing is computed once per reader.
  */
 final class BundleReader
@@ -44,6 +47,14 @@ final class BundleReader
     private ?array $manifest = null;
 
     private ?string $manifestError = null;
+
+    private ?\stdClass $manifestObject = null;
+
+    /** @var array<string, int> */
+    private array $blankLines = [];
+
+    /** @var array<string, bool> */
+    private array $boms = [];
 
     /** @var array<string, int> bytes actually read, max per file, for the total cap */
     private array $seen = [];
@@ -92,7 +103,7 @@ final class BundleReader
             }
         } else {
             if (! is_file($path)) {
-                throw new RuntimeException("Bundle not found: {$path}");
+                throw new BundleReadException("Bundle not found: {$path}");
             }
             $zip = new ZipArchive;
             $code = $zip->open($path, ZipArchive::RDONLY | ZipArchive::CHECKCONS);
@@ -102,7 +113,7 @@ final class BundleReader
                 $code = $zip->open($path, ZipArchive::RDONLY);
             }
             if ($code !== true) {
-                throw new RuntimeException("Cannot open {$path} as a zip archive (ZipArchive error code {$code}).");
+                throw new BundleReadException("Cannot open {$path} as a zip archive: ".self::zipError($code)." (ZipArchive error code {$code}).");
             }
             $count = $zip->numFiles;
             if ($count > $maxEntries) {
@@ -174,7 +185,7 @@ final class BundleReader
         }
         $h = $this->stream(BundleFormat::MANIFEST);
         try {
-            $raw = (string) stream_get_contents($h, self::MAX_MANIFEST_BYTES + 1);
+            $raw = (string) $this->guarded(BundleFormat::MANIFEST, fn () => stream_get_contents($h, self::MAX_MANIFEST_BYTES + 1));
         } finally {
             fclose($h);
         }
@@ -183,14 +194,23 @@ final class BundleReader
 
             return null;
         }
-        $data = json_decode($raw, true);
-        if (! is_array($data) || ($data !== [] && array_is_list($data))) {
+        $object = json_decode($raw);
+        if (! $object instanceof \stdClass) {
             $this->manifestError = json_last_error() !== JSON_ERROR_NONE ? json_last_error_msg() : 'manifest.json is not a JSON object.';
 
             return null;
         }
+        $this->manifestObject = $object;
 
-        return $this->manifest = $data;
+        return $this->manifest = json_decode($raw, true);
+    }
+
+    /** The manifest decoded as an object (so `{}` stays an object), or null when manifest() is null. */
+    public function manifestObject(): ?\stdClass
+    {
+        $this->manifest();
+
+        return $this->manifestObject;
     }
 
     public function manifestError(): ?string
@@ -225,14 +245,15 @@ final class BundleReader
         $read = 0;
         try {
             while (! feof($h)) {
-                $chunk = fread($h, 65536);
+                $chunk = $this->guarded($file, fn () => fread($h, 65536));
                 if ($chunk === false) {
-                    throw new RuntimeException("Cannot read {$file}.");
+                    throw new BundleReadException("{$file} is corrupt or truncated");
                 }
                 $read += strlen($chunk);
                 $this->account($file, $read);
                 hash_update($ctx, $chunk);
             }
+            $this->guarded($file, fn () => fread($h, 1)); // a zip stream only reports a CRC error on a read past the end
         } finally {
             fclose($h);
         }
@@ -240,25 +261,54 @@ final class BundleReader
         return 'sha256:'.hash_final($ctx);
     }
 
-    /** @return Generator<int, string> 1-based line number => line without "\n"; a final empty line is not yielded */
+    /**
+     * @return Generator<int, string> physical 1-based line number => normalised line (no "\n", no trailing "\r",
+     *                                no BOM); blank lines are skipped, not yielded
+     */
     public function lines(string $file): Generator
     {
         $h = $this->stream($file);
         $n = 0;
         $read = 0;
+        $this->blankLines[$file] = 0;
+        $this->boms[$file] = false;
         try {
-            while (($line = stream_get_line($h, $this->maxLineBytes + 1, "\n")) !== false) {
+            while (($line = $this->guarded($file, fn () => stream_get_line($h, $this->maxLineBytes + 1, "\n"))) !== false) {
                 $n++;
                 if (strlen($line) > $this->maxLineBytes) {
                     throw new BundleLineTooLongException($file, $n, $this->maxLineBytes);
                 }
                 $read += strlen($line) + 1;
                 $this->account($file, $read);
+                if ($n === 1 && str_starts_with($line, "\xEF\xBB\xBF")) {
+                    $line = substr($line, 3);
+                    $this->boms[$file] = true;
+                }
+                if (str_ends_with($line, "\r")) {
+                    $line = substr($line, 0, -1);
+                }
+                if (trim($line, " \t") === '') {
+                    $this->blankLines[$file]++;
+
+                    continue;
+                }
                 yield $n => $line;
             }
         } finally {
             fclose($h);
         }
+    }
+
+    /** Blank lines skipped so far by the last lines($file) pass. */
+    public function blankLineCount(string $file): int
+    {
+        return $this->blankLines[$file] ?? 0;
+    }
+
+    /** Whether the last lines($file) pass stripped a UTF-8 byte-order mark. */
+    public function hadByteOrderMark(string $file): bool
+    {
+        return $this->boms[$file] ?? false;
     }
 
     public function close(): void
@@ -277,6 +327,49 @@ final class BundleReader
         }
     }
 
+    /**
+     * Runs one stream read, turning PHP's warning for a bad zip entry (CRC or deflate error) into BundleReadException.
+     *
+     * @template T
+     *
+     * @param  callable(): T  $read
+     * @return T
+     */
+    private function guarded(string $file, callable $read): mixed
+    {
+        $failed = false;
+        set_error_handler(function () use (&$failed): bool {
+            $failed = true;
+
+            return true;
+        });
+        try {
+            $result = $read();
+        } finally {
+            restore_error_handler();
+        }
+        if ($failed) {
+            throw new BundleReadException("{$file} is corrupt or truncated");
+        }
+
+        return $result;
+    }
+
+    private static function zipError(int $code): string
+    {
+        return match ($code) {
+            ZipArchive::ER_NOZIP => 'not a zip file',
+            ZipArchive::ER_INCONS => 'inconsistent zip file',
+            ZipArchive::ER_NOENT => 'no such file',
+            ZipArchive::ER_OPEN => 'cannot open file',
+            ZipArchive::ER_READ => 'read error',
+            ZipArchive::ER_SEEK => 'seek error',
+            ZipArchive::ER_MEMORY => 'out of memory',
+            ZipArchive::ER_ENCRYPTED, ZipArchive::ER_NOPASSWD, ZipArchive::ER_WRONGPASSWD => 'encrypted zip files are not supported',
+            default => 'unreadable zip file',
+        };
+    }
+
     /** @return resource */
     private function stream(string $file)
     {
@@ -284,16 +377,16 @@ final class BundleReader
             throw new RuntimeException("File not in bundle: {$file}");
         }
         if ($this->zip !== null) {
-            $h = $this->zip->getStream($this->prefix.$file);
+            $h = $this->guarded($file, fn () => $this->zip->getStream($this->prefix.$file));
         } else {
             // Names with `..`, a leading `/` or backslashes are listed but never opened.
-            if (preg_match('~(^|/)\.\.(/|$)|^/|\\\\~', $file) === 1) {
+            if (BundleFormat::isUnsafePath($file)) {
                 throw new RuntimeException("Refusing to open unsafe path: {$file}");
             }
-            $h = fopen($this->dir.'/'.$this->prefix.$file, 'rb');
+            $h = $this->guarded($file, fn () => fopen($this->dir.'/'.$this->prefix.$file, 'rb'));
         }
         if ($h === false) {
-            throw new RuntimeException("Cannot open {$file}.");
+            throw new BundleReadException("{$file} is corrupt or truncated");
         }
 
         return $h;

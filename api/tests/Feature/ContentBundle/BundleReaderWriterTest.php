@@ -7,6 +7,7 @@ namespace Tests\Feature\ContentBundle;
 use App\Support\ContentBundle\BundleLimitExceededException;
 use App\Support\ContentBundle\BundleLineTooLongException;
 use App\Support\ContentBundle\BundleReader;
+use App\Support\ContentBundle\BundleReadException;
 use App\Support\ContentBundle\BundleWriter;
 use App\Support\ContentBundle\RecordType;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -416,5 +417,36 @@ class BundleReaderWriterTest extends TestCase
         $this->assertTrue(BundleReader::open($this->dir.'/b.zip', maxCompressionRatio: 100000)->has('entities.jsonl'));
         $this->write($this->dir.'/real.zip');
         $this->assertTrue(BundleReader::open($this->dir.'/real.zip')->has('manifest.json'));
+    }
+
+    public function test_lines_are_normalised_with_physical_numbers(): void
+    {
+        mkdir($this->dir.'/d');
+        file_put_contents($this->dir.'/d/manifest.json', '{}');
+        file_put_contents($this->dir.'/d/entities.jsonl', "\xEF\xBB\xBFa\r\n\r\nb\n  \nc\n\n");
+        $r = BundleReader::open($this->dir.'/d');
+        $this->assertSame([1 => 'a', 3 => 'b', 5 => 'c'], iterator_to_array($r->lines('entities.jsonl')));
+        $this->assertSame(3, $r->blankLineCount('entities.jsonl'));
+        $this->assertTrue($r->hadByteOrderMark('entities.jsonl'));
+    }
+
+    public function test_corrupt_zip_entry_throws_read_exception_and_not_a_php_warning(): void
+    {
+        $z = new ZipArchive;
+        $z->open($this->dir.'/c.zip', ZipArchive::CREATE);
+        $z->addFromString('manifest.json', '{}');
+        $z->addFromString('entities.jsonl', "{\"id\":\"abcdefghijkl\"}\n");
+        $z->setCompressionName('entities.jsonl', ZipArchive::CM_STORE);
+        $z->close();
+        file_put_contents($this->dir.'/c.zip', str_replace('abcdefghijkl', 'abcdefghijkx', (string) file_get_contents($this->dir.'/c.zip')));
+        $r = BundleReader::open($this->dir.'/c.zip');
+        try {
+            iterator_to_array($r->lines('entities.jsonl'));
+            $this->fail('expected exception');
+        } catch (BundleReadException $e) {
+            $this->assertSame('entities.jsonl is corrupt or truncated', $e->getMessage());
+        }
+        $this->expectException(BundleReadException::class);
+        $r->sha256('entities.jsonl');
     }
 }
