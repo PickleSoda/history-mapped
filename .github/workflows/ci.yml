@@ -323,6 +323,10 @@ jobs:
           key: ${{ secrets.DROPLET_SSH_KEY }}
           port: ${{ secrets.DROPLET_SSH_PORT || 22 }}
           script_stop: true
+          # The action's default is 10m. A deploy that pulls a new image and
+          # rebuilds the SPA can take longer, and a timeout lands after the
+          # build but before migrate/up, leaving the new SPA on the old API.
+          command_timeout: 30m
           envs: GHCR_USERNAME,GHCR_TOKEN,APP_DIR,APP_IMAGE
           script: |
             set -euo pipefail
