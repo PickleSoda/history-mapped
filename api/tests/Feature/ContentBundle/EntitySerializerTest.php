@@ -171,6 +171,12 @@ class EntitySerializerTest extends TestCase
         }
     }
 
+    private function assertValid(array $record): void
+    {
+        $result = Schemas::validator()->validate(json_decode(JsonLine::encode($record)), Schemas::recordSchemaId(RecordType::Entities));
+        $this->assertTrue($result->isValid(), $result->isValid() ? '' : json_encode((new ErrorFormatter)->format($result->error())));
+    }
+
     public function test_embedding_is_not_selected(): void
     {
         $e = $this->entity();
@@ -209,10 +215,10 @@ class EntitySerializerTest extends TestCase
         DB::table('entity_aliases')->insert(['alias_id' => (string) Str::uuid(), 'entity_id' => $e->entity_id, 'name' => 'Rome', 'language' => 'en', 'source' => 'wikidata', 'is_primary' => true]);
         DB::table('entity_temporal_ranges')->insert([
             'temporal_range_id' => (string) Str::uuid(), 'entity_id' => $e->entity_id, 'range_type' => 'primary', 'start_year' => -509, 'end_year' => -27,
-            'start_date' => '-0509', 'end_date' => '-0027', 'duration_type' => 'period', 'date_method' => 'explicit', 'date_confidence' => 'high', 'is_primary' => true, 'notes' => 'n',
+            'start_date' => '-0509', 'end_date' => '-0027', 'duration_type' => 'period', 'date_method' => 'source_database', 'date_confidence' => 'high', 'is_primary' => true, 'notes' => 'n',
         ]);
         DB::table('entity_locations')->insert([
-            'location_id' => (string) Str::uuid(), 'entity_id' => $e->entity_id, 'location_name' => 'Rome', 'location_method' => 'explicit',
+            'location_id' => (string) Str::uuid(), 'entity_id' => $e->entity_id, 'location_name' => 'Rome', 'location_method' => 'wikidata',
             'location_confidence' => 'high', 'is_primary' => true, 'notes' => 'n',
         ]);
 
@@ -238,6 +244,7 @@ class EntitySerializerTest extends TestCase
             $this->assertNotNull($v, $k);
         }
         $this->assertNotNull($r['aliases'][0]['source']);
+        $this->assertValid($r);
     }
 
     public function test_tied_items_serialize_identically_regardless_of_insert_order(): void

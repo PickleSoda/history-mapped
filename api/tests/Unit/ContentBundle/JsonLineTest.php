@@ -24,21 +24,9 @@ class JsonLineTest extends TestCase
         $this->assertSame('{"score":1.0}', JsonLine::encode(['score' => 1.0]));
     }
 
-    public function test_empty_object_encodes_as_braces(): void
-    {
-        $this->assertSame('{"a":{},"b":[]}', json_encode(JsonLine::decodeJsonb('{"a":{},"b":[]}')));
-    }
-
     public function test_nested_empty_object_encodes_exactly(): void
     {
         $this->assertSame('{"a":{}}', JsonLine::encode(['a' => (object) []]));
-    }
-
-    public function test_object_helper_turns_empty_arrays_into_objects(): void
-    {
-        $this->assertEquals((object) [], JsonLine::object([]));
-        $this->assertSame(['k' => 1], JsonLine::object(['k' => 1]));
-        $this->assertNull(JsonLine::object(null));
     }
 
     public function test_key_order_is_preserved_and_no_trailing_newline(): void
@@ -47,12 +35,5 @@ class JsonLineTest extends TestCase
 
         $this->assertSame('{"z":1,"a":2,"m":3}', $line);
         $this->assertStringEndsNotWith("\n", $line);
-    }
-
-    public function test_decode_jsonb_keeps_objects(): void
-    {
-        $this->assertNull(JsonLine::decodeJsonb(null));
-        $this->assertSame('{"a":{},"b":[]}', json_encode(JsonLine::decodeJsonb('{"a":{},"b":[]}')));
-        $this->assertEquals((object) [], JsonLine::object(JsonLine::decodeJsonb('{}')));
     }
 }

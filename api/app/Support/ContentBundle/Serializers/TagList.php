@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Support\ContentBundle\Serializers;
 
-use App\Support\ContentBundle\JsonLine;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -21,9 +20,9 @@ final class TagList
     {
         $items = [];
         foreach ($rows as $row) {
-            $items[] = ['slug' => JsonLine::raw($row, 'tag'), 'source' => JsonLine::raw($row, 'source')];
+            $items[] = ['slug' => Values::raw($row, 'tag'), 'source' => Values::raw($row, 'source')];
         }
 
-        return JsonLine::sortList($items, fn (array $t) => [(string) $t['slug']]);
+        return Values::sortList($items, fn (array $t) => [(string) $t['slug']]);
     }
 }

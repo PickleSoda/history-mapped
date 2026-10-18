@@ -42,6 +42,16 @@ class Chronicle extends Model
         ];
     }
 
+    /**
+     * The raw `chronicle_tags` rows (with `source`), for the content-bundle export.
+     *
+     * @return HasMany<ChronicleTag, $this>
+     */
+    public function tagRows(): HasMany
+    {
+        return $this->hasMany(ChronicleTag::class, 'chronicle_id', 'chronicle_id');
+    }
+
     /** @return HasMany<ChronicleEntry, $this> */
     public function entries(): HasMany
     {

@@ -9,7 +9,6 @@ use App\Models\Entity;
 use App\Models\EntityAlias;
 use App\Models\EntityLocation;
 use App\Models\EntityTemporalRange;
-use App\Support\ContentBundle\JsonLine;
 use App\Support\ContentBundle\Profile;
 use App\Support\ContentBundle\RecordType;
 use Illuminate\Database\Eloquent\Builder;
@@ -60,7 +59,7 @@ final class EntitySerializer implements RecordSerializer
         $e = $model;
         // Enum and text columns are emitted from the raw DB value, so an unknown value is exported
         // as-is and reported by the validator instead of aborting the export.
-        $r = fn (string $col) => JsonLine::raw($e, $col);
+        $r = fn (string $col) => Values::raw($e, $col);
 
         return [
             'id' => $r('entity_id'),
@@ -80,8 +79,8 @@ final class EntitySerializer implements RecordSerializer
             'location_method' => $r('location_method'),
             'location_confidence' => $r('location_confidence'),
             'primary_geo_ref_id' => $r('primary_geo_ref_id'),
-            'attributes' => $profile->filterAttributes(JsonLine::jsonbObject($e, 'attributes') ?? (object) []),
-            'source_citations' => JsonLine::jsonbObject($e, 'source_citations'),
+            'attributes' => $profile->filterAttributes(Values::jsonbObject($e, 'attributes') ?? (object) []),
+            'source_citations' => Values::jsonbObject($e, 'source_citations'),
             'aliases' => $this->aliases($e),
             'tags' => TagList::build($e->entityTags),
             'temporal_ranges' => $this->temporalRanges($e),
@@ -93,49 +92,49 @@ final class EntitySerializer implements RecordSerializer
     private function aliases(Entity $e): array
     {
         $items = $e->aliases->map(fn (EntityAlias $a) => [
-            'name' => JsonLine::raw($a, 'name'),
-            'language' => JsonLine::raw($a, 'language'),
-            'source' => JsonLine::raw($a, 'source'),
-            'is_primary' => (bool) JsonLine::raw($a, 'is_primary'),
+            'name' => Values::raw($a, 'name'),
+            'language' => Values::raw($a, 'language'),
+            'source' => Values::raw($a, 'source'),
+            'is_primary' => (bool) Values::raw($a, 'is_primary'),
         ])->all();
 
-        return JsonLine::sortList($items, fn (array $a) => [! $a['is_primary'], $a['name'], $a['language'] === null, $a['language'] ?? '']);
+        return Values::sortList($items, fn (array $a) => [! $a['is_primary'], $a['name'], $a['language'] === null, $a['language'] ?? '']);
     }
 
     /** @return list<array<string, mixed>> */
     private function temporalRanges(Entity $e): array
     {
         $items = $e->temporalRanges->map(fn (EntityTemporalRange $t) => [
-            'range_type' => JsonLine::raw($t, 'range_type'),
-            'start_year' => JsonLine::raw($t, 'start_year'),
-            'end_year' => JsonLine::raw($t, 'end_year'),
-            'start_date' => JsonLine::raw($t, 'start_date'),
-            'end_date' => JsonLine::raw($t, 'end_date'),
-            'duration_type' => JsonLine::raw($t, 'duration_type'),
-            'date_method' => JsonLine::raw($t, 'date_method'),
-            'date_confidence' => JsonLine::raw($t, 'date_confidence'),
-            'is_primary' => (bool) JsonLine::raw($t, 'is_primary'),
-            'notes' => JsonLine::raw($t, 'notes'),
+            'range_type' => Values::raw($t, 'range_type'),
+            'start_year' => Values::raw($t, 'start_year'),
+            'end_year' => Values::raw($t, 'end_year'),
+            'start_date' => Values::raw($t, 'start_date'),
+            'end_date' => Values::raw($t, 'end_date'),
+            'duration_type' => Values::raw($t, 'duration_type'),
+            'date_method' => Values::raw($t, 'date_method'),
+            'date_confidence' => Values::raw($t, 'date_confidence'),
+            'is_primary' => (bool) Values::raw($t, 'is_primary'),
+            'notes' => Values::raw($t, 'notes'),
         ])->all();
 
         // Null years sort lowest.
-        return JsonLine::sortList($items, fn (array $t) => [! $t['is_primary'], $t['range_type'], $t['start_year'] ?? PHP_INT_MIN, $t['end_year'] ?? PHP_INT_MIN]);
+        return Values::sortList($items, fn (array $t) => [! $t['is_primary'], $t['range_type'], $t['start_year'] ?? PHP_INT_MIN, $t['end_year'] ?? PHP_INT_MIN]);
     }
 
     /** @return list<array<string, mixed>> */
     private function locations(Entity $e): array
     {
         $items = $e->locations->map(fn (EntityLocation $l) => [
-            'location_name' => JsonLine::raw($l, 'location_name'),
-            'location_method' => JsonLine::raw($l, 'location_method'),
-            'location_confidence' => JsonLine::raw($l, 'location_confidence'),
-            'is_primary' => (bool) JsonLine::raw($l, 'is_primary'),
-            'notes' => JsonLine::raw($l, 'notes'),
-            'geom' => $l->geom, // GeoJson cast reads the pre-selected geom_geojson
-            'territory_geom' => $l->territory_geom,
+            'location_name' => Values::raw($l, 'location_name'),
+            'location_method' => Values::raw($l, 'location_method'),
+            'location_confidence' => Values::raw($l, 'location_confidence'),
+            'is_primary' => (bool) Values::raw($l, 'is_primary'),
+            'notes' => Values::raw($l, 'notes'),
+            'geom' => Values::geojson($l, 'geom'),
+            'territory_geom' => Values::geojson($l, 'territory_geom'),
         ])->all();
 
         // Null names sort as ''.
-        return JsonLine::sortList($items, fn (array $l) => [! $l['is_primary'], $l['location_name'] ?? '']);
+        return Values::sortList($items, fn (array $l) => [! $l['is_primary'], $l['location_name'] ?? '']);
     }
 }

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'entry_id', 'chronicle_id', 'sequence_order', 'start_year', 'end_year', 'impact_score', 'approximate_location',
@@ -42,6 +43,16 @@ class ChronicleEntry extends Model
     public function chronicle(): BelongsTo
     {
         return $this->belongsTo(Chronicle::class, 'chronicle_id', 'chronicle_id');
+    }
+
+    /**
+     * The raw `chronicle_entry_entities` rows, for the content-bundle export.
+     *
+     * @return HasMany<ChronicleEntryEntity, $this>
+     */
+    public function entityLinks(): HasMany
+    {
+        return $this->hasMany(ChronicleEntryEntity::class, 'entry_id', 'entry_id');
     }
 
     /** @return BelongsTo<EntityRelationship, $this> */
