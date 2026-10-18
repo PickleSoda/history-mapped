@@ -119,7 +119,7 @@ Every line may also carry `_op` (see [Editing rules](#editing-rules)). The expor
 | `chronicles.tags` | `slug`, `source` | by `slug` |
 | `chronicle_entries.entities` | `entity_id`, `role`, `sequence_in_entry` | `sequence_in_entry` with **nulls last**, then `entity_id` |
 
-Ties break on the encoded item, so the order never depends on database row order. Only `name` (aliases) and `entity_id` (entry entities) are required inside a nested item, and unknown item keys are errors.
+Ties break on the encoded item, so the order never depends on database row order. Inside a nested item, `name` (aliases), `slug` and `source` (tags on entities and chronicles) and `entity_id` (entry entities) are required; temporal ranges and locations have no required keys. Unknown item keys are errors.
 
 Allowed values are in the schemas. Examples: 30 `entity_type` values, 74 `relationship_type` values, `confidence` in `high|medium|low|unresolved`, `status` in `draft|published|archived`, `provenance_mode` in `derived|manual|ohm_import`, tag `source` in `manual|curated`, entry entity `role` in `participant|mentioned|location|outcome`.
 
@@ -435,15 +435,31 @@ ERROR entities.jsonl:4: /aliases/0/bogus: unknown key `bogus`
 5 errors, 0 warnings
 ```
 
-These come from the structure layer, so nothing deeper runs until they are fixed. Once the structure is clean, the later layers speak:
+These come from the structure layer, so nothing deeper runs until they are fixed. A `replace` line is held to the same creation rules, so `{"id":"…","_op":"replace","summary":"x"}` gets ``a `replace` line needs `name`, `entity_type` `` (absent fields would be cleared, so they must be present).
+
+Once the structure is clean, the next layers speak. Records-layer problems from one run:
 
 ```
-ERROR entities.jsonl:2: /id: duplicate id `0b6f2a52-6c0e-4d43-9f6f-3a2f6a1c0004`: also on line 1
+ERROR entities.jsonl:2: /id: duplicate id `0b6f2a52-6c0e-4d43-9f6f-3a2f6a1c0001`: also on line 1
 ERROR relationships.jsonl:1: /start_year: `start_year` 500 is after `end_year` 400
-ERROR relationships.jsonl:1: /target_entity_id: references entities 0b6f2a52-6c0e-4d43-9f6f-3a2f6a1c00ff, which is neither in the bundle nor on the site
+2 errors, 0 warnings
 ```
 
-(The last one appears only with `--against-site`; without it that reference is a summary warning. A delete line without an `id` is a structure error: `a delete (`_op`: "delete") needs `id``.) If you touched `_base/`:
+Validation stops after the first layer that has errors, so reference problems only show once those are fixed. A relationship pointing at a record that is not in the bundle is a summary warning without `--against-site`:
+
+```
+WARN relationships.jsonl: /target_entity_id: 1 reference points outside the bundle (first on line 1); it must exist on the site at import (run with --against-site to check it)
+0 errors, 1 warnings
+```
+
+and an error with it:
+
+```
+ERROR relationships.jsonl:1: /target_entity_id: references entities 0b6f2a52-6c0e-4d43-9f6f-3a2f6a1c00ff, which is neither in the bundle nor on the site
+1 errors, 0 warnings
+```
+
+A delete line without an `id` is a structure error: ``a delete (`_op`: "delete") needs `id` ``. If you touched `_base/`:
 
 ```
 ERROR _base/entities.jsonl: _base snapshot was modified; re-export instead of editing _base/

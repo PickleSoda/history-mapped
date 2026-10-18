@@ -87,7 +87,7 @@ get their own file.
 
 **Profiles.**
 - **`full`**: everything above. Admins only.
-- **`public`**: the fields the public API already exposes. That is nearly everything, so the public profile drops only `attributes` keys starting with `_` (pipeline bookkeeping such as `_rejected_wikidata_id`) and the geo refs' raw provider payload, `source_meta`. The full profile is a superset of the public one, so both import the same way: a field missing from a record means "leave untouched".
+- **`public`**: the fields the public API already exposes. That is nearly everything, so the public profile withholds only `attributes` keys starting with `_` (pipeline bookkeeping such as `_rejected_wikidata_id`), which are removed, and the geo refs' raw provider payload, `source_meta`, which is emitted as `null`. The full profile is a superset of the public one, so both import the same way: a field missing from a record means "leave untouched".
 
 **`_base/`** stores each record's values at export time, used as the base of
 the three-way comparison in §5. Field hashes are SHA-256 of canonical JSON:
@@ -344,6 +344,9 @@ data-provider test, one case per row.
 - **Rules that need the merged record, not the line.** `RecordRules::check($type, $record, complete: true)` already runs on a fully merged record. The planner must also cover:
   - a geo-ref merge line that changes `geometry_period_id` without naming `entity_id`;
   - a line that gives a geo ref or geometry period a new `entity_id` while site rows still pair it with the old owner. Both owner FKs are NO ACTION on update.
+- **Public-profile lines are lossy.** They carry `source_meta: null` and `attributes` without the `_` keys.
+  - The part-2 planner must filter the site value through the bundle's `Profile` before comparing, and must preserve withheld data when it writes.
+  - Otherwise a public `replace` would wipe `source_meta` and the `_` attributes, and any `attributes` edit would always conflict.
 - **Cascades.** Deleting a chronicle cascades to its entries, and the preview must show that count. A chronicle `replace` deletes entries that are not in the bundle, so their entry-entity links count as excused.
 - **Cost.** Validation runs at about 10k lines/s: about 20–30 s for a full export, with ~90 MB peak memory. A bundle that deletes every entity peaks at ~270 MB with site checks. The admin upload must therefore validate and import in the queue worker, with a raised memory limit, never in the web request.
 - **Data found by the first real-data validation**, all pre-existing and all reported as "unchanged since export" warnings:
