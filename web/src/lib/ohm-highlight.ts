@@ -8,18 +8,18 @@
  *
  * - Linked OHM labels get feature-state `linked` (painted in LINK_COLOR).
  * - The hovered / selected entity's OHM polygon gets `hover` / `selected` on
- *   two `ohm_admin` layers that stay hidden otherwise: hidden layers mark
- *   their source unused, so MapLibre fetches none of its heavy tiles.
+ *   two `ohm_admin` layers that stay hidden until first needed: hidden layers
+ *   mark their source unused, so MapLibre fetches none of its heavy tiles.
+ *   Once shown they stay visible until a quiet period or a camera move,
+ *   because each visibility change reloads the source's tiles.
  * - Hovering a linked OHM label resolves to our entity through the index.
+ *
+ * Feature-state changes never reload a source; layout / filter changes do,
+ * so the hover path avoids both (the hovered marker has its own GeoJSON).
  */
-import type {
-  ExpressionSpecification,
-  FilterSpecification,
-  Map as MapLibreMap,
-  PointLike,
-} from 'maplibre-gl';
-import { entityLayerFilter, isMapTilesEnabled, isPoint } from '@/lib/map-tiles';
-import type { EntityGroup, TimeState } from '@/types/atlas';
+import type { Feature, FeatureCollection } from 'geojson';
+import type { ExpressionSpecification, Map as MapLibreMap, PointLike } from 'maplibre-gl';
+import { pickFeatureForYear } from '@/lib/ohm-resolve';
 
 /** Accent for everything linked to OHM: our labels, OHM labels, polygons. */
 export const LINK_COLOR = '#b4552d';
@@ -38,12 +38,16 @@ export const OHM_CENTROID_SOURCE_LAYER = 'land_ohm_centroids';
 export const OHM_ADMIN_FILL_LAYER = 'ohm-admin-fill';
 export const OHM_ADMIN_LINE_LAYER = 'ohm-admin-line';
 const OHM_ADMIN_LAYERS = [OHM_ADMIN_FILL_LAYER, OHM_ADMIN_LINE_LAYER];
+/** Hide the admin layers after this long with nothing hovered / selected. */
+export const OHM_ADMIN_HIDE_DELAY_MS = 4000;
 
 const LINKED: ExpressionSpecification = ['boolean', ['feature-state', 'linked'], false];
 const HOVER: ExpressionSpecification = ['boolean', ['feature-state', 'hover'], false];
 const SELECTED: ExpressionSpecification = ['boolean', ['feature-state', 'selected'], false];
 
 type FeatureLike = { properties?: object | null };
+
+const EMPTY_FC: FeatureCollection = { type: 'FeatureCollection', features: [] };
 
 /** A non-zero safe integer from a number or numeric string, else null. */
 function toOsmId(value: unknown): number | null {
@@ -71,21 +75,39 @@ function linkedOsmId(props: Record<string, unknown>): number | null {
   }
 }
 
-/**
- * Signed OSM id → entity id over our loaded features, tile-shaped
- * (`ohm_osm_id`) or REST-shaped (`ohm_external_*`). The first entity wins when
- * several link the same OHM feature.
- */
-export function linkIndexFromFeatures(features: Iterable<FeatureLike>): Map<number, string> {
-  const index = new Map<number, string>();
+/** Each linked feature's (entity id, signed OSM id), in feature order. */
+function* links(features: Iterable<FeatureLike>): Generator<[string, number]> {
   for (const feature of features) {
     const props = (feature.properties ?? {}) as Record<string, unknown>;
     const entityId = props.id;
     const osmId = linkedOsmId(props);
-    if (osmId === null || typeof entityId !== 'string' || !entityId) continue;
+    if (osmId !== null && typeof entityId === 'string' && entityId) yield [entityId, osmId];
+  }
+}
+
+/**
+ * Signed OSM id → entity id over our loaded features, tile-shaped
+ * (`ohm_osm_id`) or REST-shaped (`ohm_external_*`). The first entity wins when
+ * several link the same OHM feature (an OHM label resolves to one entity).
+ */
+export function linkIndexFromFeatures(features: Iterable<FeatureLike>): Map<number, string> {
+  const index = new Map<number, string>();
+  for (const [entityId, osmId] of links(features)) {
     if (!index.has(osmId)) index.set(osmId, entityId);
   }
   return index;
+}
+
+/**
+ * Entity id → signed OSM id, built from the features themselves, so every
+ * entity linking a shared OHM feature can still emphasise it.
+ */
+export function entityOsmIdsFromFeatures(features: Iterable<FeatureLike>): Map<string, number> {
+  const byEntity = new Map<string, number>();
+  for (const [entityId, osmId] of links(features)) {
+    if (!byEntity.has(entityId)) byEntity.set(entityId, osmId);
+  }
+  return byEntity;
 }
 
 /** What to add and remove to go from `prev` to `next`. */
@@ -128,20 +150,15 @@ export interface Emphasis {
 
 export const NO_EMPHASIS: Emphasis = { hoverOsmId: null, selectedOsmId: null };
 
-type EmphasisMap = Pick<
-  MapLibreMap,
-  'getLayer' | 'setFeatureState' | 'removeFeatureState' | 'setLayoutProperty'
->;
+type EmphasisMap = Pick<MapLibreMap, 'getLayer' | 'setFeatureState' | 'removeFeatureState'>;
 
 /**
  * Move `hover` / `selected` feature-state on the `ohm_admin` polygons from
- * `prev` to `next`, and show the admin layers only while something is
- * emphasised (hidden layers keep their tiles from loading). Returns the
+ * `prev` to `next` (feature-state only: no source reload). Returns the
  * applied state, NO_EMPHASIS when the style has no admin layers.
  */
 export function applyEmphasis(map: EmphasisMap, next: Emphasis, prev: Emphasis): Emphasis {
-  const layers = OHM_ADMIN_LAYERS.filter((id) => map.getLayer(id));
-  if (layers.length === 0) return NO_EMPHASIS;
+  if (!OHM_ADMIN_LAYERS.some((id) => map.getLayer(id))) return NO_EMPHASIS;
 
   const target = { source: OHM_ADMIN_SOURCE, sourceLayer: OHM_ADMIN_LAYER };
   const keys = [
@@ -153,24 +170,47 @@ export function applyEmphasis(map: EmphasisMap, next: Emphasis, prev: Emphasis):
     if (before !== null) map.removeFeatureState({ ...target, id: before }, key);
     if (after !== null) map.setFeatureState({ ...target, id: after }, { [key]: true });
   }
-
-  const visible = next.hoverOsmId !== null || next.selectedOsmId !== null;
-  for (const id of layers) map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
   return next;
+}
+
+/** Show or hide both admin layers (those present). Reloads their source. */
+export function setOhmAdminVisibility(
+  map: Pick<MapLibreMap, 'getLayer' | 'setLayoutProperty'>,
+  visible: boolean,
+): void {
+  for (const id of OHM_ADMIN_LAYERS) {
+    if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
+  }
+}
+
+/**
+ * Where the admin layers go: below the basemap's first symbol layer (so the
+ * tint never washes over labels), searched only below `fallbackBeforeId`
+ * (our overlay); else below `fallbackBeforeId` itself.
+ */
+export function adminLayersBeforeId(
+  map: Pick<MapLibreMap, 'getLayersOrder' | 'getLayer'>,
+  fallbackBeforeId?: string,
+): string | undefined {
+  for (const id of map.getLayersOrder()) {
+    if (id === fallbackBeforeId) break;
+    if (map.getLayer(id)?.type === 'symbol') return id;
+  }
+  return fallbackBeforeId && map.getLayer(fallbackBeforeId) ? fallbackBeforeId : undefined;
 }
 
 /**
  * The OHM polygon highlight: a fill and an outline in LINK_COLOR whose
- * opacity follows `selected` > `hover` > nothing, both hidden until
- * `applyEmphasis` shows them. Inserted below `beforeId` (our entity layers).
- * Not date-filtered: only the hovered / selected relation ever shows.
+ * opacity follows `selected` > `hover` > nothing, both hidden until first
+ * needed. Inserted below the basemap labels (see adminLayersBeforeId). Not
+ * date-filtered: only the hovered / selected relation ever shows.
  */
 export function addOhmAdminLayers(
-  map: Pick<MapLibreMap, 'getSource' | 'getLayer' | 'addLayer'>,
-  beforeId?: string,
+  map: Pick<MapLibreMap, 'getSource' | 'getLayer' | 'getLayersOrder' | 'addLayer'>,
+  fallbackBeforeId?: string,
 ): void {
   if (!map.getSource(OHM_ADMIN_SOURCE)) return;
-  const before = beforeId && map.getLayer(beforeId) ? beforeId : undefined;
+  const before = adminLayersBeforeId(map, fallbackBeforeId);
   const common = {
     source: OHM_ADMIN_SOURCE,
     'source-layer': OHM_ADMIN_LAYER,
@@ -207,9 +247,19 @@ export function addOhmAdminLayers(
   }
 }
 
-function isZoomCurve(value: unknown[]): boolean {
-  const input = value[0] === 'interpolate' ? value[2] : value[0] === 'step' ? value[1] : null;
-  return Array.isArray(input) && input[0] === 'zoom';
+const INTERPOLATE_OPS = new Set(['interpolate', 'interpolate-hcl', 'interpolate-lab']);
+
+/** Index of the first output of a zoom curve, or null if `value` is not one. */
+function zoomCurveFirstOutput(value: unknown[]): number | null {
+  if (INTERPOLATE_OPS.has(value[0] as string)) {
+    // [op, type, input, z0, out0, z1, out1, …]
+    return Array.isArray(value[2]) && value[2][0] === 'zoom' ? 4 : null;
+  }
+  if (value[0] === 'step') {
+    // [op, input, out0, z1, out1, …]
+    return Array.isArray(value[1]) && value[1][0] === 'zoom' ? 2 : null;
+  }
+  return null;
 }
 
 /**
@@ -224,9 +274,8 @@ export function linkedLabelColor(original: unknown): unknown {
   if (typeof original === 'string') return linkedOr(original);
   if (!Array.isArray(original)) return original;
 
-  if (isZoomCurve(original)) {
-    // interpolate: [op, type, input, z0, out0, z1, out1, …]; step: [op, input, out0, z1, out1, …]
-    const firstOutput = original[0] === 'interpolate' ? 4 : 2;
+  const firstOutput = zoomCurveFirstOutput(original);
+  if (firstOutput !== null) {
     return original.map((part, i) =>
       i >= firstOutput && (i - firstOutput) % 2 === 0 ? linkedOr(part) : part,
     );
@@ -246,35 +295,42 @@ export function centroidLayerIds(map: Pick<MapLibreMap, 'getLayersOrder' | 'getL
   });
 }
 
-export interface HoverMarkerFilterOptions {
-  hoverId: string | null;
-  time: TimeState;
-  groups: readonly EntityGroup[];
-}
+type GeoFeatureLike = { geometry?: unknown; properties?: object | null };
 
 /**
- * The filter for the hovered-marker layer: the hovered entity's points only.
- * Tiles carry every period of an entity, so tile mode also applies the
- * symbol layer's time / group window; GeoJSON is already year-filtered.
+ * Data for the hovered-marker source: the hovered entity's point among
+ * `candidates` (tile features from querySourceFeatures, or REST features),
+ * the one whose decdate window contains `year` when it has several periods.
  */
-export function hoverMarkerFilter({
-  hoverId,
-  time,
-  groups,
-}: HoverMarkerFilterOptions): FilterSpecification {
-  const base = isMapTilesEnabled() ? entityLayerFilter({ geometry: 'point', time, groups }) : isPoint;
-  return ['all', base, ['==', ['get', 'id'], hoverId ?? '']] as FilterSpecification;
+export function hoverMarkerData(
+  candidates: readonly GeoFeatureLike[],
+  hoverId: string | null,
+  year: number,
+): FeatureCollection {
+  if (hoverId === null) return EMPTY_FC;
+  const points = candidates
+    .map((f) => ({
+      geometry: f.geometry as Feature['geometry'] | null | undefined,
+      properties: (f.properties ?? {}) as Record<string, unknown>,
+    }))
+    .filter((f) => f.properties.id === hoverId && f.geometry?.type === 'Point');
+  const picked = pickFeatureForYear(points, year);
+  if (!picked?.geometry) return EMPTY_FC;
+  return {
+    type: 'FeatureCollection',
+    features: [{ type: 'Feature', geometry: picked.geometry, properties: { ...picked.properties } }],
+  };
 }
 
 type CorrelationMap = StateMap &
   EmphasisMap &
-  Pick<MapLibreMap, 'getLayersOrder' | 'queryRenderedFeatures'>;
+  Pick<MapLibreMap, 'getLayersOrder' | 'queryRenderedFeatures' | 'setLayoutProperty'>;
 
 /**
  * The correlation state of one map: the osm-id index of our loaded entity
- * features, which OHM labels are marked, and the polygon emphasis for the
- * hovered / selected entity. Callers feed it features, style swaps and the
- * hover / selection; it keeps the feature-state in step.
+ * features, which OHM labels are marked, the polygon emphasis for the
+ * hovered / selected entity and whether the admin layers are shown. Callers
+ * feed it features, style swaps, camera moves and the hover / selection.
  */
 export class OhmCorrelation {
   private index = new Map<number, string>();
@@ -284,13 +340,17 @@ export class OhmCorrelation {
   private centroidLayers: string[] = [];
   private hoverId: string | null = null;
   private selectedId: string | null = null;
+  private adminVisible = false;
+  private hideTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor(private readonly map: CorrelationMap) {}
 
   /** A new style was loaded: its sources carry no feature state yet. */
   styleLoaded(hoverId: string | null, selectedId: string | null): void {
+    this.cancelHide();
     this.linked = new Set();
     this.emphasis = NO_EMPHASIS;
+    this.adminVisible = false; // new admin layers start hidden
     this.centroidLayers = centroidLayerIds(this.map);
     this.linked = syncLinkedLabels(this.map, this.index, this.linked);
     this.emphasize(hoverId, selectedId);
@@ -298,11 +358,9 @@ export class OhmCorrelation {
 
   /** Rebuild the index from our loaded features and re-sync the highlight. */
   setFeatures(features: Iterable<FeatureLike>): void {
-    this.index = linkIndexFromFeatures(features);
-    this.osmByEntity = new Map();
-    for (const [osmId, entityId] of this.index) {
-      if (!this.osmByEntity.has(entityId)) this.osmByEntity.set(entityId, osmId);
-    }
+    const list = [...features];
+    this.index = linkIndexFromFeatures(list);
+    this.osmByEntity = entityOsmIdsFromFeatures(list);
     this.linked = syncLinkedLabels(this.map, this.index, this.linked);
     this.emphasize(this.hoverId, this.selectedId);
   }
@@ -317,6 +375,33 @@ export class OhmCorrelation {
       { hoverOsmId: osm(hoverId), selectedOsmId: osm(selectedId) },
       this.emphasis,
     );
+
+    if (this.isEmphasised()) {
+      // Show at once and keep showing: toggling reloads the admin tiles.
+      this.cancelHide();
+      this.setAdminVisible(true);
+    } else if (hoverId !== null || selectedId !== null) {
+      // Still hovering / selecting (an unlinked entity): a list scan goes on.
+      this.cancelHide();
+    } else if (this.adminVisible && this.hideTimer === undefined) {
+      // Idle: hide after a quiet period with nothing hovered or selected.
+      this.hideTimer = setTimeout(() => {
+        this.hideTimer = undefined;
+        if (!this.isEmphasised()) this.setAdminVisible(false);
+      }, OHM_ADMIN_HIDE_DELAY_MS);
+    }
+  }
+
+  /** The camera moved: drop idle admin layers before they fetch new tiles. */
+  viewMoved(): void {
+    if (this.isEmphasised()) return;
+    this.cancelHide();
+    this.setAdminVisible(false);
+  }
+
+  /** Stop the pending hide (the map is going away). */
+  dispose(): void {
+    this.cancelHide();
   }
 
   /**
@@ -339,5 +424,20 @@ export class OhmCorrelation {
       if (entityId) return entityId;
     }
     return null;
+  }
+
+  private isEmphasised(): boolean {
+    return this.emphasis.hoverOsmId !== null || this.emphasis.selectedOsmId !== null;
+  }
+
+  private setAdminVisible(visible: boolean): void {
+    if (visible === this.adminVisible) return;
+    this.adminVisible = visible;
+    setOhmAdminVisibility(this.map, visible);
+  }
+
+  private cancelHide(): void {
+    clearTimeout(this.hideTimer);
+    this.hideTimer = undefined;
   }
 }
