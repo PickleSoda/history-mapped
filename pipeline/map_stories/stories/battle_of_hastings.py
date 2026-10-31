@@ -540,8 +540,8 @@ def build() -> dict:
                 "polity": {"name": "Kingdom of England", "wikidata": "Q179876"},
                 "commanders": [
                     {"name": "Harold Godwinson", "wikidata": "Q159597", "role": "King of England (killed)"},
-                    {"name": "Gyrth Godwinson", "role": "Earl of East Anglia, Harold's brother (killed)"},
-                    {"name": "Leofwine Godwinson", "role": "Earl, Harold's brother (killed)"},
+                    {"name": "Gyrth Godwinson", "wikidata": "Q1249857", "role": "Earl of East Anglia, Harold's brother (killed)"},
+                    {"name": "Leofwine Godwinson", "wikidata": "Q1249624", "role": "Earl, Harold's brother (killed)"},
                 ],
                 "strength": "c. 7,000–8,000 (estimates range 5,000–13,000)",
                 "losses": "Perhaps 4,000 killed, including the king and his brothers",
@@ -554,8 +554,8 @@ def build() -> dict:
                 "commanders": [
                     {"name": "William the Conqueror", "wikidata": "Q37594", "role": "Duke of Normandy, commander-in-chief"},
                     {"name": "Odo of Bayeux", "role": "Bishop of Bayeux, William's half-brother"},
-                    {"name": "Alan the Red", "role": "Breton division (left)"},
-                    {"name": "William fitzOsbern", "role": "Franco-Flemish division (right)"},
+                    {"name": "Alan the Red", "wikidata": "Q2067294", "role": "Breton division (left)"},
+                    {"name": "William fitzOsbern", "wikidata": "Q1244579", "role": "Franco-Flemish division (right)"},
                     {"name": "Eustace II of Boulogne", "role": "Franco-Flemish division (right)"},
                 ],
                 "strength": "c. 8,000, about a quarter mounted (estimates 7,000–12,000)",

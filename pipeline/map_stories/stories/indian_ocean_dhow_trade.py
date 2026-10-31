@@ -76,7 +76,7 @@ def build() -> dict:
         Parthian times, probably served as the port of the inland city of Gor, and excavations there have found
         East African ivory and Indian stone.""",
         entry=0, date=when(500, end=(599,)), camera={"center": [62.0, 25.0], "zoom": 4.0},
-        entities=[ent("Siraf", "Q168056", role="Sasanian Gulf port"), ent("Sasanian Empire", "Q83891", show=True)])
+        entities=[ent("Siraf", "Q1790789", role="Sasanian Gulf port"), ent("Sasanian Empire", "Q83891", show=True)])
     st.state("siraf", active=True)
     st.state("khambhat", active=True)
     st.state("gulf-gujarat", active=True)
@@ -192,7 +192,7 @@ def build() -> dict:
         Strait of Malacca to China. Siraf had just been rebuilt and enlarged into the leading entrepôt of the
         Gulf, with one of the earliest congregational mosques in Iran.""",
         entry=30, date=when(851), camera={"center": [82.0, 15.0], "zoom": 2.7}, wind=SW,
-        entities=[ent("Sulaiman al-Tajir", "Q9347981", role="Siraf merchant"), ent("Siraf", "Q168056", role="leading Gulf entrepôt"),
+        entities=[ent("Sulaiman al-Tajir", "Q9347981", role="Siraf merchant"), ent("Siraf", "Q1790789", role="leading Gulf entrepôt"),
                   ent("Guangzhou", "Q16572", role="Khanfu"), ent("Tang dynasty", "Q9683", show=True)])
     st.state("belitung", active=False)
     st.hide("dhow")
@@ -239,7 +239,7 @@ def build() -> dict:
         besides the pearls of the nearby fisheries. Its merchants lived in tall houses of teak from East Africa
         and fired brick, on which one might spend 30,000 dinars.""",
         entry=43, date=when(908, end=(932,)), camera={"center": [52.5, 27.0], "zoom": 5.0},
-        entities=[ent("Siraf", "Q168056", role="2.53 million dinars a year"), ent("Ibn al-Balkhi", "Q3648073", role="historian")])
+        entities=[ent("Siraf", "Q1790789", role="2.53 million dinars a year"), ent("Ibn al-Balkhi", "Q3648073", role="historian")])
     for fid in ("jeddah", "zanzibar", "siraf-jeddah", "siraf-east-africa"):
         st.state(fid, state=None)
     st.state("siraf", state="peak", value_n=2_530_000, value_label="2.53 million dinars of goods a year")
@@ -286,7 +286,7 @@ def build() -> dict:
         were passing: in the following century pirates from Qays preyed on its ships and Gulf traffic began to
         bypass it for Basra.""",
         entry=56, date=when(977), camera={"center": [52.5, 27.5], "zoom": 5.2},
-        entities=[ent("Siraf", "Q168056", role="earthquake of 977")])
+        entities=[ent("Siraf", "Q1790789", role="earthquake of 977")])
     st.state("sohar", state="destroyed")
     st.state("siraf", state="disrupted", label="Siraf (earthquake, 977)")
 
@@ -297,7 +297,7 @@ def build() -> dict:
         return f
 
     features = [
-        port("siraf", SIRAF, "Siraf", name="Siraf", qid="Q168056",
+        port("siraf", SIRAF, "Siraf", name="Siraf", qid="Q1790789",
              goods=["pearls", "ebony", "ivory", "sandalwood", "spices", "aloes", "camphor", "ambergris", "precious stones"]),
         port("basra", BASRA, "Basra", qid="Q48195"),
         port("muscat", MUSCAT, "Muscat"),

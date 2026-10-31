@@ -171,7 +171,7 @@ def build() -> dict:
             "commanders": [
                 {"name": "Darius III", "wikidata": "Q102865", "role": "Great King, centre"},
                 {"name": "Bessus", "wikidata": "Q296434", "role": "satrap of Bactria, left wing"},
-                {"name": "Mazaeus", "role": "right wing"},
+                {"name": "Mazaeus", "wikidata": "Q561959", "role": "right wing"},
             ],
             "strength": "c. 50,000-120,000 (modern estimates), much of it cavalry; 200 scythed chariots, 15 elephants",
             # Arrian 3.11: the peoples of each wing (the king's own centre is drawn in the side colour).

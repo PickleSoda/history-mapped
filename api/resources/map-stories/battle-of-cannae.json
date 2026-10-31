@@ -74,6 +74,7 @@
     },
     {
      "name": "Gnaeus Servilius Geminus",
+     "wikidata": "Q554632",
      "role": "proconsul, centre; killed"
     }
    ],
@@ -208,8 +209,7 @@
    "kind": "light_cavalry",
    "label": "Numidian horse",
    "strength": "c. 3,500",
-   "commander": "Hanno",
-   "wikidata": "Q2391196"
+   "commander": "Hanno"
   },
   {
    "id": "hannibal",

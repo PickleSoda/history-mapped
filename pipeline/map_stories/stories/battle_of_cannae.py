@@ -163,7 +163,7 @@ def build() -> dict:
                 "commanders": [
                     {"name": "Gaius Terentius Varro", "wikidata": "Q315274", "role": "consul, in command on the day; left wing"},
                     {"name": "Lucius Aemilius Paullus", "wikidata": "Q432244", "role": "consul, right wing; killed"},
-                    {"name": "Gnaeus Servilius Geminus", "role": "proconsul, centre; killed"},
+                    {"name": "Gnaeus Servilius Geminus", "wikidata": "Q554632", "role": "proconsul, centre; killed"},
                 ],
                 "strength": "c. 86,000 (c. 76,000 on the field, 10,000 guarding the camps)",
                 "losses": "c. 48,000–70,000 killed; c. 10,000–19,000 captured",
@@ -226,7 +226,6 @@ def build() -> dict:
                 "label": "Numidian horse",
                 "strength": "c. 3,500",
                 "commander": "Hanno",
-                "wikidata": "Q2391196",
             },
             {"id": "hannibal", "side": "carthage", "kind": "commander", "label": "Hannibal", "wikidata": "Q36456"},
         ],
