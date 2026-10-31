@@ -154,6 +154,20 @@ class ResolveOhmFeatureSignedIdTest extends TestCase
             ->assertJsonValidationErrors(['external_id']);
     }
 
+    public function test_osm_id_together_with_external_type_is_rejected(): void
+    {
+        $this->linkedEntity('Roman Empire', 'relation', '1880');
+
+        $this->resolve([
+            'osm_id' => -1880,
+            'provider' => 'ohm',
+            'external_type' => 'relation',
+            'target_year' => 117,
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['external_type']);
+    }
+
     public function test_omitting_both_osm_id_and_external_id_is_rejected(): void
     {
         $this->resolve(['provider' => 'ohm', 'target_year' => 117])
