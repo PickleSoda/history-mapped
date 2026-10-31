@@ -9,6 +9,7 @@ use App\Http\Api\V1\Controllers\EntityGraphController;
 use App\Http\Api\V1\Controllers\EntityRelationshipController;
 use App\Http\Api\V1\Controllers\EntityTimelineController;
 use App\Http\Api\V1\Controllers\MapResolutionController;
+use App\Http\Api\V1\Controllers\MapStoryController;
 use App\Http\Api\V1\Controllers\MeController;
 use App\Http\Api\V1\Controllers\ReferenceController;
 use App\Http\Api\V1\Controllers\SavedFolderController;
@@ -87,6 +88,10 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/chronicles/{slug}', [ChronicleController::class, 'show'])
         ->name('api.v1.chronicles.show');
+
+    // Map stories (step-by-step battle maps)
+    Route::get('/map-stories/{slug}', [MapStoryController::class, 'show'])
+        ->name('api.v1.map-stories.show');
 
     // Tags (vocabulary shared by chronicles and entities)
     Route::get('/tags', [TagController::class, 'index'])

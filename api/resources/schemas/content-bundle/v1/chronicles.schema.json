@@ -13,6 +13,9 @@
         "title": {
             "type": "string"
         },
+        "description": {
+            "type": ["string", "null"]
+        },
         "source_type": {
             "enum": ["video_transcript", "article", "book_excerpt", "manual"]
         },

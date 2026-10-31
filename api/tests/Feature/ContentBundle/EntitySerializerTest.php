@@ -208,7 +208,7 @@ class EntitySerializerTest extends TestCase
 
     public function test_fully_populated_entity_matches_raw_rows(): void
     {
-        $e = $this->entity(['wikidata_id' => 'Q123', 'source_citations' => ['k' => 'v']]);
+        $e = $this->entity(['wikidata_id' => 'Q123', 'source_citations' => ['k' => 'v'], 'description' => "Long.\n\nText."]);
         $ref = EntityGeoRef::factory()->create(['entity_id' => $e->entity_id]);
         $e->forceFill(['primary_geo_ref_id' => $ref->geo_ref_id])->save();
         $e->update(['impact_score' => 7]);

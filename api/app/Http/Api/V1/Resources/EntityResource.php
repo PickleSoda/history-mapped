@@ -35,6 +35,7 @@ class EntityResource extends JsonResource
             // Content
             'summary' => $this->summary,
             'significance' => $this->significance,
+            'description' => $this->description,
             'tags' => $this->whenLoaded('entityTags', fn () => $this->entityTags->pluck('tag')->values()->all(), []),
             'impact_score' => $this->impact_score,
             'attributes' => $attrs,
@@ -75,6 +76,9 @@ class EntityResource extends JsonResource
             'media_refs' => $attrs['media_refs'] ?? null,
             'geometry_periods_count' => $this->geometry_periods_count,
             'timeline_entries_count' => $this->timeline_entries_count,
+
+            // Battle maps (the document itself: GET /map-stories/{slug})
+            'map_stories' => $this->whenLoaded('mapStories', fn () => MapStoryResource::summaries($this->mapStories), []),
 
             // Relationships (conditionally loaded)
             'relationships' => $this->when(

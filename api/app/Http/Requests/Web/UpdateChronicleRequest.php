@@ -47,6 +47,7 @@ class UpdateChronicleRequest extends FormRequest
             ],
             'source_type' => ['sometimes', 'nullable', 'string', Rule::enum(SourceType::class)],
             'source_reference' => ['sometimes', 'nullable', 'string', 'max:2000'],
+            'description' => ['sometimes', 'nullable', 'string', 'max:20000'],
             'status' => ['sometimes', 'nullable', 'string', Rule::enum(ChronicleStatus::class)],
             'start_year' => ['sometimes', 'nullable', 'integer', 'min:-10000', 'max:10000'],
             'end_year' => ['sometimes', 'nullable', 'integer', 'min:-10000', 'max:10000'],

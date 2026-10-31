@@ -44,6 +44,7 @@ export default function ChronicleCreate({
     const [data, setData] = useState<ChronicleFormData>({
         title: '',
         slug: '',
+        description: '',
         source_type: 'video_transcript',
         source_reference: '',
         status: 'draft',
@@ -129,6 +130,7 @@ export default function ChronicleCreate({
             slug: data.slug,
             source_type: data.source_type,
             source_reference: data.source_reference,
+            description: data.description,
             status: data.status,
             metadata,
             tags: data.tags,
@@ -243,6 +245,25 @@ export default function ChronicleCreate({
                             }
                             placeholder="e.g. transcript.txt or URL"
                         />
+                    </div>
+
+                    {/* Description */}
+                    <div className="space-y-2">
+                        <Label htmlFor="description">Description</Label>
+                        <Textarea
+                            id="description"
+                            value={data.description}
+                            onChange={(e) =>
+                                handleChange('description', e.target.value)
+                            }
+                            placeholder="Introduction to the chronicle: plain paragraphs separated by a blank line"
+                            rows={8}
+                        />
+                        {errors.description && (
+                            <p className="text-sm text-destructive">
+                                {errors.description}
+                            </p>
+                        )}
                     </div>
 
                     {/* Status */}

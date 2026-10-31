@@ -30,7 +30,7 @@ class ApplyEntityEditsAction
 {
     /** Nullable entity columns EntityData can only set, never clear. */
     private const CLEARABLE_COLUMNS = [
-        'summary', 'significance', 'impact_score', 'date_method', 'date_confidence', 'duration_type',
+        'summary', 'significance', 'description', 'impact_score', 'date_method', 'date_confidence', 'duration_type',
         'location_method', 'location_confidence', 'confidence', 'display_priority', 'icon_class',
     ];
 
@@ -103,6 +103,7 @@ class ApplyEntityEditsAction
             'entity_group' => $entity->entity_group?->value,
             'summary' => $entity->summary,
             'significance' => $entity->significance,
+            'description' => $entity->description,
             'impact_score' => $entity->impact_score,
             'wikidata_id' => $entity->wikidata_id,
             'temporal_start' => $temporal?->start_date,

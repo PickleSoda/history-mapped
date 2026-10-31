@@ -31,6 +31,7 @@ use Pgvector\Laravel\Vector;
     'entity_group',
     'summary',
     'significance',
+    'description',
     'attributes',
     'impact_score',
     'wikidata_id',
@@ -187,6 +188,12 @@ class Entity extends Model
     public function geometryPeriods(): HasMany
     {
         return $this->hasMany(GeometryPeriod::class, 'entity_id', 'entity_id');
+    }
+
+    /** @return HasMany<MapStory, $this> */
+    public function mapStories(): HasMany
+    {
+        return $this->hasMany(MapStory::class, 'entity_id', 'entity_id')->orderBy('year')->orderBy('title');
     }
 
     /** @return HasMany<EntityTimelineEntry, $this> */

@@ -14,6 +14,7 @@ use App\Enums\SourceType;
  *
  * @param  list<array<string, mixed>>|null  $entries  Each entry: { sequence_order, narrative_text, notes, source_evidence, primary_relationship_id, secondary_entity_ids }
  * @param  list<string>|null  $tags  Tag slugs or names; null leaves tags unchanged, [] clears them
+ * @param  bool  $descriptionSent  Whether the request carried `description` (so null clears it)
  */
 readonly class ChronicleData
 {
@@ -30,6 +31,8 @@ readonly class ChronicleData
         public ?array $metadata = null,
         public ?array $entries = null,
         public ?array $tags = null,
+        public ?string $description = null,
+        public bool $descriptionSent = false,
     ) {}
 
     /**
@@ -52,6 +55,8 @@ readonly class ChronicleData
             metadata: $validated['metadata'] ?? null,
             entries: $validated['entries'] ?? null,
             tags: $validated['tags'] ?? null,
+            description: $validated['description'] ?? null,
+            descriptionSent: array_key_exists('description', $validated),
         );
     }
 
@@ -97,6 +102,10 @@ readonly class ChronicleData
 
         if ($this->metadata !== null) {
             $data['metadata'] = $this->metadata;
+        }
+
+        if ($this->descriptionSent) {
+            $data['description'] = $this->description;
         }
 
         return $data;

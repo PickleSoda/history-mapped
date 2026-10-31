@@ -214,6 +214,20 @@ class UpdateEntityFieldsToolTest extends TestCase
         $this->assertNull($entity->primaryTemporalRange->end_date);
     }
 
+    public function test_sets_and_clears_the_long_description(): void
+    {
+        $entity = Entity::factory()->create(['summary' => 'One line.', 'description' => null]);
+        $text = "First paragraph.\n\nSecond paragraph.";
+
+        $this->proposeAndApply(['entity_id' => $entity->entity_id, 'description' => $text]);
+        $this->assertSame($text, $entity->refresh()->description);
+        $this->assertSame('One line.', $entity->summary);
+
+        $this->proposeAndApply(['entity_id' => $entity->entity_id, 'clear' => ['description']]);
+        $this->assertNull($entity->refresh()->description);
+        $this->assertSame('One line.', $entity->summary);
+    }
+
     public function test_sets_scalar_fields_the_form_has(): void
     {
         $entity = Entity::factory()->create();

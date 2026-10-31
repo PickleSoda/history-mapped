@@ -232,6 +232,7 @@ class ChronicleController extends Controller
             'chronicle_id' => $chronicle->chronicle_id,
             'title' => $chronicle->title,
             'slug' => $chronicle->slug,
+            'description' => $chronicle->description,
             'source_type' => $chronicle->source_type?->value,
             'source_reference' => $chronicle->source_reference,
             'status' => $chronicle->status?->value,

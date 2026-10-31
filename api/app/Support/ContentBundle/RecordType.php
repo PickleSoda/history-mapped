@@ -73,11 +73,11 @@ enum RecordType: string
     public function keys(): array
     {
         return match ($this) {
-            self::Entities => ['id', 'name', 'entity_type', 'wikidata_id', 'summary', 'significance', 'impact_score', 'display_priority', 'icon_class', 'confidence', 'verification_status', 'date_method', 'date_confidence', 'duration_type', 'location_method', 'location_confidence', 'primary_geo_ref_id', 'attributes', 'source_citations', 'aliases', 'tags', 'temporal_ranges', 'locations'],
+            self::Entities => ['id', 'name', 'entity_type', 'wikidata_id', 'summary', 'significance', 'description', 'impact_score', 'display_priority', 'icon_class', 'confidence', 'verification_status', 'date_method', 'date_confidence', 'duration_type', 'location_method', 'location_confidence', 'primary_geo_ref_id', 'attributes', 'source_citations', 'aliases', 'tags', 'temporal_ranges', 'locations'],
             self::Relationships => ['id', 'source_entity_id', 'target_entity_id', 'relationship_type', 'temporal_start', 'temporal_end', 'start_year', 'end_year', 'description', 'confidence', 'derive_geometry_period', 'source_citations'],
             self::GeometryPeriods => ['id', 'entity_id', 'period_type', 'start_year', 'end_year', 'description', 'confidence', 'provenance_mode', 'relationship_id', 'source_event_id', 'geom', 'territory_geom'],
             self::GeoRefs => ['id', 'entity_id', 'provider', 'external_type', 'external_id', 'match_role', 'retrieval_method', 'temporal_start', 'temporal_end', 'temporal_start_year', 'temporal_end_year', 'geometry_period_id', 'match_score', 'is_active', 'external_tags', 'source_meta'],
-            self::Chronicles => ['id', 'slug', 'title', 'source_type', 'source_reference', 'status', 'start_year', 'end_year', 'impact_score', 'approximate_location', 'metadata', 'tags'],
+            self::Chronicles => ['id', 'slug', 'title', 'description', 'source_type', 'source_reference', 'status', 'start_year', 'end_year', 'impact_score', 'approximate_location', 'metadata', 'tags'],
             self::ChronicleEntries => ['id', 'chronicle_id', 'sequence_order', 'start_year', 'end_year', 'impact_score', 'primary_relationship_id', 'narrative_text', 'notes', 'approximate_location', 'source_evidence', 'generated_by', 'entities'],
         };
     }

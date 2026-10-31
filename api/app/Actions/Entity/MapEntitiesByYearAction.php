@@ -58,6 +58,7 @@ class MapEntitiesByYearAction
             entities.display_priority,
             entities.impact_score,
             entities.attributes->>'entity_color' AS entity_color,
+            EXISTS (SELECT 1 FROM map_stories WHERE map_stories.entity_id = entities.entity_id) AS has_map_story,
             {$ohmExternalId} AS ohm_external_id,
             {$ohmExternalType} AS ohm_external_type,
             ST_AsGeoJSON({$geom}, 5)::text AS geojson
@@ -164,6 +165,7 @@ class MapEntitiesByYearAction
                     'start_year' => $row->start_year,
                     'end_year' => $row->end_year,
                     'entity_color' => $row->entity_color,
+                    'has_map_story' => (bool) $row->has_map_story,
                     'ohm_provider' => $row->ohm_external_id !== null ? 'ohm' : null,
                     'ohm_external_type' => $row->ohm_external_type,
                     'ohm_external_id' => $row->ohm_external_id,

@@ -40,9 +40,9 @@ What's deliberately **excluded** from the dump, and why:
 | `migrations` | Prod's migration ledger is managed by `migrate`, not us |
 | `spatial_ref_sys` + `tiger.*`, `tiger_data.*`, `topology.*` schemas | PostGIS extension-owned; already present on prod, would conflict |
 
-What's **included** — the 26 content + reference tables: `entities`,
+What's **included** — the 27 content + reference tables: `entities`,
 `entity_aliases`, `entity_geo_refs`, `entity_locations`, `entity_tags`, `tags`,
-`chronicle_tags`,
+`chronicle_tags`, `map_stories` (also reloadable from files with `map-stories:sync`),
 `entity_temporal_ranges`, `entity_timeline_entries`, `relationships`,
 `geometry_periods`, `chronicles`, `chronicle_entries`,
 `chronicle_entry_entities`, `sources`, `pipeline_relationship_hints`, and all

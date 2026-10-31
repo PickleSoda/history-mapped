@@ -164,6 +164,21 @@ export default function EntityShow({ entity }: Props) {
                     </div>
                 )}
 
+                {entity.description && (
+                    <div className="rounded-lg border p-4">
+                        <h2 className="mb-2 text-sm font-medium">
+                            Description
+                        </h2>
+                        <div className="space-y-3 text-sm text-muted-foreground">
+                            {entity.description
+                                .split(/\n\s*\n/)
+                                .map((paragraph, i) => (
+                                    <p key={i}>{paragraph.trim()}</p>
+                                ))}
+                        </div>
+                    </div>
+                )}
+
                 {/* Geometry map + timeline */}
                 <div className="rounded-lg border p-4">
                     <Suspense

@@ -238,6 +238,7 @@ class EntityController extends Controller
             'entity_group' => $entity->entity_group?->value,
             'summary' => $entity->summary,
             'significance' => $entity->significance,
+            'description' => $entity->description,
             'impact_score' => $entity->impact_score,
             'wikidata_id' => $entity->wikidata_id,
             'temporal_start' => $entity->primaryTemporalRange?->start_date,

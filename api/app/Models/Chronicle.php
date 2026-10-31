@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
-    'chronicle_id', 'title', 'slug', 'source_type', 'source_reference',
+    'chronicle_id', 'title', 'slug', 'description', 'source_type', 'source_reference',
     'status', 'start_year', 'end_year', 'impact_score', 'approximate_location', 'metadata', 'created_by', 'created_at', 'updated_at',
 ])]
 class Chronicle extends Model

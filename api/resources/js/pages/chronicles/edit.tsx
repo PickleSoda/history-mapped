@@ -154,6 +154,7 @@ export default function ChronicleEdit({
         title: chronicle.title ?? '',
         slug: chronicle.slug ?? '',
         source_type: chronicle.source_type ?? 'video_transcript',
+        description: chronicle.description ?? '',
         source_reference: chronicle.source_reference ?? '',
         status: chronicle.status ?? 'draft',
         metadata: JSON.stringify(chronicle.metadata ?? {}),
@@ -347,6 +348,7 @@ export default function ChronicleEdit({
             slug: data.slug,
             source_type: data.source_type,
             source_reference: data.source_reference,
+            description: data.description,
             status: data.status,
             metadata,
             tags: data.tags,
@@ -474,6 +476,25 @@ export default function ChronicleEdit({
                             }
                             placeholder="e.g. transcript.txt or URL"
                         />
+                    </div>
+
+                    {/* Description */}
+                    <div className="space-y-2">
+                        <Label htmlFor="description">Description</Label>
+                        <Textarea
+                            id="description"
+                            value={data.description}
+                            onChange={(e) =>
+                                handleChange('description', e.target.value)
+                            }
+                            placeholder="Introduction to the chronicle: plain paragraphs separated by a blank line"
+                            rows={8}
+                        />
+                        {errors.description && (
+                            <p className="text-sm text-destructive">
+                                {errors.description}
+                            </p>
+                        )}
                     </div>
 
                     {/* Status */}

@@ -22,7 +22,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 final class EntitySerializer implements RecordSerializer
 {
     private const COLUMNS = [
-        'entity_id', 'name', 'entity_type', 'wikidata_id', 'summary', 'significance', 'impact_score',
+        'entity_id', 'name', 'entity_type', 'wikidata_id', 'summary', 'significance', 'description', 'impact_score',
         'display_priority', 'icon_class', 'confidence', 'verification_status', 'date_method',
         'date_confidence', 'duration_type', 'location_method', 'location_confidence',
         'primary_geo_ref_id', 'attributes', 'source_citations',
@@ -68,6 +68,7 @@ final class EntitySerializer implements RecordSerializer
             'wikidata_id' => $r('wikidata_id'),
             'summary' => $r('summary'),
             'significance' => $r('significance'),
+            'description' => $r('description'),
             'impact_score' => $r('impact_score'),
             'display_priority' => $r('display_priority'),
             'icon_class' => $r('icon_class'),

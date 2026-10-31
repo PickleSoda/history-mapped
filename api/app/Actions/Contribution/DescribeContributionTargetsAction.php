@@ -61,13 +61,13 @@ class DescribeContributionTargetsAction
     {
         return Entity::query()->whereKey($ids)
             ->with(['aliases' => fn ($q) => $q->select(['alias_id', 'entity_id', 'name'])])
-            ->get(['entity_id', 'name', 'summary', 'significance'])
+            ->get(['entity_id', 'name', 'summary', 'significance', 'description'])
             ->mapWithKeys(fn (Entity $e) => [$e->entity_id => [
                 'label' => $e->name,
                 'admin_url' => url('/entities/'.rawurlencode($e->entity_id)),
                 'public_url' => self::atlas(['sel' => $e->entity_id, 'full' => '1']),
                 'fields' => [
-                    ...$e->only(['name', 'summary', 'significance']),
+                    ...$e->only(['name', 'summary', 'significance', 'description']),
                     'aliases' => ContributionFields::listText($e->aliases->pluck('name')),
                 ],
             ]])
@@ -103,12 +103,12 @@ class DescribeContributionTargetsAction
      */
     private function chronicles(array $ids): array
     {
-        return Chronicle::query()->whereKey($ids)->get(['chronicle_id', 'slug', 'title'])
+        return Chronicle::query()->whereKey($ids)->get(['chronicle_id', 'slug', 'title', 'description'])
             ->mapWithKeys(fn (Chronicle $c) => [$c->chronicle_id => [
                 'label' => $c->title,
                 'admin_url' => url('/chronicles/'.rawurlencode($c->slug)),
                 'public_url' => self::atlas(['chron' => $c->slug, 'full' => '1']),
-                'fields' => ['title' => $c->title],
+                'fields' => ['title' => $c->title, 'description' => $c->description],
             ]])
             ->all();
     }

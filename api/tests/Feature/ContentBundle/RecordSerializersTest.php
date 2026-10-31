@@ -133,6 +133,7 @@ class RecordSerializersTest extends TestCase
     {
         $c = Chronicle::factory()->create($over + [
             'slug' => 'rise-'.Str::lower(Str::random(6)),
+            'description' => 'How Rome became a republic.',
             'source_type' => 'article',
             'status' => 'published',
             'start_year' => -509,

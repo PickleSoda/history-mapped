@@ -40,6 +40,7 @@ class StoreEntityRequest extends FormRequest
             // Content
             'summary' => ['sometimes', 'nullable', 'string', 'max:5000'],
             'significance' => ['sometimes', 'nullable', 'string', 'max:5000'],
+            'description' => ['sometimes', 'nullable', 'string', 'max:20000'],
             'attributes' => ['sometimes', 'nullable', 'array'],
             'tags' => ['sometimes', 'nullable', 'array'],
             'tags.*' => ['string', 'max:100'],

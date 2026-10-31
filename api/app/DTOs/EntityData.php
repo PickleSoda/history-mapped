@@ -35,6 +35,7 @@ readonly class EntityData
         public EntityGroup $entityGroup,
         public ?string $summary = null,
         public ?string $significance = null,
+        public ?string $description = null,
         public ?array $attributes = null,
         public ?array $tags = null,
         public ?array $alternativeNames = null,
@@ -82,6 +83,7 @@ readonly class EntityData
             entityGroup: EntityGroup::from($validated['entity_group']),
             summary: $validated['summary'] ?? null,
             significance: $validated['significance'] ?? null,
+            description: $validated['description'] ?? null,
             attributes: $attributes ?: null,
             tags: $validated['tags'] ?? null,
             alternativeNames: $validated['alternative_names'] ?? null,
@@ -123,6 +125,7 @@ readonly class EntityData
         $optionals = [
             'summary' => $this->summary,
             'significance' => $this->significance,
+            'description' => $this->description,
             'attributes' => $this->attributes,
             'tags' => $this->tags,
             'alternative_names' => $this->alternativeNames,
