@@ -1,7 +1,7 @@
 import type { FilterSpecification, Map as MapLibreMap } from 'maplibre-gl';
 import { normalizeOhmDate } from '@/lib/ohm-date';
 
-type DateRange = {
+export type DateRange = {
     startISODate: string;
     endISODate: string;
     startDecimalDate: number;
@@ -204,6 +204,15 @@ function dateRangeFromInput(input: OhmDateFilterInput): DateRange | null {
     }
 
     return dateRangeFromDate(normalizeDateInput(input));
+}
+
+/**
+ * The ISO and decimal-year bounds `applyOhmLayerDateFilter` filters OHM layers
+ * by, for building matching filters on other layers. A year-only date spans
+ * the whole year; `null` or an invalid date yields `null`.
+ */
+export function ohmDateRange(input: OhmDateFilterInput): DateRange | null {
+    return dateRangeFromInput(input);
 }
 
 function isLegacyFilter(filter: unknown): boolean {
