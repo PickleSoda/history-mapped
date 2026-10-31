@@ -48,6 +48,8 @@ abstract class AgentTool implements Tool
         // is caught rather than aborting the SSE stream and hanging the chat.
         try {
             $parts = $this->buildParts($request->all());
+        } catch (ToolArgumentException $e) {
+            return json_encode(['error' => $e->getMessage()], JSON_THROW_ON_ERROR);
         } catch (Throwable $e) {
             report($e);
 

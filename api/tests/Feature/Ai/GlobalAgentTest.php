@@ -21,7 +21,7 @@ class GlobalAgentTest extends TestCase
         ];
     }
 
-    public function test_global_agent_exposes_all_eleven_tools_with_context(): void
+    public function test_global_agent_exposes_every_tool(): void
     {
         $user = User::factory()->create();
         $agent = new GlobalAgent($user, $this->ctx());
@@ -45,8 +45,12 @@ class GlobalAgentTest extends TestCase
         // Read-only (no context needed)
         $this->assertContains('get_entity_context', $names);
         $this->assertContains('verify_wikidata', $names);
+        $this->assertContains('find_place', $names);
+        $this->assertContains('point_from_offset', $names);
+        $this->assertContains('point_between', $names);
+        $this->assertContains('nearest_coast', $names);
 
-        $this->assertCount(11, $tools);
+        $this->assertCount(15, $tools);
     }
 
     public function test_global_agent_injects_context_on_staging_tools(): void

@@ -3,6 +3,10 @@
 namespace App\Ai\Agents;
 
 use App\Ai\Tools\CreateEntity;
+use App\Ai\Tools\FindPlace;
+use App\Ai\Tools\NearestCoast;
+use App\Ai\Tools\PointBetween;
+use App\Ai\Tools\PointFromOffset;
 use App\Ai\Tools\VerifyWikidata;
 use App\Models\User;
 use Laravel\Ai\Concerns\RemembersConversations;
@@ -31,13 +35,18 @@ class EntityCreatorAgent implements Agent, Conversational, HasTools
     /**
      * Return creation-only tools.
      * Staging tools receive $this->context so ProposedChange is attributed correctly.
-     * VerifyWikidata is read-only and does not need context.
+     * VerifyWikidata and the place tools (find_place, point_from_offset,
+     * point_between, nearest_coast) are read-only and do not need context.
      */
     public function tools(): iterable
     {
         return [
             app(CreateEntity::class)->withContext($this->context),
             app(VerifyWikidata::class),
+            app(FindPlace::class),
+            app(PointFromOffset::class),
+            app(PointBetween::class),
+            app(NearestCoast::class),
         ];
     }
 }

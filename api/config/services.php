@@ -45,6 +45,15 @@ return [
         'timeout' => env('OHM_HTTP_TIMEOUT', 20),
     ],
 
+    // Live OSM coastline lookups for the admin AI's nearest_coast tool
+    // (App\Services\Geo\CoastlineLookup) — no coastline data is stored locally.
+    'overpass' => [
+        'base_url' => env('OVERPASS_BASE_URL', 'https://overpass-api.de/api/interpreter'),
+        'timeout' => env('OVERPASS_HTTP_TIMEOUT', 15),
+        // Overpass operators ask for a descriptive User-Agent.
+        'user_agent' => env('OVERPASS_USER_AGENT', 'history-mapped/1.0 (https://github.com/PickleSoda/history-mapped)'),
+    ],
+
     // Entity images linked from Wikimedia Commons (App\Services\WikimediaImages).
     'wikimedia' => [
         // Wikimedia answers 403 without a descriptive User-Agent (https://w.wiki/4wJS).

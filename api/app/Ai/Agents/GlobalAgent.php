@@ -6,8 +6,12 @@ use App\Ai\Tools\CreateChronicle;
 use App\Ai\Tools\CreateChronicleEntry;
 use App\Ai\Tools\CreateEntity;
 use App\Ai\Tools\CreateRelationship;
+use App\Ai\Tools\FindPlace;
 use App\Ai\Tools\GetEntityContext;
 use App\Ai\Tools\MergeDuplicateEntities;
+use App\Ai\Tools\NearestCoast;
+use App\Ai\Tools\PointBetween;
+use App\Ai\Tools\PointFromOffset;
 use App\Ai\Tools\SetEntityLocation;
 use App\Ai\Tools\SetEntityWikidata;
 use App\Ai\Tools\UpdateChronicleEntry;
@@ -40,7 +44,7 @@ class GlobalAgent implements Agent, Conversational, HasTools
     /**
      * Full registered toolset.
      *
-     * Read-only tools (VerifyWikidata, GetEntityContext) need no context — they
+     * Read-only tools (VerifyWikidata, GetEntityContext, the place tools) need no context — they
      * never stage proposals. Staging tools receive $this->context so ProposedChange
      * rows carry the correct user, conversation, and global context.
      */
@@ -50,6 +54,10 @@ class GlobalAgent implements Agent, Conversational, HasTools
             // Read-only / lookup
             app(VerifyWikidata::class),
             app(GetEntityContext::class),
+            app(FindPlace::class),
+            app(PointFromOffset::class),
+            app(PointBetween::class),
+            app(NearestCoast::class),
 
             // Staging — create
             app(CreateEntity::class)->withContext($this->context),

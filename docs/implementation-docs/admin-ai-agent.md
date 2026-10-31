@@ -38,20 +38,26 @@ The apply endpoint:
 
 | Tool | Type | Description |
 |---|---|---|
-| `get_entity_context` | read-only | Fetches entity fields, location, temporal ranges, relationships — gives the model current state before proposing changes. |
+| `get_entity_context` | read-only | Live state: every field `update_entity_fields` can change (`fields`), the type's attributes with allowed values and current values (`attribute_fields`, from `App\Support\EntityAttributeCatalog`), location, dates, relationships. |
 | `verify_wikidata` | read-only | Looks up a QID and returns label + P31 + coordinates. |
+| `find_place` | read-only | Name → candidate points: our entities (name / alias / trigram), then OHM Nominatim. Flags `approximate` points — generic centroids shared by 5+ records. |
+| `point_from_offset` | read-only | Anchor + distance (km, mi, nmi, roman_mile) + compass direction → great-circle destination point. |
+| `point_between` | read-only | Two anchors + fraction (0.5 = midpoint) → great-circle intermediate point. |
+| `nearest_coast` | read-only | Anchor → nearest point on an OSM coastline (live Overpass query; `OVERPASS_BASE_URL`), optionally `offset_km` inland (+) or out to sea (−). Modern coastline. |
 | `create_entity` | staging (primary) | Proposes a new entity record with type, dates, location. |
-| `set_entity_location` | staging | Proposes setting a lat/lon point location. |
-| `update_entity_fields` | staging | Proposes field-level updates (name, summary, start/end year, …). |
+| `set_entity_location` | staging | Proposes the primary point (+ optional `location_name`, `location_confidence`); keeps the territory polygon. |
+| `update_entity_fields` | staging | Proposes changes to anything the admin edit form edits — scalar fields, date resolution, confidence, display, verification status (apply needs `entities.verify`), tags / alternative names (add/remove), type-specific attributes (catalog-checked), and `clear` to empty fields. Validated with `UpdateEntityRequest`'s rules; applied by `ApplyEntityEditsAction` (the form's write path, seeded from the entity so nothing unsent is lost). |
 | `set_entity_wikidata` | staging | Proposes setting/updating the Wikidata QID and cascading to source citations + geo refs. |
 | `create_relationship` | staging | Proposes a typed relationship; optionally creates the target entity as a nested part. |
 | `merge_duplicate_entities` | staging | Proposes merging a duplicate into a survivor entity (calls `MergeEntityAction`). |
 
-The **EntityEditorAgent** includes all 8 tools (read-only + all staging). The **ChronicleEditorAgent** includes 7 tools (no `get_entity_context`, all staging + `verify_wikidata`).
+The **EntityEditorAgent** has all 12 entity tools. The **ChronicleEditorAgent** has 13 (no `get_entity_context`; adds the chronicle-entry tools); the **GlobalAgent** has all 15; the **EntityCreatorAgent** has `create_entity`, `verify_wikidata` and the four place tools. The place tools are read-only lookups: they compute a point and the model passes it to `set_entity_location` / `create_entity`. The prompts share two sections — `resources/views/ai/instructions/partials/fields.blade.php` (what is editable and how) and `placement.blade.php` (phrase → anchor + one operation → point, with unit conversions).
+
+A tool argument the model can fix is rejected with a `ToolArgumentException`, whose message is returned to the model as the tool result (other failures stay generic).
 
 ### Namesake guard (Wikidata)
 
-`set_entity_wikidata` calls `WikidataService::guardNamesakeConflict()`: if the QID's P31 label matches an entity type that does _not_ map to the current entity's `entity_type`, the tool throws and refuses to stage the change. This prevents accidentally tagging a person entity with a city's QID.
+`set_entity_wikidata` refuses a QID whose P31 marks a namesake (a song, street, film… — `SetEntityWikidata::BOGUS_P31`) and refuses to stage the change. This prevents accidentally tagging, say, an empire with a ship named after it.
 
 ---
 

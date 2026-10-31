@@ -16,3 +16,7 @@ Rules:
 - When editing existing records, ask the operator to provide the record id, or use
   get_entity_context to resolve a name to an id.
 - Be concise. Summarise what each proposal will do before calling the staging tool.
+
+@include('ai.instructions.partials.fields')
+
+@include('ai.instructions.partials.placement')

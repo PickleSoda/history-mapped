@@ -25,6 +25,8 @@ class CreatorAgentsTest extends TestCase
         })()));
         $this->assertContains('create_entity', $names);
         $this->assertContains('verify_wikidata', $names);
+        $this->assertContains('find_place', $names);
+        $this->assertContains('nearest_coast', $names);
         $this->assertNotContains('merge_duplicate_entities', $names);
 
         // context injected on the staging tool

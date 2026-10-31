@@ -3,6 +3,7 @@
 namespace Tests\Feature\Ai;
 
 use App\Ai\Tools\GetEntityContext;
+use App\Enums\EntityType;
 use App\Models\Entity;
 use App\Models\EntityLocation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -138,5 +139,28 @@ class GetEntityContextToolTest extends TestCase
 
         $this->expectException(LogicException::class);
         $tool->applyPart([], []);
+    }
+
+    public function test_handle_lists_every_editable_field_and_the_type_attributes(): void
+    {
+        $entity = Entity::factory()->ofType(EntityType::PoliticalEntity)->create([
+            'significance' => 'Shaped the Mediterranean',
+            'attributes' => ['political_subtype' => 'empire', 'date_raw' => '27 BC', 'review_flags' => ['x']],
+        ]);
+
+        $data = json_decode(app(GetEntityContext::class)->forEntity($entity)->handle(new Request([])), true);
+
+        foreach (['significance', 'impact_score', 'confidence', 'icon_class', 'date_method', 'tags', 'alternative_names', 'date_raw'] as $field) {
+            $this->assertArrayHasKey($field, $data['fields']);
+        }
+        $this->assertSame('Shaped the Mediterranean', $data['fields']['significance']);
+        $this->assertSame('27 BC', $data['fields']['date_raw']);
+
+        $subtype = $data['attribute_fields']['political_subtype'];
+        $this->assertSame('empire', $subtype['value']);
+        $this->assertSame('choice', $subtype['kind']);
+        $this->assertContains('kingdom', $subtype['values']);
+        $this->assertArrayHasKey('government_type', $data['attribute_fields']);
+        $this->assertSame(['review_flags'], $data['other_attribute_keys']);
     }
 }

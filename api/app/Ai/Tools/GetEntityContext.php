@@ -2,8 +2,12 @@
 
 namespace App\Ai\Tools;
 
+use App\Actions\Entity\ApplyEntityEditsAction;
+use App\DTOs\EntityData;
 use App\Models\Entity;
+use App\Support\EntityAttributeCatalog;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Laravel\Ai\Tools\Request;
 use LogicException;
@@ -27,7 +31,9 @@ class GetEntityContext extends AgentTool
 
     public function description(): string
     {
-        return 'Return the live state of an entity (name, type, Wikidata QID, location, dates, relationships) so the model can ground itself before making changes.';
+        return 'Return the live state of an entity so you can ground yourself before changing it: every field update_entity_fields can edit (`fields`), '
+            .'the type-specific attributes this entity type has with their allowed values and current values (`attribute_fields`), the map location, '
+            .'dates and relationships. Call it before editing; fields that are null are simply unset and can be filled in.';
     }
 
     public function schema(JsonSchema $schema): array
@@ -65,6 +71,8 @@ class GetEntityContext extends AgentTool
         $entity->load([
             'primaryLocation',
             'primaryTemporalRange',
+            'entityTags',
+            'aliases',
             'outgoingRelationships.targetEntity',
             'incomingRelationships.sourceEntity',
         ]);
@@ -91,6 +99,12 @@ class GetEntityContext extends AgentTool
             ->values()
             ->all();
 
+        $stored = is_array($entity->attributes) ? $entity->attributes : [];
+        $attributeFields = [];
+        foreach (EntityAttributeCatalog::fieldsFor($entity->entity_type) as $key => $field) {
+            $attributeFields[$key] = ['value' => $stored[$key] ?? null] + $field;
+        }
+
         return json_encode([
             'entity_id' => $entity->entity_id,
             'name' => $entity->name,
@@ -98,11 +112,51 @@ class GetEntityContext extends AgentTool
             'entity_group' => $entity->entity_group?->value,
             'wikidata_id' => $entity->wikidata_id,
             'summary' => $entity->summary,
-            'location' => $loc ? ['lon' => data_get($loc->geom, 'coordinates.0'), 'lat' => data_get($loc->geom, 'coordinates.1'), 'method' => $loc->location_method?->value] : null,
+            'location' => $loc ? [
+                'lon' => data_get($loc->geom, 'coordinates.0'),
+                'lat' => data_get($loc->geom, 'coordinates.1'),
+                'geometry' => data_get($loc->geom, 'type'),
+                'name' => $loc->location_name,
+                'method' => $loc->location_method?->value,
+                'confidence' => $entity->location_confidence?->value,
+                'has_territory' => $loc->territory_geom !== null,
+            ] : null,
             'temporal_start' => $temporal?->start_date,
             'temporal_end' => $temporal?->end_date,
+            // Everything update_entity_fields edits, current value or null.
+            'fields' => $this->editableFields($entity, $stored),
+            'attribute_fields' => $attributeFields,
+            // Stored keys outside the catalog (pipeline flags, lists): not editable here.
+            'other_attribute_keys' => array_values(array_diff(
+                array_keys($stored),
+                array_keys($attributeFields),
+                EntityData::MOVED_KEYS,
+            )),
             'relationships' => $relationships,
         ], JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * The entity's editable values under update_entity_fields' argument names.
+     *
+     * @param  array<string, mixed>  $stored
+     * @return array<string, mixed>
+     */
+    private function editableFields(Entity $entity, array $stored): array
+    {
+        $current = Arr::except(ApplyEntityEditsAction::currentValues($entity), [
+            'entity_group', 'wikidata_id', 'geojson', 'territory_geojson', 'temporal_start', 'temporal_end',
+        ]);
+
+        return $current + [
+            'start' => $entity->primaryTemporalRange?->start_date,
+            'end' => $entity->primaryTemporalRange?->end_date,
+            'date_raw' => $stored['date_raw'] ?? null,
+            'confidence_notes' => $stored['confidence_notes'] ?? null,
+            'entity_color' => $stored['entity_color'] ?? null,
+            'tags' => ApplyEntityEditsAction::manualTags($entity),
+            'alternative_names' => $entity->aliases->pluck('name')->values()->all(),
+        ];
     }
 
     /**

@@ -79,6 +79,32 @@ function entityToFormData(entity: EntityDetail): EntityFormData {
     };
 }
 
+/**
+ * Take into `current` the fields the server changed between two snapshots of
+ * the entity, keeping whatever else the operator has edited but not saved. An
+ * attribute the server removed is emptied, so a later save can't restore it.
+ */
+function mergeServerChanges(
+    current: EntityFormData,
+    before: EntityFormData,
+    after: EntityFormData,
+): EntityFormData {
+    const next: Record<string, unknown> = { ...current };
+    const was = before as Record<string, unknown>;
+    const now = after as Record<string, unknown>;
+
+    for (const key of new Set([...Object.keys(was), ...Object.keys(now)])) {
+        if (was[key] !== now[key]) {
+            next[key] = now[key] ?? '';
+        }
+    }
+
+    return next as EntityFormData;
+}
+
+const sameGeometry = (a: GeoJsonLike, b: GeoJsonLike) =>
+    JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+
 export default function EntityEdit({ entity, formOptions }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
@@ -104,6 +130,33 @@ export default function EntityEdit({ entity, formOptions }: Props) {
     const [geometryPeriodsOpen, setGeometryPeriodsOpen] = useState(false);
     const [imagesOpen, setImagesOpen] = useState(false);
     const [relationshipOpen, setRelationshipOpen] = useState(false);
+
+    // An AI change applied from the sidebar reloads `entity`. Fold what it
+    // changed into the form — otherwise the next Save would write the old
+    // values back over it.
+    const [syncedEntity, setSyncedEntity] = useState(entity);
+
+    if (entity !== syncedEntity) {
+        const before = entityToFormData(syncedEntity);
+        const after = entityToFormData(entity);
+        setData((current) => mergeServerChanges(current, before, after));
+
+        if (!sameGeometry(syncedEntity.geojson, entity.geojson)) {
+            setGeojson(entity.geojson ?? null);
+        }
+
+        if (
+            !sameGeometry(
+                syncedEntity.territory_geojson,
+                entity.territory_geojson,
+            )
+        ) {
+            setTerritoryGeojson(entity.territory_geojson ?? null);
+        }
+
+        setSyncedEntity(entity);
+    }
+
     const entityStartYear = Number(entity.temporal_start);
     const timeframeDate = Number.isFinite(entityStartYear)
         ? yearToOhmDate(entityStartYear)
