@@ -10,8 +10,10 @@ use App\Enums\GeoRefRetrievalMethod;
 use App\Models\Entity;
 use App\Models\EntityGeoRef;
 use App\Support\OhmDate;
+use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
 
@@ -22,9 +24,14 @@ use Throwable;
  * memory only the records that can match: those whose `type/id` already has an OHM ref, or
  * whose Wikidata id some entity carries. The rest are counted `unmatched` and dropped, so a
  * 60k-record file stays far below the CLI memory limit. Keeping the matchable records lets
- * those sharing a Wikidata id be ranked together. Pass 2, in one transaction (rolled back on
- * a dry run), fills temporal ranges and tags on existing OHM refs, then creates refs on
- * entities whose `wikidata_id` matches a record exactly.
+ * those sharing a Wikidata id be ranked together. Pass 2 fills temporal ranges and tags on
+ * existing OHM refs, then creates refs on entities whose `wikidata_id` matches a record
+ * exactly. It works in chunks (records for the existing refs, Wikidata-id groups for the new
+ * ones), one short transaction each, so row locks never outlive a chunk (the queue worker
+ * times out at 90 s). A real run commits every chunk: a crash leaves whole chunks done and a
+ * re-run completes the rest, the import being idempotent. A dry run rolls every chunk back.
+ * No chunk depends on another's writes (an entity has one Wikidata id, so it sits in one
+ * group), so a dry run reports the same counters as the real run.
  *
  * @phpstan-type OhmLinkRecord array{
  *     key: string, type: string, id: string, qid: ?string,
@@ -37,7 +44,8 @@ class ImportOhmLinksAction
     /** Preference order when several OHM features share one Wikidata id. */
     private const TYPE_RANK = ['relation' => 0, 'way' => 1, 'node' => 2];
 
-    private const CHUNK = 1000;
+    /** Records (existing-ref pass) or Wikidata-id groups (linking pass) per transaction. */
+    public const DEFAULT_CHUNK = 250;
 
     public function __construct(private readonly CreateEntityGeoRefAction $createGeoRef) {}
 
@@ -45,8 +53,18 @@ class ImportOhmLinksAction
      * @return array{records: int, refs_updated: int, refs_created: int, skipped_existing: int,
      *     invalid_years: int, qid_duplicates: int, unmatched: int, malformed: int}
      */
-    public function __invoke(string $path, string $batchId, bool $dryRun, bool $overwriteYears, ?string $runId = null): array
-    {
+    public function __invoke(
+        string $path,
+        string $batchId,
+        bool $dryRun,
+        bool $overwriteYears,
+        ?string $runId = null,
+        int $chunkSize = self::DEFAULT_CHUNK,
+    ): array {
+        if ($chunkSize < 1) {
+            throw new InvalidArgumentException("chunk size must be at least 1, got {$chunkSize}");
+        }
+
         $counters = [
             'records' => 0,
             'refs_updated' => 0,
@@ -64,20 +82,26 @@ class ImportOhmLinksAction
         /** @var array<string, true> $matched record keys that found an existing ref or an entity */
         $matched = [];
 
+        $this->updateExistingRefs($records, $overwriteYears, $chunkSize, $dryRun, $counters, $matched);
+        $this->linkByWikidataId($records, $sourceMeta, $chunkSize, $dryRun, $counters, $matched);
+
+        $counters['unmatched'] += count(array_diff_key($records, $matched));
+
+        return $counters;
+    }
+
+    /** Run one chunk in its own transaction: committed, or rolled back on a dry run or an error. */
+    private function inChunkTransaction(bool $dryRun, Closure $work): void
+    {
         DB::beginTransaction();
         try {
-            $this->updateExistingRefs($records, $overwriteYears, $counters, $matched);
-            $this->linkByWikidataId($records, $sourceMeta, $counters, $matched);
+            $work();
         } catch (Throwable $e) {
             DB::rollBack();
 
             throw $e;
         }
         $dryRun ? DB::rollBack() : DB::commit();
-
-        $counters['unmatched'] += count(array_diff_key($records, $matched));
-
-        return $counters;
     }
 
     /**
@@ -207,31 +231,39 @@ class ImportOhmLinksAction
      * @param  array<string, int>  $counters
      * @param  array<string, true>  $matched
      */
-    private function updateExistingRefs(array $records, bool $overwriteYears, array &$counters, array &$matched): void
-    {
+    private function updateExistingRefs(
+        array $records,
+        bool $overwriteYears,
+        int $chunkSize,
+        bool $dryRun,
+        array &$counters,
+        array &$matched,
+    ): void {
         $idsByType = [];
         foreach ($records as $record) {
             $idsByType[$record['type']][] = $record['id'];
         }
 
         foreach ($idsByType as $type => $ids) {
-            foreach (array_chunk($ids, self::CHUNK) as $chunk) {
-                $refs = EntityGeoRef::query()
-                    ->where('provider', GeoRefProvider::Ohm->value)
-                    ->where('external_type', $type)
-                    ->whereIn('external_id', $chunk)
-                    ->get();
+            foreach (array_chunk($ids, $chunkSize) as $chunk) {
+                $this->inChunkTransaction($dryRun, function () use ($records, $type, $chunk, $overwriteYears, &$counters, &$matched): void {
+                    $refs = EntityGeoRef::query()
+                        ->where('provider', GeoRefProvider::Ohm->value)
+                        ->where('external_type', $type)
+                        ->whereIn('external_id', $chunk)
+                        ->get();
 
-                foreach ($refs as $ref) {
-                    $record = $records["{$type}/{$ref->external_id}"];
-                    $matched[$record['key']] = true;
+                    foreach ($refs as $ref) {
+                        $record = $records["{$type}/{$ref->external_id}"];
+                        $matched[$record['key']] = true;
 
-                    $this->fillEmptyFields($ref, $record, $overwriteYears);
-                    if ($ref->isDirty()) {
-                        $ref->save();
-                        $counters['refs_updated']++;
+                        $this->fillEmptyFields($ref, $record, $overwriteYears);
+                        if ($ref->isDirty()) {
+                            $ref->save();
+                            $counters['refs_updated']++;
+                        }
                     }
-                }
+                });
             }
         }
     }
@@ -273,8 +305,14 @@ class ImportOhmLinksAction
      * @param  array<string, int>  $counters
      * @param  array<string, true>  $matched
      */
-    private function linkByWikidataId(array $records, array $sourceMeta, array &$counters, array &$matched): void
-    {
+    private function linkByWikidataId(
+        array $records,
+        array $sourceMeta,
+        int $chunkSize,
+        bool $dryRun,
+        array &$counters,
+        array &$matched,
+    ): void {
         $recordsByQid = [];
         foreach ($records as $record) {
             if ($record['qid'] !== null) {
@@ -282,49 +320,63 @@ class ImportOhmLinksAction
             }
         }
 
-        foreach (array_chunk(array_keys($recordsByQid), self::CHUNK) as $qids) {
-            $entities = Entity::query()
-                ->select(['entity_id', 'wikidata_id', 'primary_geo_ref_id'])
-                ->with('primaryTemporalRange')
-                ->whereIn('wikidata_id', $qids)
-                ->orderBy('entity_id')
-                ->get();
-            if ($entities->isEmpty()) {
-                continue;
+        foreach (array_chunk(array_keys($recordsByQid), $chunkSize) as $qids) {
+            $this->inChunkTransaction($dryRun, function () use ($qids, $recordsByQid, $sourceMeta, &$counters, &$matched): void {
+                $this->linkQidChunk($qids, $recordsByQid, $sourceMeta, $counters, $matched);
+            });
+        }
+    }
+
+    /**
+     * @param  list<string>  $qids
+     * @param  array<string, list<OhmLinkRecord>>  $recordsByQid
+     * @param  array<string, string>  $sourceMeta
+     * @param  array<string, int>  $counters
+     * @param  array<string, true>  $matched
+     */
+    private function linkQidChunk(array $qids, array $recordsByQid, array $sourceMeta, array &$counters, array &$matched): void
+    {
+        $entities = Entity::query()
+            ->select(['entity_id', 'wikidata_id', 'primary_geo_ref_id'])
+            ->with('primaryTemporalRange')
+            ->whereIn('wikidata_id', $qids)
+            ->orderBy('entity_id')
+            ->get();
+        if ($entities->isEmpty()) {
+            return;
+        }
+
+        $entityIds = $entities->pluck('entity_id')->all();
+        $existingKeys = EntityGeoRef::query()
+            ->whereIn('entity_id', $entityIds)
+            ->where('provider', GeoRefProvider::Ohm->value)
+            ->get(['entity_id', 'external_type', 'external_id'])
+            ->groupBy('entity_id')
+            ->map(fn ($refs) => $refs->mapWithKeys(fn (EntityGeoRef $r): array => ["{$r->external_type->value}/{$r->external_id}" => true])->all());
+        $withActivePrimary = EntityGeoRef::query()
+            ->whereIn('entity_id', $entityIds)
+            ->where('match_role', GeoRefMatchRole::Primary->value)
+            ->where('is_active', true)
+            ->pluck('entity_id')
+            ->flip();
+
+        foreach ($entities->groupBy('wikidata_id') as $qid => $group) {
+            if ($group->count() > 1) {
+                $counters['qid_duplicates']++;
+                Log::warning('ohm-links: Wikidata id matches several entities', [
+                    'wikidata_id' => $qid,
+                    'entity_ids' => $group->pluck('entity_id')->all(),
+                ]);
             }
 
-            $entityIds = $entities->pluck('entity_id')->all();
-            $existingKeys = EntityGeoRef::query()
-                ->whereIn('entity_id', $entityIds)
-                ->where('provider', GeoRefProvider::Ohm->value)
-                ->get(['entity_id', 'external_type', 'external_id'])
-                ->groupBy('entity_id')
-                ->map(fn ($refs) => $refs->mapWithKeys(fn (EntityGeoRef $r): array => ["{$r->external_type->value}/{$r->external_id}" => true])->all());
-            $withActivePrimary = EntityGeoRef::query()
-                ->whereIn('entity_id', $entityIds)
-                ->where('match_role', GeoRefMatchRole::Primary->value)
-                ->where('is_active', true)
-                ->pluck('entity_id')
-                ->flip();
+            foreach ($recordsByQid[$qid] as $record) {
+                $matched[$record['key']] = true;
+            }
 
-            foreach ($entities->groupBy('wikidata_id') as $qid => $group) {
-                if ($group->count() > 1) {
-                    $counters['qid_duplicates']++;
-                    Log::warning('ohm-links: Wikidata id matches several entities', [
-                        'wikidata_id' => $qid,
-                        'entity_ids' => $group->pluck('entity_id')->all(),
-                    ]);
-                }
-
-                foreach ($recordsByQid[$qid] as $record) {
-                    $matched[$record['key']] = true;
-                }
-
-                foreach ($group as $entity) {
-                    $existing = $existingKeys->get($entity->entity_id, []);
-                    $hasActivePrimary = $entity->primary_geo_ref_id !== null || $withActivePrimary->has($entity->entity_id);
-                    $this->linkEntity($entity, $recordsByQid[$qid], $existing, $hasActivePrimary, $sourceMeta, $counters);
-                }
+            foreach ($group as $entity) {
+                $existing = $existingKeys->get($entity->entity_id, []);
+                $hasActivePrimary = $entity->primary_geo_ref_id !== null || $withActivePrimary->has($entity->entity_id);
+                $this->linkEntity($entity, $recordsByQid[$qid], $existing, $hasActivePrimary, $sourceMeta, $counters);
             }
         }
     }

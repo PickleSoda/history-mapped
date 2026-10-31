@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Console;
 
+use App\Actions\EntityGeoRef\CreateEntityGeoRefAction;
 use App\Actions\EntityGeoRef\ImportOhmLinksAction;
 use App\Enums\GeoRefExternalType;
 use App\Enums\GeoRefMatchRole;
@@ -13,6 +14,7 @@ use App\Models\Entity;
 use App\Models\EntityGeoRef;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 use Tests\TestCase;
 
 class ImportOhmLinksTest extends TestCase
@@ -358,6 +360,120 @@ class ImportOhmLinksTest extends TestCase
 
         $this->assertSame($this->counters(['records' => 4, 'refs_updated' => 1, 'refs_created' => 1, 'unmatched' => 2]), $counters);
         Log::shouldHaveReceived('info')->once()->with('ohm-links: records loaded', ['records' => 4, 'kept' => 2]);
+    }
+
+    public function test_chunk_1_over_three_qid_groups_creates_all_refs_with_the_unchunked_counters(): void
+    {
+        [$q1, $q2, $q3, $existing] = $this->seedThreeQidGroups();
+        $path = $this->writeJsonl($this->threeQidGroupRecords());
+        $expected = $this->counters(['records' => 5, 'refs_updated' => 1, 'refs_created' => 4]);
+
+        $unchunked = app(ImportOhmLinksAction::class)($path, 'b', true, false, null, 1000);
+        $this->assertSame($expected, $unchunked);
+
+        $this->artisan('pipeline:import-ohm-links', ['path' => $path, '--chunk' => '1'])
+            ->expectsTable(['Counter', 'Value'], $this->tableRows($expected))
+            ->assertExitCode(0);
+
+        $this->assertSame(-27, $existing->refresh()->temporal_start_year);
+        $this->assertSame(GeoRefMatchRole::Primary, $this->onlyRef($q1, 'relation', '11')->match_role);
+        $this->assertSame(GeoRefMatchRole::Primary, $this->onlyRef($q2, 'relation', '21')->match_role);
+        $this->assertSame(GeoRefMatchRole::Candidate, $this->onlyRef($q2, 'node', '22')->match_role);
+        $this->assertSame(GeoRefMatchRole::Primary, $this->onlyRef($q3, 'relation', '31')->match_role);
+        $this->assertSame(5, EntityGeoRef::query()->count());
+    }
+
+    public function test_dry_run_with_chunk_1_writes_nothing(): void
+    {
+        [$q1, $q2, $q3, $existing] = $this->seedThreeQidGroups();
+        $path = $this->writeJsonl($this->threeQidGroupRecords());
+
+        $this->artisan('pipeline:import-ohm-links', ['path' => $path, '--chunk' => '1', '--dry-run' => true])
+            ->expectsTable(['Counter', 'Value'], $this->tableRows($this->counters(['records' => 5, 'refs_updated' => 1, 'refs_created' => 4])))
+            ->assertExitCode(0);
+
+        $this->assertSame(1, EntityGeoRef::query()->count());
+        $existing->refresh();
+        $this->assertSame([null, null, null], [$existing->temporal_start_year, $existing->temporal_start, $existing->external_tags]);
+        foreach ([$q1, $q2, $q3] as $entity) {
+            $this->assertNull($entity->refresh()->primary_geo_ref_id);
+        }
+    }
+
+    public function test_a_crash_mid_way_keeps_committed_chunks_and_a_rerun_completes_them(): void
+    {
+        [$q1, $q2, $q3, $existing] = $this->seedThreeQidGroups();
+        $path = $this->writeJsonl($this->threeQidGroupRecords());
+        $this->app->instance(CreateEntityGeoRefAction::class, new class extends CreateEntityGeoRefAction
+        {
+            private int $calls = 0;
+
+            public function __invoke(Entity $entity, array $attributes): EntityGeoRef
+            {
+                if (++$this->calls === 2) {
+                    throw new RuntimeException('simulated crash');
+                }
+
+                return parent::__invoke($entity, $attributes);
+            }
+        });
+
+        try {
+            app(ImportOhmLinksAction::class)($path, 'b', false, false, null, 1);
+            $this->fail('the simulated crash should propagate');
+        } catch (RuntimeException $e) {
+            $this->assertSame('simulated crash', $e->getMessage());
+        }
+
+        // The rule-2 chunk and the Q1 chunk committed; the Q2 chunk rolled back whole; Q3 never ran.
+        $this->assertSame(-27, $existing->refresh()->temporal_start_year);
+        $this->assertSame($this->onlyRef($q1, 'relation', '11')->geo_ref_id, $q1->refresh()->primary_geo_ref_id);
+        $this->assertSame(0, EntityGeoRef::query()->whereIn('entity_id', [$q2->entity_id, $q3->entity_id])->count());
+        $this->assertNull($q2->refresh()->primary_geo_ref_id);
+
+        $this->app->forgetInstance(CreateEntityGeoRefAction::class);
+        $rerun = app(ImportOhmLinksAction::class)($path, 'b', false, false, null, 1);
+
+        $this->assertSame($this->counters(['records' => 5, 'refs_created' => 3, 'skipped_existing' => 1]), $rerun);
+        $this->assertSame(5, EntityGeoRef::query()->count());
+    }
+
+    public function test_chunk_must_be_a_positive_integer(): void
+    {
+        $path = $this->writeJsonl([$this->record()]);
+
+        $this->artisan('pipeline:import-ohm-links', ['path' => $path, '--chunk' => '0'])->assertExitCode(1);
+    }
+
+    /**
+     * Entities for Q1, Q2 and Q3 (no refs) and an unrelated OHM ref relation/99 with empty fields.
+     *
+     * @return array{0: Entity, 1: Entity, 2: Entity, 3: EntityGeoRef}
+     */
+    private function seedThreeQidGroups(): array
+    {
+        return [
+            Entity::factory()->create(['wikidata_id' => 'Q1']),
+            Entity::factory()->create(['wikidata_id' => 'Q2']),
+            Entity::factory()->create(['wikidata_id' => 'Q3']),
+            $this->ohmRef(Entity::factory()->create(), 'relation', '99', [
+                'temporal_start_year' => null,
+                'temporal_end_year' => null,
+                'external_tags' => null,
+            ]),
+        ];
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function threeQidGroupRecords(): array
+    {
+        return [
+            $this->record(['osm_id' => 99, 'wikidata_id' => null]),
+            $this->record(['osm_id' => 11, 'wikidata_id' => 'Q1']),
+            $this->record(['osm_id' => 21, 'wikidata_id' => 'Q2']),
+            $this->record(['osm_type' => 'node', 'osm_id' => 22, 'wikidata_id' => 'Q2']),
+            $this->record(['osm_id' => 31, 'wikidata_id' => 'Q3']),
+        ];
     }
 
     public function test_malformed_lines_are_counted_and_skipped(): void
