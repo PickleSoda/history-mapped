@@ -81,6 +81,8 @@ class OhmDateTest extends TestCase
             'way is positive' => ['way', '7', 7],
             'non-osm type' => ['qid', 'Q1', null],
             'non-numeric id' => ['relation', 'abc', null],
+            'zero id' => ['relation', '0', null],
+            'trailing newline' => ['node', "42\n", null],
         ];
     }
 

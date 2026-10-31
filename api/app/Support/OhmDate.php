@@ -47,7 +47,10 @@ final class OhmDate
 
     public static function signedOsmId(string $externalType, string $externalId): ?int
     {
-        if (preg_match('/^\d{1,18}$/', $externalId) !== 1) {
+        // Strict end anchor (\z): a trailing newline must not pass. A zero id is
+        // not a valid OSM id and externalTypesForSignedId() refuses it, so stay
+        // consistent and return null.
+        if (preg_match('/^\d{1,18}\z/', $externalId) !== 1 || (int) $externalId === 0) {
             return null;
         }
 
