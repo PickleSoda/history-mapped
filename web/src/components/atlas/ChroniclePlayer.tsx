@@ -1,4 +1,4 @@
-import { ChevronLeft, MoveRight, Route } from 'lucide-react';
+import { ChevronLeft, Layers, MoveRight, Route } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { ExpandButton } from '@/components/atlas/ExpandButton';
 import { preloadChroniclePage } from '@/components/atlas/FullPage';
@@ -13,6 +13,7 @@ import {
   useSelection,
   useTimeState,
 } from '@/hooks';
+import { useActiveStory } from '@/hooks/useMapStory';
 import { formatYear } from '@/lib/format';
 import { geometriesBounds } from '@/lib/map-focus';
 import type { ChronicleEntry } from '@/lib/schemas/chronicle';
@@ -136,9 +137,12 @@ export function ChroniclePlayerContent() {
       ]),
     [rel, current?.approximate_location, secondaryGeoms],
   );
+  // A map-layer step with a camera of its own frames the map instead (StoryOverlay).
+  const active = useActiveStory();
+  const storyCamera = active?.mode === 'chronicle' && active.index != null ? active.doc.steps[active.index]?.camera : null;
   useEffect(() => {
-    focusBounds(bounds);
-  }, [bounds, focusBounds]);
+    if (!storyCamera) focusBounds(bounds);
+  }, [bounds, focusBounds, storyCamera]);
 
   return (
     <div className="flex h-full flex-col">
@@ -151,6 +155,14 @@ export function ChroniclePlayerContent() {
         <>
           <div className="px-4 pt-4">
             <h2 className="text-base font-semibold leading-tight">{data.title}</h2>
+            {data.map_story && (
+              <span
+                className="mt-1.5 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] text-muted-foreground"
+                title="This chronicle draws its own map layer: routes, regions and moves at each step"
+              >
+                <Layers size={12} /> Map layer
+              </span>
+            )}
             <div className="mt-2 flex items-center gap-2">
               <span className="font-mono text-[11px] text-muted-foreground">
                 Step {Math.min(step + 1, total)} / {total}

@@ -328,9 +328,9 @@ def build() -> dict:
             {"at": [47.0, 45.5], "label": "North-west Caspian shore", "note": "Benedictow's suggested plague focus"},
         ],
         legend=[
-            {"swatch": "#991b1b", "label": "Plague had reached (schematic)", "style": "fill"},
+            {"swatch": "#7f1d1d", "label": "Plague had reached (schematic)", "style": "fill"},
             {"swatch": "#c2410c", "label": "Newly struck this period", "style": "fill"},
-            {"swatch": "#7f1d1d", "label": "Town with a dated outbreak", "style": "dot"},
+            {"swatch": "#991b1b", "label": "Town with a dated outbreak", "style": "dot"},
         ],
         sources=[
             {"title": "Black Death — Wikipedia", "url": "https://en.wikipedia.org/wiki/Black_Death", "kind": "web"},

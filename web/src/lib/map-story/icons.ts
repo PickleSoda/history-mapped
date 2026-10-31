@@ -7,7 +7,9 @@
  * read on any side colour. Pins (commander, camp, baggage), standards, ships,
  * arrowheads, hatching and captured flags are coloured per side or
  * contingent, so their image ids carry the colour. Unit-state overlays
- * (killed, wounded, sunk, burning) and terrain-state badges sit on top.
+ * (killed, wounded, sunk, burning) and feature-state badges sit on top.
+ * Campaign-scale markers (army, fleet, caravan, merchant ship, expedition,
+ * group) are pins with their glyph.
  */
 import type { Map as MapLibreMap } from 'maplibre-gl';
 
@@ -146,6 +148,46 @@ const GLYPHS: Record<string, Draw> = {
     c.moveTo(25, 24);
     c.arc(22, 24, 3, 0, Math.PI * 2);
   },
+  // v3: campaign-scale markers
+  army: (c) => {
+    line(c, 7, 25, 25, 7);
+    line(c, 25, 25, 7, 7);
+    line(c, 5, 20, 12, 27);
+    line(c, 27, 20, 20, 27);
+  },
+  fleet: (c) => {
+    c.moveTo(4, 17);
+    c.quadraticCurveTo(16, 29, 28, 17);
+    line(c, 4, 17, 28, 17);
+    line(c, 16, 17, 16, 4);
+    line(c, 16, 6, 23, 11, 16, 13);
+  },
+  merchant_ship: (c) => {
+    c.moveTo(4, 18);
+    c.quadraticCurveTo(16, 29, 28, 18);
+    line(c, 4, 18, 28, 18);
+    line(c, 16, 18, 16, 4);
+    c.moveTo(16, 5);
+    c.quadraticCurveTo(25, 10, 16, 16);
+  },
+  caravan: (c) => {
+    c.moveTo(5, 20);
+    c.quadraticCurveTo(10, 7, 15, 17);
+    c.quadraticCurveTo(20, 7, 25, 20);
+    line(c, 9, 20, 9, 26);
+    line(c, 21, 20, 21, 26);
+  },
+  expedition: (c) => {
+    line(c, 16, 3, 19.5, 12.5, 29, 16, 19.5, 19.5, 16, 29, 12.5, 19.5, 3, 16, 12.5, 12.5, 16, 3);
+  },
+  group: (c) => {
+    for (const x of [9, 16, 23]) {
+      c.moveTo(x + 3, 12);
+      c.arc(x, 12, 3, 0, Math.PI * 2);
+      c.moveTo(x - 5, 25);
+      c.quadraticCurveTo(x, 13, x + 5, 25);
+    }
+  },
 };
 
 const NOTE_GLYPHS: Record<string, Draw> = {
@@ -203,7 +245,7 @@ const flameCore: Draw = (c) => {
   c.closePath();
 };
 
-/** Badges for a terrain feature's state (`captured` is a flag per colour). */
+/** Badges for a feature's state (`captured` is a flag per colour, `burning` a flame). */
 const TERRAIN_STATE_GLYPHS: Record<string, Draw> = {
   contested: NOTE_GLYPHS.clash,
   destroyed: (c) => line(c, 6, 26, 6, 14, 11, 9, 13, 16, 17, 11, 20, 18, 26, 13, 26, 26, 6, 26),
@@ -214,6 +256,46 @@ const TERRAIN_STATE_GLYPHS: Record<string, Draw> = {
       c.bezierCurveTo(20, y - 4, 23, y + 4, 27, y);
     }
   },
+  // v3
+  infected: (c) => {
+    c.moveTo(22, 16);
+    c.arc(16, 16, 6, 0, Math.PI * 2);
+    for (let k = 0; k < 8; k++) {
+      const a = (k * Math.PI) / 4;
+      line(c, 16 + Math.cos(a) * 6, 16 + Math.sin(a) * 6, 16 + Math.cos(a) * 11, 16 + Math.sin(a) * 11);
+    }
+  },
+  peak: (c) => line(c, 4, 26, 12, 9, 17, 18, 21, 13, 28, 26),
+  recovered: (c) => line(c, 7, 17, 13, 23, 25, 9),
+  founded: (c) => {
+    const pts: number[] = [];
+    for (let k = 0; k <= 10; k++) {
+      const a = -Math.PI / 2 + (k * Math.PI) / 5;
+      const r = k % 2 ? 5 : 12;
+      pts.push(16 + Math.cos(a) * r, 17 + Math.sin(a) * r);
+    }
+    line(c, ...pts);
+  },
+  abandoned: (c) => {
+    line(c, 8, 26, 8, 15, 16, 8, 24, 15, 24, 26, 8, 26);
+    line(c, 6, 28, 26, 6);
+  },
+  disrupted: (c) => line(c, 18, 3, 10, 17, 19, 15, 12, 29),
+  new: (c) => {
+    line(c, 16, 6, 16, 26);
+    line(c, 6, 16, 26, 16);
+  },
+};
+
+/** A state badge's ink (dark, unless the state has a colour of its own). */
+const STATE_INK: Record<string, string> = {
+  flooded: '#1d4ed8',
+  infected: '#b91c1c',
+  peak: '#7f1d1d',
+  recovered: '#15803d',
+  founded: '#a16207',
+  disrupted: '#dc2626',
+  new: '#0e7490',
 };
 
 function canvas(size = SIZE): [HTMLCanvasElement, CanvasRenderingContext2D] {
@@ -302,7 +384,7 @@ export const terrainStateId = (state: string, color: string) =>
 export const ALT_SITE_ICON = 'story-alt';
 
 /** Pin kinds drawn as a round badge with their glyph. */
-const PIN_KINDS = ['commander', 'camp', 'baggage'];
+const PIN_KINDS = ['commander', 'camp', 'baggage', 'army', 'fleet', 'caravan', 'merchant_ship', 'expedition', 'group'];
 
 /**
  * Register every image a story needs (idempotent; images live in the style, so
@@ -417,7 +499,7 @@ export function registerStoryImages(map: MapLibreMap, colors: string[]): void {
   });
   for (const [state, draw] of Object.entries(TERRAIN_STATE_GLYPHS)) {
     once(terrainStateId(state, ''), (ctx) =>
-      badge(ctx, () => strokeGlyph(ctx, draw, 0.62, false, state === 'flooded' ? '#1d4ed8' : '#292524')),
+      badge(ctx, () => strokeGlyph(ctx, draw, 0.62, false, STATE_INK[state] ?? '#292524')),
     );
   }
   once(terrainStateId('burning', ''), (ctx) =>

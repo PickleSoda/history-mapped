@@ -48,7 +48,7 @@
  ],
  "legend": [
   {
-   "swatch": "#991b1b",
+   "swatch": "#7f1d1d",
    "label": "Plague had reached (schematic)",
    "style": "fill"
   },
@@ -58,7 +58,7 @@
    "style": "fill"
   },
   {
-   "swatch": "#7f1d1d",
+   "swatch": "#991b1b",
    "label": "Town with a dated outbreak",
    "style": "dot"
   }

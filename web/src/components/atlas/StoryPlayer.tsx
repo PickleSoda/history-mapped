@@ -1,10 +1,12 @@
-import { ChevronLeft, ChevronRight, Info, Pause, Play, Swords } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { ChevronLeft, ChevronRight, Info, Pause, Play } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { storyKindLabel } from '@/components/atlas/StoryCard';
+import { StoryKindIcon, storyKindLabel } from '@/components/atlas/StoryCard';
 import { useMapStory, useSelection, useStoryNav } from '@/hooks';
-import { contingentColors } from '@/lib/map-story/colors';
-import type { MapStoryDocument, StoryLinked, StorySide, StoryStep } from '@/lib/schemas/map-story';
+import { contingentColors, storyLegend } from '@/lib/map-story/colors';
+import type { LegendEntry } from '@/lib/map-story/colors';
+import { BATTLE_KINDS, formatStoryDate } from '@/lib/map-story/steps';
+import type { MapStoryDocument, StoryLinked, StorySide, StoryStep, StoryStepEntity } from '@/lib/schemas/map-story';
 import { cn } from '@/lib/utils';
 
 /** A name that opens its atlas entity when the story links one. */
@@ -64,6 +66,65 @@ function SideRow({ side }: { side: StorySide }) {
   );
 }
 
+/** A legend chip's swatch: a filled square, a line or a dot. */
+function Swatch({ entry }: { entry: LegendEntry }) {
+  const style = { backgroundColor: entry.swatch };
+  if (entry.style === 'line') return <span className="h-[3px] w-3.5 flex-none rounded-full" style={style} />;
+  if (entry.style === 'dot') return <span className="size-2.5 flex-none rounded-full ring-1 ring-black/20" style={style} />;
+  return <span className="size-2.5 flex-none rounded-sm opacity-80 ring-1 ring-black/20" style={style} />;
+}
+
+/** The story's legend as compact chips (its own entries, then the kinds it draws). */
+function Legend({ entries }: { entries: LegendEntry[] }) {
+  if (entries.length === 0) return null;
+  return (
+    <div className="mt-2 flex flex-wrap gap-1">
+      {entries.map((e) => (
+        <span
+          key={`${e.style}:${e.label}`}
+          className="inline-flex items-center gap-1.5 rounded-full border bg-muted/30 px-2 py-0.5 text-[11px] text-muted-foreground"
+        >
+          <Swatch entry={e} />
+          {e.label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/** The step's entities as chips that open them (those drawn on the map are tinted). */
+function StepEntities({ entities }: { entities: StoryStepEntity[] }) {
+  const { select } = useSelection();
+  if (entities.length === 0) return null;
+  return (
+    <div className="mt-3 flex flex-wrap gap-1.5">
+      {entities.map((e, i) => {
+        const id = e.entity_id;
+        const className = cn(
+          'inline-flex max-w-full items-center gap-1 rounded-full border px-2 py-0.5 text-[12px] leading-snug',
+          e.show && 'border-indigo-700/40 bg-indigo-50 dark:border-indigo-400/40 dark:bg-indigo-950/40',
+          id ? 'hover:bg-muted' : 'text-muted-foreground',
+        );
+        const body = (
+          <>
+            <span className="truncate">{e.name}</span>
+            {e.role && <span className="truncate text-[11px] text-muted-foreground">· {e.role}</span>}
+          </>
+        );
+        return id ? (
+          <button key={`${e.name}-${i}`} type="button" onClick={() => select(id)} title={`Open ${e.name}`} className={className}>
+            {body}
+          </button>
+        ) : (
+          <span key={`${e.name}-${i}`} className={className}>
+            {body}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 /** Each side's strength and losses. */
 function Forces({ sides }: { sides: StorySide[] }) {
   if (!sides.some((s) => s.strength || s.losses)) return null;
@@ -98,7 +159,7 @@ function Fold({ title, children }: { title: string; children: ReactNode }) {
 
 /** Whether anything in the story is marked as reconstructed rather than attested. */
 function usesConjectural(doc: MapStoryDocument): boolean {
-  if (doc.terrain.some((t) => t.conjectural)) return true;
+  if (doc.features.some((t) => t.conjectural)) return true;
   return doc.steps.some((s) =>
     [s, ...s.beats].some(
       (p) =>
@@ -113,11 +174,15 @@ function Reconstruction({ doc }: { doc: MapStoryDocument }) {
   return (
     <Fold title="About this reconstruction">
       {doc.uncertainty && <p>{doc.uncertainty}</p>}
-      <p className="text-muted-foreground">
-        Pale blue water and grey place names are today's, for orientation; the
-        bolder rivers, hills and woods are the historical terrain.
-        {usesConjectural(doc) && ' Dashed = conjectural: reconstructed rather than attested.'}
-      </p>
+      {BATTLE_KINDS.includes(doc.kind) ? (
+        <p className="text-muted-foreground">
+          Pale blue water and grey place names are today's, for orientation; the
+          bolder rivers, hills and woods are the historical terrain.
+          {usesConjectural(doc) && ' Dashed = conjectural: reconstructed rather than attested.'}
+        </p>
+      ) : (
+        usesConjectural(doc) && <p className="text-muted-foreground">Dashed or pale = conjectural: reconstructed rather than attested.</p>
+      )}
       {doc.alt_sites.length > 0 && (
         <div>
           <p className="font-medium">Other proposed sites (grey ? pins)</p>
@@ -155,13 +220,21 @@ function dwellMs(step: StoryStep): number {
   return Math.min(22000, Math.max(6000, step.narrative.length * 45)) + step.beats.length * 1200;
 }
 
-/** Chrome-less battle-map body — shared by the desktop aside and the mobile sheet. */
+/** The step's date line; a `time` label that already names the year replaces the date. */
+function stepWhen(step: StoryStep): string {
+  const date = step.date ? formatStoryDate(step.date) : null;
+  if (!date || !step.time) return step.time ?? date ?? '';
+  return step.time.includes(String(Math.abs(step.date!.year))) ? step.time : `${date} · ${step.time}`;
+}
+
+/** Chrome-less map-story body — shared by the desktop aside and the mobile sheet. */
 export function StoryPlayerContent() {
   const { story, step, goto, next, prev } = useStoryNav();
   const { data, isLoading, isError } = useMapStory(story);
   const [playing, setPlaying] = useState(false);
 
   const doc = data?.document;
+  const legend = useMemo(() => (doc ? storyLegend(doc) : []), [doc]);
   const total = doc?.steps.length ?? 0;
   const index = Math.min(Math.max(step, 0), Math.max(total - 1, 0));
   const current = doc?.steps[index];
@@ -192,18 +265,21 @@ export function StoryPlayerContent() {
   return (
     <div className="flex h-full flex-col">
       {isLoading && <p className="p-4 text-sm text-muted-foreground">Loading…</p>}
-      {isError && <p className="p-4 text-sm text-destructive">Could not load the battle map.</p>}
+      {isError && <p className="p-4 text-sm text-destructive">Could not load the map.</p>}
 
       {doc && current && (
         <>
           <div className="px-4 pt-4">
             <h2 className="font-heading text-lg font-semibold leading-tight">{doc.title}</h2>
             <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">{doc.date_label}</p>
-            <div className="mt-2.5 space-y-1">
-              {doc.sides.map((s) => (
-                <SideRow key={s.id} side={s} />
-              ))}
-            </div>
+            {doc.sides.length > 0 && (
+              <div className="mt-2.5 space-y-1">
+                {doc.sides.map((s) => (
+                  <SideRow key={s.id} side={s} />
+                ))}
+              </div>
+            )}
+            <Legend entries={legend} />
             <div className="mt-3 flex items-center gap-2">
               <span className="font-mono text-[11px] text-muted-foreground">
                 {index + 1} / {total}
@@ -227,9 +303,9 @@ export function StoryPlayerContent() {
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-            {current.time && (
+            {(current.date || current.time) && (
               <p className="mb-1 font-mono text-[11px] uppercase tracking-wide text-muted-foreground">
-                {current.time}
+                {stepWhen(current)}
               </p>
             )}
             <h3 className="font-heading text-[15px] font-semibold leading-snug">{current.title}</h3>
@@ -247,6 +323,7 @@ export function StoryPlayerContent() {
                   ))}
               </ol>
             )}
+            <StepEntities entities={current.entities} />
             {index === 0 && doc.intro && <Fold title="Background">{<p>{doc.intro}</p>}</Fold>}
             {atEnd && doc.outcome && (
               <div className="mt-4 rounded-lg border bg-muted/40 p-3 text-[12px]">
@@ -271,7 +348,7 @@ export function StoryPlayerContent() {
               type="button"
               onClick={() => (atEnd ? goto(0) : setPlaying((p) => !p))}
               aria-label={playing ? 'Pause' : atEnd ? 'Replay from the start' : 'Play'}
-              title={playing ? 'Pause' : atEnd ? 'Replay from the start' : 'Play through the battle'}
+              title={playing ? 'Pause' : atEnd ? 'Replay from the start' : BATTLE_KINDS.includes(doc.kind) ? 'Play through the battle' : 'Play through the story'}
               className="grid w-10 place-items-center rounded-lg border bg-card hover:bg-muted"
             >
               {playing ? <Pause size={15} /> : <Play size={15} />}
@@ -291,13 +368,14 @@ export function StoryPlayerContent() {
   );
 }
 
-/** Desktop left aside while a battle map plays (?story=). */
+/** Desktop left aside while a map story plays (?story=). */
 export function StoryPlayer() {
   const { exit, story } = useStoryNav();
   const { data } = useMapStory(story);
   const { select } = useSelection();
-  const entityId = data?.document.entity.entity_id ?? data?.entity_id ?? null;
-  const label = storyKindLabel(data?.kind ?? 'battle');
+  const entityId = data?.document.entity?.entity_id ?? data?.entity_id ?? null;
+  const kind = data?.kind ?? 'battle';
+  const label = storyKindLabel(kind);
   return (
     <aside className="flex h-full w-[380px] max-w-[90vw] flex-none flex-col border-r bg-card">
       <div className="flex items-center justify-between border-b px-3 py-2">
@@ -310,14 +388,14 @@ export function StoryPlayer() {
         </button>
         <div className="flex items-center gap-1.5">
           <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] text-muted-foreground">
-            <Swords size={12} /> {label}
+            <StoryKindIcon kind={kind} size={12} /> {label}
           </span>
           {entityId && (
             <button
               type="button"
               onClick={() => select(entityId)}
               className="rounded-md px-2 py-1 text-[12px] font-medium text-primary hover:bg-muted"
-              title="Open the battle's details"
+              title={BATTLE_KINDS.includes(kind) ? "Open the battle's details" : 'Open its atlas entry'}
             >
               Details
             </button>

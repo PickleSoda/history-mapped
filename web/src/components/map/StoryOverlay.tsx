@@ -1,24 +1,25 @@
+import type { FeatureCollection } from 'geojson';
 import { ArrowUp, Moon, Sun, Sunrise, Sunset, Wind } from 'lucide-react';
 import type { Map as MapLibreMap, MapLayerMouseEvent, PaddingOptions } from 'maplibre-gl';
 import maplibregl from 'maplibre-gl';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
+  useEntityGeometries,
   useMapInstance,
-  useMapStory,
   useReducedMotion,
   useSelection,
-  useStoryNav,
   useStyleEpoch,
   useTimeState,
 } from '@/hooks';
-import { storyPalette, unitColor } from '@/lib/map-story/colors';
+import { useActiveStory } from '@/hooks/useMapStory';
+import { featureKindLabel, NEUTRAL_COLOR, storyPalette, unitColor } from '@/lib/map-story/colors';
 import {
   ease,
   onField,
   resolveBeatFrames,
   resolveConditions,
-  resolveTerrainState,
+  resolveFeatureStates,
   stepBounds,
   stepPhases,
   tweener,
@@ -28,22 +29,30 @@ import { registerStoryImages } from '@/lib/map-story/icons';
 import {
   addStoryLayers,
   altSiteCollection,
+  entityCollection,
+  featureCollections,
+  featurePoints,
   holdCollection,
   maskCollection,
   moveCollection,
   moveTails,
   noteCollection,
+  regionTransition,
   removeStoryLayers,
   setEntityLayersVisible,
   setLight,
   setMoveOpacity,
+  setRegionFade,
+  setRouteDash,
   setSourceData,
+  STORY_FEATURE_LAYERS,
   STORY_INTERACTIVE_LAYERS,
   STORY_SOURCES,
   terrainCollection,
   unitCollections,
 } from '@/lib/map-story/layers';
-import type { MoveTail } from '@/lib/map-story/layers';
+import type { FeatureSet, MoveTail, ShownRegions } from '@/lib/map-story/layers';
+import { BATTLE_KINDS, stepYear } from '@/lib/map-story/steps';
 import type { LngLat, MapStoryDocument } from '@/lib/schemas/map-story';
 import { useEphemeralStore } from '@/stores/ephemeral';
 import type { MapInsets } from '@/types/atlas';
@@ -55,7 +64,15 @@ const JUMP_MS = 550;
 /** How long the last beat's caption stays once the step has played. */
 const CAPTION_LINGER_MS = 2200;
 const MAX_ZOOM = 15.5;
+/** A story told across a region or a continent frames no closer than this. */
+const WIDE_MAX_ZOOM = 7;
+/** Regions crossfade (reshaped) or reshade over this long. */
+const REGION_FADE_MS = 400;
+/** One phase of a route's flowing dashes. */
+const DASH_MS = 70;
 const NO_INSETS: MapInsets = { top: 0, right: 0, bottom: 0, left: 0 };
+const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] };
+const NO_FEATURES: FeatureSet = { regions: EMPTY, routes: EMPTY, places: EMPTY, regionRefs: new Map() };
 
 /** Keep the battle clear of the panels floating over the map. */
 function padding(map: MapLibreMap, insets: MapInsets | null): PaddingOptions {
@@ -99,13 +116,14 @@ const STATE_TEXT: Record<string, string> = {
   burning: 'On fire',
 };
 
+const esc = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
+
 /** A hover card for a unit: label, side and contingent, strength, state, commander, note. */
 function unitCard(doc: MapStoryDocument, id: string, r: Resolved | undefined): string | null {
   const unit = doc.units.find((u) => u.id === id);
   if (!unit) return null;
-  const side = doc.sides.find((s) => s.id === unit.side);
+  const side = unit.side ? doc.sides.find((s) => s.id === unit.side) : undefined;
   const contingent = side?.contingents.find((c) => c.id === unit.contingent);
-  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
   const strength = r?.strength ?? unit.strength;
   const count = r?.strength_n ?? unit.strength_n;
   const strengthText = [strength, count != null && !strength ? count.toLocaleString() : null, count != null && strength ? `≈ ${count.toLocaleString()}` : null]
@@ -115,16 +133,46 @@ function unitCard(doc: MapStoryDocument, id: string, r: Resolved | undefined): s
   const state = r && STATE_TEXT[r.state] ? `${STATE_TEXT[r.state]}${captor ? ` by ${captor}` : ''}` : '';
   const rows = [
     `<div style="display:flex;align-items:center;gap:6px;font-weight:600">` +
-      `<span style="width:10px;height:10px;border-radius:2px;background:${esc(side ? unitColor(side, unit) : '#555')}"></span>` +
+      `<span style="width:10px;height:10px;border-radius:2px;background:${esc(side ? unitColor(side, unit) : NEUTRAL_COLOR)}"></span>` +
       `${esc(r?.label ?? unit.label)}</div>`,
-    side
-      ? `<div style="color:#57534e">${esc(side.name)}${contingent ? ` · ${esc(contingent.name)}` : ''} · ${esc(unit.kind.replace(/_/g, ' '))}</div>`
-      : '',
+    `<div style="color:#57534e">${side ? `${esc(side.name)}${contingent ? ` · ${esc(contingent.name)}` : ''} · ` : ''}${esc(unit.kind.replace(/_/g, ' '))}</div>`,
     strengthText ? `<div>Strength: ${esc(strengthText)}</div>` : '',
     state ? `<div style="font-weight:600;color:#7c2d12">${esc(state)}</div>` : '',
     r?.conjectural ? `<div style="color:#78716c;font-style:italic">Position conjectural</div>` : '',
     unit.commander ? `<div>Led by ${esc(unit.commander)}</div>` : '',
     unit.note ? `<div style="margin-top:4px;color:#44403c">${esc(unit.note)}</div>` : '',
+  ];
+  return `<div style="font:12px/1.4 system-ui,sans-serif;max-width:240px">${rows.join('')}</div>`;
+}
+
+const FEATURE_STATE_TEXT: Record<string, string> = {
+  contested: 'Contested',
+  captured: 'Captured',
+  burning: 'On fire',
+  destroyed: 'Destroyed',
+  flooded: 'Flooded',
+  infected: 'Infected',
+  peak: 'At its peak',
+  recovered: 'Recovered',
+  founded: 'Founded',
+  abandoned: 'Abandoned',
+  disrupted: 'Disrupted',
+  new: 'New',
+};
+
+/** A hover card for a route, region or place: its label, what it is, its state, goods and value. */
+function featureCard(props: Record<string, unknown>): string | null {
+  const str = (k: string) => (typeof props[k] === 'string' ? (props[k] as string) : '');
+  const kind = featureKindLabel({ kind: str('kind'), route_kind: str('route_kind'), region_kind: str('region_kind') });
+  const state = FEATURE_STATE_TEXT[str('state')];
+  const rows = [
+    `<div style="display:flex;align-items:center;gap:6px;font-weight:600">` +
+      `<span style="width:10px;height:10px;border-radius:2px;background:${esc(str('color') || NEUTRAL_COLOR)}"></span>` +
+      `${esc(str('label') || kind)}</div>`,
+    `<div style="color:#57534e">${esc(kind)}${state ? ` · <b style="color:#7c2d12">${esc(state)}</b>` : ''}</div>`,
+    str('value_label') ? `<div>${esc(str('value_label'))}</div>` : '',
+    str('goods') ? `<div>Goods: ${esc(str('goods'))}</div>` : '',
+    props.conj === true ? `<div style="color:#78716c;font-style:italic">Conjectural</div>` : '',
   ];
   return `<div style="font:12px/1.4 system-ui,sans-serif;max-width:240px">${rows.join('')}</div>`;
 }
@@ -270,40 +318,71 @@ function Hud({ conditions }: { conditions: Conditions }) {
 }
 
 /**
- * Draws the active battle map (URL `story`) on the shared map: hides the
- * entity overlay, adds terrain relief and the story's layers, frames each
- * step, and animates units from one step to the next — sliding them along
- * their arrows when they advance a single step, then playing the step's beats
- * with a caption. Its DOM is a thin layer over the map: off-screen chevrons,
+ * Draws the active map story on the shared map: the `?story=` one, or the map
+ * layer of the playing chronicle (`useActiveStory`).
+ *
+ * Played on its own, a story hides the entity overlay (but draws the step's
+ * `show` entities from the atlas), adds terrain relief on a battlefield, puts
+ * the timeline at each step's year, frames each step, and animates units from
+ * one step to the next — sliding them along their arrows when they advance a
+ * single step, then playing the step's beats with a caption. As a chronicle's
+ * layer it draws only its own layers at the entry's step: the chronicle keeps
+ * the camera (unless the step sets one), the timeline and the entities.
+ * Regions crossfade or reshade between steps; routes' dashes flow (not under
+ * reduced motion). Its DOM is a thin layer over the map: off-screen chevrons,
  * tail labels, the beat caption and the wind/sun widget.
  */
 export function StoryOverlay() {
   const { map } = useMapInstance();
   const { styleEpoch } = useStyleEpoch();
-  const { story, step } = useStoryNav();
-  const { data } = useMapStory(story);
+  const active = useActiveStory();
   const { setInstant } = useTimeState();
   const { select } = useSelection();
   const reduced = useReducedMotion();
   const insets = useEphemeralStore((s) => s.mapInsets);
 
-  const doc = story && data?.slug === story ? data.document : null;
+  const doc = active?.doc ?? null;
+  const solo = active?.mode !== 'chronicle';
+  const relief = solo && doc != null && BATTLE_KINDS.includes(doc.kind);
   const phases = useMemo(() => (doc ? resolveBeatFrames(doc) : []), [doc]);
   const frames = useMemo(() => phases.map((p) => p[p.length - 1]), [phases]);
-  const holds = useMemo(() => (doc ? resolveTerrainState(doc) : []), [doc]);
+  const holds = useMemo(() => (doc ? resolveFeatureStates(doc) : []), [doc]);
   const conditions = useMemo(() => (doc ? resolveConditions(doc) : []), [doc]);
   const unitInfo = useMemo(() => {
     const out = new Map<string, { color: string; label: string }>();
     for (const u of doc?.units ?? []) {
-      const side = doc?.sides.find((s) => s.id === u.side);
+      const side = u.side ? doc?.sides.find((s) => s.id === u.side) : undefined;
       if (side) out.set(u.id, { color: unitColor(side, u), label: u.label });
+      else if (!u.side) out.set(u.id, { color: NEUTRAL_COLOR, label: u.label });
     }
     return out;
   }, [doc]);
-  const index = Math.min(Math.max(step, 0), Math.max(frames.length - 1, 0));
+  /** The step drawn; -1 = none (a chronicle entry without a step). */
+  const index = active?.index == null || frames.length === 0 ? -1 : Math.min(Math.max(active.index, 0), frames.length - 1);
+  const stepDoc = doc && index >= 0 ? doc.steps[index] : undefined;
+
+  // The atlas geometry of the step's `show` entities (played on its own), and
+  // of every entity a region takes its area from.
+  const shown = useMemo(() => (solo && stepDoc ? stepDoc.entities.filter((e) => e.show && e.entity_id) : []), [solo, stepDoc]);
+  const shownIds = useMemo(() => shown.map((e) => e.entity_id as string), [shown]);
+  const shownGeoms = useEntityGeometries(shownIds);
+  const areaIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const h of holds) for (const fh of h.values()) if (fh.area_entity?.entity_id) ids.add(fh.area_entity.entity_id);
+    return [...ids];
+  }, [holds]);
+  const areaGeomList = useEntityGeometries(areaIds);
+  const areaGeoms = useMemo(() => new Map(areaIds.map((id, i) => [id, areaGeomList[i]])), [areaIds, areaGeomList]);
+  const features = useMemo(
+    () => (doc && index >= 0 ? featureCollections(doc, holds[index], areaGeoms) : null),
+    [doc, holds, index, areaGeoms],
+  );
+  const flowing = features?.routes.features.some((f) => f.properties?.flow === true) ?? false;
 
   /** What is on screen now (mid-animation too): the frame, its step and phase. */
   const shownRef = useRef<{ frame: Frame; index: number; phase: number } | null>(null);
+  /** The regions on screen, for the next step's crossfade. */
+  const regionsRef = useRef<{ doc: MapStoryDocument | null; shown: ShownRegions }>({ doc: null, shown: new Map() });
   const tailsRef = useRef<MoveTail[]>([]);
   const markersRef = useRef<HTMLDivElement>(null);
   const hudRef = useRef<HTMLDivElement>(null);
@@ -321,20 +400,19 @@ export function StoryOverlay() {
     reducedRef.current = reduced;
   });
 
-  // Jump the timeline (and the historical basemap) to the battle's year.
+  // Put the timeline (and the historical basemap) at the step's year — the
+  // story's year for an undated step. A chronicle's layer leaves it to the chronicle.
+  const year = solo && doc && index >= 0 ? stepYear(doc, index) : null;
   useEffect(() => {
-    if (doc) setInstant(doc.year);
-  }, [doc, setInstant]);
+    if (year != null) setInstant(year);
+  }, [year, setInstant]);
 
   // ── layers: add on a new story or a rebuilt style; remove on exit ──────────
   useEffect(() => {
     if (!map || !doc) return;
     registerStoryImages(map, storyPalette(doc));
-    addStoryLayers(map);
-    setEntityLayersVisible(map, false);
-    setSourceData(map, STORY_SOURCES.terrain, terrainCollection(doc));
-    setSourceData(map, STORY_SOURCES.mask, maskCollection(doc));
-    setSourceData(map, STORY_SOURCES.alt, altSiteCollection(doc));
+    addStoryLayers(map, { relief });
+    if (solo) setEntityLayersVisible(map, false);
     // A rebuilt style lost the units; redraw what was on screen.
     const shown = shownRef.current;
     if (shown) {
@@ -374,6 +452,30 @@ export function StoryOverlay() {
       map.on('mouseleave', layer, onLeave);
       map.on('click', layer, onClick);
     }
+    // Routes, regions and places: a card on hover (units over them win); a
+    // click opens the feature's entity.
+    const unitHit = (e: MapLayerMouseEvent) =>
+      map.queryRenderedFeatures(e.point, { layers: STORY_INTERACTIVE_LAYERS.filter((l) => map.getLayer(l)) }).length > 0;
+    const featureEntity = (e: MapLayerMouseEvent) => {
+      const id = e.features?.[0]?.properties?.id;
+      return doc.features.find((f) => f.id === id)?.entity?.entity_id ?? null;
+    };
+    const onFeatureMove = (e: MapLayerMouseEvent) => {
+      const props = e.features?.[0]?.properties;
+      if (!props || unitHit(e)) return;
+      const html = featureCard(props);
+      map.getCanvas().style.cursor = featureEntity(e) ? 'pointer' : '';
+      if (html) popup.setLngLat(e.lngLat).setHTML(html).addTo(map);
+    };
+    const onFeatureClick = (e: MapLayerMouseEvent) => {
+      const entityId = unitHit(e) ? null : featureEntity(e);
+      if (entityId) void selectRef.current(entityId);
+    };
+    for (const layer of STORY_FEATURE_LAYERS) {
+      map.on('mousemove', layer, onFeatureMove);
+      map.on('mouseleave', layer, onLeave);
+      map.on('click', layer, onFeatureClick);
+    }
 
     // Edge markers follow the camera (once per animation frame at most); the
     // wind/sun arrows turn against the map's bearing.
@@ -398,6 +500,11 @@ export function StoryOverlay() {
         map.off('mouseleave', layer, onLeave);
         map.off('click', layer, onClick);
       }
+      for (const layer of STORY_FEATURE_LAYERS) {
+        map.off('mousemove', layer, onFeatureMove);
+        map.off('mouseleave', layer, onLeave);
+        map.off('click', layer, onFeatureClick);
+      }
       map.off('move', onCamera);
       placeRef.current = () => {};
       cancelAnimationFrame(pending);
@@ -409,16 +516,42 @@ export function StoryOverlay() {
         setEntityLayersVisible(map, true);
       }
     };
-  }, [map, doc, styleEpoch, phases, holds, conditions, unitInfo]);
+  }, [map, doc, styleEpoch, phases, holds, conditions, unitInfo, relief, solo]);
 
   // Leaving the story forgets what was shown, so re-entering starts fresh.
   useEffect(() => {
     if (!doc) shownRef.current = null;
   }, [doc]);
 
+  // ── static terrain, masks and alternative sites (none at a step-less entry) ──
+  const hasStep = index >= 0;
+  useEffect(() => {
+    if (!map || !doc || !map.getSource(STORY_SOURCES.terrain)) return;
+    setSourceData(map, STORY_SOURCES.terrain, hasStep ? terrainCollection(doc) : EMPTY);
+    setSourceData(map, STORY_SOURCES.mask, hasStep ? maskCollection(doc) : EMPTY);
+    setSourceData(map, STORY_SOURCES.alt, hasStep ? altSiteCollection(doc) : EMPTY);
+  }, [map, doc, styleEpoch, relief, solo, hasStep]);
+
+  // ── the step's own entities, drawn from the atlas ──────────────────────────
+  useEffect(() => {
+    if (!map || !doc || !map.getSource(STORY_SOURCES.entities)) return;
+    setSourceData(map, STORY_SOURCES.entities, entityCollection(shown, shownGeoms));
+  }, [map, doc, shown, shownGeoms, styleEpoch, relief, solo]);
+
   // ── step changes: frame the step and animate the units into place ─────────
   useEffect(() => {
-    if (!map || !doc || frames.length === 0 || !map.getSource(STORY_SOURCES.units)) return;
+    if (!map || !doc || !map.getSource(STORY_SOURCES.units)) return;
+    cancelAnimationFrame(rafRef.current);
+    if (index < 0) {
+      // A chronicle entry the story has no step for: draw nothing.
+      for (const id of [STORY_SOURCES.units, STORY_SOURCES.points, STORY_SOURCES.moves, STORY_SOURCES.notes, STORY_SOURCES.hold]) {
+        setSourceData(map, id, EMPTY);
+      }
+      shownRef.current = null;
+      tailsRef.current = [];
+      placeRef.current();
+      return;
+    }
     const target = frames[index];
     const stepDoc = doc.steps[index];
     const stepFrames = phases[index];
@@ -436,17 +569,17 @@ export function StoryOverlay() {
     setSourceData(map, STORY_SOURCES.hold, holdCollection(doc, holds[index]));
     setLight(map, conditions[index].light, !reduced && shown != null);
 
-    // Camera: the step's own, else its units, arrows and notes.
+    // Camera: the step's own, else (played on its own) its units, arrows,
+    // notes, routes, regions and places. A chronicle's layer leaves the rest to it.
     const pad = padding(map, insetsRef.current);
     const camera = stepDoc?.camera;
     if (camera) {
       map.flyTo({ center: camera.center, zoom: camera.zoom, bearing: camera.bearing ?? 0, padding: pad, duration: reduced ? 0 : 1100 });
-    } else {
-      const bounds = stepBounds(doc, target, index);
-      if (bounds) map.fitBounds(bounds, { padding: pad, maxZoom: MAX_ZOOM, duration: reduced ? 0 : 1100 });
+    } else if (solo) {
+      const bounds = stepBounds(doc, target, index, featurePoints(featureCollections(doc, holds[index])));
+      if (bounds) map.fitBounds(bounds, { padding: pad, maxZoom: relief ? MAX_ZOOM : WIDE_MAX_ZOOM, duration: reduced ? 0 : 1100 });
     }
 
-    cancelAnimationFrame(rafRef.current);
     const forward = shown != null && index === shown.index + 1;
     if (!shown || reduced || shown.index === index) {
       showPhase(last);
@@ -499,9 +632,54 @@ export function StoryOverlay() {
       cancelAnimationFrame(rafRef.current);
       clearTimeout(linger);
     };
-  }, [map, doc, frames, phases, holds, conditions, index, reduced, styleEpoch]);
+  }, [map, doc, frames, phases, holds, conditions, index, reduced, styleEpoch, solo, relief]);
 
-  if (!doc) return null;
+  // ── routes, places and regions at the step: regions crossfade or reshade ──
+  useEffect(() => {
+    if (!map || !doc || !map.getSource(STORY_SOURCES.regions)) return;
+    const set = features ?? NO_FEATURES;
+    setSourceData(map, STORY_SOURCES.routes, set.routes);
+    setSourceData(map, STORY_SOURCES.places, set.places);
+    const before: ShownRegions = regionsRef.current.doc === doc ? regionsRef.current.shown : new Map();
+    const next = regionTransition(before, set);
+    regionsRef.current = { doc, shown: next.shown };
+    setSourceData(map, STORY_SOURCES.regions, next.current);
+    setSourceData(map, STORY_SOURCES.regionsOld, next.old);
+    if (!next.changed || reduced) {
+      setRegionFade(map, 1);
+      setSourceData(map, STORY_SOURCES.regionsOld, EMPTY);
+      return;
+    }
+    let raf = 0;
+    const start = performance.now();
+    setRegionFade(map, 0);
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / REGION_FADE_MS);
+      setRegionFade(map, ease(t));
+      if (t < 1) raf = requestAnimationFrame(tick);
+      else setSourceData(map, STORY_SOURCES.regionsOld, EMPTY);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [map, doc, features, reduced, styleEpoch, relief, solo]);
+
+  // ── routes' dashes flow (one paint change per phase, ~14 a second); still under reduced motion ──
+  useEffect(() => {
+    if (!map || !doc || !flowing) return;
+    if (reduced) {
+      setRouteDash(map, 0);
+      return;
+    }
+    let raf = 0;
+    const tick = (now: number) => {
+      setRouteDash(map, Math.floor(now / DASH_MS));
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [map, doc, flowing, reduced, styleEpoch, relief, solo]);
+
+  if (!doc || index < 0) return null;
   const i = insets ?? NO_INSETS;
   const shownCaption = caption?.index === index ? caption.text : null;
   return (

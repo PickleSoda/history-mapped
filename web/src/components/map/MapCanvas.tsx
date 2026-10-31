@@ -3,6 +3,7 @@ import type { GeoJSONSource, ProjectionSpecification, StyleSpecification } from 
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useEffect, useRef } from 'react';
+import { StoryAmbientLayer } from '@/components/map/StoryAmbientLayer';
 import { StoryOverlay } from '@/components/map/StoryOverlay';
 import {
   useBasemap,
@@ -257,7 +258,8 @@ export function MapCanvas() {
         const seq = ++clickSeq;
         void resolveOhmClickToEntity(map, e, yearRef.current).then(
           (entityId) => {
-            if (entityId && seq === clickSeq) void selectRef.current(entityId);
+            // A layer that claimed the click (an ambient story's card) wins.
+            if (entityId && seq === clickSeq && !e.defaultPrevented) void selectRef.current(entityId);
           },
         );
       });
@@ -353,6 +355,7 @@ export function MapCanvas() {
     <>
       <div ref={containerRef} className="absolute inset-0 h-full w-full" />
       <StoryOverlay />
+      <StoryAmbientLayer />
     </>
   );
 }
