@@ -50,11 +50,14 @@ docker run --rm --name martin-wt --network history-mapped_default -p 3011:3000 \
 **Manual verification stack (Tasks 9–11).** The main stack's API (`:8000`) does not have this branch's code and its CORS only allows `http://localhost:5173`, so run the worktree's own API and SPA (after `$PHP php artisan migrate`):
 
 ```bash
-# API from the worktree on :8011 (CORS/Sanctum opened for the :5175 SPA)
+# API from the worktree on :8011 (CORS/Sanctum opened for the :5175 SPA).
+# Not `php artisan serve`: it drops the -e overrides in its child process, so CORS
+# would stay on .env's :5173. Run PHP's server directly with Laravel's router script.
 docker run --rm --name api-wt --network history-mapped_default -p 8011:8011 \
-  -v $WT/api:/var/www/html -v history-mapped_api_vendor:/var/www/html/vendor -w /var/www/html \
+  -v $WT/api:/var/www/html -v history-mapped_api_vendor:/var/www/html/vendor -w /var/www/html/public \
   -e APP_URL=http://localhost:8011 -e FRONTEND_URL=http://localhost:5175 -e SANCTUM_STATEFUL_DOMAINS=localhost:5175 \
-  history-mapped-app php artisan serve --host 0.0.0.0 --port 8011
+  -e PHP_CLI_SERVER_WORKERS=4 \
+  history-mapped-app php -S 0.0.0.0:8011 ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php
 # Martin from the worktree config on :3011 (see above), then the SPA on :5175
 docker run --rm --name web-wt --network history-mapped_default -p 5175:5173 \
   -v $WT:/workspace -v history-mapped_root_node_modules:/workspace/node_modules -v history-mapped_web_node_modules:/workspace/web/node_modules -v history-mapped_pnpm_store:/pnpm/store -w /workspace \
