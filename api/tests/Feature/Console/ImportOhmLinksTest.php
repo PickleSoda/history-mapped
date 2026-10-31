@@ -12,6 +12,7 @@ use App\Enums\GeoRefRetrievalMethod;
 use App\Models\Entity;
 use App\Models\EntityGeoRef;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class ImportOhmLinksTest extends TestCase
@@ -127,16 +128,28 @@ class ImportOhmLinksTest extends TestCase
         }
     }
 
-    public function test_e_dry_run_rolls_back_and_reports_the_counters(): void
+    public function test_e_dry_run_rolls_back_inserts_updates_and_primary_changes(): void
     {
-        Entity::factory()->create(['wikidata_id' => 'Q2277']);
+        $entity = Entity::factory()->create(['wikidata_id' => 'Q2277']);
+        $existing = $this->ohmRef(Entity::factory()->create(), 'relation', '1880', [
+            'temporal_start_year' => null,
+            'temporal_end_year' => null,
+            'external_tags' => null,
+        ]);
         $path = $this->writeJsonl([$this->record()]);
 
         $this->artisan('pipeline:import-ohm-links', ['path' => $path, '--dry-run' => true])
-            ->expectsTable(['Counter', 'Value'], $this->tableRows($this->counters(['refs_created' => 1])))
+            ->expectsTable(['Counter', 'Value'], $this->tableRows($this->counters(['refs_updated' => 1, 'refs_created' => 1])))
             ->assertExitCode(0);
 
-        $this->assertSame(0, EntityGeoRef::query()->count());
+        $this->assertSame(1, EntityGeoRef::query()->count());
+        $existing->refresh();
+        $this->assertNull($existing->temporal_start_year);
+        $this->assertNull($existing->temporal_end_year);
+        $this->assertNull($existing->temporal_start);
+        $this->assertNull($existing->temporal_end);
+        $this->assertNull($existing->external_tags);
+        $this->assertNull($entity->refresh()->primary_geo_ref_id);
     }
 
     public function test_f_record_without_qid_or_existing_ref_is_unmatched(): void
@@ -154,22 +167,25 @@ class ImportOhmLinksTest extends TestCase
         $ref = $this->ohmRef(Entity::factory()->create(), 'relation', '1880', [
             'temporal_start_year' => 100,
             'temporal_end_year' => 200,
+            'temporal_start' => '0100',
+            'temporal_end' => '0200',
         ]);
         $path = $this->writeJsonl([$this->record()]);
 
-        $this->artisan('pipeline:import-ohm-links', ['path' => $path])->assertExitCode(0);
+        $this->artisan('pipeline:import-ohm-links', ['path' => $path])
+            ->expectsTable(['Counter', 'Value'], $this->tableRows($this->counters()))
+            ->assertExitCode(0);
 
         $ref->refresh();
-        $this->assertSame(100, $ref->temporal_start_year);
-        $this->assertSame(200, $ref->temporal_end_year);
+        $this->assertSame([100, 200, '0100', '0200'], [$ref->temporal_start_year, $ref->temporal_end_year, $ref->temporal_start, $ref->temporal_end]);
 
         $this->artisan('pipeline:import-ohm-links', ['path' => $path, '--overwrite-years' => true])
             ->expectsTable(['Counter', 'Value'], $this->tableRows($this->counters(['refs_updated' => 1])))
             ->assertExitCode(0);
 
+        // The raw strings follow the replaced years, so the columns cannot disagree.
         $ref->refresh();
-        $this->assertSame(-27, $ref->temporal_start_year);
-        $this->assertSame(476, $ref->temporal_end_year);
+        $this->assertSame([-27, 476, '-0027-01-16', '0476-09-04'], [$ref->temporal_start_year, $ref->temporal_end_year, $ref->temporal_start, $ref->temporal_end]);
     }
 
     public function test_h_start_after_end_stores_no_years_but_keeps_the_raw_dates(): void
@@ -233,6 +249,115 @@ class ImportOhmLinksTest extends TestCase
         $this->assertSame($primary->geo_ref_id, $entity->refresh()->primary_geo_ref_id);
         $this->assertSame(GeoRefMatchRole::Candidate, $this->onlyRef($entity, 'relation', '9')->match_role);
         $this->assertSame(GeoRefMatchRole::Candidate, $this->onlyRef($entity, 'node', '1')->match_role);
+    }
+
+    public function test_undated_records_rank_after_dated_ones_before_overlap(): void
+    {
+        // Open bounds would give the undated relation/3 the same overlap as relation/7 and,
+        // as "ongoing", the latest end; it must still lose to the dated feature.
+        $entity = Entity::factory()->withTemporalRange('1800', '1900')->create(['wikidata_id' => 'Q2277']);
+
+        $counters = $this->import([
+            $this->record(['osm_id' => 3, 'start_date' => null, 'end_date' => null]),
+            $this->record(['osm_id' => 2, 'start_date' => '1947', 'end_date' => '1600']),
+            $this->record(['osm_id' => 7, 'start_date' => '1800', 'end_date' => '1900']),
+        ]);
+
+        $this->assertSame($this->counters(['records' => 3, 'refs_created' => 3, 'invalid_years' => 1]), $counters);
+        $this->assertSame(GeoRefMatchRole::Primary, $this->onlyRef($entity, 'relation', '7')->match_role);
+        $this->assertSame(GeoRefMatchRole::Candidate, $this->onlyRef($entity, 'relation', '3')->match_role);
+        $this->assertSame(GeoRefMatchRole::Candidate, $this->onlyRef($entity, 'relation', '2')->match_role);
+    }
+
+    public function test_latest_end_breaks_overlap_ties_by_year_then_raw_date_with_open_end_latest(): void
+    {
+        $byDate = Entity::factory()->withTemporalRange('1800', '1900')->create(['wikidata_id' => 'Q1']);
+        $byOpenEnd = Entity::factory()->withTemporalRange('1800', '1900')->create(['wikidata_id' => 'Q2']);
+
+        $this->import([
+            $this->record(['wikidata_id' => 'Q1', 'osm_id' => 4, 'start_date' => '1800-01-01', 'end_date' => '1850-11-30']),
+            $this->record(['wikidata_id' => 'Q1', 'osm_id' => 8, 'start_date' => '1800-01-01', 'end_date' => '1850-03-01']),
+            $this->record(['wikidata_id' => 'Q1', 'osm_id' => 6, 'start_date' => '1800-01-01', 'end_date' => '1850-12-31']),
+            $this->record(['wikidata_id' => 'Q2', 'osm_id' => 14, 'start_date' => '1800', 'end_date' => '1950']),
+            $this->record(['wikidata_id' => 'Q2', 'osm_id' => 18, 'start_date' => '1800', 'end_date' => null]),
+        ]);
+
+        $this->assertSame(GeoRefMatchRole::Primary, $this->onlyRef($byDate, 'relation', '6')->match_role);
+        $this->assertSame(GeoRefMatchRole::Candidate, $this->onlyRef($byDate, 'relation', '4')->match_role);
+        $this->assertSame(GeoRefMatchRole::Primary, $this->onlyRef($byOpenEnd, 'relation', '18')->match_role);
+        $this->assertSame(GeoRefMatchRole::Candidate, $this->onlyRef($byOpenEnd, 'relation', '14')->match_role);
+    }
+
+    public function test_run_id_option_is_stored_in_source_meta(): void
+    {
+        $entity = Entity::factory()->create(['wikidata_id' => 'Q2277']);
+        $path = $this->writeJsonl([$this->record()]);
+
+        $this->artisan('pipeline:import-ohm-links', ['path' => $path, '--run-id' => '20261031-1200', '--batch-id' => 'b1'])
+            ->assertExitCode(0);
+
+        $this->assertEquals(
+            ['source' => 'ohm-links', 'batch_id' => 'b1', 'run_id' => '20261031-1200'],
+            $this->onlyRef($entity, 'relation', '1880')->source_meta,
+        );
+    }
+
+    public function test_a_rerun_of_the_same_file_is_idempotent(): void
+    {
+        $entity = Entity::factory()->create(['wikidata_id' => 'Q2277']);
+        $this->ohmRef(Entity::factory()->create(), 'relation', '1880', [
+            'temporal_start_year' => null,
+            'temporal_end_year' => null,
+            'external_tags' => null,
+        ]);
+        $path = $this->writeJsonl([
+            $this->record(),
+            $this->record(['osm_type' => 'node', 'osm_id' => 5, 'start_date' => '1800', 'end_date' => '1900']),
+        ]);
+
+        $first = app(ImportOhmLinksAction::class)($path, 'run-1', false, false);
+        $primaryId = $entity->refresh()->primary_geo_ref_id;
+        $second = app(ImportOhmLinksAction::class)($path, 'run-2', false, false);
+
+        $this->assertSame($this->counters(['records' => 2, 'refs_updated' => 1, 'refs_created' => 2]), $first);
+        $this->assertSame($this->counters(['records' => 2, 'skipped_existing' => 2]), $second);
+        $this->assertSame(3, EntityGeoRef::query()->count());
+        $this->assertSame($primaryId, $entity->refresh()->primary_geo_ref_id);
+    }
+
+    public function test_records_matching_nothing_are_counted_unmatched_and_not_kept(): void
+    {
+        Log::spy();
+        Entity::factory()->create(['wikidata_id' => 'Q2277']);
+        $this->ohmRef(Entity::factory()->create(), 'relation', '1880');
+
+        $counters = $this->import([
+            $this->record(['osm_id' => 2, 'wikidata_id' => 'Q999']),
+            $this->record(['osm_type' => 'node', 'osm_id' => 1880, 'wikidata_id' => null]),
+            $this->record(['osm_type' => 'way', 'osm_id' => 3, 'wikidata_id' => 'Q1000']),
+        ]);
+
+        $this->assertSame($this->counters(['records' => 3, 'unmatched' => 3]), $counters);
+        $this->assertSame(1, EntityGeoRef::query()->count());
+        Log::shouldHaveReceived('info')->once()->with('ohm-links: records loaded', ['records' => 3, 'kept' => 0]);
+    }
+
+    public function test_only_records_matching_a_ref_or_an_entity_qid_are_kept(): void
+    {
+        Log::spy();
+        Entity::factory()->create(['wikidata_id' => 'Q2277']);
+        $this->ohmRef(Entity::factory()->create(), 'relation', '1880', ['temporal_start_year' => 1, 'temporal_end_year' => 2]);
+
+        $counters = $this->import([
+            $this->record(['wikidata_id' => null]),                      // existing ref
+            $this->record(['osm_type' => 'node', 'osm_id' => 7]),          // entity QID
+            $this->record(['osm_id' => 2, 'wikidata_id' => 'Q999']),        // nothing
+            $this->record(['osm_id' => 2, 'wikidata_id' => 'Q999']),        // duplicate line
+            $this->record(['osm_type' => 'way', 'osm_id' => 3, 'wikidata_id' => null]), // nothing
+        ]);
+
+        $this->assertSame($this->counters(['records' => 4, 'refs_updated' => 1, 'refs_created' => 1, 'unmatched' => 2]), $counters);
+        Log::shouldHaveReceived('info')->once()->with('ohm-links: records loaded', ['records' => 4, 'kept' => 2]);
     }
 
     public function test_malformed_lines_are_counted_and_skipped(): void

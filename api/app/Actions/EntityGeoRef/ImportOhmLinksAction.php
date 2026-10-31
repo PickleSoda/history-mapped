@@ -18,8 +18,11 @@ use Throwable;
 /**
  * Backfill OHM links from the JSONL written by `python -m pipeline ohm-links fetch` (spec D6).
  *
- * Pass 1 loads every record (keyed by `type/id`, first occurrence wins) so that records
- * sharing a Wikidata id can be ranked together. Pass 2, in one transaction (rolled back on
+ * Pass 1 streams the file (records keyed by `type/id`, first occurrence wins) and keeps in
+ * memory only the records that can match: those whose `type/id` already has an OHM ref, or
+ * whose Wikidata id some entity carries. The rest are counted `unmatched` and dropped, so a
+ * 60k-record file stays far below the CLI memory limit. Keeping the matchable records lets
+ * those sharing a Wikidata id be ranked together. Pass 2, in one transaction (rolled back on
  * a dry run), fills temporal ranges and tags on existing OHM refs, then creates refs on
  * entities whose `wikidata_id` matches a record exactly.
  *
@@ -42,7 +45,7 @@ class ImportOhmLinksAction
      * @return array{records: int, refs_updated: int, refs_created: int, skipped_existing: int,
      *     invalid_years: int, qid_duplicates: int, unmatched: int, malformed: int}
      */
-    public function __invoke(string $path, string $batchId, bool $dryRun, bool $overwriteYears): array
+    public function __invoke(string $path, string $batchId, bool $dryRun, bool $overwriteYears, ?string $runId = null): array
     {
         $counters = [
             'records' => 0,
@@ -56,10 +59,8 @@ class ImportOhmLinksAction
         ];
 
         $records = $this->load($path, $counters);
-        $counters['records'] = count($records);
-        $counters['invalid_years'] = count(array_filter($records, fn (array $r): bool => $r['invalid_years']));
 
-        $sourceMeta = ['source' => 'ohm-links', 'batch_id' => $batchId, 'run_id' => basename(dirname($path))];
+        $sourceMeta = ['source' => 'ohm-links', 'batch_id' => $batchId, 'run_id' => $runId ?? basename(dirname($path))];
         /** @var array<string, true> $matched record keys that found an existing ref or an entity */
         $matched = [];
 
@@ -74,12 +75,14 @@ class ImportOhmLinksAction
         }
         $dryRun ? DB::rollBack() : DB::commit();
 
-        $counters['unmatched'] = count(array_diff_key($records, $matched));
+        $counters['unmatched'] += count(array_diff_key($records, $matched));
 
         return $counters;
     }
 
     /**
+     * Stream the file; count every distinct record but keep only the matchable ones.
+     *
      * @param  array<string, int>  $counters
      * @return array<string, OhmLinkRecord>
      */
@@ -90,6 +93,11 @@ class ImportOhmLinksAction
             throw new RuntimeException("Cannot open file: {$path}");
         }
 
+        $refKeys = $this->existingOhmRefKeys();
+        $qids = $this->entityWikidataIds();
+
+        /** @var array<string, true> $seen */
+        $seen = [];
         $records = [];
         try {
             while (($line = fgets($handle)) !== false) {
@@ -104,14 +112,53 @@ class ImportOhmLinksAction
 
                     continue;
                 }
+                if (isset($seen[$record['key']])) {
+                    continue;
+                }
+                $seen[$record['key']] = true;
 
-                $records[$record['key']] ??= $record;
+                if ($record['invalid_years']) {
+                    $counters['invalid_years']++;
+                }
+
+                if (isset($refKeys[$record['key']]) || ($record['qid'] !== null && isset($qids[$record['qid']]))) {
+                    $records[$record['key']] = $record;
+                } else {
+                    $counters['unmatched']++;
+                }
             }
         } finally {
             fclose($handle);
         }
 
+        $counters['records'] = count($seen);
+        Log::info('ohm-links: records loaded', ['records' => $counters['records'], 'kept' => count($records)]);
+
         return $records;
+    }
+
+    /** @return array<string, int> `type/id` of every OHM node/way/relation ref, active or not */
+    private function existingOhmRefKeys(): array
+    {
+        return DB::table('entity_geo_refs')
+            ->selectRaw("external_type::text || '/' || external_id AS ref_key")
+            ->where('provider', GeoRefProvider::Ohm->value)
+            ->whereIn('external_type', array_keys(self::TYPE_RANK))
+            ->distinct()
+            ->pluck('ref_key')
+            ->flip()
+            ->all();
+    }
+
+    /** @return array<string, int> distinct entities.wikidata_id */
+    private function entityWikidataIds(): array
+    {
+        return DB::table('entities')
+            ->whereNotNull('wikidata_id')
+            ->distinct()
+            ->pluck('wikidata_id')
+            ->flip()
+            ->all();
     }
 
     /**
@@ -199,6 +246,11 @@ class ImportOhmLinksAction
         if ($recordHasYears && ($refHasNoYears || $overwriteYears)) {
             $ref->temporal_start_year = $record['start_year'];
             $ref->temporal_end_year = $record['end_year'];
+            if ($overwriteYears) {
+                // Keep the raw strings in step with the replaced years.
+                $ref->temporal_start = $record['start_date'];
+                $ref->temporal_end = $record['end_date'];
+            }
         }
 
         if ($ref->temporal_start === null && $record['start_date'] !== null) {
@@ -304,7 +356,7 @@ class ImportOhmLinksAction
         $range = $entity->primaryTemporalRange;
         $entityStart = $range?->start_year !== null ? (int) $range->start_year : null;
         $entityEnd = $range?->end_year !== null ? (int) $range->end_year : null;
-        usort($toCreate, fn (array $a, array $b): int => $this->rankKey($a, $entityStart, $entityEnd) <=> $this->rankKey($b, $entityStart, $entityEnd));
+        usort($toCreate, fn (array $a, array $b): int => $this->compareForPrimary($a, $b, $entityStart, $entityEnd));
 
         foreach ($toCreate as $index => $record) {
             $role = $index === 0 && ! $hasActivePrimary ? GeoRefMatchRole::Primary : GeoRefMatchRole::Candidate;
@@ -329,35 +381,46 @@ class ImportOhmLinksAction
     }
 
     /**
-     * Ascending sort key: relation before way before node, then the largest overlap with
-     * the entity's primary temporal range, then the latest end, then the lowest OSM id.
+     * Order for picking the primary (first wins): relation before way before node; then a
+     * record with at least one usable year before an undated one (no year, or both rejected
+     * by rule 1); then the largest overlap with the entity's primary temporal range; then
+     * the latest end; then the lowest OSM id.
      *
-     * @param  OhmLinkRecord  $record
-     * @return array{0: int, 1: float|int, 2: float|int, 3: int}
+     * @param  OhmLinkRecord  $a
+     * @param  OhmLinkRecord  $b
      */
-    private function rankKey(array $record, ?int $entityStart, ?int $entityEnd): array
+    private function compareForPrimary(array $a, array $b, ?int $entityStart, ?int $entityEnd): int
     {
-        return [
-            self::TYPE_RANK[$record['type']],
-            -$this->overlap($record, $entityStart, $entityEnd),
-            -($record['end_year'] ?? INF),
-            (int) $record['id'],
-        ];
+        $undated = fn (array $r): bool => $r['start_year'] === null && $r['end_year'] === null;
+
+        return [self::TYPE_RANK[$a['type']], $undated($a), -$this->overlap($a, $entityStart, $entityEnd)]
+                <=> [self::TYPE_RANK[$b['type']], $undated($b), -$this->overlap($b, $entityStart, $entityEnd)]
+            ?: $this->compareEnds($b, $a)
+            ?: (int) $a['id'] <=> (int) $b['id'];
+    }
+
+    /**
+     * Earlier end first: by end year, then by the raw end date (so month and day decide
+     * when the years tie). A missing end year counts as open, and a missing end date as
+     * ongoing, later than any other end.
+     *
+     * @param  OhmLinkRecord  $a
+     * @param  OhmLinkRecord  $b
+     */
+    private function compareEnds(array $a, array $b): int
+    {
+        return [$a['end_year'] ?? INF, $a['end_date'] === null] <=> [$b['end_year'] ?? INF, $b['end_date'] === null]
+            ?: strcmp($a['end_date'] ?? '', $b['end_date'] ?? '');
     }
 
     /**
      * Overlap in years between the record's and the entity's ranges, null bounds open.
-     * Negative for disjoint ranges (minus the gap), so a nearer feature still ranks higher;
-     * a record whose dates were rejected by rule 1 ranks last.
+     * Negative for disjoint ranges (minus the gap), so a nearer feature still ranks higher.
      *
      * @param  OhmLinkRecord  $record
      */
     private function overlap(array $record, ?int $entityStart, ?int $entityEnd): float|int
     {
-        if ($record['invalid_years']) {
-            return -INF;
-        }
-
         $start = max($record['start_year'] ?? -INF, $entityStart ?? -INF);
         $end = min($record['end_year'] ?? INF, $entityEnd ?? INF);
 
