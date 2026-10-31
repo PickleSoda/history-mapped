@@ -20,7 +20,7 @@
 		}
 	}
 
-	# Vector tiles for the public atlas (Martin). Tiles are immutable per deploy.
+	# Vector tiles for the public atlas (Martin). Short TTL: tiles follow the data.
 	@tiles path /tiles/*
 	handle @tiles {
 		header Cache-Control "public, max-age=300"

@@ -105,6 +105,18 @@ class AtlasEntitiesTileFunctionTest extends TestCase
         }
     }
 
+    public function test_out_of_range_coordinates_return_an_empty_tile(): void
+    {
+        foreach ([[0, 5, 5], [3, -1, 0], [2, 0, 4], [31, 0, 0]] as [$z, $x, $y]) {
+            $row = DB::selectOne(
+                "SELECT mvt = ''::bytea AS is_empty, key = md5(''::bytea) AS key_ok FROM tiles.atlas_entities(?, ?, ?)",
+                [$z, $x, $y],
+            );
+            $this->assertTrue((bool) $row->is_empty, "z{$z}/{$x}/{$y}");
+            $this->assertTrue((bool) $row->key_ok);
+        }
+    }
+
     public function test_empty_tile_returns_empty_bytea_not_null(): void
     {
         $this->seedFeature('Elsewhere Zed', 1200, 50);

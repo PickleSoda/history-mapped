@@ -26,12 +26,24 @@ LANGUAGE plpgsql STABLE STRICT PARALLEL SAFE
 SET jit = off   -- the cost estimate triggers ~0.7 s of JIT compilation per call; ~0.1 s without it
 AS $$
 DECLARE
-  env3857 geometry := ST_TileEnvelope(z, x, y);
-  env4326 geometry := ST_Transform(ST_TileEnvelope(z, x, y), 4326);
+  env3857 geometry;
+  env4326 geometry;
   cap     integer  := tiles.tile_cap_for_zoom(z);
   tol     double precision := tiles.simplify_tolerance(z);
   tile    bytea;
 BEGIN
+  -- Out-of-range coordinates (ST_TileEnvelope would raise, and Martin would
+  -- answer 500): serve an empty tile instead.
+  IF z < 0 OR z > 30 OR x < 0 OR y < 0 OR x >= (1::bigint << z) OR y >= (1::bigint << z) THEN
+    mvt := ''::bytea;
+    key := md5(mvt);
+    RETURN NEXT;
+    RETURN;
+  END IF;
+
+  env3857 := ST_TileEnvelope(z, x, y);
+  env4326 := ST_Transform(env3857, 4326);
+
   SELECT ST_AsMVT(t, 'entities', 4096, 'geom', 'fid') INTO tile
   FROM (
     WITH ranked AS (
