@@ -49,6 +49,7 @@ Start here, in order, for the project as it exists today:
 - [entity-model/entity-specification.md](entity-model/entity-specification.md) — the 30-type / 5-group canonical spec
 - [schemas/README.md](schemas/README.md) — pipeline and API payload schemas
 - [schemas/content-bundle.md](schemas/content-bundle.md) — content bundle format guide (export, edit, validate)
+- [schemas/atlas-tiles.md](schemas/atlas-tiles.md) — atlas vector-tile contract (Martin `atlas_entities`, OHM link by signed `osm_id`)
 
 ## Design references (not live)
 

@@ -43,6 +43,7 @@
 | [2026-06-12-confidence-scoring-rework](../superpowers/plans/2026-06-12-confidence-scoring-rework.md) | ⬜ | Entire plan open — `validate.py` still seeds flat `0.95`; no weights/flags/scorer/hard-block. Depends on the write-path sub-project. |
 | [2026-10-18-content-bundles-export-validate](../superpowers/plans/2026-10-18-content-bundles-export-validate.md) | 🟡 | Part 1 built: `content:export` + `content:validate`, format guide [schemas/content-bundle.md](../schemas/content-bundle.md). **Import (part 2) not started.** Spec: `2026-10-18-content-bundles-import-export-design`. |
 | [2026-06-12-map-bbox-query-optimization](../superpowers/plans/2026-06-12-map-bbox-query-optimization.md) | 🟡 | Phases 1–3 shipped. **Remaining:** single-statement `ResolveOhmFeatureAction` (T12), EntityBuilder spatial EXISTS/LATERAL rewrite (T13), destructive borders-from-OHM storage migration (T15–17), admin dashboard FE (T10/11, intentionally skipped). |
+| [2026-10-31-atlas-tiles-ohm-correlation](../superpowers/plans/2026-10-31-atlas-tiles-ohm-correlation.md) | 🟡 | All 13 tasks done on branch `feat/martin-tiles-ohm-correlation` (not on main yet). Shipped: `tiles` schema and `tiles.atlas_entities` MVT (rank cap per tile and century, ETag); Martin 1.16.1 sidecar and Caddy `/tiles`; SPA tile mode behind `VITE_MAP_TILES_URL`; signed-`osm_id` resolver and click resolution; OHM label/polygon highlight with two-way hover; `ohm-links` Overpass fetch and `pipeline:import-ohm-links`; CI deploy recreates caddy + martin. Contract: [schemas/atlas-tiles.md](../schemas/atlas-tiles.md). REST property parity confirmed on 76073ec. Backfill (dev DB, 2026-10-31): 4,476 refs created, 3,120 updated; entities with an OHM ref 3,305 → 3,593; polities linked 766 → 958; refs with years 0 → 7,391 / 7,781; linked tile features 62 → 299. **Remaining:** main added `has_map_story` to REST and MapCanvas (69683c4), so the merge needs a tile migration adding it to the view, function and contract; prod deploy with the flag. **Follow-ups:** ~3,294 OHM-linked entities have no map geometry (only 41 have a location point, so `entity:backfill` cannot place the rest; a cheap next step is fetching `out center` for linked refs); live-network tests in `pipeline/tests/test_ohm_borders_cli.py`; a read-only DB role for Martin. |
 
 ### Completed this cycle (archived → [`../archive/superpowers-plans/`](../archive/superpowers-plans/))
 
@@ -74,6 +75,7 @@ Forward-looking / partial design material kept live for direction:
 - Single-statement `ResolveOhmFeatureAction` (T12), EntityBuilder spatial EXISTS/LATERAL (T13) — perf, optional.
 - Borders-from-OHM storage cleanup (T15–17) — destructive; serving path already correct, low urgency.
 - MQ-2 (dashboard unbounded `/entities/map/year` fetch) + MQ-15 (display_priority NULLS ordering).
+- Atlas tiles (2026-10-31 plan): merge to main with a `has_map_story` tile migration, then give the ~3,294 OHM-linked entities map geometry.
 
 **Frontend (admin)**
 - FE-1 admin date padding, FE-5/7/10/11 viewer bugs (bug-report).

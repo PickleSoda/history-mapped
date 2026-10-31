@@ -379,6 +379,9 @@ jobs:
             # Migrate before the new code takes traffic, then roll the services.
             $COMPOSE --profile setup run --rm -T migrate </dev/null
             $COMPOSE up -d --remove-orphans </dev/null
+            # `up -d` skips both: Caddy keeps the pre-pull Caddyfile (single-file bind
+            # mount), Martin finds new tile functions only at startup.
+            $COMPOSE up -d --force-recreate --no-deps caddy martin </dev/null
 
             # Health gate: probe /up directly instead of waiting on Docker's
             # health state machine. The container healthcheck's first probe only

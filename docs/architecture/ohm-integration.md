@@ -1,7 +1,10 @@
 # OpenHistoricalMap Integration Guide
 
 > Status note: technical integration reference, not a claim that every pattern below is live across all clients.
-> Current repo state: OHM/MapLibre integration is implemented in the admin app under `api/resources/js` through `HistoricalMapViewer`, `MapEditor`, and supporting helpers. The public `web/` client does not currently mount an OHM map.
+> Current repo state (2026-10-31):
+> - **Public SPA (`web/`)** mounts the OHM house styles (`web/src/lib/map-config.ts`) and filters OHM layers by the timeline year (`applyOhmLayerDateFilter`). Its entity overlay is REST GeoJSON by default, or **Martin vector tiles** when `VITE_MAP_TILES_URL` is set (§7.2, contract [schemas/atlas-tiles.md](../schemas/atlas-tiles.md)).
+> - **Correlation is live in the SPA (both overlay modes).** Our features carry the OHM feature's **signed `osm_id`** (§2.4). Linked OHM labels are painted in the link colour, and the hovered or selected entity's OHM polygon is highlighted. Hover syncs both ways (list ↔ marker ↔ OHM label), and a click on an OHM label resolves to our entity by signed `osm_id`. Links and their year ranges come from the `ohm-links` backfill ([data-quality-runbook.md](../implementation-docs/data-quality-runbook.md#ohm-link-backfill-2026-10-31)).
+> - **Admin app (`api/resources/js`)** still uses REST (`GET /entities/map`) through `HistoricalMapViewer`, `MapEditor`, and supporting helpers. It has no tiles and no correlation highlight.
 
 **Historical Atlas Project**  
 *MapLibre GL JS, Vector Tiles, Date Filtering, and Custom Overlays*  
@@ -31,7 +34,7 @@ Companion to: Data Pipeline Architecture Document
 
 ## 1. Overview and Architecture Decisions
 
-OpenHistoricalMap (OHM) is the live basemap for the admin map surfaces in `api/` and the intended basemap for richer public clients. OHM provides vector tiles containing global historical geographic data with temporal metadata, enabling time-filtered map rendering. This guide covers the integration patterns used in the repo today as well as the broader reference setup for future map surfaces.
+OpenHistoricalMap (OHM) is the live basemap for the admin map surfaces in `api/` and for the public Atlas SPA in `web/`. OHM provides vector tiles containing global historical geographic data with temporal metadata, enabling time-filtered map rendering. This guide covers the integration patterns used in the repo today as well as the broader reference setup for future map surfaces.
 
 ### 1.1 Why OHM
 
@@ -60,9 +63,9 @@ OHM publishes four vector tilesets. All tiles are served as Protobuf (.pbf) file
 
 | Tileset | URL Template | Contents | License |
 |---------|-------------|----------|---------|
-| General | `https://vtiles.openhistoricalmap.org/maps/osm/{z}/{x}/{y}.pbf` | Places, boundaries (linear), transport, POIs, land use, natural features | Public domain |
+| General | `https://vtiles.openhistoricalmap.org/maps/ohm/{z}/{x}/{y}.pbf` (source `ohm` in the house styles) | Places, boundaries (linear), transport, POIs, land use, natural features | Public domain |
 | Boundary Polygons | `https://vtiles.openhistoricalmap.org/maps/ohm_admin/{z}/{x}/{y}.pbf` | Administrative boundary polygons. **Heavy tiles — filter aggressively.** | Public domain |
-| Landmasses | `https://vtiles.openhistoricalmap.org/maps/ohm_land/{z}/{x}/{y}.pbf` | Land polygons from OSM coastlines. | ODbL |
+| Landmasses | `https://vtiles.openhistoricalmap.org/maps/osm_land/{z}/{x}/{y}.pbf` | Land polygons from OSM coastlines. | ODbL |
 | Waterbodies | `https://vtiles.openhistoricalmap.org/maps/ne/{z}/{x}/{y}.pbf` | Low-resolution lakes and reservoirs from Natural Earth. | Public domain |
 
 > ⚠️ **Important:** OHM does not publish raster tiles. Do not attempt to use raster tile URL patterns (e.g., `.png`). The S3 404 errors in the console are caused by attempting to load raster tiles from a non-existent endpoint.
@@ -95,6 +98,39 @@ function dateToDecimalYear(dateStr) {
 ```
 
 The `maplibre-gl-dates` plugin handles this conversion automatically when you pass ISO date strings.
+
+For a **year-only** date, OHM tiles carry `YYYY + 0.00137` as the start and `YYYY + 0.99863` as the end (noon on 1 January and
+on 31 December; verified on live tiles). Our integer years are converted with the same rule in SQL, PHP and TypeScript; see
+[schemas/atlas-tiles.md](../schemas/atlas-tiles.md#visibility-window-the-decimal-date-rule).
+
+### 2.4 Feature identity
+
+OHM's tiles (served by Martin since OHM left Tegola) name each feature by a **signed `osm_id`** only. Negative is a relation id;
+positive is a node or way id (verified by decoding live tiles, 2026-10-31). The older `@id` / `osm_type` properties are gone.
+The `wikidata` key exists, but its values are absent in practice, so tiles cannot be joined by QID.
+
+| Tileset / layer | `osm_id` | Joinable to our entities |
+|---|---|---|
+| `ohm` / `land_ohm_centroids` (polity label points) | negative = relation id | yes: promoted to the feature id (`promoteId`); linked labels get feature-state `linked` |
+| `ohm` / `land_ohm_lines` (boundary lines) | positive = member **way** id (`group_id` is not a relation id) | no: the click resolver skips this layer |
+| `ohm` / `place_points_centroids` | positive = node (or way centroid), rarely negative | through the resolver (node, then way) |
+| `ohm_admin` / `boundaries` (polygons, heavy: ~1.3 MB at z5) | negative = relation id | yes: `promoteId: 'osm_id'`; highlight layers stay hidden until something is hovered or selected |
+| any | `wikidata` key present, values absent | no |
+
+**Our side.** `entity_geo_refs` keeps `provider = ohm` and an unsigned `external_type` + `external_id`. Tiles emit the signed form
+as `ohm_osm_id`; REST emits `ohm_external_type` / `ohm_external_id`. The signing rule is implemented in `tiles.signed_osm_id`,
+`App\Support\OhmDate::signedOsmId` / `externalTypesForSignedId`, and in the SPA's `linkIndexFromFeatures`
+(`web/src/lib/ohm-highlight.ts`) and `extractIdentity` (`web/src/lib/ohm-resolve.ts`).
+
+**Resolver.** Two routes share one request class and action: the public `GET /api/v1/map/resolve-ohm-feature` and the editorial
+`POST`.
+
+- They accept **`osm_id`** (signed, non-zero) instead of `external_type` + `external_id`. The two forms are mutually exclusive.
+  `provider` and `target_year` are required.
+- Negative ids resolve to a relation. Positive ids try a node first, then a way.
+- Only active refs whose temporal years (when set) contain `target_year` match.
+
+The SPA first looks the id up in its loaded entity tiles (`ohm_osm_id`, tile mode only) and calls the resolver only on a miss.
 
 ---
 
@@ -340,20 +376,25 @@ map.on('load', () => {
 });
 ```
 
-### 7.2 Adding Custom Vector Tile Sources
+### 7.2 Our Vector Tiles (Martin)
 
-If the project serves its own entity data as vector tiles (e.g., from PostGIS via pg_tileserv or Martin), add them as a separate source:
+The public SPA's entity overlay can come from our own vector tiles. Martin (`ghcr.io/maplibre/martin:1.16.1`, compose service
+`martin`, config `docker/martin/config.yaml`) serves them from the PostGIS function `tiles.atlas_entities(z, x, y)`. The tile
+contract is [schemas/atlas-tiles.md](../schemas/atlas-tiles.md). With `VITE_MAP_TILES_URL` set, the SPA adds the source like this
+(`entityTileSource()` in `web/src/lib/map-tiles.ts`):
 
 ```javascript
-map.addSource('atlas-vector', {
+map.addSource('entities', {
   type: 'vector',
-  tiles: [
-    'https://your-tile-server.com/entities/{z}/{x}/{y}.pbf'
-  ],
-  minzoom: 2,
+  tiles: [`${VITE_MAP_TILES_URL}/atlas_entities/{z}/{x}/{y}`],  // dev: http://localhost:3000/tiles
+  minzoom: 0,
   maxzoom: 14
 });
+// our fill / line / symbol layers use 'source-layer': 'entities'
 ```
+
+The tiles cover all time. The timeline year and the group filter are client-side filter expressions on `start_decdate`,
+`end_decdate` and `entity_group`, with the same decimal-date convention as OHM (§2.3), so scrubbing sends no requests.
 
 ### 7.3 Bezier Curve Annotations
 
@@ -480,9 +521,9 @@ This is implemented using the React component from Section 4.3, with the `initia
 |----------|-----|
 | OHM Homepage | `https://www.openhistoricalmap.org/` |
 | Main Style JSON | `https://www.openhistoricalmap.org/map-styles/main/main.json` |
-| General Vector Tiles | `https://vtiles.openhistoricalmap.org/maps/osm/{z}/{x}/{y}.pbf` |
+| General Vector Tiles | `https://vtiles.openhistoricalmap.org/maps/ohm/{z}/{x}/{y}.pbf` |
 | Boundary Polygons | `https://vtiles.openhistoricalmap.org/maps/ohm_admin/{z}/{x}/{y}.pbf` |
-| Landmasses | `https://vtiles.openhistoricalmap.org/maps/ohm_land/{z}/{x}/{y}.pbf` |
+| Landmasses | `https://vtiles.openhistoricalmap.org/maps/osm_land/{z}/{x}/{y}.pbf` |
 | Waterbodies | `https://vtiles.openhistoricalmap.org/maps/ne/{z}/{x}/{y}.pbf` |
 | Nominatim | `https://nominatim.openhistoricalmap.org/` |
 | Overpass API | `https://overpass-api.openhistoricalmap.org/api/interpreter` |
