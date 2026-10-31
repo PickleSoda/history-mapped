@@ -13,7 +13,8 @@ class ImportOhmLinksCommand extends Command
         {path : Path to ohm_links.jsonl written by python -m pipeline ohm-links fetch}
         {--dry-run : Roll everything back at the end and only report the counters}
         {--overwrite-years : Replace temporal years on existing OHM refs even when they are set}
-        {--batch-id= : Custom batch identifier (default: auto-generated)}';
+        {--batch-id= : Custom batch identifier (default: auto-generated)}
+        {--run-id= : Pipeline run id stored in source_meta.run_id (default: name of the directory holding path)}';
 
     protected $description = 'Fill temporal ranges and tags on OHM geo-refs and link OHM features to entities by Wikidata id';
 
@@ -32,7 +33,7 @@ class ImportOhmLinksCommand extends Command
 
         $this->info(($dryRun ? '[DRY-RUN] ' : '')."Batch: {$batchId}");
 
-        $counters = $import($path, $batchId, $dryRun, (bool) $this->option('overwrite-years'));
+        $counters = $import($path, $batchId, $dryRun, (bool) $this->option('overwrite-years'), $this->option('run-id'));
 
         $this->table(
             ['Counter', 'Value'],
