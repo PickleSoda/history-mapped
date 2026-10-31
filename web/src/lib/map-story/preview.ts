@@ -18,8 +18,9 @@
  *   {type: 'map-story:camera', center, zoom, bearing}       the answer to get-camera
  *   {type: 'map-story:document-rejected', issues}           a draft the story schema refused (the preview keeps the last good one)
  *
- * Only origins listed in VITE_ADMIN_ORIGINS (comma-separated; dev default
- * http://localhost:8000) are listened to, and every message is parsed with
+ * Only origins listed in VITE_ADMIN_ORIGINS (comma-separated; when unset, the
+ * API's origin, since Laravel serves the admin too; else http://localhost:8000)
+ * are listened to, and every message is parsed with
  * zod — a draft document with the story schema — before it is used.
  */
 import { z } from 'zod';
@@ -31,13 +32,21 @@ export const DEFAULT_ADMIN_ORIGINS = ['http://localhost:8000'];
 /** Whether this page is the admin's preview (`?preview=1`). Read once: the flag never changes in a page's life. */
 export const PREVIEW = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('preview') === '1';
 
-/** The admin origins allowed to drive the preview, from a comma-separated list. */
-export function adminOrigins(list: string | undefined): string[] {
+/** The admin origins allowed to drive the preview, from a comma-separated
+ *  list; without one, the API's origin (the admin is served by the same app). */
+export function adminOrigins(list: string | undefined, apiUrl?: string): string[] {
   const origins = (list ?? '')
     .split(',')
     .map((o) => o.trim().replace(/\/+$/, ''))
     .filter((o) => /^https?:\/\/[^/]+$/.test(o));
-  return origins.length > 0 ? origins : DEFAULT_ADMIN_ORIGINS;
+  if (origins.length > 0) return origins;
+  try {
+    const api = new URL(apiUrl ?? '');
+    if (api.protocol === 'http:' || api.protocol === 'https:') return [api.origin];
+  } catch {
+    // unset or relative: fall through
+  }
+  return DEFAULT_ADMIN_ORIGINS;
 }
 
 export function isAllowedOrigin(origin: string, allowed: readonly string[]): boolean {

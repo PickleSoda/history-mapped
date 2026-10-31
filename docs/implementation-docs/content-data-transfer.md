@@ -125,8 +125,9 @@ The loader (`output/load-content-on-droplet.sh`) does:
 
 1. `pg_dump` current prod content → `output/prod-content-backup-<stamp>.sql` (rollback insurance).
 2. `cat truncate-content.sql <dump> | psql -1 -v ON_ERROR_STOP=1` — **atomic** truncate + load.
-3. Print row counts (`entities`, `relationships`, `geometry_periods`) to confirm the load.
-4. `php artisan cache:clear` + `config:clear`.
+3. `php artisan db:repair-sequences`: move every sequence back up to its column's max (see Gotchas).
+4. Print row counts (`entities`, `relationships`, `geometry_periods`) to confirm the load.
+5. `php artisan cache:clear` + `config:clear`.
 
 If your prod compose file or service names differ, edit the `COMPOSE=` line at the
 top of the loader — it's the only environment-specific knob.
@@ -154,6 +155,14 @@ cat output/truncate-content.sql output/prod-content-backup-<stamp>.sql \
   hand-entered content worth keeping (true while `migrate` is the only seeding
   path). The auto-backup covers you regardless.
 - Auth/admin users are **not** transferred — create prod admins separately.
+- **The dump resets sequences of excluded tables.** `--exclude-table-data` drops a
+  table's rows but not the `setval` of its sequence, so the load sets
+  `migrations_id_seq`, `users_id_seq`, `roles_id_seq`, … to the *local* values,
+  below prod's rows. The next `migrate` then failed with a `migrations_pkey`
+  duplicate (2026-10-18 and 2026-10-31), and new sign-ups would collide on
+  `users_pkey`. The loader runs `php artisan db:repair-sequences` after the load,
+  and the deploy's `migrate` job runs it before migrating. It only ever moves a
+  sequence up.
 - **Map stories edited in the prod admin** (or by the AI agent there) live only in
   prod's `map_stories` row until exported, and a full replace overwrites them.
   Before a replace, list them — `SELECT slug FROM map_stories WHERE edited_at > synced_at`

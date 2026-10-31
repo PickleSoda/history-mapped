@@ -98,7 +98,9 @@ services:
     # migrations independent of the cache backend. (overrides .env.prod)
     environment:
       CACHE_STORE: array
-    command: sh -c "php artisan migrate --force && php artisan config:cache"
+    # db:repair-sequences first: a content load can leave sequences behind
+    # their rows (migrations_id_seq included), which fails the ledger insert.
+    command: sh -c "php artisan db:repair-sequences && php artisan migrate --force && php artisan config:cache"
     depends_on:
       db:
         condition: service_healthy

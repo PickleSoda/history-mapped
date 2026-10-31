@@ -11,7 +11,7 @@ import type { LngLat, MapStory } from '@/lib/schemas/map-story';
 import { useMapInstance } from './ephemeral';
 import { useStoryNav } from './useStoryNav';
 
-const ORIGINS = adminOrigins(import.meta.env.VITE_ADMIN_ORIGINS);
+const ORIGINS = adminOrigins(import.meta.env.VITE_ADMIN_ORIGINS, import.meta.env.VITE_API_URL);
 const PICK_SOURCE = 'story-preview-pick';
 
 /** What the preview is picking for the admin, for the hint over the map. */

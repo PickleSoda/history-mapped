@@ -27,6 +27,13 @@ describe('admin origins', () => {
     expect(adminOrigins('')).toEqual([ADMIN]);
   });
 
+  it('falls back to the API origin, which serves the admin too', () => {
+    expect(adminOrigins(undefined, 'https://api.example.org/')).toEqual(['https://api.example.org']);
+    expect(adminOrigins('', 'https://api.example.org:8443/v1')).toEqual(['https://api.example.org:8443']);
+    expect(adminOrigins('https://admin.example.org', 'https://api.example.org')).toEqual(['https://admin.example.org']);
+    expect(adminOrigins(undefined, '/api')).toEqual([ADMIN]);
+  });
+
   it('matches origins exactly', () => {
     expect(isAllowedOrigin(ADMIN, [ADMIN])).toBe(true);
     expect(isAllowedOrigin('http://localhost:8001', [ADMIN])).toBe(false);
