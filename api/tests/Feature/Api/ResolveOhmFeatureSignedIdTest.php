@@ -134,9 +134,22 @@ class ResolveOhmFeatureSignedIdTest extends TestCase
 
     public function test_zero_osm_id_is_rejected(): void
     {
-        $this->resolve(['osm_id' => 0, 'provider' => 'ohm', 'target_year' => 117])
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors(['osm_id']);
+        foreach ([0, '-0', '+0'] as $zero) {
+            $this->resolve(['osm_id' => $zero, 'provider' => 'ohm', 'target_year' => 117])
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors(['osm_id']);
+        }
+    }
+
+    public function test_sign_selects_the_ref_type(): void
+    {
+        // Only a relation/42 exists: a positive id (node or way) must not find it,
+        // and a negative id must not find a node/42.
+        $this->linkedEntity('Relation Only', 'relation', '42');
+        $this->linkedEntity('Node Only', 'node', '7');
+
+        $this->resolve(['osm_id' => 42, 'provider' => 'ohm', 'target_year' => 117])->assertNotFound();
+        $this->resolve(['osm_id' => -7, 'provider' => 'ohm', 'target_year' => 117])->assertNotFound();
     }
 
     public function test_osm_id_together_with_external_id_is_rejected(): void

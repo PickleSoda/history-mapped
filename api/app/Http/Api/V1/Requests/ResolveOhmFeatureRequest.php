@@ -29,7 +29,17 @@ class ResolveOhmFeatureRequest extends FormRequest
             'provider' => ['required', 'string', Rule::enum(GeoRefProvider::class)],
             'external_type' => ['required_without:osm_id', 'string', Rule::enum(GeoRefExternalType::class), 'prohibits:osm_id'],
             'external_id' => ['required_without:osm_id', 'string', 'max:255', 'prohibits:osm_id'],
-            'osm_id' => ['required_without:external_id', 'integer', 'not_in:0'],
+            // `not_in:0` compares strings, so "-0" / "+0" would slip through and
+            // reach OhmDate::externalTypesForSignedId(0), which throws. Check numerically.
+            'osm_id' => [
+                'required_without:external_id',
+                'integer',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ((int) $value === 0) {
+                        $fail('The osm_id must be a non-zero integer.');
+                    }
+                },
+            ],
             'target_year' => ['required', 'integer'],
         ];
     }
