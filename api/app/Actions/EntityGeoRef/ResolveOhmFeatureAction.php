@@ -6,13 +6,14 @@ namespace App\Actions\EntityGeoRef;
 
 use App\Models\EntityGeoRef;
 use App\Models\GeometryPeriod;
+use App\Support\OhmDate;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 
 class ResolveOhmFeatureAction
 {
     /**
-     * @param  array{provider: string, external_type: string, external_id: string, target_year: int}  $payload
+     * @param  array{provider: string, external_type?: string, external_id?: string, osm_id?: int|string, target_year: int|string}  $payload
      * @return array{
      *     entity: array{id: string, name: string, entity_type: string|null, entity_group: string|null},
      *     geo_ref_id: string,
@@ -28,12 +29,24 @@ class ResolveOhmFeatureAction
         // expect an int.
         $payload['target_year'] = (int) $payload['target_year'];
 
-        $match = DB::table('entity_geo_refs as gr')
+        $query = DB::table('entity_geo_refs as gr')
             ->join('entities as e', 'e.entity_id', '=', 'gr.entity_id')
             ->select('gr.geo_ref_id', 'gr.geometry_period_id')
-            ->where('gr.provider', $payload['provider'])
-            ->where('gr.external_type', $payload['external_type'])
-            ->where('gr.external_id', $payload['external_id'])
+            ->where('gr.provider', $payload['provider']);
+
+        if (isset($payload['osm_id'])) {
+            // Signed OSM id from an OHM tile (spec D3): negative is a relation;
+            // positive is a node or a way, and a node wins over a way.
+            $ref = OhmDate::externalTypesForSignedId((int) $payload['osm_id']);
+            $query->whereIn('gr.external_type', $ref['types'])
+                ->where('gr.external_id', $ref['id'])
+                ->orderByRaw("CASE gr.external_type::text WHEN 'node' THEN 0 WHEN 'way' THEN 1 ELSE 2 END");
+        } else {
+            $query->where('gr.external_type', $payload['external_type'])
+                ->where('gr.external_id', $payload['external_id']);
+        }
+
+        $match = $query
             ->where('gr.is_active', true)
             ->where(function ($query) use ($payload): void {
                 $query->whereNull('gr.temporal_start_year')
