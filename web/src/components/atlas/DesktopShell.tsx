@@ -4,19 +4,22 @@ import { CommandPalette } from '@/components/atlas/CommandPalette';
 import { DetailPanel } from '@/components/atlas/DetailPanel';
 import { BehindPage, FullPageHost } from '@/components/atlas/FullPage';
 import { LeftSidebar } from '@/components/atlas/LeftSidebar';
+import { StoryPlayer } from '@/components/atlas/StoryPlayer';
 import { TimelineScope } from '@/components/atlas/TimelineScope';
 import { TopBar } from '@/components/atlas/TopBar';
 import { MapCanvas } from '@/components/map/MapCanvas';
-import { useChronicleNav, useMapInsetsObserver } from '@/hooks';
+import { useChronicleNav, useMapInsetsObserver, useStoryNav } from '@/hooks';
 
 /**
- * While a chronicle is active the tour takes the left rail (in place of the
- * list); the right panel is always the entity detail. So the tour and an entity
- * you drill into from it can be read side by side, instead of one replacing the
- * other.
+ * While a battle map or a chronicle is active it takes the left rail (in place
+ * of the list); the right panel is always the entity detail. So the tour and an
+ * entity you drill into from it can be read side by side, instead of one
+ * replacing the other.
  */
 function LeftPanel() {
   const { isActive } = useChronicleNav();
+  const { isActive: storyActive } = useStoryNav();
+  if (storyActive) return <StoryPlayer />;
   return isActive ? <ChroniclePlayer /> : <LeftSidebar />;
 }
 

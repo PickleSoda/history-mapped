@@ -43,6 +43,10 @@ describe('sheetContentKind', () => {
   it('otherwise list', () => {
     expect(sheetContentKind({ chronicleActive: false, hasSelection: false })).toBe('list');
   });
+  it('shows a battle map when one is active and nothing is selected', () => {
+    expect(sheetContentKind({ chronicleActive: false, hasSelection: false, storyActive: true })).toBe('story');
+    expect(sheetContentKind({ chronicleActive: false, hasSelection: true, storyActive: true })).toBe('detail');
+  });
 });
 
 describe('nextSheetForSelection', () => {

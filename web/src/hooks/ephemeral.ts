@@ -14,6 +14,13 @@ export function useMapInstance() {
   return { map, setMap };
 }
 
+/** Changes whenever the map's style has been (re)built with our overlay in. */
+export function useStyleEpoch() {
+  const styleEpoch = useEphemeralStore((s) => s.styleEpoch);
+  const bumpStyleEpoch = useEphemeralStore((s) => s.bumpStyleEpoch);
+  return { styleEpoch, bumpStyleEpoch };
+}
+
 /**
  * Uncommitted scrub value during a drag. Drives the readout/ghost filter at
  * 60fps; `commit` writes the final year to the URL on release.

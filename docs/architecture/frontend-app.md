@@ -48,7 +48,7 @@ of desync bugs, so this boundary is enforced, not advisory.
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │ URL layer (nuqs)            survives refresh · shareable          │
-│   bbox · t · g · sel · q · chron · step · full · view             │
+│   bbox · t · g · sel · q · chron · step · story · sstep · full · view│
 └───────────────┬───────────────────────────────────────────────────┘
                 │ snapScope()  (snap bbox→tile grid, time→resolution)
                 ▼
@@ -135,6 +135,7 @@ read through the hooks above.
 /                      AtlasLayout → DesktopShell | MobileShell
   ?sel=<uuid>          entity detail (desktop right panel / mobile sheet)
   ?chron=<slug>&step=n chronicle tour (desktop left panel / mobile sheet)
+  ?story=<slug>&sstep=n battle map (desktop left panel / mobile sheet; see below)
   ?full=1              expand the focus into its full page (see below)
 ```
 
@@ -214,6 +215,38 @@ entries' narrative) and `useChronicleGraph` (the graph + per-step membership), j
   scrolling (6 at rest), p95 frame 16.8 ms and no long tasks at ~2,200 px/s.
 - Clicking a node's Open (or any entity in a step) selects it, which opens the entity
   page on top.
+
+### Battle maps (map stories)
+
+A map story replays a battle step by step on the shared map (design:
+`docs/superpowers/specs/2026-10-31-battle-maps-and-descriptions-design.md`; format:
+`docs/implementation-docs/map-story-authoring.md`). `?story=<slug>&sstep=n` (`useStoryNav`,
+`push`) takes the left panel like a chronicle tour — entering one clears `sel`, `chron`,
+`step` and `full`, and entering a chronicle clears `story`.
+
+- **Player** (`components/atlas/StoryPlayer.tsx`): sides (colour, commanders linked to
+  their entities, strength, losses), step dots, the step's time/title/narrative,
+  background on the first step, outcome on the last, the reconstruction's uncertainty and
+  sources, prev / play / next and ← → keys. Autoplay dwells by narrative length.
+- **Overlay** (`components/map/StoryOverlay.tsx`, no DOM): on entering, hides the entity
+  layers, adds a terrain hillshade (AWS Terrain Tiles, under the basemap labels — the OHM
+  styles have no relief at battlefield zoom) and the story's sources/layers
+  (`lib/map-story/layers.ts`), jumps the timeline to the story's year, and frames each step
+  on its units, arrows and notes (clear of the panels via `mapInsets`). Re-adds itself
+  whenever MapCanvas bumps `styleEpoch` (a basemap switch rebuilds the style). Basemap
+  clicks don't resolve OHM features while a story plays; clicking a linked unit or
+  commander selects its entity, hovering shows a unit card.
+- **Geometry** (`lib/map-story/geometry.ts`, Vitest): `resolveFrames` carries placements
+  forward per step and pins `with` markers behind their unit; `formation` turns
+  `at/facing/width/depth/shape` into a ring and a front edge (a block is a crescent with no
+  bow, so the two morph); `tween` animates one step forward along each unit's move arrow
+  (other jumps glide straight, quickly). Symbols are canvas-drawn (`lib/map-story/icons.ts`).
+- **Entry points:** the detail panel's "Play the battle map" card and the entity page's
+  "How the battle unfolded" step list (each step opens the player there); battles with a
+  story get a swords marker on the map (`has_map_story`).
+
+The entity's long `description` shows as "About" in the detail panel (first two
+paragraphs, "Read more" opens the page) and in full on the entity page.
 
 ### RelationGraph and `lib/graph`
 

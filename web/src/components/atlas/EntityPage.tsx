@@ -1,4 +1,4 @@
-import { Clock, ExternalLink, ImageIcon, MapPin, ScrollText } from 'lucide-react';
+import { Clock, ExternalLink, ImageIcon, MapPin, Play, ScrollText } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { SaveControls } from '@/components/account/SaveControls';
 import { SuggestEditButton } from '@/components/account/SuggestEdit';
@@ -18,6 +18,7 @@ import {
   chronicleByRelationship,
   RelationshipTimeline,
 } from '@/components/atlas/RelationshipTimeline';
+import { paragraphs, storyKindLabel } from '@/components/atlas/StoryCard';
 import { TagPills } from '@/components/atlas/TagPills';
 import { RelationGraph } from '@/components/graph';
 import {
@@ -29,7 +30,9 @@ import {
   useEntityTimeline,
   useFullPage,
   useMapFocus,
+  useMapStory,
   useSelection,
+  useStoryNav,
   useTimeState,
 } from '@/hooks';
 import {
@@ -254,7 +257,7 @@ function ProseEdit({
   label,
 }: {
   entity: EntityDetail;
-  field: 'summary' | 'significance';
+  field: 'summary' | 'significance' | 'description';
   fieldLabel: string;
   label?: string;
 }) {
@@ -331,6 +334,81 @@ function Prose({ entity }: { entity: EntityDetail }) {
         )}
       </Section>
     </div>
+  );
+}
+
+/** The long description, in full. */
+function About({ entity }: { entity: EntityDetail }) {
+  const paras = paragraphs(entity.description);
+  if (paras.length === 0) return null;
+  return (
+    <Section
+      title="About"
+      aside={<ProseEdit entity={entity} field="description" fieldLabel="Description" />}
+    >
+      <div className="max-w-[72ch] space-y-4 text-[15px] leading-[1.7] text-foreground/90">
+        {paras.map((para, i) => (
+          <p key={i}>{para}</p>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+/** A battle map's steps as the battle's detailed timeline; each opens the player there. */
+function StorySteps({ slug }: { slug: string }) {
+  const { data } = useMapStory(slug);
+  const { enter } = useStoryNav();
+  const doc = data?.document;
+  if (!doc) return <p className="text-[13px] text-muted-foreground">Loading…</p>;
+  return (
+    <ol className="relative space-y-1 border-l pl-5">
+      {doc.steps.map((step, i) => (
+        <li key={step.id}>
+          <button
+            type="button"
+            onClick={() => enter(slug, i)}
+            className="group -ml-1 w-full rounded-lg px-2 py-2 text-left hover:bg-muted/60"
+          >
+            <span className="absolute -left-[5px] mt-1.5 size-2.5 rounded-full border-2 border-background bg-amber-700" />
+            <span className="flex items-baseline gap-2">
+              <span className="font-mono text-[11px] text-muted-foreground">{step.time ?? `Step ${i + 1}`}</span>
+              <span className="text-[14px] font-semibold group-hover:underline">{step.title}</span>
+            </span>
+            <span className="mt-0.5 line-clamp-3 block text-[13px] leading-relaxed text-foreground/75">
+              {step.narrative}
+            </span>
+          </button>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function BattleMaps({ entity }: { entity: EntityDetail }) {
+  const { enter } = useStoryNav();
+  if (entity.map_stories.length === 0) return null;
+  return (
+    <>
+      {entity.map_stories.map((s) => (
+        <Section
+          key={s.id}
+          title={s.kind === 'campaign' ? 'How the campaign unfolded' : 'How the battle unfolded'}
+          count={s.step_count ?? undefined}
+          aside={
+            <button
+              type="button"
+              onClick={() => enter(s.slug)}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-amber-700 px-3 py-1.5 text-[12px] font-semibold text-white shadow-sm hover:bg-amber-800"
+            >
+              <Play size={13} /> Play the {storyKindLabel(s.kind).toLowerCase()}
+            </button>
+          }
+        >
+          <StorySteps slug={s.slug} />
+        </Section>
+      ))}
+    </>
   );
 }
 
@@ -622,6 +700,8 @@ export function EntityPage({ id, variant = 'page' }: { id: string; variant?: Pag
         <>
           <Hero entity={entity} />
           <Prose entity={entity} />
+          <About entity={entity} />
+          <BattleMaps entity={entity} />
           <GraphSection entity={entity} variant={variant} />
           <AttributesAndTags entity={entity} />
           <Chronicles id={entity.id} />

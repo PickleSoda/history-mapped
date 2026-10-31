@@ -28,6 +28,8 @@ export const ChronicleSchema = z.object({
   chronicle_id: z.string(),
   title: z.string(),
   slug: z.string(),
+  /** Introduction: plain paragraphs separated by blank lines. */
+  description: z.string().nullable().catch(null).default(null),
   /** SourceType enum, e.g. "video_transcript". */
   source_type: z.string().nullable().catch(null),
   /** Free text: a URL, a citation, or an excerpt of the source transcript. */

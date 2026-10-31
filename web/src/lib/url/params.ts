@@ -1,6 +1,6 @@
 /**
  * nuqs parsers — the typed URL schema (spec §2): bbox, t, g, sel, q, chron,
- * step, full, view, base, ct.
+ * step, story, sstep, full, view, base, ct.
  *
  * Each search param has a parser here. Hooks in `@/hooks` consume these so that
  * a component subscribing to `sel` is not woken when `bbox` changes. History
@@ -43,6 +43,10 @@ export const parseAsChronicle = parseAsString;
 
 /** step = chronicle step index. */
 export const parseAsStep = parseAsInteger;
+
+/** story = map-story slug; sstep = its step index. */
+export const parseAsStory = parseAsString;
+export const parseAsStoryStep = parseAsInteger;
 
 /**
  * full = "1" — the selected entity (or active chronicle) is expanded into its

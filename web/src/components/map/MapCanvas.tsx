@@ -3,6 +3,7 @@ import type { GeoJSONSource, ProjectionSpecification, StyleSpecification } from 
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useEffect, useRef } from 'react';
+import { StoryOverlay } from '@/components/map/StoryOverlay';
 import {
   useBasemap,
   useEntitiesInView,
@@ -14,11 +15,13 @@ import {
 } from '@/hooks';
 import { instantYear } from '@/lib/format';
 import { loadHistoricalBasemapStyle } from '@/lib/map-config';
-import { registerGroupMarkers, refreshGroupMarkers } from '@/lib/map-icons';
+import { registerGroupMarkers, refreshGroupMarkers, STORY_MARKER_ID } from '@/lib/map-icons';
+import { STORY_SOURCES } from '@/lib/map-story/layers';
 import { yearToOhmDate } from '@/lib/ohm-date';
 import { applyOhmLayerDateFilter } from '@/lib/ohm-layer-date-filter';
 import { resolveOhmClickToEntity } from '@/lib/ohm-resolve';
 import { useTheme } from '@/lib/theme';
+import { useEphemeralStore } from '@/stores/ephemeral';
 import type { ViewMode } from '@/types/atlas';
 
 const SOURCE_ID = 'entities';
@@ -103,11 +106,17 @@ function addEntityLayers(map: maplibregl.Map, data: FeatureCollection | undefine
     filter: isPoint,
     layout: {
       'icon-image': [
-        'coalesce',
-        ['image', ['concat', 'marker-', ['get', 'entity_group']]],
-        ['image', 'marker-DEFAULT'],
+        'case',
+        ['==', ['get', 'has_map_story'], true],
+        ['image', STORY_MARKER_ID],
+        [
+          'coalesce',
+          ['image', ['concat', 'marker-', ['get', 'entity_group']]],
+          ['image', 'marker-DEFAULT'],
+        ],
       ],
-      'icon-size': 0.8,
+      // A playable battle map gets a slightly larger pin.
+      'icon-size': ['case', ['==', ['get', 'has_map_story'], true], 0.95, 0.8],
       'icon-allow-overlap': true,
       'icon-anchor': 'bottom',
       'text-field': ['get', 'name'],
@@ -209,6 +218,8 @@ export function MapCanvas() {
         applyOhmLayerDateFilter(map, yearToOhmDate(yearRef.current));
         styleReadyRef.current = true;
         setMap(map);
+        // Tell other overlays (the battle map) to re-add their layers on top.
+        useEphemeralStore.getState().bumpStyleEpoch();
       });
 
       // Pointer cursor over our own clickable features. Layer-scoped handlers
@@ -238,6 +249,10 @@ export function MapCanvas() {
           void selectRef.current(id);
           return;
         }
+
+        // During a battle map the basemap isn't clickable: its own layers
+        // handle clicks on units, and stray clicks shouldn't open entities.
+        if (map.getSource(STORY_SOURCES.units)) return;
 
         const seq = ++clickSeq;
         void resolveOhmClickToEntity(map, e, yearRef.current).then(
@@ -334,5 +349,10 @@ export function MapCanvas() {
     void refreshGroupMarkers(map);
   }, [theme]);
 
-  return <div ref={containerRef} className="absolute inset-0 h-full w-full" />;
+  return (
+    <>
+      <div ref={containerRef} className="absolute inset-0 h-full w-full" />
+      <StoryOverlay />
+    </>
+  );
 }

@@ -11,6 +11,7 @@ import {
   chronicleByRelationship,
   RelationshipTimeline,
 } from '@/components/atlas/RelationshipTimeline';
+import { paragraphs, StoryButtons } from '@/components/atlas/StoryCard';
 import {
   useChronicleNav,
   useEntity,
@@ -21,6 +22,9 @@ import {
   useSelection,
   useTimeState,
 } from '@/hooks';
+
+/** Paragraphs of the description the panel shows before "Read more". */
+const ABOUT_PARAGRAPHS = 2;
 import { isEmblem, numericYear, primaryImage, temporalText } from '@/lib/entity-format';
 import { cn } from '@/lib/utils';
 
@@ -67,6 +71,7 @@ export function DetailPanelContent() {
   const { data: chronicles } = useEntityChronicles(sel);
   const { focusGeometries } = useMapFocus();
   const { setInstant } = useTimeState();
+  const { expand } = useFullPage();
 
   // Frame the entity on the map the first time its detail opens (once per
   // selection — re-renders or a re-fetch must not yank the camera back).
@@ -156,6 +161,8 @@ export function DetailPanelContent() {
               )}
             </div>
 
+            <StoryButtons stories={entity.map_stories} />
+
             {/* Chronicle membership */}
             {chronicles && chronicles.data.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1.5">
@@ -185,6 +192,35 @@ export function DetailPanelContent() {
                 <p className="text-[13px] leading-relaxed text-foreground/90">
                   {entity.summary ?? entity.significance}
                 </p>
+              </div>
+            </>
+          )}
+
+          {/* Long description: the opening paragraphs, the rest on the page */}
+          {entity.description && (
+            <>
+              <div className="h-px bg-border" />
+              <div className="px-4 py-4">
+                <h4 className="mb-2 text-xs font-semibold font-heading text-muted-foreground">
+                  About
+                </h4>
+                <div className="space-y-2.5 text-[13px] leading-relaxed text-foreground/90">
+                  {paragraphs(entity.description)
+                    .slice(0, ABOUT_PARAGRAPHS)
+                    .map((para) => (
+                      <p key={para.slice(0, 48)}>{para}</p>
+                    ))}
+                </div>
+                {paragraphs(entity.description).length > ABOUT_PARAGRAPHS && (
+                  <button
+                    type="button"
+                    onClick={expand}
+                    onPointerEnter={preloadEntityPage}
+                    className="mt-2 text-[12px] font-medium text-primary hover:underline"
+                  >
+                    Read more
+                  </button>
+                )}
               </div>
             </>
           )}
