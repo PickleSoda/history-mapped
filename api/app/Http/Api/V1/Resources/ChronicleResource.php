@@ -18,6 +18,7 @@ class ChronicleResource extends JsonResource
             'chronicle_id' => $this->chronicle_id,
             'title' => $this->title,
             'slug' => $this->slug,
+            'description' => $this->description,
             'source_type' => $this->source_type?->value,
             'source_reference' => $this->source_reference,
             'status' => $this->status?->value,

@@ -1,0 +1,3541 @@
+{
+ "schema": 1,
+ "slug": "battle-of-hastings",
+ "kind": "battle",
+ "entity": {
+  "name": "Battle of Hastings",
+  "wikidata": "Q83224"
+ },
+ "title": "Battle of Hastings",
+ "date_label": "14 October 1066",
+ "year": 1066,
+ "intro": "On 14 October 1066 King Harold II of England, crowned only that January, met William, Duke of Normandy, on a ridge about 11 kilometres north-west of Hastings. William had crossed the Channel and landed at Pevensey on 28 September with Normans, Bretons, Frenchmen and Flemings to enforce his claim to the English throne, then moved east to Hastings and fortified a base there. Harold, who had wiped out a Norwegian invasion at Stamford Bridge near York on 25 September, marched south at speed and planted his army across the only road out of the Norman beachhead. The result was an unusually long medieval battle: a whole day in which an English army fighting entirely on foot behind a shield wall held a hilltop against a Norman army that combined archers, armoured infantry and mounted knights.",
+ "outcome": "Decisive Norman victory: Harold and his brothers Gyrth and Leofwine were killed, the English army was destroyed, and William was crowned king of England on Christmas Day 1066.",
+ "uncertainty": "This map follows the traditional site, with the English on the ridge now occupied by Battle Abbey. Some writers put the fight on Caldbec Hill, 1.5 km north, or near Crowhurst, 5 km south, and a 2013 landscape study argued that the main Norman thrust came up the Hastings road from the south-east. Army sizes (each perhaps 7,000–8,000), frontages, the split into units and the clock times are reconstructions. The hillock, the feigned flights and the Malfosse are not located by the sources: here the hillock sits on the spur below the English right and the Malfosse at Oakwood Gill, one of several proposed sites. Gyrth and Leofwine may have died in the morning or at the end. High-angle archery is reported only by 12th-century writers. The ponds in the valley are later abbey works.",
+ "sources": [
+  {
+   "title": "William of Poitiers, Gesta Guillelmi (c. 1071–1077)",
+   "kind": "primary"
+  },
+  {
+   "title": "Carmen de Hastingae Proelio (attributed to Guy of Amiens)",
+   "kind": "primary"
+  },
+  {
+   "title": "The Bayeux Tapestry",
+   "kind": "primary"
+  },
+  {
+   "title": "Anglo-Saxon Chronicle, annal for 1066",
+   "kind": "primary"
+  },
+  {
+   "title": "Orderic Vitalis, Ecclesiastical History (the Malfosse)",
+   "kind": "primary"
+  },
+  {
+   "title": "Battle of Hastings — Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Battle_of_Hastings",
+   "kind": "web"
+  },
+  {
+   "title": "Where Did the Battle of Hastings Happen? — English Heritage",
+   "url": "https://www.english-heritage.org.uk/visit/places/1066-battle-of-hastings-abbey-and-battlefield/history-and-stories/battle-of-hastings-location",
+   "kind": "web"
+  },
+  {
+   "title": "History of Battle Abbey and Battlefield — English Heritage",
+   "url": "https://www.english-heritage.org.uk/visit/places/1066-battle-of-hastings-abbey-and-battlefield/history-and-stories/history/",
+   "kind": "web"
+  },
+  {
+   "title": "Hastings 1066 — Battlefields Trust resource centre",
+   "url": "https://www.battlefieldstrust.com/resource-centre/battlepageview.asp?PageId=536",
+   "kind": "web"
+  },
+  {
+   "title": "Terrain: OpenStreetMap (roads, streams) and SRTM 30 m elevation",
+   "url": "https://www.openstreetmap.org/#map=15/50.912/0.490",
+   "kind": "web"
+  }
+ ],
+ "sides": [
+  {
+   "id": "english",
+   "name": "English army",
+   "color": "#b91c1c",
+   "polity": {
+    "name": "Kingdom of England",
+    "wikidata": "Q179876"
+   },
+   "commanders": [
+    {
+     "name": "Harold Godwinson",
+     "wikidata": "Q159597",
+     "role": "King of England (killed)"
+    },
+    {
+     "name": "Gyrth Godwinson",
+     "role": "Earl of East Anglia, Harold's brother (killed)"
+    },
+    {
+     "name": "Leofwine Godwinson",
+     "role": "Earl, Harold's brother (killed)"
+    }
+   ],
+   "strength": "c. 7,000–8,000 (estimates range 5,000–13,000)",
+   "losses": "Perhaps 4,000 killed, including the king and his brothers"
+  },
+  {
+   "id": "normans",
+   "name": "Norman army",
+   "color": "#1d4ed8",
+   "polity": {
+    "name": "Duchy of Normandy",
+    "wikidata": "Q2219635"
+   },
+   "commanders": [
+    {
+     "name": "William the Conqueror",
+     "wikidata": "Q37594",
+     "role": "Duke of Normandy, commander-in-chief"
+    },
+    {
+     "name": "Odo of Bayeux",
+     "role": "Bishop of Bayeux, William's half-brother"
+    },
+    {
+     "name": "Alan the Red",
+     "role": "Breton division (left)"
+    },
+    {
+     "name": "William fitzOsbern",
+     "role": "Franco-Flemish division (right)"
+    },
+    {
+     "name": "Eustace II of Boulogne",
+     "role": "Franco-Flemish division (right)"
+    }
+   ],
+   "strength": "c. 8,000, about a quarter mounted (estimates 7,000–12,000)",
+   "losses": "Perhaps 2,000 killed"
+  }
+ ],
+ "units": [
+  {
+   "id": "fyrd-west",
+   "side": "english",
+   "kind": "infantry",
+   "label": "Fyrd (west wing)",
+   "strength": "c. 2,700",
+   "note": "Shire levies stiffened by thegns; lighter armour than the housecarls"
+  },
+  {
+   "id": "housecarls",
+   "side": "english",
+   "kind": "heavy_infantry",
+   "label": "Housecarls",
+   "strength": "c. 2,000",
+   "note": "Household troops of Harold and his brothers: mail, big shields, two-handed Danish axes"
+  },
+  {
+   "id": "fyrd-east",
+   "side": "english",
+   "kind": "infantry",
+   "label": "Fyrd (east wing)",
+   "strength": "c. 2,700",
+   "note": "Shire levies stiffened by thegns; javelin men and a few archers stood behind the wall"
+  },
+  {
+   "id": "west-pursuers",
+   "side": "english",
+   "kind": "infantry",
+   "label": "English pursuers",
+   "strength": "Several hundred?",
+   "note": "Men of the right wing who chased the routed Bretons down the hill"
+  },
+  {
+   "id": "feint-followers",
+   "side": "english",
+   "kind": "infantry",
+   "label": "English pursuers",
+   "strength": "Several hundred?",
+   "note": "Drawn off the ridge by a feigned flight"
+  },
+  {
+   "id": "harold",
+   "side": "english",
+   "kind": "commander",
+   "label": "Harold",
+   "wikidata": "Q159597",
+   "note": "Fought on foot beside his standards at the crest"
+  },
+  {
+   "id": "breton-archers",
+   "side": "normans",
+   "kind": "archers",
+   "label": "Breton archers",
+   "strength": "c. 500"
+  },
+  {
+   "id": "breton-foot",
+   "side": "normans",
+   "kind": "infantry",
+   "label": "Breton foot",
+   "strength": "c. 1,000",
+   "note": "Bretons with men of Anjou, Poitou and Maine"
+  },
+  {
+   "id": "breton-horse",
+   "side": "normans",
+   "kind": "heavy_cavalry",
+   "label": "Breton horse",
+   "strength": "c. 500"
+  },
+  {
+   "id": "norman-archers",
+   "side": "normans",
+   "kind": "archers",
+   "label": "Norman archers & crossbows",
+   "strength": "c. 1,000",
+   "note": "Self bows, some crossbows and perhaps a few slingers"
+  },
+  {
+   "id": "norman-foot",
+   "side": "normans",
+   "kind": "infantry",
+   "label": "Norman foot",
+   "strength": "c. 2,000",
+   "note": "Spearmen in mail or quilted coats with round or kite shields"
+  },
+  {
+   "id": "norman-knights",
+   "side": "normans",
+   "kind": "heavy_cavalry",
+   "label": "Norman knights",
+   "strength": "c. 1,000",
+   "note": "Mail hauberks, kite shields and lances; fought in small troops"
+  },
+  {
+   "id": "french-archers",
+   "side": "normans",
+   "kind": "archers",
+   "label": "Franco-Flemish archers",
+   "strength": "c. 500"
+  },
+  {
+   "id": "french-foot",
+   "side": "normans",
+   "kind": "infantry",
+   "label": "Franco-Flemish foot",
+   "strength": "c. 1,000",
+   "note": "Frenchmen with men of Picardy, Boulogne and Flanders"
+  },
+  {
+   "id": "french-horse",
+   "side": "normans",
+   "kind": "heavy_cavalry",
+   "label": "Franco-Flemish horse",
+   "strength": "c. 500"
+  },
+  {
+   "id": "william",
+   "side": "normans",
+   "kind": "commander",
+   "label": "William",
+   "wikidata": "Q37594"
+  },
+  {
+   "id": "alan",
+   "side": "normans",
+   "kind": "commander",
+   "label": "Alan the Red"
+  },
+  {
+   "id": "eustace",
+   "side": "normans",
+   "kind": "commander",
+   "label": "Eustace of Boulogne"
+  },
+  {
+   "id": "baggage",
+   "side": "normans",
+   "kind": "baggage",
+   "label": "Clergy & servants",
+   "note": "Waited at the foot of Telham Hill"
+  }
+ ],
+ "terrain": [
+  {
+   "id": "telham-hill",
+   "kind": "hill",
+   "label": "Telham Hill (Blackhorse Hill)",
+   "area": [
+    [
+     0.531271,
+     50.896643
+    ],
+    [
+     0.531287,
+     50.897653
+    ],
+    [
+     0.530533,
+     50.898723
+    ],
+    [
+     0.529059,
+     50.899782
+    ],
+    [
+     0.526966,
+     50.900757
+    ],
+    [
+     0.524397,
+     50.901582
+    ],
+    [
+     0.521527,
+     50.9022
+    ],
+    [
+     0.518551,
+     50.90257
+    ],
+    [
+     0.515672,
+     50.902666
+    ],
+    [
+     0.513087,
+     50.902481
+    ],
+    [
+     0.510971,
+     50.902029
+    ],
+    [
+     0.509469,
+     50.90134
+    ],
+    [
+     0.508683,
+     50.900461
+    ],
+    [
+     0.508667,
+     50.899451
+    ],
+    [
+     0.509421,
+     50.898381
+    ],
+    [
+     0.510895,
+     50.897322
+    ],
+    [
+     0.512988,
+     50.896347
+    ],
+    [
+     0.515557,
+     50.895522
+    ],
+    [
+     0.518427,
+     50.894904
+    ],
+    [
+     0.521403,
+     50.894534
+    ],
+    [
+     0.524282,
+     50.894438
+    ],
+    [
+     0.526867,
+     50.894623
+    ],
+    [
+     0.528983,
+     50.895075
+    ],
+    [
+     0.530485,
+     50.895764
+    ]
+   ]
+  },
+  {
+   "id": "caldbec-hill",
+   "kind": "hill",
+   "label": "Caldbec Hill",
+   "area": [
+    [
+     0.489738,
+     50.922384
+    ],
+    [
+     0.489592,
+     50.922896
+    ],
+    [
+     0.489165,
+     50.923373
+    ],
+    [
+     0.488484,
+     50.923783
+    ],
+    [
+     0.487598,
+     50.924097
+    ],
+    [
+     0.486566,
+     50.924295
+    ],
+    [
+     0.485458,
+     50.924363
+    ],
+    [
+     0.48435,
+     50.924295
+    ],
+    [
+     0.483318,
+     50.924097
+    ],
+    [
+     0.482432,
+     50.923783
+    ],
+    [
+     0.481751,
+     50.923373
+    ],
+    [
+     0.481324,
+     50.922896
+    ],
+    [
+     0.481178,
+     50.922384
+    ],
+    [
+     0.481324,
+     50.921872
+    ],
+    [
+     0.481751,
+     50.921395
+    ],
+    [
+     0.482432,
+     50.920985
+    ],
+    [
+     0.483318,
+     50.920671
+    ],
+    [
+     0.48435,
+     50.920473
+    ],
+    [
+     0.485458,
+     50.920405
+    ],
+    [
+     0.486566,
+     50.920473
+    ],
+    [
+     0.487598,
+     50.920671
+    ],
+    [
+     0.488484,
+     50.920985
+    ],
+    [
+     0.489165,
+     50.921395
+    ],
+    [
+     0.489592,
+     50.921872
+    ]
+   ]
+  },
+  {
+   "id": "senlac-ridge",
+   "kind": "ridge",
+   "label": "Senlac ridge",
+   "line": [
+    [
+     0.478612,
+     50.914065
+    ],
+    [
+     0.481179,
+     50.9142
+    ],
+    [
+     0.484317,
+     50.914362
+    ],
+    [
+     0.48717,
+     50.914452
+    ],
+    [
+     0.490023,
+     50.914488
+    ],
+    [
+     0.49259,
+     50.914335
+    ]
+   ]
+  },
+  {
+   "id": "valley-marsh",
+   "kind": "marsh",
+   "label": "Wet ground",
+   "area": [
+    [
+     0.486742,
+     50.910738
+    ],
+    [
+     0.484888,
+     50.910693
+    ],
+    [
+     0.482463,
+     50.910558
+    ],
+    [
+     0.480038,
+     50.910423
+    ],
+    [
+     0.478612,
+     50.910063
+    ],
+    [
+     0.479182,
+     50.909748
+    ],
+    [
+     0.481036,
+     50.909793
+    ],
+    [
+     0.483176,
+     50.909973
+    ],
+    [
+     0.485173,
+     50.910171
+    ],
+    [
+     0.486742,
+     50.910333
+    ]
+   ]
+  },
+  {
+   "id": "valley-stream",
+   "kind": "stream",
+   "line": [
+    [
+     0.487741,
+     50.910648
+    ],
+    [
+     0.485458,
+     50.910441
+    ],
+    [
+     0.483604,
+     50.910288
+    ],
+    [
+     0.481179,
+     50.910045
+    ],
+    [
+     0.479182,
+     50.909434
+    ],
+    [
+     0.477756,
+     50.908175
+    ],
+    [
+     0.476472,
+     50.906646
+    ]
+   ]
+  },
+  {
+   "id": "hillock",
+   "kind": "hill",
+   "label": "Hillock (approx.)",
+   "area": [
+    [
+     0.47872,
+     50.911345
+    ],
+    [
+     0.478783,
+     50.911489
+    ],
+    [
+     0.478733,
+     50.911648
+    ],
+    [
+     0.478578,
+     50.9118
+    ],
+    [
+     0.478341,
+     50.911919
+    ],
+    [
+     0.478058,
+     50.911989
+    ],
+    [
+     0.477772,
+     50.911998
+    ],
+    [
+     0.477528,
+     50.911946
+    ],
+    [
+     0.477362,
+     50.911839
+    ],
+    [
+     0.477299,
+     50.911695
+    ],
+    [
+     0.477349,
+     50.911536
+    ],
+    [
+     0.477504,
+     50.911384
+    ],
+    [
+     0.477741,
+     50.911265
+    ],
+    [
+     0.478024,
+     50.911195
+    ],
+    [
+     0.47831,
+     50.911186
+    ],
+    [
+     0.478554,
+     50.911238
+    ]
+   ]
+  },
+  {
+   "id": "woods-west",
+   "kind": "woods",
+   "label": "Woods",
+   "area": [
+    [
+     0.478021,
+     50.914875
+    ],
+    [
+     0.478312,
+     50.91576
+    ],
+    [
+     0.478172,
+     50.916599
+    ],
+    [
+     0.477621,
+     50.917265
+    ],
+    [
+     0.476742,
+     50.917656
+    ],
+    [
+     0.475671,
+     50.917713
+    ],
+    [
+     0.47457,
+     50.917426
+    ],
+    [
+     0.473606,
+     50.91684
+    ],
+    [
+     0.472927,
+     50.916043
+    ],
+    [
+     0.472636,
+     50.915158
+    ],
+    [
+     0.472776,
+     50.914319
+    ],
+    [
+     0.473327,
+     50.913653
+    ],
+    [
+     0.474206,
+     50.913262
+    ],
+    [
+     0.475277,
+     50.913205
+    ],
+    [
+     0.476378,
+     50.913492
+    ],
+    [
+     0.477342,
+     50.914078
+    ]
+   ]
+  },
+  {
+   "id": "woods-east",
+   "kind": "woods",
+   "label": "Woods",
+   "area": [
+    [
+     0.49898,
+     50.917243
+    ],
+    [
+     0.49844,
+     50.917778
+    ],
+    [
+     0.497574,
+     50.918139
+    ],
+    [
+     0.496514,
+     50.918269
+    ],
+    [
+     0.495421,
+     50.918149
+    ],
+    [
+     0.494462,
+     50.917798
+    ],
+    [
+     0.493782,
+     50.917269
+    ],
+    [
+     0.493486,
+     50.916642
+    ],
+    [
+     0.493618,
+     50.916013
+    ],
+    [
+     0.494158,
+     50.915478
+    ],
+    [
+     0.495024,
+     50.915117
+    ],
+    [
+     0.496084,
+     50.914987
+    ],
+    [
+     0.497177,
+     50.915107
+    ],
+    [
+     0.498136,
+     50.915458
+    ],
+    [
+     0.498816,
+     50.915987
+    ],
+    [
+     0.499112,
+     50.916614
+    ]
+   ]
+  },
+  {
+   "id": "road",
+   "kind": "road",
+   "label": "Road to Hastings",
+   "line": [
+    [
+     0.481425,
+     50.920386
+    ],
+    [
+     0.482307,
+     50.918431
+    ],
+    [
+     0.485588,
+     50.915795
+    ],
+    [
+     0.486667,
+     50.915155
+    ],
+    [
+     0.490501,
+     50.914371
+    ],
+    [
+     0.491882,
+     50.912885
+    ],
+    [
+     0.492077,
+     50.911987
+    ],
+    [
+     0.493613,
+     50.910823
+    ],
+    [
+     0.496078,
+     50.909697
+    ],
+    [
+     0.499963,
+     50.91001
+    ],
+    [
+     0.507049,
+     50.907979
+    ],
+    [
+     0.514024,
+     50.902685
+    ],
+    [
+     0.51497,
+     50.90145
+    ],
+    [
+     0.520187,
+     50.900512
+    ],
+    [
+     0.522887,
+     50.899621
+    ],
+    [
+     0.528452,
+     50.896807
+    ],
+    [
+     0.538966,
+     50.892931
+    ],
+    [
+     0.545733,
+     50.891287
+    ],
+    [
+     0.552604,
+     50.891465
+    ],
+    [
+     0.555029,
+     50.890791
+    ],
+    [
+     0.556208,
+     50.890025
+    ]
+   ]
+  },
+  {
+   "id": "oakwood-gill",
+   "kind": "stream",
+   "label": "Oakwood Gill (Malfosse?)",
+   "line": [
+    [
+     0.485193,
+     50.925575
+    ],
+    [
+     0.484392,
+     50.92578
+    ],
+    [
+     0.483728,
+     50.926521
+    ],
+    [
+     0.481971,
+     50.926753
+    ],
+    [
+     0.48051,
+     50.9271
+    ]
+   ]
+  },
+  {
+   "id": "standards",
+   "kind": "label",
+   "label": "Standards: Dragon & Fighting Man",
+   "at": [
+    0.486956,
+    50.91456
+   ]
+  },
+  {
+   "id": "hastings",
+   "kind": "town",
+   "label": "Hastings (Norman camp)",
+   "at": [
+    0.58503,
+    50.85602
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "id": "approach",
+   "title": "Two armies close in",
+   "time": "Night of 13 October to c. 8:00",
+   "narrative": "Harold's army, rushed south from London barely two weeks after destroying a Norwegian invasion at Stamford Bridge, spent the night assembling at a landmark the English chronicle calls the hoary apple tree, probably on Caldbec Hill. Before dawn William led his men out of their fortified camp at Hastings and north along the ridgeway. On Telham Hill, about two and a half kilometres short of the English, the column halted so that the knights could put on their mail and the divisions could sort themselves into order. The road they had come up was the only way out of the Norman beachhead, and Harold was already sitting across it.",
+   "positions": {
+    "fyrd-west": {
+     "at": [
+      0.482891,
+      50.922429
+     ],
+     "facing": 175,
+     "width": 200,
+     "depth": 45
+    },
+    "housecarls": {
+     "at": [
+      0.485601,
+      50.922204
+     ],
+     "facing": 175,
+     "width": 160,
+     "depth": 40
+    },
+    "fyrd-east": {
+     "at": [
+      0.488168,
+      50.921934
+     ],
+     "facing": 175,
+     "width": 200,
+     "depth": 45
+    },
+    "harold": {
+     "with": "housecarls"
+    },
+    "french-archers": {
+     "at": [
+      0.514454,
+      50.902124
+     ],
+     "facing": 334,
+     "width": 22,
+     "depth": 105,
+     "shape": "column"
+    },
+    "french-foot": {
+     "at": [
+      0.515728,
+      50.901314
+     ],
+     "facing": 286,
+     "width": 22,
+     "depth": 105,
+     "shape": "column"
+    },
+    "french-horse": {
+     "at": [
+      0.517628,
+      50.900972
+     ],
+     "facing": 286,
+     "width": 22,
+     "depth": 105,
+     "shape": "column"
+    },
+    "norman-archers": {
+     "at": [
+      0.519528,
+      50.90063
+     ],
+     "facing": 286,
+     "width": 22,
+     "depth": 105,
+     "shape": "column"
+    },
+    "norman-foot": {
+     "at": [
+      0.52133,
+      50.900135
+     ],
+     "facing": 298,
+     "width": 22,
+     "depth": 105,
+     "shape": "column"
+    },
+    "norman-knights": {
+     "at": [
+      0.523058,
+      50.899535
+     ],
+     "facing": 302,
+     "width": 22,
+     "depth": 105,
+     "shape": "column"
+    },
+    "breton-archers": {
+     "at": [
+      0.524599,
+      50.898755
+     ],
+     "facing": 309,
+     "width": 22,
+     "depth": 105,
+     "shape": "column"
+    },
+    "breton-foot": {
+     "at": [
+      0.52614,
+      50.897976
+     ],
+     "facing": 309,
+     "width": 22,
+     "depth": 105,
+     "shape": "column"
+    },
+    "breton-horse": {
+     "at": [
+      0.527681,
+      50.897197
+     ],
+     "facing": 309,
+     "width": 22,
+     "depth": 105,
+     "shape": "column"
+    },
+    "william": {
+     "with": "norman-knights"
+    },
+    "alan": {
+     "with": "breton-horse"
+    },
+    "eustace": {
+     "with": "french-horse"
+    },
+    "baggage": {
+     "at": [
+      0.534323,
+      50.894643
+     ]
+    }
+   },
+   "moves": [
+    {
+     "side": "normans",
+     "type": "march",
+     "label": "From the camp at Hastings",
+     "path": [
+      [
+       0.58503,
+       50.85602
+      ],
+      [
+       0.5785,
+       50.8655
+      ],
+      [
+       0.5668,
+       50.8785
+      ],
+      [
+       0.5562,
+       50.89
+      ],
+      [
+       0.555029,
+       50.890791
+      ],
+      [
+       0.552604,
+       50.891465
+      ],
+      [
+       0.545733,
+       50.891287
+      ],
+      [
+       0.538966,
+       50.892931
+      ],
+      [
+       0.528452,
+       50.896807
+      ],
+      [
+       0.522887,
+       50.899621
+      ],
+      [
+       0.520187,
+       50.900512
+      ],
+      [
+       0.51497,
+       50.90145
+      ],
+      [
+       0.514024,
+       50.902685
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      0.485601,
+      50.923373
+     ],
+     "text": "English muster at the hoary apple tree",
+     "kind": "event"
+    },
+    {
+     "at": [
+      0.52133,
+      50.900135
+     ],
+     "text": "Normans halt on Telham Hill to arm",
+     "kind": "event"
+    }
+   ],
+   "camera": {
+    "center": [
+     0.534241,
+     50.890008
+    ],
+    "zoom": 11.6
+   }
+  },
+  {
+   "id": "deployment",
+   "title": "The shield wall and the three divisions",
+   "time": "c. 8:00–9:00",
+   "narrative": "The English came south along the ridge and locked shields on its crest, where Battle Abbey now stands, in a dense line about 750 metres long. The housecarls of the king and his brothers, armoured professionals with long Danish axes, held the centre around Harold's two standards, the Dragon of Wessex and his own Fighting Man; the shire levies of the fyrd filled out the wings. William's army filed down off Telham and spread across the valley in three divisions: Bretons, with men of Anjou, Poitou and Maine, on the left under Alan the Red; Normans in the centre under the duke; and French and Flemish contingents on the right under William fitzOsbern and Eustace of Boulogne. Each division put its bowmen and crossbowmen in front, armoured foot behind them and the mounted knights at the back.",
+   "positions": {
+    "fyrd-west": {
+     "at": [
+      0.482313,
+      50.913764
+     ],
+     "facing": 177,
+     "width": 281,
+     "depth": 16
+    },
+    "housecarls": {
+     "at": [
+      0.486167,
+      50.913885
+     ],
+     "facing": 178,
+     "width": 260,
+     "depth": 16
+    },
+    "fyrd-east": {
+     "at": [
+      0.489937,
+      50.914077
+     ],
+     "facing": 173,
+     "width": 272,
+     "depth": 16
+    },
+    "breton-archers": {
+     "at": [
+      0.48175,
+      50.909389
+     ],
+     "facing": 5,
+     "width": 240,
+     "depth": 8,
+     "shape": "block"
+    },
+    "breton-foot": {
+     "at": [
+      0.481698,
+      50.909013
+     ],
+     "facing": 5,
+     "width": 230,
+     "depth": 14,
+     "shape": "block"
+    },
+    "breton-horse": {
+     "at": [
+      0.481613,
+      50.908404
+     ],
+     "facing": 5,
+     "width": 200,
+     "depth": 22,
+     "shape": "block"
+    },
+    "norman-archers": {
+     "at": [
+      0.487313,
+      50.909973
+     ],
+     "facing": 0,
+     "width": 320,
+     "depth": 8,
+     "shape": "block"
+    },
+    "norman-foot": {
+     "at": [
+      0.487313,
+      50.909595
+     ],
+     "facing": 0,
+     "width": 320,
+     "depth": 16,
+     "shape": "block"
+    },
+    "norman-knights": {
+     "at": [
+      0.487313,
+      50.908966
+     ],
+     "facing": 0,
+     "width": 300,
+     "depth": 24,
+     "shape": "block"
+    },
+    "french-archers": {
+     "at": [
+      0.493018,
+      50.911322
+     ],
+     "facing": 335,
+     "width": 240,
+     "depth": 8,
+     "shape": "block"
+    },
+    "french-foot": {
+     "at": [
+      0.493271,
+      50.91098
+     ],
+     "facing": 335,
+     "width": 230,
+     "depth": 14,
+     "shape": "block"
+    },
+    "french-horse": {
+     "at": [
+      0.493681,
+      50.910425
+     ],
+     "facing": 335,
+     "width": 200,
+     "depth": 22,
+     "shape": "block"
+    },
+    "baggage": {
+     "at": [
+      0.498866,
+      50.907455
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "fyrd-west",
+     "type": "march",
+     "path": [
+      [
+       0.482891,
+       50.922429
+      ],
+      [
+       0.482463,
+       50.918067
+      ],
+      [
+       0.482313,
+       50.913764
+      ]
+     ]
+    },
+    {
+     "unit": "housecarls",
+     "type": "march",
+     "path": [
+      [
+       0.485601,
+       50.922204
+      ],
+      [
+       0.485886,
+       50.918067
+      ],
+      [
+       0.486167,
+       50.913885
+      ]
+     ]
+    },
+    {
+     "unit": "fyrd-east",
+     "type": "march",
+     "path": [
+      [
+       0.488168,
+       50.921934
+      ],
+      [
+       0.488882,
+       50.918067
+      ],
+      [
+       0.489937,
+       50.914077
+      ]
+     ]
+    },
+    {
+     "unit": "breton-archers",
+     "type": "march",
+     "path": [
+      [
+       0.524599,
+       50.898755
+      ],
+      [
+       0.522887,
+       50.899621
+      ],
+      [
+       0.520187,
+       50.900512
+      ],
+      [
+       0.51497,
+       50.90145
+      ],
+      [
+       0.514024,
+       50.902685
+      ],
+      [
+       0.507049,
+       50.907979
+      ],
+      [
+       0.499963,
+       50.91001
+      ],
+      [
+       0.496078,
+       50.909697
+      ],
+      [
+       0.48931,
+       50.907995
+      ],
+      [
+       0.483604,
+       50.908085
+      ],
+      [
+       0.48175,
+       50.909389
+      ]
+     ]
+    },
+    {
+     "unit": "breton-foot",
+     "type": "march",
+     "path": [
+      [
+       0.52614,
+       50.897976
+      ],
+      [
+       0.522887,
+       50.899621
+      ],
+      [
+       0.520187,
+       50.900512
+      ],
+      [
+       0.51497,
+       50.90145
+      ],
+      [
+       0.514024,
+       50.902685
+      ],
+      [
+       0.507049,
+       50.907979
+      ],
+      [
+       0.499963,
+       50.91001
+      ],
+      [
+       0.496078,
+       50.909697
+      ],
+      [
+       0.48931,
+       50.907815
+      ],
+      [
+       0.483604,
+       50.907815
+      ],
+      [
+       0.481698,
+       50.909013
+      ]
+     ]
+    },
+    {
+     "unit": "breton-horse",
+     "type": "march",
+     "path": [
+      [
+       0.527681,
+       50.897197
+      ],
+      [
+       0.522887,
+       50.899621
+      ],
+      [
+       0.520187,
+       50.900512
+      ],
+      [
+       0.51497,
+       50.90145
+      ],
+      [
+       0.514024,
+       50.902685
+      ],
+      [
+       0.507049,
+       50.907979
+      ],
+      [
+       0.499963,
+       50.91001
+      ],
+      [
+       0.496078,
+       50.909697
+      ],
+      [
+       0.48931,
+       50.907455
+      ],
+      [
+       0.483604,
+       50.907365
+      ],
+      [
+       0.481613,
+       50.908404
+      ]
+     ]
+    },
+    {
+     "unit": "norman-archers",
+     "type": "march",
+     "path": [
+      [
+       0.519528,
+       50.90063
+      ],
+      [
+       0.51497,
+       50.90145
+      ],
+      [
+       0.514024,
+       50.902685
+      ],
+      [
+       0.507049,
+       50.907979
+      ],
+      [
+       0.499963,
+       50.91001
+      ],
+      [
+       0.496078,
+       50.909697
+      ],
+      [
+       0.490879,
+       50.909254
+      ],
+      [
+       0.487313,
+       50.909973
+      ]
+     ]
+    },
+    {
+     "unit": "norman-foot",
+     "type": "march",
+     "path": [
+      [
+       0.52133,
+       50.900135
+      ],
+      [
+       0.520187,
+       50.900512
+      ],
+      [
+       0.51497,
+       50.90145
+      ],
+      [
+       0.514024,
+       50.902685
+      ],
+      [
+       0.507049,
+       50.907979
+      ],
+      [
+       0.499963,
+       50.91001
+      ],
+      [
+       0.496078,
+       50.909697
+      ],
+      [
+       0.490879,
+       50.908984
+      ],
+      [
+       0.487313,
+       50.909595
+      ]
+     ]
+    },
+    {
+     "unit": "norman-knights",
+     "type": "march",
+     "path": [
+      [
+       0.523058,
+       50.899535
+      ],
+      [
+       0.520187,
+       50.900512
+      ],
+      [
+       0.51497,
+       50.90145
+      ],
+      [
+       0.514024,
+       50.902685
+      ],
+      [
+       0.507049,
+       50.907979
+      ],
+      [
+       0.499963,
+       50.91001
+      ],
+      [
+       0.496078,
+       50.909697
+      ],
+      [
+       0.490879,
+       50.908624
+      ],
+      [
+       0.487313,
+       50.908966
+      ]
+     ]
+    },
+    {
+     "unit": "french-archers",
+     "type": "march",
+     "path": [
+      [
+       0.514454,
+       50.902124
+      ],
+      [
+       0.514024,
+       50.902685
+      ],
+      [
+       0.507049,
+       50.907979
+      ],
+      [
+       0.499963,
+       50.91001
+      ],
+      [
+       0.496078,
+       50.909697
+      ],
+      [
+       0.493018,
+       50.911322
+      ]
+     ]
+    },
+    {
+     "unit": "french-foot",
+     "type": "march",
+     "path": [
+      [
+       0.515728,
+       50.901314
+      ],
+      [
+       0.51497,
+       50.90145
+      ],
+      [
+       0.514024,
+       50.902685
+      ],
+      [
+       0.507049,
+       50.907979
+      ],
+      [
+       0.499963,
+       50.91001
+      ],
+      [
+       0.496078,
+       50.909697
+      ],
+      [
+       0.493271,
+       50.91098
+      ]
+     ]
+    },
+    {
+     "unit": "french-horse",
+     "type": "march",
+     "path": [
+      [
+       0.517628,
+       50.900972
+      ],
+      [
+       0.51497,
+       50.90145
+      ],
+      [
+       0.514024,
+       50.902685
+      ],
+      [
+       0.507049,
+       50.907979
+      ],
+      [
+       0.499963,
+       50.91001
+      ],
+      [
+       0.496078,
+       50.909697
+      ],
+      [
+       0.493681,
+       50.910425
+      ]
+     ]
+    },
+    {
+     "unit": "baggage",
+     "type": "march",
+     "path": [
+      [
+       0.534323,
+       50.894643
+      ],
+      [
+       0.528452,
+       50.896807
+      ],
+      [
+       0.522887,
+       50.899621
+      ],
+      [
+       0.520187,
+       50.900512
+      ],
+      [
+       0.51497,
+       50.90145
+      ],
+      [
+       0.514024,
+       50.902685
+      ],
+      [
+       0.498866,
+       50.907455
+      ]
+     ]
+    },
+    {
+     "unit": "harold",
+     "type": "march",
+     "path": [
+      [
+       0.485601,
+       50.922204
+      ],
+      [
+       0.485886,
+       50.918067
+      ],
+      [
+       0.486167,
+       50.913885
+      ]
+     ]
+    },
+    {
+     "unit": "william",
+     "type": "march",
+     "path": [
+      [
+       0.523058,
+       50.899535
+      ],
+      [
+       0.520187,
+       50.900512
+      ],
+      [
+       0.51497,
+       50.90145
+      ],
+      [
+       0.514024,
+       50.902685
+      ],
+      [
+       0.507049,
+       50.907979
+      ],
+      [
+       0.499963,
+       50.91001
+      ],
+      [
+       0.496078,
+       50.909697
+      ],
+      [
+       0.490879,
+       50.908624
+      ],
+      [
+       0.487313,
+       50.908966
+      ]
+     ]
+    },
+    {
+     "unit": "alan",
+     "type": "march",
+     "path": [
+      [
+       0.527681,
+       50.897197
+      ],
+      [
+       0.522887,
+       50.899621
+      ],
+      [
+       0.520187,
+       50.900512
+      ],
+      [
+       0.51497,
+       50.90145
+      ],
+      [
+       0.514024,
+       50.902685
+      ],
+      [
+       0.507049,
+       50.907979
+      ],
+      [
+       0.499963,
+       50.91001
+      ],
+      [
+       0.496078,
+       50.909697
+      ],
+      [
+       0.48931,
+       50.907455
+      ],
+      [
+       0.483604,
+       50.907365
+      ],
+      [
+       0.481613,
+       50.908404
+      ]
+     ]
+    },
+    {
+     "unit": "eustace",
+     "type": "march",
+     "path": [
+      [
+       0.517628,
+       50.900972
+      ],
+      [
+       0.51497,
+       50.90145
+      ],
+      [
+       0.514024,
+       50.902685
+      ],
+      [
+       0.507049,
+       50.907979
+      ],
+      [
+       0.499963,
+       50.91001
+      ],
+      [
+       0.496078,
+       50.909697
+      ],
+      [
+       0.493681,
+       50.910425
+      ]
+     ]
+    }
+   ],
+   "notes": [],
+   "camera": {
+    "center": [
+     0.490023,
+     50.910693
+    ],
+    "zoom": 14.4
+   }
+  },
+  {
+   "id": "archery",
+   "title": "Arrows against the shields",
+   "time": "c. 9:00",
+   "narrative": "Trumpets opened the fighting at about nine o'clock. The Norman archers walked up the slope to within easy range and shot into the English line, but shooting uphill at men crouched behind overlapping shields did little damage: arrows stuck in the boards or sailed over the crest. Harold's army had very few archers, so almost nothing came back down that the Normans could gather up and shoot again, and their quivers soon began to run low.",
+   "positions": {
+    "baggage": {
+     "state": "hidden"
+    },
+    "breton-archers": {
+     "at": [
+      0.482178,
+      50.912446
+     ],
+     "facing": 2
+    },
+    "norman-archers": {
+     "at": [
+      0.486457,
+      50.912716
+     ],
+     "facing": 0
+    },
+    "french-archers": {
+     "at": [
+      0.491235,
+      50.913031
+     ],
+     "facing": 340
+    }
+   },
+   "moves": [
+    {
+     "unit": "breton-archers",
+     "type": "advance",
+     "path": [
+      [
+       0.48175,
+       50.909389
+      ],
+      [
+       0.482178,
+       50.912446
+      ]
+     ]
+    },
+    {
+     "unit": "norman-archers",
+     "type": "advance",
+     "path": [
+      [
+       0.487313,
+       50.909973
+      ],
+      [
+       0.486457,
+       50.912716
+      ]
+     ]
+    },
+    {
+     "unit": "french-archers",
+     "type": "advance",
+     "path": [
+      [
+       0.493018,
+       50.911322
+      ],
+      [
+       0.491235,
+       50.913031
+      ]
+     ]
+    },
+    {
+     "unit": "breton-archers",
+     "type": "fire",
+     "path": [
+      [
+       0.482178,
+       50.912446
+      ],
+      [
+       0.482392,
+       50.913553
+      ]
+     ]
+    },
+    {
+     "unit": "norman-archers",
+     "type": "fire",
+     "path": [
+      [
+       0.486457,
+       50.912716
+      ],
+      [
+       0.486314,
+       50.913696
+      ]
+     ]
+    },
+    {
+     "unit": "french-archers",
+     "type": "fire",
+     "path": [
+      [
+       0.491235,
+       50.913031
+      ],
+      [
+       0.490308,
+       50.913858
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      0.48446,
+      50.913166
+     ],
+     "text": "Arrows lodge in shields or fly over the crest",
+     "kind": "event"
+    }
+   ],
+   "focus": [
+    "breton-archers",
+    "norman-archers",
+    "french-archers"
+   ]
+  },
+  {
+   "id": "foot-assault",
+   "title": "The foot climb the hill",
+   "time": "c. 9:30–10:30",
+   "narrative": "The archers fell back and the armoured spearmen of all three divisions laboured up the hill to close with the shield wall. The English met them with thrusting spears, axes, javelins and stones hurled from the rear ranks, and a two-handed Danish axe could split a shield and the man behind it. The Bretons on the left had the steepest climb and the wettest ground to cross at the foot of the slope, and made the least headway.",
+   "positions": {
+    "breton-archers": {
+     "at": [
+      0.48175,
+      50.909389
+     ]
+    },
+    "norman-archers": {
+     "at": [
+      0.487313,
+      50.909973
+     ]
+    },
+    "french-archers": {
+     "at": [
+      0.493018,
+      50.911322
+     ]
+    },
+    "breton-foot": {
+     "state": "engaged",
+     "at": [
+      0.482327,
+      50.913593
+     ],
+     "facing": 357,
+     "depth": 14,
+     "width": 230
+    },
+    "norman-foot": {
+     "state": "engaged",
+     "at": [
+      0.486177,
+      50.913705
+     ],
+     "facing": 358,
+     "depth": 16,
+     "width": 300
+    },
+    "french-foot": {
+     "state": "engaged",
+     "at": [
+      0.48997,
+      50.913907
+     ],
+     "facing": 353,
+     "depth": 14,
+     "width": 230
+    },
+    "fyrd-west": {
+     "state": "engaged"
+    },
+    "housecarls": {
+     "state": "engaged"
+    },
+    "fyrd-east": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "breton-foot",
+     "type": "attack",
+     "path": [
+      [
+       0.481698,
+       50.909013
+      ],
+      [
+       0.482327,
+       50.913593
+      ]
+     ]
+    },
+    {
+     "unit": "norman-foot",
+     "type": "attack",
+     "path": [
+      [
+       0.487313,
+       50.909595
+      ],
+      [
+       0.486177,
+       50.913705
+      ]
+     ]
+    },
+    {
+     "unit": "french-foot",
+     "type": "attack",
+     "path": [
+      [
+       0.493271,
+       50.91098
+      ],
+      [
+       0.48997,
+       50.913907
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      0.486202,
+      50.913256
+     ],
+     "text": "Spears, axes and stones meet the attack",
+     "kind": "clash"
+    }
+   ],
+   "focus": [
+    "breton-foot",
+    "norman-foot",
+    "french-foot"
+   ]
+  },
+  {
+   "id": "cavalry",
+   "title": "The knights ride up in support",
+   "time": "c. 10:30–11:00",
+   "narrative": "With the foot making no impression, William sent his mounted knights up the slope behind them. Riding uphill in small troops they could not build up speed, and no horse would hurl itself onto a solid hedge of shields and blades, so the riders jabbed and threw their lances, wheeled away and came back again. In places the English line bent, but nowhere did it break.",
+   "positions": {
+    "breton-horse": {
+     "state": "engaged",
+     "at": [
+      0.48233,
+      50.913557
+     ],
+     "facing": 357,
+     "depth": 22
+    },
+    "breton-foot": {
+     "state": "ready",
+     "at": [
+      0.482376,
+      50.913001
+     ],
+     "facing": 357,
+     "depth": 14
+    },
+    "norman-knights": {
+     "state": "engaged",
+     "at": [
+      0.486179,
+      50.913669
+     ],
+     "facing": 358,
+     "depth": 24
+    },
+    "norman-foot": {
+     "state": "ready",
+     "at": [
+      0.48621,
+      50.913112
+     ],
+     "facing": 358,
+     "depth": 16
+    },
+    "french-horse": {
+     "state": "engaged",
+     "at": [
+      0.489977,
+      50.913872
+     ],
+     "facing": 353,
+     "depth": 22
+    },
+    "french-foot": {
+     "state": "ready",
+     "at": [
+      0.490085,
+      50.913318
+     ],
+     "facing": 353,
+     "depth": 14
+    }
+   },
+   "moves": [
+    {
+     "unit": "breton-horse",
+     "type": "charge",
+     "path": [
+      [
+       0.481613,
+       50.908404
+      ],
+      [
+       0.48233,
+       50.913557
+      ]
+     ]
+    },
+    {
+     "unit": "norman-knights",
+     "type": "charge",
+     "path": [
+      [
+       0.487313,
+       50.908966
+      ],
+      [
+       0.486179,
+       50.913669
+      ]
+     ]
+    },
+    {
+     "unit": "french-horse",
+     "type": "charge",
+     "path": [
+      [
+       0.493681,
+       50.910425
+      ],
+      [
+       0.489977,
+       50.913872
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      0.487069,
+      50.91305
+     ],
+     "text": "Horses balk at the wall of shields",
+     "kind": "event"
+    }
+   ],
+   "focus": [
+    "breton-horse",
+    "norman-knights",
+    "french-horse"
+   ]
+  },
+  {
+   "id": "breton-rout",
+   "title": "The Breton wing gives way",
+   "time": "Late morning",
+   "narrative": "The left broke first. Horse and foot of the Breton division turned and fled back down the slope, and part of the English right came off the ridge after them to cut down the fugitives in the valley. Alarm ran along the whole Norman line as men began to give ground, and a rumour spread that the duke himself had been killed. Whether Harold ordered the pursuit or his men simply broke ranks is not known; only one late writer says he told them to stand fast.",
+   "positions": {
+    "breton-horse": {
+     "at": [
+      0.480323,
+      50.908354
+     ],
+     "facing": 195,
+     "state": "routed"
+    },
+    "breton-foot": {
+     "at": [
+      0.482463,
+      50.907995
+     ],
+     "facing": 185,
+     "state": "routed"
+    },
+    "breton-archers": {
+     "at": [
+      0.481179,
+      50.907185
+     ],
+     "facing": 190,
+     "state": "routed"
+    },
+    "west-pursuers": {
+     "at": [
+      0.481179,
+      50.910198
+     ],
+     "facing": 190,
+     "width": 180,
+     "depth": 30
+    },
+    "fyrd-west": {
+     "at": [
+      0.48274,
+      50.913778
+     ],
+     "width": 220,
+     "state": "ready"
+    },
+    "norman-knights": {
+     "at": [
+      0.486599,
+      50.911322
+     ],
+     "facing": 0,
+     "state": "wavering"
+    },
+    "norman-foot": {
+     "at": [
+      0.486457,
+      50.910783
+     ],
+     "state": "wavering"
+    },
+    "french-horse": {
+     "at": [
+      0.492876,
+      50.911997
+     ],
+     "facing": 335,
+     "state": "wavering"
+    },
+    "french-foot": {
+     "at": [
+      0.493304,
+      50.911412
+     ],
+     "facing": 335,
+     "state": "wavering"
+    },
+    "housecarls": {
+     "state": "ready"
+    },
+    "fyrd-east": {
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "breton-horse",
+     "type": "rout",
+     "path": [
+      [
+       0.48233,
+       50.913557
+      ],
+      [
+       0.481179,
+       50.910873
+      ],
+      [
+       0.480323,
+       50.908354
+      ]
+     ]
+    },
+    {
+     "unit": "breton-foot",
+     "type": "rout",
+     "path": [
+      [
+       0.482376,
+       50.913001
+      ],
+      [
+       0.482891,
+       50.910873
+      ],
+      [
+       0.482463,
+       50.907995
+      ]
+     ]
+    },
+    {
+     "unit": "breton-archers",
+     "type": "rout",
+     "path": [
+      [
+       0.48175,
+       50.909389
+      ],
+      [
+       0.481179,
+       50.907185
+      ]
+     ]
+    },
+    {
+     "unit": "west-pursuers",
+     "type": "pursuit",
+     "path": [
+      [
+       0.482035,
+       50.913481
+      ],
+      [
+       0.481607,
+       50.911592
+      ],
+      [
+       0.481179,
+       50.910198
+      ]
+     ]
+    },
+    {
+     "unit": "norman-knights",
+     "type": "retreat",
+     "path": [
+      [
+       0.486179,
+       50.913669
+      ],
+      [
+       0.486599,
+       50.911322
+      ]
+     ]
+    },
+    {
+     "unit": "norman-foot",
+     "type": "retreat",
+     "path": [
+      [
+       0.48621,
+       50.913112
+      ],
+      [
+       0.486457,
+       50.910783
+      ]
+     ]
+    },
+    {
+     "unit": "french-horse",
+     "type": "retreat",
+     "path": [
+      [
+       0.489977,
+       50.913872
+      ],
+      [
+       0.492876,
+       50.911997
+      ]
+     ]
+    },
+    {
+     "unit": "french-foot",
+     "type": "retreat",
+     "path": [
+      [
+       0.490085,
+       50.913318
+      ],
+      [
+       0.493304,
+       50.911412
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      0.486742,
+      50.910513
+     ],
+     "text": "Rumour sweeps the line: the duke is dead",
+     "kind": "event"
+    }
+   ],
+   "focus": [
+    "breton-horse",
+    "breton-foot",
+    "west-pursuers"
+   ]
+  },
+  {
+   "id": "hillock",
+   "title": "William lifts his helmet",
+   "time": "Late morning",
+   "narrative": "William rode across the front of his wavering men, pushed his helmet back so they could see his face and shouted that he was alive; the Bayeux Tapestry shows Bishop Odo rallying the young horsemen at the same moment. Knights from the centre wheeled left into the flank of the English who had come down the hill. Cut off from their line, the pursuers gathered on a small hillock and were surrounded and killed there. The Tapestry puts the deaths of Harold's brothers Gyrth and Leofwine just before this scene, although William of Poitiers says their bodies lay close to the king's.",
+   "positions": {
+    "norman-knights": {
+     "at": [
+      0.479797,
+      50.911397
+     ],
+     "facing": 280,
+     "width": 200,
+     "state": "engaged"
+    },
+    "breton-horse": {
+     "at": [
+      0.477756,
+      50.910573
+     ],
+     "facing": 10,
+     "width": 180,
+     "state": "engaged"
+    },
+    "west-pursuers": {
+     "at": [
+      0.478041,
+      50.911592
+     ],
+     "facing": 150,
+     "width": 120,
+     "depth": 95,
+     "shape": "circle",
+     "state": "destroyed"
+    },
+    "breton-foot": {
+     "at": [
+      0.482035,
+      50.908804
+     ],
+     "facing": 5,
+     "state": "ready"
+    },
+    "breton-archers": {
+     "at": [
+      0.48175,
+      50.908175
+     ],
+     "facing": 5,
+     "state": "ready"
+    },
+    "norman-foot": {
+     "state": "ready"
+    },
+    "french-horse": {
+     "state": "ready"
+    },
+    "french-foot": {
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "norman-knights",
+     "type": "charge",
+     "path": [
+      [
+       0.486599,
+       50.911322
+      ],
+      [
+       0.482891,
+       50.910693
+      ],
+      [
+       0.479797,
+       50.911397
+      ]
+     ]
+    },
+    {
+     "unit": "breton-horse",
+     "type": "charge",
+     "path": [
+      [
+       0.480323,
+       50.908354
+      ],
+      [
+       0.478041,
+       50.909254
+      ],
+      [
+       0.477756,
+       50.910573
+      ]
+     ]
+    },
+    {
+     "unit": "west-pursuers",
+     "type": "retreat",
+     "path": [
+      [
+       0.481179,
+       50.910198
+      ],
+      [
+       0.478041,
+       50.911592
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      0.482463,
+      50.910198
+     ],
+     "text": "William bares his face to show he lives",
+     "kind": "event"
+    },
+    {
+     "at": [
+      0.478041,
+      50.912087
+     ],
+     "text": "English cut down on a hillock",
+     "kind": "clash"
+    }
+   ],
+   "focus": [
+    "norman-knights",
+    "west-pursuers",
+    "william"
+   ]
+  },
+  {
+   "id": "feigned-flight",
+   "title": "The feigned flight",
+   "time": "Early afternoon",
+   "narrative": "After a lull in which both armies re-formed, the Normans turned the morning's near disaster into a ruse. A body of horsemen rode up against the English line, then pretended to break and galloped back down the slope. Remembering how the Bretons had run, a group of Englishmen left the wall to chase them. Where on the field this happened is not recorded; the map shows it on the right, where the gentler saddle suited horses.",
+   "positions": {
+    "west-pursuers": {
+     "state": "hidden"
+    },
+    "norman-knights": {
+     "at": [
+      0.486742,
+      50.911592
+     ],
+     "facing": 0,
+     "width": 300,
+     "state": "ready"
+    },
+    "breton-horse": {
+     "at": [
+      0.48175,
+      50.909614
+     ],
+     "facing": 5,
+     "width": 200,
+     "state": "ready"
+    },
+    "breton-foot": {
+     "at": [
+      0.481892,
+      50.910243
+     ],
+     "facing": 5
+    },
+    "norman-foot": {
+     "at": [
+      0.486599,
+      50.910873
+     ]
+    },
+    "french-foot": {
+     "at": [
+      0.4953,
+      50.909209
+     ],
+     "facing": 335
+    },
+    "french-archers": {
+     "at": [
+      0.496656,
+      50.910063
+     ],
+     "facing": 335
+    },
+    "french-horse": {
+     "at": [
+      0.49473,
+      50.910063
+     ],
+     "facing": 150
+    },
+    "feint-followers": {
+     "at": [
+      0.493161,
+      50.911007
+     ],
+     "facing": 150,
+     "width": 150,
+     "depth": 30
+    },
+    "fyrd-east": {
+     "at": [
+      0.490291,
+      50.914104
+     ],
+     "width": 230
+    }
+   },
+   "moves": [
+    {
+     "unit": "french-horse",
+     "type": "feint",
+     "path": [
+      [
+       0.492876,
+       50.911997
+      ],
+      [
+       0.491449,
+       50.913346
+      ],
+      [
+       0.492662,
+       50.913256
+      ],
+      [
+       0.49473,
+       50.910063
+      ]
+     ],
+     "label": "Feigned flight"
+    },
+    {
+     "unit": "feint-followers",
+     "type": "pursuit",
+     "path": [
+      [
+       0.490736,
+       50.91384
+      ],
+      [
+       0.491449,
+       50.912491
+      ],
+      [
+       0.493161,
+       50.911007
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      0.495158,
+      50.911322
+     ],
+     "text": "Horsemen feign flight to draw the English out",
+     "kind": "event"
+    }
+   ],
+   "focus": [
+    "french-horse",
+    "feint-followers"
+   ],
+   "camera": {
+    "center": [
+     0.491734,
+     50.911592
+    ],
+    "zoom": 15.2
+   }
+  },
+  {
+   "id": "trap",
+   "title": "The trap closes",
+   "time": "Early afternoon",
+   "narrative": "Once their pursuers were well clear of the ridge, the fleeing riders wheeled about while other knights rode in from the flank, and the English were caught in the open and killed. William of Poitiers says the ruse was played twice, and most historians accept that feigned flights, a manoeuvre known to Norman and Breton horsemen, were used that day. Each time the shield wall closed up behind its losses, levies of the fyrd taking the places of fallen housecarls, but the line was growing shorter and thinner.",
+   "positions": {
+    "feint-followers": {
+     "at": [
+      0.493161,
+      50.911007
+     ],
+     "width": 90,
+     "depth": 60,
+     "shape": "circle",
+     "state": "destroyed"
+    },
+    "french-horse": {
+     "at": [
+      0.493867,
+      50.910562
+     ],
+     "facing": 315,
+     "state": "engaged"
+    },
+    "norman-knights": {
+     "at": [
+      0.491616,
+      50.910835
+     ],
+     "facing": 80,
+     "width": 220,
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "french-horse",
+     "type": "charge",
+     "path": [
+      [
+       0.49473,
+       50.910063
+      ],
+      [
+       0.495158,
+       50.910513
+      ],
+      [
+       0.493867,
+       50.910562
+      ]
+     ]
+    },
+    {
+     "unit": "norman-knights",
+     "type": "charge",
+     "path": [
+      [
+       0.486742,
+       50.911592
+      ],
+      [
+       0.489452,
+       50.911052
+      ],
+      [
+       0.491616,
+       50.910835
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      0.493161,
+      50.911547
+     ],
+     "text": "Riders wheel and cut down the pursuers",
+     "kind": "clash"
+    }
+   ],
+   "focus": [
+    "french-horse",
+    "norman-knights",
+    "feint-followers"
+   ],
+   "camera": {
+    "center": [
+     0.491734,
+     50.911592
+    ],
+    "zoom": 15.2
+   }
+  },
+  {
+   "id": "attrition",
+   "title": "The long afternoon",
+   "time": "c. 14:00–16:00",
+   "narrative": "Through the afternoon William alternated his arms: archers to wear the line down, then foot and horse together to test it. Twelfth-century writers say he had the bowmen shoot high so that their arrows dropped onto the ranks behind the shields, though the accounts written soon after the battle do not mention it. The duke fought in the thick of it and had two or, by another account, three horses killed under him. The English, exhausted and bleeding, held a front that had shrunk inwards along the crest.",
+   "positions": {
+    "fyrd-west": {
+     "state": "engaged",
+     "at": [
+      0.482886,
+      50.913795
+     ],
+     "facing": 177,
+     "width": 240,
+     "depth": 14
+    },
+    "housecarls": {
+     "state": "engaged",
+     "at": [
+      0.48624,
+      50.913885
+     ],
+     "facing": 178,
+     "width": 230,
+     "depth": 14
+    },
+    "fyrd-east": {
+     "state": "engaged",
+     "at": [
+      0.489514,
+      50.914029
+     ],
+     "facing": 174,
+     "width": 231,
+     "depth": 14
+    },
+    "feint-followers": {
+     "state": "hidden"
+    },
+    "breton-foot": {
+     "state": "engaged",
+     "at": [
+      0.482899,
+      50.913633
+     ],
+     "facing": 357,
+     "depth": 14,
+     "width": 220
+    },
+    "norman-foot": {
+     "state": "engaged",
+     "at": [
+      0.486249,
+      50.913714
+     ],
+     "facing": 358,
+     "depth": 16,
+     "width": 240
+    },
+    "french-foot": {
+     "state": "engaged",
+     "at": [
+      0.489541,
+      50.913868
+     ],
+     "facing": 354,
+     "depth": 14,
+     "width": 210
+    },
+    "breton-archers": {
+     "at": [
+      0.480466,
+      50.912761
+     ],
+     "facing": 10
+    },
+    "norman-archers": {
+     "at": [
+      0.484175,
+      50.912716
+     ],
+     "facing": 0
+    },
+    "french-archers": {
+     "at": [
+      0.491734,
+      50.912716
+     ],
+     "facing": 330
+    },
+    "breton-horse": {
+     "at": [
+      0.482463,
+      50.911907
+     ],
+     "facing": 0,
+     "state": "ready"
+    },
+    "norman-knights": {
+     "at": [
+      0.486742,
+      50.912042
+     ],
+     "facing": 0,
+     "width": 260,
+     "state": "ready"
+    },
+    "french-horse": {
+     "at": [
+      0.491449,
+      50.911952
+     ],
+     "facing": 335,
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "breton-foot",
+     "type": "attack",
+     "path": [
+      [
+       0.481892,
+       50.910243
+      ],
+      [
+       0.482899,
+       50.913633
+      ]
+     ]
+    },
+    {
+     "unit": "norman-foot",
+     "type": "attack",
+     "path": [
+      [
+       0.486599,
+       50.910873
+      ],
+      [
+       0.486249,
+       50.913714
+      ]
+     ]
+    },
+    {
+     "unit": "french-foot",
+     "type": "attack",
+     "path": [
+      [
+       0.4953,
+       50.909209
+      ],
+      [
+       0.489541,
+       50.913868
+      ]
+     ]
+    },
+    {
+     "unit": "breton-archers",
+     "type": "fire",
+     "path": [
+      [
+       0.480466,
+       50.912761
+      ],
+      [
+       0.482463,
+       50.91411
+      ]
+     ],
+     "label": "Shot high"
+    },
+    {
+     "unit": "norman-archers",
+     "type": "fire",
+     "path": [
+      [
+       0.484175,
+       50.912716
+      ],
+      [
+       0.485601,
+       50.91429
+      ]
+     ]
+    },
+    {
+     "unit": "french-archers",
+     "type": "fire",
+     "path": [
+      [
+       0.491734,
+       50.912716
+      ],
+      [
+       0.489595,
+       50.91438
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      0.488311,
+      50.911412
+     ],
+     "text": "William loses horses killed under him",
+     "kind": "event"
+    }
+   ]
+  },
+  {
+   "id": "harold-falls",
+   "title": "Harold falls",
+   "time": "Late afternoon",
+   "narrative": "Late in the day Harold was killed beside his standards on the crest. The Bayeux Tapestry shows one warrior with an arrow at his eye and another cut down by a horseman beneath the words announcing the king's death; whether Harold is one figure, the other or both is still argued over. With the king dead the English wings broke and began to flee north, while the royal household fought on around his body until it was overwhelmed. The high altar of Battle Abbey was later raised over the spot.",
+   "positions": {
+    "housecarls": {
+     "at": [
+      0.486956,
+      50.91429
+     ],
+     "facing": 175,
+     "width": 130,
+     "depth": 110,
+     "shape": "circle"
+    },
+    "harold": {
+     "at": [
+      0.487099,
+      50.914335
+     ],
+     "state": "destroyed"
+    },
+    "norman-knights": {
+     "at": [
+      0.486742,
+      50.913526
+     ],
+     "facing": 0,
+     "width": 200,
+     "state": "engaged"
+    },
+    "breton-horse": {
+     "at": [
+      0.483604,
+      50.9142
+     ],
+     "facing": 60,
+     "width": 160,
+     "state": "engaged"
+    },
+    "french-horse": {
+     "at": [
+      0.489595,
+      50.91447
+     ],
+     "facing": 290,
+     "width": 160,
+     "state": "engaged"
+    },
+    "fyrd-west": {
+     "at": [
+      0.482035,
+      50.916358
+     ],
+     "facing": 330,
+     "state": "routed"
+    },
+    "fyrd-east": {
+     "at": [
+      0.489595,
+      50.916628
+     ],
+     "facing": 350,
+     "state": "routed"
+    },
+    "breton-foot": {
+     "at": [
+      0.482463,
+      50.913436
+     ],
+     "state": "ready"
+    },
+    "norman-foot": {
+     "at": [
+      0.486314,
+      50.912941
+     ],
+     "state": "ready"
+    },
+    "french-foot": {
+     "at": [
+      0.490736,
+      50.913481
+     ],
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "norman-knights",
+     "type": "charge",
+     "path": [
+      [
+       0.486742,
+       50.912042
+      ],
+      [
+       0.486599,
+       50.913031
+      ],
+      [
+       0.486742,
+       50.913526
+      ]
+     ]
+    },
+    {
+     "unit": "breton-horse",
+     "type": "charge",
+     "path": [
+      [
+       0.482463,
+       50.911907
+      ],
+      [
+       0.482463,
+       50.913211
+      ],
+      [
+       0.483604,
+       50.9142
+      ]
+     ]
+    },
+    {
+     "unit": "french-horse",
+     "type": "charge",
+     "path": [
+      [
+       0.491449,
+       50.911952
+      ],
+      [
+       0.490879,
+       50.913301
+      ],
+      [
+       0.489595,
+       50.91447
+      ]
+     ]
+    },
+    {
+     "unit": "fyrd-west",
+     "type": "rout",
+     "path": [
+      [
+       0.482886,
+       50.913795
+      ],
+      [
+       0.482463,
+       50.91465
+      ],
+      [
+       0.482035,
+       50.916358
+      ]
+     ]
+    },
+    {
+     "unit": "fyrd-east",
+     "type": "rout",
+     "path": [
+      [
+       0.489514,
+       50.914029
+      ],
+      [
+       0.490023,
+       50.91483
+      ],
+      [
+       0.489595,
+       50.916628
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      0.488026,
+      50.914065
+     ],
+     "text": "Harold is killed beside his standards",
+     "kind": "death"
+    }
+   ],
+   "focus": [
+    "housecarls",
+    "harold",
+    "norman-knights"
+   ]
+  },
+  {
+   "id": "malfosse",
+   "title": "Rout and the Malfosse",
+   "time": "Dusk, c. 17:00",
+   "narrative": "As the light failed the English streamed back over Caldbec Hill towards the woods of the Weald, the way they had come, with Norman horsemen at their heels. At a place later remembered as the Malfosse, the evil ditch, a band of them turned at a steep ravine or old earthwork; pursuing riders tumbled into it in the dusk and Eustace of Boulogne was badly wounded before the English were overcome. William spent the night on the battlefield among the dead, and Harold's Fighting Man banner was later sent to the pope.",
+   "positions": {
+    "housecarls": {
+     "state": "destroyed"
+    },
+    "fyrd-west": {
+     "at": [
+      0.478041,
+      50.924632
+     ],
+     "facing": 330,
+     "width": 200
+    },
+    "fyrd-east": {
+     "at": [
+      0.483604,
+      50.926926
+     ],
+     "facing": 180,
+     "width": 170,
+     "depth": 30,
+     "state": "engaged",
+     "label": "Rearguard at the Malfosse"
+    },
+    "norman-knights": {
+     "at": [
+      0.483604,
+      50.925757
+     ],
+     "facing": 0,
+     "width": 180,
+     "state": "engaged"
+    },
+    "french-horse": {
+     "at": [
+      0.486742,
+      50.925217
+     ],
+     "facing": 320,
+     "width": 150,
+     "state": "engaged"
+    },
+    "breton-horse": {
+     "at": [
+      0.479182,
+      50.922923
+     ],
+     "facing": 330,
+     "width": 150,
+     "state": "ready"
+    },
+    "william": {
+     "at": [
+      0.487741,
+      50.91393
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "fyrd-west",
+     "type": "rout",
+     "path": [
+      [
+       0.482035,
+       50.916358
+      ],
+      [
+       0.480323,
+       50.920136
+      ],
+      [
+       0.478041,
+       50.924632
+      ]
+     ]
+    },
+    {
+     "unit": "fyrd-east",
+     "type": "rout",
+     "path": [
+      [
+       0.489595,
+       50.916628
+      ],
+      [
+       0.486029,
+       50.920136
+      ],
+      [
+       0.485173,
+       50.923283
+      ],
+      [
+       0.483604,
+       50.926926
+      ]
+     ]
+    },
+    {
+     "unit": "norman-knights",
+     "type": "pursuit",
+     "path": [
+      [
+       0.486742,
+       50.913526
+      ],
+      [
+       0.485886,
+       50.917887
+      ],
+      [
+       0.48503,
+       50.922384
+      ],
+      [
+       0.483604,
+       50.925757
+      ]
+     ]
+    },
+    {
+     "unit": "french-horse",
+     "type": "pursuit",
+     "path": [
+      [
+       0.489595,
+       50.91447
+      ],
+      [
+       0.488596,
+       50.918787
+      ],
+      [
+       0.48717,
+       50.923283
+      ],
+      [
+       0.486742,
+       50.925217
+      ]
+     ]
+    },
+    {
+     "unit": "breton-horse",
+     "type": "pursuit",
+     "path": [
+      [
+       0.483604,
+       50.9142
+      ],
+      [
+       0.481179,
+       50.918787
+      ],
+      [
+       0.479182,
+       50.922923
+      ]
+     ]
+    },
+    {
+     "unit": "alan",
+     "type": "pursuit",
+     "path": [
+      [
+       0.483604,
+       50.9142
+      ],
+      [
+       0.481179,
+       50.918787
+      ],
+      [
+       0.479182,
+       50.922923
+      ]
+     ]
+    },
+    {
+     "unit": "eustace",
+     "type": "pursuit",
+     "path": [
+      [
+       0.489595,
+       50.91447
+      ],
+      [
+       0.488596,
+       50.918787
+      ],
+      [
+       0.48717,
+       50.923283
+      ],
+      [
+       0.486742,
+       50.925217
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      0.481892,
+      50.926566
+     ],
+     "text": "Malfosse: riders plunge into a hidden ditch",
+     "kind": "clash"
+    },
+    {
+     "at": [
+      0.488311,
+      50.924812
+     ],
+     "text": "Eustace of Boulogne badly wounded",
+     "kind": "event"
+    },
+    {
+     "at": [
+      0.488026,
+      50.9142
+     ],
+     "text": "Harold's standard taken",
+     "kind": "capture"
+    }
+   ],
+   "camera": {
+    "center": [
+     0.48503,
+     50.920765
+    ],
+    "zoom": 13.9
+   }
+  }
+ ]
+}

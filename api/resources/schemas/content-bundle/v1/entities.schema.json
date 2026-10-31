@@ -60,6 +60,9 @@
         "significance": {
             "type": ["string", "null"]
         },
+        "description": {
+            "type": ["string", "null"]
+        },
         "impact_score": {
             "type": ["integer", "null"]
         },

@@ -3,6 +3,7 @@ import type { GeoJSONSource, ProjectionSpecification, StyleSpecification } from 
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useEffect, useRef } from 'react';
+import { StoryOverlay } from '@/components/map/StoryOverlay';
 import {
   useBasemap,
   useEntitiesInView,
@@ -16,7 +17,8 @@ import {
 } from '@/hooks';
 import { instantYear } from '@/lib/format';
 import { loadHistoricalBasemapStyle } from '@/lib/map-config';
-import { registerGroupMarkers, refreshGroupMarkers } from '@/lib/map-icons';
+import { registerGroupMarkers, refreshGroupMarkers, STORY_MARKER_ID } from '@/lib/map-icons';
+import { STORY_SOURCES } from '@/lib/map-story/layers';
 import {
   applyEntityLayerFilters,
   ENTITY_SOURCE_LAYER,
@@ -123,11 +125,19 @@ function addEntityLayers(map: maplibregl.Map, data: FeatureCollection | undefine
     paint: { 'line-color': groupColor, 'line-width': 1 },
   });
 
-  // Group marker icon, shared by the symbol and hover layers.
+  // Marker icon, shared by the symbol and hover layers: the battle-map pin
+  // for an entity with a map story (REST and tile `has_map_story`), else its
+  // group icon. A playable battle map also gets a slightly larger pin.
+  const hasMapStory: maplibregl.ExpressionSpecification = ['==', ['get', 'has_map_story'], true];
   const markerIcon: maplibregl.ExpressionSpecification = [
-    'coalesce',
-    ['image', ['concat', 'marker-', ['get', 'entity_group']]],
-    ['image', 'marker-DEFAULT'],
+    'case',
+    hasMapStory,
+    ['image', STORY_MARKER_ID],
+    [
+      'coalesce',
+      ['image', ['concat', 'marker-', ['get', 'entity_group']]],
+      ['image', 'marker-DEFAULT'],
+    ],
   ];
 
   // Points (OHM-linked / unplaced entities) — group icon + label.
@@ -139,7 +149,7 @@ function addEntityLayers(map: maplibregl.Map, data: FeatureCollection | undefine
     filter: isPoint,
     layout: {
       'icon-image': markerIcon,
-      'icon-size': 0.8,
+      'icon-size': ['case', hasMapStory, 0.95, 0.8],
       'icon-allow-overlap': true,
       'icon-anchor': 'bottom',
       'text-field': ['get', 'name'],
@@ -175,7 +185,7 @@ function addEntityLayers(map: maplibregl.Map, data: FeatureCollection | undefine
     source: HOVER_SOURCE,
     layout: {
       'icon-image': markerIcon,
-      'icon-size': 1.05,
+      'icon-size': ['case', hasMapStory, 1.2, 1.05],
       'icon-allow-overlap': true,
       'icon-ignore-placement': true,
       'icon-anchor': 'bottom',
@@ -314,6 +324,8 @@ export function MapCanvas() {
         applyOhmLayerDateFilter(map, yearToOhmDate(yearRef.current));
         styleReadyRef.current = true;
         setMap(map);
+        // Tell other overlays (the battle map) to re-add their layers on top.
+        useEphemeralStore.getState().bumpStyleEpoch();
       });
 
       // Pointer cursor over our own clickable features. Layer-scoped handlers
@@ -343,6 +355,10 @@ export function MapCanvas() {
           void selectRef.current(id);
           return;
         }
+
+        // During a battle map the basemap isn't clickable: its own layers
+        // handle clicks on units, and stray clicks shouldn't open entities.
+        if (map.getSource(STORY_SOURCES.units)) return;
 
         const seq = ++clickSeq;
         void resolveOhmClickToEntity(map, e, yearRef.current).then(
@@ -383,7 +399,14 @@ export function MapCanvas() {
         mapHover = id;
       };
       map.on('mousemove', (e) => {
-        if (styleReadyRef.current) setMapHover(correlation.entityAt(e.point, SYMBOL_LAYER));
+        if (!styleReadyRef.current) return;
+        // During a battle map our markers are hidden and OHM labels are not
+        // hover targets either (as with clicks above).
+        if (map.getSource(STORY_SOURCES.units)) {
+          setMapHover(null);
+          return;
+        }
+        setMapHover(correlation.entityAt(e.point, SYMBOL_LAYER));
       });
       map.on('mouseout', () => setMapHover(null));
       // Idle OHM polygon layers go before the new view fetches their tiles.
@@ -500,5 +523,10 @@ export function MapCanvas() {
     void refreshGroupMarkers(map);
   }, [theme]);
 
-  return <div ref={containerRef} className="absolute inset-0 h-full w-full" />;
+  return (
+    <>
+      <div ref={containerRef} className="absolute inset-0 h-full w-full" />
+      <StoryOverlay />
+    </>
+  );
 }

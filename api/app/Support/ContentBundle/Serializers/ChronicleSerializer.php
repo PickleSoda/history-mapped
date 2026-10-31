@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 final class ChronicleSerializer implements RecordSerializer
 {
     private const COLUMNS = [
-        'chronicle_id', 'slug', 'title', 'source_type', 'source_reference', 'status', 'start_year',
+        'chronicle_id', 'slug', 'title', 'description', 'source_type', 'source_reference', 'status', 'start_year',
         'end_year', 'impact_score', 'approximate_location', 'metadata',
     ];
 
@@ -46,6 +46,7 @@ final class ChronicleSerializer implements RecordSerializer
             'id' => $r('chronicle_id'),
             'slug' => $r('slug'),
             'title' => $r('title'),
+            'description' => $r('description'),
             'source_type' => $r('source_type'),
             'source_reference' => $r('source_reference'),
             'status' => $r('status'),

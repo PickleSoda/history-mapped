@@ -7,6 +7,7 @@ export { useFilters } from './useFilters';
 export { useSelection } from './useSelection';
 export { useSearchQuery } from './useSearchQuery';
 export { useChronicleNav } from './useChronicleNav';
+export { useStoryNav } from './useStoryNav';
 export { useView } from './useView';
 export { useBasemap } from './useBasemap';
 export { useFullPage } from './useFullPage';
@@ -24,6 +25,7 @@ export { useEntityGeometries } from './useEntityGeometries';
 export { useSearch, useHighlights, useTimelineDensity } from './useDiscovery';
 export { useEntitySearch } from './useEntitySearch';
 export { useChronicle } from './useChronicle';
+export { useMapStory } from './useMapStory';
 export { useChronicleList } from './useChronicleList';
 export { useTags } from './useTags';
 export { useBrowseTab, useChronicleTags, useShowChroniclesTagged } from './useChronicleTags';
@@ -57,6 +59,7 @@ export {
 // Ephemeral / imperative
 export {
   useMapInstance,
+  useStyleEpoch,
   useLiveScrub,
   useHover,
   useSheet,

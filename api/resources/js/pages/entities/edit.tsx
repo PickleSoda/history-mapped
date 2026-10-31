@@ -50,6 +50,7 @@ function entityToFormData(entity: EntityDetail): EntityFormData {
         entity_group: entity.entity_group ?? '',
         summary: entity.summary ?? '',
         significance: entity.significance ?? '',
+        description: entity.description ?? '',
         temporal_start: entity.temporal_start ?? '',
         temporal_end: entity.temporal_end ?? '',
         date_raw: entity.date_raw ?? '',

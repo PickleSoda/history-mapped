@@ -99,11 +99,11 @@ Each record has `id`, a lowercase UUID. Nested lists are owned child rows that a
 
 | File | Keys, in order |
 |------|----------------|
-| `entities.jsonl` | `id`, `name`, `entity_type`, `wikidata_id`, `summary`, `significance`, `impact_score`, `display_priority`, `icon_class`, `confidence`, `verification_status`, `date_method`, `date_confidence`, `duration_type`, `location_method`, `location_confidence`, `primary_geo_ref_id`, `attributes`, `source_citations`, `aliases`, `tags`, `temporal_ranges`, `locations` |
+| `entities.jsonl` | `id`, `name`, `entity_type`, `wikidata_id`, `summary`, `significance`, `description`, `impact_score`, `display_priority`, `icon_class`, `confidence`, `verification_status`, `date_method`, `date_confidence`, `duration_type`, `location_method`, `location_confidence`, `primary_geo_ref_id`, `attributes`, `source_citations`, `aliases`, `tags`, `temporal_ranges`, `locations` |
 | `relationships.jsonl` | `id`, `source_entity_id`, `target_entity_id`, `relationship_type`, `temporal_start`, `temporal_end`, `start_year`, `end_year`, `description`, `confidence`, `derive_geometry_period`, `source_citations` |
 | `geometry_periods.jsonl` | `id`, `entity_id`, `period_type`, `start_year`, `end_year`, `description`, `confidence`, `provenance_mode`, `relationship_id`, `source_event_id`, `geom`, `territory_geom` |
 | `geo_refs.jsonl` | `id`, `entity_id`, `provider`, `external_type`, `external_id`, `match_role`, `retrieval_method`, `temporal_start`, `temporal_end`, `temporal_start_year`, `temporal_end_year`, `geometry_period_id`, `match_score`, `is_active`, `external_tags`, `source_meta` |
-| `chronicles.jsonl` | `id`, `slug`, `title`, `source_type`, `source_reference`, `status`, `start_year`, `end_year`, `impact_score`, `approximate_location`, `metadata`, `tags` |
+| `chronicles.jsonl` | `id`, `slug`, `title`, `description`, `source_type`, `source_reference`, `status`, `start_year`, `end_year`, `impact_score`, `approximate_location`, `metadata`, `tags` |
 | `chronicle_entries.jsonl` | `id`, `chronicle_id`, `sequence_order`, `start_year`, `end_year`, `impact_score`, `primary_relationship_id`, `narrative_text`, `notes`, `approximate_location`, `source_evidence`, `generated_by`, `entities` |
 
 Every line may also carry `_op` (see [Editing rules](#editing-rules)). The exporter never writes it.

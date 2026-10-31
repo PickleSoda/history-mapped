@@ -11,6 +11,7 @@
  */
 import { z } from 'zod';
 import { ENTITY_GROUPS } from '@/types/atlas';
+import { MapStorySummarySchema } from './map-story';
 
 /** Map the backend's UPPERCASE group to the frontend lowercase token. Tolerant:
  *  an unexpected/null group falls back rather than failing the whole response. */
@@ -88,6 +89,8 @@ export const EntityDetailSchema = z.object({
   entity_group: GroupFromApi,
   summary: z.string().nullable().default(null),
   significance: z.string().nullable().default(null),
+  /** Long-form text: plain paragraphs separated by blank lines. */
+  description: z.string().nullable().catch(null).default(null),
   tags: StringList,
   impact_score: z.number().nullable().default(null),
   // Backend sends `[]` (a JSON array) when an entity has no attributes, which a
@@ -111,6 +114,8 @@ export const EntityDetailSchema = z.object({
   source_citations: z.unknown().nullable().default(null),
   media_refs: z.unknown().nullable().default(null),
   timeline_entries_count: z.number().nullable().catch(null),
+  /** Step-by-step battle maps attached to this entity. */
+  map_stories: z.array(MapStorySummarySchema).catch([]).default([]),
 });
 export type EntityDetail = z.infer<typeof EntityDetailSchema>;
 

@@ -1,6 +1,6 @@
 import { useQueryStates } from 'nuqs';
 import { useCallback } from 'react';
-import { parseAsChronicle, parseAsStep } from '@/lib/url/params';
+import { parseAsChronicle, parseAsStep, parseAsStory, parseAsStoryStep } from '@/lib/url/params';
 import { useSelection } from './useSelection';
 
 /**
@@ -14,17 +14,19 @@ export function useChronicleNav() {
     {
       chron: parseAsChronicle,
       step: parseAsStep.withDefault(0),
+      story: parseAsStory,
+      sstep: parseAsStoryStep,
     },
     { history: 'push' },
   );
   const { clear: clearSelection } = useSelection();
 
   // Entering a chronicle closes any open entity — the right panel shows the
-  // tour OR the detail, never both.
+  // tour OR the detail, never both — and any battle map, which shares its panel.
   const enter = useCallback(
     (id: string) => {
       clearSelection();
-      set({ chron: id, step: 0 });
+      set({ chron: id, step: 0, story: null, sstep: null });
     },
     [set, clearSelection],
   );

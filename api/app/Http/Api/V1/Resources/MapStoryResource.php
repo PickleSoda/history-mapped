@@ -1,0 +1,54 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Api\V1\Resources;
+
+use App\Models\MapStory;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Collection;
+
+/**
+ * A map story with its document (GET /map-stories/{slug}).
+ *
+ * @mixin MapStory
+ */
+class MapStoryResource extends JsonResource
+{
+    /** @return array<string, mixed> */
+    public function toArray(Request $request): array
+    {
+        return [
+            ...self::summary($this->resource),
+            'entity_id' => $this->entity_id,
+            'document' => $this->document,
+        ];
+    }
+
+    /**
+     * The list-view shape embedded in an entity's detail.
+     *
+     * @return array{id: string, slug: string, kind: string, title: string, year: int|null, step_count: int}
+     */
+    public static function summary(MapStory $story): array
+    {
+        return [
+            'id' => $story->story_id,
+            'slug' => $story->slug,
+            'kind' => $story->kind,
+            'title' => $story->title,
+            'year' => $story->year,
+            'step_count' => $story->step_count,
+        ];
+    }
+
+    /**
+     * @param  Collection<int, MapStory>  $stories
+     * @return list<array{id: string, slug: string, kind: string, title: string, year: int|null, step_count: int}>
+     */
+    public static function summaries(Collection $stories): array
+    {
+        return $stories->map(fn (MapStory $story) => self::summary($story))->values()->all();
+    }
+}

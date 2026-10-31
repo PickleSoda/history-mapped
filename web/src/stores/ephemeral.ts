@@ -24,6 +24,9 @@ interface EphemeralState {
   sheet: SheetHeight;
   /** Imperative handle to the maplibre map. Not React state for renders. */
   map: MaplibreMap | null;
+  /** Bumped each time a (re)loaded style has our entity overlay in, so other
+   *  overlays (the battle map) know to re-add their own layers on top. */
+  styleEpoch: number;
   /** Breadcrumb trail of visited focuses (tours / entities) this session. */
   trail: Crumb[];
   /** Map share hidden under floating UI; trims the viewport query. Null until
@@ -35,6 +38,7 @@ interface EphemeralState {
   setPaletteOpen: (open: boolean) => void;
   setSheet: (height: SheetHeight) => void;
   setMap: (map: MaplibreMap | null) => void;
+  bumpStyleEpoch: () => void;
   setTrail: (updater: (prev: Crumb[]) => Crumb[]) => void;
   setMapInsets: (insets: MapInsets) => void;
 }
@@ -45,6 +49,7 @@ export const useEphemeralStore = create<EphemeralState>()((set) => ({
   paletteOpen: false,
   sheet: 'peek',
   map: null,
+  styleEpoch: 0,
   trail: [],
   mapInsets: null,
 
@@ -53,6 +58,7 @@ export const useEphemeralStore = create<EphemeralState>()((set) => ({
   setPaletteOpen: (paletteOpen) => set({ paletteOpen }),
   setSheet: (sheet) => set({ sheet }),
   setMap: (map) => set({ map }),
+  bumpStyleEpoch: () => set((s) => ({ styleEpoch: s.styleEpoch + 1 })),
   setTrail: (updater) => set((s) => ({ trail: updater(s.trail) })),
   setMapInsets: (mapInsets) => set({ mapInsets }),
 }));

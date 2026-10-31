@@ -28,6 +28,13 @@ const GROUP_GLYPHS: Record<string, string> = {
     '<path d="M10 18v-7"/><path d="M11.12 2.198a2 2 0 0 1 1.76.006l7.866 3.847c.476.233.31.949-.22.949H3.474c-.53 0-.695-.716-.22-.949z"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/>',
 };
 
+/** lucide "swords": events that have a battle map to play. */
+const STORY_GLYPH =
+  '<polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" x2="19" y1="19" y2="13"/><line x1="16" x2="20" y1="16" y2="20"/><line x1="19" x2="21" y1="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" x2="9" y1="14" y2="18"/><line x1="7" x2="4" y1="17" y2="20"/><line x1="3" x2="5" y1="19" y2="21"/>';
+
+/** Marker for an entity with a battle map (MapCanvas picks it via `has_map_story`). */
+export const STORY_MARKER_ID = 'marker-STORY';
+
 /** Plain dot fallback for any group without a dedicated glyph. */
 const DEFAULT_GLYPH = '<circle cx="12" cy="12" r="4"/>';
 
@@ -87,6 +94,8 @@ export async function registerGroupMarkers(map: MapLibreMap): Promise<void> {
       glyph: GROUP_GLYPHS[g],
     })),
     { id: 'marker-DEFAULT', color: colors.DEFAULT, glyph: DEFAULT_GLYPH },
+    // Darker than the event colour, so a playable battle stands out among events.
+    { id: STORY_MARKER_ID, color: '#9a3412', glyph: STORY_GLYPH },
   ];
 
   await Promise.all(
@@ -103,6 +112,7 @@ async function doRefreshGroupMarkers(map: MapLibreMap): Promise<void> {
   const ids = [
     ...Object.keys(GROUP_GLYPHS).map((g) => markerImageId(g)),
     'marker-DEFAULT',
+    STORY_MARKER_ID,
   ];
   for (const id of ids) {
     if (map.hasImage(id)) map.removeImage(id);

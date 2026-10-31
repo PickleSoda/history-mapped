@@ -585,6 +585,7 @@ export type EntityFormData = {
     entity_group: string;
     summary: string;
     significance: string;
+    description: string;
     temporal_start: string;
     temporal_end: string;
     date_raw: string;
@@ -615,6 +616,7 @@ export function defaultFormData(): EntityFormData {
         entity_group: '',
         summary: '',
         significance: '',
+        description: '',
         temporal_start: '',
         temporal_end: '',
         date_raw: '',
@@ -2968,6 +2970,24 @@ export default function EntityForm({
                             }
                             placeholder="Why is this entity historically significant?"
                             rows={2}
+                        />
+                    </FieldWrapper>
+                </div>
+
+                <div className="sm:col-span-2">
+                    <FieldWrapper
+                        label="Description"
+                        htmlFor="description"
+                        error={errors.description}
+                    >
+                        <Textarea
+                            id="description"
+                            value={data.description}
+                            onChange={(e) =>
+                                onChange('description', e.target.value)
+                            }
+                            placeholder="The full story: 3–6 plain paragraphs separated by a blank line"
+                            rows={12}
                         />
                     </FieldWrapper>
                 </div>

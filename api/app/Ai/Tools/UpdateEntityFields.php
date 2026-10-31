@@ -32,14 +32,14 @@ class UpdateEntityFields extends AgentTool
 {
     /** Plain fields: tool argument = UpdateEntityRequest key. */
     private const SCALAR_FIELDS = [
-        'name', 'summary', 'significance', 'entity_type', 'date_raw', 'date_method', 'date_confidence',
+        'name', 'summary', 'significance', 'description', 'entity_type', 'date_raw', 'date_method', 'date_confidence',
         'duration_type', 'location_name', 'location_confidence', 'location_method', 'impact_score',
         'display_priority', 'confidence', 'confidence_notes', 'icon_class', 'entity_color', 'verification_status',
     ];
 
     /** What `clear` may empty (start_year / end_year make that bound open). */
     private const CLEARABLE = [
-        'summary', 'significance', 'start_year', 'end_year', 'date_raw', 'date_method', 'date_confidence',
+        'summary', 'significance', 'description', 'start_year', 'end_year', 'date_raw', 'date_method', 'date_confidence',
         'duration_type', 'location_name', 'location_confidence', 'location_method', 'impact_score',
         'display_priority', 'confidence', 'confidence_notes', 'icon_class', 'entity_color',
     ];
@@ -56,7 +56,7 @@ class UpdateEntityFields extends AgentTool
 
     public function description(): string
     {
-        return 'Change fields on an existing entity — anything the admin edit form can change: name, summary, significance, type, dates and how they were resolved, '
+        return 'Change fields on an existing entity — anything the admin edit form can change: name, summary, significance, long description, type, dates and how they were resolved, '
             .'location name/confidence, impact score, display priority, confidence, icon, color, verification status, tags, alternative names, and the '
             .'type-specific attributes listed in get_entity_context → attribute_fields. Send only what changes; everything else is kept. '
             .'To empty a field put its name in `clear`. To move the map point use set_entity_location instead.';
@@ -72,6 +72,7 @@ class UpdateEntityFields extends AgentTool
             'name' => $text('New canonical name'),
             'summary' => $text('Short neutral description (1–3 sentences)'),
             'significance' => $text('Why it matters historically'),
+            'description' => $text('Long-form account: 3–6 plain paragraphs separated by a blank line (background, what happened, consequences). Not the one-sentence summary; no markdown'),
             'entity_type' => $schema->string()->enum(EntityType::class)->description('New entity type; the group follows from it'),
             'start_year' => $schema->integer()->description('Start year. BCE is negative: 44 BCE = -44'),
             'end_year' => $schema->integer()->description('End year. BCE is negative'),

@@ -74,6 +74,7 @@ export type ChronicleDetail = {
     chronicle_id: string;
     title: string;
     slug: string;
+    description: string | null;
     source_type: SourceType | null;
     source_reference: string | null;
     status: ChronicleStatus | null;
@@ -138,6 +139,7 @@ export type ChronicleEntryFormData = {
 export type ChronicleFormData = {
     title: string;
     slug: string;
+    description: string;
     source_type: string;
     source_reference: string;
     status: string;

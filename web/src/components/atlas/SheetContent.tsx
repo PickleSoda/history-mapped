@@ -12,6 +12,7 @@ import {
   useFocusPage,
 } from '@/components/atlas/FullPage';
 import { NavBreadcrumb } from '@/components/atlas/NavBreadcrumb';
+import { StoryPlayerContent } from '@/components/atlas/StoryPlayer';
 import {
   useBrowseTab,
   useChronicleNav,
@@ -19,6 +20,7 @@ import {
   useSelection,
   useSheet,
   useSheetContent,
+  useStoryNav,
 } from '@/hooks';
 import { cn } from '@/lib/utils';
 
@@ -27,6 +29,7 @@ import { cn } from '@/lib/utils';
 function SheetDetail() {
   const { clear } = useSelection();
   const { isActive } = useChronicleNav();
+  const { isActive: storyActive } = useStoryNav();
   const { expand } = useFullPage();
   return (
     <div className="flex h-full flex-col">
@@ -36,7 +39,7 @@ function SheetDetail() {
           onClick={clear}
           className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[13px] text-muted-foreground hover:bg-muted hover:text-foreground"
         >
-          <ChevronLeft size={15} /> {isActive ? 'Back to tour' : 'Results'}
+          <ChevronLeft size={15} /> {storyActive ? 'Back to battle map' : isActive ? 'Back to tour' : 'Results'}
         </button>
         <ExpandButton
           onClick={expand}
@@ -80,6 +83,27 @@ function SheetChronicle() {
   );
 }
 
+/** Battle map in the sheet: an exit bar over the shared player body. */
+function SheetStory() {
+  const { exit } = useStoryNav();
+  return (
+    <div className="flex h-full flex-col">
+      <div className="flex flex-none items-center px-2 py-1.5">
+        <button
+          type="button"
+          onClick={exit}
+          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[13px] text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          <ChevronLeft size={15} /> Exit battle map
+        </button>
+      </div>
+      <div className="min-h-0 flex-1">
+        <StoryPlayerContent />
+      </div>
+    </div>
+  );
+}
+
 /** List in the sheet: two tabs over the existing browse / chronicle lists. */
 function SheetList() {
   const [tab, setTab] = useBrowseTab();
@@ -117,6 +141,8 @@ export function SheetContent() {
   const body =
     sheet === 'full' && page ? (
       <page.Page id={page.id} variant="sheet" />
+    ) : kind === 'story' ? (
+      <SheetStory />
     ) : kind === 'chronicle' ? (
       <SheetChronicle />
     ) : kind === 'detail' ? (

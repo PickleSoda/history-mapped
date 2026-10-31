@@ -1,0 +1,3066 @@
+{
+ "schema": 1,
+ "slug": "battle-of-gaugamela",
+ "kind": "battle",
+ "entity": {
+  "name": "Battle of Gaugamela",
+  "wikidata": "Q179670"
+ },
+ "title": "Battle of Gaugamela",
+ "date_label": "1 October 331 BC",
+ "year": -331,
+ "intro": "In the late summer of 331 BC Alexander of Macedon crossed the Euphrates and the Tigris in search of the battle that would decide the war with Persia. Darius III, beaten at Issus two years before, had spent the interval raising a far larger army from the eastern satrapies, strong above all in cavalry, and he chose his ground with care: an open plain beside the village of Gaugamela, east of the Tigris, where rough patches were cleared and levelled so that scythed chariots and horsemen could charge freely. Alexander came down the Tigris from the north-west, rested his army for four days once his scouts had found the enemy, and on 30 September halted on low hills about 30 stades from the Persian line. The next day some 47,000 Macedonians and Greeks faced an army that probably outnumbered them two to one and whose line overlapped theirs at both ends.",
+ "outcome": "A decisive Macedonian victory: Darius fled, the royal army broke up, and Babylon, Susa and Persepolis lay open to Alexander.",
+ "uncertainty": "The site is disputed. This map follows the northern identification on the Navkur plain by Tell Gomel, whose name echoes Gaugamela, with the Macedonian camp on the hills west of Mahad; the older southern candidate, Karamlesh, lies about 30 km to the south. The orientation, frontages and block sizes are reconstructed from Arrian's order of battle and the ground, not from surveyed evidence; his remark that Darius stood opposite Alexander's own squadron fixes the opening alignment. Arrian credits Darius with 40,000 horse and a million foot, Diodorus with a million men, Curtius with about 245,000; modern estimates range from roughly 50,000 to 120,000. In Arrian the baggage was raided by Indian and Persian horse riding through a gap in the phalanx; Diodorus and Curtius instead have Mazaeus send a detachment round the flank to the camp.",
+ "sources": [
+  {
+   "title": "Arrian, Anabasis of Alexander 3.7-3.16",
+   "kind": "primary"
+  },
+  {
+   "title": "Diodorus Siculus, Library of History 17.53-61",
+   "kind": "primary"
+  },
+  {
+   "title": "Quintus Curtius Rufus, Histories of Alexander 4.9-4.16",
+   "kind": "primary"
+  },
+  {
+   "title": "Battle of Gaugamela - Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Battle_of_Gaugamela",
+   "kind": "web"
+  },
+  {
+   "title": "Gaugamela (331 BCE) - Livius.org",
+   "url": "https://www.livius.org/articles/battle/gaugamela-331-bce/",
+   "kind": "web"
+  },
+  {
+   "title": "Marciak, Szypula, Sobiech & Pirowski, The Battle of Gaugamela and the Question of Visibility on the Battlefield, Iraq 83 (2021)",
+   "url": "https://doi.org/10.1017/irq.2021.11",
+   "kind": "secondary"
+  },
+  {
+   "title": "Pirowski, Marciak & Sobiech, Alexander the Great's Military Camp at Gaugamela on the Navkur Plain, Remote Sensing 13 (2021) 904",
+   "url": "https://doi.org/10.3390/rs13050904",
+   "kind": "secondary"
+  },
+  {
+   "title": "Marciak et al., Gaugamela in the Plains of Nineveh? The Southern Location Reconsidered, Anabasis 11 (2020)",
+   "url": "https://journals.ur.edu.pl/anabasis/article/view/10401",
+   "kind": "secondary"
+  }
+ ],
+ "sides": [
+  {
+   "id": "macedon",
+   "name": "Macedonian and allied Greek army",
+   "color": "#b91c1c",
+   "polity": {
+    "name": "Macedon",
+    "wikidata": "Q83958"
+   },
+   "commanders": [
+    {
+     "name": "Alexander the Great",
+     "wikidata": "Q8409",
+     "role": "king, commander-in-chief and the right wing"
+    },
+    {
+     "name": "Parmenion",
+     "wikidata": "Q1230252",
+     "role": "left wing"
+    },
+    {
+     "name": "Philotas",
+     "wikidata": "Q5973506",
+     "role": "Companion cavalry"
+    },
+    {
+     "name": "Craterus",
+     "wikidata": "Q16190036",
+     "role": "infantry of the left"
+    },
+    {
+     "name": "Coenus",
+     "wikidata": "Q21866993",
+     "role": "phalanx battalion (wounded)"
+    },
+    {
+     "name": "Polyperchon",
+     "wikidata": "Q312008",
+     "role": "phalanx battalion"
+    }
+   ],
+   "strength": "c. 47,000 (c. 7,000 horse, c. 40,000 foot)",
+   "losses": "probably a few hundred to c. 1,500 killed; Arrian: c. 100 men and over 1,000 horses"
+  },
+  {
+   "id": "persia",
+   "name": "Achaemenid Persian army",
+   "color": "#6d28d9",
+   "polity": {
+    "name": "Achaemenid Empire",
+    "wikidata": "Q389688"
+   },
+   "commanders": [
+    {
+     "name": "Darius III",
+     "wikidata": "Q102865",
+     "role": "Great King, centre"
+    },
+    {
+     "name": "Bessus",
+     "wikidata": "Q296434",
+     "role": "satrap of Bactria, left wing"
+    },
+    {
+     "name": "Mazaeus",
+     "role": "right wing"
+    }
+   ],
+   "strength": "c. 50,000-120,000 (modern estimates), much of it cavalry; 200 scythed chariots, 15 elephants",
+   "losses": "unknown but very heavy; ancient claims run from 40,000 to 300,000"
+  }
+ ],
+ "units": [
+  {
+   "id": "alexander",
+   "side": "macedon",
+   "kind": "commander",
+   "label": "Alexander",
+   "wikidata": "Q8409"
+  },
+  {
+   "id": "parmenion",
+   "side": "macedon",
+   "kind": "commander",
+   "label": "Parmenion",
+   "wikidata": "Q1230252"
+  },
+  {
+   "id": "baggage",
+   "side": "macedon",
+   "kind": "baggage",
+   "label": "Baggage & captives",
+   "note": "Guarded by Thracian infantry; Darius's mother and family were held here"
+  },
+  {
+   "id": "companions",
+   "side": "macedon",
+   "kind": "heavy_cavalry",
+   "label": "Companion cavalry",
+   "strength": "c. 1,800-2,000",
+   "commander": "Philotas, under Alexander",
+   "note": "Eight squadrons, the royal squadron under Cleitus nearest the flank"
+  },
+  {
+   "id": "screen",
+   "side": "macedon",
+   "kind": "light_infantry",
+   "label": "Javelinmen & archers",
+   "strength": "c. 1,500",
+   "commander": "Balacrus",
+   "note": "Half the Agrianians and archers with Balacrus's javelinmen, posted to meet the chariots"
+  },
+  {
+   "id": "hypaspists",
+   "side": "macedon",
+   "kind": "heavy_infantry",
+   "label": "Hypaspists",
+   "strength": "c. 3,000",
+   "commander": "Nicanor, son of Parmenion"
+  },
+  {
+   "id": "phalanx-right",
+   "side": "macedon",
+   "kind": "pikemen",
+   "label": "Phalanx, four battalions",
+   "strength": "c. 6,000",
+   "commander": "Coenus, Perdiccas, Meleager, Polyperchon",
+   "note": "Sarissa phalanx, about 16 deep"
+  },
+  {
+   "id": "phalanx-left",
+   "side": "macedon",
+   "kind": "pikemen",
+   "label": "Simmias & Craterus",
+   "strength": "c. 3,000",
+   "commander": "Simmias (for Amyntas) and Craterus",
+   "note": "The two left battalions of the phalanx"
+  },
+  {
+   "id": "thessalians",
+   "side": "macedon",
+   "kind": "heavy_cavalry",
+   "label": "Thessalian & allied horse",
+   "strength": "c. 2,500",
+   "commander": "Philip son of Menelaus; Erigyius; under Parmenion",
+   "note": "Thessalian squadrons, the Pharsalians round Parmenion, with the allied Greek horse"
+  },
+  {
+   "id": "left-flank",
+   "side": "macedon",
+   "kind": "cavalry",
+   "label": "Thracian & allied flank",
+   "strength": "c. 3,000-4,000",
+   "commander": "Sitalces, Coeranus, Agathon, Andromachus",
+   "note": "Angled-back left flank: Thracian javelinmen, allied and Odrysian horse, mercenary horse in front"
+  },
+  {
+   "id": "right-flank",
+   "side": "macedon",
+   "kind": "light_infantry",
+   "label": "Agrianians & mercenary foot",
+   "strength": "c. 3,000",
+   "commander": "Attalus, Brison, Cleander",
+   "note": "Angled-back right flank: Agrianians, Macedonian archers and Cleander's veteran mercenaries"
+  },
+  {
+   "id": "aretes",
+   "side": "macedon",
+   "kind": "light_cavalry",
+   "label": "Aretes' lancers",
+   "strength": "c. 600-800",
+   "commander": "Aretes",
+   "note": "Prodromoi (scouts, armed with long lances)"
+  },
+  {
+   "id": "ariston",
+   "side": "macedon",
+   "kind": "light_cavalry",
+   "label": "Ariston's Paeonians",
+   "strength": "a few hundred",
+   "commander": "Ariston"
+  },
+  {
+   "id": "menidas",
+   "side": "macedon",
+   "kind": "cavalry",
+   "label": "Menidas' mercenary horse",
+   "strength": "c. 400-500",
+   "commander": "Menidas",
+   "note": "Ordered to take any flanking force in the flank"
+  },
+  {
+   "id": "rear-line",
+   "side": "macedon",
+   "kind": "heavy_infantry",
+   "label": "Reserve line (Greek foot)",
+   "strength": "c. 10,000+",
+   "note": "Greek allied and mercenary infantry, ordered to face about if the army was surrounded"
+  },
+  {
+   "id": "darius",
+   "side": "persia",
+   "kind": "commander",
+   "label": "Darius III",
+   "wikidata": "Q102865"
+  },
+  {
+   "id": "bessus",
+   "side": "persia",
+   "kind": "commander",
+   "label": "Bessus",
+   "wikidata": "Q296434"
+  },
+  {
+   "id": "mazaeus",
+   "side": "persia",
+   "kind": "commander",
+   "label": "Mazaeus"
+  },
+  {
+   "id": "guard",
+   "side": "persia",
+   "kind": "heavy_infantry",
+   "label": "Royal guard (apple-bearers)",
+   "strength": "up to c. 10,000",
+   "note": "Persian guard foot (the 'Immortals' of Greek writers) with the Kinsmen horse, Carians and Mardian archers"
+  },
+  {
+   "id": "greeks-l",
+   "side": "persia",
+   "kind": "heavy_infantry",
+   "label": "Greek mercenaries",
+   "strength": "a few thousand in all",
+   "note": "One of two divisions posted either side of Darius, facing the phalanx"
+  },
+  {
+   "id": "greeks-r",
+   "side": "persia",
+   "kind": "heavy_infantry",
+   "label": "Greek mercenaries",
+   "note": "The second division, on Darius's right"
+  },
+  {
+   "id": "chariots-left",
+   "side": "persia",
+   "kind": "chariots",
+   "label": "Scythed chariots (100)",
+   "strength": "100",
+   "note": "Arrian: 100 before the left, 50 before Darius, 50 before the right wing (not drawn)"
+  },
+  {
+   "id": "chariots-centre",
+   "side": "persia",
+   "kind": "chariots",
+   "label": "Scythed chariots (50)",
+   "strength": "50"
+  },
+  {
+   "id": "elephants",
+   "side": "persia",
+   "kind": "elephants",
+   "label": "Indian elephants (15)",
+   "strength": "15",
+   "note": "Listed in Darius's order but never mentioned in the fighting; captured in the camp"
+  },
+  {
+   "id": "left-horse",
+   "side": "persia",
+   "kind": "cavalry",
+   "label": "Persian & Cadusian horse",
+   "note": "Horsemen of the left-centre (Persians, Susians, Cadusians)"
+  },
+  {
+   "id": "left-foot",
+   "side": "persia",
+   "kind": "infantry",
+   "label": "Persian & Susian foot",
+   "note": "Arrian: Persians, horse and foot mixed, then Susians and Cadusians"
+  },
+  {
+   "id": "bessus-horse",
+   "side": "persia",
+   "kind": "cavalry",
+   "label": "Bactrian & Arachosian horse",
+   "strength": "c. 8,000+",
+   "commander": "Bessus",
+   "note": "Bactrians with Dahae and Arachosians; Curtius gives Bessus 8,000 Bactrian horse"
+  },
+  {
+   "id": "scythians",
+   "side": "persia",
+   "kind": "heavy_cavalry",
+   "label": "Scythian & Bactrian horse",
+   "strength": "c. 2,000+",
+   "note": "Armoured Saca horsemen (horse and rider) and about 1,000 Bactrians, out in front of the left"
+  },
+  {
+   "id": "indian-horse",
+   "side": "persia",
+   "kind": "cavalry",
+   "label": "Indian & Persian horse",
+   "strength": "a few thousand"
+  },
+  {
+   "id": "levies",
+   "side": "persia",
+   "kind": "infantry",
+   "label": "Babylonians & levies",
+   "note": "Uxians, Babylonians, Red Sea peoples and Sitacenians, drawn up deep behind the centre"
+  },
+  {
+   "id": "syrian-median",
+   "side": "persia",
+   "kind": "cavalry",
+   "label": "Syrian & Median horse",
+   "commander": "Mazaeus",
+   "note": "Coele-Syrians, Mesopotamians and Medes"
+  },
+  {
+   "id": "parthian-horse",
+   "side": "persia",
+   "kind": "cavalry",
+   "label": "Parthian & Hyrcanian horse",
+   "note": "Parthians, Sacae, Tapurians, Hyrcanians, Albanians and Sacesinians at the end of the line"
+  },
+  {
+   "id": "arm-capp",
+   "side": "persia",
+   "kind": "cavalry",
+   "label": "Armenian & Cappadocian horse",
+   "note": "Posted in front of the right wing"
+  }
+ ],
+ "terrain": [
+  {
+   "id": "levelled-ground",
+   "kind": "field",
+   "label": "Ground levelled for the chariots",
+   "area": [
+    [
+     43.469333,
+     36.613176
+    ],
+    [
+     43.447727,
+     36.592511
+    ],
+    [
+     43.427572,
+     36.57322
+    ],
+    [
+     43.417702,
+     36.579867
+    ],
+    [
+     43.40826,
+     36.586225
+    ],
+    [
+     43.428418,
+     36.605516
+    ],
+    [
+     43.450028,
+     36.626181
+    ],
+    [
+     43.459467,
+     36.619823
+    ]
+   ]
+  },
+  {
+   "id": "gomel",
+   "kind": "river",
+   "label": "Gomel (Bumodus?)",
+   "line": [
+    [
+     43.48095,
+     36.66747
+    ],
+    [
+     43.4842,
+     36.66555
+    ],
+    [
+     43.48282,
+     36.66223
+    ],
+    [
+     43.47716,
+     36.66269
+    ],
+    [
+     43.47653,
+     36.6589
+    ],
+    [
+     43.47892,
+     36.65719
+    ],
+    [
+     43.4805,
+     36.65272
+    ],
+    [
+     43.47575,
+     36.65062
+    ],
+    [
+     43.47872,
+     36.64835
+    ],
+    [
+     43.47409,
+     36.64362
+    ],
+    [
+     43.47309,
+     36.64062
+    ],
+    [
+     43.47474,
+     36.62929
+    ],
+    [
+     43.47739,
+     36.62666
+    ],
+    [
+     43.47451,
+     36.62267
+    ],
+    [
+     43.47857,
+     36.61866
+    ],
+    [
+     43.47343,
+     36.6116
+    ],
+    [
+     43.47469,
+     36.60376
+    ],
+    [
+     43.47719,
+     36.6009
+    ],
+    [
+     43.47506,
+     36.59602
+    ],
+    [
+     43.47953,
+     36.59375
+    ],
+    [
+     43.47989,
+     36.58909
+    ],
+    [
+     43.47731,
+     36.58378
+    ],
+    [
+     43.48539,
+     36.58174
+    ],
+    [
+     43.48198,
+     36.57585
+    ],
+    [
+     43.48771,
+     36.57339
+    ],
+    [
+     43.48691,
+     36.56815
+    ],
+    [
+     43.48976,
+     36.56172
+    ],
+    [
+     43.49716,
+     36.55803
+    ],
+    [
+     43.5033,
+     36.55347
+    ]
+   ]
+  },
+  {
+   "id": "khazir",
+   "kind": "river",
+   "label": "Khazir",
+   "line": [
+    [
+     43.5753,
+     36.64366
+    ],
+    [
+     43.56282,
+     36.63958
+    ],
+    [
+     43.55771,
+     36.62965
+    ],
+    [
+     43.55299,
+     36.62657
+    ],
+    [
+     43.54985,
+     36.61465
+    ],
+    [
+     43.54362,
+     36.60982
+    ],
+    [
+     43.5419,
+     36.59962
+    ],
+    [
+     43.5425,
+     36.59005
+    ],
+    [
+     43.54395,
+     36.58393
+    ],
+    [
+     43.54054,
+     36.58238
+    ],
+    [
+     43.53804,
+     36.56956
+    ],
+    [
+     43.5334,
+     36.56301
+    ],
+    [
+     43.53701,
+     36.55476
+    ],
+    [
+     43.54034,
+     36.54403
+    ],
+    [
+     43.53477,
+     36.54237
+    ],
+    [
+     43.53467,
+     36.5303
+    ],
+    [
+     43.53182,
+     36.5225
+    ],
+    [
+     43.52457,
+     36.51847
+    ],
+    [
+     43.51664,
+     36.51646
+    ],
+    [
+     43.51219,
+     36.50894
+    ],
+    [
+     43.51148,
+     36.50253
+    ],
+    [
+     43.50456,
+     36.49323
+    ]
+   ]
+  },
+  {
+   "id": "mahad-hills",
+   "kind": "hill",
+   "label": "Hills west of Mahad",
+   "area": [
+    [
+     43.400347,
+     36.63403
+    ],
+    [
+     43.398499,
+     36.64015
+    ],
+    [
+     43.395798,
+     36.645715
+    ],
+    [
+     43.39243,
+     36.650344
+    ],
+    [
+     43.388623,
+     36.653724
+    ],
+    [
+     43.384638,
+     36.655623
+    ],
+    [
+     43.380746,
+     36.655913
+    ],
+    [
+     43.377211,
+     36.654573
+    ],
+    [
+     43.374276,
+     36.651694
+    ],
+    [
+     43.37214,
+     36.647473
+    ],
+    [
+     43.370948,
+     36.642198
+    ],
+    [
+     43.370782,
+     36.636228
+    ],
+    [
+     43.371653,
+     36.62997
+    ],
+    [
+     43.373501,
+     36.62385
+    ],
+    [
+     43.376202,
+     36.618285
+    ],
+    [
+     43.37957,
+     36.613656
+    ],
+    [
+     43.383377,
+     36.610276
+    ],
+    [
+     43.387362,
+     36.608377
+    ],
+    [
+     43.391254,
+     36.608087
+    ],
+    [
+     43.394789,
+     36.609427
+    ],
+    [
+     43.397724,
+     36.612306
+    ],
+    [
+     43.39986,
+     36.616527
+    ],
+    [
+     43.401052,
+     36.621802
+    ],
+    [
+     43.401218,
+     36.627772
+    ]
+   ]
+  },
+  {
+   "id": "jebel-maqlub",
+   "kind": "hill",
+   "label": "Jebel Maqlub",
+   "area": [
+    [
+     43.451916,
+     36.517621
+    ],
+    [
+     43.451565,
+     36.520829
+    ],
+    [
+     43.448585,
+     36.52439
+    ],
+    [
+     43.44318,
+     36.52806
+    ],
+    [
+     43.435719,
+     36.53159
+    ],
+    [
+     43.426709,
+     36.534739
+    ],
+    [
+     43.416765,
+     36.537293
+    ],
+    [
+     43.406565,
+     36.539077
+    ],
+    [
+     43.396803,
+     36.53997
+    ],
+    [
+     43.388145,
+     36.53991
+    ],
+    [
+     43.381181,
+     36.538903
+    ],
+    [
+     43.376385,
+     36.537017
+    ],
+    [
+     43.374084,
+     36.534379
+    ],
+    [
+     43.374435,
+     36.531171
+    ],
+    [
+     43.377415,
+     36.52761
+    ],
+    [
+     43.38282,
+     36.52394
+    ],
+    [
+     43.390281,
+     36.52041
+    ],
+    [
+     43.399291,
+     36.517261
+    ],
+    [
+     43.409235,
+     36.514707
+    ],
+    [
+     43.419435,
+     36.512923
+    ],
+    [
+     43.429197,
+     36.51203
+    ],
+    [
+     43.437855,
+     36.51209
+    ],
+    [
+     43.444819,
+     36.513097
+    ],
+    [
+     43.449615,
+     36.514983
+    ]
+   ]
+  },
+  {
+   "id": "mac-camp",
+   "kind": "camp",
+   "label": "Macedonian camp",
+   "area": [
+    [
+     43.405781,
+     36.63073
+    ],
+    [
+     43.404688,
+     36.631206
+    ],
+    [
+     43.403351,
+     36.631344
+    ],
+    [
+     43.40186,
+     36.631135
+    ],
+    [
+     43.400318,
+     36.630594
+    ],
+    [
+     43.398828,
+     36.629756
+    ],
+    [
+     43.397494,
+     36.62868
+    ],
+    [
+     43.396405,
+     36.627438
+    ],
+    [
+     43.395636,
+     36.626116
+    ],
+    [
+     43.395239,
+     36.624802
+    ],
+    [
+     43.395242,
+     36.623588
+    ],
+    [
+     43.395643,
+     36.622555
+    ],
+    [
+     43.396417,
+     36.621774
+    ],
+    [
+     43.39751,
+     36.621298
+    ],
+    [
+     43.398847,
+     36.62116
+    ],
+    [
+     43.400338,
+     36.621369
+    ],
+    [
+     43.40188,
+     36.62191
+    ],
+    [
+     43.40337,
+     36.622748
+    ],
+    [
+     43.404704,
+     36.623824
+    ],
+    [
+     43.405793,
+     36.625066
+    ],
+    [
+     43.406562,
+     36.626388
+    ],
+    [
+     43.406959,
+     36.627702
+    ],
+    [
+     43.406956,
+     36.628916
+    ],
+    [
+     43.406555,
+     36.629949
+    ]
+   ]
+  },
+  {
+   "id": "persian-camp",
+   "kind": "camp",
+   "label": "Persian camp",
+   "area": [
+    [
+     43.470659,
+     36.589972
+    ],
+    [
+     43.469464,
+     36.590458
+    ],
+    [
+     43.467957,
+     36.590535
+    ],
+    [
+     43.466242,
+     36.590198
+    ],
+    [
+     43.464436,
+     36.589469
+    ],
+    [
+     43.462661,
+     36.5884
+    ],
+    [
+     43.461039,
+     36.587062
+    ],
+    [
+     43.45968,
+     36.585547
+    ],
+    [
+     43.458677,
+     36.583958
+    ],
+    [
+     43.458098,
+     36.582403
+    ],
+    [
+     43.457982,
+     36.580989
+    ],
+    [
+     43.458338,
+     36.579811
+    ],
+    [
+     43.459141,
+     36.57895
+    ],
+    [
+     43.460336,
+     36.578464
+    ],
+    [
+     43.461843,
+     36.578387
+    ],
+    [
+     43.463558,
+     36.578724
+    ],
+    [
+     43.465364,
+     36.579453
+    ],
+    [
+     43.467139,
+     36.580522
+    ],
+    [
+     43.468761,
+     36.58186
+    ],
+    [
+     43.47012,
+     36.583375
+    ],
+    [
+     43.471123,
+     36.584964
+    ],
+    [
+     43.471702,
+     36.586519
+    ],
+    [
+     43.471818,
+     36.587933
+    ],
+    [
+     43.471462,
+     36.589111
+    ]
+   ]
+  },
+  {
+   "id": "tell-gomel",
+   "kind": "village",
+   "label": "Tell Gomel (Gaugamela?)",
+   "at": [
+    43.472,
+    36.585
+   ]
+  },
+  {
+   "id": "rough-ground",
+   "kind": "label",
+   "label": "Unlevelled ground",
+   "at": [
+    43.410368,
+    36.574243
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "id": "eve",
+   "title": "Darius waits on his levelled plain",
+   "time": "30 September, evening and night",
+   "narrative": "Darius drew his army up on the open plain in front of Gaugamela and, afraid of a surprise attack, kept it standing in battle order all night. Cavalry held both wings: Bessus with the Bactrians and the eastern peoples on the left, Mazaeus with the Syrian, Median and Parthian horse on the right. The king stood in the centre among his guard and Greek mercenaries, with scythed chariots and a few Indian elephants out in front. About 30 stades away, on the hills to the north-west, Alexander camped his army in fighting order, rode round the ground with his Companions and light troops to look for traps, and turned down Parmenion's advice to attack in the dark.",
+   "positions": {
+    "guard": {
+     "at": [
+      43.445,
+      36.592
+     ],
+     "facing": 310,
+     "width": 400,
+     "depth": 40
+    },
+    "darius": {
+     "with": "guard"
+    },
+    "greeks-l": {
+     "at": [
+      43.44212,
+      36.589244
+     ],
+     "facing": 310,
+     "width": 350,
+     "depth": 24
+    },
+    "greeks-r": {
+     "at": [
+      43.44788,
+      36.594756
+     ],
+     "facing": 310,
+     "width": 350,
+     "depth": 24
+    },
+    "elephants": {
+     "at": [
+      43.444826,
+      36.595052
+     ],
+     "facing": 310,
+     "width": 200,
+     "depth": 15
+    },
+    "chariots-centre": {
+     "at": [
+      43.441415,
+      36.592067
+     ],
+     "facing": 310,
+     "width": 500,
+     "depth": 12
+    },
+    "left-horse": {
+     "at": [
+      43.438434,
+      36.585717
+     ],
+     "facing": 310,
+     "width": 650,
+     "depth": 50
+    },
+    "left-foot": {
+     "at": [
+      43.433626,
+      36.581115
+     ],
+     "facing": 310,
+     "width": 600,
+     "depth": 40
+    },
+    "bessus-horse": {
+     "at": [
+      43.427364,
+      36.57512
+     ],
+     "facing": 310,
+     "width": 1100,
+     "depth": 60
+    },
+    "bessus": {
+     "with": "bessus-horse"
+    },
+    "scythians": {
+     "at": [
+      43.426057,
+      36.578348
+     ],
+     "facing": 310,
+     "width": 700,
+     "depth": 40
+    },
+    "chariots-left": {
+     "at": [
+      43.43202,
+      36.584896
+     ],
+     "facing": 310,
+     "width": 1100,
+     "depth": 12
+    },
+    "indian-horse": {
+     "at": [
+      43.45076,
+      36.597511
+     ],
+     "facing": 310,
+     "width": 400,
+     "depth": 50
+    },
+    "levies": {
+     "at": [
+      43.447746,
+      36.59015
+     ],
+     "facing": 310,
+     "width": 1000,
+     "depth": 220
+    },
+    "syrian-median": {
+     "at": [
+      43.456521,
+      36.603022
+     ],
+     "facing": 310,
+     "width": 1200,
+     "depth": 60
+    },
+    "mazaeus": {
+     "with": "syrian-median"
+    },
+    "parthian-horse": {
+     "at": [
+      43.463724,
+      36.60991
+     ],
+     "facing": 310,
+     "width": 800,
+     "depth": 60
+    },
+    "arm-capp": {
+     "at": [
+      43.458269,
+      36.608889
+     ],
+     "facing": 310,
+     "width": 800,
+     "depth": 40
+    },
+    "alexander": {
+     "at": [
+      43.400586,
+      36.623662
+     ]
+    },
+    "baggage": {
+     "at": [
+      43.405116,
+      36.625896
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "alexander",
+     "type": "march",
+     "path": [
+      [
+       43.400586,
+       36.623662
+      ],
+      [
+       43.402886,
+       36.606273
+      ],
+      [
+       43.402667,
+       36.58647
+      ],
+      [
+       43.416178,
+       36.593804
+      ],
+      [
+       43.434762,
+       36.612983
+      ],
+      [
+       43.441859,
+       36.628161
+      ],
+      [
+       43.419617,
+       36.627873
+      ],
+      [
+       43.400586,
+       36.623662
+      ]
+     ],
+     "label": "Reconnaissance"
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      43.396722,
+      36.626262
+     ],
+     "text": "Parmenion urges a night attack; Alexander refuses",
+     "kind": "event"
+    },
+    {
+     "at": [
+      43.450148,
+      36.588531
+     ],
+     "text": "The Persians stand under arms all night",
+     "kind": "event"
+    },
+    {
+     "at": [
+      43.426761,
+      36.620717
+     ],
+     "text": "About 30 stades (5.5 km) between the armies",
+     "kind": "label"
+    }
+   ]
+  },
+  {
+   "id": "deployment",
+   "title": "Alexander's two-line array",
+   "time": "1 October, morning",
+   "narrative": "Alexander brought his army down onto the plain and formed it against a line far longer than his own. The hypaspists and the phalanx held the centre, the Companion cavalry the right under his own command, the Thessalian and allied Greek horse the left under Parmenion. Both ends were bent back at an angle with light infantry and horse, so that Persians riding round a wing would meet a front instead of a bare flank, and a second line of Greek allied and mercenary foot stood behind, ready to face about. Arrian notes that Darius's own station lay opposite Alexander's squadron: the Persian left reached far beyond the Macedonian right.",
+   "positions": {
+    "companions": {
+     "at": [
+      43.429691,
+      36.601137
+     ],
+     "width": 650,
+     "depth": 50,
+     "facing": 130
+    },
+    "screen": {
+     "at": [
+      43.430464,
+      36.600617
+     ],
+     "width": 600,
+     "depth": 25,
+     "facing": 130
+    },
+    "hypaspists": {
+     "at": [
+      43.432895,
+      36.604203
+     ],
+     "width": 300,
+     "depth": 30,
+     "facing": 130
+    },
+    "phalanx-right": {
+     "at": [
+      43.435538,
+      36.606731
+     ],
+     "width": 375,
+     "depth": 30,
+     "facing": 130
+    },
+    "phalanx-left": {
+     "at": [
+      43.437792,
+      36.608887
+     ],
+     "width": 190,
+     "depth": 30,
+     "facing": 130
+    },
+    "thessalians": {
+     "at": [
+      43.441214,
+      36.612159
+     ],
+     "width": 700,
+     "depth": 50,
+     "facing": 130
+    },
+    "left-flank": {
+     "at": [
+      43.443635,
+      36.61695
+     ],
+     "width": 500,
+     "depth": 30,
+     "facing": 85
+    },
+    "right-flank": {
+     "at": [
+      43.423861,
+      36.598526
+     ],
+     "width": 600,
+     "depth": 25,
+     "facing": 175
+    },
+    "aretes": {
+     "at": [
+      43.427094,
+      36.597756
+     ],
+     "width": 240,
+     "depth": 30,
+     "facing": 175
+    },
+    "ariston": {
+     "at": [
+      43.424191,
+      36.597553
+     ],
+     "width": 240,
+     "depth": 30,
+     "facing": 175
+    },
+    "menidas": {
+     "at": [
+      43.425877,
+      36.595501
+     ],
+     "width": 220,
+     "depth": 30,
+     "facing": 175
+    },
+    "rear-line": {
+     "at": [
+      43.430751,
+      36.607468
+     ],
+     "width": 1100,
+     "depth": 24,
+     "facing": 130
+    },
+    "alexander": {
+     "with": "companions"
+    },
+    "parmenion": {
+     "with": "thessalians"
+    },
+    "baggage": {
+     "state": "hidden"
+    }
+   },
+   "moves": [
+    {
+     "unit": "alexander",
+     "type": "march",
+     "path": [
+      [
+       43.400586,
+       36.623662
+      ],
+      [
+       43.414102,
+       36.612807
+      ],
+      [
+       43.429691,
+       36.601137
+      ]
+     ],
+     "label": "Down from the hills"
+    },
+    {
+     "side": "macedon",
+     "type": "march",
+     "path": [
+      [
+       43.407263,
+       36.624451
+      ],
+      [
+       43.42316,
+       36.617273
+      ],
+      [
+       43.435911,
+       36.613383
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      43.429721,
+      36.608161
+     ],
+     "text": "Second line, ready to face about",
+     "kind": "label"
+    },
+    {
+     "at": [
+      43.419915,
+      36.598247
+     ],
+     "text": "Flank refused at an angle",
+     "kind": "label"
+    }
+   ]
+  },
+  {
+   "id": "march-right",
+   "title": "The march to the right",
+   "time": "Morning",
+   "narrative": "Rather than advance straight at the Persians, Alexander led the whole army obliquely to the right as it closed. Darius kept pace, shifting and stretching his left wing so that it still overlapped the Macedonian right, while the Scythian horse out in front rode along the line and skirmished with Alexander's leading troops. The Macedonian right was now nearing the end of the cleared ground, and beyond it the chariots would be of no use.",
+   "positions": {
+    "companions": {
+     "at": [
+      43.429732,
+      36.59348
+     ]
+    },
+    "screen": {
+     "at": [
+      43.430504,
+      36.59296
+     ]
+    },
+    "hypaspists": {
+     "at": [
+      43.432936,
+      36.596546
+     ]
+    },
+    "phalanx-right": {
+     "at": [
+      43.435578,
+      36.599074
+     ]
+    },
+    "phalanx-left": {
+     "at": [
+      43.437832,
+      36.60123
+     ]
+    },
+    "thessalians": {
+     "at": [
+      43.441253,
+      36.604503
+     ]
+    },
+    "left-flank": {
+     "at": [
+      43.443673,
+      36.609294
+     ]
+    },
+    "right-flank": {
+     "at": [
+      43.423902,
+      36.590868
+     ]
+    },
+    "aretes": {
+     "at": [
+      43.427135,
+      36.590099
+     ]
+    },
+    "ariston": {
+     "at": [
+      43.424231,
+      36.589896
+     ]
+    },
+    "menidas": {
+     "at": [
+      43.425918,
+      36.587844
+     ]
+    },
+    "rear-line": {
+     "at": [
+      43.430791,
+      36.599811
+     ]
+    },
+    "bessus-horse": {
+     "at": [
+      43.424486,
+      36.572364
+     ]
+    },
+    "left-foot": {
+     "at": [
+      43.432186,
+      36.579737
+     ]
+    },
+    "left-horse": {
+     "at": [
+      43.437801,
+      36.585111
+     ],
+     "width": 800
+    },
+    "scythians": {
+     "at": [
+      43.423926,
+      36.583305
+     ],
+     "facing": 346
+    },
+    "chariots-left": {
+     "at": [
+      43.431129,
+      36.584322
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "companions",
+     "type": "advance",
+     "path": [
+      [
+       43.429691,
+       36.601137
+      ],
+      [
+       43.429732,
+       36.59348
+      ]
+     ]
+    },
+    {
+     "unit": "phalanx-right",
+     "type": "advance",
+     "path": [
+      [
+       43.435538,
+       36.606731
+      ],
+      [
+       43.435578,
+       36.599074
+      ]
+     ]
+    },
+    {
+     "unit": "thessalians",
+     "type": "advance",
+     "path": [
+      [
+       43.441214,
+       36.612159
+      ],
+      [
+       43.441253,
+       36.604503
+      ]
+     ]
+    },
+    {
+     "unit": "right-flank",
+     "type": "advance",
+     "path": [
+      [
+       43.423861,
+       36.598526
+      ],
+      [
+       43.423902,
+       36.590868
+      ]
+     ]
+    },
+    {
+     "unit": "bessus-horse",
+     "type": "march",
+     "path": [
+      [
+       43.427364,
+       36.57512
+      ],
+      [
+       43.424486,
+       36.572364
+      ]
+     ]
+    },
+    {
+     "unit": "scythians",
+     "type": "advance",
+     "path": [
+      [
+       43.426057,
+       36.578348
+      ],
+      [
+       43.424375,
+       36.580655
+      ],
+      [
+       43.423926,
+       36.583305
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      43.409548,
+      36.585358
+     ],
+     "text": "End of the levelled ground",
+     "kind": "label"
+    }
+   ],
+   "focus": [
+    "companions",
+    "scythians"
+   ]
+  },
+  {
+   "id": "outflanking",
+   "title": "Bessus's horse rides round the flank",
+   "camera": {
+    "center": [
+     43.421675,
+     36.587168
+    ],
+    "zoom": 13.7
+   },
+   "narrative": "To stop Alexander slipping off the prepared ground, Darius ordered the leading horsemen of his left, the armoured Scythians and about a thousand Bactrians, to ride round the Macedonian right. This was the threat the angled flank had been built to meet. Alexander sent Menidas with the mercenary cavalry posted in front of it to charge them, as his orders anticipated, but Menidas had only a few hundred riders against many times that number.",
+   "positions": {
+    "scythians": {
+     "at": [
+      43.415936,
+      36.586573
+     ],
+     "facing": 75,
+     "width": 450,
+     "depth": 100,
+     "state": "engaged"
+    },
+    "menidas": {
+     "at": [
+      43.417643,
+      36.586949
+     ],
+     "facing": 255,
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "scythians",
+     "type": "flank",
+     "path": [
+      [
+       43.423926,
+       36.583305
+      ],
+      [
+       43.418353,
+       36.581189
+      ],
+      [
+       43.415279,
+       36.583846
+      ],
+      [
+       43.415936,
+       36.586573
+      ]
+     ]
+    },
+    {
+     "unit": "menidas",
+     "type": "charge",
+     "path": [
+      [
+       43.425918,
+       36.587844
+      ],
+      [
+       43.421675,
+       36.587168
+      ],
+      [
+       43.417643,
+       36.586949
+      ]
+     ]
+    }
+   ],
+   "focus": [
+    "scythians",
+    "menidas"
+   ]
+  },
+  {
+   "id": "flank-fight",
+   "title": "The cavalry fight on the right",
+   "camera": {
+    "center": [
+     43.421315,
+     36.586824
+    ],
+    "zoom": 13.7
+   },
+   "narrative": "Menidas's horsemen were driven back. Alexander answered with Ariston's Paeonians and the mercenaries, who made the Scythians give way, but the main body of Bessus's Bactrian cavalry then came up, rallied them and turned the clash into a general cavalry battle. Better armoured and far more numerous, the Persian riders inflicted heavy losses, yet the Macedonian squadrons held and charged again and again, keeping the flanking force busy well away from the main line.",
+   "positions": {
+    "menidas": {
+     "at": [
+      43.420936,
+      36.58884
+     ],
+     "facing": 175,
+     "state": "routed"
+    },
+    "ariston": {
+     "at": [
+      43.417286,
+      36.587307
+     ],
+     "facing": 254,
+     "state": "engaged"
+    },
+    "scythians": {
+     "at": [
+      43.415348,
+      36.586851
+     ],
+     "facing": 74,
+     "state": "engaged"
+    },
+    "bessus-horse": {
+     "at": [
+      43.417018,
+      36.584671
+     ],
+     "facing": 5,
+     "width": 700,
+     "depth": 140,
+     "state": "engaged"
+    },
+    "right-flank": {
+     "at": [
+      43.422261,
+      36.590529
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "menidas",
+     "type": "retreat",
+     "path": [
+      [
+       43.417643,
+       36.586949
+      ],
+      [
+       43.419255,
+       36.588212
+      ],
+      [
+       43.420936,
+       36.58884
+      ]
+     ]
+    },
+    {
+     "unit": "ariston",
+     "type": "charge",
+     "path": [
+      [
+       43.424231,
+       36.589896
+      ],
+      [
+       43.420747,
+       36.58838
+      ],
+      [
+       43.417286,
+       36.587307
+      ]
+     ]
+    },
+    {
+     "unit": "bessus-horse",
+     "type": "advance",
+     "path": [
+      [
+       43.424486,
+       36.572364
+      ],
+      [
+       43.418838,
+       36.576755
+      ],
+      [
+       43.417018,
+       36.584671
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      43.410628,
+      36.586391
+     ],
+     "text": "Armoured Scythian horse take a heavy toll",
+     "kind": "clash"
+    }
+   ],
+   "focus": [
+    "ariston",
+    "bessus-horse",
+    "scythians"
+   ]
+  },
+  {
+   "id": "chariots",
+   "title": "The scythed chariots fail",
+   "narrative": "Darius now loosed his scythed chariots at Alexander's part of the line, hoping to break up the phalanx before the infantry met. The Agrianians, archers and Balacrus's javelinmen in front of the Companions shot down drivers and teams, and some ran in to seize the reins. Where chariots got through, the files stepped apart as they had been drilled to and let them run on down the lanes, to be finished off by the grooms and hypaspists behind. The elephants seem to have been kept back; they were found in the Persian camp after the battle.",
+   "positions": {
+    "chariots-left": {
+     "at": [
+      43.430299,
+      36.591924
+     ],
+     "facing": 310,
+     "state": "destroyed"
+    },
+    "chariots-centre": {
+     "at": [
+      43.433528,
+      36.595854
+     ],
+     "facing": 310,
+     "state": "destroyed"
+    },
+    "elephants": {
+     "at": [
+      43.462105,
+      36.584583
+     ],
+     "state": "ready"
+    },
+    "screen": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "chariots-left",
+     "type": "charge",
+     "path": [
+      [
+       43.431129,
+       36.584322
+      ],
+      [
+       43.430714,
+       36.588123
+      ],
+      [
+       43.430299,
+       36.591924
+      ]
+     ]
+    },
+    {
+     "unit": "chariots-centre",
+     "type": "charge",
+     "path": [
+      [
+       43.441415,
+       36.592067
+      ],
+      [
+       43.43755,
+       36.593966
+      ],
+      [
+       43.433528,
+       36.595854
+      ]
+     ]
+    },
+    {
+     "unit": "elephants",
+     "type": "march",
+     "path": [
+      [
+       43.444826,
+       36.595052
+      ],
+      [
+       43.454882,
+       36.588864
+      ],
+      [
+       43.462105,
+       36.584583
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      43.432135,
+      36.591862
+     ],
+     "text": "Javelinmen shoot the drivers and seize reins",
+     "kind": "clash"
+    },
+    {
+     "at": [
+      43.432044,
+      36.597792
+     ],
+     "text": "Files open lanes; chariots are taken behind",
+     "kind": "event"
+    }
+   ],
+   "focus": [
+    "chariots-left",
+    "chariots-centre",
+    "screen"
+   ]
+  },
+  {
+   "id": "gap",
+   "title": "A gap opens in the Persian line",
+   "narrative": "Darius set his whole line moving forward. On his left still more horsemen rode out to join the fight on the Macedonian flank, and as the Persian and Cadusian cavalry beside the centre left their place, a gap opened between the king's Greek mercenaries and the foot further out. Alexander sent Aretes and his lancers against the riders working round his wing. On the far side of the field the Armenian and Cappadocian cavalry charged Parmenion's angled left.",
+   "positions": {
+    "guard": {
+     "at": [
+      43.441997,
+      36.594023
+     ]
+    },
+    "greeks-l": {
+     "at": [
+      43.439117,
+      36.591267
+     ]
+    },
+    "greeks-r": {
+     "at": [
+      43.444877,
+      36.596779
+     ]
+    },
+    "indian-horse": {
+     "at": [
+      43.447757,
+      36.599534
+     ]
+    },
+    "levies": {
+     "at": [
+      43.444743,
+      36.592173
+     ]
+    },
+    "syrian-median": {
+     "at": [
+      43.45309,
+      36.605334
+     ]
+    },
+    "parthian-horse": {
+     "at": [
+      43.460292,
+      36.612222
+     ]
+    },
+    "left-foot": {
+     "at": [
+      43.430041,
+      36.581182
+     ]
+    },
+    "left-horse": {
+     "at": [
+      43.418782,
+      36.5809
+     ],
+     "facing": 339,
+     "width": 500,
+     "depth": 80,
+     "state": "ready"
+    },
+    "aretes": {
+     "at": [
+      43.419172,
+      36.585333
+     ],
+     "facing": 249,
+     "state": "engaged"
+    },
+    "arm-capp": {
+     "at": [
+      43.445333,
+      36.609385
+     ],
+     "facing": 266,
+     "state": "engaged"
+    },
+    "left-flank": {
+     "state": "engaged"
+    },
+    "screen": {
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "left-horse",
+     "type": "advance",
+     "path": [
+      [
+       43.437801,
+       36.585111
+      ],
+      [
+       43.428181,
+       36.5822
+      ],
+      [
+       43.418782,
+       36.5809
+      ]
+     ]
+    },
+    {
+     "unit": "aretes",
+     "type": "charge",
+     "path": [
+      [
+       43.427135,
+       36.590099
+      ],
+      [
+       43.424111,
+       36.586701
+      ],
+      [
+       43.419172,
+       36.585333
+      ]
+     ]
+    },
+    {
+     "unit": "arm-capp",
+     "type": "charge",
+     "path": [
+      [
+       43.458269,
+       36.608889
+      ],
+      [
+       43.45132,
+       36.610635
+      ],
+      [
+       43.445333,
+       36.609385
+      ]
+     ]
+    },
+    {
+     "side": "persia",
+     "type": "advance",
+     "path": [
+      [
+       43.457808,
+       36.602155
+      ],
+      [
+       43.45369,
+       36.60493
+      ]
+     ]
+    },
+    {
+     "side": "persia",
+     "type": "advance",
+     "path": [
+      [
+       43.44929,
+       36.58911
+      ],
+      [
+       43.442597,
+       36.593619
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      43.435365,
+      36.585578
+     ],
+     "text": "Gap opens in the Persian line",
+     "kind": "event"
+    }
+   ],
+   "focus": [
+    "left-horse",
+    "aretes",
+    "companions"
+   ]
+  },
+  {
+   "id": "wedge",
+   "title": "The wedge drives at Darius",
+   "camera": {
+    "center": [
+     43.436182,
+     36.592657
+    ],
+    "zoom": 13.7
+   },
+   "narrative": "This was the opening Alexander had been waiting for. He swung the Companions, until then moving to the right in column, into the gap in a wedge, with the hypaspists and the nearest phalanx battalions charging beside them, and drove straight for Darius. The horsemen pressed in close, thrusting at faces; the sarissas of the phalanx came in alongside; and the Greek mercenaries and the royal guard took the full weight of the blow.",
+   "positions": {
+    "companions": {
+     "at": [
+      43.435495,
+      36.589481
+     ],
+     "facing": 50,
+     "shape": "wedge",
+     "width": 450,
+     "depth": 260,
+     "state": "engaged"
+    },
+    "hypaspists": {
+     "at": [
+      43.43863,
+      36.591361
+     ],
+     "facing": 130,
+     "state": "engaged"
+    },
+    "phalanx-right": {
+     "at": [
+      43.441755,
+      36.594421
+     ],
+     "facing": 130,
+     "state": "engaged"
+    },
+    "greeks-l": {
+     "state": "engaged"
+    },
+    "guard": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "companions",
+     "type": "charge",
+     "path": [
+      [
+       43.429732,
+       36.59348
+      ],
+      [
+       43.431799,
+       36.590561
+      ],
+      [
+       43.435495,
+       36.589481
+      ]
+     ],
+     "label": "The wedge"
+    },
+    {
+     "unit": "hypaspists",
+     "type": "attack",
+     "path": [
+      [
+       43.432936,
+       36.596546
+      ],
+      [
+       43.43863,
+       36.591361
+      ]
+     ]
+    },
+    {
+     "unit": "phalanx-right",
+     "type": "attack",
+     "path": [
+      [
+       43.435578,
+       36.599074
+      ],
+      [
+       43.441755,
+       36.594421
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      43.441913,
+      36.591145
+     ],
+     "text": "Alexander strikes for the king",
+     "kind": "clash"
+    }
+   ],
+   "focus": [
+    "companions",
+    "hypaspists",
+    "phalanx-right",
+    "guard"
+   ]
+  },
+  {
+   "id": "flight",
+   "title": "Darius flees",
+   "narrative": "Under this pressure Darius turned his chariot and fled, by Arrian's account the first in his centre to break; Diodorus has a javelin aimed at the king strike his charioteer instead, so that those nearby thought Darius had fallen. The centre gave way behind him, and the horsemen working round the Macedonian right broke as Aretes charged them and streamed away to the rear. Alexander set off after the king with the Companions.",
+   "positions": {
+    "darius": {
+     "at": [
+      43.46974,
+      36.576501
+     ]
+    },
+    "guard": {
+     "at": [
+      43.449857,
+      36.587553
+     ],
+     "state": "routed"
+    },
+    "greeks-l": {
+     "at": [
+      43.444403,
+      36.586532
+     ],
+     "state": "routed"
+    },
+    "greeks-r": {
+     "at": [
+      43.449167,
+      36.593889
+     ],
+     "state": "routed"
+    },
+    "levies": {
+     "at": [
+      43.44929,
+      36.58911
+     ],
+     "state": "routed"
+    },
+    "left-horse": {
+     "at": [
+      43.422631,
+      36.574787
+     ],
+     "facing": 130,
+     "state": "routed"
+    },
+    "scythians": {
+     "at": [
+      43.414047,
+      36.580567
+     ],
+     "facing": 130,
+     "state": "routed"
+    },
+    "bessus-horse": {
+     "at": [
+      43.456509,
+      36.566634
+     ],
+     "facing": 130,
+     "state": "routed"
+    },
+    "companions": {
+     "at": [
+      43.457425,
+      36.580105
+     ],
+     "facing": 130,
+     "shape": "block",
+     "width": 500,
+     "depth": 80,
+     "state": "ready"
+    },
+    "aretes": {
+     "at": [
+      43.422714,
+      36.577666
+     ],
+     "facing": 112,
+     "state": "ready"
+    },
+    "hypaspists": {
+     "at": [
+      43.441118,
+      36.589685
+     ]
+    },
+    "phalanx-right": {
+     "at": [
+      43.444114,
+      36.592832
+     ]
+    },
+    "ariston": {
+     "state": "ready"
+    },
+    "left-foot": {
+     "state": "routed"
+    }
+   },
+   "moves": [
+    {
+     "unit": "darius",
+     "type": "retreat",
+     "path": [
+      [
+       43.442426,
+       36.593734
+      ],
+      [
+       43.456016,
+       36.585752
+      ],
+      [
+       43.46974,
+       36.576501
+      ]
+     ],
+     "label": "Darius flees"
+    },
+    {
+     "unit": "guard",
+     "type": "rout",
+     "path": [
+      [
+       43.441997,
+       36.594023
+      ],
+      [
+       43.449857,
+       36.587553
+      ]
+     ]
+    },
+    {
+     "unit": "companions",
+     "type": "pursuit",
+     "path": [
+      [
+       43.435495,
+       36.589481
+      ],
+      [
+       43.44569,
+       36.585665
+      ],
+      [
+       43.457425,
+       36.580105
+      ]
+     ]
+    },
+    {
+     "unit": "bessus-horse",
+     "type": "retreat",
+     "path": [
+      [
+       43.417018,
+       36.584671
+      ],
+      [
+       43.425565,
+       36.573398
+      ],
+      [
+       43.456509,
+       36.566634
+      ]
+     ]
+    },
+    {
+     "unit": "aretes",
+     "type": "pursuit",
+     "path": [
+      [
+       43.419172,
+       36.585333
+      ],
+      [
+       43.422714,
+       36.577666
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      43.442372,
+      36.597879
+     ],
+     "text": "The Persian centre collapses",
+     "kind": "event"
+    }
+   ],
+   "focus": [
+    "darius",
+    "companions",
+    "guard"
+   ]
+  },
+  {
+   "id": "left-pressed",
+   "title": "The phalanx tears; Parmenion hard pressed",
+   "narrative": "Not every battalion could follow. Simmias held his battalion back because the left was reported to be in trouble, and with Craterus's beside it stayed to fight while the rest went forward, so a gap opened in the phalanx. Indian and Persian horsemen poured through it, rode past the second line and fell on the baggage, where the Persian prisoners rose to help them. Meanwhile Mazaeus's wing, unaware that Darius had gone, pressed the Thessalians from the front while Parthian and other horse rode round the angled flank and struck Parmenion's wing in the side. Parmenion sent riders after Alexander for help.",
+   "positions": {
+    "darius": {
+     "state": "hidden"
+    },
+    "phalanx-left": {
+     "state": "engaged"
+    },
+    "phalanx-right": {
+     "at": [
+      43.448147,
+      36.590115
+     ]
+    },
+    "hypaspists": {
+     "at": [
+      43.445408,
+      36.586795
+     ]
+    },
+    "indian-horse": {
+     "at": [
+      43.406971,
+      36.623474
+     ],
+     "facing": 316,
+     "state": "engaged"
+    },
+    "parthian-horse": {
+     "at": [
+      43.44267,
+      36.617049
+     ],
+     "facing": 174,
+     "state": "engaged"
+    },
+    "syrian-median": {
+     "at": [
+      43.442745,
+      36.604672
+     ],
+     "facing": 310,
+     "width": 1000,
+     "state": "engaged"
+    },
+    "thessalians": {
+     "state": "engaged"
+    },
+    "left-flank": {
+     "state": "wavering"
+    },
+    "companions": {
+     "at": [
+      43.468852,
+      36.570054
+     ]
+    },
+    "baggage": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "indian-horse",
+     "type": "charge",
+     "path": [
+      [
+       43.447757,
+       36.599534
+      ],
+      [
+       43.438288,
+       36.598869
+      ],
+      [
+       43.434303,
+       36.606248
+      ],
+      [
+       43.422577,
+       36.615317
+      ],
+      [
+       43.406971,
+       36.623474
+      ]
+     ],
+     "label": "Through the gap"
+    },
+    {
+     "unit": "parthian-horse",
+     "type": "flank",
+     "path": [
+      [
+       43.460292,
+       36.612222
+      ],
+      [
+       43.455451,
+       36.62018
+      ],
+      [
+       43.44267,
+       36.617049
+      ]
+     ]
+    },
+    {
+     "unit": "syrian-median",
+     "type": "attack",
+     "path": [
+      [
+       43.45309,
+       36.605334
+      ],
+      [
+       43.442745,
+       36.604672
+      ]
+     ]
+    },
+    {
+     "unit": "companions",
+     "type": "pursuit",
+     "path": [
+      [
+       43.457425,
+       36.580105
+      ],
+      [
+       43.468852,
+       36.570054
+      ]
+     ]
+    },
+    {
+     "unit": "phalanx-right",
+     "type": "advance",
+     "path": [
+      [
+       43.444114,
+       36.592832
+      ],
+      [
+       43.448147,
+       36.590115
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      43.435498,
+      36.600396
+     ],
+     "text": "Simmias halts: the phalanx line breaks",
+     "kind": "event"
+    },
+    {
+     "at": [
+      43.440478,
+      36.607959
+     ],
+     "text": "Parmenion sends riders to recall Alexander",
+     "kind": "event"
+    }
+   ],
+   "focus": [
+    "indian-horse",
+    "parthian-horse",
+    "phalanx-left",
+    "thessalians"
+   ]
+  },
+  {
+   "id": "return",
+   "title": "Alexander turns back",
+   "narrative": "The officers of the second line faced about and caught the raiders at the baggage from behind, killing many and scattering the rest; Darius's mother Sisygambis is said to have refused to leave with them. Alexander broke off the chase and rode back toward the Persian right, running into Parthian, Indian and Persian horse retreating in deep formation. In the hardest cavalry fight of the day about sixty Companions fell and Hephaestion, Coenus and Menidas were wounded. By the time Alexander broke through, the Thessalians had charged and Mazaeus's wing was already giving way.",
+   "positions": {
+    "companions": {
+     "at": [
+      43.456445,
+      36.605187
+     ],
+     "facing": 359,
+     "state": "engaged"
+    },
+    "parthian-horse": {
+     "at": [
+      43.456382,
+      36.607225
+     ],
+     "facing": 179,
+     "state": "engaged"
+    },
+    "rear-line": {
+     "at": [
+      43.409616,
+      36.621107
+     ],
+     "facing": 310,
+     "state": "engaged"
+    },
+    "indian-horse": {
+     "at": [
+      43.433551,
+      36.631406
+     ],
+     "state": "routed"
+    },
+    "baggage": {
+     "state": "ready"
+    },
+    "thessalians": {
+     "at": [
+      43.44429,
+      36.603632
+     ],
+     "state": "engaged"
+    },
+    "syrian-median": {
+     "at": [
+      43.460673,
+      36.601399
+     ],
+     "facing": 130,
+     "state": "routed"
+    },
+    "arm-capp": {
+     "at": [
+      43.453756,
+      36.610168
+     ],
+     "facing": 130,
+     "state": "routed"
+    },
+    "left-flank": {
+     "state": "ready"
+    },
+    "phalanx-left": {
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "companions",
+     "type": "charge",
+     "path": [
+      [
+       43.468852,
+       36.570054
+      ],
+      [
+       43.47121,
+       36.584903
+      ],
+      [
+       43.461807,
+       36.598286
+      ],
+      [
+       43.456445,
+       36.605187
+      ]
+     ],
+     "label": "Alexander rides back"
+    },
+    {
+     "unit": "parthian-horse",
+     "type": "retreat",
+     "path": [
+      [
+       43.44267,
+       36.617049
+      ],
+      [
+       43.450547,
+       36.614091
+      ],
+      [
+       43.456382,
+       36.607225
+      ]
+     ]
+    },
+    {
+     "unit": "rear-line",
+     "type": "attack",
+     "path": [
+      [
+       43.430791,
+       36.599811
+      ],
+      [
+       43.422854,
+       36.612784
+      ],
+      [
+       43.409616,
+       36.621107
+      ]
+     ],
+     "label": "Reserve faces about"
+    },
+    {
+     "unit": "indian-horse",
+     "type": "rout",
+     "path": [
+      [
+       43.406971,
+       36.623474
+      ],
+      [
+       43.4179,
+       36.629029
+      ],
+      [
+       43.433551,
+       36.631406
+      ]
+     ]
+    },
+    {
+     "unit": "thessalians",
+     "type": "charge",
+     "path": [
+      [
+       43.441253,
+       36.604503
+      ],
+      [
+       43.44429,
+       36.603632
+      ]
+     ]
+    },
+    {
+     "unit": "syrian-median",
+     "type": "rout",
+     "path": [
+      [
+       43.442745,
+       36.604672
+      ],
+      [
+       43.451787,
+       36.60269
+      ],
+      [
+       43.460673,
+       36.601399
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      43.4599,
+      36.604855
+     ],
+     "text": "Hardest fight of the day: about 60 Companions fall",
+     "kind": "clash"
+    },
+    {
+     "at": [
+      43.40254,
+      36.627629
+     ],
+     "text": "Sisygambis refuses to go with the raiders",
+     "kind": "event"
+    }
+   ],
+   "focus": [
+    "companions",
+    "parthian-horse",
+    "thessalians",
+    "rear-line"
+   ]
+  },
+  {
+   "id": "pursuit",
+   "title": "Pursuit toward Arbela",
+   "time": "Until nightfall; Arbela the next day",
+   "narrative": "With both Persian wings beaten, Alexander took up the chase again for as long as the light lasted, crossed the Lycus (Great Zab), rested his horses until midnight and rode on to Arbela, which he reached the next day. Darius had already gone, but his treasure, chariot and weapons were taken there. Parmenion, following the enemy on his own front, seized the Persian camp with its baggage, elephants and camels. Darius escaped into Media and never again led an army against Alexander.",
+   "positions": {
+    "guard": {
+     "state": "hidden"
+    },
+    "greeks-l": {
+     "state": "hidden"
+    },
+    "greeks-r": {
+     "state": "hidden"
+    },
+    "levies": {
+     "state": "hidden"
+    },
+    "left-horse": {
+     "state": "hidden"
+    },
+    "left-foot": {
+     "state": "hidden"
+    },
+    "bessus-horse": {
+     "state": "hidden"
+    },
+    "scythians": {
+     "state": "hidden"
+    },
+    "indian-horse": {
+     "state": "hidden"
+    },
+    "syrian-median": {
+     "state": "hidden"
+    },
+    "parthian-horse": {
+     "state": "hidden"
+    },
+    "arm-capp": {
+     "state": "hidden"
+    },
+    "bessus": {
+     "state": "hidden"
+    },
+    "mazaeus": {
+     "state": "hidden"
+    },
+    "companions": {
+     "at": [
+      43.548625,
+      36.530303
+     ],
+     "facing": 130,
+     "state": "ready"
+    },
+    "thessalians": {
+     "at": [
+      43.480984,
+      36.590057
+     ],
+     "facing": 130,
+     "state": "ready"
+    },
+    "parmenion": {
+     "at": [
+      43.4649,
+      36.584461
+     ]
+    },
+    "rear-line": {
+     "state": "ready"
+    },
+    "phalanx-right": {
+     "state": "ready"
+    },
+    "hypaspists": {
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "companions",
+     "type": "pursuit",
+     "path": [
+      [
+       43.456445,
+       36.605187
+      ],
+      [
+       43.482941,
+       36.579342
+      ],
+      [
+       43.548625,
+       36.530303
+      ]
+     ],
+     "label": "To the Lycus and Arbela"
+    },
+    {
+     "unit": "thessalians",
+     "type": "pursuit",
+     "path": [
+      [
+       43.44429,
+       36.603632
+      ],
+      [
+       43.4651,
+       36.597241
+      ],
+      [
+       43.480984,
+       36.590057
+      ]
+     ]
+    },
+    {
+     "unit": "parmenion",
+     "type": "march",
+     "path": [
+      [
+       43.44429,
+       36.603632
+      ],
+      [
+       43.456628,
+       36.594731
+      ],
+      [
+       43.4649,
+       36.584461
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      43.46104,
+      36.587062
+     ],
+     "text": "Parmenion takes the Persian camp, elephants and camels",
+     "kind": "capture"
+    },
+    {
+     "at": [
+      43.551332,
+      36.527299
+     ],
+     "text": "On to the Lycus and Arbela, c. 70 km",
+     "kind": "label"
+    }
+   ],
+   "focus": [
+    "companions",
+    "parmenion"
+   ]
+  }
+ ]
+}

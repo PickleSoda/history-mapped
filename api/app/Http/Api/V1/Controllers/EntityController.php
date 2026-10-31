@@ -23,6 +23,7 @@ use App\Http\Api\V1\Resources\EntitySummaryResource;
 use App\Http\Controllers\Controller;
 use App\Models\Entity;
 use App\Models\EntityRelationship;
+use App\Models\MapStory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -89,18 +90,20 @@ class EntityController extends Controller
 
     /**
      * Deterministic ETag for a map response: the geometry data-version
-     * (max updated_at — one cheap aggregate) combined with the validated
-     * request filters. Identical data + identical filters → identical ETag,
-     * so a conditional request can short-circuit to 304.
+     * (max updated_at — one cheap aggregate) plus the map-story version (a
+     * feature's `has_map_story` flag) combined with the validated request
+     * filters. Identical data + identical filters → identical ETag, so a
+     * conditional request can short-circuit to 304.
      *
      * @param  array<string, mixed>  $validated
      */
     private function mapEtag(array $validated): string
     {
         $version = DB::table('geometry_periods')->max('updated_at');
+        $stories = DB::table('map_stories')->selectRaw('MAX(updated_at) AS latest, COUNT(*) AS total')->first();
         ksort($validated);
 
-        return '"'.sha1(($version ?? 'empty').'|'.json_encode($validated)).'"';
+        return '"'.sha1(($version ?? 'empty').'|'.($stories->latest ?? '').':'.($stories->total ?? 0).'|'.json_encode($validated)).'"';
     }
 
     private function etagMatches(Request $request, string $etag): bool
@@ -183,10 +186,11 @@ class EntityController extends Controller
         string $entity,
         GetEntityAction $action,
     ): EntityResource {
-        $with = [];
+        // Story summaries only; the document is served by GET /map-stories/{slug}.
+        $with = ['mapStories' => fn ($q) => $q->select(MapStory::SUMMARY_COLUMNS)];
 
         if (request()->boolean('include_relationships')) {
-            $with = [
+            $with += [
                 'outgoingRelationships' => fn ($q) => $q->with(EntityRelationship::withSummaryEnds()),
                 'incomingRelationships' => fn ($q) => $q->with(EntityRelationship::withSummaryEnds()),
             ];

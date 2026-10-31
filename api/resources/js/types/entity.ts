@@ -77,6 +77,7 @@ export type EntityDetail = {
     entity_group: EntityGroup | null;
     summary: string | null;
     significance: string | null;
+    description: string | null;
     impact_score: number | null;
     wikidata_id: string | null;
     temporal_start: string | null;

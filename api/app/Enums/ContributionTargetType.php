@@ -44,9 +44,9 @@ enum ContributionTargetType: string
     public function editableFields(): array
     {
         return match ($this) {
-            self::Entity => ['name', 'summary', 'significance', 'aliases'],
+            self::Entity => ['name', 'summary', 'significance', 'description', 'aliases'],
             self::Relationship => ['description'],
-            self::Chronicle => ['title'],
+            self::Chronicle => ['title', 'description'],
             self::ChronicleEntry => ['narrative_text'],
         };
     }

@@ -48,7 +48,7 @@ of desync bugs, so this boundary is enforced, not advisory.
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │ URL layer (nuqs)            survives refresh · shareable          │
-│   bbox · t · g · sel · q · chron · step · full · view             │
+│   bbox · t · g · sel · q · chron · step · story · sstep · full · view│
 └───────────────┬───────────────────────────────────────────────────┘
                 │ snapScope()  (snap bbox→tile grid, time→resolution)
                 ▼
@@ -135,6 +135,7 @@ read through the hooks above.
 /                      AtlasLayout → DesktopShell | MobileShell
   ?sel=<uuid>          entity detail (desktop right panel / mobile sheet)
   ?chron=<slug>&step=n chronicle tour (desktop left panel / mobile sheet)
+  ?story=<slug>&sstep=n battle map (desktop left panel / mobile sheet; see below)
   ?full=1              expand the focus into its full page (see below)
 ```
 
@@ -214,6 +215,63 @@ entries' narrative) and `useChronicleGraph` (the graph + per-step membership), j
   scrolling (6 at rest), p95 frame 16.8 ms and no long tasks at ~2,200 px/s.
 - Clicking a node's Open (or any entity in a step) selects it, which opens the entity
   page on top.
+
+### Battle maps (map stories)
+
+A map story replays a battle step by step on the shared map (design:
+`docs/superpowers/specs/2026-10-31-battle-maps-and-descriptions-design.md`; format:
+`docs/implementation-docs/map-story-authoring.md`). `?story=<slug>&sstep=n` (`useStoryNav`,
+`push`) takes the left panel like a chronicle tour — entering one clears `sel`, `chron`,
+`step` and `full`, and entering a chronicle clears `story`.
+
+The parser (`lib/schemas/map-story.ts`) reads schema 1 and 2 (v2 contract:
+`docs/superpowers/specs/2026-10-31-map-story-schema-v2-design.md`) and stays tolerant:
+unknown enums fall back to the v1 default and a malformed v2 extra is dropped, not fatal.
+
+- **Player** (`components/atlas/StoryPlayer.tsx`): sides (colour, commanders linked to
+  their entities, contingent swatches, strength, losses), step dots, the step's
+  time/title/narrative with its beat captions as a sub-list, background on the first step,
+  outcome on the last, the reconstruction's uncertainty, alternative sites, "dashed =
+  conjectural" (when used) and sources, prev / play / next and ← → keys. Autoplay dwells by
+  narrative length plus the step's beats.
+- **Overlay** (`components/map/StoryOverlay.tsx`): on entering, hides the entity layers,
+  adds a terrain hillshade (AWS Terrain Tiles, under the basemap labels — the OHM styles
+  have no relief at battlefield zoom) and the story's sources/layers
+  (`lib/map-story/layers.ts`), jumps the timeline to the story's year, and frames each step
+  on its units, arrows and notes (clear of the panels via `mapInsets`). Re-adds itself
+  whenever MapCanvas bumps `styleEpoch` (a basemap switch rebuilds the style). Basemap
+  clicks don't resolve OHM features while a story plays; clicking a linked unit or
+  commander selects its entity, hovering shows a unit card (contingent, strength and
+  `strength_n`, state). Stepping forward plays the step's tween, then each beat (~1.2 s)
+  under a map caption; a jump or a step back glides to the step's final frame; reduced
+  motion lands at once. Per step it sets the strongpoint layer (`terrain_state`) and the
+  light tint (a fill layer under the labels and units). Its DOM is a thin
+  `pointer-events-none` layer: edge chevrons for units outside the view (click pans),
+  `continues` tail labels at the view edge — both placed imperatively on map `move`, at
+  most once per frame — the beat caption and the wind/sun/light widget.
+- **Geometry** (`lib/map-story/geometry.ts`, Vitest): `resolveBeatFrames` gives every
+  step's phase frames (`resolveBeats(doc, i)` = `[before beats, after beat 1, …]`;
+  `resolveFrames` = the last of each), carrying placements forward key by key, pinning
+  `with` markers behind their unit, standing a unit merging `into` another on it for that
+  step (not drawn; `onField`) and hiding it after, as the pipeline's `resolve_steps` does;
+  `orient: "path"` lands a unit along its arrow's last segment. `resolveTerrainState` and
+  `resolveConditions` carry terrain state and light/wind/sun. `formation` turns a placement
+  into an outline, front edge and the drawn parts (`lines`, `lanes`, `subunits`,
+  checkerboarded, hollow squares; a block is a crescent with no bow, so the two morph);
+  `rankBands` splits a composite unit's depth; `movePath` ends targeted fire on its target
+  and bends `arc`s. `tweener` measures a transition once (routes, from/into, facing along
+  the path) and returns the frame at `t`, so the per-frame work is interpolation only.
+  `stepBounds` skips `frame: false` units and their arrows, tails and alternative sites.
+  Colours (`lib/map-story/colors.ts`): a contingent's own colour or an automatic shade of
+  its side's. Symbols are canvas-drawn per colour (`lib/map-story/icons.ts`): unit glyphs,
+  pins, standards, ships, arrowheads (ram, landing), hatching, state overlays and
+  strongpoint badges.
+- **Entry points:** the detail panel's "Play the battle map" card and the entity page's
+  "How the battle unfolded" step list (each step opens the player there); battles with a
+  story get a swords marker on the map (`has_map_story`).
+
+The entity's long `description` shows as "About" in the detail panel (first two
+paragraphs, "Read more" opens the page) and in full on the entity page.
 
 ### RelationGraph and `lib/graph`
 

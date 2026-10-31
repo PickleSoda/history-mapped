@@ -3,6 +3,7 @@
 `get_entity_context` returns `fields` — every field `update_entity_fields` can change, with its current value (null = not set yet) — and `attribute_fields` — the fields specific to this entity's type, each with its kind and, for a choice, the allowed `values`. All of them are editable:
 
 - **Plain fields** (summary, significance, dates, date_method, impact_score, confidence, icon_class, …): pass them to `update_entity_fields` by name. Send only what changes.
+- **Description**: `description` is the long-form account — 3–6 plain paragraphs separated by a blank line (background, what happened, consequences), no headings or markdown. It is not the one-sentence `summary`; keep both.
 - **Type-specific fields**: `attributes: {"key": value}`, using a choice's allowed values exactly as listed.
 - **Tags and alternative names**: `add_tags` / `remove_tags`, `add_alternative_names` / `remove_alternative_names`. Never resend the whole list.
 - **To empty a field**: `clear: ["field"]` (an attribute key works too).

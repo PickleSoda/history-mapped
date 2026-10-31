@@ -50,12 +50,13 @@ class MapEntitiesFeatureShapeTest extends TestCase
         $this->assertEqualsCanonicalizing(
             [
                 'id', 'name', 'entity_type', 'entity_group', 'impact_score',
-                'start_year', 'end_year', 'entity_color',
+                'start_year', 'end_year', 'entity_color', 'has_map_story',
                 'ohm_provider', 'ohm_external_type', 'ohm_external_id',
             ],
             array_keys($props),
         );
         $this->assertSame('#abcdef', $props['entity_color']);
         $this->assertNull($props['ohm_external_id']); // no OHM ref on this entity
+        $this->assertFalse($props['has_map_story']);
     }
 }
