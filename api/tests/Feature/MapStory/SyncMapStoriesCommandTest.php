@@ -128,6 +128,33 @@ class SyncMapStoriesCommandTest extends TestCase
         $this->assertSame(0, MapStory::query()->count());
     }
 
+    public function test_syncs_a_schema_2_story(): void
+    {
+        $this->battle();
+        MapStoryFixture::write($this->dir, MapStoryFixture::v2Document());
+
+        $this->assertSame(0, $this->sync());
+
+        $doc = MapStory::query()->sole()->document;
+        $this->assertSame(2, $doc->schema);
+        $this->assertSame('The wing rejoins the line', $doc->steps[1]->beats[0]->label);
+        $this->assertNull($doc->steps[1]->terrain_state->town->held_by);
+        $this->assertSame('gauls', $doc->units[0]->contingent);
+    }
+
+    public function test_rejects_a_schema_1_story_that_uses_schema_2_fields(): void
+    {
+        $this->battle();
+        $doc = MapStoryFixture::v2Document();
+        $doc['schema'] = 1;
+        MapStoryFixture::write($this->dir, $doc);
+
+        $this->artisan('map-stories:sync', ['--path' => $this->dir])
+            ->expectsOutputToContain('need schema 2 — set `schema: 2`')
+            ->assertFailed();
+        $this->assertSame(0, MapStory::query()->count());
+    }
+
     public function test_prune_deletes_synced_stories_whose_file_is_gone(): void
     {
         $this->battle();

@@ -10,13 +10,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * A step-by-step battle (or siege, naval battle, campaign) map attached to an
- * entity. `document` is the schema-1 map-story document
- * (App\Support\MapStory\MapStoryDocument) with its Q-ids resolved to entity
- * ids; rows are written by `map-stories:sync` from resources/map-stories/.
+ * A step-by-step map story — a battle, an epidemic, a trade network, a
+ * chronicle's map layer — attached to an entity, a chronicle, or both (at
+ * least one). `document` is the map-story document
+ * (App\Support\MapStory\MapStoryDocument) with its references resolved to
+ * ids; `period_*`, `bbox` and, for an `ambient` story, `ambient_steps` are
+ * precomputed from it (MapStoryAmbient). Rows are written by
+ * `map-stories:sync` from resources/map-stories/.
  */
 #[Fillable([
-    'entity_id', 'slug', 'kind', 'title', 'year', 'step_count', 'document', 'source_path', 'content_hash',
+    'entity_id', 'chronicle_id', 'slug', 'kind', 'title', 'year', 'period_start', 'period_end', 'ambient', 'step_count',
+    'document', 'ambient_steps', 'bbox', 'source_path', 'content_hash',
 ])]
 class MapStory extends Model
 {
@@ -27,15 +31,22 @@ class MapStory extends Model
     protected $primaryKey = 'story_id';
 
     /** Columns for list views (everything but the document). */
-    public const SUMMARY_COLUMNS = ['story_id', 'entity_id', 'slug', 'kind', 'title', 'year', 'step_count'];
+    public const SUMMARY_COLUMNS = ['story_id', 'entity_id', 'chronicle_id', 'slug', 'kind', 'title', 'year', 'step_count'];
+
+    /** Columns for the story page (no precomputed ambient layer or extent). */
+    public const DETAIL_COLUMNS = [...self::SUMMARY_COLUMNS, 'period_start', 'period_end', 'ambient', 'document'];
 
     protected function casts(): array
     {
         return [
             'year' => 'integer',
+            'period_start' => 'integer',
+            'period_end' => 'integer',
+            'ambient' => 'boolean',
             'step_count' => 'integer',
             // An object, not an array: keeps empty JSON objects (`positions: {}`) as {}.
             'document' => 'object',
+            'ambient_steps' => 'array',
         ];
     }
 
@@ -43,5 +54,11 @@ class MapStory extends Model
     public function entity(): BelongsTo
     {
         return $this->belongsTo(Entity::class, 'entity_id', 'entity_id');
+    }
+
+    /** @return BelongsTo<Chronicle, $this> */
+    public function chronicle(): BelongsTo
+    {
+        return $this->belongsTo(Chronicle::class, 'chronicle_id', 'chronicle_id');
     }
 }

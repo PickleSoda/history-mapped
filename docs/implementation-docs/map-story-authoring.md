@@ -5,13 +5,19 @@ step by step, on the atlas map: coloured formation blocks for each body of troop
 arrows for their movements, markers for commanders and camps, terrain the fight
 turned on, and a short narrative per step. The atlas animates units between steps.
 
-Design: [`docs/superpowers/specs/2026-10-31-battle-maps-and-descriptions-design.md`](../superpowers/specs/2026-10-31-battle-maps-and-descriptions-design.md).
+Design: [`2026-10-31-battle-maps-and-descriptions-design.md`](../superpowers/specs/2026-10-31-battle-maps-and-descriptions-design.md)
+(schema 1) and [`2026-10-31-map-story-schema-v2-design.md`](../superpowers/specs/2026-10-31-map-story-schema-v2-design.md)
+(schema 2), and [`2026-10-31-generic-map-stories-design.md`](../superpowers/specs/2026-10-31-generic-map-stories-design.md)
+with the contract in [its plan](../superpowers/plans/2026-10-31-generic-map-stories.md) (schema 3: any
+entity or chronicle, dated steps, routes, regions, ambient mode — see
+[Stories beyond battles](#stories-beyond-battles-schema-3)). Running many authors at once:
+[`battle-map-bulk-run.md`](battle-map-bulk-run.md).
 
 ## Pipeline
 
 ```
 pipeline/map_stories/stories/<module>.py   build() -> dict      (you write this)
-        │  python -m pipeline.map_stories build <module>        (validates, writes JSON)
+        │  python -m pipeline.map_stories build <module>        (validates, lints, writes JSON)
         ▼
 api/resources/map-stories/<slug>.json                            (committed, ships with the API image)
         │  php artisan map-stories:sync                          (resolves Q-ids, upserts the DB)
@@ -19,19 +25,26 @@ api/resources/map-stories/<slug>.json                            (committed, shi
 map_stories table  →  GET /api/v1/map-stories/{slug}  →  atlas story player
 ```
 
-Run Python through the repo's venv and memory cap:
+Run every command through the repo's venv and memory cap. `CLI` below means
+`scripts/capped.sh pipeline/.venv/bin/python3 -m pipeline.map_stories`.
 
 ```bash
-scripts/capped.sh pipeline/.venv/bin/python -m pipeline.map_stories build battle_of_cannae
-scripts/capped.sh pipeline/.venv/bin/python -m pipeline.map_stories preview api/resources/map-stories/battle-of-cannae.json
-scripts/capped.sh pipeline/.venv/bin/python -m pipeline.map_stories preview api/resources/map-stories/battle-of-cannae.json --step 4
+CLI cheatsheet                         # vocabulary, helper signatures, builder skeleton: read this first
+CLI research "Battle of Cannae"        # infobox + section outline; --section NAME, --qids Q1 Q2 …
+CLI places "Canne della Battaglia" --near Q179591 --elevation    # coordinates; --geometry river for a line
+CLI build battle_of_cannae             # run the builder, validate + lint, write the JSON
+CLI check api/resources/map-stories/battle-of-cannae.json        # validate + lint an existing file
+CLI preview api/resources/map-stories/battle-of-cannae.json      # contact sheet of every step
+CLI preview api/resources/map-stories/battle-of-cannae.json --step 4   # one step (id or number), 900×600
+CLI digest api/resources/map-stories/battle-of-cannae.json --links     # check every Q-id's label and class
 ```
 
-`preview` writes `output/map-stories/preview/<slug>/grid.png` (every step) or
-`step-NN.png`, drawn over OpenTopoMap (contours, rivers, villages). **Look at the
-preview** (read the PNG) and fix what's wrong before you finish: the preview is
-the only way to see that the line really stands on the ridge and the river really
-covers the flank.
+`preview` writes `output/map-stories/preview/<slug>/contact.png` (every step,
+small), `step-NN.png` with `--step ID|N`, or the old large `grid.png` with
+`--all-steps`, drawn over OpenTopoMap (contours, rivers, villages). **Look at the
+preview** (read the PNG) and fix what's wrong before you finish: it is the only
+way to see that the line really stands on the ridge and the river really covers
+the flank. `digest` prints the prose without coordinates, for review.
 
 ## Writing a builder
 
@@ -48,24 +61,24 @@ never by guessing decimal degrees:
 | `arc(a, b, bulge)` | a curved path (flanking sweep) bowing `bulge` m to the right |
 | `ellipse(c, rx, ry, rotate)` | an oval ring for a hill, wood, marsh or camp |
 | `bearing(a, b)`, `distance(a, b)`, `local(p, origin)` | measure |
-| `nominatim("Canne della Battaglia")` | OSM place search → lon/lat (cached, 1 call/s) |
-| `place_geometry("Fiume Ofanto", "waterway")` + `lines_of()` + `clip()` + `simplify()` | a real river / coast / lake outline near the field (query rivers by their local name) |
-| `elevation(points)`, `profile(a, b)` | SRTM heights — find the ridge, the slope, the valley floor |
+| `point_in_ring(p, ring)`, `distance_to_line(p, line)` | is it inside that area, how far from that shore |
+| `elevation(points)`, `profile(a, b)` | SRTM heights: find the ridge, the slope, the valley floor |
 
+Prefer the `places` command to the lookup helpers (`nominatim`, `place_geometry`).
 Get anchors from real sources: the battle's Wikipedia coordinates, OSM places
 (villages, farms, rivers that still exist), elevation profiles for ridges and
 hills. Where the ancient landscape differed (a river moved, a coastline silted up,
 a marsh drained), say so in `uncertainty` and draw the historical feature as
 terrain.
 
-## The document (schema 1)
+## The document
 
 Coordinates are `[lon, lat]` (GeoJSON order). Bearings are compass degrees
 (0 = north, 90 = east). Distances are metres. Ids are lowercase kebab-case.
 
 ```jsonc
 {
-  "schema": 1,
+  "schema": 2,                             // 1 or 2; schema-2 fields (below) need 2
   "slug": "battle-of-cannae",             // unique, kebab-case; the file name
   "kind": "battle",                        // battle | naval_battle | siege | campaign
   "entity": {"name": "Battle of Cannae", "wikidata": "Q179591"},   // the atlas entity it belongs to
@@ -74,7 +87,7 @@ Coordinates are `[lon, lat]` (GeoJSON order). Bearings are compass degrees
   "year": -216,                            // negative = BCE
   "intro": "…",                            // 1 paragraph: who, where, why they met here (250–1400 chars)
   "outcome": "…",                          // 1 sentence result
-  "uncertainty": "…",                      // what is debated and which reconstruction this map follows
+  "uncertainty": "…",                      // what is debated and which reconstruction this map follows (≤1500)
   "sources": [{"title": "Polybius, Histories 3.107–117", "kind": "primary"},
               {"title": "Battle of Cannae — Wikipedia", "url": "https://en.wikipedia.org/wiki/Battle_of_Cannae", "kind": "web"}],
   "camera": {"center": [16.13, 41.31], "zoom": 12.5, "bearing": 0},   // optional overview
@@ -123,47 +136,90 @@ Coordinates are `[lon, lat]` (GeoJSON order). Bearings are compass degrees
 
 ### Vocabulary
 
-- **Unit kinds** — foot: `infantry`, `heavy_infantry`, `light_infantry` (skirmishers,
+`CLI cheatsheet` prints the live lists. In short:
+
+- **Unit kinds**: foot `infantry`, `heavy_infantry`, `light_infantry` (skirmishers,
   velites, peltasts, riflemen), `pikemen` (phalanx), `archers`, `slingers`,
-  `crossbowmen`, `musketeers`; mounted: `cavalry`, `heavy_cavalry` (cataphracts,
+  `crossbowmen`, `musketeers`; mounted `cavalry`, `heavy_cavalry` (cataphracts,
   knights, cuirassiers), `light_cavalry` (Numidians, hussars), `horse_archers`,
-  `chariots`, `elephants`, `camels`; support: `artillery`, `siege_engine`; naval:
-  `warship`, `transport`; markers (drawn as a pin, not a block): `commander`,
-  `camp`, `baggage`. Use the closest kind and put specifics in `label`/`note`.
-- **Shapes** (`positions.*.shape`): `block` (default), `line`, `column`, `wedge`
-  (point toward the front), `crescent` (front bows forward by `curve` metres;
-  negative `curve` bows it back), `square` (infantry square), `circle`.
-- **States**: `ready` (default), `engaged`, `wavering`, `routed` (drawn faded and
-  dashed), `destroyed` (ghosted), `hidden` (not drawn: an ambush not yet sprung,
-  troops off the field).
-- **Move types**: `advance`, `attack`, `charge` (thick), `flank`, `pursuit` — solid;
-  `retreat`, `rout`, `feint` — dashed; `march` — dotted (approach, redeployment);
-  `fire` — thin dotted (missile or artillery fire; may end at the target).
+  `chariots`, `elephants`, `camels`; support `artillery`, `siege_engine`; naval
+  `warship` (a squadron), `transport`; markers (a pin, not a block): `commander`,
+  `camp`, `baggage`, and in v2 `standard` (a flag: an eagle, a royal banner) and
+  `ship` (one named vessel). Use the closest kind and put specifics in `label`/`note`.
+- **Shapes**: `block` (default), `line`, `column`, `wedge` (point toward the front),
+  `crescent` (front bows forward by `curve` metres; negative bows it back),
+  `square`, `circle`.
+- **States**: `ready` (default), `engaged`, `wavering`, `routed` (faded, dashed),
+  `destroyed` (ghosted), `hidden` (not drawn: an ambush not yet sprung, troops off
+  the field). v2: `killed`, `wounded` (markers), `captured` (any unit; needs
+  `by: <side id>`, the captor), `sunk`, `aground` (warship, ship, transport), `burning`.
+- **Move types**: `advance`, `attack`, `charge` (thick), `flank`, `pursuit`: solid;
+  `retreat`, `rout`, `feint`: dashed; `march`: dotted; `fire`: thin dotted (missile
+  or artillery fire; may end at its target). v2 naval: `ram`, `back_water`,
+  `blockade` (a cordon line with no head), `landing` (water to shore).
 - **Note kinds**: `label`, `clash`, `death`, `capture`, `event`. ≤ 70 characters.
 - **Terrain kinds**: points (`at`): `town`, `village`, `farm`, `building`, `bridge`,
   `pass`, `label`; lines (`line`): `river`, `stream`, `road`, `ridge`, `wall`,
   `coast`; areas (`area`, an unclosed ring): `hill`, `woods`, `marsh`, `lake`,
-  `sea`, `island`, `fortification`, `camp`, `field`.
+  `sea`, `island`, `fortification`, `camp`, `field`, and in v2 `mask`.
 
 ### Rules the atlas relies on
 
 1. **Placements carry forward.** A step lists only units whose placement changes;
-   each listed key (`at`, `facing`, `width`, `depth`, `shape`, `curve`, `state`,
-   `label`) overrides the previous step's value. A unit appears from the first
-   step that places it (`at` or `with` required then).
+   each listed key overrides the previous value, including the v2 placement keys
+   (`frame`, `lines`, `subunits`, …: reset them when the formation changes). A
+   unit appears from the first step that places it (`at` or `with` required then).
 2. **`at` is the centre of the formation; `facing` is the bearing its front
    faces; `width` is its frontage, `depth` front-to-back.** A unit facing north at
    `at` occupies `width` metres east–west.
-3. **Moves happen during the step they're listed in and end where the unit stands
-   in that step.** The atlas slides the unit along the arrow's path into its new
-   placement, so start the path at the unit's previous position and end it at the
-   new `at` (a `fire` arrow may end on its target instead). The validator warns
-   when they disagree or when a unit jumps far with no arrow.
+3. **Moves happen during the step (or beat) they're listed in and end where the
+   unit stands after it.** Start the path where the unit stood and end it at the
+   new `at` (a `fire` arrow may end on its target; a `blockade` is just a line).
+   The validator warns when they disagree or when a unit jumps far with no arrow.
 4. **`with`** pins a marker (a commander, the baggage) to a unit; it's drawn just
    behind that unit and moves with it. Re-place it with `at` when it separates.
 5. **Leave `camera` out** unless a step needs a wider or tighter frame than its
    units (an approach march, a close-up of one flank). The atlas frames each step
    on its visible units, arrows and notes.
+
+## Schema 2 features
+
+Set `"schema": 2` to use any of these; a schema-1 file that uses one fails with
+"… need schema 2". **Use a feature only where the sources support it**, and mark
+reconstructions `conjectural`. Full semantics are in the reference at the end.
+
+| Feature (where) | Example | Use it when |
+|---|---|---|
+| `frame: false` (placement) | `"bulow": {"frame": false}` | a distant reserve or approaching army is drawn but must not pull the camera out; set `true` when it arrives |
+| `continues` (move) | `"continues": {"toward": [4.44, 50.41], "label": "to Charleroi"}` | the march goes on off the map (a fading tail, not framed) |
+| `from` (placement) | `"artemisia": {"from": "carians", "at": […]}` | a detachment splits off: on its first placement it slides out of its parent |
+| `into` (placement) | `"artemisia": {"into": "carians"}` | a unit rejoins another: it slides onto it and is then off the field |
+| `beats` (step) | see below | one step holds a quick sequence: a feint, then the wheel |
+| `terrain_state` (step) | `{"hougoumont": {"held_by": "allied", "state": "burning"}}` | a farm, village, camp or bridge is held, contested, captured, burning, destroyed or flooded |
+| `light` (step) | `"light": "dawn"` | the time of day matters: `night`, `dawn`, `day` (default), `dusk` |
+| `wind`, `sun` (step) | `"wind": {"from": 135, "strength": "strong", "label": "Volturnus"}`, `"sun": {"from": 95}` | a source says wind or sun mattered; `from` is the direction it comes from |
+| `lines` (placement) | `"lines": 3` | the formation stood in separate lines (the triplex acies) |
+| `lanes` (placement) | `"lanes": 4` | open lanes through the ranks (against chariots or elephants) |
+| `subunits` (placement) | `"shape": "square", "subunits": 5, "lines": 2` | separate blocks across the front; with `square` they are squares, with `lines > 1` a chequerboard |
+| `ranks` (unit) | `[{"kind": "archers", "share": 0.3}, {"kind": "heavy_infantry", "share": 0.7}]` | one body mixes arms front to back; shares sum to about 1 |
+| `strength_n` (unit or placement) | `"strength_n": 200` | a sourced number; `strength` stays the display text |
+| `contingents` (side), `contingent` (unit) | `{"id": "nassau", "name": "Nassauers", "color": "#…"}` | a side is a coalition; units get the contingent's colour or a shade |
+| `orient: "path"` (move) | `{"type": "march", "orient": "path", …}` | ships (or columns) turn along the route; not on `back_water` |
+| `target`, `arc` (`fire` move) | `"target": "picton", "arc": true` | fire falls on a unit; `arc` for high-angle shooting |
+| `conjectural` (placement, move, terrain, note) | `"conjectural": true` | a position, route or feature is reconstructed rather than attested (drawn dashed) |
+| `alt_sites` (document) | `[{"at": […], "label": "Left-bank theory", "note": "…"}]` | the battle's site is disputed |
+| `mask` (terrain area) | `{"kind": "mask", "area": […]}` | landfill or a modern reservoir covers the historical ground |
+
+Beats play after the step's own movement, about a second each, with the label
+as a caption:
+
+```jsonc
+"beats": [  // at most 4; each needs a label and positions or moves
+  {"label": "Horsemen feign flight", "positions": {"french-horse": {"at": […]}},
+   "moves": [{"unit": "french-horse", "type": "feint", "path": […]}]},
+  {"label": "…then wheel on the pursuers", "positions": {…}, "moves": […], "notes": […]}
+]
+```
 
 ### Scale and realism
 
@@ -195,6 +251,109 @@ says what moves and why it matters, in 2–6 sentences. Give `time` where known.
   atlas does (English common names).
 - Where sources disagree (numbers, the side of the river, the hour), pick the
   mainstream reconstruction, use it consistently, and say so in `uncertainty`.
+
+## Stories beyond battles (schema 3)
+
+Set `"schema": 3`. Schema 1 and 2 documents stay valid; a v1/v2 document that uses
+anything below is rejected with "bump schema to 3". Samples:
+`stories/black_death.py`, `hanseatic_league.py`, `influenza_1918.py` and the
+chronicle layer `indian_ocean_dhow_trade.py`. `CLI cheatsheet` ends with a
+one-screen summary.
+
+**Kinds and scale.** The validator's spread (km from the centre) and teleport
+(m between frames without an arrow) limits, and lint's arrow-start slack, scale
+with the kind. Formation lint (overlap, contact, density, static) runs only for
+military kinds with formation units.
+
+| Kind | Use | Spread km / teleport m |
+|---|---|---|
+| `battle` `naval_battle` `siege` | as before (two sides, units) | 20–30 / 600–1,500 |
+| `campaign` `war` `expansion` | a march, a war, a polity growing or collapsing | 3,000 / 150,000 |
+| `diffusion` `event` | a religion, technology or language spreading; one event | 5,000 / 300,000 |
+| `epidemic` `trade_route` `migration` `exploration` | continental or global | 20,000 / 2,000,000 |
+
+`sides` may be `[]` for non-military kinds, and then units need no `side`;
+`units` may be empty too (keep a ship or caravan marker for arrows). New point
+unit kinds: `army` `fleet` `caravan` `merchant_ship` `expedition` `group`. New move
+types: `sail` `trade` `migrate` `explore` `spread`.
+
+**Attachment.** `entity` and/or `chronicle: {slug}` — at least one. Sync adds
+`chronicle.chronicle_id`. `year` is still required: the first year, for sorting
+and cards.
+
+**Dates and the timeline.** A step's `date` is `{year, month?, day?, end?}`
+(`when(1347, 10, end=(1348, 3))`); it moves the atlas timeline while the step
+plays, and `time` stays the display label. A step without a date inherits
+`year`. `period: {start, end}` defaults to the range of step dates. Steps out of
+date order, dates outside `period`, and a `year` that isn't the first year are
+warnings; a month outside 1–12, an impossible day, a day without a month, and an
+`end` before its start are errors.
+
+**Features** (= v2 `terrain`; the alias is accepted, both at once is an error):
+
+| Group | Kinds | Required |
+|---|---|---|
+| Point (`at`) | terrain points + `city` `port` `market` `mine` `outbreak` `site` | — |
+| Line (`line`) | terrain lines + `route` | `route_kind`: `trade` `voyage` `migration` `pilgrimage` `campaign` `road` |
+| Area (`area`) | terrain areas + `region` | `region_kind`: `spread` `extent` `influence` `affected` `front` |
+
+Optional on any feature: `entity` {name, wikidata} (sync adds `entity_id`),
+`side` (colour from that side), `goods` [names], `bidirectional`, `active`
+(default true; start a feature `false` and switch it on), `value_n`,
+`intensity` 0–1, `conjectural`. Any `area` may be one ring or a list of rings
+(`merge_rings` makes one), with no holes.
+
+**Feature state per step** (`step.features`, alias `terrain_state`):
+
+| Field | Meaning |
+|---|---|
+| `active` | draw it or not (a route opens or closes) |
+| `state` | v2 states + `infected` `peak` `recovered` `founded` `abandoned` `disrupted` `new` |
+| `value_n`, `value_label` | route width, circle size or shade, with its caption ("120 ships a year") |
+| `intensity` | 0–1 colour ramp (an epidemic's severity) |
+| `at` / `line` / `area` | replace the geometry from this step on (a growing region) |
+| `area_from_entity` | `{wikidata}`: the area is that entity's atlas geometry at the step's date |
+| `held_by`, `label` | as in v2 (`held_by` is not drawn on lines) |
+
+Each key carries forward on its own; `None` clears it. A new `at`/`line`/`area`/
+`area_from_entity` replaces the earlier geometry. `resolve_features(doc)` gives
+each step's merged features. In a builder: `st.state("lubeck-bergen",
+state="disrupted")`, `st.state("plague", area=hull_region(places, 160), intensity=.9)`.
+
+**Geometry helpers:** `route(a, b, c, sea=True)` keeps the waypoints exactly
+(name the capes and straits: there is no land avoidance) and densifies each leg
+along the great circle; `great_circle(a, b, n)`; `buffer_ring(pt, km)`;
+`hull_region(places, buffer_km)` (convex hull plus a buffer: a spread region
+grown from infected places); `merge_rings(...)`. Nothing may cross the
+antimeridian: show Pacific islands as points. Mark schematic hulls and inferred
+routes `conjectural`, and say in `uncertainty` that they are schematic.
+
+**Step entities.** `entities: [ent("Genoa", "Q1449", role="its galleys carried the plague", show=True)]`.
+The player shows them as chips; `show: true` also draws the entity's own atlas
+geometry for the step's date (a polity's border), so link polities with `show`
+rather than redrawing them. Sync resolves Q-ids to `entity_id`; `digest --links`
+checks them too.
+
+**Chronicle layers.** A story with `chronicle: {slug}` is the map layer of that
+chronicle: give a step `entry: <the entry's sequence_order as stored>` (0-based)
+for each entry the map can show. While the chronicle plays, the map draws the
+matching step; entries without a step keep the default map. Each entry gets at
+most one step, and sync fails on an unknown entry. Look the entries up first:
+
+```bash
+docker compose -f docker/docker-compose.yml exec -T db psql -U history-mapped history-mapped -At -c \
+  "select e.sequence_order, e.start_year, left(e.narrative_text, 120) from chronicle_entries e
+   join chronicles c using (chronicle_id) where c.slug = '<slug>' order by 1"
+```
+
+**Ambient mode.** `ambient: true` (default false) shows the story faintly on
+the plain atlas: at year Y, the state of the last step whose date starts at or
+before Y, inside the view. Only active routes, regions and `outbreak`/`port`/
+`market`/`city` points are shown. Every step then needs a `date`. Opt in for
+trade routes, spread regions and migrations; battles stay off.
+
+**Legend.** `legend: [{swatch: "#7f1d1d", label: "Plague reached", style: "fill"}]`
+(`fill` | `line` | `dot`) adds to the automatic legend.
 
 ## Entity descriptions
 
@@ -228,4 +387,40 @@ docker compose -f docker/docker-compose.yml exec -T db psql -U history-mapped -d
 
 Link sides, commanders and named units to atlas entities by Wikidata Q-id when
 the atlas has them; the sync resolves Q-ids to entity ids so the player can link
-to their pages.
+to their pages. Confirm every Q-id with `CLI research --qids` or `CLI digest --links`.
+
+## Reference: schema 2 semantics
+
+- **Beats.** The step's own `positions` apply first, then each beat's in order;
+  the frame that carries into the next step is the one after the last beat. The
+  step's own arrows and notes show for the whole step; a beat's appear when it
+  plays and stay until the step ends. A beat's arrows start where the unit stood
+  after the previous beat. `resolve_beats(doc, i)` in `validate.py` returns
+  `[frame_before_beats, after_beat_1, …]`; `resolve_steps(doc)` returns each
+  step's final frame.
+- **`from` / `into`.** `from` goes on a placement where the unit was not on the
+  field in the previous frame, and the parent must have been. An `into` unit
+  resolves onto its target's point in that frame (the target must be on the
+  field), then is `hidden`; give it a `state` again to bring it back.
+- **`terrain_state`** (schema 3: `step.features`) carries forward key by key;
+  `held_by: null` clears the holder. A holder is drawn on point and area features,
+  not lines. Captured baggage or
+  a camp that is a *unit* uses the unit state `captured` instead.
+- **`light`, `wind`, `sun`** carry forward; light defaults to `day`. Change the
+  sun's `from` as the day goes on rather than leaving the morning sun all day.
+- **States that fit the kind:** `killed`/`wounded` on markers, `sunk`/`aground`
+  on warship, ship and transport; anything else is a warning.
+- **Land/water check** (warnings; skipped when the story draws no water):
+  ships must sit inside a `sea`/`lake` area (and not on an `island`) or within
+  400 m of a `river`/`coast` line; land units must not stand in a `sea`/`lake`
+  area unless they have a `landing` move that step. Draw the historical water as
+  a `sea` area, `conjectural` where its shore is approximate.
+- **Spread and framing.** The spread check skips `frame: false` placements (and
+  their arrows), `continues` tails and `alt_sites`; the atlas leaves them out of
+  automatic framing too.
+- **Errors vs warnings.** Unknown ids, bad enums or types, `captured` without
+  `by`, more than four beats, a beat without positions or moves, and `from`/`into`
+  that don't meet the rules above are errors (the API sync rejects them too).
+  Teleports, stray arrows, spread, state/kind fit and land/water are warnings
+  (Python only). `check` also lints (overlaps, units off an explicit camera,
+  colliding notes): see [`battle-map-bulk-run.md`](battle-map-bulk-run.md).
