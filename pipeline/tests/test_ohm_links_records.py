@@ -104,7 +104,7 @@ def test_element_without_osm_type_or_id_returns_none():
 
 
 def test_invalid_wikidata_tag_gives_null_wikidata_id_but_keeps_raw_tag():
-    for value in ("Q2277;Q1747689", "q2277", "Q", "2277", "Q2277 "):
+    for value in ("Q2277;Q1747689", "q2277", "Q", "2277", "Q2277 ", "Q٢٢٧٧"):
         element = {"type": "relation", "id": 1, "tags": {"name": "x", "wikidata": value}}
         record = element_to_record(element)
         assert record["wikidata_id"] is None

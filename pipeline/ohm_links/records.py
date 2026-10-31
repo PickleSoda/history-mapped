@@ -21,7 +21,7 @@ TAG_KEYS = (
     "end_date",
 )
 
-_QID_PATTERN = re.compile(r"Q\d+")
+_QID_PATTERN = re.compile(r"Q[0-9]+")
 
 
 def _wikidata_id(value: Any) -> str | None:
