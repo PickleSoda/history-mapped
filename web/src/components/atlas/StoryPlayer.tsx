@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { storyKindLabel } from '@/components/atlas/StoryCard';
 import { useMapStory, useSelection, useStoryNav } from '@/hooks';
-import type { MapStoryDocument, StoryLinked, StorySide } from '@/lib/schemas/map-story';
+import { contingentColors } from '@/lib/map-story/colors';
+import type { MapStoryDocument, StoryLinked, StorySide, StoryStep } from '@/lib/schemas/map-story';
 import { cn } from '@/lib/utils';
 
 /** A name that opens its atlas entity when the story links one. */
@@ -21,30 +22,44 @@ function EntityName({ item, className }: { item: StoryLinked; className?: string
   );
 }
 
-/** One line per side: colour, name, commanders (strength and losses fold away below). */
+/** One line per side: colour, name, commanders (strength and losses fold away below),
+ *  then its contingents' colours when it has any. */
 function SideRow({ side }: { side: StorySide }) {
+  const contingents = contingentColors(side);
   return (
-    <div className="flex items-baseline gap-2 text-[12px] leading-snug">
-      <span
-        className="size-2.5 flex-none translate-y-[1px] rounded-sm ring-1 ring-black/20"
-        style={{ backgroundColor: side.color }}
-      />
-      <div className="min-w-0 truncate">
-        <span className="font-semibold">
-          {side.polity?.entity_id ? <EntityName item={{ ...side.polity, name: side.name }} /> : side.name}
-        </span>
-        {side.commanders.length > 0 && (
-          <span className="text-muted-foreground">
-            {' · '}
-            {side.commanders.map((c, i) => (
-              <span key={c.name}>
-                {i > 0 && ', '}
-                <EntityName item={c} className="text-foreground/80" />
-              </span>
-            ))}
+    <div>
+      <div className="flex items-baseline gap-2 text-[12px] leading-snug">
+        <span
+          className="size-2.5 flex-none translate-y-[1px] rounded-sm ring-1 ring-black/20"
+          style={{ backgroundColor: side.color }}
+        />
+        <div className="min-w-0 truncate">
+          <span className="font-semibold">
+            {side.polity?.entity_id ? <EntityName item={{ ...side.polity, name: side.name }} /> : side.name}
           </span>
-        )}
+          {side.commanders.length > 0 && (
+            <span className="text-muted-foreground">
+              {' · '}
+              {side.commanders.map((c, i) => (
+                <span key={c.name}>
+                  {i > 0 && ', '}
+                  <EntityName item={c} className="text-foreground/80" />
+                </span>
+              ))}
+            </span>
+          )}
+        </div>
       </div>
+      {side.contingents.length > 0 && (
+        <div className="ml-[18px] flex flex-wrap gap-x-2.5 gap-y-0.5 text-[11px] text-muted-foreground">
+          {side.contingents.map((c) => (
+            <span key={c.id} className="inline-flex items-center gap-1">
+              <span className="size-2 rounded-sm ring-1 ring-black/20" style={{ backgroundColor: contingents.get(c.id) }} />
+              {c.name}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -81,6 +96,19 @@ function Fold({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
+/** Whether anything in the story is marked as reconstructed rather than attested. */
+function usesConjectural(doc: MapStoryDocument): boolean {
+  if (doc.terrain.some((t) => t.conjectural)) return true;
+  return doc.steps.some((s) =>
+    [s, ...s.beats].some(
+      (p) =>
+        Object.values(p.positions).some((pl) => pl.conjectural) ||
+        p.moves.some((m) => m.conjectural) ||
+        p.notes.some((n) => n.conjectural),
+    ),
+  );
+}
+
 function Reconstruction({ doc }: { doc: MapStoryDocument }) {
   return (
     <Fold title="About this reconstruction">
@@ -88,7 +116,21 @@ function Reconstruction({ doc }: { doc: MapStoryDocument }) {
       <p className="text-muted-foreground">
         Pale blue water and grey place names are today's, for orientation; the
         bolder rivers, hills and woods are the historical terrain.
+        {usesConjectural(doc) && ' Dashed = conjectural: reconstructed rather than attested.'}
       </p>
+      {doc.alt_sites.length > 0 && (
+        <div>
+          <p className="font-medium">Other proposed sites (grey ? pins)</p>
+          <ul className="list-disc space-y-0.5 pl-4">
+            {doc.alt_sites.map((a) => (
+              <li key={a.label}>
+                {a.label}
+                {a.note && <span className="text-muted-foreground"> — {a.note}</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {doc.sources.length > 0 && (
         <ul className="list-disc space-y-0.5 pl-4">
           {doc.sources.map((s) => (
@@ -108,9 +150,9 @@ function Reconstruction({ doc }: { doc: MapStoryDocument }) {
   );
 }
 
-/** How long autoplay lingers on a step: long enough to read it. */
-function dwellMs(narrative: string): number {
-  return Math.min(22000, Math.max(6000, narrative.length * 45));
+/** How long autoplay lingers on a step: long enough to read it (and play its beats). */
+function dwellMs(step: StoryStep): number {
+  return Math.min(22000, Math.max(6000, step.narrative.length * 45)) + step.beats.length * 1200;
 }
 
 /** Chrome-less battle-map body — shared by the desktop aside and the mobile sheet. */
@@ -131,7 +173,7 @@ export function StoryPlayerContent() {
     const timer = setTimeout(() => {
       next();
       if (index + 1 >= total - 1) setPlaying(false);
-    }, dwellMs(current.narrative));
+    }, dwellMs(current));
     return () => clearTimeout(timer);
   }, [playing, current, atEnd, next, index, total]);
 
@@ -194,6 +236,17 @@ export function StoryPlayerContent() {
             <p className="mt-2 whitespace-pre-line break-words text-[13px] leading-relaxed text-foreground/90">
               {current.narrative}
             </p>
+            {current.beats.some((b) => b.label) && (
+              <ol className="mt-2 space-y-0.5 border-l-2 border-border pl-3 text-[12px] leading-snug text-muted-foreground">
+                {current.beats
+                  .filter((b) => b.label)
+                  .map((b, i) => (
+                    <li key={i}>
+                      <span className="font-mono text-[10px] text-muted-foreground/70">{i + 1}.</span> {b.label}
+                    </li>
+                  ))}
+              </ol>
+            )}
             {index === 0 && doc.intro && <Fold title="Background">{<p>{doc.intro}</p>}</Fold>}
             {atEnd && doc.outcome && (
               <div className="mt-4 rounded-lg border bg-muted/40 p-3 text-[12px]">

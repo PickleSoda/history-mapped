@@ -4,8 +4,10 @@
  * The glyph language follows military map convention loosely: foot are a
  * cross (X), horse a single diagonal, missile troops their weapon, artillery a
  * dot; heavier troops get a frame. Glyphs are white with a dark halo so they
- * read on any side colour. Pins (commander, camp, baggage), arrowheads and
- * note markers are coloured per side, so their image ids carry the colour.
+ * read on any side colour. Pins (commander, camp, baggage), standards, ships,
+ * arrowheads, hatching and captured flags are coloured per side or
+ * contingent, so their image ids carry the colour. Unit-state overlays
+ * (killed, wounded, sunk, burning) and terrain-state badges sit on top.
  */
 import type { Map as MapLibreMap } from 'maplibre-gl';
 
@@ -123,6 +125,16 @@ const GLYPHS: Record<string, Draw> = {
     line(c, 10, 28, 10, 4);
     line(c, 10, 5, 25, 9, 10, 14);
   },
+  standard: (c) => {
+    line(c, 12, 29, 12, 3);
+    line(c, 12, 4, 27, 7, 22, 11, 27, 15, 12, 16);
+  },
+  ship: (c) => {
+    c.moveTo(16, 3);
+    c.quadraticCurveTo(25, 12, 22, 29);
+    line(c, 22, 29, 10, 29);
+    c.quadraticCurveTo(7, 12, 16, 3);
+  },
   camp: (c) => {
     line(c, 4, 26, 16, 6, 28, 26, 4, 26);
     line(c, 16, 26, 16, 16);
@@ -157,9 +169,56 @@ const NOTE_GLYPHS: Record<string, Draw> = {
   },
 };
 
-function canvas(): [HTMLCanvasElement, CanvasRenderingContext2D] {
+/** A standard: a pole, and a swallow-tailed cloth filled in the side's colour. */
+const pole: Draw = (c) => line(c, 14, 30, 14, 3);
+const cloth: Draw = (c) => {
+  line(c, 14, 4, 30, 7, 25, 11, 30, 15, 14, 17);
+  c.closePath();
+};
+
+/** A hull seen from above, bow up (north); the layer rotates it to its facing. */
+const hull: Draw = (c) => {
+  c.moveTo(16, 2);
+  c.quadraticCurveTo(26, 12, 22.5, 30);
+  c.lineTo(9.5, 30);
+  c.quadraticCurveTo(6, 12, 16, 2);
+  c.closePath();
+};
+
+const flame: Draw = (c) => {
+  c.moveTo(16, 3);
+  c.bezierCurveTo(19, 9, 26, 13, 24, 22);
+  c.bezierCurveTo(23, 27, 19, 30, 16, 30);
+  c.bezierCurveTo(12, 30, 8, 27, 8, 22);
+  c.bezierCurveTo(8, 17, 12, 15, 12, 10);
+  c.bezierCurveTo(14, 12, 15, 14, 15, 16);
+  c.bezierCurveTo(17, 12, 17, 7, 16, 3);
+  c.closePath();
+};
+const flameCore: Draw = (c) => {
+  c.moveTo(16, 16);
+  c.bezierCurveTo(18, 19, 21, 21, 20, 25);
+  c.bezierCurveTo(19, 28, 13, 28, 12, 25);
+  c.bezierCurveTo(11, 22, 14, 20, 16, 16);
+  c.closePath();
+};
+
+/** Badges for a terrain feature's state (`captured` is a flag per colour). */
+const TERRAIN_STATE_GLYPHS: Record<string, Draw> = {
+  contested: NOTE_GLYPHS.clash,
+  destroyed: (c) => line(c, 6, 26, 6, 14, 11, 9, 13, 16, 17, 11, 20, 18, 26, 13, 26, 26, 6, 26),
+  flooded: (c) => {
+    for (const y of [10, 16, 22]) {
+      c.moveTo(5, y);
+      c.bezierCurveTo(9, y - 4, 12, y + 4, 16, y);
+      c.bezierCurveTo(20, y - 4, 23, y + 4, 27, y);
+    }
+  },
+};
+
+function canvas(size = SIZE): [HTMLCanvasElement, CanvasRenderingContext2D] {
   const el = document.createElement('canvas');
-  el.width = el.height = SIZE * RATIO;
+  el.width = el.height = size * RATIO;
   const ctx = el.getContext('2d') as CanvasRenderingContext2D;
   ctx.scale(RATIO, RATIO);
   ctx.lineCap = 'round';
@@ -167,8 +226,8 @@ function canvas(): [HTMLCanvasElement, CanvasRenderingContext2D] {
   return [el, ctx];
 }
 
-/** Stroke a glyph white over a dark halo. */
-function strokeGlyph(ctx: CanvasRenderingContext2D, draw: Draw, scale = 1, halo = true): void {
+/** Stroke a glyph white over a dark halo (or in `color`, without one). */
+function strokeGlyph(ctx: CanvasRenderingContext2D, draw: Draw, scale = 1, halo = true, color = '#ffffff'): void {
   ctx.save();
   if (scale !== 1) {
     ctx.translate(SIZE / 2, SIZE / 2);
@@ -184,10 +243,38 @@ function strokeGlyph(ctx: CanvasRenderingContext2D, draw: Draw, scale = 1, halo 
   }
   ctx.beginPath();
   draw(ctx);
-  ctx.strokeStyle = '#ffffff';
+  ctx.strokeStyle = color;
   ctx.lineWidth = 2.6;
   ctx.stroke();
   ctx.restore();
+}
+
+/** Fill a closed shape in `color` with a white edge over a dark halo. */
+function fillShape(ctx: CanvasRenderingContext2D, draw: Draw, color: string): void {
+  ctx.beginPath();
+  draw(ctx);
+  ctx.strokeStyle = 'rgba(20,18,15,0.85)';
+  ctx.lineWidth = 4;
+  ctx.stroke();
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 1.6;
+  ctx.stroke();
+}
+
+/** A round badge (terrain state, alternative site) that `paint`s inside. */
+function badge(ctx: CanvasRenderingContext2D, paint: () => void, dashed = false): void {
+  ctx.beginPath();
+  ctx.arc(16, 16, 12.5, 0, Math.PI * 2);
+  ctx.fillStyle = dashed ? 'rgba(255,253,245,0.7)' : '#fffdf5';
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = dashed ? '#78716c' : '#292524';
+  if (dashed) ctx.setLineDash([3, 2.5]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  paint();
 }
 
 function add(map: MapLibreMap, id: string, el: HTMLCanvasElement): void {
@@ -198,14 +285,30 @@ function add(map: MapLibreMap, id: string, el: HTMLCanvasElement): void {
 
 export const unitGlyphId = (kind: string) => `story-glyph-${GLYPHS[kind] ? kind : 'infantry'}`;
 export const pinId = (kind: string, color: string) => `story-pin-${kind}-${color}`;
+export const standardId = (color: string) => `story-standard-${color}`;
+export const shipId = (color: string) => `story-ship-${color}`;
 export const arrowId = (color: string) => `story-arrow-${color}`;
+export const ramId = (color: string) => `story-ram-${color}`;
+export const landingId = (color: string) => `story-landing-${color}`;
 export const noteId = (kind: string) => `story-note-${NOTE_GLYPHS[kind] ? kind : 'label'}`;
+/** A unit-state overlay: killed, wounded, sunk, burning (captured is per colour). */
+export const stateId = (state: string) => `story-state-${state}`;
+export const capturedId = (color: string) => `story-state-captured-${color}`;
+/** Diagonal hatching (a fill pattern) for a unit captured by this colour's side. */
+export const hatchId = (color: string) => `story-hatch-${color}`;
+/** A terrain feature's state badge; `captured` flies the holder's flag. */
+export const terrainStateId = (state: string, color: string) =>
+  state === 'captured' ? `story-tflag-${color}` : `story-tstate-${state}`;
+export const ALT_SITE_ICON = 'story-alt';
+
+/** Pin kinds drawn as a round badge with their glyph. */
+const PIN_KINDS = ['commander', 'camp', 'baggage'];
 
 /**
  * Register every image a story needs (idempotent; images live in the style, so
  * call again after a basemap switch).
  */
-export function registerStoryImages(map: MapLibreMap, sideColors: string[]): void {
+export function registerStoryImages(map: MapLibreMap, colors: string[]): void {
   for (const kind of Object.keys(GLYPHS)) {
     const id = unitGlyphId(kind);
     if (map.hasImage(id)) continue;
@@ -214,8 +317,8 @@ export function registerStoryImages(map: MapLibreMap, sideColors: string[]): voi
     add(map, id, el);
   }
 
-  for (const color of sideColors) {
-    for (const kind of ['commander', 'camp', 'baggage']) {
+  for (const color of colors) {
+    for (const kind of PIN_KINDS) {
       const id = pinId(kind, color);
       if (map.hasImage(id)) continue;
       const [el, ctx] = canvas();
@@ -244,6 +347,7 @@ export function registerStoryImages(map: MapLibreMap, sideColors: string[]): voi
       ctx.stroke();
       add(map, aid, el);
     }
+    perColor(map, color);
   }
 
   for (const kind of Object.keys(NOTE_GLYPHS)) {
@@ -260,4 +364,157 @@ export function registerStoryImages(map: MapLibreMap, sideColors: string[]): voi
     strokeGlyph(ctx, NOTE_GLYPHS[kind], 0.6, false);
     add(map, id, el);
   }
+
+  const once = (id: string, draw: (ctx: CanvasRenderingContext2D) => void) => {
+    if (map.hasImage(id)) return;
+    const [el, ctx] = canvas();
+    draw(ctx);
+    add(map, id, el);
+  };
+  once(stateId('killed'), (ctx) => {
+    const x: Draw = (c) => {
+      line(c, 6, 6, 26, 26);
+      line(c, 26, 6, 6, 26);
+    };
+    strokeGlyph(ctx, x, 1, true, '#b91c1c');
+  });
+  once(stateId('wounded'), (ctx) => {
+    ctx.beginPath();
+    ctx.arc(16, 16, 8, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = 'rgba(20,18,15,0.6)';
+    ctx.stroke();
+    ctx.beginPath();
+    line(ctx, 16, 11, 16, 21);
+    line(ctx, 11, 16, 21, 16);
+    ctx.strokeStyle = '#dc2626';
+    ctx.lineWidth = 3.2;
+    ctx.lineCap = 'butt';
+    ctx.stroke();
+  });
+  once(stateId('sunk'), (ctx) =>
+    strokeGlyph(ctx, (c) => {
+      // A tilted, broken hull over the waves.
+      c.moveTo(5, 12);
+      c.quadraticCurveTo(14, 22, 26, 17);
+      line(c, 26, 17, 5, 12);
+      line(c, 15, 16, 11, 5);
+      for (const y of [23, 28]) {
+        c.moveTo(4, y);
+        c.bezierCurveTo(9, y - 3, 12, y + 3, 16, y);
+        c.bezierCurveTo(20, y - 3, 23, y + 3, 28, y);
+      }
+    }),
+  );
+  once(stateId('burning'), (ctx) => {
+    fillShape(ctx, flame, '#f97316');
+    ctx.beginPath();
+    flameCore(ctx);
+    ctx.fillStyle = '#fde047';
+    ctx.fill();
+  });
+  for (const [state, draw] of Object.entries(TERRAIN_STATE_GLYPHS)) {
+    once(terrainStateId(state, ''), (ctx) =>
+      badge(ctx, () => strokeGlyph(ctx, draw, 0.62, false, state === 'flooded' ? '#1d4ed8' : '#292524')),
+    );
+  }
+  once(terrainStateId('burning', ''), (ctx) =>
+    badge(ctx, () => {
+      ctx.save();
+      ctx.translate(16, 16);
+      ctx.scale(0.62, 0.62);
+      ctx.translate(-16, -16);
+      fillShape(ctx, flame, '#f97316');
+      ctx.restore();
+    }),
+  );
+  once(ALT_SITE_ICON, (ctx) =>
+    badge(
+      ctx,
+      () => {
+        ctx.fillStyle = '#57534e';
+        ctx.font = 'bold 17px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('?', 16, 17);
+      },
+      true,
+    ),
+  );
+}
+
+/** The images drawn in one side's (or contingent's) colour. */
+function perColor(map: MapLibreMap, color: string): void {
+  const once = (id: string, draw: (ctx: CanvasRenderingContext2D) => void, size = SIZE) => {
+    if (map.hasImage(id)) return;
+    const [el, ctx] = canvas(size);
+    draw(ctx);
+    add(map, id, el);
+  };
+  once(standardId(color), (ctx) => {
+    strokeGlyph(ctx, pole);
+    fillShape(ctx, cloth, color);
+  });
+  once(shipId(color), (ctx) => {
+    fillShape(ctx, hull, color);
+    ctx.beginPath();
+    line(ctx, 16, 9, 16, 25);
+    ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+  });
+  // Points north; the layer rotates it to the arrow's last bearing.
+  once(ramId(color), (ctx) =>
+    fillShape(ctx, (c) => {
+      line(c, 16, 1, 22, 13, 19, 13, 19, 20, 25, 25, 7, 25, 13, 20, 13, 13, 10, 13);
+      c.closePath();
+    }, color),
+  );
+  once(landingId(color), (ctx) => {
+    fillShape(ctx, (c) => {
+      line(c, 16, 12, 25, 29, 16, 24, 7, 29);
+      c.closePath();
+    }, color);
+    // The beach the arrow lands on.
+    strokeGlyph(ctx, (c) => line(c, 3, 10, 16, 3, 29, 10), 1, true, color);
+  });
+  // Hatching for a unit this side captured, as a body fill pattern and a pin overlay.
+  once(hatchId(color), (ctx) => {
+    ctx.beginPath();
+    for (let k = -16; k <= 32; k += 8) line(ctx, k, 0, k - 16, 16);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.6;
+    ctx.lineCap = 'butt';
+    ctx.stroke();
+  }, 16);
+  once(capturedId(color), (ctx) => {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(16, 16, 13, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.beginPath();
+    for (let k = -32; k <= 64; k += 6) line(ctx, k, 0, k - 32, 32);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.6;
+    ctx.stroke();
+    ctx.restore();
+    ctx.beginPath();
+    ctx.arc(16, 16, 13.5, 0, Math.PI * 2);
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = color;
+    ctx.stroke();
+  });
+  once(terrainStateId('captured', color), (ctx) =>
+    badge(ctx, () => {
+      ctx.save();
+      ctx.translate(16, 16);
+      ctx.scale(0.62, 0.62);
+      ctx.translate(-16, -16);
+      strokeGlyph(ctx, pole, 1, false, '#292524');
+      fillShape(ctx, cloth, color);
+      ctx.restore();
+    }),
+  );
 }
