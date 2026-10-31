@@ -2,6 +2,7 @@ import { keepPreviousData, useQueries } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { entitiesInView } from '@/lib/api';
 import type { MapLayer } from '@/lib/api/params';
+import { isMapTilesEnabled } from '@/lib/map-tiles';
 import { qk } from '@/lib/query/queryKeys';
 import type { MapFeature, MapFeatureCollection } from '@/lib/schemas/map';
 import { useMapInsetsReady } from './ephemeral';
@@ -45,7 +46,7 @@ function mergeLayers(results: UseQueryResult<MapFeatureCollection>[]) {
  * dense, merged into one FeatureCollection. `keepPreviousData` keeps the old
  * pins on screen during a refetch (no empty-map flash); high `staleTime`
  * because history is immutable; `signal` aborts in-flight requests on a fast
- * scrub.
+ * scrub. Off in tile mode (`VITE_MAP_TILES_URL`): the map reads vector tiles.
  */
 export function useEntitiesInView() {
   const scope = useScope();
@@ -54,7 +55,7 @@ export function useEntitiesInView() {
     queries: LAYERS.map((layer) => ({
       queryKey: qk.entitiesInView(scope, layer),
       queryFn: ({ signal }: { signal: AbortSignal }) => entitiesInView(scope, layer, signal),
-      enabled: ready,
+      enabled: ready && !isMapTilesEnabled(),
       placeholderData: keepPreviousData,
       staleTime: 5 * 60_000,
       gcTime: 30 * 60_000,

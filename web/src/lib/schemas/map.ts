@@ -26,6 +26,17 @@ export interface MapFeatureProperties {
   ohm_provider: string | null;
   ohm_external_type: string | null;
   ohm_external_id: string | null;
+  /**
+   * Tile-mode only (Martin `atlas_entities` tiles, docs/schemas/atlas-tiles.md):
+   * curated rank, signed OHM osm id (relation < 0, node/way > 0) and the OHM
+   * decimal-date visibility window (no `end_decdate` = open-ended). A tile
+   * feature's `feature.id` is the stable `fid`, which is not a property. REST
+   * features carry `ohm_external_*` instead of `ohm_osm_id`.
+   */
+  display_priority?: number | null;
+  ohm_osm_id?: number | null;
+  start_decdate?: number;
+  end_decdate?: number;
 }
 
 export type MapFeature = Feature<Geometry | null, MapFeatureProperties>;

@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react';
 import {
   useBasemap,
   useEntitiesInView,
+  useFilters,
   useMapInstance,
   useSelection,
   useTimeState,
@@ -15,16 +16,26 @@ import {
 import { instantYear } from '@/lib/format';
 import { loadHistoricalBasemapStyle } from '@/lib/map-config';
 import { registerGroupMarkers, refreshGroupMarkers } from '@/lib/map-icons';
+import {
+  applyEntityLayerFilters,
+  ENTITY_SOURCE_LAYER,
+  entityTileSource,
+  isMapTilesEnabled,
+  isPoint,
+  isPolygon,
+  SOURCE_ID,
+} from '@/lib/map-tiles';
 import { yearToOhmDate } from '@/lib/ohm-date';
 import { applyOhmLayerDateFilter } from '@/lib/ohm-layer-date-filter';
 import { resolveOhmClickToEntity } from '@/lib/ohm-resolve';
 import { useTheme } from '@/lib/theme';
 import type { ViewMode } from '@/types/atlas';
 
-const SOURCE_ID = 'entities';
 const FILL_LAYER = 'entities-fill';
 const LINE_LAYER = 'entities-line';
 const SYMBOL_LAYER = 'entities-symbols';
+/** Our three layers, for the tile-mode time / group filters. */
+const ENTITY_LAYERS = { fill: FILL_LAYER, line: LINE_LAYER, symbol: SYMBOL_LAYER };
 const EMPTY_FC: FeatureCollection = { type: 'FeatureCollection', features: [] };
 const MOVE_DEBOUNCE_MS = 250;
 
@@ -69,21 +80,23 @@ function groupColorExpression(): maplibregl.ExpressionSpecification {
  * whichever basemap is loaded. Group marker icons must be registered first.
  */
 function addEntityLayers(map: maplibregl.Map, data: FeatureCollection | undefined): void {
-  map.addSource(SOURCE_ID, { type: 'geojson', data: data ?? EMPTY_FC });
+  // Tile mode (VITE_MAP_TILES_URL): all-time vector tiles, filtered per layer
+  // by applyEntityLayerFilters; otherwise the viewport GeoJSON.
+  const tiles = isMapTilesEnabled();
+  map.addSource(
+    SOURCE_ID,
+    tiles ? entityTileSource() : { type: 'geojson', data: data ?? EMPTY_FC },
+  );
+  const sourceLayer = tiles ? { 'source-layer': ENTITY_SOURCE_LAYER } : {};
 
   const groupColor = groupColorExpression();
-  const isPolygon: maplibregl.FilterSpecification = [
-    'match', ['geometry-type'], ['Polygon', 'MultiPolygon'], true, false,
-  ];
-  const isPoint: maplibregl.FilterSpecification = [
-    'match', ['geometry-type'], ['Point', 'MultiPoint'], true, false,
-  ];
 
   // Entity territories (fill + outline) — drawn over the OHM basemap.
   map.addLayer({
     id: FILL_LAYER,
     type: 'fill',
     source: SOURCE_ID,
+    ...sourceLayer,
     filter: isPolygon,
     paint: { 'fill-color': groupColor, 'fill-opacity': 0.15 },
   });
@@ -91,6 +104,7 @@ function addEntityLayers(map: maplibregl.Map, data: FeatureCollection | undefine
     id: LINE_LAYER,
     type: 'line',
     source: SOURCE_ID,
+    ...sourceLayer,
     filter: isPolygon,
     paint: { 'line-color': groupColor, 'line-width': 1 },
   });
@@ -100,6 +114,7 @@ function addEntityLayers(map: maplibregl.Map, data: FeatureCollection | undefine
     id: SYMBOL_LAYER,
     type: 'symbol',
     source: SOURCE_ID,
+    ...sourceLayer,
     filter: isPoint,
     layout: {
       'icon-image': [
@@ -144,6 +159,7 @@ export function MapCanvas() {
   const { basemap } = useBasemap();
   const { bbox, setBbox } = useViewport();
   const { time } = useTimeState();
+  const { groups } = useFilters();
   const { select } = useSelection();
   const { data } = useEntitiesInView();
   const theme = useTheme((s) => s.theme);
@@ -157,6 +173,10 @@ export function MapCanvas() {
   selectRef.current = select;
   const yearRef = useRef(year);
   yearRef.current = year;
+  const timeRef = useRef(time);
+  timeRef.current = time;
+  const groupsRef = useRef(groups);
+  groupsRef.current = groups;
   const dataRef = useRef(data);
   dataRef.current = data;
   const viewRef = useRef(view);
@@ -204,6 +224,13 @@ export function MapCanvas() {
         if (cancelled || map.style !== loading) return;
 
         addEntityLayers(map, dataRef.current as FeatureCollection | undefined);
+        if (isMapTilesEnabled()) {
+          applyEntityLayerFilters(map, {
+            layers: ENTITY_LAYERS,
+            time: timeRef.current,
+            groups: groupsRef.current,
+          });
+        }
         // Catch up on a Map/Globe toggle made while the style was loading.
         map.setProjection(projectionFor(viewRef.current));
         applyOhmLayerDateFilter(map, yearToOhmDate(yearRef.current));
@@ -307,10 +334,18 @@ export function MapCanvas() {
     applyOhmLayerDateFilter(map, yearToOhmDate(year));
   }, [year]);
 
+  // ── tile mode: filter our layers by time + groups client-side (D1) ─────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !styleReadyRef.current || !isMapTilesEnabled()) return;
+    applyEntityLayerFilters(map, { layers: ENTITY_LAYERS, time, groups });
+  }, [time, groups]);
+
   // ── push entity data imperatively when the query updates ───────────────────
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !data) return;
+    // Tile mode has no GeoJSON to push (and the viewport query is off).
+    if (!map || !data || isMapTilesEnabled()) return;
     const source = map.getSource(SOURCE_ID) as GeoJSONSource | undefined;
     source?.setData(data as FeatureCollection);
   }, [data]);

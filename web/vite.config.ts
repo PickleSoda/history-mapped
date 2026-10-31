@@ -126,6 +126,17 @@ export default defineConfig({
               cacheableResponse: { statuses: [0, 200] },
             },
           },
+          // Our entity vector tiles (Martin, spec D8). Revalidated in the
+          // background: they change when the data does, Martin sends an ETag.
+          {
+            urlPattern: /\/tiles\/atlas_entities\//i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'atlas-tiles',
+              expiration: { maxEntries: 2000, maxAgeSeconds: DAY_SECONDS },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
           // API reads. Anchored regex so cross-origin (:8000 in dev) matches;
           // /sanctum/csrf-cookie is outside /api/v1 and stays uncached. The
           // authenticated /api/v1/user and /api/v1/me* endpoints (profile,
