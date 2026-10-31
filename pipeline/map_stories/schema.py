@@ -206,6 +206,12 @@ V2_FIELDS = {
     "note": ("conjectural",),
 }
 
+#: Every key a placement may carry (v1 and v2). Anything else is dropped by
+#: the atlas, so the validator warns: e.g. a `kind=` passed to `Story.put`.
+PLACEMENT_KEYS = (
+    "at", "with", "facing", "width", "depth", "shape", "curve", "state", "label", "strength",
+) + V2_FIELDS["placement"]
+
 #: Placement fields that only make sense on a formation block.
 FORMATION_FIELDS = ("lines", "lanes", "subunits")
 

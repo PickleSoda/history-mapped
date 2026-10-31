@@ -4,6 +4,7 @@
  * and the ambient query's snapped viewport.
  */
 import { formatYear } from '@/lib/format';
+import { yearToOhmDate } from '@/lib/ohm-date';
 import type { MapStoryDocument, StoryDate, StoryDateSpec } from '@/lib/schemas/map-story';
 import type { Bbox } from '@/types/atlas';
 
@@ -17,6 +18,20 @@ export const BATTLE_KINDS: readonly string[] = ['battle', 'naval_battle', 'siege
  */
 export function stepYear(doc: MapStoryDocument, index: number): number {
   return doc.steps[index]?.date?.year ?? doc.year;
+}
+
+/**
+ * Step `index`'s date as OHM writes dates (`YYYY`, `YYYY-MM`, `YYYY-MM-DD`;
+ * BCE negative): its own `date`, else the document's `year`. The step's OHM
+ * boundaries are drawn as they stood then.
+ */
+export function stepOhmDate(doc: MapStoryDocument, index: number): string {
+  const date = doc.steps[index]?.date;
+  if (!date) return yearToOhmDate(doc.year);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return [yearToOhmDate(date.year), date.month && pad(date.month), date.month && date.day && pad(date.day)]
+    .filter(Boolean)
+    .join('-');
 }
 
 const MONTHS = [

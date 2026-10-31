@@ -12,6 +12,7 @@ import type {
   GeoJSONSource,
   Map as MapLibreMap,
 } from 'maplibre-gl';
+import { ohmDateFilter } from '@/lib/ohm-layer-date-filter';
 import type {
   AmbientStory,
   Light,
@@ -60,10 +61,11 @@ export const STORY_SOURCES = {
   notes: 'story-notes',
   dem: 'story-dem',
   modern: 'story-modern',
+  ohmAdmin: 'story-ohm-admin',
 } as const;
 
 /** Sources added from remote tiles rather than our GeoJSON. */
-const REMOTE_SOURCES: string[] = [STORY_SOURCES.dem, STORY_SOURCES.modern];
+const REMOTE_SOURCES: string[] = [STORY_SOURCES.dem, STORY_SOURCES.modern, STORY_SOURCES.ohmAdmin];
 
 /** Layers a pointer can hover/click for unit details. */
 export const STORY_INTERACTIVE_LAYERS = ['story-unit-fill', 'story-unit-glyphs', 'story-pins', 'story-standards', 'story-ships'];
@@ -714,6 +716,102 @@ export function regionTransition(
 }
 
 /** The step's `show` entities, drawn from their atlas geometry (aligned `geoms`). */
+/**
+ * The shown step entities whose geometry the player fetches (their undated
+ * `geom`): those without a `geometry` of their own, i.e. stories saved before
+ * sync added it and admin preview drafts.
+ */
+export function stepEntityFetchIds(entities: StoryStepEntity[]): string[] {
+  return entities.filter((e) => e.geometry === undefined && e.entity_id).map((e) => e.entity_id as string);
+}
+
+/**
+ * Each shown step entity's geometry: its own `geometry` (sync's atlas geometry
+ * at the step's date; null draws nothing), else the one fetched for it
+ * (`fetched`, aligned to stepEntityFetchIds).
+ */
+export function stepEntityGeoms(entities: StoryStepEntity[], fetchIds: string[], fetched: unknown[]): unknown[] {
+  return entities.map((e) => {
+    const i = e.entity_id ? fetchIds.indexOf(e.entity_id) : -1;
+    const geom = e.geometry !== undefined ? e.geometry : i >= 0 ? (fetched[i] ?? null) : null;
+    // An entity outlined on OHM's boundaries (`ohm`) needs no dot of its own.
+    const g = asGeometry(geom);
+    return e.ohm?.length && g?.type !== 'Polygon' && g?.type !== 'MultiPolygon' ? null : geom;
+  });
+}
+
+// ── the step's entities outlined on OpenHistoricalMap's boundary polygons ──
+//
+// OHM's general `ohm` tiles carry boundary *lines* by way id, which can't be
+// matched to a polity; its `ohm_admin` tiles carry the boundary polygons with
+// a signed `osm_id` (negative: the relation id). The outline layers read
+// those tiles (heavy, so only while a step outlines something), filtered to
+// the step's boundaries and to the step's date the way the basemap is.
+
+/** OHM's boundary-polygon tiles (`boundaries` layer; heavy: about 1.3 MB a tile at z5). */
+const OHM_ADMIN_TILES = 'https://vtiles.openhistoricalmap.org/maps/ohm_admin/{z}/{x}/{y}.pbf';
+/** The style's own `ohm_admin` source, when it has one, is used instead of ours. */
+const STYLE_OHM_ADMIN_SOURCE = 'ohm_admin';
+export const OHM_ADMIN_SOURCE_LAYER = 'boundaries';
+export const OHM_OUTLINE_LAYERS = ['story-ohm-fill', 'story-ohm-line'];
+
+/** "relation/123" → -123, "way/456" → 456 (OHM's signed `osm_id`); anything else is dropped. */
+export function ohmOsmIds(refs: string[]): number[] {
+  const ids = new Set<number>();
+  for (const ref of refs) {
+    const m = /^(relation|way)\/(\d+)$/.exec(ref);
+    if (m) ids.add(m[1] === 'relation' ? -Number(m[2]) : Number(m[2]));
+  }
+  return [...ids];
+}
+
+/** The outline layers' filter: these boundaries, current at `date` (an OHM date string); null for none. */
+export function ohmOutlineFilter(ids: number[], date: string | null): FilterSpecification | null {
+  if (ids.length === 0 || !date) return null;
+  const byId: ExpressionSpecification = ['in', ['to-number', ['get', 'osm_id']], ['literal', ids]];
+  return ohmDateFilter(date, byId, { includeUndated: true });
+}
+
+/**
+ * Outline the step's OHM boundaries (`ids`, signed) as they stood at `date`,
+ * styled like the step's highlighted entities; with none, remove the layers
+ * (and our tile source, so its tiles stop loading).
+ */
+export function setOhmOutline(map: MapLibreMap, ids: number[], date: string | null): void {
+  const filter = ohmOutlineFilter(ids, date);
+  if (!filter) {
+    for (const id of OHM_OUTLINE_LAYERS) if (map.getLayer(id)) map.removeLayer(id);
+    if (map.getSource(STORY_SOURCES.ohmAdmin)) map.removeSource(STORY_SOURCES.ohmAdmin);
+    return;
+  }
+  if (map.getLayer(OHM_OUTLINE_LAYERS[0])) {
+    for (const id of OHM_OUTLINE_LAYERS) map.setFilter(id, filter);
+    return;
+  }
+  let source = STYLE_OHM_ADMIN_SOURCE;
+  if (!map.getSource(source)) {
+    source = STORY_SOURCES.ohmAdmin;
+    if (!map.getSource(source)) {
+      // From z0: a world-wide story (an epidemic) frames below z2. (About 1–1.5 MB a tile there.)
+      map.addSource(source, { type: 'vector', tiles: [OHM_ADMIN_TILES], minzoom: 0, maxzoom: 14 });
+    }
+  }
+  // Under everything of the story's, like the step's own entities.
+  const before = map.getLayer('story-entity-fill') ? 'story-entity-fill' : undefined;
+  const common = { source, 'source-layer': OHM_ADMIN_SOURCE_LAYER, filter } as const;
+  map.addLayer({ id: OHM_OUTLINE_LAYERS[0], type: 'fill', ...common, paint: { 'fill-color': ENTITY_HIGHLIGHT, 'fill-opacity': 0.08 } }, before);
+  map.addLayer(
+    {
+      id: OHM_OUTLINE_LAYERS[1],
+      type: 'line',
+      ...common,
+      layout: { 'line-join': 'round' },
+      paint: { 'line-color': ENTITY_HIGHLIGHT, 'line-opacity': 0.8, 'line-width': 1.8, 'line-dasharray': [3, 1.5] },
+    },
+    before,
+  );
+}
+
 export function entityCollection(entities: StoryStepEntity[], geoms: unknown[]): FeatureCollection {
   const features: Feature[] = [];
   entities.forEach((e, i) => {

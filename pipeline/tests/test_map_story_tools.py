@@ -530,7 +530,9 @@ def test_queue_ranks_dedupes_slugs_and_keeps_statuses(tmp_path: Path, monkeypatc
 
 def test_cheatsheet_is_short_and_reads_the_schema() -> None:
     text = cheatsheet.render()
-    assert len(text.splitlines()) < 150
+    # Authors read it instead of the modules; it stays well under a screenful of context.
+    assert len(text.splitlines()) < 160
+    assert "PLACEMENT_KEYS:" in text
     for kind in UNIT_KINDS:
         assert kind in text
     assert "deploy_line(" in text and "def build()" in text and "intro 250–" in text

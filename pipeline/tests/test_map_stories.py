@@ -298,7 +298,7 @@ def test_light_wind_and_sun() -> None:
 
 def test_formation_detail_composite_units_and_contingents() -> None:
     doc = _v2()
-    doc["sides"][0]["contingents"] = [{"id": "allies", "name": "Allies", "color": "#ea580c"}, {"id": "levy", "name": "Levy"}]
+    doc["sides"][0]["contingents"] = [{"id": "allies", "name": "Allies", "color": "#ea580c", "wikidata": "Q8680"}, {"id": "levy", "name": "Levy"}]
     doc["units"][0].update({"contingent": "allies", "strength_n": 9000, "ranks": [{"kind": "archers", "share": 0.3}, {"kind": "heavy_infantry", "share": 0.7}]})
     doc["units"].append({"id": "eagle", "side": "a", "kind": "standard", "label": "Eagle"})
     doc["steps"][0]["positions"]["foot"].update({"lines": 3, "lanes": 4, "subunits": 10, "strength_n": 8000})
@@ -311,12 +311,13 @@ def test_formation_detail_composite_units_and_contingents() -> None:
 
 def test_bad_formation_detail_contingents_and_states() -> None:
     doc = _v2()
-    doc["sides"][0]["contingents"] = [{"id": "allies", "name": "Allies", "color": "orange"}]
+    doc["sides"][0]["contingents"] = [{"id": "allies", "name": "Allies", "color": "orange", "wikidata": "8680"}]
     doc["units"][0].update({"contingent": "levy", "ranks": [{"kind": "archers", "share": 1.5}]})
     doc["steps"][0]["positions"]["foot"].update({"lines": 6, "subunits": 0})
     doc["steps"][2]["positions"] = {"foot": {"state": "captured"}}
     errors = _errors(doc)
     assert "contingents[0].color: #rrggbb" in errors
+    assert "contingents[0].wikidata: a Q-id like Q8680" in errors
     assert "(foot).contingent: 'levy' is not a contingent of side 'a'" in errors
     assert "(foot).ranks[0]: {kind: a unit kind, share: 0–1}" in errors
     assert "positions.foot.lines: a whole number 1–5" in errors
@@ -331,6 +332,14 @@ def test_a_state_that_does_not_fit_the_kind_is_a_warning() -> None:
     assert rep.errors == []
     assert "positions.foot.state: 'sunk' is for warship, ship, transport, fleet, merchant_ship, not infantry" in " | ".join(rep.warnings)
     assert "general.state" not in " | ".join(rep.warnings)
+
+
+def test_a_placement_key_the_atlas_ignores_is_a_warning() -> None:
+    doc = _v2()
+    doc["steps"][2]["positions"] = {"foot": {"kind": "heavy_cavalry", "conjectural": True}}
+    rep = validate(doc)
+    assert rep.errors == []
+    assert "positions.foot: unknown key(s) kind (the atlas ignores them)" in " | ".join(rep.warnings)
 
 
 # 7. naval

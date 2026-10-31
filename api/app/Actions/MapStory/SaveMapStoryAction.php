@@ -14,7 +14,8 @@ use stdClass;
 
 /**
  * Save a map story's whole document — the one write path for the admin
- * editor, the AI agent, `map-stories:sync` and revision restores.
+ * editor, the AI agent, `map-stories:sync` and revision restores. (Only
+ * RelinkMapStoryAction re-resolves a stored document in place.)
  *
  * The document is checked (MapStoryDocument; its slug must match the story's
  * and be free for a new one) and resolved against the atlas
@@ -100,7 +101,7 @@ class SaveMapStoryAction
                 'user_id' => $userId,
                 'note' => $note,
             ]);
-            $this->prune($story);
+            self::prune($story);
 
             return $story;
         });
@@ -108,8 +109,8 @@ class SaveMapStoryAction
         return ['story' => $story->refresh(), 'errors' => [], 'warnings' => $warnings];
     }
 
-    /** Keep the newest MAX_PER_STORY revisions. */
-    private function prune(MapStory $story): void
+    /** Keep the newest MAX_PER_STORY revisions of `$story` (also used by RelinkMapStoryAction). */
+    public static function prune(MapStory $story): void
     {
         $keep = MapStoryRevision::query()
             ->where('map_story_id', $story->story_id)

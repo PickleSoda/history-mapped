@@ -38,6 +38,7 @@ import {
   moveCollection,
   moveTails,
   noteCollection,
+  ohmOsmIds,
   regionTransition,
   removeStoryLayers,
   setEntityLayersVisible,
@@ -45,7 +46,10 @@ import {
   setMoveOpacity,
   setRegionFade,
   setRouteDash,
+  setOhmOutline,
   setSourceData,
+  stepEntityFetchIds,
+  stepEntityGeoms,
   STORY_FEATURE_LAYERS,
   STORY_INTERACTIVE_LAYERS,
   STORY_SOURCES,
@@ -53,7 +57,7 @@ import {
   unitCollections,
 } from '@/lib/map-story/layers';
 import type { FeatureSet, MoveTail, ShownRegions } from '@/lib/map-story/layers';
-import { BATTLE_KINDS, stepYear } from '@/lib/map-story/steps';
+import { BATTLE_KINDS, stepOhmDate, stepYear } from '@/lib/map-story/steps';
 import type { LngLat, MapStoryDocument } from '@/lib/schemas/map-story';
 import { useEphemeralStore } from '@/stores/ephemeral';
 import type { MapInsets } from '@/types/atlas';
@@ -365,11 +369,16 @@ export function StoryOverlay() {
   const index = active?.index == null || frames.length === 0 ? -1 : Math.min(Math.max(active.index, 0), frames.length - 1);
   const stepDoc = doc && index >= 0 ? doc.steps[index] : undefined;
 
-  // The atlas geometry of the step's `show` entities (played on its own), and
-  // of every entity a region takes its area from.
+  // The atlas geometry of the step's `show` entities (played on its own): the
+  // one sync stored for the step's date, else (older rows, preview drafts) the
+  // entity's undated geometry; and of every entity a region takes its area from.
   const shown = useMemo(() => (solo && stepDoc ? stepDoc.entities.filter((e) => e.show && e.entity_id) : []), [solo, stepDoc]);
-  const shownIds = useMemo(() => shown.map((e) => e.entity_id as string), [shown]);
-  const shownGeoms = useEntityGeometries(shownIds);
+  const fetchIds = useMemo(() => stepEntityFetchIds(shown), [shown]);
+  const fetchedGeoms = useEntityGeometries(fetchIds);
+  const shownGeoms = useMemo(() => stepEntityGeoms(shown, fetchIds, fetchedGeoms), [shown, fetchIds, fetchedGeoms]);
+  // Their OpenHistoricalMap boundaries, outlined as they stood at the step's date.
+  const ohmIds = useMemo(() => ohmOsmIds(shown.flatMap((e) => e.ohm ?? [])), [shown]);
+  const ohmDate = doc && index >= 0 && ohmIds.length > 0 ? stepOhmDate(doc, index) : null;
   const areaIds = useMemo(() => {
     const ids = new Set<string>();
     for (const h of holds) for (const fh of h.values()) if (fh.area_entity?.entity_id) ids.add(fh.area_entity.entity_id);
@@ -541,6 +550,12 @@ export function StoryOverlay() {
     if (!map || !doc || !map.getSource(STORY_SOURCES.entities)) return;
     setSourceData(map, STORY_SOURCES.entities, entityCollection(shown, shownGeoms));
   }, [map, doc, shown, shownGeoms, styleEpoch, relief, solo]);
+
+  // ── …and outlined on OHM's boundaries (removed with the story's layers) ───
+  useEffect(() => {
+    if (!map || !doc || !map.getSource(STORY_SOURCES.entities)) return;
+    setOhmOutline(map, ohmIds, ohmDate);
+  }, [map, doc, ohmIds, ohmDate, styleEpoch, relief, solo]);
 
   // ── step changes: frame the step and animate the units into place ─────────
   useEffect(() => {

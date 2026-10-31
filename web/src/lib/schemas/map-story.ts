@@ -14,7 +14,7 @@
  * `features`, `terrain_state` → step `features`, a single `area` ring → a list
  * of rings) are resolved once, in `normalizeDocument`.
  */
-import type { FeatureCollection } from 'geojson';
+import type { FeatureCollection, Geometry } from 'geojson';
 import { z } from 'zod';
 
 export const LngLatSchema = z.tuple([z.number(), z.number()]);
@@ -38,8 +38,28 @@ const LinkedSchema = z.object({
 });
 export type StoryLinked = z.infer<typeof LinkedSchema>;
 
-/** v3: an entity relevant to a step; `show` draws its atlas geometry. */
-const StepEntitySchema = LinkedSchema.extend({ show: loose(z.boolean()) });
+/** A GeoJSON geometry object (not a Feature or a FeatureCollection). */
+const GeometrySchema = z.custom<Geometry>(
+  (v) =>
+    typeof v === 'object' &&
+    v !== null &&
+    typeof (v as { type?: unknown }).type === 'string' &&
+    !['Feature', 'FeatureCollection'].includes((v as { type: string }).type),
+);
+
+/**
+ * v3: an entity relevant to a step; `show` draws its atlas geometry. Sync adds
+ * `geometry` to a shown, linked entity: its atlas geometry at the step's date
+ * (null: the atlas has none). Without the key (a story saved before sync added
+ * it, an admin preview draft) the player fetches the entity's undated geometry.
+ * Sync also adds `ohm`, the OpenHistoricalMap boundaries it outlines at the
+ * step's date ("relation/123", "way/456"), when it has any.
+ */
+const StepEntitySchema = LinkedSchema.extend({
+  show: loose(z.boolean()),
+  geometry: GeometrySchema.nullish().catch(undefined),
+  ohm: loose(z.array(z.string())),
+});
 export type StoryStepEntity = z.infer<typeof StepEntitySchema>;
 
 /** v3: an entity whose atlas geometry stands in for an area (sync adds `entity_id`). */
@@ -62,11 +82,14 @@ export type StoryDateSpec = z.infer<typeof DateSpecSchema>;
 const StepDateSchema = DateSpecSchema.extend({ end: loose(DateSpecSchema) });
 export type StoryDate = z.infer<typeof StepDateSchema>;
 
-/** v2: a contingent within a side (Hanoverians under Wellington, a satrapy). */
+/** v2: a contingent within a side (Hanoverians under Wellington, a satrapy);
+ *  sync adds `entity_id` beside its Q-id, as for a side's polity. */
 const ContingentSchema = z.object({
   id: z.string(),
   name: z.string(),
   color: z.string().nullish(),
+  wikidata: z.string().nullish(),
+  entity_id: z.string().nullish(),
 });
 export type StoryContingent = z.infer<typeof ContingentSchema>;
 

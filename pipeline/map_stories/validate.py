@@ -28,6 +28,7 @@ from pipeline.map_stories.schema import (
     LEGEND_STYLES,
     LIGHTS,
     MAX_BEATS,
+    PLACEMENT_KEYS,
     MILITARY_KINDS,
     MOVE_ORIENTS,
     MOVE_TYPES,
@@ -639,7 +640,7 @@ def _sides(ctx: _Ctx, sides: list) -> None:
         ids = ctx.contingents.setdefault(sid, set())
         cons = s.get("contingents")
         if cons is not None and not isinstance(cons, list):
-            r.err(f"{where}.contingents: a list of {{id, name, color?}}")
+            r.err(f"{where}.contingents: a list of {{id, name, color?, wikidata?}}")
         for j, c in enumerate(cons if isinstance(cons, list) else []):
             cw = f"{where}.contingents[{j}]"
             cid = c.get("id") if isinstance(c, dict) else None
@@ -653,6 +654,8 @@ def _sides(ctx: _Ctx, sides: list) -> None:
                 r.err(f"{cw}.name: missing")
             if c.get("color") is not None and not (isinstance(c["color"], str) and HEX_RE.match(c["color"])):
                 r.err(f"{cw}.color: #rrggbb")
+            if c.get("wikidata") is not None and not QID_RE.match(str(c["wikidata"])):
+                r.err(f"{cw}.wikidata: a Q-id like Q8680")
 
 
 def _units(ctx: _Ctx, units: list, story_kind: str = "battle") -> None:
@@ -944,6 +947,9 @@ def _phase(ctx: _Ctx, where: str, phase: dict) -> None:
 def _placement(ctx: _Ctx, pw: str, uid: str, pl: dict, before: set[str]) -> None:
     r, kind = ctx.r, ctx.units[uid].get("kind")
     ctx.needs_v2(pw, pl, "placement")
+    unknown = sorted(set(pl) - set(PLACEMENT_KEYS))
+    if unknown:
+        r.warn(f"{pw}: unknown key(s) {', '.join(unknown)} (the atlas ignores them)")
     if "at" in pl and not _is_point(pl["at"]):
         r.err(f"{pw}.at: [lon, lat]")
     if "with" in pl and pl["with"] not in ctx.units:

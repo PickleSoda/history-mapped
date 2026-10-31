@@ -86,6 +86,7 @@ class MapStoryDocumentTest extends TestCase
     {
         $doc = $this->v2();
         $doc['units'][4]['contingent'] = 'romans';
+        $doc['sides'][0]['contingents'][1]['wikidata'] = '8680';
         $doc['units'][0]['ranks'][0]['share'] = 1.5;
         $doc['steps'][0]['positions']['red-foot']['lines'] = 6;
         $doc['steps'][0]['light'] = 'noon';
@@ -103,6 +104,7 @@ class MapStoryDocumentTest extends TestCase
 
         foreach ([
             "units[4] (red-wing).contingent: 'romans' is not a contingent of side 'red'",
+            'sides[0].contingents[1].wikidata: a Q-id like Q8680',
             'units[0] (red-foot).ranks[0]: {kind: a unit kind, share: 0–1}',
             "step 'deploy'.positions.red-foot.lines: a whole number 1–5",
             "step 'deploy'.light: one of night, dawn, day, dusk",

@@ -25,7 +25,8 @@ function EntityName({ item, className }: { item: StoryLinked; className?: string
 }
 
 /** One line per side: colour, name, commanders (strength and losses fold away below),
- *  then its contingents' colours when it has any. */
+ *  then its contingents' colours when it has any. A linked polity, commander or
+ *  contingent opens its atlas entity. */
 function SideRow({ side }: { side: StorySide }) {
   const contingents = contingentColors(side);
   return (
@@ -57,7 +58,7 @@ function SideRow({ side }: { side: StorySide }) {
           {side.contingents.map((c) => (
             <span key={c.id} className="inline-flex items-center gap-1">
               <span className="size-2 rounded-sm ring-1 ring-black/20" style={{ backgroundColor: contingents.get(c.id) }} />
-              {c.name}
+              <EntityName item={c} />
             </span>
           ))}
         </div>

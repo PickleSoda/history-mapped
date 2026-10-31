@@ -24,19 +24,41 @@ use stdClass;
  * gets an id next to it, so the atlas can link to those pages:
  * `chronicle.chronicle_id`, `steps[].entry_id` (by sequence_order in that
  * chronicle), and an `entity_id` beside every Q-id (side polities,
- * commanders, units, step entities, feature entities, `area_from_entity`). A
+ * commanders and contingents, units, step entities, feature entities,
+ * `area_from_entity`). A
  * dated reference whose entity is clearly of another era resolves to null
- * (EntityReferenceResolver's namesake guard).
+ * (EntityReferenceResolver's namesake guard). A step entity with `show: true`
+ * and an `entity_id` also gets `geometry`, its atlas geometry at the step's
+ * year, and `ohm`, the OpenHistoricalMap boundaries it outlines then
+ * (stepGeometries()).
  *
  * It also computes the story's period, extent and, for an ambient story, each
  * step's precomputed atlas layer (MapStoryAmbient). The document must already
  * pass MapStoryDocument::errors(); this adds the errors only the atlas can
  * tell (an unknown entity, chronicle or entry). It writes nothing.
+ *
+ * Every resolved value is recomputed, so an already-resolved document (a
+ * stored one, `map-stories:relink`) resolves as its authored copy does: a
+ * Q-id re-resolves (a merged-away entity's to the survivor holding the Q-id,
+ * else null), an author-given `entity_id` is kept only while it exists, and
+ * `geometry` and `ohm` are redrawn or dropped.
  */
 class ResolveMapStoryAction
 {
-    /** @var array<string, array<string, mixed>|null> entity area GeoJSON by "entity_id|year" */
+    /** SQL: the geometry period covers the year bound to `?` (NULL end = ongoing). */
+    private const COVERS_YEAR = "int4range(start_year, CASE WHEN end_year IS NULL THEN NULL ELSE end_year + 1 END, '[)') @> ?::integer";
+
+    /** @var array<string, array<string, mixed>|null> entity area GeoJSON by "entity_id|year|tolerance" */
     private array $areas = [];
+
+    /** @var array<string, array<string, mixed>|null> step-entity geometry by "entity_id|year" */
+    private array $geometries = [];
+
+    /** @var array<string, list<string>> step-entity OHM boundaries by "entity_id|year" */
+    private array $boundaries = [];
+
+    /** At most this many OHM boundaries per step entity. */
+    private const MAX_OHM = 4;
 
     /**
      * `document` is the stored (resolved) copy; `columns` the row values derived from it.
@@ -73,6 +95,7 @@ class ResolveMapStoryAction
         }
 
         $this->resolveRefs($this->refs($object, $array));
+        $this->stepGeometries($object, $array);
 
         $resolved = MapStoryFile::toArray($object);
         $period = MapStoryAmbient::period($resolved);
@@ -190,6 +213,11 @@ class ResolveMapStoryAction
             foreach ($side->commanders ?? [] as $commander) {
                 $refs[] = [$commander, null];
             }
+            foreach ($side->contingents ?? [] as $contingent) {
+                if ($contingent instanceof stdClass && is_string($contingent->wikidata ?? null)) {
+                    $refs[] = [$contingent, null];
+                }
+            }
         }
         foreach ($doc->units ?? [] as $unit) {
             $refs[] = [$unit, null];
@@ -304,26 +332,165 @@ class ResolveMapStoryAction
     }
 
     /**
+     * Write `geometry` beside each step entity with `show: true` and an
+     * `entity_id`: its atlas geometry at the step's year (the step's date,
+     * else the story's `year`; see entityGeometry()), null when the atlas has
+     * none; and `ohm` when it has OpenHistoricalMap boundaries then
+     * (ohmBoundaries()). Any other step entity carries neither.
+     *
+     * @param  array<string, mixed>  $array  the same document, decoded as arrays
+     */
+    private function stepGeometries(stdClass $doc, array $array): void
+    {
+        $years = MapStoryAmbient::stepYears($array);
+        foreach ($doc->steps ?? [] as $i => $step) {
+            foreach ($step->entities ?? [] as $entity) {
+                if (! $entity instanceof stdClass) {
+                    continue;
+                }
+                unset($entity->geometry, $entity->ohm);
+                $year = $years[$i][0] ?? null;
+                if (($entity->show ?? false) === true && is_string($entity->entity_id ?? null) && $year !== null) {
+                    $entity->geometry = $this->entityGeometry($entity->entity_id, $year);
+                    $ohm = $this->ohmBoundaries($entity->entity_id, $year);
+                    if ($ohm !== []) {
+                        $entity->ohm = $ohm;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * What the story draws for a shown step entity in `$year`, as simplified
+     * GeoJSON: its area (entityArea(), simplified harder while over
+     * MapStoryGeometry::ENTITY_MAX_BYTES); else the point (or line) of a
+     * geometry period covering the year; else its undated location (`geom`,
+     * as GET /entities/{id} serves it); else null.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function entityGeometry(string $entityId, int $year): ?array
+    {
+        $key = "{$entityId}|{$year}";
+        if (array_key_exists($key, $this->geometries)) {
+            return $this->geometries[$key];
+        }
+
+        $area = null;
+        foreach (MapStoryGeometry::ENTITY_TOLERANCES as $tolerance) {
+            $area = $this->entityArea($entityId, $year, $tolerance);
+            if ($area === null || strlen((string) json_encode($area)) <= MapStoryGeometry::ENTITY_MAX_BYTES) {
+                break;
+            }
+        }
+
+        return $this->geometries[$key] = $area ?? $this->datedPoint($entityId, $year) ?? $this->location($entityId);
+    }
+
+    /**
+     * The OpenHistoricalMap boundaries an entity outlines in `$year`, as
+     * "relation/123" or "way/456": its active OHM geo-refs to a relation or
+     * way whose years cover `$year` (an open end covers), not rejected, and
+     * not a `type=chronology` relation (OHM draws none: its dated member
+     * boundaries are linked on their own). The primary ones when any covers,
+     * else the rest by match score; at most MAX_OHM. The web outlines them on
+     * OHM's polygon tiles, at the step's date.
+     *
+     * @return list<string>
+     */
+    private function ohmBoundaries(string $entityId, int $year): array
+    {
+        $key = "{$entityId}|{$year}";
+        if (! array_key_exists($key, $this->boundaries)) {
+            $rows = DB::table('entity_geo_refs')
+                ->where('entity_id', $entityId)
+                ->where('provider', 'ohm')
+                ->where('is_active', true)
+                ->whereIn('external_type', ['relation', 'way'])
+                ->where('match_role', '!=', 'rejected')
+                ->where(fn ($q) => $q->whereNull('temporal_start_year')->orWhere('temporal_start_year', '<=', $year))
+                ->where(fn ($q) => $q->whereNull('temporal_end_year')->orWhere('temporal_end_year', '>=', $year))
+                ->whereRaw("COALESCE(external_tags->>'type', '') <> 'chronology'")
+                ->orderByRaw("(match_role = 'primary') DESC, match_score DESC NULLS LAST, external_type, external_id")
+                ->get(['external_type', 'external_id', 'match_role']);
+            $primary = $rows->filter(fn (object $r) => $r->match_role === 'primary');
+
+            $this->boundaries[$key] = ($primary->isNotEmpty() ? $primary : $rows)
+                ->take(self::MAX_OHM)
+                ->map(fn (object $r) => "{$r->external_type}/{$r->external_id}")
+                ->values()
+                ->all();
+        }
+
+        return $this->boundaries[$key];
+    }
+
+    /**
      * An entity's atlas area in `$year` as simplified GeoJSON: its territory
      * (else polygonal geometry) period covering that year, newest first; null
      * when it has none.
      *
      * @return array<string, mixed>|null
      */
-    private function entityArea(string $entityId, int $year): ?array
+    private function entityArea(string $entityId, int $year, float $tolerance = MapStoryGeometry::TOLERANCE): ?array
     {
-        $key = "{$entityId}|{$year}";
+        $key = "{$entityId}|{$year}|{$tolerance}";
         if (! array_key_exists($key, $this->areas)) {
-            $json = DB::table('geometry_periods')
+            $this->areas[$key] = self::geoJson(DB::table('geometry_periods')
                 ->where('entity_id', $entityId)
-                ->whereRaw("int4range(start_year, CASE WHEN end_year IS NULL THEN NULL ELSE end_year + 1 END, '[)') @> ?::integer", [$year])
+                ->whereRaw(self::COVERS_YEAR, [$year])
                 ->whereRaw('ST_Dimension(COALESCE(territory_geom, geom)) = 2')
                 ->orderByRaw('(territory_geom IS NULL), start_year DESC, end_year ASC NULLS FIRST')
                 ->limit(1)
-                ->value(DB::raw('ST_AsGeoJSON(ST_SimplifyPreserveTopology(COALESCE(territory_geom, geom), '.MapStoryGeometry::TOLERANCE.'), '.MapStoryGeometry::DECIMALS.')'));
-            $this->areas[$key] = is_string($json) ? json_decode($json, true) : null;
+                ->value(DB::raw(self::simplified('COALESCE(territory_geom, geom)', $tolerance))));
         }
 
         return $this->areas[$key];
+    }
+
+    /**
+     * The point (or line) of an entity's geometry period covering `$year`,
+     * newest first; null when none does.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function datedPoint(string $entityId, int $year): ?array
+    {
+        return self::geoJson(DB::table('geometry_periods')
+            ->where('entity_id', $entityId)
+            ->whereRaw(self::COVERS_YEAR, [$year])
+            ->whereRaw('ST_Dimension(COALESCE(territory_geom, geom)) < 2')
+            ->orderByRaw('start_year DESC, end_year ASC NULLS FIRST')
+            ->limit(1)
+            ->value(DB::raw(self::simplified('COALESCE(territory_geom, geom)', MapStoryGeometry::TOLERANCE))));
+    }
+
+    /**
+     * An entity's undated location: the `geom` of its primary location, as
+     * Entity::primaryLocation picks it; null when it has none.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function location(string $entityId): ?array
+    {
+        return self::geoJson(DB::table('entity_locations')
+            ->where('entity_id', $entityId)
+            ->where('is_primary', true)
+            ->orderByDesc('updated_at')
+            ->limit(1)
+            ->value(DB::raw(self::simplified('geom', MapStoryGeometry::TOLERANCE))));
+    }
+
+    /** SQL: `$column` simplified at `$tolerance` degrees, as GeoJSON with MapStoryGeometry::DECIMALS. */
+    private static function simplified(string $column, float $tolerance): string
+    {
+        return sprintf('ST_AsGeoJSON(ST_SimplifyPreserveTopology(%s, %F), %d)', $column, $tolerance, MapStoryGeometry::DECIMALS);
+    }
+
+    /** @return array<string, mixed>|null */
+    private static function geoJson(mixed $json): ?array
+    {
+        return is_string($json) ? json_decode($json, true) : null;
     }
 }

@@ -8,8 +8,20 @@ import { MapStoryDocumentSchema, normalizeDocument } from '@/lib/schemas/map-sto
 import type { LngLat } from '@/lib/schemas/map-story';
 import { DISRUPTED_COLOR, featureColor, NEUTRAL_COLOR, REGION_COLORS, ROUTE_COLORS, storyLegend, storyPalette } from './colors';
 import { resolveFeatureStates, resolveFrames } from './geometry';
-import { ambientCollection, featureCollections, featurePoints, regionTransition, terrainCollection, unitCollections } from './layers';
-import { chronicleStepIndex, formatStoryDate, snapAmbientBbox, stepYear } from './steps';
+import {
+  ambientCollection,
+  entityCollection,
+  featureCollections,
+  featurePoints,
+  ohmOsmIds,
+  ohmOutlineFilter,
+  regionTransition,
+  stepEntityFetchIds,
+  stepEntityGeoms,
+  terrainCollection,
+  unitCollections,
+} from './layers';
+import { chronicleStepIndex, formatStoryDate, snapAmbientBbox, stepOhmDate, stepYear } from './steps';
 
 const RING: LngLat[] = [
   [10, 40],
@@ -286,5 +298,113 @@ describe('ambient', () => {
     expect(fc.features[0].properties).toMatchObject({ story: 'black-death', step: 5, title: 'The Black Death', color: '#991b1b' });
     expect(fc.features[1].properties?.color).toBe(NEUTRAL_COLOR);
     expect(fc.features[1].properties?.radius).toBeGreaterThan(fc.features[0].properties?.radius);
+  });
+});
+
+describe('step entities and contingents', () => {
+  const AREA = { type: 'Polygon', coordinates: [[[40, 45], [50, 45], [50, 55], [40, 45]]] };
+
+  it("draws a shown entity's own dated geometry, fetching only those synced without one", () => {
+    const doc = story([
+      {
+        id: 's1',
+        title: 'Caffa',
+        entities: [
+          { name: 'Golden Horde', entity_id: 'horde', show: true, geometry: AREA },
+          { name: 'Genoa', entity_id: 'genoa', show: true, geometry: null },
+          { name: 'Venice', entity_id: 'venice', show: true },
+          { name: 'Broken', entity_id: 'broken', show: true, geometry: { type: 'FeatureCollection', features: [] } },
+        ],
+      },
+    ]);
+    const shown = doc.steps[0].entities;
+    expect(shown[0].geometry).toEqual(AREA);
+    expect(shown[1].geometry).toBeNull();
+    // Without `geometry` (an older row, a preview draft; a malformed one is dropped) it is fetched.
+    expect(shown[2].geometry).toBeUndefined();
+    expect(shown[3].geometry).toBeUndefined();
+
+    const ids = stepEntityFetchIds(shown);
+    expect(ids).toEqual(['venice', 'broken']);
+    const fetched = [{ type: 'Point', coordinates: [12.3, 45.4] }, null];
+    const geoms = stepEntityGeoms(shown, ids, fetched);
+    expect(geoms).toEqual([AREA, null, fetched[0], null]);
+
+    const fc = entityCollection(shown, geoms);
+    expect(fc.features.map((f) => [f.properties?.name, f.properties?.role, f.geometry.type])).toEqual([
+      ['Golden Horde', 'shape', 'Polygon'],
+      ['Golden Horde', 'label', 'Point'],
+      ['Venice', 'shape', 'Point'],
+    ]);
+  });
+
+  it("outlines OHM boundaries instead of a dot, keeping an atlas area", () => {
+    const doc = story([
+      {
+        id: 's1',
+        title: 'Caffa',
+        entities: [
+          { name: 'Golden Horde', entity_id: 'horde', show: true, geometry: { type: 'Point', coordinates: [60, 52] }, ohm: ['relation/2850432'] },
+          { name: 'Genoa', entity_id: 'genoa', show: true, geometry: AREA, ohm: ['way/7'] },
+          { name: 'Venice', entity_id: 'venice', show: true, ohm: 'relation/1' },
+        ],
+      },
+    ]);
+    const shown = doc.steps[0].entities;
+    expect(shown[2].ohm).toBeUndefined();
+    expect(stepEntityGeoms(shown, ['venice'], [{ type: 'Point', coordinates: [12, 45] }])).toEqual([
+      null,
+      AREA,
+      { type: 'Point', coordinates: [12, 45] },
+    ]);
+  });
+
+  it('reads OHM refs as signed osm ids: a relation negative, a way positive, a node dropped', () => {
+    expect(ohmOsmIds(['relation/2850432', 'way/7', 'node/9', 'relation/2850432', 'nonsense'])).toEqual([-2850432, 7]);
+  });
+
+  it("dates a step's OHM boundaries by its own date, else the story's year", () => {
+    const doc = story([
+      { id: 's1', title: 'a', date: { year: 1347, month: 10, day: 3 } },
+      { id: 's2', title: 'b', date: { year: 1348, month: 2 } },
+      { id: 's3', title: 'c', date: { year: -44 } },
+      { id: 's4', title: 'd' },
+    ]);
+    expect([0, 1, 2, 3].map((i) => stepOhmDate(doc, i))).toEqual(['1347-10-03', '1348-02', '-0044', '1346']);
+  });
+
+  it('filters the outline to its boundaries, current at the date, undated ones included', () => {
+    expect(ohmOutlineFilter([], '1346')).toBeNull();
+    expect(ohmOutlineFilter([-1], null)).toBeNull();
+
+    const filter = ohmOutlineFilter([-2850432, 7], '1346') as unknown[];
+    expect(filter[0]).toBe('all');
+    // The basemap's date clauses: start before the end of 1346, end at or after its start …
+    const [, starts, ends, byId] = filter as [string, unknown[], unknown[], unknown];
+    expect(JSON.stringify(starts)).toContain('["<",["to-number",["get","start_decdate"]],1347]');
+    expect(JSON.stringify(ends)).toContain('[">=",["to-number",["get","end_decdate"]],1346]');
+    // … with no "must be dated" clause, then the ids.
+    expect(filter).toHaveLength(4);
+    expect(byId).toEqual(['in', ['to-number', ['get', 'osm_id']], ['literal', [-2850432, 7]]]);
+
+    // A month narrows the window to that month.
+    const october = JSON.stringify(ohmOutlineFilter([-1], '1347-10'));
+    expect(october).toContain('"1347-11-01"');
+    expect(october).toContain('"1347-10-01"');
+  });
+
+  it('keeps a contingent\'s link', () => {
+    const doc = story([{ id: 's1', title: 'Navarino' }], {
+      sides: [
+        {
+          id: 'allied',
+          name: 'Allies',
+          color: '#1d4ed8',
+          contingents: [{ id: 'british', name: 'British', wikidata: 'Q8680', entity_id: 'uk' }, { id: 'french', name: 'French' }],
+        },
+      ],
+    });
+    expect(doc.sides[0].contingents[0]).toMatchObject({ wikidata: 'Q8680', entity_id: 'uk' });
+    expect(doc.sides[0].contingents[1].entity_id).toBeUndefined();
   });
 });

@@ -342,7 +342,7 @@ final class MapStoryDocument
     private function sideContingents(string $where, mixed $contingents): array
     {
         if ($contingents !== null && ! is_array($contingents)) {
-            $this->err("{$where}.contingents: a list of {id, name, color?}");
+            $this->err("{$where}.contingents: a list of {id, name, color?, wikidata?}");
         }
         $ids = [];
         foreach ($this->listOf($contingents) as $j => $contingent) {
@@ -362,6 +362,9 @@ final class MapStoryDocument
             }
             if (isset($contingent['color']) && ! (is_string($contingent['color']) && preg_match(self::HEX, $contingent['color']))) {
                 $this->err("{$cw}.color: #rrggbb");
+            }
+            if (isset($contingent['wikidata']) && ! $this->isQid($contingent['wikidata'])) {
+                $this->err("{$cw}.wikidata: a Q-id like Q8680");
             }
         }
 

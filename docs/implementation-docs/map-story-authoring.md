@@ -21,6 +21,7 @@ pipeline/map_stories/stories/<module>.py   build() -> dict      (you write this)
         ▼
 api/resources/map-stories/<slug>.json                            (committed, ships with the API image)
         │  php artisan map-stories:sync                          (resolves Q-ids, upserts the DB)
+        │  php artisan map-stories:relink                        (re-resolves stored stories: new entities, step geometry)
         ▼
 map_stories table  →  GET /api/v1/map-stories/{slug}  →  atlas story player
         ▲   │
@@ -82,6 +83,15 @@ changed after its last sync; the list shows a badge and filters on it.
 - `php artisan map-stories:sync` leaves an edited story alone ("kept admin
   edits — export first or use --force"), skips files whose hash is unchanged,
   and imports the rest. `--force` overwrites admin edits with the file.
+- `php artisan map-stories:relink [--slug=…]` re-resolves the stored stories
+  against the atlas as it is now, without reading files: Q-ids of entities
+  created (or merged) since a story was synced, step entities' `geometry` and
+  `ohm` (so also after OHM geo-refs change), the period, extent and ambient layer. Sync skips an unchanged file, so a story
+  never links an entity created after its sync unless you relink. A story is
+  saved, with one revision (`sync`, note `relink`), only when something
+  changed; edits and the file bookkeeping are kept. It prints `relinked`,
+  `unchanged` or `failed: …` per story. Run it **after creating entities a
+  story names** (commanders, places) and **after a full content load** on prod.
 - `php artisan map-stories:export [--slug=…] [--edited] [--path=…]` writes the
   DB copy back to `api/resources/map-stories/<slug>.json` in the builder's exact
   format (1-space indent, key order kept, trailing newline, resolved ids
@@ -252,7 +262,7 @@ reconstructions `conjectural`. Full semantics are in the reference at the end.
 | `subunits` (placement) | `"shape": "square", "subunits": 5, "lines": 2` | separate blocks across the front; with `square` they are squares, with `lines > 1` a chequerboard |
 | `ranks` (unit) | `[{"kind": "archers", "share": 0.3}, {"kind": "heavy_infantry", "share": 0.7}]` | one body mixes arms front to back; shares sum to about 1 |
 | `strength_n` (unit or placement) | `"strength_n": 200` | a sourced number; `strength` stays the display text |
-| `contingents` (side), `contingent` (unit) | `{"id": "nassau", "name": "Nassauers", "color": "#…"}` | a side is a coalition; units get the contingent's colour or a shade |
+| `contingents` (side), `contingent` (unit) | `{"id": "nassau", "name": "Nassauers", "color": "#…", "wikidata": "Q…"}` | a side is a coalition; units get the contingent's colour or a shade; a contingent's optional Q-id links it like a side's polity (the player's side list opens it) |
 | `orient: "path"` (move) | `{"type": "march", "orient": "path", …}` | ships (or columns) turn along the route; not on `back_water` |
 | `target`, `arc` (`fire` move) | `"target": "picton", "arc": true` | fire falls on a unit; `arc` for high-angle shooting |
 | `conjectural` (placement, move, terrain, note) | `"conjectural": true` | a position, route or feature is reconstructed rather than attested (drawn dashed) |
@@ -379,9 +389,31 @@ routes `conjectural`, and say in `uncertainty` that they are schematic.
 
 **Step entities.** `entities: [ent("Genoa", "Q1449", role="its galleys carried the plague", show=True)]`.
 The player shows them as chips; `show: true` also draws the entity's own atlas
-geometry for the step's date (a polity's border), so link polities with `show`
-rather than redrawing them. Sync resolves Q-ids to `entity_id`; `digest --links`
-checks them too.
+geometry for the step's date, so link polities with `show` rather than
+redrawing them. Sync resolves Q-ids to `entity_id`; `digest --links` checks
+them too. For a shown, linked entity, sync also stores its geometry at the
+step's year (the step's `date.year`, else the story's `year`) as `geometry`
+beside it, picking the first that exists:
+
+1. its area: the territory (or polygon) geometry period covering the year,
+   simplified (harder for a large empire, to keep the story small);
+2. a dated point: a point or line geometry period covering the year;
+3. its undated location (the entity's `geom`);
+4. nothing (`geometry: null`; the chip still shows).
+
+The atlas DB holds no polygons yet: polity borders live in OpenHistoricalMap.
+So sync also stores `ohm: ["relation/123", …]` for a shown entity: its active
+OHM geo-refs to a relation or way whose years cover the step's year (open ends
+cover), the primary one when it covers, else the others by match score; never
+a rejected ref or a `type=chronology` relation (OHM draws none). The player
+outlines those on OHM's boundary-polygon tiles (`ohm_admin` / `boundaries`,
+signed `osm_id`), as they stood at the step's date, instead of the dot; the
+dot remains when no geo-ref covers the year. OHM's general tiles can't do
+this: their boundary lines carry way ids, not the polity's relation.
+`geometry` and `ohm` are resolved, not authored: export, the editor and
+revisions drop them. A stored story without `geometry` (resolved before it
+existed, or an admin preview draft) draws the entity's undated `geom`, fetched
+by the player.
 
 **Chronicle layers.** A story with `chronicle: {slug}` is the map layer of that
 chronicle: give a step `entry: <the entry's sequence_order as stored>` (0-based)

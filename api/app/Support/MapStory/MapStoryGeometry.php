@@ -6,7 +6,8 @@ namespace App\Support\MapStory;
 
 /**
  * GeoJSON geometry from map-story coordinates, simplified for the ambient
- * layer (about 0.01°, 3 decimals), and the extent of a set of coordinates.
+ * layer (about 0.01°, 3 decimals), the simplification of step entities' atlas
+ * geometry, and the extent of a set of coordinates.
  */
 final class MapStoryGeometry
 {
@@ -15,6 +16,15 @@ final class MapStoryGeometry
 
     /** Coordinate decimals kept (about 100 m). */
     public const DECIMALS = 3;
+
+    /**
+     * A step entity's atlas area is simplified at these tolerances in turn
+     * until its GeoJSON fits ENTITY_MAX_BYTES (the last one is kept anyway),
+     * so a story with a few empires stays well under a megabyte or two.
+     */
+    public const ENTITY_TOLERANCES = [self::TOLERANCE, 0.03, 0.1];
+
+    public const ENTITY_MAX_BYTES = 150_000;
 
     /**
      * @param  array{0: int|float, 1: int|float}  $at

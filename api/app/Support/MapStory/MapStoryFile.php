@@ -162,7 +162,8 @@ final class MapStoryFile
      * The authored document behind a stored one: a copy without the ids sync
      * resolved (`chronicle.chronicle_id`, `steps[].entry_id`, and the
      * `entity_id` beside every linked reference that has a Q-id or resolved to
-     * nothing). An `entity_id` given without a Q-id is the author's and stays.
+     * nothing, and each step entity's atlas `geometry` and `ohm`). An `entity_id` given
+     * without a Q-id is the author's and stays.
      */
     public static function authored(stdClass $stored): stdClass
     {
@@ -177,6 +178,9 @@ final class MapStoryFile
             foreach (self::listOf($side->commanders ?? null) as $commander) {
                 self::stripRef($commander);
             }
+            foreach (self::listOf($side->contingents ?? null) as $contingent) {
+                self::stripRef($contingent);
+            }
         }
         foreach (self::listOf($doc->units ?? null) as $unit) {
             self::stripRef($unit);
@@ -188,6 +192,7 @@ final class MapStoryFile
             unset($step->entry_id);
             foreach (self::listOf($step->entities ?? null) as $entity) {
                 self::stripRef($entity);
+                unset($entity->geometry, $entity->ohm);
             }
             $states = $step->features ?? $step->terrain_state ?? null;
             if ($states instanceof stdClass) {
