@@ -55,8 +55,9 @@ MVT drops NULL values, so "absent" means the column was NULL.
 | `end_decdate` | double, or absent | end of the visibility window; absent = open-ended |
 | `entity_color` | string, or absent | `entities.attributes->>'entity_color'` |
 | `ohm_osm_id` | integer (signed), or absent | OHM feature this entity links to, see below |
+| `has_map_story` | boolean | entity has a map story (a `map_stories` row); always present. Same as REST `has_map_story` (migration `2026_10_31_000003_add_has_map_story_to_tiles.php`) |
 
-The TileJSON advertises the same twelve fields (`String` / `Number`).
+The TileJSON advertises the same thirteen fields (`String` / `Number` / `Boolean`).
 
 ## Visibility window: the decimal-date rule
 

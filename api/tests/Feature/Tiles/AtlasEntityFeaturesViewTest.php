@@ -123,6 +123,20 @@ class AtlasEntityFeaturesViewTest extends TestCase
         $this->assertSame(hexdec(substr(md5($period), 0, 13)), $first);
     }
 
+    public function test_has_map_story_flags_entities_with_a_map_story(): void
+    {
+        $battle = Entity::factory()->verified()->inGroup(EntityGroup::Event)->create();
+        $battlePeriod = $this->insertPeriod($battle, 1066, 1066);
+        $this->insertMapStory($battle, 'battle-of-testfield');
+
+        $plain = Entity::factory()->verified()->inGroup(EntityGroup::Event)->create();
+        $plainPeriod = $this->insertPeriod($plain, 1066, 1066);
+
+        // Parity with MapEntitiesAction: a boolean on every row, never NULL.
+        $this->assertTrue((bool) $this->featureRow($battlePeriod)->has_map_story);
+        $this->assertFalse($this->featureRow($plainPeriod)->has_map_story);
+    }
+
     /** Insert a geometry period (point, optionally with a polygon) and return its id. */
     private function insertPeriod(Entity $entity, int $startYear, ?int $endYear, bool $withPolygon = false): string
     {
@@ -156,6 +170,15 @@ class AtlasEntityFeaturesViewTest extends TestCase
                 gen_random_uuid(), ?, ?, ?::geo_ref_external_type, 'ohm', 'primary', 'manual', true, NOW(), NOW()
             )",
             [$entity->entity_id, $externalId, $externalType],
+        );
+    }
+
+    private function insertMapStory(Entity $entity, string $slug): void
+    {
+        DB::statement(
+            "INSERT INTO map_stories (entity_id, slug, kind, title, year, step_count, document, created_at, updated_at)
+             VALUES (?, ?, 'battle', 'Test battle', 1066, 1, '{}'::jsonb, NOW(), NOW())",
+            [$entity->entity_id, $slug],
         );
     }
 

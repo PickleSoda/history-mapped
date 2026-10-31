@@ -143,11 +143,41 @@ class AtlasEntitiesTileFunctionTest extends TestCase
         $this->assertSame([
             'id', 'name', 'entity_type', 'entity_group', 'impact_score', 'display_priority',
             'start_year', 'end_year', 'start_decdate', 'end_decdate', 'entity_color', 'ohm_osm_id',
+            'has_map_story',
         ], array_keys($tileJson['vector_layers'][0]['fields']));
+        $this->assertSame('Boolean', $tileJson['vector_layers'][0]['fields']['has_map_story']);
+    }
+
+    public function test_tile_carries_has_map_story(): void
+    {
+        // An MVT bool value is the layer `values` entry 0x22 0x02 0x38 <0|1>
+        // (field 4 length 2, Value.bool_value = field 7); no other tile
+        // property is a boolean.
+        $true = "\x22\x02\x38\x01";
+        $false = "\x22\x02\x38\x00";
+
+        // Only a plain entity: the key is there, with false.
+        $this->seedFeature('Plain Zed', 1200, 50);
+        $z0 = $this->tile(0, 0, 0);
+        $this->assertTileHasName($z0, 'has_map_story');
+        $this->assertStringContainsString($false, $z0);
+        $this->assertStringNotContainsString($true, $z0);
+
+        // Add a story entity: the tile now also carries true.
+        $battle = $this->seedFeature('Story Zed', 1200, 40);
+        DB::statement(
+            "INSERT INTO map_stories (entity_id, slug, kind, title, year, step_count, document, created_at, updated_at)
+             VALUES (?, 'battle-of-story-zed', 'battle', 'Story Zed', 1200, 1, '{}'::jsonb, NOW(), NOW())",
+            [$battle->entity_id],
+        );
+        $z0 = $this->tile(0, 0, 0);
+        $this->assertTileHasName($z0, 'Story Zed');
+        $this->assertTileHasName($z0, 'has_map_story');
+        $this->assertStringContainsString($true, $z0);
     }
 
     /** One entity with one point period at (10.5, 40.5); display_priority NULL unless given. */
-    private function seedFeature(string $name, int $startYear, int $impact, ?int $displayPriority = null): void
+    private function seedFeature(string $name, int $startYear, int $impact, ?int $displayPriority = null): Entity
     {
         $entity = Entity::factory()->verified()->inGroup(EntityGroup::Polity)->create([
             'name' => $name,
@@ -166,6 +196,8 @@ class AtlasEntitiesTileFunctionTest extends TestCase
             )",
             [Str::uuid()->toString(), $entity->entity_id, $startYear, $startYear + 50],
         );
+
+        return $entity;
     }
 
     /** The raw MVT bytes of one tile. */
