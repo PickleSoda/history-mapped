@@ -155,6 +155,12 @@ def build() -> dict:
                 {"name": "Polyperchon", "wikidata": "Q312008", "role": "phalanx battalion"},
             ],
             "strength": "c. 47,000 (c. 7,000 horse, c. 40,000 foot)",
+            # Arrian 3.12: the allies beside the Macedonian core (drawn in the side colour).
+            "contingents": [
+                {"id": "greek-allies", "name": "Thessalian and Greek allies"},
+                {"id": "balkan-allies", "name": "Thracians, Agrianians and Paeonians"},
+                {"id": "mercenaries", "name": "Greek mercenaries"},
+            ],
             "losses": "probably a few hundred to c. 1,500 killed; Arrian: c. 100 men and over 1,000 horses",
         },
         {
@@ -168,6 +174,12 @@ def build() -> dict:
                 {"name": "Mazaeus", "role": "right wing"},
             ],
             "strength": "c. 50,000-120,000 (modern estimates), much of it cavalry; 200 scythed chariots, 15 elephants",
+            # Arrian 3.11: the peoples of each wing (the king's own centre is drawn in the side colour).
+            "contingents": [
+                {"id": "eastern", "name": "Bessus's wing: Bactrians and the eastern peoples"},
+                {"id": "western", "name": "Mazaeus's wing: Syrians, Medes and the northern peoples"},
+                {"id": "greek-mercenaries", "name": "Greek mercenaries"},
+            ],
             "losses": "unknown but very heavy; ancient claims run from 40,000 to 300,000",
         },
     ]
@@ -182,32 +194,32 @@ def build() -> dict:
         {"id": "hypaspists", "side": "macedon", "kind": "heavy_infantry", "label": "Hypaspists", "strength": "c. 3,000", "commander": "Nicanor, son of Parmenion"},
         {"id": "phalanx-right", "side": "macedon", "kind": "pikemen", "label": "Phalanx, four battalions", "strength": "c. 6,000", "commander": "Coenus, Perdiccas, Meleager, Polyperchon", "note": "Sarissa phalanx, about 16 deep"},
         {"id": "phalanx-left", "side": "macedon", "kind": "pikemen", "label": "Simmias & Craterus", "strength": "c. 3,000", "commander": "Simmias (for Amyntas) and Craterus", "note": "The two left battalions of the phalanx"},
-        {"id": "thessalians", "side": "macedon", "kind": "heavy_cavalry", "label": "Thessalian & allied horse", "strength": "c. 2,500", "commander": "Philip son of Menelaus; Erigyius; under Parmenion", "note": "Thessalian squadrons, the Pharsalians round Parmenion, with the allied Greek horse"},
-        {"id": "left-flank", "side": "macedon", "kind": "cavalry", "label": "Thracian & allied flank", "strength": "c. 3,000-4,000", "commander": "Sitalces, Coeranus, Agathon, Andromachus", "note": "Angled-back left flank: Thracian javelinmen, allied and Odrysian horse, mercenary horse in front"},
-        {"id": "right-flank", "side": "macedon", "kind": "light_infantry", "label": "Agrianians & mercenary foot", "strength": "c. 3,000", "commander": "Attalus, Brison, Cleander", "note": "Angled-back right flank: Agrianians, Macedonian archers and Cleander's veteran mercenaries"},
+        {"id": "thessalians", "side": "macedon", "kind": "heavy_cavalry", "label": "Thessalian & allied horse", "strength": "c. 2,500", "commander": "Philip son of Menelaus; Erigyius; under Parmenion", "note": "Thessalian squadrons, the Pharsalians round Parmenion, with the allied Greek horse", "contingent": "greek-allies"},
+        {"id": "left-flank", "side": "macedon", "kind": "cavalry", "label": "Thracian & allied flank", "strength": "c. 3,000-4,000", "commander": "Sitalces, Coeranus, Agathon, Andromachus", "note": "Angled-back left flank: Thracian javelinmen, allied and Odrysian horse, mercenary horse in front", "contingent": "balkan-allies"},
+        {"id": "right-flank", "side": "macedon", "kind": "light_infantry", "label": "Agrianians & mercenary foot", "strength": "c. 3,000", "commander": "Attalus, Brison, Cleander", "note": "Angled-back right flank: Agrianians, Macedonian archers and Cleander's veteran mercenaries", "contingent": "balkan-allies"},
         {"id": "aretes", "side": "macedon", "kind": "light_cavalry", "label": "Aretes' lancers", "strength": "c. 600-800", "commander": "Aretes", "note": "Prodromoi (scouts, armed with long lances)"},
-        {"id": "ariston", "side": "macedon", "kind": "light_cavalry", "label": "Ariston's Paeonians", "strength": "a few hundred", "commander": "Ariston"},
-        {"id": "menidas", "side": "macedon", "kind": "cavalry", "label": "Menidas' mercenary horse", "strength": "c. 400-500", "commander": "Menidas", "note": "Ordered to take any flanking force in the flank"},
-        {"id": "rear-line", "side": "macedon", "kind": "heavy_infantry", "label": "Reserve line (Greek foot)", "strength": "c. 10,000+", "note": "Greek allied and mercenary infantry, ordered to face about if the army was surrounded"},
+        {"id": "ariston", "side": "macedon", "kind": "light_cavalry", "label": "Ariston's Paeonians", "strength": "a few hundred", "commander": "Ariston", "contingent": "balkan-allies"},
+        {"id": "menidas", "side": "macedon", "kind": "cavalry", "label": "Menidas' mercenary horse", "strength": "c. 400-500", "commander": "Menidas", "note": "Ordered to take any flanking force in the flank", "contingent": "mercenaries"},
+        {"id": "rear-line", "side": "macedon", "kind": "heavy_infantry", "label": "Reserve line (Greek foot)", "strength": "c. 10,000+", "note": "Greek allied and mercenary infantry, ordered to face about if the army was surrounded", "contingent": "greek-allies"},
         # Persians
         {"id": "darius", "side": "persia", "kind": "commander", "label": "Darius III", "wikidata": "Q102865"},
         {"id": "bessus", "side": "persia", "kind": "commander", "label": "Bessus", "wikidata": "Q296434"},
         {"id": "mazaeus", "side": "persia", "kind": "commander", "label": "Mazaeus"},
         {"id": "guard", "side": "persia", "kind": "heavy_infantry", "label": "Royal guard (apple-bearers)", "strength": "up to c. 10,000", "note": "Persian guard foot (the 'Immortals' of Greek writers) with the Kinsmen horse, Carians and Mardian archers"},
-        {"id": "greeks-l", "side": "persia", "kind": "heavy_infantry", "label": "Greek mercenaries", "strength": "a few thousand in all", "note": "One of two divisions posted either side of Darius, facing the phalanx"},
-        {"id": "greeks-r", "side": "persia", "kind": "heavy_infantry", "label": "Greek mercenaries", "note": "The second division, on Darius's right"},
+        {"id": "greeks-l", "side": "persia", "kind": "heavy_infantry", "label": "Greek mercenaries", "strength": "a few thousand in all", "note": "One of two divisions posted either side of Darius, facing the phalanx", "contingent": "greek-mercenaries"},
+        {"id": "greeks-r", "side": "persia", "kind": "heavy_infantry", "label": "Greek mercenaries", "note": "The second division, on Darius's right", "contingent": "greek-mercenaries"},
         {"id": "chariots-left", "side": "persia", "kind": "chariots", "label": "Scythed chariots (100)", "strength": "100", "note": "Arrian: 100 before the left, 50 before Darius, 50 before the right wing (not drawn)"},
         {"id": "chariots-centre", "side": "persia", "kind": "chariots", "label": "Scythed chariots (50)", "strength": "50"},
         {"id": "elephants", "side": "persia", "kind": "elephants", "label": "Indian elephants (15)", "strength": "15", "note": "Listed in Darius's order but never mentioned in the fighting; captured in the camp"},
-        {"id": "left-horse", "side": "persia", "kind": "cavalry", "label": "Persian & Cadusian horse", "note": "Horsemen of the left-centre (Persians, Susians, Cadusians)"},
-        {"id": "left-foot", "side": "persia", "kind": "infantry", "label": "Persian & Susian foot", "note": "Arrian: Persians, horse and foot mixed, then Susians and Cadusians"},
-        {"id": "bessus-horse", "side": "persia", "kind": "cavalry", "label": "Bactrian & Arachosian horse", "strength": "c. 8,000+", "commander": "Bessus", "note": "Bactrians with Dahae and Arachosians; Curtius gives Bessus 8,000 Bactrian horse"},
-        {"id": "scythians", "side": "persia", "kind": "heavy_cavalry", "label": "Scythian & Bactrian horse", "strength": "c. 2,000+", "note": "Armoured Saca horsemen (horse and rider) and about 1,000 Bactrians, out in front of the left"},
+        {"id": "left-horse", "side": "persia", "kind": "cavalry", "label": "Persian & Cadusian horse", "note": "Horsemen of the left-centre (Persians, Susians, Cadusians)", "contingent": "eastern"},
+        {"id": "left-foot", "side": "persia", "kind": "infantry", "label": "Persian & Susian foot", "note": "Arrian: Persians, horse and foot mixed, then Susians and Cadusians", "contingent": "eastern"},
+        {"id": "bessus-horse", "side": "persia", "kind": "cavalry", "label": "Bactrian & Arachosian horse", "strength": "c. 8,000+", "commander": "Bessus", "note": "Bactrians with Dahae and Arachosians; Curtius gives Bessus 8,000 Bactrian horse", "contingent": "eastern"},
+        {"id": "scythians", "side": "persia", "kind": "heavy_cavalry", "label": "Scythian & Bactrian horse", "strength": "c. 2,000+", "note": "Armoured Saca horsemen (horse and rider) and about 1,000 Bactrians, out in front of the left", "contingent": "eastern"},
         {"id": "indian-horse", "side": "persia", "kind": "cavalry", "label": "Indian & Persian horse", "strength": "a few thousand"},
         {"id": "levies", "side": "persia", "kind": "infantry", "label": "Babylonians & levies", "note": "Uxians, Babylonians, Red Sea peoples and Sitacenians, drawn up deep behind the centre"},
-        {"id": "syrian-median", "side": "persia", "kind": "cavalry", "label": "Syrian & Median horse", "commander": "Mazaeus", "note": "Coele-Syrians, Mesopotamians and Medes"},
-        {"id": "parthian-horse", "side": "persia", "kind": "cavalry", "label": "Parthian & Hyrcanian horse", "note": "Parthians, Sacae, Tapurians, Hyrcanians, Albanians and Sacesinians at the end of the line"},
-        {"id": "arm-capp", "side": "persia", "kind": "cavalry", "label": "Armenian & Cappadocian horse", "note": "Posted in front of the right wing"},
+        {"id": "syrian-median", "side": "persia", "kind": "cavalry", "label": "Syrian & Median horse", "commander": "Mazaeus", "note": "Coele-Syrians, Mesopotamians and Medes", "contingent": "western"},
+        {"id": "parthian-horse", "side": "persia", "kind": "cavalry", "label": "Parthian & Hyrcanian horse", "note": "Parthians, Sacae, Tapurians, Hyrcanians, Albanians and Sacesinians at the end of the line", "contingent": "western"},
+        {"id": "arm-capp", "side": "persia", "kind": "cavalry", "label": "Armenian & Cappadocian horse", "note": "Posted in front of the right wing", "contingent": "western"},
     ]
 
     field_ring = path((-3200, -150), (-200, -150), (2600, -150), (2600, 1000), (2600, 2100), (-200, 2100), (-3200, 2100), (-3200, 1000))
@@ -413,6 +425,8 @@ def build() -> dict:
             "chariots-centre": blk(*ch_c6, MF + 180, state="destroyed"),
             "elephants": blk(-350, -1700, state="ready"),
             "screen": {"state": "engaged"},
+            "hypaspists": {"lanes": 3},
+            "phalanx-right": {"lanes": 4},
         },
         "moves": [
             mv("chariots-left", "charge", (1450, 400), (1150, 700), ch_l6),
@@ -454,6 +468,8 @@ def build() -> dict:
             "arm-capp": blk(*arm7, toward(arm7, F3["left-flank"]), state="engaged"),
             "left-flank": {"state": "engaged"},
             "screen": {"state": "ready"},
+            "hypaspists": {"lanes": 0},
+            "phalanx-right": {"lanes": 0},
         },
         "moves": [
             mv("left-horse", "advance", (1000, 0), (1800, 450), lh7),
@@ -570,7 +586,7 @@ def build() -> dict:
             "thessalians": {"state": "engaged"},
             "left-flank": {"state": "wavering"},
             "companions": blk(*com10),
-            "baggage": {"state": "engaged"},
+            "baggage": {"state": "captured", "by": "persia"},
         },
         "moves": [
             mv("indian-horse", "charge", (-800, 350), (-200, 950), (-600, 1750), (-700, 3200), ind10, label="Through the gap"),
@@ -651,6 +667,7 @@ def build() -> dict:
             "companions": blk(*com12, MF, state="ready"),
             "thessalians": blk(*the12, MF, state="ready"),
             "parmenion": blk(*CAMP_PER),
+            "elephants": {"state": "captured", "by": "macedon"},
             "rear-line": {"state": "ready"},
             "phalanx-right": {"state": "ready"},
             "hypaspists": {"state": "ready"},
@@ -664,11 +681,12 @@ def build() -> dict:
             note(-500, -1450, "Parmenion takes the Persian camp, elephants and camels", "capture"),
             note(-600, -11900, "On to the Lycus and Arbela, c. 70 km", "label"),
         ],
+        "terrain_state": {"persian-camp": {"held_by": "macedon", "state": "captured"}},
         "focus": ["companions", "parmenion"],
     }
 
     return {
-        "schema": 1,
+        "schema": 2,
         "slug": SLUG,
         "kind": "battle",
         "entity": {"name": "Battle of Gaugamela", "wikidata": "Q179670"},

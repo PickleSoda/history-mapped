@@ -31,6 +31,7 @@ PLANCENOIT = (4.4299, 50.6599)
 FRICHERMONT = (4.4446, 50.6783)  # château ruins
 SMOHAIN = (4.4418, 50.6809)
 CHAPELLE_ST_LAMBERT = (4.5005, 50.6927)
+CHARLEROI = (4.4440, 50.4110)  # where Napoleon's flight led, off the map
 OHAIN = (4.4707, 50.6977)
 WAVRE = (4.6104, 50.7170)
 BRAINE = (4.3693, 50.6829)
@@ -101,7 +102,7 @@ def pl(at, facing, width=None, depth=None, **kw) -> dict:
     return out
 
 
-def mv(unit: str | None, kind: str, *pts, side: str | None = None, label: str | None = None) -> dict:
+def mv(unit: str | None, kind: str, *pts, side: str | None = None, label: str | None = None, **extra) -> dict:
     out: dict = {"type": kind, "path": path(*pts)}
     if unit:
         out["unit"] = unit
@@ -109,6 +110,7 @@ def mv(unit: str | None, kind: str, *pts, side: str | None = None, label: str | 
         out["side"] = side
     if label:
         out["label"] = label
+    out.update(extra)
     return out
 
 
@@ -186,7 +188,7 @@ def build() -> dict:
             "zieten": pl(ZIETEN_AT_WAVRE, 250, 700, 350),
             "blucher": {"with": "bulow"},
         },
-        "moves": [mv("bulow", "march", *BULOW_ROAD)],
+        "moves": [mv("bulow", "march", *BULOW_ROAD, continues={"toward": r6(CHAPELLE_ST_LAMBERT), "label": "to Chapelle-Saint-Lambert"})],
         "notes": [
             note(offset(WAVRE, north=600), "Fire in Wavre delays Bülow's march"),
             note((4.4040, 50.6905), "Wellington's army on the Mont-Saint-Jean ridge", "label"),
@@ -211,7 +213,17 @@ def build() -> dict:
             "reserve. He let the ground dry before committing his guns and horses."
         ),
         "camera": BATTLEFIELD,
-        "positions": {},
+        "positions": {
+            # Still on the road from Wavre: drawn, but not part of the battlefield frame.
+            "bulow": {"frame": False},
+            "zieten": {"frame": False},
+            "blucher": {"frame": False},
+        },
+        "terrain_state": {
+            "hougoumont": {"held_by": "allied", "state": "held"},
+            "la-haye-sainte": {"held_by": "allied", "state": "held"},
+            "papelotte": {"held_by": "allied", "state": "held"},
+        },
         "notes": [
             note(offset(CROSSROADS, east=-330, north=170), "Infantry lies hidden behind the crest", "label"),
             note(offset(LA_HAYE_SAINTE, east=150, north=-60), "400 KGL riflemen hold La Haye Sainte", "label"),
@@ -241,13 +253,14 @@ def build() -> dict:
         },
         "moves": [
             mv("jerome", "attack", FR["jerome"]["at"], offset(HOUGOUMONT, east=-40, north=-430), jerome_wood),
-            mv(None, "fire", (4.3990, 50.6815), offset(HOUGOUMONT, east=-30, north=-300), side="allied"),
+            mv(None, "fire", (4.3990, 50.6815), offset(HOUGOUMONT, east=-30, north=-300), side="allied", target="jerome"),
             mv(None, "attack", (4.3990, 50.6670), (4.3975, 50.6697), side="france"),
         ],
         "notes": [
             note(offset(HOUGOUMONT, north=60), "North gate forced, then shut again", "clash"),
             note(offset(HOUGOUMONT, east=-60, north=-420), "Bauduin killed in the wood", "death"),
         ],
+        "terrain_state": {"hougoumont": {"state": "contested"}},
         "focus": ["jerome", "hougoumont"],
     })
 
@@ -276,8 +289,8 @@ def build() -> dict:
             "napoleon": {"at": r6(napoleon_lba)},
         },
         "moves": [
-            mv("grand-battery", "fire", derlon(0.4, ahead=330), (4.4150, 50.6812)),
-            mv("grand-battery", "fire", derlon(1.6, ahead=330), (4.4235, 50.6818)),
+            mv("grand-battery", "fire", derlon(0.4, ahead=330), (4.4150, 50.6812), target="picton"),
+            mv("grand-battery", "fire", derlon(1.6, ahead=330), (4.4235, 50.6818), target="picton"),
             mv("lobau", "march", FR["lobau"]["at"], offset(BELLE_ALLIANCE, east=600, north=-300), lobau_flank),
             mv("bulow", "march", (4.5420, 50.7010), (4.5180, 50.6960), BULOW_AT_CSL),
             mv("napoleon", "march", FR["napoleon"]["at"], napoleon_lba),
@@ -326,6 +339,7 @@ def build() -> dict:
             note((4.4168, 50.6823), "Picton killed", "death"),
             note((4.4195, 50.6808), "Bylandt's brigade gives way", "clash"),
         ],
+        "terrain_state": {"la-haye-sainte": {"state": "contested"}},
         "focus": ["quiot", "donzelot", "marcognet", "durutte", "picton"],
     })
 
@@ -365,6 +379,7 @@ def build() -> dict:
             note((4.4215, 50.6795), "Eagles of the 45e and 105e taken", "capture"),
             note(rel(GRAND_BATTERY, DERLON_FACE, ahead=-170, right=420), "British horse among the guns", "clash"),
         ],
+        "terrain_state": {"la-haye-sainte": {"state": "held"}},
         "focus": ["heavy-cav"],
     })
 
@@ -426,10 +441,10 @@ def build() -> dict:
         "positions": {
             "milhaud": pl(mil_crest, 10, 750, 160, state="engaged"),
             "kellermann": pl(kel_crest, 12, 800, 160, state="engaged"),
-            "maitland": pl((4.3975, 50.6826), 195, 340, 120, shape="square", state="engaged", label="Maitland's Guards (squares)"),
-            "brunswick": pl((4.4027, 50.6822), 190, 340, 130, shape="square", state="engaged", label="Brunswickers (squares)"),
-            "alten": pl((4.4088, 50.6816), 185, 480, 140, shape="square", state="engaged", label="Alten's division (squares)"),
-            "adam": pl((4.3958, 50.6790), 165, 420, 120, shape="square"),
+            "maitland": pl((4.3975, 50.6826), 195, 340, 120, shape="square", subunits=2, state="engaged", label="Maitland's Guards (squares)"),
+            "brunswick": pl((4.4027, 50.6822), 190, 340, 130, shape="square", subunits=4, lines=2, state="engaged", label="Brunswickers (squares)"),
+            "alten": pl((4.4088, 50.6816), 185, 480, 140, shape="square", subunits=5, lines=2, state="engaged", label="Alten's division (squares)"),
+            "adam": pl((4.3958, 50.6790), 165, 420, 120, shape="square", subunits=2, lines=2),
             "chasse": pl((4.3935, 50.6868), 170, 550, 220),
             "heavy-cav": pl((4.4075, 50.6855), 185, 600, 100, state="engaged"),
             "light-cav": pl(AL["light-cav"]["at"], 175, 700, 90, state="ready"),
@@ -450,6 +465,8 @@ def build() -> dict:
             note((4.4040, 50.6845), "Allied infantry in squares; no square breaks"),
             note((4.4000, 50.6738), "Some 9,000 horsemen in successive waves", "label"),
         ],
+        # Shelled on Napoleon's order during the afternoon, the château burned (its garrison held on).
+        "terrain_state": {"hougoumont": {"state": "burning"}},
         "focus": ["milhaud", "kellermann", "maitland", "brunswick", "alten"],
     })
 
@@ -471,7 +488,8 @@ def build() -> dict:
         ),
         "camera": {"center": [4.4480, 50.6740], "zoom": 12.55},
         "positions": {
-            "bulow": pl(BULOW_ATTACK, 262, 1800, 300, state="engaged"),
+            "bulow": pl(BULOW_ATTACK, 262, 1800, 300, state="engaged", frame=True),
+            "blucher": {"frame": True},
             "lobau": pl(lobau_back, 82, 900, 150, state="engaged"),
             "young-guard": pl(yg_plancenoit, 90, 420, 380, state="engaged"),
             "zieten": pl(ZIETEN_GENVAL, 262, 120, 2000, shape="column", state="ready"),
@@ -484,19 +502,23 @@ def build() -> dict:
             mv(None, "attack", (4.4410, 50.6720), (4.4355, 50.6690), side="prussia"),
             mv("lobau", "retreat", lobau_flank, lobau_back),
             mv("young-guard", "march", FR["young-guard"]["at"], (4.4230, 50.6620), yg_plancenoit),
-            mv("zieten", "march", ZIETEN_AT_WAVRE, (4.5500, 50.7120), ZIETEN_GENVAL),
+            mv("zieten", "march", ZIETEN_AT_WAVRE, (4.5500, 50.7120), ZIETEN_GENVAL, continues={"toward": r6(OHAIN), "label": "to Ohain"}),
         ],
         "notes": [
             note(offset(PLANCENOIT, north=-280), "Plancenoit lost and retaken", "clash"),
             note((4.4600, 50.6810), "Bülow emerges from the Bois de Paris, 16:30"),
         ],
+        "terrain_state": {"plancenoit": {"held_by": "france", "state": "contested"}},
         "focus": ["bulow", "lobau", "young-guard"],
     })
 
     # 10 ─ 18:00–18:30: La Haye Sainte falls ───────────────────────────────────
     lhs_french = offset(LA_HAYE_SAINTE, north=-20)
     bach_fwd = (4.4010, 50.6748)
-    lc_centre = (4.4050, 50.6862)
+    lc_centre = (4.4050, 50.6876)
+    mil_back = (4.4110, 50.6672)
+    gren_wait = (4.4128, 50.6704)
+    chas_wait = (4.4082, 50.6690)
     steps.append({
         "id": "la-haye-sainte",
         "title": "La Haye Sainte falls",
@@ -516,31 +538,32 @@ def build() -> dict:
             "donzelot": pl(lhs_french, 0, 260, 160, state="engaged", label="Donzelot (13e Léger)"),
             "foy-bachelu": pl(bach_fwd, 12, 700, 160, state="engaged"),
             "alten": {"state": "wavering"},
-            "milhaud": pl((4.4082, 50.6700), 10, 650, 140, state="wavering"),
+            "milhaud": pl(mil_back, 10, 650, 140, state="wavering"),
             "kellermann": pl((4.4012, 50.6690), 10, 650, 140, state="wavering"),
             "light-cav": pl(lc_centre, 185, 650, 90, state="ready"),
-            "zieten": pl(ZIETEN_OHAIN, 225, 700, 400, shape="block"),
+            "zieten": pl(ZIETEN_OHAIN, 225, 700, 400, shape="block", frame=True),
             "durutte": pl((4.4330, 50.6785), 345, 380, 110, state="engaged"),
             "saxe-weimar": pl((4.4405, 50.6808), 175, 700, 200, state="wavering"),
-            "guard-grenadiers": pl((4.4108, 50.6702), 330, 260, 110),
-            "guard-chasseurs": pl((4.4082, 50.6690), 330, 320, 110),
+            "guard-grenadiers": pl(gren_wait, 330, 260, 110),
+            "guard-chasseurs": pl(chas_wait, 330, 320, 110),
             "wellington": {"at": r6((4.4090, 50.6832))},
         },
         "moves": [
             mv("donzelot", "attack", FR["donzelot"]["at"], (4.4145, 50.6745), lhs_french),
             mv("foy-bachelu", "attack", FR["foy-bachelu"]["at"], bach_fwd),
-            mv("milhaud", "retreat", mil_crest, (4.4082, 50.6700)),
+            mv("milhaud", "retreat", mil_crest, mil_back),
             mv("kellermann", "retreat", kel_crest, (4.4012, 50.6690)),
             mv("light-cav", "march", AL["light-cav"]["at"], (4.4200, 50.6858), lc_centre),
             mv("zieten", "march", ZIETEN_GENVAL, OHAIN, ZIETEN_OHAIN),
-            mv("guard-grenadiers", "march", FR["guard-grenadiers"]["at"], (4.4110, 50.6660), (4.4108, 50.6702)),
-            mv("guard-chasseurs", "march", FR["guard-chasseurs"]["at"], (4.4090, 50.6650), (4.4082, 50.6690)),
-            mv(None, "fire", (4.4105, 50.6790), (4.4085, 50.6812), side="france"),
+            mv("guard-grenadiers", "march", FR["guard-grenadiers"]["at"], (4.4120, 50.6660), gren_wait),
+            mv("guard-chasseurs", "march", FR["guard-chasseurs"]["at"], (4.4090, 50.6650), chas_wait),
+            mv(None, "fire", (4.4105, 50.6790), (4.4085, 50.6812), side="france", target="alten"),
         ],
         "notes": [
             note(offset(LA_HAYE_SAINTE, east=-170, north=-30), "KGL out of ammunition: farm lost", "capture"),
             note((4.4060, 50.6800), "Ompteda's battalion destroyed", "death"),
         ],
+        "terrain_state": {"la-haye-sainte": {"held_by": "france", "state": "captured"}},
         "focus": ["donzelot", "lhs", "alten", "zieten"],
     })
 
@@ -550,6 +573,7 @@ def build() -> dict:
     adam_flank = (4.3972, 50.6797)
     chasse_charge = (4.4055, 50.6808)
     zieten_pap = (4.4392, 50.6795)
+    alten_guard = (4.4080, 50.6824)  # west of the Brussels road, clear of Picton's line
     steps.append({
         "id": "imperial-guard",
         "title": "The Imperial Guard attacks",
@@ -570,11 +594,11 @@ def build() -> dict:
             "guard-grenadiers": pl(gren_top, 335, 240, 100, state="engaged"),
             "guard-chasseurs": pl(chas_top, 330, 300, 100, state="engaged"),
             "old-guard": pl((4.4112, 50.6718), 335, 300, 120, label="Old Guard (2nd line)"),
-            "maitland": pl((4.3998, 50.6816), 185, 380, 50, shape="line", state="engaged", label="Maitland's Foot Guards"),
+            "maitland": pl((4.3998, 50.6816), 185, 380, 50, shape="line", subunits=1, state="engaged", label="Maitland's Foot Guards"),
             "chasse": pl(chasse_charge, 190, 360, 140, state="engaged"),
-            "alten": pl((4.4098, 50.6824), 185, 460, 120, shape="block", state="wavering", label="Alten's division"),
-            "brunswick": pl((4.4025, 50.6842), 185, 380, 110, shape="block", label="Brunswickers"),
-            "adam": pl(adam_flank, 100, 420, 60, shape="line", state="engaged"),
+            "alten": pl(alten_guard, 185, 460, 120, shape="block", subunits=1, lines=1, state="wavering", label="Alten's division"),
+            "brunswick": pl((4.4025, 50.6842), 185, 380, 110, shape="block", subunits=1, lines=1, label="Brunswickers"),
+            "adam": pl(adam_flank, 100, 420, 60, shape="line", subunits=1, lines=1, state="engaged"),
             "quiot": pl((4.4160, 50.6775), 350, 300, 100, state="engaged"),
             "marcognet": pl((4.4235, 50.6782), 350, 300, 100, state="engaged"),
             "zieten": pl(zieten_pap, 230, 700, 300, state="engaged"),
@@ -583,8 +607,8 @@ def build() -> dict:
             "napoleon": {"at": r6(NAP_LBA)},
         },
         "moves": [
-            mv("guard-grenadiers", "attack", (4.4108, 50.6702), (4.4085, 50.6745), gren_top),
-            mv("guard-chasseurs", "attack", (4.4082, 50.6690), (4.4040, 50.6750), chas_top),
+            mv("guard-grenadiers", "attack", gren_wait, (4.4085, 50.6745), gren_top),
+            mv("guard-chasseurs", "attack", chas_wait, (4.4040, 50.6750), chas_top),
             mv("old-guard", "march", FR["old-guard"]["at"], (4.4135, 50.6650), (4.4112, 50.6718)),
             mv("chasse", "charge", (4.3935, 50.6868), (4.4030, 50.6850), chasse_charge),
             mv("adam", "flank", *arc((4.3958, 50.6790), adam_flank, -40, n=4)),
@@ -597,6 +621,7 @@ def build() -> dict:
             note((4.3935, 50.6808), "Colborne's 52nd wheels onto the flank", "clash"),
             note((4.4085, 50.6838), "Chassé's division charges the grenadiers", "clash"),
         ],
+        "terrain_state": {"papelotte": {"held_by": None, "state": "contested"}},
         "focus": ["guard-grenadiers", "guard-chasseurs", "maitland", "adam", "chasse"],
     })
 
@@ -627,6 +652,7 @@ def build() -> dict:
             "Reille's, d'Erlon's and Lobau's corps dissolved into crowds streaming south down the Charleroi road."
         ),
         "camera": {"center": [4.4190, 50.6700], "zoom": 12.95},
+        "light": "dusk",
         "positions": {
             **{u: pl(p, 175 if u not in ("zieten", "bulow") else (235 if u == "zieten" else 268), state="engaged")
                for u, p in adv.items()},
@@ -653,7 +679,7 @@ def build() -> dict:
             mv("guard-grenadiers", "rout", gren_top, (4.4120, 50.6700)),
             mv("guard-chasseurs", "rout", chas_top, (4.4060, 50.6698)),
             mv("old-guard", "march", (4.4112, 50.6718), og_square),
-            mv("alten", "advance", (4.4098, 50.6824), adv["alten"]),
+            mv("alten", "advance", alten_guard, adv["alten"]),
             mv("maitland", "advance", (4.3998, 50.6816), adv["maitland"]),
             mv("adam", "advance", adam_flank, (4.4030, 50.6760), adv["adam"]),
             mv("light-cav", "charge", lc_centre, (4.4060, 50.6790), adv["light-cav"]),
@@ -669,12 +695,17 @@ def build() -> dict:
             mv("durutte", "rout", (4.4330, 50.6778), (4.4290, 50.6700)),
             mv("quiot", "rout", (4.4160, 50.6775), (4.4165, 50.6682)),
             mv("donzelot", "rout", lhs_french, (4.4200, 50.6700)),
-            mv("milhaud", "rout", (4.4060, 50.6730), (4.4055, 50.6630)),
+            mv("milhaud", "rout", mil_back, (4.4055, 50.6630)),
         ],
         "notes": [
             note((4.4140, 50.6735), "\"La Garde recule!\": panic spreads"),
             note(offset(PLANCENOIT, north=-260), "Plancenoit falls for the last time", "capture"),
         ],
+        "terrain_state": {
+            "plancenoit": {"held_by": "prussia", "state": "captured"},
+            "papelotte": {"held_by": "prussia", "state": "held"},
+            "la-haye-sainte": {"held_by": "allied", "state": "held"},
+        },
     })
 
     # 13 ─ 20:30–23:00: rout and pursuit ───────────────────────────────────────
@@ -719,7 +750,8 @@ def build() -> dict:
         },
         "moves": [
             mv("old-guard", "retreat", og_square, og_lba),
-            mv("napoleon", "retreat", NAP_LBA, og_lba, (4.4131, 50.6603), (4.4156, 50.6513), (4.4196, 50.6468), nap_flight),
+            mv("napoleon", "retreat", NAP_LBA, og_lba, (4.4131, 50.6603), (4.4156, 50.6513), (4.4196, 50.6468), nap_flight,
+               continues={"toward": r6(CHARLEROI), "label": "to Charleroi"}),
             mv("blucher", "march", adv["bulow"], (4.4230, 50.6650), offset(BELLE_ALLIANCE, east=80, north=60)),
             mv("bulow", "pursuit", adv["bulow"], (4.4250, 50.6560), (4.4180, 50.6505)),
             mv(None, "pursuit", *[offset(p, east=150) for p in CHARLEROI_ROAD[11:17]], side="prussia",
@@ -736,7 +768,7 @@ def build() -> dict:
     })
 
     return {
-        "schema": 1,
+        "schema": 2,
         "slug": "battle-of-waterloo",
         "kind": "battle",
         "entity": {"name": "Battle of Waterloo", "wikidata": "Q48314"},
@@ -789,6 +821,14 @@ def build() -> dict:
                     {"name": "Lord Hill", "role": "II Corps"},
                 ],
                 "strength": "c. 68,000–73,000; 156 guns (British, KGL, Dutch-Belgian, Hanoverian, Brunswick, Nassau)",
+                # Mixed formations (Alten's and Picton's divisions, the light cavalry) have no contingent.
+                "contingents": [
+                    {"id": "british", "name": "British", "color": "#c0392b"},
+                    {"id": "kgl-hanoverian", "name": "King's German Legion and Hanoverians"},
+                    {"id": "dutch-belgian", "name": "Netherlanders (Dutch-Belgian)"},
+                    {"id": "brunswick", "name": "Brunswickers"},
+                    {"id": "nassau", "name": "Nassauers"},
+                ],
                 "losses": "c. 15,000–17,000 killed, wounded and missing",
             },
             {
@@ -832,33 +872,33 @@ def build() -> dict:
 UNITS = [
     # ── Anglo-allied ──
     {"id": "wellington", "side": "allied", "kind": "commander", "label": "Wellington", "wikidata": "Q131691"},
-    {"id": "hougoumont", "side": "allied", "kind": "infantry", "label": "Hougoumont garrison", "strength": "c. 1,500, later more",
+    {"id": "hougoumont", "side": "allied", "contingent": "british", "kind": "infantry", "label": "Hougoumont garrison", "strength": "c. 1,500, later more",
      "commander": "James Macdonell, later Francis Home",
      "note": "Guards light companies, then Byng's Coldstream and 3rd Guards; Nassauers and Hanoverian jäger in wood and orchard"},
-    {"id": "maitland", "side": "allied", "kind": "infantry", "label": "Maitland's Foot Guards", "strength": "c. 1,500–1,900",
+    {"id": "maitland", "side": "allied", "contingent": "british", "kind": "infantry", "label": "Maitland's Foot Guards", "strength": "c. 1,500–1,900",
      "commander": "Peregrine Maitland", "note": "2nd and 3rd battalions, 1st Foot Guards (Cooke's division)"},
-    {"id": "adam", "side": "allied", "kind": "light_infantry", "label": "Adam's brigade (52nd)", "strength": "c. 2,600",
+    {"id": "adam", "side": "allied", "contingent": "british", "kind": "light_infantry", "label": "Adam's brigade (52nd)", "strength": "c. 2,600",
      "commander": "Frederick Adam; John Colborne (52nd)",
      "note": "52nd and 71st Light Infantry and two battalions of the 95th Rifles (Clinton's 2nd Division)"},
-    {"id": "brunswick", "side": "allied", "kind": "infantry", "label": "Brunswick contingent", "strength": "c. 5,900",
+    {"id": "brunswick", "side": "allied", "contingent": "brunswick", "kind": "infantry", "label": "Brunswick contingent", "strength": "c. 5,900",
      "commander": "Johann Elias Olfermann", "note": "Their Duke had been killed at Quatre Bras two days earlier"},
     {"id": "alten", "side": "allied", "kind": "infantry", "label": "Alten's division", "strength": "c. 7,000",
      "commander": "Charles Alten",
      "note": "Colin Halkett's British, Ompteda's King's German Legion and Kielmansegge's Hanoverian brigades"},
-    {"id": "lhs", "side": "allied", "kind": "light_infantry", "label": "La Haye Sainte (KGL)", "strength": "c. 400, later c. 800",
+    {"id": "lhs", "side": "allied", "contingent": "kgl-hanoverian", "kind": "light_infantry", "label": "La Haye Sainte (KGL)", "strength": "c. 400, later c. 800",
      "commander": "George Baring",
      "note": "2nd Light Battalion, King's German Legion, later reinforced; 95th Rifles in the sandpit opposite"},
     {"id": "picton", "side": "allied", "kind": "infantry", "label": "Picton & Bylandt", "strength": "c. 10,000",
      "commander": "Thomas Picton",
      "note": "Kempt's and Pack's British brigades, Bylandt's Dutch-Belgian brigade, Best's and Vincke's Hanoverians"},
-    {"id": "heavy-cav", "side": "allied", "kind": "heavy_cavalry", "label": "Household & Union Bdes", "strength": "c. 2,000",
+    {"id": "heavy-cav", "side": "allied", "contingent": "british", "kind": "heavy_cavalry", "label": "Household & Union Bdes", "strength": "c. 2,000",
      "commander": "Earl of Uxbridge; Lord Edward Somerset, Sir William Ponsonby",
      "note": "Life Guards, Blues, King's Dragoon Guards; Royals, Scots Greys, Inniskillings"},
     {"id": "light-cav", "side": "allied", "kind": "light_cavalry", "label": "Vivian & Vandeleur", "strength": "c. 2,500",
      "commander": "Hussey Vivian, John Ormsby Vandeleur", "note": "British and KGL light dragoons and hussars"},
-    {"id": "saxe-weimar", "side": "allied", "kind": "light_infantry", "label": "Saxe-Weimar's Nassauers", "strength": "c. 4,000",
+    {"id": "saxe-weimar", "side": "allied", "contingent": "nassau", "kind": "light_infantry", "label": "Saxe-Weimar's Nassauers", "strength": "c. 4,000",
      "commander": "Prince Bernhard of Saxe-Weimar", "note": "Holding Papelotte, La Haie, Smohain and Frichermont"},
-    {"id": "chasse", "side": "allied", "kind": "infantry", "label": "Chassé's division", "strength": "c. 6,500",
+    {"id": "chasse", "side": "allied", "contingent": "dutch-belgian", "kind": "infantry", "label": "Chassé's division", "strength": "c. 6,500",
      "commander": "David Hendrik Chassé", "note": "3rd Netherlands Division: Detmers' and d'Aubremé's brigades"},
     # ── French ──
     {"id": "napoleon", "side": "france", "kind": "commander", "label": "Napoleon", "wikidata": "Q517"},

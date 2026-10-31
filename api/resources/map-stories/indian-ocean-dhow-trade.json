@@ -1,0 +1,3555 @@
+{
+ "schema": 3,
+ "slug": "indian-ocean-dhow-trade",
+ "kind": "trade_route",
+ "chronicle": {
+  "slug": "indian-ocean-dhow-trade-ports-and-monsoon-commerce-c-500-1000-ce"
+ },
+ "title": "Indian Ocean dhow trade, c. 500–977",
+ "date_label": "c. 500–977",
+ "year": 500,
+ "period": {
+  "start": {
+   "year": 500
+  },
+  "end": {
+   "year": 988
+  }
+ },
+ "ambient": true,
+ "camera": {
+  "center": [
+   78.0,
+   12.0
+  ],
+  "zoom": 2.6
+ },
+ "intro": "Between the late Sasanian period and the end of the tenth century, ships of sewn planks, the dhows of the Persian Gulf, Oman and India, tied the ports of the Gulf and the Red Sea to India, Southeast Asia, China and East Africa. They sailed with the monsoons, the seasonal winds that blow from the south-west in summer and from the north-east in winter, so a voyage to China and back took the better part of two years. This layer maps the chronicle's entries that the map can show: the rise of Basra, Siraf, Sohar and Quilon, the pilgrim Yijing's voyage, the route described by Sulaiman the Merchant, the wrecks that preserve the cargoes, and the blows that fell on Guangzhou, Sohar and Siraf.",
+ "outcome": "By the late tenth century the direct Gulf–China run had broken up into shorter legs, and the Gulf's trade was shifting from Siraf and Sohar.",
+ "uncertainty": "Sea lanes are drawn through named capes and straits to show which ports traded with which, not the courses ships steered; the Red Sea–Malabar lane rests on Cosmas's description, and he may not have sailed it himself. Qanbalu is placed on Pemba, its usual identification, though the chronicle follows writers who put it on Madagascar; the Cirebon wreck is placed approximately. Some dates are traditional: the founding of Quilon in 825 and of Basra in 636 (or 638). The monsoon arrows show the season that drove each step's voyage, not the weather on a given day.",
+ "legend": [
+  {
+   "swatch": "#b45309",
+   "label": "Trade lane",
+   "style": "line"
+  },
+  {
+   "swatch": "#047857",
+   "label": "Pilgrim's voyage",
+   "style": "line"
+  },
+  {
+   "swatch": "#0e7490",
+   "label": "Port",
+   "style": "dot"
+  }
+ ],
+ "sources": [
+  {
+   "title": "Indian Ocean Dhow Trade, Ports and Monsoon Commerce (c. 500-1000 CE) — atlas chronicle",
+   "kind": "secondary"
+  },
+  {
+   "title": "Bandar Siraf — Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Bandar_Siraf",
+   "kind": "web"
+  }
+ ],
+ "sides": [],
+ "units": [
+  {
+   "id": "aksum-fleet",
+   "kind": "fleet",
+   "label": "Aksumite expedition"
+  },
+  {
+   "id": "yijing-ship",
+   "kind": "merchant_ship",
+   "label": "Yijing's ship"
+  },
+  {
+   "id": "raiders",
+   "kind": "fleet",
+   "label": "Arab and Persian raiders"
+  },
+  {
+   "id": "dhow",
+   "kind": "merchant_ship",
+   "label": "Belitung dhow"
+  },
+  {
+   "id": "sulaiman-ship",
+   "kind": "merchant_ship",
+   "label": "Sulaiman's ship"
+  },
+  {
+   "id": "masudi-ship",
+   "kind": "merchant_ship",
+   "label": "Al-Masudi's ship"
+  }
+ ],
+ "features": [
+  {
+   "id": "siraf",
+   "kind": "port",
+   "label": "Siraf",
+   "at": [
+    52.3461,
+    27.6658
+   ],
+   "active": false,
+   "goods": [
+    "pearls",
+    "ebony",
+    "ivory",
+    "sandalwood",
+    "spices",
+    "aloes",
+    "camphor",
+    "ambergris",
+    "precious stones"
+   ],
+   "entity": {
+    "name": "Siraf",
+    "wikidata": "Q168056"
+   }
+  },
+  {
+   "id": "basra",
+   "kind": "port",
+   "label": "Basra",
+   "at": [
+    47.81,
+    30.515
+   ],
+   "active": false,
+   "entity": {
+    "name": "Basra",
+    "wikidata": "Q48195"
+   }
+  },
+  {
+   "id": "muscat",
+   "kind": "port",
+   "label": "Muscat",
+   "at": [
+    58.59,
+    23.61
+   ],
+   "active": false
+  },
+  {
+   "id": "sohar",
+   "kind": "port",
+   "label": "Sohar",
+   "at": [
+    56.7299,
+    24.342
+   ],
+   "active": false,
+   "entity": {
+    "name": "Sohar",
+    "wikidata": "Q943270"
+   }
+  },
+  {
+   "id": "khambhat",
+   "kind": "port",
+   "label": "Gulf of Cambay",
+   "at": [
+    72.62,
+    22.31
+   ],
+   "active": false,
+   "goods": [
+    "red polished ware"
+   ]
+  },
+  {
+   "id": "adulis",
+   "kind": "port",
+   "label": "Adulis",
+   "at": [
+    39.6606,
+    15.2636
+   ],
+   "active": false,
+   "entity": {
+    "name": "Adulis",
+    "wikidata": "Q378940"
+   }
+  },
+  {
+   "id": "kodungallur",
+   "kind": "port",
+   "label": "Malabar ports",
+   "at": [
+    76.22,
+    10.22
+   ],
+   "active": false,
+   "goods": [
+    "pepper"
+   ],
+   "entity": {
+    "name": "Malabar Coast",
+    "wikidata": "Q473181"
+   }
+  },
+  {
+   "id": "quilon",
+   "kind": "port",
+   "label": "Quilon (Kollam)",
+   "at": [
+    76.5864,
+    8.8853
+   ],
+   "active": false,
+   "entity": {
+    "name": "Kollam",
+    "wikidata": "Q321475"
+   }
+  },
+  {
+   "id": "guangzhou",
+   "kind": "port",
+   "label": "Guangzhou (Khanfu)",
+   "at": [
+    113.26,
+    23.13
+   ],
+   "active": false,
+   "goods": [
+    "porcelain",
+    "ceramics"
+   ],
+   "entity": {
+    "name": "Guangzhou",
+    "wikidata": "Q16572"
+   }
+  },
+  {
+   "id": "palembang",
+   "kind": "port",
+   "label": "Srivijaya (Palembang)",
+   "at": [
+    104.75,
+    -2.99
+   ],
+   "active": false,
+   "entity": {
+    "name": "Srivijaya",
+    "wikidata": "Q234197"
+   }
+  },
+  {
+   "id": "tamralipti",
+   "kind": "port",
+   "label": "Tamralipti",
+   "at": [
+    87.92,
+    22.3
+   ],
+   "active": false
+  },
+  {
+   "id": "jeddah",
+   "kind": "port",
+   "label": "Jeddah",
+   "at": [
+    39.19,
+    21.49
+   ],
+   "active": false,
+   "entity": {
+    "name": "Jeddah",
+    "wikidata": "Q374365"
+   }
+  },
+  {
+   "id": "zanzibar",
+   "kind": "port",
+   "label": "Zanzibar",
+   "at": [
+    39.19,
+    -6.16
+   ],
+   "active": false,
+   "entity": {
+    "name": "Zanzibar",
+    "wikidata": "Q2222874"
+   }
+  },
+  {
+   "id": "qanbalu",
+   "kind": "port",
+   "label": "Qanbalu (Pemba?)",
+   "at": [
+    39.6537,
+    -5.1955
+   ],
+   "active": false,
+   "conjectural": true
+  },
+  {
+   "id": "belitung",
+   "kind": "site",
+   "label": "Belitung wreck",
+   "at": [
+    107.5952,
+    -2.7608
+   ],
+   "active": false,
+   "goods": [
+    "Tang ceramics"
+   ],
+   "entity": {
+    "name": "Belitung shipwreck",
+    "wikidata": "Q3589078"
+   }
+  },
+  {
+   "id": "cirebon",
+   "kind": "site",
+   "label": "Cirebon wreck",
+   "at": [
+    108.75,
+    -6.2
+   ],
+   "active": false,
+   "goods": [
+    "Chinese ceramics",
+    "glassware",
+    "ingots"
+   ],
+   "conjectural": true,
+   "entity": {
+    "name": "Cirebon shipwreck",
+    "wikidata": "Q3589079"
+   }
+  },
+  {
+   "id": "gulf-gujarat",
+   "kind": "route",
+   "route_kind": "trade",
+   "label": "Gulf–Cambay trade",
+   "line": [
+    [
+     52.3461,
+     27.6658
+    ],
+    [
+     53.174,
+     27.4322
+    ],
+    [
+     53.9983,
+     27.1938
+    ],
+    [
+     54.8191,
+     26.9506
+    ],
+    [
+     55.6364,
+     26.7026
+    ],
+    [
+     56.45,
+     26.45
+    ],
+    [
+     57.0704,
+     25.9413
+    ],
+    [
+     57.6854,
+     25.4301
+    ],
+    [
+     58.2952,
+     24.9163
+    ],
+    [
+     58.9,
+     24.4
+    ],
+    [
+     59.7189,
+     24.4488
+    ],
+    [
+     60.5384,
+     24.4933
+    ],
+    [
+     61.3585,
+     24.5333
+    ],
+    [
+     62.179,
+     24.5689
+    ],
+    [
+     63.0,
+     24.6
+    ],
+    [
+     63.796,
+     24.3263
+    ],
+    [
+     64.5886,
+     24.0485
+    ],
+    [
+     65.3777,
+     23.7667
+    ],
+    [
+     66.1634,
+     23.4808
+    ],
+    [
+     66.9457,
+     23.191
+    ],
+    [
+     67.7245,
+     22.8974
+    ],
+    [
+     68.5,
+     22.6
+    ],
+    [
+     69.3253,
+     22.5504
+    ],
+    [
+     70.15,
+     22.4966
+    ],
+    [
+     70.9741,
+     22.4385
+    ],
+    [
+     71.7974,
+     22.3764
+    ],
+    [
+     72.62,
+     22.31
+    ]
+   ],
+   "goods": [
+    "red polished ware"
+   ],
+   "bidirectional": true,
+   "active": false
+  },
+  {
+   "id": "red-sea-india",
+   "kind": "route",
+   "route_kind": "trade",
+   "label": "Red Sea to Malabar and Sri Lanka",
+   "line": [
+    [
+     39.6606,
+     15.2636
+    ],
+    [
+     40.4155,
+     14.7395
+    ],
+    [
+     41.1667,
+     14.2131
+    ],
+    [
+     41.9145,
+     13.6842
+    ],
+    [
+     42.6588,
+     13.1532
+    ],
+    [
+     43.4,
+     12.62
+    ],
+    [
+     44.2244,
+     12.6514
+    ],
+    [
+     45.0491,
+     12.6803
+    ],
+    [
+     45.8739,
+     12.7066
+    ],
+    [
+     46.6988,
+     12.7304
+    ],
+    [
+     47.5239,
+     12.7517
+    ],
+    [
+     48.3492,
+     12.7703
+    ],
+    [
+     49.1745,
+     12.7865
+    ],
+    [
+     50.0,
+     12.8
+    ],
+    [
+     50.9099,
+     12.7882
+    ],
+    [
+     51.8197,
+     12.7733
+    ],
+    [
+     52.7294,
+     12.7553
+    ],
+    [
+     53.6389,
+     12.7342
+    ],
+    [
+     54.5483,
+     12.71
+    ],
+    [
+     55.4575,
+     12.6827
+    ],
+    [
+     56.3665,
+     12.6523
+    ],
+    [
+     57.2753,
+     12.6188
+    ],
+    [
+     58.1838,
+     12.5823
+    ],
+    [
+     59.092,
+     12.5427
+    ],
+    [
+     60.0,
+     12.5
+    ],
+    [
+     60.838,
+     12.3718
+    ],
+    [
+     61.6751,
+     12.2411
+    ],
+    [
+     62.5115,
+     12.1079
+    ],
+    [
+     63.3469,
+     11.9721
+    ],
+    [
+     64.1816,
+     11.8339
+    ],
+    [
+     65.0153,
+     11.6933
+    ],
+    [
+     65.8483,
+     11.5502
+    ],
+    [
+     66.6803,
+     11.4048
+    ],
+    [
+     67.5115,
+     11.257
+    ],
+    [
+     68.3419,
+     11.1069
+    ],
+    [
+     69.1714,
+     10.9546
+    ],
+    [
+     70.0,
+     10.8
+    ],
+    [
+     70.89,
+     10.7246
+    ],
+    [
+     71.7795,
+     10.6467
+    ],
+    [
+     72.6686,
+     10.5663
+    ],
+    [
+     73.5572,
+     10.4834
+    ],
+    [
+     74.4453,
+     10.398
+    ],
+    [
+     75.3329,
+     10.3102
+    ],
+    [
+     76.22,
+     10.22
+    ],
+    [
+     76.2601,
+     9.61
+    ],
+    [
+     76.3,
+     9.0
+    ],
+    [
+     76.9259,
+     8.4255
+    ],
+    [
+     77.55,
+     7.85
+    ],
+    [
+     78.2148,
+     7.3139
+    ],
+    [
+     78.878,
+     6.7768
+    ],
+    [
+     79.5397,
+     6.2388
+    ],
+    [
+     80.2,
+     5.7
+    ]
+   ],
+   "goods": [
+    "pepper"
+   ],
+   "bidirectional": true,
+   "active": false,
+   "conjectural": true
+  },
+  {
+   "id": "yijing",
+   "kind": "route",
+   "route_kind": "pilgrimage",
+   "label": "Yijing's voyage",
+   "line": [
+    [
+     113.26,
+     23.13
+    ],
+    [
+     113.3303,
+     22.515
+    ],
+    [
+     113.4,
+     21.9
+    ],
+    [
+     113.0324,
+     21.0815
+    ],
+    [
+     112.6687,
+     20.2622
+    ],
+    [
+     112.3089,
+     19.4421
+    ],
+    [
+     111.9528,
+     18.6214
+    ],
+    [
+     111.6,
+     17.8
+    ],
+    [
+     111.2787,
+     17.0585
+    ],
+    [
+     110.96,
+     16.3165
+    ],
+    [
+     110.6437,
+     15.5741
+    ],
+    [
+     110.3297,
+     14.8312
+    ],
+    [
+     110.0178,
+     14.0878
+    ],
+    [
+     109.708,
+     13.3441
+    ],
+    [
+     109.4,
+     12.6
+    ],
+    [
+     109.0492,
+     11.8681
+    ],
+    [
+     108.7003,
+     11.1358
+    ],
+    [
+     108.3531,
+     10.4031
+    ],
+    [
+     108.0076,
+     9.67
+    ],
+    [
+     107.6635,
+     8.9366
+    ],
+    [
+     107.3209,
+     8.2028
+    ],
+    [
+     106.9795,
+     7.4688
+    ],
+    [
+     106.6392,
+     6.7345
+    ],
+    [
+     106.3,
+     6.0
+    ],
+    [
+     105.9147,
+     5.1921
+    ],
+    [
+     105.5304,
+     4.384
+    ],
+    [
+     105.147,
+     3.5757
+    ],
+    [
+     104.7642,
+     2.7673
+    ],
+    [
+     104.3819,
+     1.9587
+    ],
+    [
+     104.0,
+     1.15
+    ],
+    [
+     104.225,
+     0.4875
+    ],
+    [
+     104.45,
+     -0.175
+    ],
+    [
+     104.6749,
+     -0.8375
+    ],
+    [
+     104.9,
+     -1.5
+    ],
+    [
+     104.825,
+     -2.245
+    ],
+    [
+     104.75,
+     -2.99
+    ],
+    [
+     104.3664,
+     -2.5268
+    ],
+    [
+     103.9831,
+     -2.0634
+    ],
+    [
+     103.6,
+     -1.6
+    ],
+    [
+     103.2,
+     -0.82
+    ],
+    [
+     102.8001,
+     -0.04
+    ],
+    [
+     102.4003,
+     0.7401
+    ],
+    [
+     102.0003,
+     1.5201
+    ],
+    [
+     101.6,
+     2.3
+    ],
+    [
+     101.2909,
+     3.1377
+    ],
+    [
+     100.9813,
+     3.9752
+    ],
+    [
+     100.671,
+     4.8127
+    ],
+    [
+     100.36,
+     5.65
+    ],
+    [
+     99.5668,
+     5.8493
+    ],
+    [
+     98.7731,
+     6.0474
+    ],
+    [
+     97.9788,
+     6.2444
+    ],
+    [
+     97.1839,
+     6.4402
+    ],
+    [
+     96.3884,
+     6.6348
+    ],
+    [
+     95.5923,
+     6.8281
+    ],
+    [
+     94.7955,
+     7.0201
+    ],
+    [
+     93.9981,
+     7.2107
+    ],
+    [
+     93.2,
+     7.4
+    ],
+    [
+     92.9363,
+     8.211
+    ],
+    [
+     92.6714,
+     9.0218
+    ],
+    [
+     92.4054,
+     9.8325
+    ],
+    [
+     92.1381,
+     10.6429
+    ],
+    [
+     91.8694,
+     11.4531
+    ],
+    [
+     91.5991,
+     12.263
+    ],
+    [
+     91.3271,
+     13.0727
+    ],
+    [
+     91.0534,
+     13.8821
+    ],
+    [
+     90.7777,
+     14.6912
+    ],
+    [
+     90.5,
+     15.5
+    ],
+    [
+     90.2231,
+     16.2572
+    ],
+    [
+     89.944,
+     17.0141
+    ],
+    [
+     89.6627,
+     17.7705
+    ],
+    [
+     89.379,
+     18.5266
+    ],
+    [
+     89.0928,
+     19.2822
+    ],
+    [
+     88.8039,
+     20.0374
+    ],
+    [
+     88.5123,
+     20.7921
+    ],
+    [
+     88.2177,
+     21.5463
+    ],
+    [
+     87.92,
+     22.3
+    ]
+   ],
+   "entity": {
+    "name": "Yijing",
+    "wikidata": "Q457629"
+   },
+   "active": false
+  },
+  {
+   "id": "gulf-kollam",
+   "kind": "route",
+   "route_kind": "trade",
+   "label": "Basra–Siraf–Muscat–Kollam",
+   "line": [
+    [
+     47.81,
+     30.515
+    ],
+    [
+     48.3454,
+     30.0121
+    ],
+    [
+     48.8753,
+     29.5071
+    ],
+    [
+     49.4,
+     29.0
+    ],
+    [
+     50.1435,
+     28.6724
+    ],
+    [
+     50.8823,
+     28.3408
+    ],
+    [
+     51.6165,
+     28.0052
+    ],
+    [
+     52.3461,
+     27.6658
+    ],
+    [
+     53.174,
+     27.4322
+    ],
+    [
+     53.9983,
+     27.1938
+    ],
+    [
+     54.8191,
+     26.9506
+    ],
+    [
+     55.6364,
+     26.7026
+    ],
+    [
+     56.45,
+     26.45
+    ],
+    [
+     56.9273,
+     25.8758
+    ],
+    [
+     57.4,
+     25.3
+    ],
+    [
+     57.8002,
+     24.7377
+    ],
+    [
+     58.1969,
+     24.1744
+    ],
+    [
+     58.59,
+     23.61
+    ],
+    [
+     59.2842,
+     22.9938
+    ],
+    [
+     59.9721,
+     22.3745
+    ],
+    [
+     60.6539,
+     21.7524
+    ],
+    [
+     61.3298,
+     21.1275
+    ],
+    [
+     62.0,
+     20.5
+    ],
+    [
+     62.6422,
+     19.8578
+    ],
+    [
+     63.2791,
+     19.2133
+    ],
+    [
+     63.9111,
+     18.5667
+    ],
+    [
+     64.5384,
+     17.9179
+    ],
+    [
+     65.161,
+     17.2672
+    ],
+    [
+     65.7792,
+     16.6146
+    ],
+    [
+     66.3933,
+     15.9601
+    ],
+    [
+     67.0033,
+     15.3039
+    ],
+    [
+     67.6096,
+     14.6461
+    ],
+    [
+     68.2122,
+     13.9867
+    ],
+    [
+     68.8113,
+     13.3258
+    ],
+    [
+     69.4072,
+     12.6636
+    ],
+    [
+     70.0,
+     12.0
+    ],
+    [
+     70.8308,
+     11.6184
+    ],
+    [
+     71.6593,
+     11.2343
+    ],
+    [
+     72.4856,
+     10.848
+    ],
+    [
+     73.3097,
+     10.4595
+    ],
+    [
+     74.1318,
+     10.0689
+    ],
+    [
+     74.9519,
+     9.6763
+    ],
+    [
+     75.7701,
+     9.2817
+    ],
+    [
+     76.5864,
+     8.8853
+    ]
+   ],
+   "bidirectional": true,
+   "active": false
+  },
+  {
+   "id": "kollam-china",
+   "kind": "route",
+   "route_kind": "trade",
+   "label": "Kollam–Malacca Strait–Guangzhou",
+   "line": [
+    [
+     76.5864,
+     8.8853
+    ],
+    [
+     77.0688,
+     8.3679
+    ],
+    [
+     77.55,
+     7.85
+    ],
+    [
+     78.2148,
+     7.3139
+    ],
+    [
+     78.878,
+     6.7768
+    ],
+    [
+     79.5397,
+     6.2388
+    ],
+    [
+     80.2,
+     5.7
+    ],
+    [
+     81.0639,
+     5.8234
+    ],
+    [
+     81.9282,
+     5.9454
+    ],
+    [
+     82.7929,
+     6.0662
+    ],
+    [
+     83.658,
+     6.1855
+    ],
+    [
+     84.5235,
+     6.3034
+    ],
+    [
+     85.3894,
+     6.42
+    ],
+    [
+     86.2556,
+     6.535
+    ],
+    [
+     87.1223,
+     6.6486
+    ],
+    [
+     87.9893,
+     6.7607
+    ],
+    [
+     88.8567,
+     6.8712
+    ],
+    [
+     89.7246,
+     6.9802
+    ],
+    [
+     90.5928,
+     7.0876
+    ],
+    [
+     91.4615,
+     7.1934
+    ],
+    [
+     92.3305,
+     7.2975
+    ],
+    [
+     93.2,
+     7.4
+    ],
+    [
+     93.9981,
+     7.2107
+    ],
+    [
+     94.7955,
+     7.0201
+    ],
+    [
+     95.5923,
+     6.8281
+    ],
+    [
+     96.3884,
+     6.6348
+    ],
+    [
+     97.1839,
+     6.4402
+    ],
+    [
+     97.9788,
+     6.2444
+    ],
+    [
+     98.7731,
+     6.0474
+    ],
+    [
+     99.5668,
+     5.8493
+    ],
+    [
+     100.36,
+     5.65
+    ],
+    [
+     100.671,
+     4.8127
+    ],
+    [
+     100.9813,
+     3.9752
+    ],
+    [
+     101.2909,
+     3.1377
+    ],
+    [
+     101.6,
+     2.3
+    ],
+    [
+     102.4003,
+     1.917
+    ],
+    [
+     103.2003,
+     1.5337
+    ],
+    [
+     104.0,
+     1.15
+    ],
+    [
+     104.3819,
+     1.9587
+    ],
+    [
+     104.7642,
+     2.7673
+    ],
+    [
+     105.147,
+     3.5757
+    ],
+    [
+     105.5304,
+     4.384
+    ],
+    [
+     105.9147,
+     5.1921
+    ],
+    [
+     106.3,
+     6.0
+    ],
+    [
+     106.6392,
+     6.7345
+    ],
+    [
+     106.9795,
+     7.4688
+    ],
+    [
+     107.3209,
+     8.2028
+    ],
+    [
+     107.6635,
+     8.9366
+    ],
+    [
+     108.0076,
+     9.67
+    ],
+    [
+     108.3531,
+     10.4031
+    ],
+    [
+     108.7003,
+     11.1358
+    ],
+    [
+     109.0492,
+     11.8681
+    ],
+    [
+     109.4,
+     12.6
+    ],
+    [
+     109.708,
+     13.3441
+    ],
+    [
+     110.0178,
+     14.0878
+    ],
+    [
+     110.3297,
+     14.8312
+    ],
+    [
+     110.6437,
+     15.5741
+    ],
+    [
+     110.96,
+     16.3165
+    ],
+    [
+     111.2787,
+     17.0585
+    ],
+    [
+     111.6,
+     17.8
+    ],
+    [
+     111.9528,
+     18.6214
+    ],
+    [
+     112.3089,
+     19.4421
+    ],
+    [
+     112.6687,
+     20.2622
+    ],
+    [
+     113.0324,
+     21.0815
+    ],
+    [
+     113.4,
+     21.9
+    ],
+    [
+     113.3303,
+     22.515
+    ],
+    [
+     113.26,
+     23.13
+    ]
+   ],
+   "goods": [
+    "porcelain",
+    "ceramics"
+   ],
+   "bidirectional": true,
+   "active": false
+  },
+  {
+   "id": "siraf-jeddah",
+   "kind": "route",
+   "route_kind": "trade",
+   "label": "Siraf–Jeddah",
+   "line": [
+    [
+     52.3461,
+     27.6658
+    ],
+    [
+     53.174,
+     27.4322
+    ],
+    [
+     53.9983,
+     27.1938
+    ],
+    [
+     54.8191,
+     26.9506
+    ],
+    [
+     55.6364,
+     26.7026
+    ],
+    [
+     56.45,
+     26.45
+    ],
+    [
+     56.9273,
+     25.8758
+    ],
+    [
+     57.4,
+     25.3
+    ],
+    [
+     57.8002,
+     24.7377
+    ],
+    [
+     58.1969,
+     24.1744
+    ],
+    [
+     58.59,
+     23.61
+    ],
+    [
+     58.7284,
+     22.7401
+    ],
+    [
+     58.865,
+     21.8701
+    ],
+    [
+     59.0,
+     21.0
+    ],
+    [
+     58.428,
+     20.3956
+    ],
+    [
+     57.8606,
+     19.7894
+    ],
+    [
+     57.2974,
+     19.1814
+    ],
+    [
+     56.7384,
+     18.5717
+    ],
+    [
+     56.1834,
+     17.9604
+    ],
+    [
+     55.6322,
+     17.3475
+    ],
+    [
+     55.0846,
+     16.733
+    ],
+    [
+     54.5406,
+     16.1172
+    ],
+    [
+     54.0,
+     15.5
+    ],
+    [
+     53.1759,
+     15.2687
+    ],
+    [
+     52.3537,
+     15.0345
+    ],
+    [
+     51.5332,
+     14.7973
+    ],
+    [
+     50.7146,
+     14.5571
+    ],
+    [
+     49.8977,
+     14.3142
+    ],
+    [
+     49.0826,
+     14.0685
+    ],
+    [
+     48.2693,
+     13.82
+    ],
+    [
+     47.4578,
+     13.5689
+    ],
+    [
+     46.6479,
+     13.3151
+    ],
+    [
+     45.8398,
+     13.0588
+    ],
+    [
+     45.0333,
+     12.8
+    ],
+    [
+     44.2164,
+     12.7112
+    ],
+    [
+     43.4,
+     12.62
+    ],
+    [
+     43.0057,
+     13.2683
+    ],
+    [
+     42.6092,
+     13.916
+    ],
+    [
+     42.2106,
+     14.5631
+    ],
+    [
+     41.8095,
+     15.2094
+    ],
+    [
+     41.4061,
+     15.8551
+    ],
+    [
+     41.0,
+     16.5
+    ],
+    [
+     40.7056,
+     17.3328
+    ],
+    [
+     40.4085,
+     18.1653
+    ],
+    [
+     40.1086,
+     18.9972
+    ],
+    [
+     39.8056,
+     19.8287
+    ],
+    [
+     39.4995,
+     20.6596
+    ],
+    [
+     39.19,
+     21.49
+    ]
+   ],
+   "bidirectional": true,
+   "active": false
+  },
+  {
+   "id": "siraf-east-africa",
+   "kind": "route",
+   "route_kind": "trade",
+   "label": "Siraf–East Africa",
+   "line": [
+    [
+     52.3461,
+     27.6658
+    ],
+    [
+     53.174,
+     27.4322
+    ],
+    [
+     53.9983,
+     27.1938
+    ],
+    [
+     54.8191,
+     26.9506
+    ],
+    [
+     55.6364,
+     26.7026
+    ],
+    [
+     56.45,
+     26.45
+    ],
+    [
+     56.9273,
+     25.8758
+    ],
+    [
+     57.4,
+     25.3
+    ],
+    [
+     57.8002,
+     24.7377
+    ],
+    [
+     58.1969,
+     24.1744
+    ],
+    [
+     58.59,
+     23.61
+    ],
+    [
+     58.7284,
+     22.7401
+    ],
+    [
+     58.865,
+     21.8701
+    ],
+    [
+     59.0,
+     21.0
+    ],
+    [
+     58.428,
+     20.3956
+    ],
+    [
+     57.8606,
+     19.7894
+    ],
+    [
+     57.2974,
+     19.1814
+    ],
+    [
+     56.7384,
+     18.5717
+    ],
+    [
+     56.1834,
+     17.9604
+    ],
+    [
+     55.6322,
+     17.3475
+    ],
+    [
+     55.0846,
+     16.733
+    ],
+    [
+     54.5406,
+     16.1172
+    ],
+    [
+     54.0,
+     15.5
+    ],
+    [
+     53.5943,
+     14.8516
+    ],
+    [
+     53.1911,
+     14.2026
+    ],
+    [
+     52.7902,
+     13.5529
+    ],
+    [
+     52.3914,
+     12.9025
+    ],
+    [
+     51.9947,
+     12.2515
+    ],
+    [
+     51.6,
+     11.6
+    ],
+    [
+     51.27,
+     10.8385
+    ],
+    [
+     50.9417,
+     10.0767
+    ],
+    [
+     50.6149,
+     9.3146
+    ],
+    [
+     50.2896,
+     8.5522
+    ],
+    [
+     49.9655,
+     7.7895
+    ],
+    [
+     49.6427,
+     7.0265
+    ],
+    [
+     49.3209,
+     6.2634
+    ],
+    [
+     49.0,
+     5.5
+    ],
+    [
+     48.4415,
+     4.8346
+    ],
+    [
+     47.884,
+     4.1687
+    ],
+    [
+     47.3276,
+     3.5024
+    ],
+    [
+     46.7719,
+     2.8358
+    ],
+    [
+     46.2168,
+     2.1689
+    ],
+    [
+     45.6623,
+     1.5018
+    ],
+    [
+     45.108,
+     0.8346
+    ],
+    [
+     44.554,
+     0.1673
+    ],
+    [
+     44.0,
+     -0.5
+    ],
+    [
+     43.4345,
+     -1.1505
+    ],
+    [
+     42.8687,
+     -1.8009
+    ],
+    [
+     42.3025,
+     -2.4511
+    ],
+    [
+     41.7357,
+     -3.101
+    ],
+    [
+     41.1683,
+     -3.7507
+    ],
+    [
+     40.6,
+     -4.4
+    ],
+    [
+     40.1271,
+     -4.7979
+    ],
+    [
+     39.6537,
+     -5.1955
+    ],
+    [
+     39.422,
+     -5.6778
+    ],
+    [
+     39.19,
+     -6.16
+    ]
+   ],
+   "goods": [
+    "ivory",
+    "ebony",
+    "teak"
+   ],
+   "bidirectional": true,
+   "active": false
+  }
+ ],
+ "steps": [
+  {
+   "id": "gujarat-ware",
+   "title": "Gujarati pottery at Siraf",
+   "time": "c. 500",
+   "narrative": "Fragments of red polished ware made in Gujarat in the fifth and sixth centuries turn up along the northern shore of the Persian Gulf, and above all at Siraf. They show that under the Sasanian kings Gulf ships already traded with the harbours of the Gulf of Cambay. Siraf, whose story reaches back to Parthian times, probably served as the port of the inland city of Gor, and excavations there have found East African ivory and Indian stone.",
+   "entry": 0,
+   "date": {
+    "year": 500,
+    "end": {
+     "year": 599
+    }
+   },
+   "camera": {
+    "center": [
+     62.0,
+     25.0
+    ],
+    "zoom": 4.0
+   },
+   "entities": [
+    {
+     "name": "Siraf",
+     "wikidata": "Q168056",
+     "role": "Sasanian Gulf port"
+    },
+    {
+     "name": "Sasanian Empire",
+     "wikidata": "Q83891",
+     "show": true
+    }
+   ],
+   "features": {
+    "siraf": {
+     "active": true
+    },
+    "khambhat": {
+     "active": true
+    },
+    "gulf-gujarat": {
+     "active": true
+    }
+   }
+  },
+  {
+   "id": "adulis",
+   "title": "Cosmas at Adulis",
+   "time": "c. 525",
+   "narrative": "Around 525 the Alexandrian merchant Cosmas was at Adulis, the Red Sea port of the kingdom of Aksum, while its king prepared a seaborne expedition against Dhu Nuwas, ruler of Himyar across the strait in Yemen. In his Christian Topography Cosmas later described the pepper ports of the Malabar coast and the island of Sri Lanka, where ships from India, Persia and Ethiopia met, though whether he sailed that far himself is uncertain.",
+   "positions": {
+    "aksum-fleet": {
+     "at": [
+      43.065164,
+      13.32
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "aksum-fleet",
+     "type": "sail",
+     "path": [
+      [
+       39.800431,
+       15.353532
+      ],
+      [
+       41.6,
+       14.4
+      ],
+      [
+       43.065164,
+       13.32
+      ]
+     ],
+     "label": "Aksum's expedition",
+     "conjectural": true
+    }
+   ],
+   "entry": 2,
+   "date": {
+    "year": 525
+   },
+   "camera": {
+    "center": [
+     58.0,
+     12.0
+    ],
+    "zoom": 3.7
+   },
+   "entities": [
+    {
+     "name": "Cosmas Indicopleustes",
+     "wikidata": "Q355633",
+     "role": "merchant and writer"
+    },
+    {
+     "name": "Adulis",
+     "wikidata": "Q378940",
+     "role": "Aksum's port"
+    },
+    {
+     "name": "Kingdom of Aksum",
+     "wikidata": "Q139377",
+     "show": true
+    },
+    {
+     "name": "Kaleb of Axum",
+     "wikidata": "Q705378",
+     "role": "King of Aksum"
+    },
+    {
+     "name": "Dhu Nuwas",
+     "wikidata": "Q878766",
+     "role": "King of Himyar"
+    },
+    {
+     "name": "Himyarite Kingdom",
+     "wikidata": "Q289577",
+     "show": true
+    }
+   ],
+   "features": {
+    "adulis": {
+     "active": true
+    },
+    "kodungallur": {
+     "active": true
+    },
+    "red-sea-india": {
+     "active": true
+    }
+   }
+  },
+  {
+   "id": "basra",
+   "title": "Basra is founded",
+   "time": "636",
+   "narrative": "In 636 (some accounts say 638) the caliph Umar founded Basra as a garrison camp for the Arab armies near the head of the Persian Gulf, and three years later it was laid out as a city of five districts. It grew into the great port of Iraq: in the ninth century goods bound for India and China were first shipped from Basra down to Siraf. Ibadi Islam, which arose at Basra, later became the creed of Oman's merchants.",
+   "positions": {
+    "aksum-fleet": {
+     "state": "hidden"
+    }
+   },
+   "entry": 5,
+   "date": {
+    "year": 636,
+    "end": {
+     "year": 639
+    }
+   },
+   "camera": {
+    "center": [
+     52.0,
+     27.5
+    ],
+    "zoom": 4.8
+   },
+   "entities": [
+    {
+     "name": "Basra",
+     "wikidata": "Q48195",
+     "role": "founded 636"
+    },
+    {
+     "name": "Umar",
+     "wikidata": "Q8467",
+     "role": "caliph"
+    },
+    {
+     "name": "Rashidun Caliphate",
+     "wikidata": "Q12490507",
+     "show": true
+    }
+   ],
+   "features": {
+    "basra": {
+     "active": true,
+     "state": "founded"
+    },
+    "red-sea-india": {
+     "active": false
+    }
+   }
+  },
+  {
+   "id": "yijing",
+   "title": "Yijing sails for India",
+   "time": "671–695",
+   "narrative": "In the winter of 671 the Tang monk Yijing left Guangzhou on a Persian ship and ran south before the north-east monsoon to Srivijaya on Sumatra, where he stayed months learning Sanskrit grammar. He went on by way of Kedah and the Nicobar Islands to Tamralipti near the mouth of the Ganges, and studied for years in India. On his way home he settled at Srivijaya to copy and translate Buddhist texts, and in 695 he was welcomed back at Luoyang by Empress Wu Zetian.",
+   "positions": {
+    "yijing-ship": {
+     "at": [
+      105.020164,
+      -2.630272
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "yijing-ship",
+     "type": "sail",
+     "path": [
+      [
+       113.357793,
+       22.590408
+      ],
+      [
+       113.4,
+       21.9
+      ],
+      [
+       113.0324,
+       21.0815
+      ],
+      [
+       112.6687,
+       20.2622
+      ],
+      [
+       112.3089,
+       19.4421
+      ],
+      [
+       111.9528,
+       18.6214
+      ],
+      [
+       111.6,
+       17.8
+      ],
+      [
+       111.2787,
+       17.0585
+      ],
+      [
+       110.96,
+       16.3165
+      ],
+      [
+       110.6437,
+       15.5741
+      ],
+      [
+       110.3297,
+       14.8312
+      ],
+      [
+       110.0178,
+       14.0878
+      ],
+      [
+       109.708,
+       13.3441
+      ],
+      [
+       109.4,
+       12.6
+      ],
+      [
+       109.0492,
+       11.8681
+      ],
+      [
+       108.7003,
+       11.1358
+      ],
+      [
+       108.3531,
+       10.4031
+      ],
+      [
+       108.0076,
+       9.67
+      ],
+      [
+       107.6635,
+       8.9366
+      ],
+      [
+       107.3209,
+       8.2028
+      ],
+      [
+       106.9795,
+       7.4688
+      ],
+      [
+       106.6392,
+       6.7345
+      ],
+      [
+       106.3,
+       6.0
+      ],
+      [
+       105.9147,
+       5.1921
+      ],
+      [
+       105.5304,
+       4.384
+      ],
+      [
+       105.147,
+       3.5757
+      ],
+      [
+       104.7642,
+       2.7673
+      ],
+      [
+       104.3819,
+       1.9587
+      ],
+      [
+       104.0,
+       1.15
+      ],
+      [
+       104.225,
+       0.4875
+      ],
+      [
+       104.45,
+       -0.175
+      ],
+      [
+       104.6749,
+       -0.8375
+      ],
+      [
+       104.9,
+       -1.5
+      ],
+      [
+       104.825,
+       -2.245
+      ],
+      [
+       104.75,
+       -2.99
+      ],
+      [
+       104.3664,
+       -2.5268
+      ],
+      [
+       103.9831,
+       -2.0634
+      ],
+      [
+       103.6,
+       -1.6
+      ],
+      [
+       103.2,
+       -0.82
+      ],
+      [
+       102.8001,
+       -0.04
+      ],
+      [
+       102.4003,
+       0.7401
+      ],
+      [
+       102.0003,
+       1.5201
+      ],
+      [
+       101.6,
+       2.3
+      ],
+      [
+       101.2909,
+       3.1377
+      ],
+      [
+       100.9813,
+       3.9752
+      ],
+      [
+       100.671,
+       4.8127
+      ],
+      [
+       100.36,
+       5.65
+      ],
+      [
+       99.5668,
+       5.8493
+      ],
+      [
+       98.7731,
+       6.0474
+      ],
+      [
+       97.9788,
+       6.2444
+      ],
+      [
+       97.1839,
+       6.4402
+      ],
+      [
+       96.3884,
+       6.6348
+      ],
+      [
+       95.5923,
+       6.8281
+      ],
+      [
+       94.7955,
+       7.0201
+      ],
+      [
+       93.9981,
+       7.2107
+      ],
+      [
+       93.2,
+       7.4
+      ],
+      [
+       92.9363,
+       8.211
+      ],
+      [
+       92.6714,
+       9.0218
+      ],
+      [
+       92.4054,
+       9.8325
+      ],
+      [
+       92.1381,
+       10.6429
+      ],
+      [
+       91.8694,
+       11.4531
+      ],
+      [
+       91.5991,
+       12.263
+      ],
+      [
+       91.3271,
+       13.0727
+      ],
+      [
+       105.020164,
+       -2.630272
+      ]
+     ],
+     "label": "Yijing, 671"
+    }
+   ],
+   "entry": 8,
+   "date": {
+    "year": 671,
+    "end": {
+     "year": 695
+    }
+   },
+   "camera": {
+    "center": [
+     101.0,
+     9.0
+    ],
+    "zoom": 3.6
+   },
+   "wind": {
+    "from": 45,
+    "strength": "strong",
+    "label": "North-east monsoon (about Nov–Mar): carries ships south and west"
+   },
+   "entities": [
+    {
+     "name": "Yijing",
+     "wikidata": "Q457629",
+     "role": "pilgrim monk"
+    },
+    {
+     "name": "Tang dynasty",
+     "wikidata": "Q9683",
+     "show": true
+    },
+    {
+     "name": "Srivijaya",
+     "wikidata": "Q234197",
+     "role": "Buddhist centre on Sumatra",
+     "show": true
+    }
+   ],
+   "features": {
+    "basra": {
+     "state": null
+    },
+    "guangzhou": {
+     "active": true
+    },
+    "palembang": {
+     "active": true
+    },
+    "tamralipti": {
+     "active": true
+    },
+    "yijing": {
+     "active": true
+    }
+   }
+  },
+  {
+   "id": "guangzhou-758",
+   "title": "Raiders sack Guangzhou",
+   "time": "30 October 758",
+   "narrative": "While the An Lushan rebellion tore the Tang empire apart, Arab and Persian raiders sacked Guangzhou on 30 October 758 and left by sea. Two years later, rebels at Yangzhou on the Grand Canal killed thousands of Arab and Persian merchants in revenge. The foreign communities of the China ports lived at the mercy of Chinese politics, and Guangzhou would see far worse in 878.",
+   "positions": {
+    "yijing-ship": {
+     "state": "hidden"
+    },
+    "raiders": {
+     "at": [
+      113.377352,
+      22.950136
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "raiders",
+     "type": "attack",
+     "path": [
+      [
+       114.6,
+       20.4
+      ],
+      [
+       113.9,
+       21.9
+      ],
+      [
+       113.377352,
+       22.950136
+      ]
+     ],
+     "label": "Arab and Persian raiders",
+     "conjectural": true
+    }
+   ],
+   "entry": 17,
+   "date": {
+    "year": 758,
+    "month": 10,
+    "day": 30
+   },
+   "camera": {
+    "center": [
+     112.0,
+     21.0
+    ],
+    "zoom": 4.6
+   },
+   "entities": [
+    {
+     "name": "Guangzhou",
+     "wikidata": "Q16572",
+     "role": "sacked 758"
+    },
+    {
+     "name": "An Lushan Rebellion",
+     "wikidata": "Q253774",
+     "role": "civil war in China"
+    }
+   ],
+   "features": {
+    "yijing": {
+     "active": false
+    },
+    "palembang": {
+     "active": false
+    },
+    "tamralipti": {
+     "active": false
+    },
+    "guangzhou": {
+     "state": "burning"
+    }
+   }
+  },
+  {
+   "id": "oman",
+   "title": "The Ibadi imamate of Oman",
+   "time": "793–893",
+   "narrative": "From 793 to 893 the second Ibadi imamate ruled the coast of Oman, whose ports included Sohar, one of the richest harbours in the Gulf. Omani ships and sailors were found from East Africa to China, and Muscat on the same coast became the last watering place before ships bound for India struck out across the open Arabian Sea.",
+   "positions": {
+    "raiders": {
+     "state": "hidden"
+    }
+   },
+   "entry": 19,
+   "date": {
+    "year": 793,
+    "end": {
+     "year": 893
+    }
+   },
+   "camera": {
+    "center": [
+     57.0,
+     24.0
+    ],
+    "zoom": 5.2
+   },
+   "entities": [
+    {
+     "name": "Sohar",
+     "wikidata": "Q943270",
+     "role": "Omani port"
+    },
+    {
+     "name": "Ibadi Islam",
+     "wikidata": "Q243551",
+     "role": "creed of the imamate"
+    }
+   ],
+   "features": {
+    "guangzhou": {
+     "state": null
+    },
+    "sohar": {
+     "active": true
+    },
+    "muscat": {
+     "active": true
+    }
+   }
+  },
+  {
+   "id": "quilon",
+   "title": "Quilon is founded",
+   "time": "825–849",
+   "narrative": "By the tradition of the Kerala Christians, the East Syriac bishops Mar Sabor and Mar Proth settled at Quilon (Kollam) with their followers, and in 825 the town was founded with the sanction of the ruler of Venad; the Kollam era calendar counts its years from then. In 849 the Quilon copper plates granted privileges to the Christian merchant Maruvan Sapir Iso and his church. Quilon became the Indian landfall of ships sailing from Muscat to China.",
+   "entry": 22,
+   "date": {
+    "year": 825,
+    "end": {
+     "year": 849
+    }
+   },
+   "camera": {
+    "center": [
+     76.0,
+     10.0
+    ],
+    "zoom": 5.0
+   },
+   "entities": [
+    {
+     "name": "Kollam",
+     "wikidata": "Q321475",
+     "role": "founded 825"
+    },
+    {
+     "name": "Mar Sabor",
+     "wikidata": "Q18936000",
+     "role": "East Syriac bishop"
+    },
+    {
+     "name": "Mar Proth",
+     "wikidata": "Q18936002",
+     "role": "East Syriac bishop"
+    }
+   ],
+   "features": {
+    "quilon": {
+     "active": true,
+     "state": "founded"
+    }
+   }
+  },
+  {
+   "id": "belitung",
+   "title": "The Belitung wreck",
+   "time": "c. 830",
+   "narrative": "Around 830 a dhow built of planks sewn together with cord sank off Belitung island in the Gelasa Strait, between Sumatra and Borneo. It was carrying a cargo of Tang ceramics from China toward the Strait of Malacca; one Changsha bowl aboard bears a date equal to 826. Found in 1998, the wreck shows the kind of Arab ship that carried the China trade, and a cargo much of which was made for buyers in the Islamic world.",
+   "positions": {
+    "dhow": {
+     "at": [
+      107.667229,
+      -2.688854
+     ],
+     "state": "sunk"
+    }
+   },
+   "moves": [
+    {
+     "unit": "dhow",
+     "type": "sail",
+     "path": [
+      [
+       113.357793,
+       22.590408
+      ],
+      [
+       111.6,
+       17.8
+      ],
+      [
+       109.4,
+       12.6
+      ],
+      [
+       106.3,
+       2.5
+      ],
+      [
+       107.667229,
+       -2.688854
+      ]
+     ],
+     "label": "from China, c. 830",
+     "conjectural": true
+    }
+   ],
+   "entry": 25,
+   "date": {
+    "year": 830
+   },
+   "camera": {
+    "center": [
+     108.5,
+     8.0
+    ],
+    "zoom": 4.0
+   },
+   "wind": {
+    "from": 45,
+    "strength": "strong",
+    "label": "North-east monsoon (about Nov–Mar): carries ships south and west"
+   },
+   "entities": [
+    {
+     "name": "Belitung shipwreck",
+     "wikidata": "Q3589078",
+     "role": "sank c. 830"
+    },
+    {
+     "name": "Dhow",
+     "wikidata": "Q171799",
+     "role": "sewn-plank ship"
+    }
+   ],
+   "features": {
+    "quilon": {
+     "state": null
+    },
+    "belitung": {
+     "active": true
+    }
+   }
+  },
+  {
+   "id": "sulaiman",
+   "title": "Sulaiman the Merchant sails to China",
+   "time": "851",
+   "narrative": "In 851 the Siraf merchant Sulaiman made the voyage to Guangzhou, which the Arabs called Khanfu, and marvelled at its porcelain. The account of China and India attributed to him sets out the route: goods went from Basra to Siraf, on to Muscat, across the open sea to Kollam, round Sri Lanka and through the Strait of Malacca to China. Siraf had just been rebuilt and enlarged into the leading entrepôt of the Gulf, with one of the earliest congregational mosques in Iran.",
+   "positions": {
+    "dhow": {
+     "state": "hidden"
+    },
+    "sulaiman-ship": {
+     "at": [
+      113.357793,
+      22.590408
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "sulaiman-ship",
+     "type": "trade",
+     "path": [
+      [
+       52.752265,
+       27.396004
+      ],
+      [
+       50.1435,
+       28.6724
+      ],
+      [
+       50.8823,
+       28.3408
+      ],
+      [
+       51.6165,
+       28.0052
+      ],
+      [
+       52.3461,
+       27.6658
+      ],
+      [
+       53.174,
+       27.4322
+      ],
+      [
+       53.9983,
+       27.1938
+      ],
+      [
+       54.8191,
+       26.9506
+      ],
+      [
+       55.6364,
+       26.7026
+      ],
+      [
+       56.45,
+       26.45
+      ],
+      [
+       56.9273,
+       25.8758
+      ],
+      [
+       57.4,
+       25.3
+      ],
+      [
+       57.8002,
+       24.7377
+      ],
+      [
+       58.1969,
+       24.1744
+      ],
+      [
+       58.59,
+       23.61
+      ],
+      [
+       59.2842,
+       22.9938
+      ],
+      [
+       59.9721,
+       22.3745
+      ],
+      [
+       60.6539,
+       21.7524
+      ],
+      [
+       61.3298,
+       21.1275
+      ],
+      [
+       62.0,
+       20.5
+      ],
+      [
+       62.6422,
+       19.8578
+      ],
+      [
+       63.2791,
+       19.2133
+      ],
+      [
+       63.9111,
+       18.5667
+      ],
+      [
+       64.5384,
+       17.9179
+      ],
+      [
+       65.161,
+       17.2672
+      ],
+      [
+       65.7792,
+       16.6146
+      ],
+      [
+       66.3933,
+       15.9601
+      ],
+      [
+       67.0033,
+       15.3039
+      ],
+      [
+       67.6096,
+       14.6461
+      ],
+      [
+       68.2122,
+       13.9867
+      ],
+      [
+       68.8113,
+       13.3258
+      ],
+      [
+       69.4072,
+       12.6636
+      ],
+      [
+       70.0,
+       12.0
+      ],
+      [
+       70.8308,
+       11.6184
+      ],
+      [
+       71.6593,
+       11.2343
+      ],
+      [
+       72.4856,
+       10.848
+      ],
+      [
+       73.3097,
+       10.4595
+      ],
+      [
+       74.1318,
+       10.0689
+      ],
+      [
+       74.9519,
+       9.6763
+      ],
+      [
+       75.7701,
+       9.2817
+      ],
+      [
+       77.0688,
+       8.3679
+      ],
+      [
+       77.55,
+       7.85
+      ],
+      [
+       78.2148,
+       7.3139
+      ],
+      [
+       78.878,
+       6.7768
+      ],
+      [
+       79.5397,
+       6.2388
+      ],
+      [
+       80.2,
+       5.7
+      ],
+      [
+       81.0639,
+       5.8234
+      ],
+      [
+       81.9282,
+       5.9454
+      ],
+      [
+       82.7929,
+       6.0662
+      ],
+      [
+       83.658,
+       6.1855
+      ],
+      [
+       84.5235,
+       6.3034
+      ],
+      [
+       85.3894,
+       6.42
+      ],
+      [
+       86.2556,
+       6.535
+      ],
+      [
+       87.1223,
+       6.6486
+      ],
+      [
+       87.9893,
+       6.7607
+      ],
+      [
+       88.8567,
+       6.8712
+      ],
+      [
+       89.7246,
+       6.9802
+      ],
+      [
+       90.5928,
+       7.0876
+      ],
+      [
+       91.4615,
+       7.1934
+      ],
+      [
+       92.3305,
+       7.2975
+      ],
+      [
+       93.2,
+       7.4
+      ],
+      [
+       93.9981,
+       7.2107
+      ],
+      [
+       94.7955,
+       7.0201
+      ],
+      [
+       95.5923,
+       6.8281
+      ],
+      [
+       96.3884,
+       6.6348
+      ],
+      [
+       97.1839,
+       6.4402
+      ],
+      [
+       97.9788,
+       6.2444
+      ],
+      [
+       98.7731,
+       6.0474
+      ],
+      [
+       99.5668,
+       5.8493
+      ],
+      [
+       100.36,
+       5.65
+      ],
+      [
+       100.671,
+       4.8127
+      ],
+      [
+       100.9813,
+       3.9752
+      ],
+      [
+       101.2909,
+       3.1377
+      ],
+      [
+       101.6,
+       2.3
+      ],
+      [
+       102.4003,
+       1.917
+      ],
+      [
+       103.2003,
+       1.5337
+      ],
+      [
+       104.0,
+       1.15
+      ],
+      [
+       104.3819,
+       1.9587
+      ],
+      [
+       104.7642,
+       2.7673
+      ],
+      [
+       105.147,
+       3.5757
+      ],
+      [
+       105.5304,
+       4.384
+      ],
+      [
+       105.9147,
+       5.1921
+      ],
+      [
+       106.3,
+       6.0
+      ],
+      [
+       106.6392,
+       6.7345
+      ],
+      [
+       106.9795,
+       7.4688
+      ],
+      [
+       107.3209,
+       8.2028
+      ],
+      [
+       107.6635,
+       8.9366
+      ],
+      [
+       108.0076,
+       9.67
+      ],
+      [
+       108.3531,
+       10.4031
+      ],
+      [
+       108.7003,
+       11.1358
+      ],
+      [
+       109.0492,
+       11.8681
+      ],
+      [
+       109.4,
+       12.6
+      ],
+      [
+       109.708,
+       13.3441
+      ],
+      [
+       110.0178,
+       14.0878
+      ],
+      [
+       110.3297,
+       14.8312
+      ],
+      [
+       110.6437,
+       15.5741
+      ],
+      [
+       110.96,
+       16.3165
+      ],
+      [
+       111.2787,
+       17.0585
+      ],
+      [
+       111.6,
+       17.8
+      ],
+      [
+       111.9528,
+       18.6214
+      ],
+      [
+       112.3089,
+       19.4421
+      ],
+      [
+       112.6687,
+       20.2622
+      ],
+      [
+       113.0324,
+       21.0815
+      ],
+      [
+       113.4,
+       21.9
+      ],
+      [
+       113.357793,
+       22.590408
+      ]
+     ],
+     "label": "Sulaiman, 851"
+    }
+   ],
+   "entry": 30,
+   "date": {
+    "year": 851
+   },
+   "camera": {
+    "center": [
+     82.0,
+     15.0
+    ],
+    "zoom": 2.7
+   },
+   "wind": {
+    "from": 225,
+    "strength": "strong",
+    "label": "South-west monsoon (about Jun–Sep): carries ships east and north"
+   },
+   "entities": [
+    {
+     "name": "Sulaiman al-Tajir",
+     "wikidata": "Q9347981",
+     "role": "Siraf merchant"
+    },
+    {
+     "name": "Siraf",
+     "wikidata": "Q168056",
+     "role": "leading Gulf entrepôt"
+    },
+    {
+     "name": "Guangzhou",
+     "wikidata": "Q16572",
+     "role": "Khanfu"
+    },
+    {
+     "name": "Tang dynasty",
+     "wikidata": "Q9683",
+     "show": true
+    }
+   ],
+   "features": {
+    "belitung": {
+     "active": false
+    },
+    "siraf": {
+     "state": "new",
+     "label": "Siraf (rebuilt in the 9th century)"
+    },
+    "gulf-kollam": {
+     "active": true
+    },
+    "kollam-china": {
+     "active": true
+    },
+    "gulf-gujarat": {
+     "active": false
+    }
+   }
+  },
+  {
+   "id": "huang-chao",
+   "title": "Huang Chao takes Guangzhou",
+   "time": "878–879",
+   "narrative": "In 878 the rebel army of Huang Chao, which had been ravaging the Tang lands since the mid-870s, took Guangzhou after a siege and massacred its inhabitants, ending the foreign merchant communities there. Arab writers looked back on it as the moment the direct trade between the Gulf and China broke down; the Tang dynasty itself fell in 907.",
+   "positions": {
+    "sulaiman-ship": {
+     "state": "hidden"
+    }
+   },
+   "entry": 35,
+   "date": {
+    "year": 878,
+    "end": {
+     "year": 879
+    }
+   },
+   "camera": {
+    "center": [
+     112.5,
+     22.0
+    ],
+    "zoom": 4.8
+   },
+   "entities": [
+    {
+     "name": "Huang Chao",
+     "wikidata": "Q714113",
+     "role": "rebel leader"
+    },
+    {
+     "name": "Huang Chao Rebellion",
+     "wikidata": "Q620621",
+     "role": "874–884"
+    },
+    {
+     "name": "Guangzhou",
+     "wikidata": "Q16572",
+     "role": "massacre of 878"
+    }
+   ],
+   "features": {
+    "siraf": {
+     "state": null,
+     "label": null
+    },
+    "guangzhou": {
+     "state": "destroyed"
+    },
+    "kollam-china": {
+     "state": "disrupted"
+    }
+   }
+  },
+  {
+   "id": "abu-zayd",
+   "title": "To Jeddah and Zanzibar",
+   "time": "c. 900",
+   "narrative": "Around 900 Abu Zayd, himself a merchant of Siraf, wrote that Sirafi ships now traded with Jeddah on the Red Sea and with Zanzibar in East Africa. The trade with China had shrunk since the massacre at Guangzhou, he said, though Chinese coins still passed from hand to hand in Siraf. Ships bound for East Africa ran south-west before the north-east monsoon and came home on the south-west.",
+   "entry": 39,
+   "date": {
+    "year": 900
+   },
+   "camera": {
+    "center": [
+     50.0,
+     10.0
+    ],
+    "zoom": 3.3
+   },
+   "wind": {
+    "from": 45,
+    "strength": "strong",
+    "label": "North-east monsoon (about Nov–Mar): carries ships south and west"
+   },
+   "entities": [
+    {
+     "name": "Abu Zayd Hasan al-Sirafi",
+     "wikidata": "Q12178010",
+     "role": "Siraf merchant and writer"
+    },
+    {
+     "name": "Jeddah",
+     "wikidata": "Q374365",
+     "role": "Red Sea port"
+    },
+    {
+     "name": "Zanzibar",
+     "wikidata": "Q2222874",
+     "role": "East African port"
+    }
+   ],
+   "features": {
+    "jeddah": {
+     "active": true,
+     "state": "new"
+    },
+    "zanzibar": {
+     "active": true,
+     "state": "new"
+    },
+    "siraf-jeddah": {
+     "active": true,
+     "state": "new"
+    },
+    "siraf-east-africa": {
+     "active": true,
+     "state": "new"
+    },
+    "guangzhou": {
+     "state": "recovered",
+     "label": "Guangzhou (trade reduced)"
+    }
+   }
+  },
+  {
+   "id": "siraf-wealth",
+   "title": "The wealth of Siraf",
+   "time": "908–932",
+   "narrative": "According to the later historian Ibn al-Balkhi, goods worth 2.53 million dinars a year passed through Siraf between 908 and 932. Istakhri, writing shortly before 950, listed its trade in ebony, ivory, sandalwood and other aromatics, bamboo, spices, paper, aloes, camphor, ambergris and precious stones, besides the pearls of the nearby fisheries. Its merchants lived in tall houses of teak from East Africa and fired brick, on which one might spend 30,000 dinars.",
+   "entry": 43,
+   "date": {
+    "year": 908,
+    "end": {
+     "year": 932
+    }
+   },
+   "camera": {
+    "center": [
+     52.5,
+     27.0
+    ],
+    "zoom": 5.0
+   },
+   "entities": [
+    {
+     "name": "Siraf",
+     "wikidata": "Q168056",
+     "role": "2.53 million dinars a year"
+    },
+    {
+     "name": "Ibn al-Balkhi",
+     "wikidata": "Q3648073",
+     "role": "historian"
+    }
+   ],
+   "features": {
+    "jeddah": {
+     "state": null
+    },
+    "zanzibar": {
+     "state": null
+    },
+    "siraf-jeddah": {
+     "state": null
+    },
+    "siraf-east-africa": {
+     "state": null
+    },
+    "siraf": {
+     "state": "peak",
+     "value_n": 2530000,
+     "value_label": "2.53 million dinars of goods a year"
+    }
+   }
+  },
+  {
+   "id": "masudi",
+   "title": "Al-Masudi in East Africa",
+   "time": "916–926",
+   "narrative": "Between 916 and 926 the historian and traveller al-Masudi sailed to Qanbalu, an island off East Africa, and found ships of Siraf and Oman trading there, at the far south-western end of the Gulf merchants' world. Qanbalu is usually identified with Pemba, though the chronicle and some writers place it on Madagascar.",
+   "positions": {
+    "masudi-ship": {
+     "at": [
+      39.924609,
+      -5.105568
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "masudi-ship",
+     "type": "sail",
+     "path": [
+      [
+       58.982591,
+       23.340204
+      ],
+      [
+       45.6623,
+       1.5018
+      ],
+      [
+       45.108,
+       0.8346
+      ],
+      [
+       44.554,
+       0.1673
+      ],
+      [
+       44.0,
+       -0.5
+      ],
+      [
+       43.4345,
+       -1.1505
+      ],
+      [
+       42.8687,
+       -1.8009
+      ],
+      [
+       42.3025,
+       -2.4511
+      ],
+      [
+       41.7357,
+       -3.101
+      ],
+      [
+       41.1683,
+       -3.7507
+      ],
+      [
+       40.6,
+       -4.4
+      ],
+      [
+       40.1271,
+       -4.7979
+      ],
+      [
+       39.924609,
+       -5.105568
+      ]
+     ],
+     "label": "al-Masudi",
+     "conjectural": true
+    }
+   ],
+   "entry": 45,
+   "date": {
+    "year": 916,
+    "end": {
+     "year": 926
+    }
+   },
+   "camera": {
+    "center": [
+     46.0,
+     5.0
+    ],
+    "zoom": 3.6
+   },
+   "wind": {
+    "from": 45,
+    "strength": "strong",
+    "label": "North-east monsoon (about Nov–Mar): carries ships south and west"
+   },
+   "entities": [
+    {
+     "name": "al-Masudi",
+     "wikidata": "Q168705",
+     "role": "historian and traveller"
+    }
+   ],
+   "features": {
+    "qanbalu": {
+     "active": true
+    },
+    "siraf": {
+     "state": null,
+     "value_n": null,
+     "value_label": null
+    }
+   }
+  },
+  {
+   "id": "cirebon",
+   "title": "The Cirebon wreck",
+   "time": "c. 970",
+   "narrative": "Around 970 a ship sank in the Java Sea off Cirebon with a cargo of Chinese ceramics, glassware and metal ingots. Like the Belitung ship a century and a half earlier, it shows the Southeast Asian sea lanes busy with mixed cargoes moving between China, the Malay world and the ports further west, a century after the direct Gulf–China run had broken down.",
+   "positions": {
+    "masudi-ship": {
+     "state": "hidden"
+    }
+   },
+   "entry": 52,
+   "date": {
+    "year": 970
+   },
+   "camera": {
+    "center": [
+     108.0,
+     0.0
+    ],
+    "zoom": 4.4
+   },
+   "entities": [
+    {
+     "name": "Cirebon shipwreck",
+     "wikidata": "Q3589079",
+     "role": "sank c. 970"
+    }
+   ],
+   "features": {
+    "cirebon": {
+     "active": true
+    }
+   }
+  },
+  {
+   "id": "sohar-sacked",
+   "title": "The Buyids sack Sohar",
+   "time": "971",
+   "narrative": "In 971 the Buyids, the Iranian dynasty that controlled Baghdad and Fars, sacked Sohar, one of the richest ports of the Gulf, and its trade went into decline. According to al-Maqdisi, many people of Siraf also moved to Oman once the Buyids took power in Fars.",
+   "entry": 54,
+   "date": {
+    "year": 971
+   },
+   "camera": {
+    "center": [
+     55.0,
+     25.5
+    ],
+    "zoom": 5.0
+   },
+   "entities": [
+    {
+     "name": "Sohar",
+     "wikidata": "Q943270",
+     "role": "sacked 971"
+    },
+    {
+     "name": "Buyid dynasty",
+     "wikidata": "Q273874",
+     "role": "sacked Sohar",
+     "show": true
+    }
+   ],
+   "features": {
+    "cirebon": {
+     "active": false
+    },
+    "sohar": {
+     "state": "burning"
+    }
+   }
+  },
+  {
+   "id": "siraf-earthquake",
+   "title": "Earthquake at Siraf",
+   "time": "977",
+   "narrative": "In 977 an earthquake badly damaged Siraf. The geographer al-Maqdisi, who disapproved of the town's luxury, called it a fitting punishment from God. Siraf survived as a port for centuries more, but its great days were passing: in the following century pirates from Qays preyed on its ships and Gulf traffic began to bypass it for Basra.",
+   "entry": 56,
+   "date": {
+    "year": 977
+   },
+   "camera": {
+    "center": [
+     52.5,
+     27.5
+    ],
+    "zoom": 5.2
+   },
+   "entities": [
+    {
+     "name": "Siraf",
+     "wikidata": "Q168056",
+     "role": "earthquake of 977"
+    }
+   ],
+   "features": {
+    "sohar": {
+     "state": "destroyed"
+    },
+    "siraf": {
+     "state": "disrupted",
+     "label": "Siraf (earthquake, 977)"
+    }
+   }
+  }
+ ]
+}
