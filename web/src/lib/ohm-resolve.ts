@@ -20,8 +20,14 @@ export interface OhmIdentity {
 
 /** How many distinct nearby OHM features to try before giving up. */
 const MAX_CANDIDATES = 5;
-/** Square half-size (px) around the click used to catch thin boundary lines. */
+/** Square half-size (px) around the click, so a near miss on a label still counts. */
 const HIT_RADIUS_PX = 6;
+/**
+ * OHM boundary lines: their `osm_id` is a member **way** id, never a linkable
+ * identity (spec §1), and a positive way id would otherwise resolve to an
+ * unrelated node ref with the same number. Skipped when collecting candidates.
+ */
+const BOUNDARY_LINE_SOURCE_LAYER = 'land_ohm_lines';
 /**
  * Slack on the decimal-date comparison: tile decdates are computed in
  * Postgres and the click year in JS, so a window starting in the clicked year
@@ -112,6 +118,7 @@ function candidateIdentities(map: MapLibreMap, e: MapMouseEvent): OhmIdentity[] 
   const seen = new Set<number>();
   const out: OhmIdentity[] = [];
   for (const f of features) {
+    if (f.sourceLayer === BOUNDARY_LINE_SOURCE_LAYER) continue;
     const identity = extractIdentity((f.properties ?? {}) as Record<string, unknown>);
     if (!identity || seen.has(identity.osm_id)) continue;
     seen.add(identity.osm_id);
@@ -144,10 +151,10 @@ async function resolveIdentity(
   year: number,
   signal?: AbortSignal,
 ): Promise<string | null> {
-  const local = resolveFromTiles(map, identity.osm_id, year);
-  if (local) return local;
-
   try {
+    const local = resolveFromTiles(map, identity.osm_id, year);
+    if (local) return local;
+
     const { data } = await api.get('/api/v1/map/resolve-ohm-feature', {
       signal,
       params: { provider: 'ohm', osm_id: identity.osm_id, target_year: year },
@@ -155,7 +162,8 @@ async function resolveIdentity(
     const id = (data as { data?: { entity?: { id?: string } } }).data?.entity?.id;
     return typeof id === 'string' && id ? id : null;
   } catch {
-    return null; // 404 (no linked entity) or transient error — treat as a miss.
+    // 404 (no linked entity), a MapLibre query error or a transient error.
+    return null;
   }
 }
 

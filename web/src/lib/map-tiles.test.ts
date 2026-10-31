@@ -1,3 +1,4 @@
+import type { Map as MapLibreMap } from 'maplibre-gl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ENTITY_GROUPS } from '@/types/atlas';
 import {
@@ -112,9 +113,12 @@ describe('entityLayerFilter', () => {
 
 describe('applyEntityLayerFilters', () => {
   it('sets a filter on each entity layer that exists', () => {
+    type LayerMap = Pick<MapLibreMap, 'getLayer' | 'setFilter'>;
     const setFilter = vi.fn();
-    const map = {
-      getLayer: (id: string) => (id === 'line' ? undefined : { id }),
+    const map: LayerMap = {
+      // Only the layer's presence matters here, not the StyleLayer itself.
+      getLayer: (id) =>
+        id === 'line' ? undefined : ({ id } as ReturnType<LayerMap['getLayer']>),
       setFilter,
     };
 

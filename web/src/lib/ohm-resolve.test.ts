@@ -89,14 +89,20 @@ describe('resolveOhmClickToEntity', () => {
   const event = { point: { x: 100, y: 100 } } as unknown as MapMouseEvent;
   const get = vi.mocked(api.get);
 
-  /** A map stub with one OHM label layer under the click and given tile features. */
-  function stubMap(tileFeatures: { properties: Record<string, unknown> }[]) {
+  /** The OHM polity label under the click (relation 1880). */
+  const label = { sourceLayer: 'land_ohm_centroids', properties: { osm_id: -1880 } };
+
+  /** A map stub with one OHM layer, the rendered features under the click, and tile features. */
+  function stubMap(
+    tileFeatures: { properties: Record<string, unknown> }[],
+    rendered: { sourceLayer: string; properties: Record<string, unknown> }[] = [label],
+  ) {
     const querySourceFeatures = vi.fn(() => tileFeatures);
     const map = {
       getStyle: () => ({ layers: [{ id: 'ohm-label', type: 'symbol', source: 'ohm' }] }),
       getLayer: () => ({}),
       getSource: (id: string) => (id === SOURCE_ID ? {} : undefined),
-      queryRenderedFeatures: () => [{ properties: { osm_id: -1880 } }],
+      queryRenderedFeatures: () => rendered,
       querySourceFeatures,
     } as unknown as MapLibreMap;
     return { map, querySourceFeatures };
@@ -142,5 +148,31 @@ describe('resolveOhmClickToEntity', () => {
     await expect(resolveOhmClickToEntity(map, event, 1066)).resolves.toBeNull();
     expect(querySourceFeatures).not.toHaveBeenCalled();
     expect(get).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips boundary-line way ids and tries only the label relation', async () => {
+    vi.stubEnv('VITE_MAP_TILES_URL', 'http://t/tiles');
+    const line = { sourceLayer: 'land_ohm_lines', properties: { osm_id: 1880 } };
+    const { map, querySourceFeatures } = stubMap([], [line, label]);
+    get.mockResolvedValue({ data: { data: { entity: { id: 'entity-3' } } } });
+
+    await expect(resolveOhmClickToEntity(map, event, 1066)).resolves.toBe('entity-3');
+    expect(querySourceFeatures).toHaveBeenCalledTimes(1);
+    expect(querySourceFeatures).toHaveBeenCalledWith(SOURCE_ID, {
+      sourceLayer: ENTITY_SOURCE_LAYER,
+      filter: ['==', ['get', 'ohm_osm_id'], -1880],
+    });
+    expect(get).toHaveBeenCalledTimes(1);
+    expect(get.mock.calls[0]![1]).toMatchObject({ params: { osm_id: -1880 } });
+  });
+
+  it('treats a throwing tile query as a miss instead of rejecting', async () => {
+    vi.stubEnv('VITE_MAP_TILES_URL', 'http://t/tiles');
+    const { map, querySourceFeatures } = stubMap([]);
+    querySourceFeatures.mockImplementation(() => {
+      throw new Error('style not loaded');
+    });
+
+    await expect(resolveOhmClickToEntity(map, event, 1066)).resolves.toBeNull();
   });
 });
