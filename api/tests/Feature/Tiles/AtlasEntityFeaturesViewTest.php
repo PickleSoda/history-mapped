@@ -73,6 +73,14 @@ class AtlasEntityFeaturesViewTest extends TestCase
         $this->assertNull($row->ohm_osm_id);
         // Unlinked entities serve the app-owned territory polygon.
         $this->assertSame('ST_Polygon', $row->geom_type);
+
+        // A zero id is not a valid OSM id (parity with OhmDate::signedOsmId).
+        $zeroEntity = Entity::factory()->verified()->create();
+        $zeroPeriod = $this->insertPeriod($zeroEntity, 900, 1100, withPolygon: true);
+        $this->insertOhmRef($zeroEntity, 'relation', '0');
+        $row = $this->featureRow($zeroPeriod);
+        $this->assertNull($row->ohm_osm_id);
+        $this->assertSame('ST_Polygon', $row->geom_type);
     }
 
     public function test_primary_alias_wins_over_entity_name(): void

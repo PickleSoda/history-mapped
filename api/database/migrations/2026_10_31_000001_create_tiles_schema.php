@@ -47,7 +47,7 @@ $$;
 CREATE OR REPLACE FUNCTION tiles.signed_osm_id(external_type text, external_id text)
 RETURNS bigint LANGUAGE sql IMMUTABLE PARALLEL SAFE AS $$
   SELECT CASE
-    WHEN external_id IS NULL OR external_id !~ '^[0-9]{1,18}$' THEN NULL
+    WHEN external_id IS NULL OR external_id !~ '^[1-9][0-9]{0,17}$' THEN NULL  -- no zero ids (parity with OhmDate::signedOsmId)
     WHEN external_type = 'relation' THEN -(external_id::bigint)
     WHEN external_type IN ('node', 'way') THEN external_id::bigint
   END
