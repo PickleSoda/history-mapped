@@ -23,6 +23,9 @@ api/resources/map-stories/<slug>.json                            (committed, shi
         │  php artisan map-stories:sync                          (resolves Q-ids, upserts the DB)
         ▼
 map_stories table  →  GET /api/v1/map-stories/{slug}  →  atlas story player
+        ▲   │
+        │   └─ php artisan map-stories:export   (DB → JSON file, when edited in the admin)
+  admin editor / AI tools (/map-stories/{slug}/edit; saves with a revision)
 ```
 
 Run every command through the repo's venv and memory cap. `CLI` below means
@@ -45,6 +48,52 @@ small), `step-NN.png` with `--step ID|N`, or the old large `grid.png` with
 preview** (read the PNG) and fix what's wrong before you finish: it is the only
 way to see that the line really stands on the ridge and the river really covers
 the flank. `digest` prints the prose without coordinates, for review.
+
+## Editing in the admin, and the DB copy
+
+The `map_stories` row is the **live copy**; the JSON file is how a story ships
+and is reviewed. Stories can be changed in three places, all validated by the
+same rules (`MapStoryDocument` errors block, `MapStoryWarnings` only warn):
+
+- **Builder → file → sync** (above): the authoring path for new stories.
+- **Admin editor**, `/map-stories` (sidebar "Map stories"; also listed on each
+  entity's edit page, which has **Add a map story**, a skeleton with
+  placeholders). The editor is split: a form (Overview, Sides & units,
+  Features, Steps, JSON) on the left, and the public atlas on the right as a
+  live preview of the unsaved draft. Pick points and paths by clicking the
+  preview (double-click or Enter ends a path, Esc cancels), drag a unit in the
+  preview to move it in the shown step, and "Use current preview view" copies
+  the preview camera into a step or the overview. Saving sends the whole
+  document; errors come back next to their tab and field. Needs `entities.write`.
+- **AI agent** in the admin: `get_map_story`, `validate_map_story`,
+  `create_map_story`, `update_map_story` (JSON Patch). Writes are proposals you
+  approve, as for every other AI edit ([admin-ai-agent.md](admin-ai-agent.md)).
+
+Every save — admin, AI, sync, import, restore — keeps a **revision** in
+`map_story_revisions` (the last 50 per story; the first save of a story also
+records the version before it). The editor's **History** drawer shows them,
+loads one as a draft, or restores one (saved as a new revision).
+
+**Sync and export policy.** The row remembers the hash of the file it was last
+synced from (`file_hash`), when (`synced_at`), and when it was last edited in
+the admin or by the AI (`edited_at`, `edited_by`). A story is **edited** when it
+changed after its last sync; the list shows a badge and filters on it.
+
+- `php artisan map-stories:sync` leaves an edited story alone ("kept admin
+  edits — export first or use --force"), skips files whose hash is unchanged,
+  and imports the rest. `--force` overwrites admin edits with the file.
+- `php artisan map-stories:export [--slug=…] [--edited] [--path=…]` writes the
+  DB copy back to `api/resources/map-stories/<slug>.json` in the builder's exact
+  format (1-space indent, key order kept, trailing newline, resolved ids
+  dropped), then marks the story synced. Commit the file to ship the edit; a
+  story exported unchanged is byte-identical to its file.
+- The **builder refuses** to overwrite a JSON file that changed since it last
+  wrote it (hashes in `api/resources/map-stories/.build-hashes.json`, committed),
+  because that file was hand-edited or exported from the admin. Fold the
+  change into the builder module, then rebuild with `--force`.
+
+Deleting a story in the admin removes the row and its revisions; a file of the
+same slug brings it back on the next sync unless the file is deleted too.
 
 ## Writing a builder
 

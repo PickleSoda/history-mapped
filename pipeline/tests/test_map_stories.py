@@ -11,7 +11,7 @@ from pipeline.map_stories.geo import bearing, dest, distance, distance_to_line, 
 from pipeline.map_stories.validate import normalise, resolve_beats, resolve_features, resolve_steps, resolve_terrain_state, validate
 
 REPO = Path(__file__).resolve().parents[2]
-STORIES = sorted((REPO / "api" / "resources" / "map-stories").glob("*.json"))
+STORIES = sorted(p for p in (REPO / "api" / "resources" / "map-stories").glob("*.json") if not p.name.startswith("."))
 
 C = (16.13, 41.3)
 

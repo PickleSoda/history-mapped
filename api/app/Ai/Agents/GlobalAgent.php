@@ -5,9 +5,11 @@ namespace App\Ai\Agents;
 use App\Ai\Tools\CreateChronicle;
 use App\Ai\Tools\CreateChronicleEntry;
 use App\Ai\Tools\CreateEntity;
+use App\Ai\Tools\CreateMapStory;
 use App\Ai\Tools\CreateRelationship;
 use App\Ai\Tools\FindPlace;
 use App\Ai\Tools\GetEntityContext;
+use App\Ai\Tools\GetMapStory;
 use App\Ai\Tools\MergeDuplicateEntities;
 use App\Ai\Tools\NearestCoast;
 use App\Ai\Tools\PointBetween;
@@ -16,6 +18,8 @@ use App\Ai\Tools\SetEntityLocation;
 use App\Ai\Tools\SetEntityWikidata;
 use App\Ai\Tools\UpdateChronicleEntry;
 use App\Ai\Tools\UpdateEntityFields;
+use App\Ai\Tools\UpdateMapStory;
+use App\Ai\Tools\ValidateMapStory;
 use App\Ai\Tools\VerifyWikidata;
 use App\Models\User;
 use Laravel\Ai\Concerns\RemembersConversations;
@@ -58,6 +62,8 @@ class GlobalAgent implements Agent, Conversational, HasTools
             app(PointFromOffset::class),
             app(PointBetween::class),
             app(NearestCoast::class),
+            app(GetMapStory::class),
+            app(ValidateMapStory::class),
 
             // Staging — create
             app(CreateEntity::class)->withContext($this->context),
@@ -71,6 +77,8 @@ class GlobalAgent implements Agent, Conversational, HasTools
             app(CreateRelationship::class)->withContext($this->context),
             app(UpdateChronicleEntry::class)->withContext($this->context),
             app(MergeDuplicateEntities::class)->withContext($this->context),
+            app(CreateMapStory::class)->withContext($this->context),
+            app(UpdateMapStory::class)->withContext($this->context),
         ];
     }
 }

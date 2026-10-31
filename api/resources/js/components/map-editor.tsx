@@ -40,6 +40,10 @@ export type MapEditorProps = {
         geojson: GeoJsonGeometry,
         territoryGeojson: GeoJsonGeometry,
     ) => void;
+    /** Show only one panel (no tab bar), e.g. a map-story feature's one geometry. */
+    only?: ActiveTab;
+    /** Zoom to the initial geometry instead of the world view. */
+    fitToGeometry?: boolean;
 };
 
 type ActiveTab = 'location' | 'territory';
@@ -194,8 +198,10 @@ export default function MapEditor({
     territoryGeojson,
     timeframeDate,
     onChange,
+    only,
+    fitToGeometry = false,
 }: MapEditorProps) {
-    const [activeTab, setActiveTab] = useState<ActiveTab>('location');
+    const [activeTab, setActiveTab] = useState<ActiveTab>(only ?? 'location');
 
     // Refs to avoid stale closures in event handlers
     const geojsonRef = useRef<GeoJsonGeometry>(geojson);
@@ -217,7 +223,7 @@ export default function MapEditor({
     return (
         <div className="rounded-lg border">
             {/* Tab bar */}
-            <div className="flex border-b">
+            <div className={only ? 'hidden' : 'flex border-b'}>
                 <TabButton
                     active={activeTab === 'location'}
                     onClick={() => setActiveTab('location')}
@@ -238,6 +244,7 @@ export default function MapEditor({
                 visible={activeTab === 'location'}
                 initialGeometry={geojson}
                 timeframeDate={timeframeDate}
+                fitToGeometry={fitToGeometry}
                 controls={
                     DRAW_CONTROLS_LOCATION as unknown as MapboxDraw.MapboxDrawControls
                 }
@@ -250,6 +257,7 @@ export default function MapEditor({
                 visible={activeTab === 'territory'}
                 initialGeometry={territoryGeojson}
                 timeframeDate={timeframeDate}
+                fitToGeometry={fitToGeometry}
                 controls={
                     DRAW_CONTROLS_TERRITORY as unknown as MapboxDraw.MapboxDrawControls
                 }
@@ -302,6 +310,7 @@ type MapPanelProps = {
     timeframeDate?: string | null;
     controls: MapboxDraw.MapboxDrawControls;
     onGeometryChange: (geometry: GeoJsonGeometry) => void;
+    fitToGeometry?: boolean;
 };
 
 function MapPanel({
@@ -310,6 +319,7 @@ function MapPanel({
     timeframeDate,
     controls,
     onGeometryChange,
+    fitToGeometry = false,
 }: MapPanelProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<Map | null>(null);
@@ -400,6 +410,10 @@ function MapPanel({
                 map.on('load', () => {
                     applyGeometryToDraw(initialGeometryRef.current);
                     applyTimeFilter(map, timeframeDateRef.current ?? null);
+
+                    if (fitToGeometry) {
+                        fitTo(map, initialGeometryRef.current);
+                    }
                 });
 
                 map.on('styledata', () => {
@@ -510,6 +524,51 @@ function MapPanel({
             </div>
         </div>
     );
+}
+
+/** Zoom the map to a geometry's extent (a point gets a fixed close zoom). */
+function fitTo(map: Map, geometry: GeoJsonGeometry): void {
+    const points: number[][] = [];
+    const walk = (v: unknown): void => {
+        if (Array.isArray(v)) {
+            if (typeof v[0] === 'number' && typeof v[1] === 'number') {
+                points.push(v as number[]);
+            } else {
+                v.forEach(walk);
+            }
+        }
+    };
+
+    for (const feature of normalizeToFeatureCollection([geometry]).features) {
+        walk(
+            (feature.geometry as { coordinates?: unknown } | null)?.coordinates,
+        );
+    }
+
+    if (points.length === 0) {
+        return;
+    }
+
+    const lons = points.map((p) => p[0]!);
+    const lats = points.map((p) => p[1]!);
+    const [w, e, s, n] = [
+        Math.min(...lons),
+        Math.max(...lons),
+        Math.min(...lats),
+        Math.max(...lats),
+    ];
+
+    if (w === e && s === n) {
+        map.jumpTo({ center: [w, s], zoom: 11 });
+    } else {
+        map.fitBounds(
+            [
+                [w, s],
+                [e, n],
+            ],
+            { padding: 40, duration: 0, maxZoom: 14 },
+        );
+    }
 }
 
 function applyTimeFilter(map: Map, timeframeDate: string | null): void {

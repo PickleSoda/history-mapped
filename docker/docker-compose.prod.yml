@@ -115,6 +115,9 @@ services:
     environment:
       VITE_API_URL: "${VITE_API_URL:?set VITE_API_URL in docker/.env.prod}"
       VITE_APP_NAME: "${VITE_APP_NAME:-history-mapped}"
+      # The admin origin(s) allowed to drive the map-story editor's live preview
+      # (postMessage); unset, the SPA only trusts http://localhost:8000.
+      VITE_ADMIN_ORIGINS: "${VITE_ADMIN_ORIGINS:-}"
       # Stamped into the built bundle on success so a deploy can tell whether the
       # bundle is stale (compared against the web/ tree + lockfile hash). See ci.yml.
       WEB_FINGERPRINT: "${WEB_FINGERPRINT:-}"

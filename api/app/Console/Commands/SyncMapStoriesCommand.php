@@ -9,8 +9,10 @@ use App\Models\MapStory;
 use Illuminate\Console\Command;
 
 /**
- * Load the battle maps in resources/map-stories/*.json into `map_stories`.
- * Idempotent: unchanged files (same hash) are skipped.
+ * Load the map stories in resources/map-stories/*.json into `map_stories`.
+ * Idempotent: unchanged files (same hash) are skipped, and a row edited in
+ * the admin or by the AI since its file was last synced or exported keeps its
+ * edits ("kept") unless --force — run `map-stories:export` first to keep them.
  *
  *   php artisan map-stories:sync
  *   php artisan map-stories:sync --slug=battle-of-cannae --force
@@ -25,10 +27,10 @@ class SyncMapStoriesCommand extends Command
     protected $signature = 'map-stories:sync
         {--slug=* : Only sync these slugs (file names without .json)}
         {--prune : Delete synced stories whose file is gone}
-        {--force : Re-sync files whose content has not changed}
+        {--force : Re-sync unchanged files, and overwrite admin/AI edits (a revision keeps them)}
         {--path= : Read this directory instead of resources/map-stories}';
 
-    protected $description = 'Load map stories (battle maps) from resources/map-stories into the database';
+    protected $description = 'Load map stories from resources/map-stories into the database (keeps unexported admin edits)';
 
     public function handle(SyncMapStoryFileAction $sync): int
     {
@@ -46,6 +48,9 @@ class SyncMapStoriesCommand extends Command
             $this->components->twoColumnDetail($result['slug'], $result['status']);
             foreach ($result['errors'] as $error) {
                 $this->components->error($error);
+            }
+            foreach ($result['warnings'] as $warning) {
+                $this->components->warn("{$result['slug']}: {$warning}");
             }
             if ($result['status'] === 'failed') {
                 $failed++;

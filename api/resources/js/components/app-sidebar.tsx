@@ -15,6 +15,7 @@ import {
     BookMarked,
     MapPin,
     MessageSquareDiff,
+    Route,
     Users,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
@@ -31,6 +32,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { index as mapStoriesIndex } from '@/routes/map-stories';
 import { index as calendarSystemsIndex } from '@/routes/reference/calendar-systems';
 import { index as eraDateLookupIndex } from '@/routes/reference/era-date-lookup';
 import { index as geographicRegionsIndex } from '@/routes/reference/geographic-regions';
@@ -63,6 +65,11 @@ const mainNavItems: NavItem[] = [
         title: 'Chronicles',
         href: '/chronicles',
         icon: BookOpen,
+    },
+    {
+        title: 'Map stories',
+        href: mapStoriesIndex.url(),
+        icon: Route,
     },
 ];
 

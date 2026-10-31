@@ -5,6 +5,7 @@
     python -m pipeline.map_stories places "Hougoumont" "La Haye Sainte" --near 4.412,50.678 [--elevation]
     python -m pipeline.map_stories build battle_of_cannae          # run stories/battle_of_cannae.py, check, write JSON
     python -m pipeline.map_stories build --all
+    python -m pipeline.map_stories build battle_of_cannae --force  # overwrite a file edited outside the builder
     python -m pipeline.map_stories check api/resources/map-stories/battle-of-cannae.json [--verbose | --json]
     python -m pipeline.map_stories preview <story.json> [--step ID | --all-steps]
     python -m pipeline.map_stories queue --limit 200
@@ -12,6 +13,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import importlib
 import json
 import re
@@ -26,6 +28,10 @@ from pipeline.map_stories.validate import validate
 REPO = Path(__file__).resolve().parents[2]
 STORIES = Path(__file__).resolve().parent / "stories"
 OUT = REPO / "api" / "resources" / "map-stories"
+#: Committed sidecar: file name → sha1 of what the builder last wrote there. A
+#: file whose bytes match neither it nor the new build was edited outside the
+#: builder (in the admin, by the AI agent, then `map-stories:export`ed).
+HASHES = OUT / ".build-hashes.json"
 MAX_LINES = 20
 _STEP_MSG = re.compile(r"^step '([^']*)'[.:]?\s*(.*)$")
 
@@ -94,6 +100,44 @@ def _rel(p: Path) -> str:
         return str(p)
 
 
+# ── builder protection ────────────────────────────────────────────────────
+
+
+def story_files(directory: Path | None = None) -> list[Path]:
+    """The story JSON files (pathlib's glob also matches dotfiles: skip the sidecar)."""
+    return sorted(p for p in (directory or OUT).glob("*.json") if not p.name.startswith("."))
+
+
+def encode(doc: dict) -> str:
+    """The file content: what `map-stories:export` writes too (api MapStoryFile)."""
+    return json.dumps(doc, ensure_ascii=False, indent=1) + "\n"
+
+
+def sha1(data: bytes) -> str:
+    return hashlib.sha1(data).hexdigest()
+
+
+def load_hashes() -> dict[str, str]:
+    try:
+        data = json.loads(HASHES.read_text())
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+    return {k: v for k, v in data.items() if isinstance(k, str) and isinstance(v, str)} if isinstance(data, dict) else {}
+
+
+def save_hashes(hashes: dict[str, str]) -> None:
+    HASHES.write_text(json.dumps(dict(sorted(hashes.items())), indent=1) + "\n")
+
+
+def edited_outside(target: Path, content: str, hashes: dict[str, str]) -> bool:
+    """Whether `target` holds something the builder did not write last (and
+    the new build would change it): a hand edit or an admin/AI export."""
+    if not target.exists():
+        return False
+    on_disk = target.read_bytes()
+    return on_disk != content.encode() and sha1(on_disk) != hashes.get(target.name)
+
+
 # ── commands ──────────────────────────────────────────────────────────────
 
 
@@ -114,13 +158,19 @@ def cheatsheet() -> None:
 @click.argument("modules", nargs=-1)
 @click.option("--all", "build_all", is_flag=True, help="Build every story module.")
 @click.option("--verbose", is_flag=True, help="Print every issue.")
-def build(modules: tuple[str, ...], build_all: bool, verbose: bool) -> None:
-    """Run story builder modules, check them, and write their JSON to api/resources/map-stories/."""
+@click.option("--force", is_flag=True, help="Overwrite a JSON file that was edited outside the builder.")
+def build(modules: tuple[str, ...], build_all: bool, verbose: bool, force: bool) -> None:
+    """Run story builder modules, check them, and write their JSON to api/resources/map-stories/.
+
+    A file edited outside the builder (exported from the admin, where humans
+    and the AI agent edit stories) is not overwritten without --force: port
+    those edits into the builder module first."""
     names = sorted(p.stem for p in STORIES.glob("*.py") if not p.stem.startswith("_")) if build_all else list(modules)
     if not names:
         raise click.UsageError("name a builder module or pass --all")
     failed = False
     OUT.mkdir(parents=True, exist_ok=True)
+    hashes = load_hashes()
     for name in names:
         mod = importlib.import_module(f"pipeline.map_stories.stories.{Path(name).stem}")
         doc = mod.build()
@@ -131,7 +181,16 @@ def build(modules: tuple[str, ...], build_all: bool, verbose: bool) -> None:
             click.echo("\n".join(lines))
             continue
         target = OUT / f"{doc['slug']}.json"
-        target.write_text(json.dumps(doc, ensure_ascii=False, indent=1) + "\n")
+        content = encode(doc)
+        if not force and edited_outside(target, content, hashes):
+            failed = True
+            lines.insert(1, f"  REFUSED {_rel(target)}: it was edited outside the builder (exported from the admin?) — "
+                            f"port those edits into stories/{Path(name).stem}.py, or pass --force to overwrite them")
+            click.echo("\n".join(lines))
+            continue
+        target.write_text(content)
+        hashes[target.name] = sha1(content.encode())
+        save_hashes(hashes)
         lines.insert(1, f"  wrote {_rel(target)}")
         click.echo("\n".join(lines))
     sys.exit(1 if failed else 0)
@@ -143,7 +202,7 @@ def build(modules: tuple[str, ...], build_all: bool, verbose: bool) -> None:
 @click.option("--json", "as_json", is_flag=True, help="Machine-readable output (for the reviewer).")
 def check(files: tuple[Path, ...], verbose: bool, as_json: bool) -> None:
     """Validate and lint story JSON. Exit 1 on errors (warnings and lint never fail)."""
-    targets = list(files) or sorted(OUT.glob("*.json"))
+    targets = list(files) or story_files()
     ok, out = True, []
     for f in targets:
         try:

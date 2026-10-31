@@ -156,7 +156,7 @@ def build(limit: int, kinds: tuple[str, ...], path: Path = QUEUE, rows: list[Row
     taken = {r.story for r in rows if r.story}
     candidates = [r for r in rows if r.story is None and r.kind in kinds]
     score(candidates)
-    assign_slugs(candidates, taken | {p.stem for p in (REPO / "api" / "resources" / "map-stories").glob("*.json")})
+    assign_slugs(candidates, taken | {p.stem for p in (REPO / "api" / "resources" / "map-stories").glob("*.json") if not p.name.startswith(".")})
     old = read_statuses(path)
     ranked = sorted(candidates, key=lambda r: (-r.score, r.name))
     keep = ranked[:limit]

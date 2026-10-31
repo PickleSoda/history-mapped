@@ -36,13 +36,14 @@ What's deliberately **excluded** from the dump, and why:
 |----------|-----|
 | `users`, `roles`, `permissions`, `model_has_*`, `role_has_permissions` | Keep prod's own admin accounts — don't clobber them |
 | `stars`, `saved_folders`, `saved_folder_star`, `contributions` | Per-user data created on prod (saved items, suggested edits) — never overwrite it, and never ship local test rows |
+| `map_story_revisions` | Edit history of map stories, per environment: its `user_id`s are local users (not transferred), it holds up to 50 full documents per story (large, and useless on prod), and prod keeps its own history. Note that the load's `TRUNCATE map_stories … CASCADE` empties prod's revisions anyway |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs`, `sessions`, `password_reset_tokens` | Laravel runtime/volatile state — rebuilt on demand |
 | `migrations` | Prod's migration ledger is managed by `migrate`, not us |
 | `spatial_ref_sys` + `tiger.*`, `tiger_data.*`, `topology.*` schemas | PostGIS extension-owned; already present on prod, would conflict |
 
 What's **included** — the 27 content + reference tables: `entities`,
 `entity_aliases`, `entity_geo_refs`, `entity_locations`, `entity_tags`, `tags`,
-`chronicle_tags`, `map_stories` (also reloadable from files with `map-stories:sync`),
+`chronicle_tags`, `map_stories` (also reloadable from files with `map-stories:sync`; see the gotcha on admin edits below),
 `entity_temporal_ranges`, `entity_timeline_entries`, `relationships`,
 `geometry_periods`, `chronicles`, `chronicle_entries`,
 `chronicle_entry_entities`, `sources`, `pipeline_relationship_hints`, and all
@@ -61,7 +62,7 @@ OUT=output/history-mapped-content-$STAMP.sql
 EXCLUDES="cache cache_locks failed_jobs job_batches jobs migrations \
 password_reset_tokens sessions spatial_ref_sys users roles permissions \
 model_has_permissions model_has_roles role_has_permissions \
-stars saved_folders saved_folder_star contributions"
+stars saved_folders saved_folder_star contributions map_story_revisions"
 ARGS=""
 for t in $EXCLUDES; do ARGS="$ARGS --exclude-table-data=public.$t"; done
 
@@ -85,7 +86,7 @@ Flag notes:
 **Verify** the dump contains only the intended tables:
 
 ```bash
-grep '^COPY ' "$OUT" | sed 's/ (.*//' | sort   # should list the 26 content tables only
+grep '^COPY ' "$OUT" | sed 's/ (.*//' | sort   # should list the 27 content tables only
 ```
 
 `output/` is gitignored — the dump never lands in a commit.
@@ -96,7 +97,7 @@ Two files live in `output/` alongside the dump (committed as templates is
 unnecessary — regenerate or copy from this doc):
 
 - **`output/truncate-content.sql`** — `TRUNCATE ... RESTART IDENTITY CASCADE` over
-  exactly the 26 included tables. `CASCADE` resolves the circular FKs; the list
+  exactly the 27 included tables. `CASCADE` resolves the circular FKs; the list
   must stay in sync with the dump's table set.
 - **`output/load-content-on-droplet.sh`** — the loader (Step 3). Runs *on the
   droplet*.
@@ -153,6 +154,14 @@ cat output/truncate-content.sql output/prod-content-backup-<stamp>.sql \
   hand-entered content worth keeping (true while `migrate` is the only seeding
   path). The auto-backup covers you regardless.
 - Auth/admin users are **not** transferred — create prod admins separately.
+- **Map stories edited in the prod admin** (or by the AI agent there) live only in
+  prod's `map_stories` row until exported, and a full replace overwrites them.
+  Before a replace, list them — `SELECT slug FROM map_stories WHERE edited_at > synced_at`
+  — and carry them back (run `php artisan map-stories:export --edited --path=/tmp/stories`
+  in the prod `app` container, copy the files into `api/resources/map-stories/`, commit).
+  After the load, local `map_stories.edited_by` ids may point at no prod user
+  (triggers are disabled during the load, so the FK isn't checked); clear them with
+  `UPDATE map_stories SET edited_by = NULL WHERE edited_by NOT IN (SELECT id FROM users);`.
 - **Approved contributions live in prod content.** A reviewer approving a
   suggested edit on prod writes to prod's `entities` / `relationships` /
   `chronicles` / `chronicle_entries` / `entity_aliases`; the next full replace

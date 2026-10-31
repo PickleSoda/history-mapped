@@ -6,13 +6,17 @@ use App\Ai\ToolRegistry;
 use App\Ai\Tools\CreateChronicle;
 use App\Ai\Tools\CreateChronicleEntry;
 use App\Ai\Tools\CreateEntity;
+use App\Ai\Tools\CreateMapStory;
 use App\Ai\Tools\CreateRelationship;
 use App\Ai\Tools\GetEntityContext;
+use App\Ai\Tools\GetMapStory;
 use App\Ai\Tools\MergeDuplicateEntities;
 use App\Ai\Tools\SetEntityLocation;
 use App\Ai\Tools\SetEntityWikidata;
 use App\Ai\Tools\UpdateChronicleEntry;
 use App\Ai\Tools\UpdateEntityFields;
+use App\Ai\Tools\UpdateMapStory;
+use App\Ai\Tools\ValidateMapStory;
 use App\Ai\Tools\VerifyWikidata;
 use App\Models\EntityLocation;
 use App\Models\EntityRelationship;
@@ -66,6 +70,10 @@ class AppServiceProvider extends ServiceProvider
         app(ToolRegistry::class)->register(MergeDuplicateEntities::name(), MergeDuplicateEntities::class);
         app(ToolRegistry::class)->register(CreateChronicleEntry::name(), CreateChronicleEntry::class);
         app(ToolRegistry::class)->register(UpdateChronicleEntry::name(), UpdateChronicleEntry::class);
+        app(ToolRegistry::class)->register(GetMapStory::name(), GetMapStory::class);
+        app(ToolRegistry::class)->register(ValidateMapStory::name(), ValidateMapStory::class);
+        app(ToolRegistry::class)->register(CreateMapStory::name(), CreateMapStory::class);
+        app(ToolRegistry::class)->register(UpdateMapStory::name(), UpdateMapStory::class);
 
         $this->configureDefaults();
         $this->configureAuthorization();

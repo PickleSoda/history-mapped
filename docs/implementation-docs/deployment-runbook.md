@@ -79,6 +79,8 @@ Files: [`docker/docker-compose.prod.yml`](../../docker/docker-compose.prod.yml),
 4. Caddy auto-provisions Let's Encrypt TLS for both domains; it proxies `APP_DOMAIN` to the app on 8080 and serves the SPA on `WEB_DOMAIN`.
 5. To update after a new image: `pull`, re-run `web-build` + `migrate`, then `up -d` (the automated SSH deploy does exactly this).
 
+> **Map-story editor preview.** The admin's map-story editor embeds the SPA (`FRONTEND_URL`) in an iframe and drives it with `postMessage`. The SPA only accepts messages from the origins in `VITE_ADMIN_ORIGINS`, baked in at `web-build` time — set it in `docker/.env.prod` to the admin origin, `https://<APP_DOMAIN>`. The bundle is rebuilt only when the `web/` tree changes (the `WEB_FINGERPRINT` check), so after setting it on a running droplet force one rebuild (`--profile setup run --rm web-build`). Without it the editor still saves, but the preview can't draw drafts or pick points.
+
 > Note: migrations run **without** `route:cache` — `/health` and `/user` are closure routes, which `route:cache` rejects (it would fail the one-off job and, with `script_stop: true`, abort the whole SSH deploy).
 
 The stack runs the app (FrankenPHP/Octane), `queue`, `scheduler`, self-hosted Postgres (PostGIS+pgvector), and Redis on the one box. To use managed data services instead, delete the `db`/`redis` services and repoint `DB_*`/`REDIS_*`.

@@ -4,338 +4,76 @@ declare(strict_types=1);
 
 namespace App\Actions\MapStory;
 
-use App\Enums\EntityType;
-use App\Models\Chronicle;
-use App\Models\Entity;
 use App\Models\MapStory;
-use App\Services\EntityReferenceResolver;
-use App\Support\MapStory\MapStoryAmbient;
-use App\Support\MapStory\MapStoryDocument;
-use App\Support\MapStory\MapStoryGeometry;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
-use stdClass;
+use App\Support\MapStory\MapStoryFile;
 
 /**
  * Load one resources/map-stories/<slug>.json file into `map_stories`.
  *
- * The file is checked (MapStoryDocument), its story entity resolved (Q-id,
- * else the exact name of a unique event entity) and its chronicle by slug.
- * Every reference it carries gets an id next to it, so the atlas can link to
- * those pages: `chronicle.chronicle_id`, `steps[].entry_id` (by
- * sequence_order in that chronicle), and an `entity_id` beside every Q-id
- * (side polities, commanders, units, step entities, feature entities,
- * `area_from_entity`). A dated reference whose entity is clearly of another
- * era resolves to null (EntityReferenceResolver's namesake guard).
+ * The DB row is the live copy (the admin and the AI agent edit it); the file
+ * is a seed or an export. Per row:
+ *  - the file is unchanged since it was last synced or exported (`file_hash`
+ *    matches): skip;
+ *  - the file changed but the row was edited since then: skip and keep the
+ *    edits ("kept") — export them first, or force;
+ *  - otherwise: check, resolve and save it (SaveMapStoryAction, which writes
+ *    a revision first, so a forced overwrite of edits can be restored).
  *
- * It also stores the story's period, extent and, for an ambient story, each
- * step's precomputed atlas layer (MapStoryAmbient). Rows are upserted by slug;
- * a file whose hash matches the stored row is skipped unless forced.
+ * `$force` re-syncs an unchanged file and overwrites edits.
  */
 class SyncMapStoryFileAction
 {
-    /** @var array<string, array<string, mixed>|null> entity area GeoJSON by "entity_id|year" */
-    private array $areas = [];
+    public const KEPT_EDITS = 'kept admin edits — export first or use --force';
+
+    public function __construct(private SaveMapStoryAction $save) {}
 
     /**
-     * @return array{status: 'created'|'updated'|'unchanged'|'failed', slug: string, errors: list<string>}
+     * @return array{status: 'created'|'updated'|'unchanged'|'kept'|'failed', slug: string, errors: list<string>, warnings: list<string>}
      */
     public function __invoke(string $path, bool $force = false): array
     {
         $slug = basename($path, '.json');
         $raw = (string) file_get_contents($path);
-        $hash = sha1($raw);
+        $hash = MapStoryFile::hash($raw);
 
-        $existing = MapStory::query()->where('slug', $slug)->first(['story_id', 'slug', 'content_hash']);
-        if (! $force && $existing !== null && $existing->content_hash === $hash) {
-            return ['status' => 'unchanged', 'slug' => $slug, 'errors' => []];
+        $existing = MapStory::query()->where('slug', $slug)->first();
+        if (! $force && $existing !== null && $existing->file_hash === $hash) {
+            return $this->result('unchanged', $slug);
+        }
+        if (! $force && $existing !== null && $existing->isEdited()) {
+            return $this->result('kept', $slug, warnings: [self::KEPT_EDITS]);
         }
 
-        $array = json_decode($raw, true);
-        $object = json_decode($raw);
-        if (json_last_error() !== JSON_ERROR_NONE || ! $object instanceof stdClass) {
-            return $this->failed($slug, ['not a JSON object: '.json_last_error_msg()]);
+        $doc = MapStoryFile::decode($raw);
+        if ($doc === null) {
+            return $this->result('failed', $slug, ['not a JSON object: '.json_last_error_msg()]);
+        }
+        if (($doc->slug ?? null) !== $slug) {
+            return $this->result('failed', $slug, ["slug '".(is_string($doc->slug ?? null) ? $doc->slug : '')."' must match the file name '{$slug}'"]);
         }
 
-        $errors = MapStoryDocument::errors($array);
-        if (($array['slug'] ?? null) !== $slug) {
-            $errors[] = "slug '".($array['slug'] ?? '')."' must match the file name '{$slug}'";
-        }
-        if ($errors !== []) {
-            return $this->failed($slug, $errors);
-        }
-
-        $entity = null;
-        if (isset($array['entity'])) {
-            $entity = $this->storyEntity($array['entity']);
-            if ($entity === null) {
-                $wikidata = $array['entity']['wikidata'] ?? 'no Q-id';
-
-                return $this->failed($slug, ["entity '{$array['entity']['name']}' ({$wikidata}) is not in the atlas (or its name is ambiguous)"]);
-            }
-            $object->entity->entity_id = $entity->entity_id;
+        $saved = ($this->save)(
+            $existing,
+            $doc,
+            $existing === null ? 'import' : 'sync',
+            note: 'map-stories:sync from resources/map-stories/'.basename($path).($force && $existing?->isEdited() ? ' (forced over edits)' : ''),
+            file: ['file_hash' => $hash, 'source_path' => 'resources/map-stories/'.basename($path)],
+        );
+        if ($saved['errors'] !== []) {
+            return $this->result('failed', $slug, $saved['errors']);
         }
 
-        $chronicle = null;
-        if (isset($array['chronicle'])) {
-            $chronicle = Chronicle::query()->where('slug', $array['chronicle']['slug'])->first(['chronicle_id', 'slug']);
-            if ($chronicle === null) {
-                return $this->failed($slug, ["chronicle '{$array['chronicle']['slug']}' is not in the atlas"]);
-            }
-            $object->chronicle->chronicle_id = $chronicle->chronicle_id;
-            $errors = $this->resolveEntries($object, $chronicle);
-            if ($errors !== []) {
-                return $this->failed($slug, $errors);
-            }
-        }
-
-        $this->resolveRefs($this->refs($object, $array));
-
-        $resolved = json_decode((string) json_encode($object), true);
-        $period = MapStoryAmbient::period($resolved);
-        $ambient = ($array['ambient'] ?? false) === true;
-        $ambientSteps = $ambient ? MapStoryAmbient::steps($resolved, $this->entityArea(...)) : null;
-        $extra = array_map(fn (array $step) => array_column($step['features']['features'], 'geometry'), $ambientSteps ?? []);
-        $bbox = MapStoryAmbient::bbox($resolved, $extra);
-
-        $story = MapStory::query()->updateOrCreate(['slug' => $slug], [
-            'entity_id' => $entity?->entity_id,
-            'chronicle_id' => $chronicle?->chronicle_id,
-            'kind' => $array['kind'],
-            'title' => $array['title'],
-            'year' => $array['year'],
-            'period_start' => $period[0] ?? null,
-            'period_end' => $period[1] ?? null,
-            'ambient' => $ambient,
-            'step_count' => count($array['steps'] ?? []),
-            'document' => $object,
-            'ambient_steps' => $ambientSteps,
-            'bbox' => $bbox === null ? null : DB::raw(vsprintf('ST_MakeEnvelope(%F, %F, %F, %F, 4326)', $bbox)),
-            'source_path' => 'resources/map-stories/'.basename($path),
-            'content_hash' => $hash,
-        ]);
-
-        return ['status' => $story->wasRecentlyCreated ? 'created' : 'updated', 'slug' => $slug, 'errors' => []];
+        return $this->result($existing === null ? 'created' : 'updated', $slug);
     }
 
     /**
+     * @param  'created'|'updated'|'unchanged'|'kept'|'failed'  $status
      * @param  list<string>  $errors
-     * @return array{status: 'failed', slug: string, errors: list<string>}
+     * @param  list<string>  $warnings
+     * @return array{status: 'created'|'updated'|'unchanged'|'kept'|'failed', slug: string, errors: list<string>, warnings: list<string>}
      */
-    private function failed(string $slug, array $errors): array
+    private function result(string $status, string $slug, array $errors = [], array $warnings = []): array
     {
-        return ['status' => 'failed', 'slug' => $slug, 'errors' => $errors];
-    }
-
-    /** @param  array<string, mixed>  $ref  {name, wikidata?} */
-    private function storyEntity(array $ref): ?Entity
-    {
-        if (is_string($ref['wikidata'] ?? null)) {
-            $byQid = $this->byQid([$ref['wikidata']])->get($ref['wikidata']);
-            if ($byQid !== null) {
-                return Entity::query()->find($byQid);
-            }
-        }
-
-        $byName = Entity::query()
-            ->where('name', $ref['name'])
-            ->whereIn('entity_type', self::eventTypes())
-            ->limit(2)
-            ->get(['entity_id']);
-
-        return $byName->count() === 1 ? $byName->first() : null;
-    }
-
-    /** @return list<string> */
-    private static function eventTypes(): array
-    {
-        return array_values(array_map(
-            fn (EntityType $t) => $t->value,
-            array_filter(EntityType::cases(), fn (EntityType $t) => str_starts_with($t->value, 'event_')),
-        ));
-    }
-
-    /**
-     * Write `entry_id` beside each step's `entry` (the entry's sequence_order
-     * in the story's chronicle); an entry the chronicle lacks is an error.
-     *
-     * @return list<string>
-     */
-    private function resolveEntries(stdClass $doc, Chronicle $chronicle): array
-    {
-        $entries = DB::table('chronicle_entries')
-            ->where('chronicle_id', $chronicle->chronicle_id)
-            ->pluck('entry_id', 'sequence_order');
-
-        $errors = [];
-        foreach ($doc->steps ?? [] as $step) {
-            if (! isset($step->entry)) {
-                continue;
-            }
-            $entryId = $entries->get($step->entry);
-            if ($entryId === null) {
-                $range = $entries->isEmpty() ? 'it has none' : 'its entries run '.$entries->keys()->min().'–'.$entries->keys()->max();
-                $errors[] = "step '{$step->id}'.entry: chronicle '{$chronicle->slug}' has no entry {$step->entry} ({$range})";
-
-                continue;
-            }
-            $step->entry_id = (string) $entryId;
-        }
-
-        return $errors;
-    }
-
-    /**
-     * Every linked reference in the document with the year span that dates it
-     * (null: no temporal signal).
-     *
-     * @param  array<string, mixed>  $array  the same document, decoded as arrays
-     * @return list<array{0: stdClass, 1: array{0: int, 1: int}|null}>
-     */
-    private function refs(stdClass $doc, array $array): array
-    {
-        $refs = [];
-        foreach ($doc->sides ?? [] as $side) {
-            if (isset($side->polity) && $side->polity instanceof stdClass) {
-                $refs[] = [$side->polity, null];
-            }
-            foreach ($side->commanders ?? [] as $commander) {
-                $refs[] = [$commander, null];
-            }
-        }
-        foreach ($doc->units ?? [] as $unit) {
-            $refs[] = [$unit, null];
-        }
-
-        $period = MapStoryAmbient::period($array);
-        foreach ($doc->features ?? $doc->terrain ?? [] as $feature) {
-            if (isset($feature->entity) && $feature->entity instanceof stdClass) {
-                $refs[] = [$feature->entity, $period];
-            }
-        }
-
-        $years = MapStoryAmbient::stepYears($array);
-        foreach ($doc->steps ?? [] as $i => $step) {
-            foreach ($step->entities ?? [] as $entity) {
-                $refs[] = [$entity, $years[$i] ?? null];
-            }
-            foreach ((array) ($step->features ?? $step->terrain_state ?? []) as $state) {
-                if ($state instanceof stdClass && isset($state->area_from_entity) && $state->area_from_entity instanceof stdClass) {
-                    $refs[] = [$state->area_from_entity, $years[$i] ?? null];
-                }
-            }
-        }
-
-        return $refs;
-    }
-
-    /**
-     * Write `entity_id` beside each reference: by its Q-id (null when the atlas
-     * lacks it, or when a dated reference's entity is of another era), else
-     * the `entity_id` it was given when that entity exists, else null.
-     *
-     * @param  list<array{0: stdClass, 1: array{0: int, 1: int}|null}>  $refs
-     */
-    private function resolveRefs(array $refs): void
-    {
-        $qids = collect($refs)->map(fn (array $ref) => $ref[0]->wikidata ?? null)->filter(fn ($q) => is_string($q))->unique()->values()->all();
-        $byQid = $this->byQid($qids);
-
-        $given = collect($refs)
-            ->filter(fn (array $ref) => ! is_string($ref[0]->wikidata ?? null) && EntityReferenceResolver::isUuid($ref[0]->entity_id ?? null))
-            ->map(fn (array $ref) => strtolower($ref[0]->entity_id))
-            ->unique()->values()->all();
-        $existing = $given === [] ? [] : Entity::query()->whereIn('entity_id', $given)->pluck('entity_id')->map(fn ($id) => (string) $id)->flip()->all();
-
-        $dated = collect($refs)->filter(fn (array $ref) => $ref[1] !== null && is_string($ref[0]->wikidata ?? null))
-            ->map(fn (array $ref) => $byQid->get($ref[0]->wikidata))->filter()->unique()->values()->all();
-        $rows = $this->entityRows($dated);
-
-        foreach ($refs as [$ref, $span]) {
-            if (is_string($ref->wikidata ?? null)) {
-                $id = $byQid->get($ref->wikidata);
-                $row = $id === null ? null : ($rows[$id] ?? null);
-                if ($span !== null && $row !== null
-                    && EntityReferenceResolver::temporallyIncompatible($row['entity_type'], $span, EntityReferenceResolver::rowSpan($row))) {
-                    $id = null;
-                }
-                $ref->entity_id = $id;
-            } else {
-                $id = is_string($ref->entity_id ?? null) ? strtolower($ref->entity_id) : null;
-                $ref->entity_id = $id !== null && isset($existing[$id]) ? $id : null;
-            }
-        }
-    }
-
-    /**
-     * Each entity's type and primary temporal range, for the namesake guard.
-     *
-     * @param  list<string>  $ids
-     * @return array<string, array{entity_type: string|null, start_year: int|null, end_year: int|null}>
-     */
-    private function entityRows(array $ids): array
-    {
-        if ($ids === []) {
-            return [];
-        }
-
-        return DB::table('entities as e')
-            ->leftJoin('entity_temporal_ranges as t', function ($join): void {
-                $join->on('t.entity_id', '=', 'e.entity_id')->where('t.is_primary', true);
-            })
-            ->whereIn('e.entity_id', $ids)
-            ->get(['e.entity_id', 'e.entity_type', 't.start_year', 't.end_year'])
-            ->mapWithKeys(fn (object $r) => [(string) $r->entity_id => [
-                'entity_type' => $r->entity_type,
-                'start_year' => $r->start_year === null ? null : (int) $r->start_year,
-                'end_year' => $r->end_year === null ? null : (int) $r->end_year,
-            ]])
-            ->all();
-    }
-
-    /**
-     * Q-id → entity id. When several rows share a Q-id (an unmerged duplicate),
-     * the most prominent wins.
-     *
-     * @param  list<string>  $qids
-     * @return Collection<string, string>
-     */
-    private function byQid(array $qids): Collection
-    {
-        if ($qids === []) {
-            return collect();
-        }
-
-        return Entity::query()
-            ->whereIn('wikidata_id', $qids)
-            ->orderByRaw('impact_score DESC NULLS LAST')
-            ->orderBy('entity_id')
-            ->get(['entity_id', 'wikidata_id'])
-            ->groupBy('wikidata_id')
-            ->map(fn (Collection $rows) => (string) $rows->first()->entity_id);
-    }
-
-    /**
-     * An entity's atlas area in `$year` as simplified GeoJSON: its territory
-     * (else polygonal geometry) period covering that year, newest first; null
-     * when it has none.
-     *
-     * @return array<string, mixed>|null
-     */
-    private function entityArea(string $entityId, int $year): ?array
-    {
-        $key = "{$entityId}|{$year}";
-        if (! array_key_exists($key, $this->areas)) {
-            $json = DB::table('geometry_periods')
-                ->where('entity_id', $entityId)
-                ->whereRaw("int4range(start_year, CASE WHEN end_year IS NULL THEN NULL ELSE end_year + 1 END, '[)') @> ?::integer", [$year])
-                ->whereRaw('ST_Dimension(COALESCE(territory_geom, geom)) = 2')
-                ->orderByRaw('(territory_geom IS NULL), start_year DESC, end_year ASC NULLS FIRST')
-                ->limit(1)
-                ->value(DB::raw('ST_AsGeoJSON(ST_SimplifyPreserveTopology(COALESCE(territory_geom, geom), '.MapStoryGeometry::TOLERANCE.'), '.MapStoryGeometry::DECIMALS.')'));
-            $this->areas[$key] = is_string($json) ? json_decode($json, true) : null;
-        }
-
-        return $this->areas[$key];
+        return ['status' => $status, 'slug' => $slug, 'errors' => $errors, 'warnings' => $warnings];
     }
 }

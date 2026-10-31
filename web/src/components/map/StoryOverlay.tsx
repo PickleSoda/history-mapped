@@ -13,6 +13,7 @@ import {
   useTimeState,
 } from '@/hooks';
 import { useActiveStory } from '@/hooks/useMapStory';
+import { usePreviewPick, useStoryPreviewBridge } from '@/hooks/useStoryPreviewBridge';
 import { featureKindLabel, NEUTRAL_COLOR, storyPalette, unitColor } from '@/lib/map-story/colors';
 import {
   ease,
@@ -340,6 +341,9 @@ export function StoryOverlay() {
   const { select } = useSelection();
   const reduced = useReducedMotion();
   const insets = useEphemeralStore((s) => s.mapInsets);
+  // The admin editor's live preview (`?preview=1`): draft documents, picking, unit drag.
+  useStoryPreviewBridge();
+  const pick = usePreviewPick();
 
   const doc = active?.doc ?? null;
   const solo = active?.mode !== 'chronicle';
@@ -695,6 +699,15 @@ export function StoryOverlay() {
             className="rounded-full border bg-card/95 px-3.5 py-1.5 text-center text-[13px] font-semibold text-foreground shadow-md backdrop-blur motion-safe:animate-in motion-safe:fade-in"
           >
             {shownCaption}
+          </span>
+        </div>
+      )}
+      {pick.mode && (
+        <div className="absolute inset-x-0 bottom-4 flex justify-center px-4">
+          <span className="rounded-full bg-pink-700 px-3 py-1.5 text-[12px] font-semibold text-white shadow-md">
+            {pick.mode === 'point'
+              ? 'Click the map to pick a point · Esc cancels'
+              : `Click points along the path (${pick.points}) · double-click or Enter to finish · Esc cancels`}
           </span>
         </div>
       )}
