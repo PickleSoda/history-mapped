@@ -7,6 +7,7 @@ import {
   useBasemap,
   useEntitiesInView,
   useFilters,
+  useHover,
   useMapInstance,
   useSelection,
   useTimeState,
@@ -26,14 +27,25 @@ import {
   SOURCE_ID,
 } from '@/lib/map-tiles';
 import { yearToOhmDate } from '@/lib/ohm-date';
+import {
+  addOhmAdminLayers,
+  hoverMarkerFilter,
+  LINK_COLOR,
+  OhmCorrelation,
+} from '@/lib/ohm-highlight';
 import { applyOhmLayerDateFilter } from '@/lib/ohm-layer-date-filter';
 import { resolveOhmClickToEntity } from '@/lib/ohm-resolve';
 import { useTheme } from '@/lib/theme';
+import { useEphemeralStore } from '@/stores/ephemeral';
 import type { ViewMode } from '@/types/atlas';
 
 const FILL_LAYER = 'entities-fill';
 const LINE_LAYER = 'entities-line';
 const SYMBOL_LAYER = 'entities-symbols';
+/** The hovered entity's marker, drawn larger over SYMBOL_LAYER (D5). */
+const HOVER_LAYER = 'entities-hover';
+/** Rebuild the OHM link index this long after our source's last tile. */
+const LINK_INDEX_DEBOUNCE_MS = 150;
 /** Our three layers, for the tile-mode time / group filters. */
 const ENTITY_LAYERS = { fill: FILL_LAYER, line: LINE_LAYER, symbol: SYMBOL_LAYER };
 const EMPTY_FC: FeatureCollection = { type: 'FeatureCollection', features: [] };
@@ -109,6 +121,13 @@ function addEntityLayers(map: maplibregl.Map, data: FeatureCollection | undefine
     paint: { 'line-color': groupColor, 'line-width': 1 },
   });
 
+  // Group marker icon, shared by the symbol and hover layers.
+  const markerIcon: maplibregl.ExpressionSpecification = [
+    'coalesce',
+    ['image', ['concat', 'marker-', ['get', 'entity_group']]],
+    ['image', 'marker-DEFAULT'],
+  ];
+
   // Points (OHM-linked / unplaced entities) — group icon + label.
   map.addLayer({
     id: SYMBOL_LAYER,
@@ -117,11 +136,7 @@ function addEntityLayers(map: maplibregl.Map, data: FeatureCollection | undefine
     ...sourceLayer,
     filter: isPoint,
     layout: {
-      'icon-image': [
-        'coalesce',
-        ['image', ['concat', 'marker-', ['get', 'entity_group']]],
-        ['image', 'marker-DEFAULT'],
-      ],
+      'icon-image': markerIcon,
       'icon-size': 0.8,
       'icon-allow-overlap': true,
       'icon-anchor': 'bottom',
@@ -134,10 +149,33 @@ function addEntityLayers(map: maplibregl.Map, data: FeatureCollection | undefine
     },
     paint: {
       // Every OHM basemap is light in both UI themes, so map labels keep
-      // light-map colors regardless of the app theme.
-      'text-color': '#2a2722',
+      // light-map colors regardless of the app theme. OHM-linked entities
+      // (tile `ohm_osm_id` / REST `ohm_external_id`) take the link colour.
+      'text-color': [
+        'case',
+        ['!=', ['coalesce', ['get', 'ohm_osm_id'], ['get', 'ohm_external_id']], null],
+        LINK_COLOR,
+        '#2a2722',
+      ],
       'text-halo-color': '#ffffff',
       'text-halo-width': 1.4,
+    },
+  });
+
+  // The hovered entity's marker (list <-> map hover, D5): a filter on the
+  // entity id, not feature-state — MapLibre rejects feature-state in layout
+  // properties such as icon-size, and the marker images are not SDF.
+  map.addLayer({
+    id: HOVER_LAYER,
+    type: 'symbol',
+    source: SOURCE_ID,
+    ...sourceLayer,
+    filter: ['==', ['get', 'id'], ''],
+    layout: {
+      'icon-image': markerIcon,
+      'icon-size': 1.05,
+      'icon-allow-overlap': true,
+      'icon-anchor': 'bottom',
     },
   });
 }
@@ -160,7 +198,8 @@ export function MapCanvas() {
   const { bbox, setBbox } = useViewport();
   const { time } = useTimeState();
   const { groups } = useFilters();
-  const { select } = useSelection();
+  const { sel, select } = useSelection();
+  const { hoverId, setHover } = useHover();
   const { data } = useEntitiesInView();
   const theme = useTheme((s) => s.theme);
 
@@ -171,6 +210,12 @@ export function MapCanvas() {
   setBboxRef.current = setBbox;
   const selectRef = useRef(select);
   selectRef.current = select;
+  const selRef = useRef(sel);
+  selRef.current = sel;
+  const setHoverRef = useRef(setHover);
+  setHoverRef.current = setHover;
+  /** OHM correlation state of the live map (D5); null until it exists. */
+  const correlationRef = useRef<OhmCorrelation | null>(null);
   const yearRef = useRef(year);
   yearRef.current = year;
   const timeRef = useRef(time);
@@ -197,6 +242,7 @@ export function MapCanvas() {
     let cancelled = false;
     let mapInstance: maplibregl.Map | null = null;
     let timer: ReturnType<typeof setTimeout>;
+    let linkTimer: ReturnType<typeof setTimeout> | undefined;
 
     loadHistoricalBasemapStyle(appliedBasemapRef.current).then((style) => {
       if (cancelled) return;
@@ -213,6 +259,8 @@ export function MapCanvas() {
       });
       mapInstance = map;
       mapRef.current = map;
+      const correlation = new OhmCorrelation(map);
+      correlationRef.current = correlation;
 
       // Every style load — the first, and each basemap switch, which replaces
       // the whole style — re-adds marker icons and our overlay, then filters
@@ -231,6 +279,15 @@ export function MapCanvas() {
             groups: groupsRef.current,
           });
         }
+        // OHM correlation (D5): polygon highlight layers under ours, then
+        // labels / emphasis / hovered marker re-applied to the new style.
+        addOhmAdminLayers(map, FILL_LAYER);
+        const hovered = useEphemeralStore.getState().hoverId;
+        correlation.styleLoaded(hovered, selRef.current);
+        map.setFilter(
+          HOVER_LAYER,
+          hoverMarkerFilter({ hoverId: hovered, time: timeRef.current, groups: groupsRef.current }),
+        );
         // Catch up on a Map/Globe toggle made while the style was loading.
         map.setProjection(projectionFor(viewRef.current));
         applyOhmLayerDateFilter(map, yearToOhmDate(yearRef.current));
@@ -274,6 +331,41 @@ export function MapCanvas() {
         );
       });
 
+      // OHM correlation (D5): rebuild the osm-id → entity index once our
+      // source settles (tiles stream in; GeoJSON is replaced per viewport).
+      map.on('sourcedata', (e) => {
+        if (e.sourceId !== SOURCE_ID) return;
+        clearTimeout(linkTimer);
+        linkTimer = setTimeout(() => {
+          if (!styleReadyRef.current || !map.getSource(SOURCE_ID)) return;
+          if (!map.isSourceLoaded(SOURCE_ID)) return;
+          correlation.setFeatures(
+            isMapTilesEnabled()
+              ? map.querySourceFeatures(SOURCE_ID, {
+                  sourceLayer: ENTITY_SOURCE_LAYER,
+                  filter: ['has', 'ohm_osm_id'],
+                })
+              : ((dataRef.current as FeatureCollection | undefined)?.features ?? []),
+          );
+        }, LINK_INDEX_DEBOUNCE_MS);
+      });
+
+      // Map side of the hover sync: our marker, else a linked OHM label,
+      // writes hoverId. Cleared only if this map set it, so a list row's
+      // hover is never wiped by the map.
+      let mapHover: string | null = null;
+      const setMapHover = (id: string | null) => {
+        if (id === mapHover) return;
+        if (id !== null || useEphemeralStore.getState().hoverId === mapHover) {
+          setHoverRef.current(id);
+        }
+        mapHover = id;
+      };
+      map.on('mousemove', (e) => {
+        if (styleReadyRef.current) setMapHover(correlation.entityAt(e.point, SYMBOL_LAYER));
+      });
+      map.on('mouseout', () => setMapHover(null));
+
       const onMoveEnd = () => {
         clearTimeout(timer);
         timer = setTimeout(() => {
@@ -292,6 +384,8 @@ export function MapCanvas() {
     return () => {
       cancelled = true;
       clearTimeout(timer);
+      clearTimeout(linkTimer);
+      correlationRef.current = null;
       setMap(null);
       mapInstance?.remove();
       mapRef.current = null;
@@ -340,6 +434,19 @@ export function MapCanvas() {
     if (!map || !styleReadyRef.current || !isMapTilesEnabled()) return;
     applyEntityLayerFilters(map, { layers: ENTITY_LAYERS, time, groups });
   }, [time, groups]);
+
+  // ── correlation: the hovered entity's marker (both modes, D5) ──────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !styleReadyRef.current || !map.getLayer(HOVER_LAYER)) return;
+    map.setFilter(HOVER_LAYER, hoverMarkerFilter({ hoverId, time, groups }));
+  }, [hoverId, time, groups]);
+
+  // ── correlation: OHM polygon of the hovered / selected entity (D5) ─────────
+  useEffect(() => {
+    if (!styleReadyRef.current) return;
+    correlationRef.current?.emphasize(hoverId, sel);
+  }, [hoverId, sel]);
 
   // ── push entity data imperatively when the query updates ───────────────────
   useEffect(() => {
