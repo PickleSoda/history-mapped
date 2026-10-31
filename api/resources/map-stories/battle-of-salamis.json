@@ -1,0 +1,2643 @@
+{
+ "schema": 1,
+ "slug": "battle-of-salamis",
+ "kind": "naval_battle",
+ "entity": {
+  "name": "Battle of Salamis",
+  "wikidata": "Q178850"
+ },
+ "title": "Battle of Salamis",
+ "date_label": "September 480 BC",
+ "year": -480,
+ "intro": "By September 480 BC the Persian invasion of Greece under Xerxes had reached Attica. Thermopylae had fallen, the allied fleet had given up the straits of Artemisium, and Athens, emptied of its people, had been taken and burned. Roughly 370 triremes of the Greek alliance, more than half of them Athenian, lay on the beaches of Salamis, the island that closes the bay of Eleusis, while the larger Persian fleet of Phoenician, Egyptian, Cypriot, Cilician and Ionian Greek squadrons rode at Phalerum a few kilometres to the east. The Peloponnesian captains wanted to fall back on the Isthmus of Corinth; the Athenian Themistocles held out for a fight in the narrow channel between Salamis and the mainland, where Persian numbers and seamanship would count for less than the weight of the Greek ships and their armoured marines. A message he sent to the king convinced Xerxes that the Greeks were about to slip away, and the Persian fleet spent the night closing the exits before rowing into the strait at dawn.",
+ "outcome": "Decisive Greek victory: the Persians lost perhaps 200 to 300 ships to the Greeks' 40, Xerxes returned to Asia with much of his army, and the invasion lost command of the sea.",
+ "uncertainty": "The ancient accounts are brief and disagree, so this is one reconstruction. It follows Herodotus: the Greek line runs across the western end of the strait from St George's islet to the Kynosoura peninsula rather than inside the bay of Ambelaki, which at about 400 m wide could shelter the fleet (its anchorage was found there in 2017) but not hold a line of 300-plus ships. Diodorus's Egyptian detour round Salamis is disputed but shown. Fleet sizes are modern estimates (c. 370 Greek, perhaps 600 to 800 Persian, not Herodotus's 1,207); blocks assume two Greek and three Persian ranks at about 17 to 25 m a ship. The coast is today's, less the modern quays at Perama, Keratsini and Piraeus. Proposed dates run from about 22 to 29 September.",
+ "sources": [
+  {
+   "title": "Herodotus, Histories 8.40–96",
+   "kind": "primary"
+  },
+  {
+   "title": "Aeschylus, The Persians 353–471",
+   "kind": "primary"
+  },
+  {
+   "title": "Diodorus Siculus, Library 11.17–19",
+   "kind": "primary"
+  },
+  {
+   "title": "Plutarch, Life of Themistocles 12–15",
+   "kind": "primary"
+  },
+  {
+   "title": "Battle of Salamis — Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Battle_of_Salamis",
+   "kind": "web"
+  },
+  {
+   "title": "D. Potter, review of Wallinga, BMCR 2006.03.29",
+   "url": "https://bmcr.brynmawr.edu/?p=25119",
+   "kind": "web"
+  },
+  {
+   "title": "The Naval Battle of Salamis — Hellenic Ministry of Culture, 2500 Years",
+   "url": "https://2500years.culture.gov.gr/en/chapters/i-naumachia-tis-salaminas",
+   "kind": "web"
+  }
+ ],
+ "camera": {
+  "center": [
+   23.574125,
+   37.952104
+  ],
+  "zoom": 12.6,
+  "bearing": 0
+ },
+ "sides": [
+  {
+   "id": "greeks",
+   "name": "Greek allied fleet",
+   "color": "#1d4ed8",
+   "polity": {
+    "name": "Hellenic League",
+    "wikidata": "Q386893"
+   },
+   "commanders": [
+    {
+     "name": "Themistocles",
+     "wikidata": "Q179552",
+     "role": "Athenian commander, architect of the battle"
+    },
+    {
+     "name": "Eurybiades",
+     "wikidata": "Q499025",
+     "role": "allied commander-in-chief (Sparta)"
+    },
+    {
+     "name": "Adeimantus",
+     "wikidata": "Q353577",
+     "role": "Corinthian commander"
+    },
+    {
+     "name": "Aristides",
+     "wikidata": "Q294942",
+     "role": "led the landing on Psyttaleia"
+    }
+   ],
+   "strength": "c. 370 triremes (Herodotus: 378)",
+   "losses": "c. 40 ships"
+  },
+  {
+   "id": "persia",
+   "name": "Persian fleet",
+   "color": "#b91c1c",
+   "polity": {
+    "name": "Achaemenid Empire",
+    "wikidata": "Q389688"
+   },
+   "commanders": [
+    {
+     "name": "Xerxes I",
+     "wikidata": "Q129165",
+     "role": "king, watching from Mount Aigaleo"
+    },
+    {
+     "name": "Ariabignes",
+     "wikidata": "Q2861160",
+     "role": "admiral, killed in the battle"
+    },
+    {
+     "name": "Achaemenes",
+     "wikidata": "Q561925",
+     "role": "admiral of the Egyptian squadron"
+    },
+    {
+     "name": "Artemisia I of Caria",
+     "wikidata": "Q232128",
+     "role": "queen of Halicarnassus, Carian ships"
+    }
+   ],
+   "strength": "c. 600–800 ships (Herodotus: 1,207)",
+   "losses": "c. 200–300 ships"
+  }
+ ],
+ "units": [
+  {
+   "id": "athenians",
+   "side": "greeks",
+   "kind": "warship",
+   "label": "Athenians",
+   "strength": "200 triremes",
+   "commander": "Themistocles",
+   "note": "180 Athenian triremes and 20 more lent to crews from Chalcis"
+  },
+  {
+   "id": "corinthians",
+   "side": "greeks",
+   "kind": "warship",
+   "label": "Corinthians",
+   "strength": "40 triremes",
+   "commander": "Adeimantus",
+   "note": "Said by the Athenians to have fled north; the other Greeks denied it"
+  },
+  {
+   "id": "greek-centre",
+   "side": "greeks",
+   "kind": "warship",
+   "label": "Megarians & islanders",
+   "strength": "c. 47 triremes",
+   "note": "Megara 20, Eretria 7, Ambracia 7, Naxos 4, Leucas 3 and small island crews"
+  },
+  {
+   "id": "aeginetans",
+   "side": "greeks",
+   "kind": "warship",
+   "label": "Aeginetans",
+   "strength": "30 triremes",
+   "note": "Judged the bravest of the Greeks that day"
+  },
+  {
+   "id": "spartans",
+   "side": "greeks",
+   "kind": "warship",
+   "label": "Spartans & Peloponnesians",
+   "strength": "c. 49 triremes",
+   "commander": "Eurybiades",
+   "note": "Sparta 16, Sicyon 15, Epidaurus 10, Troezen 5, Hermione 3"
+  },
+  {
+   "id": "hoplites",
+   "side": "greeks",
+   "kind": "heavy_infantry",
+   "label": "Aristides' hoplites",
+   "commander": "Aristides",
+   "note": "Athenian hoplites posted along the Salamis shore"
+  },
+  {
+   "id": "themistocles",
+   "side": "greeks",
+   "kind": "commander",
+   "label": "Themistocles",
+   "wikidata": "Q179552"
+  },
+  {
+   "id": "eurybiades",
+   "side": "greeks",
+   "kind": "commander",
+   "label": "Eurybiades",
+   "wikidata": "Q499025"
+  },
+  {
+   "id": "greek-base",
+   "side": "greeks",
+   "kind": "camp",
+   "label": "Greek base, Salamis"
+  },
+  {
+   "id": "phoenicians",
+   "side": "persia",
+   "kind": "warship",
+   "label": "Phoenicians",
+   "strength": "300 at the muster",
+   "note": "The best squadrons of the fleet, from Sidon, Tyre and Arwad"
+  },
+  {
+   "id": "persian-centre",
+   "side": "persia",
+   "kind": "warship",
+   "label": "Cypriots, Cilicians & others",
+   "strength": "330 at the muster",
+   "note": "Cyprus 150, Cilicia 100, Lycia 50, Pamphylia 30"
+  },
+  {
+   "id": "carians",
+   "side": "persia",
+   "kind": "warship",
+   "label": "Carians & Artemisia",
+   "strength": "c. 75 at the muster",
+   "commander": "Artemisia",
+   "note": "70 Carian ships, with Artemisia's five from Halicarnassus and nearby islands"
+  },
+  {
+   "id": "ionians",
+   "side": "persia",
+   "kind": "warship",
+   "label": "Ionians & Asian Greeks",
+   "strength": "c. 300 at the muster",
+   "note": "Ionians 100, Hellespontines 100, Aeolians 60, Dorians 30"
+  },
+  {
+   "id": "egyptians",
+   "side": "persia",
+   "kind": "warship",
+   "label": "Egyptians",
+   "strength": "200 at the muster",
+   "commander": "Achaemenes",
+   "note": "Sent round Salamis to close the Megara channel (Diodorus)"
+  },
+  {
+   "id": "psyttaleia-troops",
+   "side": "persia",
+   "kind": "infantry",
+   "label": "Persian troops",
+   "strength": "c. 400",
+   "note": "Landed on Psyttaleia to kill or take Greeks washed ashore"
+  },
+  {
+   "id": "xerxes",
+   "side": "persia",
+   "kind": "commander",
+   "label": "Xerxes",
+   "wikidata": "Q129165"
+  },
+  {
+   "id": "persian-base",
+   "side": "persia",
+   "kind": "camp",
+   "label": "Persian base, Phalerum"
+  }
+ ],
+ "terrain": [
+  {
+   "id": "psyttaleia",
+   "kind": "island",
+   "label": "Psyttaleia",
+   "area": [
+    [
+     23.580624,
+     37.936957
+    ],
+    [
+     23.581047,
+     37.938317
+    ],
+    [
+     23.583061,
+     37.94015
+    ],
+    [
+     23.583306,
+     37.940876
+    ],
+    [
+     23.584741,
+     37.941071
+    ],
+    [
+     23.58593,
+     37.941792
+    ],
+    [
+     23.586583,
+     37.941829
+    ],
+    [
+     23.590332,
+     37.943518
+    ],
+    [
+     23.590677,
+     37.94404
+    ],
+    [
+     23.591194,
+     37.944505
+    ],
+    [
+     23.591667,
+     37.944682
+    ],
+    [
+     23.594567,
+     37.944821
+    ],
+    [
+     23.595871,
+     37.943764
+    ],
+    [
+     23.595814,
+     37.942257
+    ],
+    [
+     23.591914,
+     37.94051
+    ],
+    [
+     23.591433,
+     37.939908
+    ],
+    [
+     23.590249,
+     37.939799
+    ],
+    [
+     23.589227,
+     37.938337
+    ],
+    [
+     23.58681,
+     37.93796
+    ],
+    [
+     23.585725,
+     37.937051
+    ],
+    [
+     23.583348,
+     37.93632
+    ],
+    [
+     23.580708,
+     37.936652
+    ]
+   ]
+  },
+  {
+   "id": "st-george",
+   "kind": "island",
+   "label": "St George's islet",
+   "area": [
+    [
+     23.536987,
+     37.963328
+    ],
+    [
+     23.537845,
+     37.963768
+    ],
+    [
+     23.538352,
+     37.965505
+    ],
+    [
+     23.538523,
+     37.963619
+    ],
+    [
+     23.539957,
+     37.963498
+    ],
+    [
+     23.541339,
+     37.964567
+    ],
+    [
+     23.542214,
+     37.964756
+    ],
+    [
+     23.543208,
+     37.96352
+    ],
+    [
+     23.543253,
+     37.962949
+    ],
+    [
+     23.542617,
+     37.961332
+    ],
+    [
+     23.542282,
+     37.961099
+    ],
+    [
+     23.539931,
+     37.960784
+    ],
+    [
+     23.53848,
+     37.961034
+    ],
+    [
+     23.537356,
+     37.961569
+    ],
+    [
+     23.536485,
+     37.961606
+    ],
+    [
+     23.536485,
+     37.963194
+    ]
+   ]
+  },
+  {
+   "id": "kynosoura",
+   "kind": "label",
+   "label": "Kynosoura",
+   "at": [
+    23.564,
+    37.9447
+   ]
+  },
+  {
+   "id": "salamis-town",
+   "kind": "town",
+   "label": "Salamis (old town)",
+   "at": [
+    23.534,
+    37.9515
+   ]
+  },
+  {
+   "id": "ambelaki-bay",
+   "kind": "label",
+   "label": "Bay of Ambelaki",
+   "at": [
+    23.544,
+    37.948
+   ]
+  },
+  {
+   "id": "salamis-island",
+   "kind": "label",
+   "label": "SALAMIS",
+   "at": [
+    23.47,
+    37.918
+   ]
+  },
+  {
+   "id": "aigaleo",
+   "kind": "ridge",
+   "label": "Mount Aigaleo",
+   "line": [
+    [
+     23.5638,
+     37.9733
+    ],
+    [
+     23.5766,
+     37.9713
+    ],
+    [
+     23.5895,
+     37.9685
+    ],
+    [
+     23.6126,
+     37.9765
+    ],
+    [
+     23.6195,
+     37.9971
+    ]
+   ]
+  },
+  {
+   "id": "attic-shore",
+   "kind": "coast",
+   "label": "Attic shore, 480 BC (approx.)",
+   "line": [
+    [
+     23.5534,
+     37.9797
+    ],
+    [
+     23.5539,
+     37.9687
+    ],
+    [
+     23.5566,
+     37.9625
+    ],
+    [
+     23.5641,
+     37.9614
+    ],
+    [
+     23.5734,
+     37.9614
+    ],
+    [
+     23.5799,
+     37.9607
+    ],
+    [
+     23.5891,
+     37.9592
+    ],
+    [
+     23.5975,
+     37.9585
+    ],
+    [
+     23.6049,
+     37.96
+    ],
+    [
+     23.6077,
+     37.9534
+    ],
+    [
+     23.6073,
+     37.9482
+    ]
+   ]
+  },
+  {
+   "id": "piraeus",
+   "kind": "label",
+   "label": "Piraeus (Munychia)",
+   "at": [
+    23.65589,
+    37.94065
+   ]
+  },
+  {
+   "id": "phalerum",
+   "kind": "town",
+   "label": "Phalerum",
+   "at": [
+    23.6952,
+    37.9283
+   ]
+  },
+  {
+   "id": "athens",
+   "kind": "town",
+   "label": "Athens (sacked)",
+   "at": [
+    23.7257,
+    37.9715
+   ]
+  },
+  {
+   "id": "eleusis",
+   "kind": "town",
+   "label": "Eleusis",
+   "at": [
+    23.53487,
+    38.04761
+   ]
+  },
+  {
+   "id": "megara-channel",
+   "kind": "label",
+   "label": "Channel to Megara",
+   "at": [
+    23.418,
+    37.979
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "id": "two-shores",
+   "title": "Two fleets, two shores",
+   "time": "Late September 480 BC",
+   "narrative": "After Artemisium the Greek fleet rowed south to Salamis to cover the evacuation of Athens and drew its ships up on the island's east coast, around the bay of Ambelaki below the old town of Salamis. Xerxes' army marched into the empty city and burned the Acropolis, and his fleet, refitted after the storms and fighting off Euboea, anchored in the open bay of Phalerum. In the allied council the Peloponnesians pressed to withdraw to the Isthmus, where their army was walling the road. Themistocles argued that in open water the Greeks would be beaten ship by ship, and that only in the narrows of Salamis could they fight on equal terms.",
+   "camera": {
+    "center": [
+     23.622,
+     37.944
+    ],
+    "zoom": 11.05
+   },
+   "positions": {
+    "athenians": {
+     "at": [
+      23.542168,
+      37.957814
+     ],
+     "facing": 20,
+     "width": 1400,
+     "depth": 100
+    },
+    "corinthians": {
+     "at": [
+      23.531352,
+      37.961727
+     ],
+     "facing": 90,
+     "width": 380,
+     "depth": 110
+    },
+    "greek-centre": {
+     "at": [
+      23.544,
+      37.9489
+     ],
+     "facing": 0,
+     "width": 500,
+     "depth": 110
+    },
+    "aeginetans": {
+     "at": [
+      23.559297,
+      37.947787
+     ],
+     "facing": 8,
+     "width": 380,
+     "depth": 110
+    },
+    "spartans": {
+     "at": [
+      23.567281,
+      37.947967
+     ],
+     "facing": 8,
+     "width": 520,
+     "depth": 110
+    },
+    "themistocles": {
+     "with": "athenians"
+    },
+    "eurybiades": {
+     "with": "spartans"
+    },
+    "greek-base": {
+     "at": [
+      23.537,
+      37.9488
+     ]
+    },
+    "hoplites": {
+     "at": [
+      23.554735,
+      37.945539
+     ],
+     "facing": 20,
+     "width": 250,
+     "depth": 40
+    },
+    "phoenicians": {
+     "at": [
+      23.672,
+      37.93
+     ],
+     "facing": 205,
+     "width": 1000,
+     "depth": 190
+    },
+    "persian-centre": {
+     "at": [
+      23.682214,
+      37.927618
+     ],
+     "facing": 215,
+     "width": 900,
+     "depth": 190
+    },
+    "egyptians": {
+     "at": [
+      23.689909,
+      37.92253
+     ],
+     "facing": 240,
+     "width": 900,
+     "depth": 190
+    },
+    "ionians": {
+     "at": [
+      23.67,
+      37.924
+     ],
+     "facing": 205,
+     "width": 800,
+     "depth": 190
+    },
+    "carians": {
+     "at": [
+      23.68,
+      37.9225
+     ],
+     "facing": 215,
+     "width": 280,
+     "depth": 190
+    },
+    "persian-base": {
+     "at": [
+      23.6915,
+      37.9335
+     ]
+    },
+    "xerxes": {
+     "with": "persian-base"
+    }
+   },
+   "notes": [
+    {
+     "at": [
+      23.7257,
+      37.9715
+     ],
+     "text": "Athens taken and burned",
+     "kind": "event"
+    }
+   ]
+  },
+  {
+   "id": "sicinnus",
+   "title": "Themistocles' message to the king",
+   "time": "Evening before the battle",
+   "narrative": "With the allies still quarrelling, Themistocles sent Sicinnus, a slave who tutored his sons, across by boat to the Persian camp. The message said that Themistocles secretly wished the king well, that the Greeks were at odds and meant to escape during the night, and that the Persians had only to close the exits to destroy them. Xerxes, eager to finish the campaign before winter, believed it. At an earlier council at Phalerum Artemisia, queen of Halicarnassus, had warned him that he could win without risking a sea battle at all; the king and his other advisers chose to fight.",
+   "camera": {
+    "center": [
+     23.62,
+     37.942
+    ],
+    "zoom": 11.35
+   },
+   "moves": [
+    {
+     "side": "greeks",
+     "type": "march",
+     "path": [
+      [
+       23.546,
+       37.9505
+      ],
+      [
+       23.575,
+       37.951
+      ],
+      [
+       23.6,
+       37.938
+      ],
+      [
+       23.616,
+       37.925
+      ],
+      [
+       23.632,
+       37.916
+      ],
+      [
+       23.655,
+       37.919
+      ],
+      [
+       23.68,
+       37.933
+      ]
+     ],
+     "label": "Sicinnus' boat"
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      23.68,
+      37.933
+     ],
+     "text": "\"The Greeks will flee tonight\"",
+     "kind": "event"
+    },
+    {
+     "at": [
+      23.542,
+      37.953
+     ],
+     "text": "Council: Peloponnesians want the Isthmus",
+     "kind": "label"
+    }
+   ]
+  },
+  {
+   "id": "night-blockade",
+   "title": "The exits are closed by night",
+   "time": "Night",
+   "narrative": "After dark the Persian squadrons rowed out of Phalerum and took station across the eastern exits of the strait, on either side of the islet of Psyttaleia, where some 400 picked soldiers were landed to kill or capture any Greeks cast ashore there. According to Diodorus the Egyptian squadron was sent right round Salamis to block the western channel by Megara, so that no ship could slip away toward the Isthmus. The Persian crews spent the whole night at the oars. Before dawn Aristides crossed from Aegina with the news that the Greeks were surrounded: there was no longer any choice but to fight.",
+   "positions": {
+    "ionians": {
+     "at": [
+      23.572414,
+      37.940593
+     ],
+     "facing": 340,
+     "width": 800,
+     "depth": 190
+    },
+    "carians": {
+     "at": [
+      23.579257,
+      37.938165
+     ],
+     "facing": 330,
+     "width": 280,
+     "depth": 190
+    },
+    "persian-centre": {
+     "at": [
+      23.589523,
+      37.947158
+     ],
+     "facing": 340,
+     "width": 900,
+     "depth": 190
+    },
+    "phoenicians": {
+     "at": [
+      23.602069,
+      37.945629
+     ],
+     "facing": 315,
+     "width": 1000,
+     "depth": 190
+    },
+    "egyptians": {
+     "at": [
+      23.434,
+      37.97
+     ],
+     "facing": 330,
+     "width": 800,
+     "depth": 220
+    },
+    "psyttaleia-troops": {
+     "at": [
+      23.58822,
+      37.94058
+     ],
+     "facing": 300,
+     "width": 260,
+     "depth": 90
+    }
+   },
+   "moves": [
+    {
+     "unit": "phoenicians",
+     "type": "march",
+     "path": [
+      [
+       23.672,
+       37.93
+      ],
+      [
+       23.655,
+       37.919
+      ],
+      [
+       23.632,
+       37.916
+      ],
+      [
+       23.616,
+       37.925
+      ],
+      [
+       23.602069,
+       37.945629
+      ]
+     ]
+    },
+    {
+     "unit": "persian-centre",
+     "type": "march",
+     "path": [
+      [
+       23.682214,
+       37.927618
+      ],
+      [
+       23.655,
+       37.919
+      ],
+      [
+       23.632,
+       37.916
+      ],
+      [
+       23.599218,
+       37.939963
+      ],
+      [
+       23.589523,
+       37.947158
+      ]
+     ]
+    },
+    {
+     "unit": "carians",
+     "type": "march",
+     "path": [
+      [
+       23.68,
+       37.9225
+      ],
+      [
+       23.655,
+       37.919
+      ],
+      [
+       23.632,
+       37.916
+      ],
+      [
+       23.594655,
+       37.934118
+      ],
+      [
+       23.579257,
+       37.938165
+      ]
+     ]
+    },
+    {
+     "unit": "ionians",
+     "type": "march",
+     "path": [
+      [
+       23.67,
+       37.924
+      ],
+      [
+       23.655,
+       37.919
+      ],
+      [
+       23.632,
+       37.916
+      ],
+      [
+       23.583249,
+       37.933218
+      ],
+      [
+       23.572414,
+       37.940593
+      ]
+     ]
+    },
+    {
+     "unit": "egyptians",
+     "type": "march",
+     "path": [
+      [
+       23.689909,
+       37.92253
+      ],
+      [
+       23.63,
+       37.905
+      ],
+      [
+       23.56,
+       37.887
+      ],
+      [
+       23.49,
+       37.858
+      ],
+      [
+       23.43,
+       37.857
+      ],
+      [
+       23.392,
+       37.885
+      ],
+      [
+       23.388,
+       37.93
+      ],
+      [
+       23.405,
+       37.958
+      ],
+      [
+       23.432,
+       37.962
+      ],
+      [
+       23.434,
+       37.97
+      ]
+     ],
+     "label": "Egyptians round Salamis"
+    },
+    {
+     "unit": "psyttaleia-troops",
+     "type": "march",
+     "path": [
+      [
+       23.665,
+       37.929
+      ],
+      [
+       23.655,
+       37.919
+      ],
+      [
+       23.632,
+       37.916
+      ],
+      [
+       23.595796,
+       37.939514
+      ],
+      [
+       23.58822,
+       37.94058
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      23.5395,
+      37.9475
+     ],
+     "text": "Aristides: \"we are surrounded\"",
+     "kind": "event"
+    }
+   ]
+  },
+  {
+   "id": "greek-line",
+   "title": "The Greeks form their line",
+   "time": "Dawn",
+   "narrative": "At first light Themistocles spoke to the marines and the crews launched from the beaches of Ambelaki and Paloukia. The fleet formed in two ranks across the western end of the strait, from St George's islet to the Kynosoura peninsula: the Athenians on the left toward Eleusis, the Megarians and island crews in the centre, then the Aeginetans, and the Spartans under Eurybiades, the allied commander, on the right. The Corinthians lay beyond the Athenian wing, near the channel to the north. Across the water Xerxes took his seat on the lower slope of Mount Aigaleo, with scribes beside him to record which captains fought well.",
+   "camera": {
+    "center": [
+     23.571844,
+     37.953003
+    ],
+    "zoom": 12.85
+   },
+   "positions": {
+    "athenians": {
+     "at": [
+      23.550335,
+      37.956953
+     ],
+     "facing": 22.1,
+     "width": 1650,
+     "depth": 110
+    },
+    "greek-centre": {
+     "at": [
+      23.562221,
+      37.953141
+     ],
+     "facing": 22.1,
+     "width": 520,
+     "depth": 110
+    },
+    "aeginetans": {
+     "at": [
+      23.567397,
+      37.951481
+     ],
+     "facing": 22.1,
+     "width": 380,
+     "depth": 110
+    },
+    "spartans": {
+     "at": [
+      23.572573,
+      37.94982
+     ],
+     "facing": 22.1,
+     "width": 520,
+     "depth": 110
+    },
+    "corinthians": {
+     "at": [
+      23.538196,
+      37.967842
+     ],
+     "facing": 70,
+     "width": 380,
+     "depth": 110
+    },
+    "xerxes": {
+     "at": [
+      23.5565,
+      37.96853
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "athenians",
+     "type": "advance",
+     "path": [
+      [
+       23.542168,
+       37.957814
+      ],
+      [
+       23.550335,
+       37.956953
+      ]
+     ]
+    },
+    {
+     "unit": "greek-centre",
+     "type": "advance",
+     "path": [
+      [
+       23.544,
+       37.9489
+      ],
+      [
+       23.552453,
+       37.949406
+      ],
+      [
+       23.562221,
+       37.953141
+      ]
+     ]
+    },
+    {
+     "unit": "aeginetans",
+     "type": "advance",
+     "path": [
+      [
+       23.559297,
+       37.947787
+      ],
+      [
+       23.567397,
+       37.951481
+      ]
+     ]
+    },
+    {
+     "unit": "spartans",
+     "type": "advance",
+     "path": [
+      [
+       23.567281,
+       37.947967
+      ],
+      [
+       23.572573,
+       37.94982
+      ]
+     ]
+    },
+    {
+     "unit": "corinthians",
+     "type": "advance",
+     "path": [
+      [
+       23.531352,
+       37.961727
+      ],
+      [
+       23.534204,
+       37.966044
+      ],
+      [
+       23.538196,
+       37.967842
+      ]
+     ]
+    },
+    {
+     "unit": "xerxes",
+     "type": "march",
+     "path": [
+      [
+       23.6915,
+       37.9335
+      ],
+      [
+       23.64,
+       37.96
+      ],
+      [
+       23.58,
+       37.97
+      ],
+      [
+       23.5565,
+       37.96853
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      23.557016,
+      37.954352
+     ],
+     "text": "Greek paean echoes across the strait",
+     "kind": "event"
+    }
+   ],
+   "focus": [
+    "athenians",
+    "greek-centre",
+    "aeginetans",
+    "spartans"
+   ]
+  },
+  {
+   "id": "persians-enter",
+   "title": "The Persians row into the strait",
+   "time": "Early morning",
+   "narrative": "The Persian squadrons came in past the tail of Kynosoura and up along the Attic shore, the Phoenicians leading toward Eleusis to form the right of the line, Cypriots, Cilicians and other contingents in the centre, and the Carians and Ionian Greeks on the left, opposite the Spartans. In Aeschylus, who is said to have fought there, the Persians hear the Greek battle hymn ringing off the rocks before they see a single ship. As the fight was about to open, the Corinthians hoisted their sails and stood away north up the channel. The Athenians later called it flight; the other Greeks denied it, and some modern historians think they went to watch for the Egyptians coming round the island.",
+   "camera": {
+    "center": [
+     23.562719,
+     37.966493
+    ],
+    "zoom": 12.4
+   },
+   "positions": {
+    "phoenicians": {
+     "at": [
+      23.556882,
+      37.959029
+     ],
+     "facing": 202.1,
+     "width": 1100,
+     "depth": 190
+    },
+    "persian-centre": {
+     "at": [
+      23.567076,
+      37.955759
+     ],
+     "facing": 202.1,
+     "width": 900,
+     "depth": 190
+    },
+    "carians": {
+     "at": [
+      23.573468,
+      37.953708
+     ],
+     "facing": 202.1,
+     "width": 280,
+     "depth": 190
+    },
+    "ionians": {
+     "at": [
+      23.579383,
+      37.951809
+     ],
+     "facing": 202.1,
+     "width": 800,
+     "depth": 190
+    },
+    "corinthians": {
+     "at": [
+      23.54618,
+      37.989876
+     ],
+     "facing": 0,
+     "width": 200,
+     "depth": 260
+    }
+   },
+   "moves": [
+    {
+     "unit": "phoenicians",
+     "type": "advance",
+     "path": [
+      [
+       23.602069,
+       37.945629
+      ],
+      [
+       23.591234,
+       37.949406
+      ],
+      [
+       23.576406,
+       37.952824
+      ],
+      [
+       23.567281,
+       37.958219
+      ],
+      [
+       23.556882,
+       37.959029
+      ]
+     ]
+    },
+    {
+     "unit": "persian-centre",
+     "type": "advance",
+     "path": [
+      [
+       23.589523,
+       37.947158
+      ],
+      [
+       23.582109,
+       37.950665
+      ],
+      [
+       23.567076,
+       37.955759
+      ]
+     ]
+    },
+    {
+     "unit": "carians",
+     "type": "advance",
+     "path": [
+      [
+       23.579257,
+       37.938165
+      ],
+      [
+       23.583249,
+       37.94401
+      ],
+      [
+       23.58382,
+       37.948507
+      ],
+      [
+       23.573468,
+       37.953708
+      ]
+     ]
+    },
+    {
+     "unit": "ionians",
+     "type": "advance",
+     "path": [
+      [
+       23.572414,
+       37.940593
+      ],
+      [
+       23.581539,
+       37.94401
+      ],
+      [
+       23.58439,
+       37.947158
+      ],
+      [
+       23.579383,
+       37.951809
+      ]
+     ]
+    },
+    {
+     "unit": "corinthians",
+     "type": "feint",
+     "path": [
+      [
+       23.538196,
+       37.967842
+      ],
+      [
+       23.547891,
+       37.977285
+      ],
+      [
+       23.54618,
+       37.989876
+      ]
+     ],
+     "label": "Corinthians sail north"
+    }
+   ],
+   "focus": [
+    "phoenicians",
+    "persian-centre",
+    "carians",
+    "ionians"
+   ]
+  },
+  {
+   "id": "backing-water",
+   "title": "The Greeks back water",
+   "time": "Morning",
+   "narrative": "Instead of charging, the Greek line backed water toward the Salamis shore and drew the Persians deeper into the narrows. Three ranks deep and still arriving from the mouth, the Persian ships bunched as the channel closed around them and their lines lost order. Plutarch says Themistocles was waiting for the morning breeze, which raised a swell in the strait that rolled the tall Persian ships but hardly troubled the low Greek hulls. Then one ship shot out of the Greek line and rammed the nearest enemy: the Athenians said it was Ameinias of Pallene, the Aeginetans claimed it for one of theirs.",
+   "camera": {
+    "center": [
+     23.561578,
+     37.954352
+    ],
+    "zoom": 13.1
+   },
+   "positions": {
+    "athenians": {
+     "at": [
+      23.549777,
+      37.95587
+     ],
+     "facing": 22.1,
+     "width": 1650,
+     "depth": 110
+    },
+    "greek-centre": {
+     "at": [
+      23.561663,
+      37.952058
+     ],
+     "facing": 22.1,
+     "width": 520,
+     "depth": 110
+    },
+    "aeginetans": {
+     "at": [
+      23.566839,
+      37.950398
+     ],
+     "facing": 22.1,
+     "width": 380,
+     "depth": 110
+    },
+    "spartans": {
+     "at": [
+      23.572015,
+      37.948737
+     ],
+     "facing": 22.1,
+     "width": 520,
+     "depth": 110
+    },
+    "phoenicians": {
+     "at": [
+      23.555185,
+      37.958602
+     ],
+     "facing": 202.1,
+     "width": 1100,
+     "depth": 190,
+     "state": "wavering"
+    },
+    "persian-centre": {
+     "at": [
+      23.566014,
+      37.955129
+     ],
+     "facing": 202.1,
+     "width": 900,
+     "depth": 190,
+     "state": "wavering"
+    },
+    "carians": {
+     "at": [
+      23.572722,
+      37.952977
+     ],
+     "facing": 202.1,
+     "width": 280,
+     "depth": 190,
+     "state": "wavering"
+    },
+    "ionians": {
+     "at": [
+      23.578954,
+      37.950976
+     ],
+     "facing": 202.1,
+     "width": 800,
+     "depth": 190,
+     "state": "wavering"
+    }
+   },
+   "moves": [
+    {
+     "unit": "athenians",
+     "type": "retreat",
+     "path": [
+      [
+       23.550335,
+       37.956953
+      ],
+      [
+       23.549777,
+       37.95587
+      ]
+     ]
+    },
+    {
+     "unit": "greek-centre",
+     "type": "retreat",
+     "path": [
+      [
+       23.562221,
+       37.953141
+      ],
+      [
+       23.561663,
+       37.952058
+      ]
+     ]
+    },
+    {
+     "unit": "aeginetans",
+     "type": "retreat",
+     "path": [
+      [
+       23.567397,
+       37.951481
+      ],
+      [
+       23.566839,
+       37.950398
+      ]
+     ]
+    },
+    {
+     "unit": "spartans",
+     "type": "retreat",
+     "path": [
+      [
+       23.572573,
+       37.94982
+      ],
+      [
+       23.572015,
+       37.948737
+      ]
+     ]
+    },
+    {
+     "unit": "phoenicians",
+     "type": "advance",
+     "path": [
+      [
+       23.556882,
+       37.959029
+      ],
+      [
+       23.555185,
+       37.958602
+      ]
+     ]
+    },
+    {
+     "unit": "persian-centre",
+     "type": "advance",
+     "path": [
+      [
+       23.567076,
+       37.955759
+      ],
+      [
+       23.566014,
+       37.955129
+      ]
+     ]
+    },
+    {
+     "unit": "carians",
+     "type": "advance",
+     "path": [
+      [
+       23.573468,
+       37.953708
+      ],
+      [
+       23.572722,
+       37.952977
+      ]
+     ]
+    },
+    {
+     "unit": "ionians",
+     "type": "advance",
+     "path": [
+      [
+       23.579383,
+       37.951809
+      ],
+      [
+       23.578954,
+       37.950976
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      23.557981,
+      37.955666
+     ],
+     "text": "Ameinias rams first",
+     "kind": "clash"
+    }
+   ]
+  },
+  {
+   "id": "greek-attack",
+   "title": "The Greek line strikes",
+   "time": "Morning",
+   "narrative": "The whole Greek line followed and drove into the disordered Persian front. On the left the Athenians fell on the Phoenicians, and early in the fighting the Persian admiral Ariabignes, a brother of Xerxes, was killed as he tried to board an Athenian ship. Packed too close to turn, the Persian ships were rammed in the side or boarded by the Greeks' armoured hoplite marines, and crews who could not swim drowned in great numbers. On the right the Spartans and Aeginetans met the Ionians, some of whom fought hard under the eyes of their king.",
+   "camera": {
+    "center": [
+     23.561578,
+     37.954352
+    ],
+    "zoom": 13.1
+   },
+   "positions": {
+    "athenians": {
+     "at": [
+      23.550592,
+      37.957453
+     ],
+     "facing": 22.1,
+     "width": 1650,
+     "depth": 110,
+     "state": "engaged"
+    },
+    "greek-centre": {
+     "at": [
+      23.562478,
+      37.953641
+     ],
+     "facing": 22.1,
+     "width": 520,
+     "depth": 110,
+     "state": "engaged"
+    },
+    "aeginetans": {
+     "at": [
+      23.567654,
+      37.951981
+     ],
+     "facing": 22.1,
+     "width": 380,
+     "depth": 110,
+     "state": "engaged"
+    },
+    "spartans": {
+     "at": [
+      23.57283,
+      37.95032
+     ],
+     "facing": 22.1,
+     "width": 520,
+     "depth": 110,
+     "state": "engaged"
+    },
+    "phoenicians": {
+     "at": [
+      23.554799,
+      37.957852
+     ],
+     "facing": 202.1,
+     "width": 1100,
+     "depth": 190,
+     "state": "engaged"
+    },
+    "persian-centre": {
+     "at": [
+      23.565628,
+      37.954379
+     ],
+     "facing": 202.1,
+     "width": 900,
+     "depth": 190,
+     "state": "engaged"
+    },
+    "carians": {
+     "at": [
+      23.572336,
+      37.952227
+     ],
+     "facing": 202.1,
+     "width": 280,
+     "depth": 190,
+     "state": "engaged"
+    },
+    "ionians": {
+     "at": [
+      23.578568,
+      37.950226
+     ],
+     "facing": 202.1,
+     "width": 800,
+     "depth": 190,
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "athenians",
+     "type": "charge",
+     "path": [
+      [
+       23.549777,
+       37.95587
+      ],
+      [
+       23.550592,
+       37.957453
+      ]
+     ]
+    },
+    {
+     "unit": "greek-centre",
+     "type": "attack",
+     "path": [
+      [
+       23.561663,
+       37.952058
+      ],
+      [
+       23.562478,
+       37.953641
+      ]
+     ]
+    },
+    {
+     "unit": "aeginetans",
+     "type": "attack",
+     "path": [
+      [
+       23.566839,
+       37.950398
+      ],
+      [
+       23.567654,
+       37.951981
+      ]
+     ]
+    },
+    {
+     "unit": "spartans",
+     "type": "attack",
+     "path": [
+      [
+       23.572015,
+       37.948737
+      ],
+      [
+       23.57283,
+       37.95032
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      23.553729,
+      37.95936
+     ],
+     "text": "Ariabignes killed",
+     "kind": "death"
+    },
+    {
+     "at": [
+      23.573887,
+      37.953087
+     ],
+     "text": "Spartans and Aeginetans meet the Ionians",
+     "kind": "clash"
+    }
+   ],
+   "focus": [
+    "athenians",
+    "phoenicians"
+   ]
+  },
+  {
+   "id": "persian-collapse",
+   "title": "The Persian front collapses",
+   "time": "Late morning",
+   "narrative": "The Phoenicians, leaderless and pinned against the Attic shore, broke first, and many of their ships ran aground below the king's seat. Ships in the Persian front that turned to escape fouled the rear ranks still pushing forward to be seen by Xerxes, and a Greek thrust split the centre. In the turmoil Artemisia, chased by Ameinias, rammed and sank a ship of her own side from Calynda; the Athenian took her for a friend and let her go, while Xerxes, watching, thought she had sunk a Greek and remarked that his men had become women and his women men.",
+   "camera": {
+    "center": [
+     23.561578,
+     37.954352
+    ],
+    "zoom": 13.1
+   },
+   "positions": {
+    "athenians": {
+     "at": [
+      23.552442,
+      37.958656
+     ],
+     "state": "engaged"
+    },
+    "greek-centre": {
+     "at": [
+      23.563637,
+      37.955891
+     ],
+     "shape": "wedge",
+     "width": 380,
+     "depth": 380,
+     "state": "engaged"
+    },
+    "aeginetans": {
+     "at": [
+      23.568169,
+      37.952981
+     ],
+     "facing": 22.1,
+     "width": 380,
+     "depth": 110,
+     "state": "engaged"
+    },
+    "spartans": {
+     "at": [
+      23.573174,
+      37.950987
+     ],
+     "facing": 22.1,
+     "width": 520,
+     "depth": 110,
+     "state": "engaged"
+    },
+    "phoenicians": {
+     "at": [
+      23.557727,
+      37.958758
+     ],
+     "width": 900,
+     "depth": 230,
+     "state": "routed"
+    },
+    "persian-centre": {
+     "at": [
+      23.570576,
+      37.955024
+     ],
+     "state": "wavering"
+    },
+    "carians": {
+     "at": [
+      23.575888,
+      37.954582
+     ],
+     "facing": 112.12487289726852,
+     "state": "routed"
+    },
+    "ionians": {
+     "at": [
+      23.578825,
+      37.950726
+     ],
+     "facing": 202.1,
+     "width": 800,
+     "depth": 190,
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "athenians",
+     "type": "attack",
+     "path": [
+      [
+       23.550592,
+       37.957453
+      ],
+      [
+       23.552442,
+       37.958656
+      ]
+     ]
+    },
+    {
+     "unit": "greek-centre",
+     "type": "charge",
+     "path": [
+      [
+       23.562478,
+       37.953641
+      ],
+      [
+       23.563637,
+       37.955891
+      ]
+     ]
+    },
+    {
+     "unit": "phoenicians",
+     "type": "rout",
+     "path": [
+      [
+       23.554799,
+       37.957852
+      ],
+      [
+       23.557727,
+       37.958758
+      ]
+     ]
+    },
+    {
+     "unit": "carians",
+     "type": "retreat",
+     "path": [
+      [
+       23.572336,
+       37.952227
+      ],
+      [
+       23.575888,
+       37.954582
+      ]
+     ]
+    },
+    {
+     "unit": "persian-centre",
+     "type": "retreat",
+     "path": [
+      [
+       23.565628,
+       37.954379
+      ],
+      [
+       23.570576,
+       37.955024
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      23.560255,
+      37.960082
+     ],
+     "text": "Phoenician ships run aground",
+     "kind": "event"
+    },
+    {
+     "at": [
+      23.577987,
+      37.955073
+     ],
+     "text": "Artemisia sinks a Calyndian ship",
+     "kind": "event"
+    }
+   ],
+   "focus": [
+    "phoenicians",
+    "greek-centre",
+    "carians"
+   ]
+  },
+  {
+   "id": "aeginetan-ambush",
+   "title": "The Aeginetans close the exit",
+   "time": "Afternoon",
+   "narrative": "The beaten Persian fleet streamed back toward Phalerum, and every ship had to pass the mouth of the strait by Kynosoura. There the Aeginetans lay in wait and caught the ships coming out, while the Athenians pressed on those still fighting or trying to turn inside the strait. Herodotus has the Aeginetan captain Polycritus ramming a Sidonian ship and shouting across to Themistocles, mocking the Athenian charge that Aegina had sided with Persia. Wreckage drifted down the Attic coast as far as Cape Kolias.",
+   "camera": {
+    "center": [
+     23.579828,
+     37.951654
+    ],
+    "zoom": 12.9
+   },
+   "positions": {
+    "aeginetans": {
+     "at": [
+      23.582109,
+      37.945809
+     ],
+     "facing": 45,
+     "width": 380,
+     "depth": 110,
+     "state": "engaged"
+    },
+    "athenians": {
+     "at": [
+      23.562636,
+      37.955144
+     ],
+     "facing": 112.12487289726852,
+     "width": 700,
+     "depth": 250,
+     "state": "engaged"
+    },
+    "greek-centre": {
+     "at": [
+      23.569147,
+      37.953443
+     ],
+     "facing": 112.12487289726852,
+     "shape": "block",
+     "width": 450,
+     "depth": 200,
+     "state": "engaged"
+    },
+    "spartans": {
+     "at": [
+      23.57594,
+      37.949905
+     ],
+     "facing": 70,
+     "state": "engaged"
+    },
+    "persian-centre": {
+     "at": [
+      23.595796,
+      37.948057
+     ],
+     "facing": 115,
+     "width": 650,
+     "depth": 220,
+     "state": "routed"
+    },
+    "carians": {
+     "at": [
+      23.60321,
+      37.94446
+     ],
+     "facing": 140,
+     "width": 220,
+     "depth": 160,
+     "state": "routed"
+    },
+    "ionians": {
+     "at": [
+      23.587242,
+      37.948057
+     ],
+     "facing": 110,
+     "width": 600,
+     "depth": 200,
+     "state": "routed"
+    },
+    "phoenicians": {
+     "at": [
+      23.575265,
+      37.9575
+     ],
+     "facing": 100,
+     "width": 600,
+     "depth": 230,
+     "state": "routed"
+    }
+   },
+   "moves": [
+    {
+     "unit": "persian-centre",
+     "type": "rout",
+     "path": [
+      [
+       23.570576,
+       37.955024
+      ],
+      [
+       23.582109,
+       37.951654
+      ],
+      [
+       23.595796,
+       37.948057
+      ]
+     ]
+    },
+    {
+     "unit": "carians",
+     "type": "rout",
+     "path": [
+      [
+       23.575888,
+       37.954582
+      ],
+      [
+       23.590093,
+       37.948956
+      ],
+      [
+       23.60321,
+       37.94446
+      ]
+     ]
+    },
+    {
+     "unit": "ionians",
+     "type": "rout",
+     "path": [
+      [
+       23.578825,
+       37.950726
+      ],
+      [
+       23.587242,
+       37.948057
+      ]
+     ]
+    },
+    {
+     "unit": "phoenicians",
+     "type": "rout",
+     "path": [
+      [
+       23.557727,
+       37.958758
+      ],
+      [
+       23.565,
+       37.958579
+      ],
+      [
+       23.575265,
+       37.9575
+      ]
+     ]
+    },
+    {
+     "unit": "aeginetans",
+     "type": "flank",
+     "path": [
+      [
+       23.568169,
+       37.952981
+      ],
+      [
+       23.577547,
+       37.949406
+      ],
+      [
+       23.582109,
+       37.945809
+      ]
+     ]
+    },
+    {
+     "unit": "athenians",
+     "type": "pursuit",
+     "path": [
+      [
+       23.552442,
+       37.958656
+      ],
+      [
+       23.562636,
+       37.955144
+      ]
+     ]
+    },
+    {
+     "unit": "greek-centre",
+     "type": "pursuit",
+     "path": [
+      [
+       23.563637,
+       37.955891
+      ],
+      [
+       23.569147,
+       37.953443
+      ]
+     ]
+    },
+    {
+     "unit": "spartans",
+     "type": "pursuit",
+     "path": [
+      [
+       23.573174,
+       37.950987
+      ],
+      [
+       23.57594,
+       37.949905
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      23.58496,
+      37.946708
+     ],
+     "text": "Aeginetan ambush at the mouth",
+     "kind": "clash"
+    }
+   ],
+   "focus": [
+    "aeginetans"
+   ]
+  },
+  {
+   "id": "psyttaleia",
+   "title": "Aristides clears Psyttaleia",
+   "time": "Afternoon",
+   "narrative": "Once the sea fight had turned, Aristides took a body of Athenian hoplites who had been posted along the shore of Salamis, ferried them across to Psyttaleia and killed the whole Persian detachment on the island. Aeschylus makes this slaughter of picked men, in full view of the king on the mainland, the bitterest moment of the day for Xerxes. The Persian ships that had escaped the strait were by now rowing for Phalerum.",
+   "camera": {
+    "center": [
+     23.582109,
+     37.943561
+    ],
+    "zoom": 13.3
+   },
+   "positions": {
+    "hoplites": {
+     "at": [
+      23.586739,
+      37.941254
+     ],
+     "facing": 120,
+     "width": 250,
+     "depth": 40,
+     "state": "engaged"
+    },
+    "athenians": {
+     "state": "ready"
+    },
+    "greek-centre": {
+     "state": "ready"
+    },
+    "aeginetans": {
+     "state": "ready"
+    },
+    "spartans": {
+     "state": "ready"
+    },
+    "psyttaleia-troops": {
+     "state": "destroyed"
+    },
+    "persian-centre": {
+     "at": [
+      23.628,
+      37.918
+     ],
+     "facing": 120
+    },
+    "carians": {
+     "at": [
+      23.645,
+      37.917
+     ],
+     "facing": 120
+    },
+    "ionians": {
+     "at": [
+      23.615,
+      37.925
+     ],
+     "facing": 120
+    },
+    "phoenicians": {
+     "at": [
+      23.605,
+      37.932
+     ],
+     "facing": 120
+    }
+   },
+   "moves": [
+    {
+     "unit": "hoplites",
+     "type": "attack",
+     "path": [
+      [
+       23.554735,
+       37.945539
+      ],
+      [
+       23.565,
+       37.942212
+      ],
+      [
+       23.576406,
+       37.940413
+      ],
+      [
+       23.586739,
+       37.941254
+      ]
+     ],
+     "label": "Aristides crosses"
+    },
+    {
+     "unit": "persian-centre",
+     "type": "rout",
+     "path": [
+      [
+       23.595796,
+       37.948057
+      ],
+      [
+       23.601499,
+       37.945809
+      ],
+      [
+       23.628,
+       37.918
+      ]
+     ]
+    },
+    {
+     "unit": "carians",
+     "type": "rout",
+     "path": [
+      [
+       23.60321,
+       37.94446
+      ],
+      [
+       23.601499,
+       37.945809
+      ],
+      [
+       23.645,
+       37.917
+      ]
+     ]
+    },
+    {
+     "unit": "ionians",
+     "type": "rout",
+     "path": [
+      [
+       23.587242,
+       37.948057
+      ],
+      [
+       23.591234,
+       37.948956
+      ],
+      [
+       23.601499,
+       37.945809
+      ],
+      [
+       23.615,
+       37.925
+      ]
+     ]
+    },
+    {
+     "unit": "phoenicians",
+     "type": "rout",
+     "path": [
+      [
+       23.575265,
+       37.9575
+      ],
+      [
+       23.591234,
+       37.948956
+      ],
+      [
+       23.601499,
+       37.945809
+      ],
+      [
+       23.605,
+       37.932
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      23.58939,
+      37.938045
+     ],
+     "text": "Persian garrison wiped out",
+     "kind": "death"
+    }
+   ],
+   "focus": [
+    "hoplites",
+    "psyttaleia-troops"
+   ]
+  },
+  {
+   "id": "withdrawal",
+   "title": "Back to Phalerum",
+   "time": "Evening",
+   "narrative": "The surviving Persian ships gathered at Phalerum under the shelter of the army, while the Greeks towed what wrecks they could to Salamis and stood ready for a second attack that never came. The Corinthians returned to find the battle over. Xerxes began a causeway toward Salamis but soon gave it up; within days, fearing for his bridges over the Hellespont, he started for Asia with much of his army and left Mardonius to finish the war on land. The next summer the Greeks won at Plataea and Mycale.",
+   "camera": {
+    "center": [
+     23.615,
+     37.945
+    ],
+    "zoom": 11.4
+   },
+   "positions": {
+    "phoenicians": {
+     "at": [
+      23.672,
+      37.93
+     ],
+     "facing": 205,
+     "width": 700,
+     "depth": 220,
+     "state": "routed"
+    },
+    "persian-centre": {
+     "at": [
+      23.682083,
+      37.927471
+     ],
+     "facing": 215,
+     "width": 650,
+     "depth": 220,
+     "state": "routed"
+    },
+    "carians": {
+     "at": [
+      23.68,
+      37.9225
+     ],
+     "facing": 215,
+     "width": 200,
+     "depth": 160,
+     "state": "routed"
+    },
+    "ionians": {
+     "at": [
+      23.67,
+      37.924
+     ],
+     "facing": 205,
+     "width": 600,
+     "depth": 200,
+     "state": "routed"
+    },
+    "athenians": {
+     "at": [
+      23.551642,
+      37.957699
+     ],
+     "state": "ready"
+    },
+    "greek-centre": {
+     "at": [
+      23.562478,
+      37.953641
+     ],
+     "state": "ready"
+    },
+    "aeginetans": {
+     "at": [
+      23.569344,
+      37.951438
+     ],
+     "facing": 22.1,
+     "state": "ready"
+    },
+    "spartans": {
+     "at": [
+      23.574369,
+      37.949244
+     ],
+     "state": "ready"
+    },
+    "corinthians": {
+     "at": [
+      23.538196,
+      37.967842
+     ],
+     "facing": 70,
+     "width": 380,
+     "depth": 110
+    },
+    "xerxes": {
+     "with": "persian-base"
+    },
+    "hoplites": {
+     "state": "hidden"
+    }
+   },
+   "moves": [
+    {
+     "unit": "phoenicians",
+     "type": "retreat",
+     "path": [
+      [
+       23.605,
+       37.932
+      ],
+      [
+       23.64,
+       37.915
+      ],
+      [
+       23.66,
+       37.92
+      ],
+      [
+       23.672,
+       37.93
+      ]
+     ]
+    },
+    {
+     "unit": "persian-centre",
+     "type": "retreat",
+     "path": [
+      [
+       23.628,
+       37.918
+      ],
+      [
+       23.64,
+       37.915
+      ],
+      [
+       23.66,
+       37.92
+      ],
+      [
+       23.682083,
+       37.927471
+      ]
+     ]
+    },
+    {
+     "unit": "carians",
+     "type": "retreat",
+     "path": [
+      [
+       23.645,
+       37.917
+      ],
+      [
+       23.64,
+       37.915
+      ],
+      [
+       23.66,
+       37.92
+      ],
+      [
+       23.68,
+       37.9225
+      ]
+     ]
+    },
+    {
+     "unit": "ionians",
+     "type": "retreat",
+     "path": [
+      [
+       23.615,
+       37.925
+      ],
+      [
+       23.64,
+       37.915
+      ],
+      [
+       23.66,
+       37.92
+      ],
+      [
+       23.67,
+       37.924
+      ]
+     ]
+    },
+    {
+     "unit": "corinthians",
+     "type": "march",
+     "path": [
+      [
+       23.54618,
+       37.989876
+      ],
+      [
+       23.547891,
+       37.977285
+      ],
+      [
+       23.538196,
+       37.967842
+      ]
+     ],
+     "label": "Corinthians return"
+    },
+    {
+     "unit": "xerxes",
+     "type": "march",
+     "path": [
+      [
+       23.5565,
+       37.96853
+      ],
+      [
+       23.64,
+       37.96
+      ],
+      [
+       23.6915,
+       37.9335
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      23.6,
+      37.915
+     ],
+     "text": "Wreckage drifts toward Cape Kolias",
+     "kind": "event"
+    }
+   ]
+  }
+ ]
+}
