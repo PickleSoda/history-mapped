@@ -8,16 +8,9 @@
  * - map ranking uses `zoom_level` -> impact threshold
  */
 import { ENTITY_GROUPS } from '@/types/atlas';
-import type { EntityGroup, Scope } from '@/types/atlas';
+import type { Bbox, EntityGroup, Scope } from '@/types/atlas';
 
 type Params = Record<string, string | number | string[]>;
-
-/**
- * TEMP (dev): viewport (geometry) filtering stays off — the small dataset has
- * many unplaced entities a bbox query would hide. Time filtering on the list is
- * ON: the entities sidebar shows only entities present at the current year.
- */
-const FILTER_BY_VIEWPORT = false; // bbox on the map + list
 
 /**
  * Keep the map populated: when the zoom-derived impact threshold would leave
@@ -27,21 +20,21 @@ const FILTER_BY_VIEWPORT = false; // bbox on the map + list
  */
 const MAP_MIN_RESULTS = 24;
 
-/** Whole-world bbox — the map endpoint requires a bbox even when unfiltered. */
-const WORLD_BBOX: Params = {
-  bbox_min_lng: -180,
-  bbox_min_lat: -85,
-  bbox_max_lng: 180,
-  bbox_max_lat: 85,
-};
+/**
+ * The map is fetched in two layers: `outer` (the whole visible area plus a
+ * ring, at the map's own impact threshold) and `core` (its middle, fetched as
+ * if zoomed this many levels closer — roughly one impact band lower). So the
+ * map is densest where the user is looking and only prominent at the edges.
+ */
+export type MapLayer = 'outer' | 'core';
+const CORE_ZOOM_BOOST = 3;
 
-function bboxParams(scope: Scope): Params {
-  if (!FILTER_BY_VIEWPORT) return WORLD_BBOX;
+function bboxParams(bbox: Bbox): Params {
   return {
-    bbox_min_lng: scope.bbox.w,
-    bbox_min_lat: scope.bbox.s,
-    bbox_max_lng: scope.bbox.e,
-    bbox_max_lat: scope.bbox.n,
+    bbox_min_lng: bbox.w,
+    bbox_min_lat: bbox.s,
+    bbox_max_lng: bbox.e,
+    bbox_max_lat: bbox.n,
   };
 }
 
@@ -51,11 +44,12 @@ function groupValues(groups: EntityGroup[]): string[] | undefined {
   return groups.map((g) => g.toUpperCase());
 }
 
-/** Params for GET /entities/map (pins/borders FeatureCollection). */
-export function mapParams(scope: Scope, limit = 2000): Params {
+/** Params for GET /entities/map (pins/borders FeatureCollection), one layer. */
+export function mapParams(scope: Scope, layer: MapLayer = 'outer', limit = 2000): Params {
+  const zoom = layer === 'core' ? scope.z + CORE_ZOOM_BOOST : scope.z;
   const params: Params = {
-    ...bboxParams(scope),
-    zoom_level: Math.max(0, Math.min(22, scope.z)),
+    ...bboxParams(layer === 'core' ? scope.core : scope.outer),
+    zoom_level: Math.max(0, Math.min(22, zoom)),
     min_results: MAP_MIN_RESULTS,
     limit,
   };
@@ -90,9 +84,9 @@ export function listParams(scope: Scope, opts: ListOptions = {}): Params {
     page: opts.page ?? 1,
   };
 
-  // Omit bbox entirely when unfiltered — even a world bbox runs on the geometry
-  // column and would exclude unplaced entities.
-  if (FILTER_BY_VIEWPORT) Object.assign(params, bboxParams(scope));
+  // Only entities placed in the visible area (their primary location) — the
+  // part of the map not under a panel or the sheet.
+  Object.assign(params, bboxParams(scope.bbox));
 
   // Temporal presence: only entities that exist at the current year (instant) or
   // overlap the selected range. The backend's exists_at / range filter uses an

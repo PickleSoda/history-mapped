@@ -109,8 +109,12 @@ keeps the three-layer boundary enforceable in one place.
 - **URL-state hooks** — `useViewport`, `useTimeState`, `useFilters`, `useSelection`,
   `useSearchQuery`, `useChronicleNav`, `useFullPage`. Each subscribes only to the keys it
   needs, so moving bbox cannot wake `useSelection`.
-- **Derived** — `useScope()` returns the memoized snapped `{ bbox, z, time, groups }` that
-  every viewport query keys on.
+- **Derived** — `useScope()` returns the memoized snapped `{ bbox, outer, core, z, time,
+  groups }` that every viewport query keys on. The boxes cover only the *visible* map: the
+  shells measure what floats over it (desktop panels; mobile timeline + sheet snap) into
+  the ephemeral `mapInsets` via `useMapInsetsObserver`, and `snapScope` crops the URL
+  bbox by those shares. `z` still comes from the whole map, so opening a panel doesn't
+  change the impact threshold. Viewport queries wait for the first measurement.
 - **Server-cache hooks** — `useEntitiesInView`, `useEntity`, `useEntityConnections`,
   `useEntityTimeline`, `useEntityGraph`, `useChronicleGraph`, `useFetchNeighbourhood`
   (imperative "expand node" fetch through the same cache key), `useSearch`,
@@ -246,7 +250,16 @@ page). Contract: `docs/schemas/relation-graph-api.md`.
 ## Caching strategy
 
 - **Snap before keying** — raw bbox lives in the URL and drives the camera; the snapped
-  scope keys the cache. Sub-tile pans = same key = cache hit, zero fetch.
+  scope keys the cache. The grid is two levels finer than the map zoom (a tile ≈ ¼
+  viewport), so sub-tile pans = same key = cache hit, zero fetch, while the fetched box
+  stays ~1.5–2× the visible span rather than a whole viewport-sized tile ring.
+- **Center-weighted map fetch** — `useEntitiesInView` merges two `/entities/map` layers:
+  `outer` (visible area + one grid-tile ring, at the map's own impact threshold) and
+  `core` (the middle half of each axis, fetched as if zoomed 3 levels closer — about one
+  impact band lower). Dense where the user looks, only prominent pins at the edges.
+- **"Notable here" is area-scoped** — `GET /entities` gets the visible `bbox`, so the list
+  ranks entities whose primary location is on screen; unplaced entities only surface
+  through search.
 - **`keepPreviousData`** on the viewport query — old pins stay on screen during refetch,
   no empty-map flash.
 - **High `staleTime`** — historical data is immutable (`Infinity` for entity detail and

@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { ChroniclePlayer } from '@/components/atlas/ChroniclePlayer';
 import { CommandPalette } from '@/components/atlas/CommandPalette';
 import { DetailPanel } from '@/components/atlas/DetailPanel';
@@ -6,7 +7,7 @@ import { LeftSidebar } from '@/components/atlas/LeftSidebar';
 import { TimelineScope } from '@/components/atlas/TimelineScope';
 import { TopBar } from '@/components/atlas/TopBar';
 import { MapCanvas } from '@/components/map/MapCanvas';
-import { useChronicleNav } from '@/hooks';
+import { useChronicleNav, useMapInsetsObserver } from '@/hooks';
 
 /**
  * While a chronicle is active the tour takes the left rail (in place of the
@@ -22,28 +23,34 @@ function LeftPanel() {
 /**
  * The persistent desktop shell (spec §7). The map fills the whole body and never
  * resizes — the sidebars are OVERLAID on top of it (rather than shrinking it),
- * so collapsing/opening a panel doesn't trigger a map re-render. The viewport
- * bbox therefore extends under the panels, which is acceptable.
+ * so collapsing/opening a panel doesn't trigger a map re-render. The map's bbox
+ * therefore extends under the panels; their measured widths trim the viewport
+ * queries back to the visible part (useMapInsetsObserver).
  *
  * With `?full=1` the entity (or chronicle) page slides up over everything
  * below the TopBar; the map stays mounted underneath, made inert.
  */
 export function DesktopShell() {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const leftRef = useRef<HTMLDivElement>(null);
+  const rightRef = useRef<HTMLDivElement>(null);
+  useMapInsetsObserver({ map: mapRef, left: leftRef, right: rightRef });
+
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-background text-foreground">
       <TopBar />
 
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
         <BehindPage>
-          <div className="relative min-h-0 flex-1 overflow-hidden">
+          <div ref={mapRef} className="relative min-h-0 flex-1 overflow-hidden">
             {/* Full-bleed persistent map */}
             <MapCanvas />
 
             {/* Sidebars float over the map */}
-            <div className="absolute inset-y-0 left-0 z-10">
+            <div ref={leftRef} className="absolute inset-y-0 left-0 z-10">
               <LeftPanel />
             </div>
-            <div className="absolute inset-y-0 right-0 z-10">
+            <div ref={rightRef} className="absolute inset-y-0 right-0 z-10">
               <DetailPanel />
             </div>
           </div>

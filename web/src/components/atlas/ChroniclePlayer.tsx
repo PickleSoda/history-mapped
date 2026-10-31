@@ -1,5 +1,6 @@
-import { ChevronLeft, Maximize2, MoveRight, Route } from 'lucide-react';
+import { ChevronLeft, MoveRight, Route } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
+import { ExpandButton } from '@/components/atlas/ExpandButton';
 import { preloadChroniclePage } from '@/components/atlas/FullPage';
 import { GroupDot } from '@/components/atlas/GroupBadge';
 import { NavBreadcrumb } from '@/components/atlas/NavBreadcrumb';
@@ -239,16 +240,12 @@ export function ChroniclePlayer() {
           <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] text-muted-foreground">
             <Route size={12} /> Chronicle
           </span>
-          <button
-            type="button"
+          <ExpandButton
             onClick={expandChronicle}
             onPointerEnter={preloadChroniclePage}
             onFocus={preloadChroniclePage}
-            className="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
             title="Open the chronicle page: its whole graph and every step"
-          >
-            <Maximize2 size={14} /> Expand
-          </button>
+          />
         </div>
       </div>
       <ChroniclePlayerContent />

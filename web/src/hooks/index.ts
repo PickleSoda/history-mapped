@@ -13,6 +13,7 @@ export { useFullPage } from './useFullPage';
 
 // Derived
 export { useScope } from './useScope';
+export { useMapInsetsObserver } from './useMapInsetsObserver';
 export { useNavTrail, useNavTrailSync } from './useNavTrail';
 
 // Server-cache
@@ -60,6 +61,7 @@ export {
   useHover,
   useSheet,
   useCommandPalette,
+  useMapInsetsReady,
 } from './ephemeral';
 export { useMapFocus } from './useMapFocus';
 

@@ -4,8 +4,16 @@ import {
   nextSheetForSelection,
   sheetContentKind,
   SNAP_POINTS,
+  snapCoverPx,
   snapToHeight,
 } from './sheet';
+
+describe('snapCoverPx', () => {
+  it('reads px snaps as-is and fractions against the viewport', () => {
+    expect(snapCoverPx('130px', 800)).toBe(130);
+    expect(snapCoverPx(0.55, 800)).toBeCloseTo(440);
+  });
+});
 
 describe('snap mappers', () => {
   it('maps heights to snap points round-trip', () => {

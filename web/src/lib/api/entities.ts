@@ -19,21 +19,23 @@ import type {MapFeatureCollection} from '@/lib/schemas/map';
 import type { Scope } from '@/types/atlas';
 import { api } from './client';
 import { listParams, mapParams  } from './params';
-import type {ListOptions} from './params';
+import type { ListOptions, MapLayer } from './params';
 
 /**
- * GET /entities/map — the viewport query. Returns a GeoJSON FeatureCollection
- * of border/point geometries for the scope. Already a single optimized PostGIS
- * query server-side; we pass the FeatureCollection straight to maplibre without
- * a deep parse (only a shallow envelope check).
+ * GET /entities/map — the viewport query, for one layer of the scope (see
+ * `MapLayer`). Returns a GeoJSON FeatureCollection of border/point geometries.
+ * Already a single optimized PostGIS query server-side; we pass the
+ * FeatureCollection straight to maplibre without a deep parse (only a shallow
+ * envelope check).
  */
 export async function entitiesInView(
   scope: Scope,
+  layer: MapLayer,
   signal?: AbortSignal,
 ): Promise<MapFeatureCollection> {
   const { data } = await api.get('/api/v1/entities/map', {
     signal,
-    params: mapParams(scope),
+    params: mapParams(scope, layer),
   });
   return asFeatureCollection(data);
 }

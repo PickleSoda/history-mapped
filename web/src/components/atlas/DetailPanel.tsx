@@ -1,9 +1,10 @@
-import { Clock, FileText, Maximize2, MapPin, ScrollText, Sparkles, X } from 'lucide-react';
+import { Clock, FileText, MapPin, ScrollText, Sparkles, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { SaveControls } from '@/components/account/SaveControls';
 import { EntityImage } from '@/components/atlas/EntityImage';
+import { ExpandButton } from '@/components/atlas/ExpandButton';
 import { preloadEntityPage } from '@/components/atlas/FullPage';
 import { TypeBadge } from '@/components/atlas/GroupBadge';
 import {
@@ -227,16 +228,12 @@ export function DetailPanel() {
       <div className="flex items-center justify-between px-3 py-2.5">
         <span className="px-1.5 text-xs font-medium text-muted-foreground">Detail</span>
         <div className="flex items-center gap-1">
-          <button
-            type="button"
+          <ExpandButton
             onClick={expand}
             onPointerEnter={preloadEntityPage}
             onFocus={preloadEntityPage}
-            className="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
             title="Open the full page"
-          >
-            <Maximize2 size={14} /> Expand
-          </button>
+          />
           <button
             type="button"
             onClick={clear}

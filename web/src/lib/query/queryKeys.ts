@@ -8,14 +8,22 @@
 import type { ChronicleListParams } from '@/lib/api/chronicles';
 import type { MyContributionsParams } from '@/lib/api/contributions';
 import type { ChronicleGraphParams, EntityGraphParams } from '@/lib/api/graph';
-import type { ListOptions } from '@/lib/api/params';
+import type { ListOptions, MapLayer } from '@/lib/api/params';
 import type { StarListParams } from '@/lib/api/saved';
 import type { Scope, TimeState } from '@/types/atlas';
 
 export const qk = {
-  /** Map FeatureCollection (pins/borders). */
-  entitiesInView: (scope: Scope) =>
-    ['entities', 'map', scope.z, scope.bbox, scope.time, scope.groups] as const,
+  /** Map FeatureCollection (pins/borders), one layer of the scope. */
+  entitiesInView: (scope: Scope, layer: MapLayer) =>
+    [
+      'entities',
+      'map',
+      layer,
+      scope.z,
+      layer === 'core' ? scope.core : scope.outer,
+      scope.time,
+      scope.groups,
+    ] as const,
   /** Ranked "notable here" list (paginated). */
   entityList: (scope: Scope, opts: ListOptions) =>
     ['entities', 'list', scope.bbox, scope.time, scope.groups, opts.sort, opts.page] as const,

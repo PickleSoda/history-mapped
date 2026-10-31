@@ -1,10 +1,11 @@
-import { ChevronLeft, Maximize2 } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { BrowseTab } from '@/components/atlas/BrowseTab';
 import { ChronicleList } from '@/components/atlas/ChronicleList';
 import {
   ChroniclePlayerContent,
 } from '@/components/atlas/ChroniclePlayer';
 import { DetailPanelContent } from '@/components/atlas/DetailPanel';
+import { ExpandButton } from '@/components/atlas/ExpandButton';
 import {
   preloadChroniclePage,
   preloadEntityPage,
@@ -37,14 +38,11 @@ function SheetDetail() {
         >
           <ChevronLeft size={15} /> {isActive ? 'Back to tour' : 'Results'}
         </button>
-        <button
-          type="button"
+        <ExpandButton
           onClick={expand}
           onPointerDown={preloadEntityPage}
-          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[13px] text-muted-foreground hover:bg-muted hover:text-foreground"
-        >
-          <Maximize2 size={14} /> Expand
-        </button>
+          className="h-8 text-[13px]"
+        />
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         <DetailPanelContent />
@@ -69,14 +67,11 @@ function SheetChronicle() {
         >
           <ChevronLeft size={15} /> Exit tour
         </button>
-        <button
-          type="button"
+        <ExpandButton
           onClick={expandChronicle}
           onPointerDown={preloadChroniclePage}
-          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[13px] text-muted-foreground hover:bg-muted hover:text-foreground"
-        >
-          <Maximize2 size={14} /> Expand
-        </button>
+          className="h-8 text-[13px]"
+        />
       </div>
       <div className="min-h-0 flex-1">
         <ChroniclePlayerContent />

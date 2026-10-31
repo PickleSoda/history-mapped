@@ -11,6 +11,16 @@ function clampLat(lat: number): number {
   return Math.max(-MAX_LAT, Math.min(MAX_LAT, lat));
 }
 
+/** Latitude → unscaled Web-Mercator y (north is positive). */
+export function latToMercatorY(lat: number): number {
+  const r = (clampLat(lat) * Math.PI) / 180;
+  return Math.log(Math.tan(Math.PI / 4 + r / 2));
+}
+
+export function mercatorYToLat(y: number): number {
+  return ((2 * Math.atan(Math.exp(y)) - Math.PI / 2) * 180) / Math.PI;
+}
+
 export function lonToTileX(lon: number, z: number): number {
   return Math.floor(((lon + 180) / 360) * 2 ** z);
 }

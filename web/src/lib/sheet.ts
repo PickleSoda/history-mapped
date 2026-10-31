@@ -8,6 +8,12 @@ export function heightToSnap(h: SheetHeight): number | string {
   return SNAP_POINTS[ORDER.indexOf(h)];
 }
 
+/** Pixels a snap point covers from the bottom of a viewport this tall. Numeric
+ *  snaps are viewport fractions; string snaps are absolute (e.g. '130px'). */
+export function snapCoverPx(snap: number | string, viewportHeight: number): number {
+  return typeof snap === 'number' ? snap * viewportHeight : Number.parseFloat(snap) || 0;
+}
+
 export function snapToHeight(snap: number | string | null): SheetHeight {
   const i = SNAP_POINTS.findIndex((s) => s === snap);
   return i === -1 ? 'peek' : ORDER[i];

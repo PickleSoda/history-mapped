@@ -41,6 +41,12 @@ export function useHover() {
   return { hoverId, setHover };
 }
 
+/** True once the shell has measured what covers the map. Viewport queries
+ *  wait for it so they don't first fetch the area under the panels. */
+export function useMapInsetsReady() {
+  return useEphemeralStore((s) => s.mapInsets != null);
+}
+
 /** Mobile bottom-sheet height (peek / half / full). */
 export function useSheet() {
   const sheet = useEphemeralStore((s) => s.sheet);

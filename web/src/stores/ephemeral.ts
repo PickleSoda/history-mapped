@@ -9,6 +9,7 @@
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { create } from 'zustand';
 import type { Crumb } from '@/lib/nav-trail';
+import type { MapInsets } from '@/types/atlas';
 
 export type SheetHeight = 'peek' | 'half' | 'full';
 
@@ -25,6 +26,9 @@ interface EphemeralState {
   map: MaplibreMap | null;
   /** Breadcrumb trail of visited focuses (tours / entities) this session. */
   trail: Crumb[];
+  /** Map share hidden under floating UI; trims the viewport query. Null until
+   *  the shell's first measurement, which holds the viewport queries back. */
+  mapInsets: MapInsets | null;
 
   setLiveScrub: (year: number | null) => void;
   setHover: (id: string | null) => void;
@@ -32,6 +36,7 @@ interface EphemeralState {
   setSheet: (height: SheetHeight) => void;
   setMap: (map: MaplibreMap | null) => void;
   setTrail: (updater: (prev: Crumb[]) => Crumb[]) => void;
+  setMapInsets: (insets: MapInsets) => void;
 }
 
 export const useEphemeralStore = create<EphemeralState>()((set) => ({
@@ -41,6 +46,7 @@ export const useEphemeralStore = create<EphemeralState>()((set) => ({
   sheet: 'peek',
   map: null,
   trail: [],
+  mapInsets: null,
 
   setLiveScrub: (liveScrub) => set({ liveScrub }),
   setHover: (hoverId) => set({ hoverId }),
@@ -48,4 +54,5 @@ export const useEphemeralStore = create<EphemeralState>()((set) => ({
   setSheet: (sheet) => set({ sheet }),
   setMap: (map) => set({ map }),
   setTrail: (updater) => set((s) => ({ trail: updater(s.trail) })),
+  setMapInsets: (mapInsets) => set({ mapInsets }),
 }));
