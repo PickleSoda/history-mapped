@@ -1,0 +1,1853 @@
+{
+ "schema": 3,
+ "slug": "battle-of-navarino",
+ "kind": "naval_battle",
+ "entity": {
+  "name": "Battle of Navarino",
+  "wikidata": "Q238440"
+ },
+ "title": "Battle of Navarino",
+ "date_label": "20 October 1827",
+ "year": 1827,
+ "intro": "On 20 October 1827 a combined British, French and Russian fleet sailed into Navarino Bay on the\n        south-west coast of the Peloponnese, where an Ottoman-Egyptian fleet lay at anchor. The Allies meant to\n        press an armistice on the Ottomans during the Greek War of Independence and had decided, after weeks of\n        blockade, that the only practical way was a show of force inside the harbour. Shots exchanged at the\n        harbour mouth grew into a general engagement fought mostly at point-blank range between anchored ships.\n        In about four hours the Ottoman fleet was wrecked, at small cost to the Allies.",
+ "outcome": "Decisive Allied victory: most of the Ottoman-Egyptian fleet was destroyed; Allied losses were 181 killed and 480 wounded.",
+ "uncertainty": "Positions of individual ships, the exact curve of the Ottoman horseshoe and the Allied\n        approach lanes are reconstructed from the general description (conjectural). The sea and mainland coast are\n        left to the base map; only Sphacteria is outlined. Who fired first is disputed,\n        and the Allies blame the Ottomans. Ottoman casualty figures, about 3,000 killed and 1,109 wounded, come from\n        Letellier through Codrington, who thought the proportion might be reversed.",
+ "sources": [
+  {
+   "title": "Battle of Navarino — Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Battle_of_Navarino",
+   "kind": "web"
+  }
+ ],
+ "sides": [
+  {
+   "id": "allied",
+   "name": "Allied squadrons",
+   "color": "#1d4ed8",
+   "polity": {
+    "name": "British Empire",
+    "wikidata": "Q8680"
+   },
+   "contingents": [
+    {
+     "id": "british",
+     "name": "British Empire",
+     "wikidata": "Q8680",
+     "color": "#1d4ed8"
+    },
+    {
+     "id": "french",
+     "name": "Bourbon Restoration in France",
+     "wikidata": "Q207162",
+     "color": "#38bdf8"
+    },
+    {
+     "id": "russian",
+     "name": "Russian Empire",
+     "wikidata": "Q34266",
+     "color": "#0f766e"
+    }
+   ],
+   "commanders": [
+    {
+     "name": "Edward Codrington",
+     "wikidata": "Q958853",
+     "role": "British commander, Asia"
+    },
+    {
+     "name": "Henri de Rigny",
+     "wikidata": "Q2634483",
+     "role": "French commander, Sirene"
+    },
+    {
+     "name": "Lodewijk van Heiden",
+     "wikidata": "Q928539",
+     "role": "Russian commander"
+    }
+   ],
+   "strength": "10 ships of the line, 10 frigates and smaller craft; 1,252 guns, about 8,000 men",
+   "losses": "181 killed, 480 wounded"
+  },
+  {
+   "id": "ottoman",
+   "name": "Ottoman-Egyptian fleet",
+   "color": "#b91c1c",
+   "polity": {
+    "name": "Ottoman Empire",
+    "wikidata": "Q12560"
+   },
+   "commanders": [
+    {
+     "name": "Tahir Pasha",
+     "role": "Ottoman admiral"
+    },
+    {
+     "name": "Moharram Bey",
+     "role": "Egyptian squadron"
+    }
+   ],
+   "strength": "3 ships of the line, 17 frigates and many smaller vessels; 2,158 guns, about 20,000 men",
+   "losses": "About 4,000 killed or wounded, 55 ships lost"
+  }
+ ],
+ "units": [
+  {
+   "id": "br-line",
+   "side": "allied",
+   "contingent": "british",
+   "kind": "warship",
+   "label": "British line ships",
+   "strength": "3 ships"
+  },
+  {
+   "id": "br-frig",
+   "side": "allied",
+   "contingent": "british",
+   "kind": "warship",
+   "label": "Armide, Talbot",
+   "strength": "2 frigates"
+  },
+  {
+   "id": "br-small",
+   "side": "allied",
+   "contingent": "british",
+   "kind": "warship",
+   "label": "Dartmouth, brigs",
+   "strength": "frigate, 2 brigs, 4 schooners"
+  },
+  {
+   "id": "fr-sirene",
+   "side": "allied",
+   "contingent": "french",
+   "kind": "warship",
+   "label": "Sirene (Rigny)",
+   "strength": "frigate"
+  },
+  {
+   "id": "fr-line",
+   "side": "allied",
+   "contingent": "french",
+   "kind": "warship",
+   "label": "Scipion, Trident",
+   "strength": "2 ships"
+  },
+  {
+   "id": "fr-breslaw",
+   "side": "allied",
+   "contingent": "french",
+   "kind": "warship",
+   "label": "Breslaw",
+   "strength": "84 guns"
+  },
+  {
+   "id": "fr-small",
+   "side": "allied",
+   "contingent": "french",
+   "kind": "warship",
+   "label": "French schooners",
+   "strength": "Alcyone, Daphne"
+  },
+  {
+   "id": "ru-line",
+   "side": "allied",
+   "contingent": "russian",
+   "kind": "warship",
+   "label": "Russian line ships",
+   "strength": "Azov, Gangut, Iezekiil"
+  },
+  {
+   "id": "ru-frig",
+   "side": "allied",
+   "contingent": "russian",
+   "kind": "warship",
+   "label": "Russian frigates"
+  },
+  {
+   "id": "codrington",
+   "side": "allied",
+   "contingent": "british",
+   "kind": "commander",
+   "label": "Codrington"
+  },
+  {
+   "id": "rigny",
+   "side": "allied",
+   "contingent": "french",
+   "kind": "commander",
+   "label": "Rigny"
+  },
+  {
+   "id": "heiden",
+   "side": "allied",
+   "contingent": "russian",
+   "kind": "commander",
+   "label": "Van Heiden"
+  },
+  {
+   "id": "ot-centre",
+   "side": "ottoman",
+   "kind": "warship",
+   "label": "Ottoman front line",
+   "strength": "3 ships of the line"
+  },
+  {
+   "id": "ot-left",
+   "side": "ottoman",
+   "kind": "warship",
+   "label": "Egyptian wing"
+  },
+  {
+   "id": "ot-right",
+   "side": "ottoman",
+   "kind": "warship",
+   "label": "Ottoman right wing"
+  },
+  {
+   "id": "ot-second",
+   "side": "ottoman",
+   "kind": "warship",
+   "label": "Second line"
+  },
+  {
+   "id": "ot-third",
+   "side": "ottoman",
+   "kind": "warship",
+   "label": "Third line"
+  },
+  {
+   "id": "ot-fire",
+   "side": "ottoman",
+   "kind": "warship",
+   "label": "Fireships",
+   "strength": "5-6 fireships"
+  },
+  {
+   "id": "ot-fort",
+   "side": "ottoman",
+   "kind": "artillery",
+   "label": "Navarino fort"
+  },
+  {
+   "id": "ot-batt",
+   "side": "ottoman",
+   "kind": "artillery",
+   "label": "Sphacteria battery"
+  }
+ ],
+ "terrain": [
+  {
+   "id": "sphacteria",
+   "kind": "island",
+   "label": "Sphacteria",
+   "area": [
+    [
+     21.65365,
+     36.94772
+    ],
+    [
+     21.65918,
+     36.94097
+    ],
+    [
+     21.65953,
+     36.93875
+    ],
+    [
+     21.65875,
+     36.9386
+    ],
+    [
+     21.65958,
+     36.93719
+    ],
+    [
+     21.6583,
+     36.93648
+    ],
+    [
+     21.6606,
+     36.93536
+    ],
+    [
+     21.66126,
+     36.93421
+    ],
+    [
+     21.66021,
+     36.93366
+    ],
+    [
+     21.66227,
+     36.93187
+    ],
+    [
+     21.66168,
+     36.93074
+    ],
+    [
+     21.66313,
+     36.9302
+    ],
+    [
+     21.66472,
+     36.92764
+    ],
+    [
+     21.66417,
+     36.92647
+    ],
+    [
+     21.66571,
+     36.92325
+    ],
+    [
+     21.66316,
+     36.92112
+    ],
+    [
+     21.66486,
+     36.91589
+    ],
+    [
+     21.66668,
+     36.91293
+    ],
+    [
+     21.66813,
+     36.91237
+    ],
+    [
+     21.66847,
+     36.9105
+    ],
+    [
+     21.66961,
+     36.91031
+    ],
+    [
+     21.66982,
+     36.90941
+    ],
+    [
+     21.67168,
+     36.90958
+    ],
+    [
+     21.67251,
+     36.91145
+    ],
+    [
+     21.6728,
+     36.91046
+    ],
+    [
+     21.67357,
+     36.91156
+    ],
+    [
+     21.67421,
+     36.9111
+    ],
+    [
+     21.67406,
+     36.91283
+    ],
+    [
+     21.67554,
+     36.91414
+    ],
+    [
+     21.67435,
+     36.91889
+    ],
+    [
+     21.6748,
+     36.92118
+    ],
+    [
+     21.66669,
+     36.93586
+    ],
+    [
+     21.6639,
+     36.9432
+    ],
+    [
+     21.66353,
+     36.94834
+    ],
+    [
+     21.66068,
+     36.95011
+    ],
+    [
+     21.65792,
+     36.94886
+    ],
+    [
+     21.65476,
+     36.94917
+    ],
+    [
+     21.65365,
+     36.94772
+    ]
+   ]
+  },
+  {
+   "id": "pylos",
+   "kind": "town",
+   "label": "Pylos",
+   "at": [
+    21.696443,
+    36.915595
+   ]
+  },
+  {
+   "id": "neokastro",
+   "kind": "fortification",
+   "label": "Neokastro",
+   "area": [
+    [
+     21.69831,
+     36.913914
+    ],
+    [
+     21.698245,
+     36.914217
+    ],
+    [
+     21.698054,
+     36.914499
+    ],
+    [
+     21.69775,
+     36.914741
+    ],
+    [
+     21.697354,
+     36.914926
+    ],
+    [
+     21.696893,
+     36.915043
+    ],
+    [
+     21.696398,
+     36.915083
+    ],
+    [
+     21.695903,
+     36.915043
+    ],
+    [
+     21.695442,
+     36.914926
+    ],
+    [
+     21.695046,
+     36.914741
+    ],
+    [
+     21.694742,
+     36.914499
+    ],
+    [
+     21.694551,
+     36.914217
+    ],
+    [
+     21.694486,
+     36.913914
+    ],
+    [
+     21.694551,
+     36.913611
+    ],
+    [
+     21.694742,
+     36.913329
+    ],
+    [
+     21.695046,
+     36.913087
+    ],
+    [
+     21.695442,
+     36.912902
+    ],
+    [
+     21.695903,
+     36.912785
+    ],
+    [
+     21.696398,
+     36.912745
+    ],
+    [
+     21.696893,
+     36.912785
+    ],
+    [
+     21.697354,
+     36.912902
+    ],
+    [
+     21.69775,
+     36.913087
+    ],
+    [
+     21.698054,
+     36.913329
+    ],
+    [
+     21.698245,
+     36.913611
+    ]
+   ]
+  },
+  {
+   "id": "south-entrance",
+   "kind": "label",
+   "label": "Southern entrance",
+   "at": [
+    21.683054,
+    36.908401
+   ]
+  },
+  {
+   "id": "sykia",
+   "kind": "label",
+   "label": "Sykia channel (shallow)",
+   "at": [
+    21.659022,
+    36.950138
+   ]
+  },
+  {
+   "id": "paliokastro",
+   "kind": "building",
+   "label": "Old Navarino castle",
+   "at": [
+    21.657075,
+    36.958817
+   ]
+  },
+  {
+   "id": "bay",
+   "kind": "label",
+   "label": "Navarino Bay",
+   "at": [
+    21.69228,
+    36.943025
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "id": "blockade",
+   "title": "Blockade off the bay",
+   "time": "12 September to 12 October",
+   "narrative": "Navarino Bay, about five kilometres long and sheltered by the islet of Sphacteria, was the Ottoman navy's main base in the Peloponnese. Ibrahim Pasha's fleet, which left Alexandria on 5 August and joined other Ottoman ships there on 8 September, lay at anchor inside. Codrington arrived off the entrance on 12 September, talked with Ibrahim on 25 September and then withdrew to Zante, leaving a frigate to watch. Twice in early October he turned Ibrahim's sorties toward Patras back to port.",
+   "positions": {
+    "ot-centre": {
+     "at": [
+      21.686655,
+      36.929535
+     ],
+     "facing": 180,
+     "width": 700,
+     "depth": 60,
+     "conjectural": true
+    },
+    "ot-left": {
+     "at": [
+      21.697906,
+      36.924588
+     ],
+     "facing": 235,
+     "width": 700,
+     "depth": 60,
+     "conjectural": true
+    },
+    "ot-right": {
+     "at": [
+      21.678216,
+      36.924588
+     ],
+     "facing": 135,
+     "width": 700,
+     "depth": 60,
+     "conjectural": true
+    },
+    "ot-second": {
+     "at": [
+      21.686655,
+      36.933132
+     ],
+     "facing": 180,
+     "width": 1500,
+     "depth": 60,
+     "conjectural": true
+    },
+    "ot-third": {
+     "at": [
+      21.686655,
+      36.936549
+     ],
+     "facing": 180,
+     "width": 1700,
+     "depth": 60,
+     "conjectural": true
+    },
+    "ot-fire": {
+     "at": [
+      21.693968,
+      36.917394
+     ],
+     "facing": 200,
+     "width": 350,
+     "depth": 50,
+     "conjectural": true
+    },
+    "ot-fort": {
+     "at": [
+      21.698244,
+      36.913977
+     ],
+     "facing": 225,
+     "width": 140,
+     "depth": 90
+    },
+    "ot-batt": {
+     "at": [
+      21.669215,
+      36.912448
+     ],
+     "facing": 135,
+     "width": 140,
+     "depth": 90,
+     "conjectural": true
+    },
+    "br-line": {
+     "at": [
+      21.684405,
+      36.889065
+     ],
+     "facing": 0,
+     "width": 90,
+     "depth": 260
+    },
+    "br-frig": {
+     "at": [
+      21.683054,
+      36.890864
+     ],
+     "facing": 0,
+     "width": 70,
+     "depth": 200
+    },
+    "br-small": {
+     "at": [
+      21.686092,
+      36.890864
+     ],
+     "facing": 0,
+     "width": 70,
+     "depth": 200
+    },
+    "codrington": {
+     "with": "br-line"
+    }
+   },
+   "camera": {
+    "center": [
+     21.684405,
+     36.914246
+    ],
+    "zoom": 12.7
+   }
+  },
+  {
+   "id": "gathering",
+   "title": "The three squadrons meet",
+   "time": "13 to 18 October",
+   "narrative": "On 13 October the French squadron under Rigny and the Russian squadron under Van Heiden joined Codrington off Navarino. Behind the bay Ibrahim's troops were burning villages and fields, and a British landing party found Messinia close to famine. After futile attempts to reach Ibrahim, the three admirals met on 18 October and decided that a winter blockade was impracticable and that the population had to be protected. They resolved to anchor their ships face to face with the Ottoman fleet.",
+   "positions": {
+    "fr-sirene": {
+     "at": [
+      21.68913,
+      36.887716
+     ],
+     "facing": 0,
+     "width": 60,
+     "depth": 100
+    },
+    "fr-line": {
+     "at": [
+      21.689468,
+      36.890864
+     ],
+     "facing": 0,
+     "width": 80,
+     "depth": 200
+    },
+    "fr-breslaw": {
+     "at": [
+      21.689805,
+      36.892663
+     ],
+     "facing": 0,
+     "width": 60,
+     "depth": 100
+    },
+    "fr-small": {
+     "at": [
+      21.691155,
+      36.890864
+     ],
+     "facing": 0,
+     "width": 60,
+     "depth": 160
+    },
+    "ru-line": {
+     "at": [
+      21.678779,
+      36.887267
+     ],
+     "facing": 0,
+     "width": 100,
+     "depth": 300
+    },
+    "ru-frig": {
+     "at": [
+      21.677091,
+      36.889965
+     ],
+     "facing": 0,
+     "width": 80,
+     "depth": 200
+    },
+    "rigny": {
+     "with": "fr-sirene"
+    },
+    "heiden": {
+     "with": "ru-line"
+    }
+   },
+   "notes": [
+    {
+     "at": [
+      21.684405,
+      36.895361
+     ],
+     "text": "Council of 18 Oct decides to enter",
+     "kind": "event"
+    }
+   ],
+   "camera": {
+    "center": [
+     21.684405,
+     36.914246
+    ],
+    "zoom": 12.7
+   }
+  },
+  {
+   "id": "prepare",
+   "title": "Off the entrance",
+   "time": "1:30 p.m., 20 October",
+   "narrative": "Inside, the Ottoman-Egyptian fleet stood in a horseshoe plan devised by the French officer Letellier: three lines from Navarino fort round to the Sphacteria battery, ships of the line and large frigates in front, corvettes and brigs behind to fire through the gaps, fireships on the ends. Outside, Codrington signalled to prepare for action. Gun ports stayed half open and captains were ordered to fire only if attacked. The wind blew from the south-west, straight up the entrance.",
+   "positions": {
+    "br-line": {
+     "at": [
+      21.684405,
+      36.897159
+     ]
+    },
+    "br-frig": {
+     "at": [
+      21.682942,
+      36.898508
+     ]
+    },
+    "br-small": {
+     "at": [
+      21.686092,
+      36.898958
+     ]
+    },
+    "fr-sirene": {
+     "at": [
+      21.689243,
+      36.89581
+     ]
+    },
+    "fr-line": {
+     "at": [
+      21.689693,
+      36.897609
+     ]
+    },
+    "fr-breslaw": {
+     "at": [
+      21.689918,
+      36.898958
+     ]
+    },
+    "fr-small": {
+     "at": [
+      21.691493,
+      36.898059
+     ]
+    },
+    "ru-line": {
+     "at": [
+      21.678779,
+      36.895361
+     ]
+    },
+    "ru-frig": {
+     "at": [
+      21.677091,
+      36.897159
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "br-line",
+     "type": "sail",
+     "path": [
+      [
+       21.684405,
+       36.889065
+      ],
+      [
+       21.684405,
+       36.897159
+      ]
+     ]
+    },
+    {
+     "unit": "br-frig",
+     "type": "sail",
+     "path": [
+      [
+       21.683054,
+       36.890864
+      ],
+      [
+       21.682942,
+       36.898508
+      ]
+     ]
+    },
+    {
+     "unit": "br-small",
+     "type": "sail",
+     "path": [
+      [
+       21.686092,
+       36.890864
+      ],
+      [
+       21.686092,
+       36.898958
+      ]
+     ]
+    },
+    {
+     "unit": "fr-sirene",
+     "type": "sail",
+     "path": [
+      [
+       21.68913,
+       36.887716
+      ],
+      [
+       21.689243,
+       36.89581
+      ]
+     ]
+    },
+    {
+     "unit": "fr-line",
+     "type": "sail",
+     "path": [
+      [
+       21.689468,
+       36.890864
+      ],
+      [
+       21.689693,
+       36.897609
+      ]
+     ]
+    },
+    {
+     "unit": "fr-breslaw",
+     "type": "sail",
+     "path": [
+      [
+       21.689805,
+       36.892663
+      ],
+      [
+       21.689918,
+       36.898958
+      ]
+     ]
+    },
+    {
+     "unit": "fr-small",
+     "type": "sail",
+     "path": [
+      [
+       21.691155,
+       36.890864
+      ],
+      [
+       21.691493,
+       36.898059
+      ]
+     ]
+    },
+    {
+     "unit": "ru-line",
+     "type": "sail",
+     "path": [
+      [
+       21.678779,
+       36.887267
+      ],
+      [
+       21.678779,
+       36.895361
+      ]
+     ]
+    },
+    {
+     "unit": "ru-frig",
+     "type": "sail",
+     "path": [
+      [
+       21.677091,
+       36.889965
+      ],
+      [
+       21.677091,
+       36.897159
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      21.684405,
+      36.901656
+     ],
+     "text": "Signal: prepare for action",
+     "kind": "event"
+    }
+   ],
+   "camera": {
+    "center": [
+     21.684405,
+     36.914246
+    ],
+    "zoom": 12.7
+   }
+  },
+  {
+   "id": "entry",
+   "title": "The Allies sail in",
+   "time": "About 2 p.m.",
+   "narrative": "Codrington leads in Asia, the British ships followed by the French along the south-east side, closest to Navarino, and the Russians to port, abreast of the French but slightly behind. The shore batteries and the Ottoman corvettes at the mouth make no attempt to stop them through the southern channel, which was 1,500 m wide but only about 1,000 m usable because of rocks. A launch brings Ibrahim's protest. Codrington replies that he has come to give orders, not to receive them.",
+   "positions": {
+    "br-line": {
+     "at": [
+      21.684405,
+      36.906152
+     ]
+    },
+    "br-frig": {
+     "at": [
+      21.682942,
+      36.907951
+     ]
+    },
+    "br-small": {
+     "at": [
+      21.686092,
+      36.904803
+     ]
+    },
+    "fr-sirene": {
+     "at": [
+      21.688455,
+      36.903904
+     ]
+    },
+    "fr-line": {
+     "at": [
+      21.689468,
+      36.906602
+     ]
+    },
+    "fr-breslaw": {
+     "at": [
+      21.689805,
+      36.904803
+     ]
+    },
+    "fr-small": {
+     "at": [
+      21.692055,
+      36.905703
+     ]
+    },
+    "ru-line": {
+     "at": [
+      21.678216,
+      36.903454
+     ]
+    },
+    "ru-frig": {
+     "at": [
+      21.676529,
+      36.902105
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "br-line",
+     "type": "sail",
+     "path": [
+      [
+       21.684405,
+       36.897159
+      ],
+      [
+       21.684405,
+       36.906152
+      ]
+     ]
+    },
+    {
+     "unit": "br-frig",
+     "type": "sail",
+     "path": [
+      [
+       21.682942,
+       36.898508
+      ],
+      [
+       21.682942,
+       36.907951
+      ]
+     ]
+    },
+    {
+     "unit": "br-small",
+     "type": "sail",
+     "path": [
+      [
+       21.686092,
+       36.898958
+      ],
+      [
+       21.686092,
+       36.904803
+      ]
+     ]
+    },
+    {
+     "unit": "fr-sirene",
+     "type": "sail",
+     "path": [
+      [
+       21.689243,
+       36.89581
+      ],
+      [
+       21.688455,
+       36.903904
+      ]
+     ]
+    },
+    {
+     "unit": "fr-line",
+     "type": "sail",
+     "path": [
+      [
+       21.689693,
+       36.897609
+      ],
+      [
+       21.689468,
+       36.906602
+      ]
+     ]
+    },
+    {
+     "unit": "fr-breslaw",
+     "type": "sail",
+     "path": [
+      [
+       21.689918,
+       36.898958
+      ],
+      [
+       21.689805,
+       36.904803
+      ]
+     ]
+    },
+    {
+     "unit": "fr-small",
+     "type": "sail",
+     "path": [
+      [
+       21.691493,
+       36.898059
+      ],
+      [
+       21.692055,
+       36.905703
+      ]
+     ]
+    },
+    {
+     "unit": "ru-line",
+     "type": "sail",
+     "path": [
+      [
+       21.678779,
+       36.895361
+      ],
+      [
+       21.678216,
+       36.903454
+      ]
+     ]
+    },
+    {
+     "unit": "ru-frig",
+     "type": "sail",
+     "path": [
+      [
+       21.677091,
+       36.897159
+      ],
+      [
+       21.676529,
+       36.902105
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      21.684405,
+      36.9093
+     ],
+     "text": "Entrance passed unopposed",
+     "kind": "event"
+    }
+   ],
+   "camera": {
+    "center": [
+     21.684967,
+     36.907951
+    ],
+    "zoom": 13.7
+   }
+  },
+  {
+   "id": "anchoring",
+   "title": "Anchoring in the crescent",
+   "time": "About 2:15 p.m.",
+   "narrative": "By a quarter past two the three British ships of the line had dropped anchor in their allotted places in the middle of the Ottoman line, and a band played on Asia's deck to show peaceful intent. As they did so, trumpets sounded action stations along the Ottoman lines. Behind the leaders the French were still sailing toward the Egyptian end of the horseshoe and the Russians, who were to anchor last, were still some way short of their berths on the western wing.",
+   "positions": {
+    "br-line": {
+     "at": [
+      21.686655,
+      36.927961
+     ],
+     "depth": 50,
+     "width": 420
+    },
+    "br-frig": {
+     "at": [
+      21.680579,
+      36.92234
+     ],
+     "width": 170,
+     "depth": 60
+    },
+    "fr-sirene": {
+     "at": [
+      21.692506,
+      36.911099
+     ]
+    },
+    "fr-line": {
+     "at": [
+      21.693181,
+      36.913797
+     ]
+    },
+    "fr-breslaw": {
+     "at": [
+      21.68688,
+      36.910649
+     ]
+    },
+    "fr-small": {
+     "at": [
+      21.695093,
+      36.90975
+     ]
+    },
+    "ru-line": {
+     "at": [
+      21.678216,
+      36.911548
+     ]
+    },
+    "ru-frig": {
+     "at": [
+      21.679904,
+      36.908401
+     ]
+    },
+    "br-small": {
+     "at": [
+      21.690593,
+      36.90975
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "br-line",
+     "type": "advance",
+     "path": [
+      [
+       21.684405,
+       36.906152
+      ],
+      [
+       21.686655,
+       36.927961
+      ]
+     ]
+    },
+    {
+     "unit": "br-frig",
+     "type": "advance",
+     "path": [
+      [
+       21.682942,
+       36.907951
+      ],
+      [
+       21.680579,
+       36.92234
+      ]
+     ]
+    },
+    {
+     "unit": "fr-sirene",
+     "type": "sail",
+     "path": [
+      [
+       21.688455,
+       36.903904
+      ],
+      [
+       21.692506,
+       36.911099
+      ]
+     ]
+    },
+    {
+     "unit": "fr-line",
+     "type": "sail",
+     "path": [
+      [
+       21.689468,
+       36.906602
+      ],
+      [
+       21.693181,
+       36.913797
+      ]
+     ]
+    },
+    {
+     "unit": "fr-breslaw",
+     "type": "sail",
+     "path": [
+      [
+       21.689805,
+       36.904803
+      ],
+      [
+       21.68688,
+       36.910649
+      ]
+     ]
+    },
+    {
+     "unit": "fr-small",
+     "type": "sail",
+     "path": [
+      [
+       21.692055,
+       36.905703
+      ],
+      [
+       21.695093,
+       36.90975
+      ]
+     ]
+    },
+    {
+     "unit": "ru-line",
+     "type": "sail",
+     "path": [
+      [
+       21.678216,
+       36.903454
+      ],
+      [
+       21.678216,
+       36.911548
+      ]
+     ]
+    },
+    {
+     "unit": "ru-frig",
+     "type": "sail",
+     "path": [
+      [
+       21.676529,
+       36.902105
+      ],
+      [
+       21.679904,
+       36.908401
+      ]
+     ]
+    },
+    {
+     "unit": "br-small",
+     "type": "sail",
+     "path": [
+      [
+       21.686092,
+       36.904803
+      ],
+      [
+       21.690593,
+       36.90975
+      ]
+     ]
+    }
+   ],
+   "camera": {
+    "center": [
+     21.684405,
+     36.914246
+    ],
+    "zoom": 12.7
+   }
+  },
+  {
+   "id": "fireship",
+   "title": "The fireship and the first shots",
+   "time": "About 2:20 p.m.",
+   "narrative": "At the mouth Captain Fellowes of Dartmouth, with two brigs and four schooners, was watching the corvettes and fireships on the Ottoman left. He saw a fireship being readied and sent a boat to make the crew desist. The Ottomans fired on the boat and lit the fireship. A cutter sent to tow it away was also fired on, and Fellowes had his men cover it with muskets. Sirene, entering at the tail of the line, joined in and an Ottoman corvette hit her with its guns.",
+   "positions": {
+    "br-small": {
+     "at": [
+      21.690593,
+      36.913797
+     ],
+     "width": 180,
+     "depth": 50,
+     "state": "engaged"
+    },
+    "ot-fire": {
+     "state": "engaged"
+    },
+    "fr-sirene": {
+     "at": [
+      21.692055,
+      36.912448
+     ],
+     "state": "engaged"
+    },
+    "ot-fort": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "br-small",
+     "type": "advance",
+     "path": [
+      [
+       21.690593,
+       36.90975
+      ],
+      [
+       21.690593,
+       36.913797
+      ]
+     ]
+    },
+    {
+     "unit": "fr-sirene",
+     "type": "advance",
+     "path": [
+      [
+       21.692506,
+       36.911099
+      ],
+      [
+       21.692055,
+       36.912448
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      21.693406,
+      36.915595
+     ],
+     "text": "Fireship lit; first shots",
+     "kind": "clash"
+    },
+    {
+     "at": [
+      21.689468,
+      36.911998
+     ],
+     "text": "Fellowes' boat fired on",
+     "kind": "event",
+     "conjectural": true
+    }
+   ],
+   "camera": {
+    "center": [
+     21.69228,
+     36.914696
+    ],
+    "zoom": 14.3
+   }
+  },
+  {
+   "id": "french",
+   "title": "The French on the Egyptian wing",
+   "time": "About 2:30 p.m.",
+   "narrative": "The chain reaction ran along the line within minutes. Scipion, behind Rigny's Sirene, was hit by Egyptian frigates on both sides, by the fort and by a fireship that jammed under her bowsprit and set her fore sails alight. Her crew went on firing while Trident took the fireship in tow with help from Dartmouth. Sirene fought a long duel with the 64-gun Ihsania until the Ottoman frigate blew up, then with Trident and Scipion silenced the fort.",
+   "positions": {
+    "fr-sirene": {
+     "at": [
+      21.697621,
+      36.922562
+     ],
+     "facing": 55,
+     "width": 110,
+     "depth": 60
+    },
+    "fr-line": {
+     "at": [
+      21.695685,
+      36.924772
+     ],
+     "facing": 55,
+     "width": 230,
+     "depth": 60,
+     "state": "engaged"
+    },
+    "fr-small": {
+     "at": [
+      21.695093,
+      36.914696
+     ],
+     "width": 170,
+     "depth": 60
+    },
+    "ot-left": {
+     "state": "engaged"
+    },
+    "ot-fire": {
+     "state": "burning"
+    }
+   },
+   "moves": [
+    {
+     "unit": "fr-sirene",
+     "type": "advance",
+     "path": [
+      [
+       21.692055,
+       36.912448
+      ],
+      [
+       21.697621,
+       36.922562
+      ]
+     ]
+    },
+    {
+     "unit": "fr-line",
+     "type": "advance",
+     "path": [
+      [
+       21.693181,
+       36.913797
+      ],
+      [
+       21.695685,
+       36.924772
+      ]
+     ]
+    },
+    {
+     "unit": "fr-small",
+     "type": "advance",
+     "path": [
+      [
+       21.695093,
+       36.90975
+      ],
+      [
+       21.695093,
+       36.914696
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      21.697169,
+      36.924175
+     ],
+     "text": "Ihsania blows up",
+     "kind": "death",
+     "conjectural": true
+    },
+    {
+     "at": [
+      21.696556,
+      36.916495
+     ],
+     "text": "Scipion nearly lost to fireship",
+     "kind": "event"
+    }
+   ],
+   "camera": {
+    "center": [
+     21.693968,
+     36.918743
+    ],
+    "zoom": 14.2
+   }
+  },
+  {
+   "id": "centre",
+   "title": "Asia in the centre",
+   "time": "About 3 p.m.",
+   "narrative": "Codrington's Asia lay between the Capitan Bey's flagship Fahti Bahri and Moharram Bey's frigate Guerriere. Moharram sent word that he would not attack, so Asia pounded the poorly manned Fahti Bahri. When Codrington's Greek interpreter was shot dead boarding Guerriere, she opened fire and was soon a burning wreck under the broadsides of Asia and Azov. Albion was pressed by all three Ottoman ships of the line until Breslaw left the French and came to her help.",
+   "positions": {
+    "fr-breslaw": {
+     "at": [
+      21.683505,
+      36.926387
+     ],
+     "width": 110,
+     "depth": 60,
+     "state": "engaged",
+     "conjectural": true
+    },
+    "br-line": {
+     "state": "engaged"
+    },
+    "ot-centre": {
+     "state": "engaged"
+    },
+    "ot-second": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "fr-breslaw",
+     "type": "advance",
+     "path": [
+      [
+       21.68688,
+       36.910649
+      ],
+      [
+       21.683505,
+       36.926387
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      21.686655,
+      36.926837
+     ],
+     "text": "Guerriere set ablaze",
+     "kind": "death",
+     "conjectural": true
+    }
+   ],
+   "camera": {
+    "center": [
+     21.684967,
+     36.925937
+    ],
+    "zoom": 14.0
+   }
+  },
+  {
+   "id": "russians",
+   "title": "The Russians on the exposed wing",
+   "time": "About 3:30 p.m.",
+   "narrative": "The Russians under Van Heiden anchored last, on the right end of the Ottoman crescent, the most exposed position. Azov sank or disabled three large frigates and a corvette but took 153 hits, several below the waterline. The British frigates Armide and Talbot at first faced the Ottoman right-wing frigates and the Sphacteria battery alone, since their other two frigates were away, until the Russian frigates came up and saved them.",
+   "positions": {
+    "ru-line": {
+     "at": [
+      21.679648,
+      36.923443
+     ],
+     "facing": 315,
+     "depth": 60,
+     "width": 330,
+     "state": "engaged"
+    },
+    "ru-frig": {
+     "at": [
+      21.681,
+      36.924906
+     ],
+     "facing": 315,
+     "width": 170,
+     "depth": 60,
+     "state": "engaged"
+    },
+    "br-frig": {
+     "state": "engaged"
+    },
+    "ot-right": {
+     "state": "engaged"
+    },
+    "ot-batt": {
+     "state": "engaged"
+    },
+    "ot-third": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "ru-line",
+     "type": "advance",
+     "path": [
+      [
+       21.678216,
+       36.911548
+      ],
+      [
+       21.679648,
+       36.923443
+      ]
+     ]
+    },
+    {
+     "unit": "ru-frig",
+     "type": "advance",
+     "path": [
+      [
+       21.679904,
+       36.908401
+      ],
+      [
+       21.681,
+       36.924906
+      ]
+     ]
+    }
+   ],
+   "camera": {
+    "center": [
+     21.679904,
+     36.920542
+    ],
+    "zoom": 14.0
+   }
+  },
+  {
+   "id": "first-line",
+   "title": "The first line is broken",
+   "time": "About 4 p.m.",
+   "narrative": "By around four o'clock all three Ottoman ships of the line and most of the large frigates of the front line were finished, and the fort and the Sphacteria battery were silent. The small British and French vessels under Dartmouth had kept the fireships away: apart from the attack on Scipion not one struck a target. The smaller craft of the second and third lines now lay open to Allied ships of the line, all of which were still fighting.",
+   "positions": {
+    "ot-centre": {
+     "state": "destroyed"
+    },
+    "ot-left": {
+     "state": "burning"
+    },
+    "ot-right": {
+     "state": "burning"
+    },
+    "ot-fort": {
+     "state": "destroyed"
+    },
+    "ot-batt": {
+     "state": "destroyed"
+    },
+    "ot-fire": {
+     "state": "destroyed"
+    },
+    "br-small": {
+     "state": "ready"
+    },
+    "fr-small": {
+     "state": "ready"
+    }
+   },
+   "notes": [
+    {
+     "at": [
+      21.686655,
+      36.929535
+     ],
+     "text": "Tahir's Ghiuh Rewan destroyed",
+     "kind": "death"
+    }
+   ],
+   "camera": {
+    "center": [
+     21.684967,
+     36.92234
+    ],
+    "zoom": 13.7
+   }
+  },
+  {
+   "id": "destruction",
+   "title": "Destruction of the rear lines",
+   "time": "4 to 6 p.m.",
+   "narrative": "Codrington twice tried to order a ceasefire, but his signals vanished in the smoke or were ignored. Within two hours virtually the whole Ottoman fleet was destroyed, despite the bravery of its crews, which Codrington himself praised. Many dismasted hulks that could have been repaired were fired or blown up by their own crews to keep them from Allied hands, and men were trapped in the burning ships. Some had been shackled to their posts. Three quarters of the fleet was sunk.",
+   "positions": {
+    "ot-second": {
+     "state": "burning"
+    },
+    "br-small": {
+     "state": "hidden"
+    },
+    "fr-small": {
+     "state": "hidden"
+    },
+    "codrington": {
+     "state": "hidden"
+    },
+    "rigny": {
+     "state": "hidden"
+    },
+    "heiden": {
+     "state": "hidden"
+    },
+    "ot-third": {
+     "state": "sunk"
+    },
+    "ot-centre": {
+     "state": "sunk"
+    },
+    "ot-left": {
+     "state": "sunk"
+    },
+    "ot-right": {
+     "state": "sunk"
+    }
+   },
+   "notes": [
+    {
+     "at": [
+      21.686655,
+      36.934931
+     ],
+     "text": "Ceasefire signals lost in smoke",
+     "kind": "event"
+    }
+   ],
+   "camera": {
+    "center": [
+     21.684967,
+     36.92234
+    ],
+    "zoom": 13.7
+   }
+  },
+  {
+   "id": "aftermath",
+   "title": "A shattered fleet",
+   "time": "Dusk, 20 October",
+   "narrative": "When the guns fell silent at dusk only eight of the 78 Ottoman and Egyptian vessels were seaworthy. Codrington reported 181 Allied dead and 480 wounded; Letellier gave about 3,000 Ottoman dead and 1,109 wounded, though Codrington thought the proportion might be reversed. Azov, Gangut and Iezekiil were disabled, the three British ships of the line had to go home for repair, and no Allied ship was sunk.",
+   "positions": {
+    "ot-second": {
+     "state": "destroyed"
+    },
+    "ot-third": {
+     "state": "destroyed"
+    },
+    "br-line": {
+     "state": "ready"
+    },
+    "fr-sirene": {
+     "state": "ready"
+    },
+    "fr-line": {
+     "state": "ready"
+    },
+    "fr-breslaw": {
+     "state": "ready"
+    },
+    "br-frig": {
+     "state": "ready"
+    },
+    "ru-line": {
+     "state": "ready"
+    },
+    "ru-frig": {
+     "state": "ready"
+    }
+   },
+   "camera": {
+    "center": [
+     21.684967,
+     36.92234
+    ],
+    "zoom": 13.7
+   }
+  }
+ ]
+}
