@@ -115,9 +115,23 @@ docker compose -f docker/docker-compose.yml exec app php artisan entities:sync-d
 CLI queue --limit 200            # marks the synced battles done and keeps every other status
 ```
 
+**Create the entities the batch links but the atlas lacks.** These are usually commanders and minor polities; the pilot's three battles named 9. Run:
+
+```bash
+M="scripts/capped.sh pipeline/.venv/bin/python3 scripts/map-story-missing-entities.py"
+$M missing --spec-stub api/storage/app/pipeline/story-entities-<date>/spec.json
+```
+
+1. Fill in the spec. The script's docstring lists the fields.
+2. Run `$M build --batch story-entities-<date>`, then `$M import --batch …`, then `$M csv --batch …`.
+3. Run `php artisan map-stories:relink` so the stories pick up the new entities.
+
+**Same-name rows** that `missing` prints (a row with no Q-id, or a wrong one) are fixes to the existing row, not new entities.
+
 Spot-check one story in the atlas (`:5173`) per batch. Commit the builders,
-JSON and descriptions together. Pushing `main` deploys, and production needs
-the same two sync commands.
+JSON and descriptions together. Pushing `main` deploys. Production then needs
+`map-stories:sync`, `entities:sync-descriptions` and `map-stories:relink`.
+New entities reach production only with the next full content load.
 
 ## 4. Measure every batch
 
@@ -182,8 +196,45 @@ builder. `Story` and the layout helpers should keep a builder to roughly 250–3
 lines instead of the samples' 600–930. That is an estimate: the samples each
 hand-wrote their own step recorder and placement maths.
 
-These are targets, not measurements. Re-measure after the pilot batch and replace
-this section with the real numbers.
+### Pilot (2026-11-01): measured
+
+Three battles from the top of the queue, each authored and then reviewed by Sonnet:
+
+| Battle | Author wall | Turns | Billed | Reviewer billed | Verdict |
+|---|---|---|---|---|---|
+| Carrhae | 1 min | 11 | 0.32M | 0.13M | FIXED (1 link) |
+| Navarino | 2 min | 9 | 0.31M | 0.31M | FIXED (contingents) |
+| Blenheim | 3 min | 10 | 0.35M | 0.24M | FIXED (3 facts) |
+| Blenheim, redone with the raised floor | 4 min | 15 | 0.72M | 0.21M | FIXED (dropped hand-drawn Danube) |
+| Carrhae, redone | 5 min | 20 | 1.0M | 0.10M | PASS |
+| Navarino, redone | 4 min | 19 | 0.95M | 0.14M | FIXED (dropped hand-drawn coast and sea) |
+
+That is 25–50× under the token target. The quality was the problem.
+
+**First-pass depth:**
+
+| | Sonnet first pass | Opus samples |
+|---|---|---|
+| Steps | 8–9 | 11–13 |
+| Narrative | 2.6–3.5k characters | 5.9–9.6k characters |
+| Terrain | 2–7 features, rivers hand-drawn | 6–26 |
+
+The first pass also had piles of overlapping labels, and Carrhae's first step is framed so tight that the square fills it. The authors stopped after about 10 of their 60 turns because the definition said "accurate rather than elaborate" and "6–12 steps".
+
+**What changed.** The author definition now asks for:
+- 9–13 steps, one per phase the sources distinguish;
+- narratives of 350–800 characters;
+- terrain from `places --geometry`;
+- the orientation in the module docstring;
+- a readability check.
+
+The reviewer sends back stories that are thin.
+
+**Result.** Re-run under these rules, all three reached 12 steps and 5.0–5.5k characters of narrative, with 7–11 terrain features and cameras on the close fights. That is close to the Opus samples, for 0.7–1.0M tokens and 4–5 minutes per author.
+- **Hand-drawn terrain.** Twice, a reviewer had to remove hand-drawn rivers, coasts or seas that disagreed with the base map. The base map already draws water, so add a coast or river only from `places --geometry`.
+- **Labels** still crowd the widest steps. The next tooling fix is a label-density lint.
+
+**Plan for about 1M per battle, author and reviewer together, and about 5–10 minutes.** The stop rule's 12M is now far above anything seen. Treat an author over 3M as an outlier worth a look.
 
 ## 6. Stop rules
 

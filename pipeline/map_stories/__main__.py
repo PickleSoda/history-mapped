@@ -13,6 +13,7 @@
 
 from __future__ import annotations
 
+import fcntl
 import hashlib
 import importlib
 import json
@@ -129,6 +130,17 @@ def save_hashes(hashes: dict[str, str]) -> None:
     HASHES.write_text(json.dumps(dict(sorted(hashes.items())), indent=1) + "\n")
 
 
+def record_hash(name: str, digest: str) -> None:
+    """Set one sidecar entry. Re-reads the file under a lock so builds running
+    in parallel (one per author agent) don't drop each other's entries."""
+    HASHES.parent.mkdir(parents=True, exist_ok=True)
+    with open(HASHES, "a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        hashes = load_hashes()
+        hashes[name] = digest
+        save_hashes(hashes)
+
+
 def edited_outside(target: Path, content: str, hashes: dict[str, str]) -> bool:
     """Whether `target` holds something the builder did not write last (and
     the new build would change it): a hand edit or an admin/AI export."""
@@ -189,8 +201,7 @@ def build(modules: tuple[str, ...], build_all: bool, verbose: bool, force: bool)
             click.echo("\n".join(lines))
             continue
         target.write_text(content)
-        hashes[target.name] = sha1(content.encode())
-        save_hashes(hashes)
+        record_hash(target.name, sha1(content.encode()))
         lines.insert(1, f"  wrote {_rel(target)}")
         click.echo("\n".join(lines))
     sys.exit(1 if failed else 0)

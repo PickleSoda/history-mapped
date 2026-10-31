@@ -45,7 +45,9 @@ A commander must be `human`; a polity must not be a village, a person or a famil
 - the sides deploy where the narrative says (beside the river, on the ridge);
 - the blocks face the enemy;
 - the arrows match the narrative;
-- no step is empty or framed far too wide.
+- no step is empty, framed far too wide, or framed so tight that one formation fills it;
+- labels don't pile up unreadably;
+- the rivers and ridges follow the base map; a hand-drawn line across real terrain is wrong.
 
 Use at most one `--step <id>` render.
 
@@ -61,7 +63,7 @@ The description must have its front matter (`wikidata`, `name`) and 1,500–4,00
 
 - **PASS:** no material issues.
 - **FIXED:** you made up to about 10 targeted Edits, `build` is clean, and the facts now hold.
-- **REDO:** the story needs more than about 10 fixes, the field is in the wrong place, or the step sequence is wrong. Leave the files as they are and list the reasons concretely: they go to the author as `feedback:`.
+- **REDO:** the story needs more than about 10 fixes, the field is in the wrong place, the step sequence is wrong, or it is thin. Thin means fewer than 9 steps for a battle the sources describe in phases, narratives averaging under 300 characters, or named terrain missing. Leave the files as they are and list the reasons concretely: they go to the author as `feedback:`.
 
 ## 4. Return ONLY this (at most 4 lines)
 
