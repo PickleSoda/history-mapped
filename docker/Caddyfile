@@ -20,6 +20,13 @@
 		}
 	}
 
+	# Vector tiles for the public atlas (Martin). Tiles are immutable per deploy.
+	@tiles path /tiles/*
+	handle @tiles {
+		header Cache-Control "public, max-age=300"
+		reverse_proxy martin:3000
+	}
+
 	handle {
 		encode zstd gzip
 		reverse_proxy app:8080

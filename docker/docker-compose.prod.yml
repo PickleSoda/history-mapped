@@ -33,6 +33,7 @@ services:
       - web_dist:/srv/web:ro      # customer SPA, built by the web-build service
     depends_on:
       - app
+      - martin
 
   # ── API (FrankenPHP + Octane); serves HTTP on 8080 ──────────────────────────
   app:
@@ -52,6 +53,23 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+
+  # ── Vector tiles for the public atlas (Martin); Caddy proxies /tiles/* ──────
+  #     Publishes only the functions in the `tiles` schema (docker/martin/config.yaml).
+  #     Martin discovers functions at startup: restart it after tile migrations.
+  martin:
+    image: ghcr.io/maplibre/martin:1.16.1
+    restart: unless-stopped
+    command: ["--config", "/config/martin.yaml"]
+    expose:
+      - "3000"
+    environment:
+      MARTIN_DATABASE_URL: "postgresql://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST:-db}:${DB_PORT:-5432}/${DB_DATABASE}"
+    volumes:
+      - ./martin/config.yaml:/config/martin.yaml:ro
+    depends_on:
+      db:
+        condition: service_healthy
 
   # ── Queue worker (same image, different command) ────────────────────────────
   queue:
@@ -115,6 +133,9 @@ services:
     environment:
       VITE_API_URL: "${VITE_API_URL:?set VITE_API_URL in docker/.env.prod}"
       VITE_APP_NAME: "${VITE_APP_NAME:-history-mapped}"
+      # Martin tile base URL (e.g. https://api.example.org/tiles). Unset keeps the
+      # REST GeoJSON entity overlay; set switches the atlas to vector tiles (D7).
+      VITE_MAP_TILES_URL: "${VITE_MAP_TILES_URL:-}"
       # Stamped into the built bundle on success so a deploy can tell whether the
       # bundle is stale (compared against the web/ tree + lockfile hash). See ci.yml.
       WEB_FINGERPRINT: "${WEB_FINGERPRINT:-}"

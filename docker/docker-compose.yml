@@ -117,6 +117,19 @@ services:
     volumes:
       - redis_data:/data
 
+  martin:
+    image: ghcr.io/maplibre/martin:1.16.1
+    command: ['--config', '/config/martin.yaml']
+    ports:
+      - '${FORWARD_MARTIN_PORT:-3000}:3000'
+    environment:
+      MARTIN_DATABASE_URL: 'postgresql://${POSTGRES_USER:-history-mapped}:${POSTGRES_PASSWORD:-secret}@db:5432/${POSTGRES_DB:-history-mapped}'
+    volumes:
+      - ./martin/config.yaml:/config/martin.yaml:ro
+    depends_on:
+      db:
+        condition: service_healthy
+
   queue:
     build:
       context: ..

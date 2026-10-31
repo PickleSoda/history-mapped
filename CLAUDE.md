@@ -14,7 +14,7 @@ Generated artifacts (JSONL, OHM borders) land in `output/`. Persistence is **Pos
 
 ## Everything runs in Docker Compose
 
-Do **not** run host-local PHP/Composer/PHP-unit — use the containers, or you'll hit host/container drift. The stack is `docker/docker-compose.yml`, project name `history-mapped`. Services: `app` (PHP), `nginx`, `web` (SPA Vite), `vite-admin` (admin Vite), `db`, `redis`, `queue`, `scheduler`, `mailpit`, `cloudbeaver`, `redisinsight`; `composer-install` / `pnpm-install` are one-shot init containers.
+Do **not** run host-local PHP/Composer/PHP-unit — use the containers, or you'll hit host/container drift. The stack is `docker/docker-compose.yml`, project name `history-mapped`. Services: `app` (PHP), `nginx`, `web` (SPA Vite), `vite-admin` (admin Vite), `db`, `redis`, `martin` (vector tiles), `queue`, `scheduler`, `mailpit`, `cloudbeaver`, `redisinsight`; `composer-install` / `pnpm-install` are one-shot init containers.
 
 ```bash
 pnpm dev            # docker compose -f docker/docker-compose.yml up  (whole stack)
@@ -22,7 +22,7 @@ pnpm dev:build      # ...up --build  (rebuild images)
 pnpm dev:down       # ...down --remove-orphans
 ```
 
-Dev URLs (override with `FORWARD_*_PORT` in `.env`): API+admin via Nginx → `:8000`, public SPA → `:5173`, admin Vite → `:5174`, Postgres → `:5432`, Mailpit → `:8025`, CloudBeaver → `:8978`, RedisInsight → `:5540`.
+Dev URLs (override with `FORWARD_*_PORT` in `.env`): API+admin via Nginx → `:8000`, public SPA → `:5173`, admin Vite → `:5174`, Postgres → `:5432`, Martin tiles → `:3000` (`/tiles/catalog`), Mailpit → `:8025`, CloudBeaver → `:8978`, RedisInsight → `:5540`.
 
 Run backend commands inside `app` (this prefix is assumed below):
 
@@ -70,6 +70,7 @@ The LangGraph agent graph is `pipeline/agent/graph/workflow.py:build_workflow` (
 
 ## Gotchas
 
+- **Martin discovers tile functions only at startup.** It publishes the functions in the `tiles` schema (`docker/martin/config.yaml`); after running a `tiles` migration against a running stack, `docker compose -f docker/docker-compose.yml restart martin`.
 - **Wayfinder TS is generated**, not hand-written: `api/resources/js/actions/**` and `api/resources/js/routes/**` come from `php artisan wayfinder:generate`. Regenerate rather than editing; if a run hits `Permission denied`, the target tree was left root-owned by an earlier run — `chown` it back to your user on the host.
 
 <!-- gitnexus:start -->

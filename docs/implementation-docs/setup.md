@@ -68,6 +68,7 @@ File: `docker/docker-compose.yml`
 | **`vite-admin`** | `5174` | Admin HMR server |
 | **`db`** | `5432` | PostgreSQL with PostGIS + pgvector |
 | **`redis`** | `6379` | Cache, sessions, and queues |
+| **`martin`** | `3000` | Vector tiles for the public SPA, `/tiles/atlas_entities` (Martin; config `docker/martin/config.yaml`) |
 | **`queue`** | - | `php artisan queue:work` |
 | **`scheduler`** | - | Laravel scheduler loop |
 | **`mailpit`** | `8025` | Mail testing UI |
@@ -79,6 +80,7 @@ Important runtime notes:
 - Open the admin UI at `http://localhost:8000`.
 - `http://localhost:5174` is only the admin HMR server, not the admin UI entry point.
 - Day-to-day PHP and Node work should run through Docker. The Python pipeline is the main host-side workflow.
+- **Martin discovers tile functions only at startup.** After running the `tiles` migrations against an already-running stack, restart it: `docker compose -f docker/docker-compose.yml restart martin`.
 
 ## 3. Day-to-Day Commands
 
@@ -102,6 +104,9 @@ docker compose -f docker/docker-compose.yml exec app php artisan <command>
 
 # Fresh database reset
 docker compose -f docker/docker-compose.yml exec app php artisan migrate:fresh --seed
+
+# Tiles: list Martin's published sources (restart martin after tile migrations)
+curl -s http://localhost:3000/tiles/catalog
 ```
 
 ## 4. Route Layout
