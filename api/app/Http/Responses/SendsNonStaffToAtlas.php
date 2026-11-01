@@ -10,7 +10,8 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Fortify's browser (non-JSON) auth redirects land on the admin dashboard.
  * Accounts without `admin.access` would only meet a 403 there, so send them
- * to the public atlas instead. JSON responses (the SPA) are left untouched.
+ * to the public site's landing page (`/`; the atlas itself is at `/app`)
+ * instead. JSON responses (the SPA) are left untouched.
  */
 trait SendsNonStaffToAtlas
 {
