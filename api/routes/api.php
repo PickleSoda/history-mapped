@@ -22,6 +22,10 @@ use App\Http\Controllers\Api\V1\ChronicleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+// Entity ids are UUIDs: anything else is a 404 at the router, not a database
+// error from the model binding.
+Route::pattern('entity', '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}');
+
 Route::prefix('v1')->group(function () {
 
     // ── Health Check ─────────────────────────────────────────
