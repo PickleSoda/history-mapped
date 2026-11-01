@@ -3,13 +3,15 @@
 # Pulls the GHCR images published by CI (api, web) and runs them behind Caddy (auto-HTTPS),
 # with self-hosted Postgres (PostGIS + pgvector) and Redis.
 #
-# Usage:
+# Usage (docker/compose-prod.sh = `docker compose --env-file docker/.env.prod
+# -f docker/docker-compose.prod.yml`, plus the `martin` profile when
+# TILES_DRIVER=martin in .env.prod):
 #   cp docker/.env.prod.example docker/.env.prod   # then fill it in
 #   docker login ghcr.io                            # PAT with read:packages (skip if package is public)
-#   docker compose --env-file docker/.env.prod -f docker/docker-compose.prod.yml pull
-#   docker compose --env-file docker/.env.prod -f docker/docker-compose.prod.yml --profile setup run --rm web-dist
-#   docker compose --env-file docker/.env.prod -f docker/docker-compose.prod.yml --profile setup run --rm migrate
-#   docker compose --env-file docker/.env.prod -f docker/docker-compose.prod.yml up -d
+#   bash docker/compose-prod.sh pull
+#   bash docker/compose-prod.sh --profile setup run --rm web-dist
+#   bash docker/compose-prod.sh --profile setup run --rm migrate
+#   bash docker/compose-prod.sh up -d
 #
 # To point at MANAGED Postgres/Valkey instead, delete the db/redis services and
 # set DB_*/REDIS_* in docker/.env.prod to the managed endpoints.
@@ -28,6 +30,8 @@ services:
     environment:
       APP_DOMAIN: "${APP_DOMAIN:?set APP_DOMAIN in docker/.env.prod}"
       WEB_DOMAIN: "${WEB_DOMAIN:?set WEB_DOMAIN in docker/.env.prod}"
+      # Who answers APP_DOMAIN/tiles/*: "martin" (the sidecar below) or "app".
+      TILES_DRIVER: "${TILES_DRIVER:-martin}"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
@@ -35,7 +39,6 @@ services:
       - web_dist:/srv/web:ro      # customer SPA releases; Caddy serves /srv/web/current (web-dist service)
     depends_on:
       - app
-      - martin
 
   # ── API (FrankenPHP + Octane); serves HTTP on 8080 ──────────────────────────
   app:
@@ -59,8 +62,12 @@ services:
   # ── Vector tiles for the public atlas (Martin); Caddy proxies /tiles/* ──────
   #     Publishes only the functions in the `tiles` schema (docker/martin/config.yaml).
   #     Martin discovers functions at startup: restart it after tile migrations.
+  #     Profile `martin`: started only when TILES_DRIVER=martin (docker/compose-prod.sh
+  #     enables the profile from .env.prod). With TILES_DRIVER=app the app serves
+  #     the same tiles itself and this service is not run.
   martin:
     image: ghcr.io/maplibre/martin:1.16.1
+    profiles: ["martin"]
     restart: unless-stopped
     command: ["--config", "/config/martin.yaml"]
     expose:

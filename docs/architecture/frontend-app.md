@@ -382,7 +382,7 @@ page). Contract: `docs/schemas/relation-graph-api.md`.
 ## Map overlay: tile mode and OHM correlation
 
 - **Tile mode.** It is on when `VITE_MAP_TILES_URL` is set (`web/src/lib/map-tiles.ts`).
-  - The `entities` source reads Martin's all-time vector tiles ([contract](../schemas/atlas-tiles.md)).
+  - The `entities` source reads our all-time vector tiles, from Martin or the app ([contract](../schemas/atlas-tiles.md)).
   - `useEntitiesInView` is disabled (`enabled: ready && !isMapTilesEnabled()`), so no `/entities/map` requests are sent.
   - The timeline position and the `g` groups become client-side filters on our fill, line and symbol layers
     (`entityLayerFilter` / `applyEntityLayerFilters`). The date part is the `start_decdate` / `end_decdate` window from

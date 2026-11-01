@@ -376,17 +376,18 @@ map.on('load', () => {
 });
 ```
 
-### 7.2 Our Vector Tiles (Martin)
+### 7.2 Our Vector Tiles (Martin or the app)
 
-The public SPA's entity overlay can come from our own vector tiles. Martin (`ghcr.io/maplibre/martin:1.16.1`, compose service
-`martin`, config `docker/martin/config.yaml`) serves them from the PostGIS function `tiles.atlas_entities(z, x, y)`. The tile
+The public SPA's entity overlay can come from our own vector tiles, rendered by the PostGIS function
+`tiles.atlas_entities(z, x, y)`. Either Martin (`ghcr.io/maplibre/martin:1.16.1`, compose service `martin`, config
+`docker/martin/config.yaml`) or the app itself (`api/routes/tiles.php`; `TILES_DRIVER` in prod) serves them at the same URLs. The tile
 contract is [schemas/atlas-tiles.md](../schemas/atlas-tiles.md). With `VITE_MAP_TILES_URL` set, the SPA adds the source like this
 (`entityTileSource()` in `web/src/lib/map-tiles.ts`):
 
 ```javascript
 map.addSource('entities', {
   type: 'vector',
-  tiles: [`${VITE_MAP_TILES_URL}/atlas_entities/{z}/{x}/{y}`],  // dev: http://localhost:3000/tiles
+  tiles: [`${VITE_MAP_TILES_URL}/atlas_entities/{z}/{x}/{y}`],  // dev: http://localhost:8000/tiles (app) or :3000 (Martin)
   minzoom: 0,
   maxzoom: 14
 });

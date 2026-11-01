@@ -68,7 +68,7 @@ File: `docker/docker-compose.yml`
 | **`vite-admin`** | `5174` | Admin HMR server |
 | **`db`** | `5432` | PostgreSQL with PostGIS + pgvector |
 | **`redis`** | `6379` | Cache, sessions, and queues |
-| **`martin`** | `3000` | Vector tiles for the public SPA, `/tiles/atlas_entities` (Martin; config `docker/martin/config.yaml`) |
+| **`martin`** | `3000` | Vector tiles for the public SPA, `/tiles/atlas_entities` (Martin; config `docker/martin/config.yaml`). The app serves the same tiles at `:8000/tiles`, so Martin is optional in dev |
 | **`queue`** | - | `php artisan queue:work` |
 | **`scheduler`** | - | Laravel scheduler loop |
 | **`mailpit`** | `8025` | Mail testing UI |

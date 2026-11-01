@@ -1,24 +1,29 @@
 # Atlas vector tiles (`atlas_entities`)
 
-All-time vector tiles of our entity overlay, served by [Martin](https://martin.maplibre.org/) from PostGIS. The public SPA
-(`web/`) reads them when `VITE_MAP_TILES_URL` is set; the admin app keeps the REST `GET /api/v1/entities/map`. Design:
+All-time vector tiles of our entity overlay, served from PostGIS by [Martin](https://martin.maplibre.org/) or by the app
+itself (`TILES_DRIVER`, see Operations). The public SPA (`web/`) reads them when `VITE_MAP_TILES_URL` is set; the admin app keeps the REST `GET /api/v1/entities/map`. Design:
 [spec 2026-10-31](../archive/superpowers-specs/2026-10-31-atlas-tiles-ohm-correlation-design.md) (decisions D1–D9).
 
 Code: `tiles` schema in `api/database/migrations/2026_10_31_000001_create_tiles_schema.php` (helpers + view
 `tiles.atlas_entity_features`) and `2026_10_31_000002_create_atlas_entities_tile_function.php` (`tiles.atlas_entities(z, x, y)`);
-Martin config `docker/martin/config.yaml`; client `web/src/lib/map-tiles.ts`. Tests: `api/tests/Feature/Tiles/`.
+Martin config `docker/martin/config.yaml`; app driver `api/routes/tiles.php` + `App\Services\Tiles\TileServer` (`config/tiles.php`);
+client `web/src/lib/map-tiles.ts`. Tests: `api/tests/Feature/Tiles/`.
 
 ## Endpoints
 
-`{TILES}` is the Martin root including its route prefix: `http://localhost:3000/tiles` in dev, `https://<APP_DOMAIN>/tiles` in prod.
+`{TILES}` is the tile root: in dev `http://localhost:8000/tiles` (the app) or `http://localhost:3000/tiles` (Martin); in prod
+`https://<APP_DOMAIN>/tiles`, where Caddy proxies to whichever driver `TILES_DRIVER` names. Both drivers answer these three paths
+the same way.
 
 | Path | Returns |
 |---|---|
-| `{TILES}/catalog` | Martin's source list; `tiles.atlas_entities` appears as `atlas_entities` |
+| `{TILES}/catalog` | The source list; `tiles.atlas_entities` appears as `atlas_entities` |
 | `{TILES}/atlas_entities` | TileJSON 3.0.0. `vector_layers` comes from the JSON comment on the SQL function; `tiles` is built from the request host |
 | `{TILES}/atlas_entities/{z}/{x}/{y}` | `application/x-protobuf` MVT, zoom 0–14 (the SPA overzooms past 14). Gzip when the client accepts it |
 
 - Martin answers only under `/tiles` (`route_prefix`); `/catalog` is 404.
+- The app driver's routes carry no middleware group (no session, CSRF or API throttle) and answer with
+  `Access-Control-Allow-Origin: *`, as Martin does. An unknown source or a non-numeric coordinate is 404.
 - An empty tile is `204 No Content`. Coordinates outside the zoom's grid also return an empty tile, not a 500.
 - The SPA does not read the TileJSON. It builds `{VITE_MAP_TILES_URL}/atlas_entities/{z}/{x}/{y}` itself (`entityTileSource()`).
 - Size on the dev DB, 2026-10-31: z0 `0/0/0` is 111,624 bytes (66,980 gzip).
@@ -119,9 +124,10 @@ entity's top active OHM geo-ref: `match_role = primary` first, then the latest `
 
 | Layer | Behaviour |
 |---|---|
-| ETag | The function returns `(mvt, key)` with `key = md5(mvt)`; Martin sends it as `etag` |
+| ETag | The function returns `(mvt, key)` with `key = md5(mvt)`; both drivers send it as `ETag` and answer a matching `If-None-Match` with 304 |
 | Martin | In-memory tile cache, `cache.size_mb: 128` and `cache.expiry: 5m`, so data edits and backfills show up without a restart |
-| Caddy (prod) | `Cache-Control: public, max-age=300` on `/tiles/*`. Dev has no Caddy, so Martin sends no `Cache-Control` |
+| App driver | Rendered tiles in the cache store (`CACHE_STORE`, Redis in prod) for `TILES_CACHE_TTL` seconds (default 300; 0 = off) |
+| Caddy (prod) | `Cache-Control: public, max-age=300` and gzip/zstd on `/tiles/*`, whichever the driver. Dev has no Caddy: Martin sends no `Cache-Control`, the app sends `max-age=300, public` |
 | Service worker | `StaleWhileRevalidate` on `/tiles/atlas_entities/`, cache `atlas-tiles`, 2000 entries, 1 day (`web/vite.config.ts`) |
 
 A data change reaches a returning browser within about 10 minutes (Martin expiry plus HTTP max-age). The service worker serves
@@ -138,6 +144,10 @@ Dev: `web/.env.example` (commented out). Prod: the GitHub repository variable `V
 
 ## Operations
 
+- **Driver:** `TILES_DRIVER=martin|app` in `docker/.env.prod` (default `martin`). Caddy imports the matching upstream snippet
+  (`docker/Caddyfile`), and `docker/compose-prod.sh` enables the `martin` compose profile only for `martin`, so the sidecar runs
+  only when it is the driver. Switching needs no SPA rebuild: the URLs are the same. The app driver is one container fewer, but
+  its tile requests share Octane's PHP workers (one per vCPU) with the API; Martin has its own pool and cache.
 - **Martin version:** `ghcr.io/maplibre/martin:1.16.1`, pinned in both compose files.
 - **Connection:** `MARTIN_DATABASE_URL`, built from `POSTGRES_*` in dev and `DB_*` in prod (keep `DB_PASSWORD` URL-safe). Martin
   uses the app's credentials; a read-only role is a follow-up.

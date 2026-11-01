@@ -392,7 +392,11 @@ jobs:
               echo "$GHCR_TOKEN" | docker login ghcr.io -u "${GHCR_USERNAME:-}" --password-stdin
             fi
 
-            COMPOSE="docker compose --env-file docker/.env.prod -f docker/docker-compose.prod.yml"
+            # The wrapper adds the `martin` compose profile when TILES_DRIVER=martin
+            # (the default) in docker/.env.prod, so Martin runs only as the tile driver.
+            COMPOSE="bash docker/compose-prod.sh"
+            TILES_DRIVER="$(sed -n 's/^TILES_DRIVER=//p' docker/.env.prod | tail -n 1 | tr -d '[:space:]')"
+            TILES_DRIVER="${TILES_DRIVER:-martin}"
 
             # Pull the pinned API and web images. `</dev/null` keeps it (like
             # the one-off runs below) off the SSH session's stdin.
@@ -408,8 +412,15 @@ jobs:
             $COMPOSE --profile setup run --rm -T migrate </dev/null
             $COMPOSE up -d --remove-orphans </dev/null
             # `up -d` skips both: Caddy keeps the pre-pull Caddyfile (single-file bind
-            # mount), Martin finds new tile functions only at startup.
-            $COMPOSE up -d --force-recreate --no-deps caddy martin </dev/null
+            # mount), Martin finds new tile functions only at startup. With the app
+            # driver, a Martin left from an earlier setting is stopped and removed
+            # (`--remove-orphans` leaves a profiled service's container alone).
+            if [ "$TILES_DRIVER" = "app" ]; then
+              $COMPOSE up -d --force-recreate --no-deps caddy </dev/null
+              $COMPOSE rm -sf martin </dev/null
+            else
+              $COMPOSE up -d --force-recreate --no-deps caddy martin </dev/null
+            fi
 
             # Health gate: probe /up directly instead of waiting on Docker's
             # health state machine. The container healthcheck's first probe only
