@@ -39,7 +39,7 @@ export default defineConfig({
         short_name: 'History Mapped',
         description: 'Interactive historical atlas',
         display: 'standalone',
-        start_url: '/',
+        start_url: '/app',
         theme_color: '#ffffff',
         background_color: '#ffffff',
         icons: [

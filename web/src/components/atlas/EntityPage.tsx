@@ -1,9 +1,11 @@
 import { Clock, ExternalLink, ImageIcon, MapPin, Play, ScrollText } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 import { SaveControls } from '@/components/account/SaveControls';
 import { SuggestEditButton } from '@/components/account/SuggestEdit';
 import { EntityImage, MediaCreditLine } from '@/components/atlas/EntityImage';
 import { TypeBadge } from '@/components/atlas/GroupBadge';
+import { usePageNav } from '@/components/atlas/link-mode';
 import {
   ImpactMeter,
   PageFrame,
@@ -12,6 +14,7 @@ import {
   Section,
   Stat,
   StatGrid,
+  usePageVariant,
 } from '@/components/atlas/page-kit';
 import type { PageVariant } from '@/components/atlas/page-kit';
 import {
@@ -22,18 +25,12 @@ import { paragraphs, storyKindLabel } from '@/components/atlas/StoryCard';
 import { TagPills } from '@/components/atlas/TagPills';
 import { RelationGraph } from '@/components/graph';
 import {
-  useChronicleNav,
   useEntity,
   useEntityChronicles,
   useEntityConnections,
   useEntityGraph,
   useEntityTimeline,
-  useFullPage,
-  useMapFocus,
   useMapStory,
-  useSelection,
-  useStoryNav,
-  useTimeState,
 } from '@/hooks';
 import {
   attributeRows,
@@ -49,6 +46,7 @@ import {
 } from '@/lib/entity-format';
 import { formatYear } from '@/lib/format';
 import { GROUPS } from '@/lib/groups';
+import { globeHref } from '@/lib/page-nav';
 import { VERIFICATION_STATUSES } from '@/lib/schemas/entity';
 import type {
   ConfidenceLevel,
@@ -127,9 +125,7 @@ function DatesLine({ entity }: { entity: EntityDetail }) {
 
 function Hero({ entity }: { entity: EntityDetail }) {
   const g = GROUPS[entity.entity_group];
-  const { setInstant } = useTimeState();
-  const { collapse } = useFullPage();
-  const { focusGeometries } = useMapFocus();
+  const { showOnMap } = usePageNav();
   const alt = entity.alternative_names.filter((n) => n !== entity.name);
   // The suggestion edits the raw alias rows (which may include the name itself).
   const aliasTarget = {
@@ -178,10 +174,7 @@ function Hero({ entity }: { entity: EntityDetail }) {
         {startYear != null && (
           <button
             type="button"
-            onClick={() => {
-              setInstant(startYear);
-              collapse();
-            }}
+            onClick={() => showOnMap(entity.id, { year: startYear })}
             className="text-[12px] text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >
             View the map in {formatYear(startYear)}
@@ -190,10 +183,7 @@ function Hero({ entity }: { entity: EntityDetail }) {
         {entity.geom != null ? (
           <button
             type="button"
-            onClick={() => {
-              collapse();
-              focusGeometries([entity.geom]);
-            }}
+            onClick={() => showOnMap(entity.id, { geom: entity.geom, yearHint: startYear })}
             className="inline-flex items-center gap-1.5 underline-offset-4 hover:underline"
             title="Show on the map"
           >
@@ -276,6 +266,7 @@ function ProseEdit({
 
 function Prose({ entity }: { entity: EntityDetail }) {
   const g = GROUPS[entity.entity_group];
+  const site = usePageVariant() === 'site';
 
   // Neither written yet: one quiet row instead of two empty sections.
   if (!entity.summary && !entity.significance) {
@@ -289,7 +280,7 @@ function Prose({ entity }: { entity: EntityDetail }) {
   }
 
   return (
-    <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+    <div className={cn('mt-10 grid gap-8', !site && 'lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]')}>
       <Section
         title="Summary"
         className="mt-0"
@@ -358,7 +349,7 @@ function About({ entity }: { entity: EntityDetail }) {
 /** A battle map's steps as the battle's detailed timeline; each opens the player there. */
 function StorySteps({ slug }: { slug: string }) {
   const { data } = useMapStory(slug);
-  const { enter } = useStoryNav();
+  const { openStory } = usePageNav();
   const doc = data?.document;
   if (!doc) return <p className="text-[13px] text-muted-foreground">Loading…</p>;
   return (
@@ -367,7 +358,7 @@ function StorySteps({ slug }: { slug: string }) {
         <li key={step.id}>
           <button
             type="button"
-            onClick={() => enter(slug, i)}
+            onClick={() => openStory(slug, i)}
             className="group -ml-1 w-full rounded-lg px-2 py-2 text-left hover:bg-muted/60"
           >
             <span className="absolute -left-[5px] mt-1.5 size-2.5 rounded-full border-2 border-background bg-amber-700" />
@@ -386,7 +377,7 @@ function StorySteps({ slug }: { slug: string }) {
 }
 
 function BattleMaps({ entity }: { entity: EntityDetail }) {
-  const { enter } = useStoryNav();
+  const { openStory } = usePageNav();
   if (entity.map_stories.length === 0) return null;
   return (
     <>
@@ -398,7 +389,7 @@ function BattleMaps({ entity }: { entity: EntityDetail }) {
           aside={
             <button
               type="button"
-              onClick={() => enter(s.slug)}
+              onClick={() => openStory(s.slug)}
               className="inline-flex items-center gap-1.5 rounded-lg bg-amber-700 px-3 py-1.5 text-[12px] font-semibold text-white shadow-sm hover:bg-amber-800"
             >
               <Play size={13} /> Play the {storyKindLabel(s.kind).toLowerCase()}
@@ -415,6 +406,7 @@ function BattleMaps({ entity }: { entity: EntityDetail }) {
 function GraphSection({ entity, variant }: { entity: EntityDetail; variant: PageVariant }) {
   const [hops, setHops] = useState<1 | 2>(1);
   const { data, isLoading, isError, isFetching } = useEntityGraph(entity.id, { depth: hops });
+  const { openEntity } = usePageNav();
   const label = `Relation graph of ${entity.name}`;
   return (
     <Section
@@ -463,6 +455,7 @@ function GraphSection({ entity, variant }: { entity: EntityDetail; variant: Page
           truncated={data.truncated}
           height={variant === 'sheet' ? '52dvh' : undefined}
           label={label}
+          onOpen={openEntity}
         />
       )}
     </Section>
@@ -491,7 +484,7 @@ function AttributesAndTags({ entity }: { entity: EntityDetail }) {
 
 function Chronicles({ id }: { id: string }) {
   const { data } = useEntityChronicles(id);
-  const { enter } = useChronicleNav();
+  const { openChronicle } = usePageNav();
   if (!data || data.data.length === 0) return null;
   return (
     <Section title="In chronicles" count={data.data.length}>
@@ -500,7 +493,7 @@ function Chronicles({ id }: { id: string }) {
           <button
             key={c.chronicle_id}
             type="button"
-            onClick={() => enter(c.slug)}
+            onClick={() => openChronicle(c.slug)}
             className="inline-flex items-center gap-1.5 rounded-full border bg-card px-3 py-1.5 text-[12px] shadow-xs transition-colors hover:bg-muted"
             title="Open this chronicle"
           >
@@ -525,7 +518,7 @@ const TIMELINE_PAGE = 40;
 
 function TimelineEntries({ id }: { id: string }) {
   const { data, isLoading } = useEntityTimeline(id);
-  const { select } = useSelection();
+  const { openEntity } = usePageNav();
   const [all, setAll] = useState(false);
   const entries = data?.data ?? [];
   const shown = all ? entries : entries.slice(0, TIMELINE_PAGE);
@@ -562,7 +555,7 @@ function TimelineEntries({ id }: { id: string }) {
               {e.related_entity_id ? (
                 <button
                   type="button"
-                  onClick={() => select(e.related_entity_id as string)}
+                  onClick={() => openEntity(e.related_entity_id as string)}
                   className="mt-0.5 text-left text-[13px] font-medium underline-offset-4 hover:underline"
                 >
                   {e.title ?? e.related_entity_name}
@@ -670,15 +663,26 @@ function SourcesAndMedia({ entity }: { entity: EntityDetail }) {
 /**
  * The full entity page: everything the API knows about one entity, as a
  * scrollable document with a sticky header. Rendered by the desktop page host
- * (slides up over the map) and by the mobile sheet at its full snap. Takes the
+ * (slides up over the map), by the mobile sheet at its full snap and by the
+ * standalone site route (`variant="site"`, under a site-mode
+ * `LinkModeProvider`, which turns its links into site navigation). Takes the
  * id as a prop (not from the URL) so the host can keep it on screen while the
  * page slides away after Close.
  */
-export function EntityPage({ id, variant = 'page' }: { id: string; variant?: PageVariant }) {
+export function EntityPage({
+  id,
+  variant = 'page',
+  lead,
+}: {
+  id: string;
+  variant?: PageVariant;
+  /** Site only: the breadcrumb shown in the sticky header. */
+  lead?: ReactNode;
+}) {
   const { data: entity, isLoading, isError } = useEntity(id);
   const { data: connections } = useEntityConnections(id);
   const { data: chronicles } = useEntityChronicles(id);
-  const { collapse, closeEntity } = useFullPage();
+  const nav = usePageNav();
   const relChronicle = useMemo(() => chronicleByRelationship(chronicles?.data), [chronicles]);
   const g = entity ? GROUPS[entity.entity_group] : null;
 
@@ -689,9 +693,11 @@ export function EntityPage({ id, variant = 'page' }: { id: string; variant?: Pag
       accent={g?.color}
       wash={g?.soft}
       resetKey={id}
-      onCollapse={collapse}
-      onClose={closeEntity}
-      actions={entity && <SaveControls type="entity" id={entity.id} compact={variant === 'sheet'} />}
+      onCollapse={() => nav.collapse()}
+      onClose={() => nav.close('entity')}
+      globeHref={globeHref({ kind: 'entity', id })}
+      lead={lead}
+      actions={entity && <SaveControls type="entity" id={entity.id} compact={variant !== 'page'} />}
     >
       {isLoading && <PageSkeleton />}
       {isError && <p className="pt-8 text-sm text-destructive">Could not load this entity.</p>}
@@ -705,7 +711,7 @@ export function EntityPage({ id, variant = 'page' }: { id: string; variant?: Pag
           <GraphSection entity={entity} variant={variant} />
           <AttributesAndTags entity={entity} />
           <Chronicles id={entity.id} />
-          <div className="grid gap-x-12 xl:grid-cols-2">
+          <div className={cn('grid gap-x-12', variant !== 'site' && 'xl:grid-cols-2')}>
             <Section title="Relationships" count={connections?.data.length}>
               {connections && connections.data.length > 0 ? (
                 <RelationshipTimeline

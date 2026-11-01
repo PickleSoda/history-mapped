@@ -4,6 +4,7 @@ import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { AuthCard, FormMessage, SubmitButton, TextField } from '@/components/account/form';
 import { safeNext, useAuthActions, useMe } from '@/hooks';
 import { errorMessage, fieldErrors } from '@/lib/api';
+import { ATLAS_PATH } from '@/lib/site-links';
 
 type Mode = 'login' | 'two_factor' | 'forgot';
 
@@ -197,7 +198,7 @@ export function LoginPage() {
       <p className="mt-4 text-center text-[12px] text-muted-foreground">
         New here?{' '}
         <Link
-          to={`/register${next !== '/' ? `?next=${encodeURIComponent(next)}` : ''}`}
+          to={`/register${next !== ATLAS_PATH ? `?next=${encodeURIComponent(next)}` : ''}`}
           className="font-medium text-foreground underline-offset-4 hover:underline"
         >
           Create an account

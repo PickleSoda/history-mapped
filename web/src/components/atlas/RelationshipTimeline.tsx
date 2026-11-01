@@ -3,7 +3,8 @@ import { useMemo } from 'react';
 import { StarButton } from '@/components/account/SaveControls';
 import { SuggestEditButton } from '@/components/account/SuggestEdit';
 import { GroupDot, TypeBadge } from '@/components/atlas/GroupBadge';
-import { useChronicleNav, useSelection, useStarState } from '@/hooks';
+import { usePageNav } from '@/components/atlas/link-mode';
+import { useStarState } from '@/hooks';
 import { yearText } from '@/lib/entity-format';
 import { GROUPS } from '@/lib/groups';
 import type { EntityChronicleRef } from '@/lib/schemas/chronicle';
@@ -78,8 +79,7 @@ export function RelationshipTimeline({
   selfId: string;
   relChronicle: Map<string, { title: string; slug: string }>;
 }) {
-  const { select } = useSelection();
-  const { enter } = useChronicleNav();
+  const { openEntity, openChronicle } = usePageNav();
   const sorted = useMemo(
     () => [...rels].sort((a, b) => relStart(a) - relStart(b)),
     [rels],
@@ -114,7 +114,7 @@ export function RelationshipTimeline({
               </div>
               <button
                 type="button"
-                onClick={() => other && select(other.id)}
+                onClick={() => other && openEntity(other.id)}
                 disabled={!other}
                 className="mt-0.5 flex w-full items-center gap-2 rounded-md px-1.5 py-1 text-left hover:bg-muted/60 disabled:cursor-default"
               >
@@ -138,7 +138,7 @@ export function RelationshipTimeline({
               {chronicle && (
                 <button
                   type="button"
-                  onClick={() => enter(chronicle.slug)}
+                  onClick={() => openChronicle(chronicle.slug)}
                   className="ml-1.5 mt-1 inline-flex items-center gap-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground"
                   title="Open chronicle"
                 >
