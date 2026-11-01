@@ -129,7 +129,8 @@ class MapStoryIndexApiTest extends TestCase
             ->assertJsonPath('meta.per_page', 2)
             ->assertJsonPath('meta.current_page', 2)
             ->assertJsonPath('meta.last_page', 3)
-            ->assertJsonPath('meta.total', 5);
+            ->assertJsonPath('meta.total', 5)
+            ->assertJsonPath('links.next', fn (string $url) => str_contains($url, 'per_page=2') && str_contains($url, 'page=3'));
 
         $this->getJson('/api/v1/map-stories?per_page=101')
             ->assertUnprocessable()

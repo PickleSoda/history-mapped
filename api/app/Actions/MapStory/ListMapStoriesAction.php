@@ -37,6 +37,6 @@ class ListMapStoriesAction
         $perPage = min((int) ($filters['per_page'] ?? 20), 100);
         $page = max((int) ($filters['page'] ?? 1), 1);
 
-        return $query->paginate($perPage, ['*'], 'page', $page);
+        return $query->paginate($perPage, ['*'], 'page', $page)->withQueryString();
     }
 }
