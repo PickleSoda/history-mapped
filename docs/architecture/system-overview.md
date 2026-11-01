@@ -105,7 +105,7 @@ The ingestion architecture is file-based rather than streaming-based.
 
 ```mermaid
 flowchart LR
-    Wikidata[Wikidata / Wikipedia] --> Scrape[py -m pipeline scrape | topic | dedup]
+    Wikidata[Wikidata / Wikipedia] --> Scrape["py -m pipeline scrape | topic | dedup"]
     OHM[OpenHistoricalMap / Overpass] --> Borders[py -m pipeline borders ...]
     Scrape --> Output[output/*.jsonl]
     Borders --> Output
