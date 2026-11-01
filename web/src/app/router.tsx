@@ -1,5 +1,6 @@
 import { lazy } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { legacyAtlasRedirect } from '@/lib/legacy-redirect';
 import { AccountLayout } from './routes/AccountLayout';
 import { AtlasLayout } from './routes/AtlasLayout';
 import { SiteLayout } from './routes/site/SiteLayout';
@@ -39,11 +40,13 @@ const DocPage = lazy(() => import('./routes/docs/DocPage').then((m) => ({ defaul
 /**
  * `/` is the landing page. A query string on `/` is a link made when the
  * atlas lived there (`/?sel=…`, `/?chron=…`, `/?story=…`): send it to `/app`
- * with the same query so shared links keep working (spec D1).
+ * with the same query so shared links keep working (spec D1,
+ * `lib/legacy-redirect.ts`).
  */
 function IndexRoute() {
-  const { search } = useLocation();
-  if (search) return <Navigate to={`/app${search}`} replace />;
+  const location = useLocation();
+  const target = legacyAtlasRedirect(location);
+  if (target) return <Navigate to={target} replace />;
   return <LandingPage />;
 }
 
@@ -51,7 +54,9 @@ function IndexRoute() {
  * Route tree (spec 2026-11-01 public site, D1). The atlas is one persistent
  * shell at `/app`; browse, chronicles, selection, search, time and bbox are
  * in-shell state / search params rather than routes. The account pages sit
- * under their own layout, everything else under the site frame.
+ * under their own layout, everything else under the site frame. The site's
+ * entity and chronicle pages are the atlas's pages in site link mode
+ * (`components/atlas/link-mode.tsx`).
  */
 export function AppRoutes() {
   return (

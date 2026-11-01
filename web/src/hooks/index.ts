@@ -12,7 +12,8 @@ export { useView } from './useView';
 export { useBasemap } from './useBasemap';
 export { useFullPage } from './useFullPage';
 
-// Public site (track B): add site-only hooks here.
+// Public site (track B)
+export { useDocumentMeta } from '@/lib/document-meta';
 
 // Derived
 export { useScope } from './useScope';
