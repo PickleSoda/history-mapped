@@ -36,7 +36,9 @@
 # Public customer SPA — static files built into the web_dist volume.
 {$WEB_DOMAIN} {
 	encode zstd gzip
-	root * /srv/web
+	# The web-dist service installs each CI-built bundle as releases/<sha> and
+	# points this symlink at it (docker/web/install-web-dist.sh).
+	root * /srv/web/current
 	try_files {path} /index.html   # SPA client-side routing
 	file_server
 }

@@ -62,7 +62,7 @@ Files: [`docker/docker-compose.prod.yml`](../../docker/docker-compose.prod.yml),
 
 **Two domains.** The admin (Inertia, served by the app) and the customer SPA both live at `/`, so they need separate hostnames:
 - **`APP_DOMAIN`** → the app container (API `/api`, admin UI, OpenAPI `/docs`).
-- **`WEB_DOMAIN`** → the customer SPA (static files, built into the `web_dist` volume by the `web-build` service and served by Caddy). Point an A record for each at the Droplet.
+- **`WEB_DOMAIN`** → the customer SPA (static files: CI builds them into the `web` image, the `web-dist` service installs them into the `web_dist` volume as `releases/<sha>`, and Caddy serves `/srv/web/current`). Point an A record for each at the Droplet.
 
 **Vector tiles (Martin).** The `martin` service serves the atlas tiles from Postgres ([contract](../schemas/atlas-tiles.md)).
 - Image `ghcr.io/maplibre/martin:1.16.1`; config [`docker/martin/config.yaml`](../../docker/martin/config.yaml).
@@ -70,28 +70,35 @@ Files: [`docker/docker-compose.prod.yml`](../../docker/docker-compose.prod.yml),
   connection URL.
 - The port is not published. Caddy proxies `APP_DOMAIN/tiles/*` to `martin:3000` and adds
   `Cache-Control: public, max-age=300`.
-- The SPA switches to tiles only when `docker/.env.prod` sets `VITE_MAP_TILES_URL=https://<APP_DOMAIN>/tiles` at `web-build`
-  time. Unset keeps the REST GeoJSON overlay.
+- The SPA switches to tiles only when the repository variable `VITE_MAP_TILES_URL=https://<APP_DOMAIN>/tiles` is set when CI
+  builds the `web` image. Unset keeps the REST GeoJSON overlay.
 
 1. Create a Droplet (≥2 GB RAM), point DNS A records for **both** `APP_DOMAIN` and `WEB_DOMAIN` at it.
 2. Install Docker Engine + Compose plugin.
-3. Clone the repo (the `db` image and the SPA are built locally, so the full repo is needed), then:
+3. Clone the repo (the `db` image is built locally, so the full repo is needed), then:
    ```bash
    cp docker/.env.prod.example docker/.env.prod   # fill APP_KEY, passwords, APP_DOMAIN, WEB_DOMAIN, ...
    docker login ghcr.io                            # PAT with read:packages (skip if package is public)
    cd docker
    docker compose --env-file .env.prod -f docker-compose.prod.yml pull
-   docker compose --env-file .env.prod -f docker-compose.prod.yml --profile setup run --rm web-build  # build the SPA
+   docker compose --env-file .env.prod -f docker-compose.prod.yml --profile setup run --rm web-dist   # install the SPA bundle from the web image
    docker compose --env-file .env.prod -f docker-compose.prod.yml --profile setup run --rm migrate
    docker compose --env-file .env.prod -f docker-compose.prod.yml up -d
    ```
 4. Caddy auto-provisions Let's Encrypt TLS for both domains; it proxies `APP_DOMAIN` to the app on 8080 (and `/tiles/*` to Martin) and serves the SPA on `WEB_DOMAIN`.
-5. To update after a new image: `pull`, re-run `web-build` + `migrate`, then `up -d`, then recreate `caddy` and `martin` (see below). The automated SSH deploy does exactly this.
+5. To update after new images: `pull`, re-run `web-dist` + `migrate`, then `up -d`, then recreate `caddy` and `martin` (see below). The automated SSH deploy does exactly this.
+
+**SPA bundle (built in CI, 2026-11-01).** A `vite build` on the 2 GB droplet starved it of memory and hung a deploy, so the
+bundle is built by the `images` job into `ghcr.io/<owner>/history-mapped/web:<sha>` ([`docker/web/Dockerfile.prod`](../../docker/web/Dockerfile.prod))
+with the `VITE_*` repository variables baked in. On the droplet, `web-dist` ([`docker/web/install-web-dist.sh`](../../docker/web/install-web-dist.sh))
+copies it to `web_dist:/srv/web/releases/<sha>` and renames the `current` symlink onto it, keeping the previous release for a
+rollback: `WEB_IMAGE=ghcr.io/<owner>/history-mapped/web:<old sha> $COMPOSE --profile setup run --rm web-dist`. Files from the
+former on-droplet build remain at the volume root until deleted by hand; Caddy no longer reads them.
 
 **Tiles: first deploy and later changes.** Commands run from the repo root with
 `COMPOSE="docker compose --env-file docker/.env.prod -f docker/docker-compose.prod.yml"`.
-- **Set the flag before the first tiles deploy.** Add `VITE_MAP_TILES_URL` to the droplet's `docker/.env.prod` before the deploy
-  that brings this code. That deploy rebuilds the SPA anyway, because `web/` changed, so the flag is baked in.
+- **Set the flag before the first tiles deploy.** Set the repository variable `VITE_MAP_TILES_URL` before pushing the code; the
+  `images` job bakes it into the `web` image on every push to `main`.
 - **Caddy must be restarted when the Caddyfile changes.** It is a single-file bind mount, and `git pull` replaces the file, so the
   running container keeps the old copy. `up -d` does not recreate Caddy, because its compose config did not change. The same
   applies to `docker/martin/config.yaml`.
@@ -99,11 +106,10 @@ Files: [`docker/docker-compose.prod.yml`](../../docker/docker-compose.prod.yml),
 - **The CI deploy does both restarts.** After `migrate` and `up -d` it runs
   `$COMPOSE up -d --force-recreate --no-deps caddy martin`. When deploying by hand, run the same command. Recreating Caddy
   drops connections briefly on each deploy; certificates persist in the `caddy_data` volume.
-- **Toggling the flag later needs a manual rebuild.** The SPA rebuild fingerprint covers `web/` and `pnpm-lock.yaml` only, not
-  `.env.prod`, so CI will not rebuild on a flag change. Run `$COMPOSE --profile setup run --rm -T web-build </dev/null`. The bundle
-  then records an empty fingerprint, so the next CI deploy rebuilds once more (harmless).
+- **Toggling the flag later** is a repository-variable change plus a push to `main` (or a re-run of the `images` and deploy jobs);
+  nothing is rebuilt on the droplet.
 
-> **Map-story editor preview.** The admin's map-story editor embeds the SPA (`FRONTEND_URL`) in an iframe and drives it with `postMessage`. The SPA only accepts messages from the origins in `VITE_ADMIN_ORIGINS`, baked in at `web-build` time — set it in `docker/.env.prod` to the admin origin, `https://<APP_DOMAIN>`. The bundle is rebuilt only when the `web/` tree changes (the `WEB_FINGERPRINT` check), so after setting it on a running droplet force one rebuild (`--profile setup run --rm web-build`). Without it the editor still saves, but the preview can't draw drafts or pick points.
+> **Map-story editor preview.** The admin's map-story editor embeds the SPA (`FRONTEND_URL`) in an iframe and drives it with `postMessage`. The SPA trusts the API origin (`VITE_API_URL`) by default; other admin origins go in the repository variable `VITE_ADMIN_ORIGINS` (comma-separated), baked into the `web` image by CI.
 
 > Note: migrations run **without** `route:cache` — `/health` and `/user` are closure routes, which `route:cache` rejects (it would fail the one-off job and, with `script_stop: true`, abort the whole SSH deploy).
 
@@ -124,7 +130,9 @@ The `deploy-droplet` job in `.github/workflows/ci.yml` SSHes into the droplet an
 3. **Repo variables** (→ Variables):
    - `DEPLOY_TO_DROPLET` = `true` (enables the job — it stays skipped otherwise).
    - *Optional:* `DROPLET_APP_DIR` if you cloned somewhere other than `/opt/history-mapped`.
-4. Push to `main` → CI builds + pushes the image, then SSHes in and runs `git pull → compose pull → web-build (if stale) → migrate → up -d → recreate caddy + martin → /up health gate → prune`.
+   - `VITE_API_URL` = `https://<APP_DOMAIN>` (required: the `images` job fails without it, so no deploy runs).
+   - *Optional:* `VITE_MAP_TILES_URL` = `https://<APP_DOMAIN>/tiles` (atlas tile mode), `VITE_APP_NAME`, `VITE_ADMIN_ORIGINS`.
+4. Push to `main` → CI builds + pushes the `api` and `web` images, then SSHes in and runs `git pull → compose pull → web-dist → migrate → up -d → recreate caddy + martin → /up health gate → prune`.
 
 **Security:** use a dedicated low-privilege deploy user and an SSH key scoped to that host; the private key lives only in GitHub Secrets.
 

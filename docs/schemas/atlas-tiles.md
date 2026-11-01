@@ -134,7 +134,7 @@ one stale copy first, then revalidates in the background.
 - Unset or empty: the REST GeoJSON path (`GET /api/v1/entities/map` per viewport and year) is unchanged.
 - Set: the `entities` source becomes the tile source and the viewport query is disabled. Trailing slashes are stripped.
 
-Dev: `web/.env.example` (commented out). Prod: `docker/.env.prod`, passed to `web-build`.
+Dev: `web/.env.example` (commented out). Prod: the GitHub repository variable `VITE_MAP_TILES_URL`, baked into the `web` image by CI (see the deployment runbook).
 
 ## Operations
 

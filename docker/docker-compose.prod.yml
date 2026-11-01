@@ -1,12 +1,13 @@
 # Production stack for a single DigitalOcean Droplet (or any Docker host).
 #
-# Pulls the GHCR image published by CI and runs it behind Caddy (auto-HTTPS),
+# Pulls the GHCR images published by CI (api, web) and runs them behind Caddy (auto-HTTPS),
 # with self-hosted Postgres (PostGIS + pgvector) and Redis.
 #
 # Usage:
 #   cp docker/.env.prod.example docker/.env.prod   # then fill it in
 #   docker login ghcr.io                            # PAT with read:packages (skip if package is public)
 #   docker compose --env-file docker/.env.prod -f docker/docker-compose.prod.yml pull
+#   docker compose --env-file docker/.env.prod -f docker/docker-compose.prod.yml --profile setup run --rm web-dist
 #   docker compose --env-file docker/.env.prod -f docker/docker-compose.prod.yml --profile setup run --rm migrate
 #   docker compose --env-file docker/.env.prod -f docker/docker-compose.prod.yml up -d
 #
@@ -14,6 +15,7 @@
 # set DB_*/REDIS_* in docker/.env.prod to the managed endpoints.
 
 x-app-image: &app_image "${APP_IMAGE:-ghcr.io/picklesoda/history-mapped/api:latest}"
+x-web-image: &web_image "${WEB_IMAGE:-ghcr.io/picklesoda/history-mapped/web:latest}"
 
 services:
   # ── Edge: TLS termination + reverse proxy (Let's Encrypt via Caddy) ─────────
@@ -30,7 +32,7 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
-      - web_dist:/srv/web:ro      # customer SPA, built by the web-build service
+      - web_dist:/srv/web:ro      # customer SPA releases; Caddy serves /srv/web/current (web-dist service)
     depends_on:
       - app
       - martin
@@ -123,35 +125,16 @@ services:
       db:
         condition: service_healthy
 
-  # ── Build the customer SPA into the web_dist volume (run via the setup
-  #     profile on each deploy); Caddy serves it on WEB_DOMAIN. ────────────────
-  web-build:
-    image: node:20-bookworm-slim
+  # ── Install the customer SPA bundle (built and pushed by CI as the web
+  #     image, VITE_* baked in from repository variables) into the web_dist
+  #     volume as releases/<sha>, and switch the `current` symlink Caddy serves.
+  #     Run via the setup profile on each deploy; nothing is built on this host.
+  #     Roll back by running it with the previous WEB_IMAGE tag. ───────────────
+  web-dist:
+    image: *web_image
     profiles: ["setup"]
-    working_dir: /repo
-    # Vite bakes VITE_* into the bundle at build time. VITE_API_URL must be the
-    # API origin the browser calls (no /api/v1, no trailing slash); without it
-    # the SPA falls back to http://localhost:8000.
-    environment:
-      VITE_API_URL: "${VITE_API_URL:?set VITE_API_URL in docker/.env.prod}"
-      VITE_APP_NAME: "${VITE_APP_NAME:-history-mapped}"
-      # Martin tile base URL (e.g. https://api.example.org/tiles). Unset keeps the
-      # REST GeoJSON entity overlay; set switches the atlas to vector tiles (D7).
-      VITE_MAP_TILES_URL: "${VITE_MAP_TILES_URL:-}"
-      # The admin origin(s) allowed to drive the map-story editor's live preview
-      # (postMessage); unset, the SPA only trusts http://localhost:8000.
-      VITE_ADMIN_ORIGINS: "${VITE_ADMIN_ORIGINS:-}"
-      # Stamped into the built bundle on success so a deploy can tell whether the
-      # bundle is stale (compared against the web/ tree + lockfile hash). See ci.yml.
-      WEB_FINGERPRINT: "${WEB_FINGERPRINT:-}"
     volumes:
-      - ..:/repo
-      - web_dist:/repo/web/dist
-    command: >-
-      sh -lc "corepack enable
-      && pnpm install --frozen-lockfile --filter @history-mapped/web...
-      && pnpm --filter @history-mapped/web build
-      && printf '%s' $$WEB_FINGERPRINT > /repo/web/dist/.web-fingerprint"
+      - web_dist:/srv/web
 
   # ── PostgreSQL 16 with PostGIS + pgvector ───────────────────────────────────
   db:

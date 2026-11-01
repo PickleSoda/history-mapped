@@ -1,0 +1,51 @@
+# syntax=docker/dockerfile:1.7
+# Production image of the customer SPA (web/): the bundle, built by CI with the
+# VITE_* values baked in, plus a small installer that copies it into the
+# web_dist volume the droplet's Caddy serves. The droplet never runs node: a
+# `vite build` on the 2 GB box starved it of memory and hung the deploy of
+# 2026-11-01. See docker/docker-compose.prod.yml (web-dist) and ci.yml (images).
+
+# ── Stage 1: build the bundle ───────────────────────────────────────────────
+FROM node:20-bookworm-slim AS build
+
+# Vite bakes these into the bundle at build time (web/src/vite-env.d.ts).
+ARG VITE_API_URL
+ARG VITE_APP_NAME=history-mapped
+ARG VITE_MAP_TILES_URL=
+ARG VITE_ADMIN_ORIGINS=
+# The release name the installer uses: the commit sha in CI.
+ARG WEB_RELEASE=dev
+
+ENV PNPM_HOME=/pnpm
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+
+WORKDIR /repo
+# Dependencies first, from the lockfile, so source edits keep this layer cached.
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY api/package.json ./api/
+COPY web/package.json ./web/
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
+    pnpm install --frozen-lockfile --filter @history-mapped/web...
+
+COPY web/ ./web/
+ENV VITE_API_URL=$VITE_API_URL \
+    VITE_APP_NAME=$VITE_APP_NAME \
+    VITE_MAP_TILES_URL=$VITE_MAP_TILES_URL \
+    VITE_ADMIN_ORIGINS=$VITE_ADMIN_ORIGINS
+# Without VITE_API_URL the SPA would call http://localhost:8000: refuse to build.
+RUN test -n "$VITE_API_URL" || { echo "VITE_API_URL build-arg is required" >&2; exit 1; }
+RUN pnpm --filter @history-mapped/web build \
+ && printf '%s\n' "$WEB_RELEASE" > web/dist/.web-release
+
+# ── Stage 2: the bundle + installer ─────────────────────────────────────────
+FROM alpine:3.20
+# GNU coreutils for `mv -T`: renaming the new `current` symlink over the old
+# one is a single rename(2), so Caddy never sees a missing or half-written tree.
+RUN apk add --no-cache coreutils
+ARG WEB_RELEASE=dev
+ENV WEB_RELEASE=$WEB_RELEASE
+COPY --from=build /repo/web/dist /dist
+COPY docker/web/install-web-dist.sh /usr/local/bin/install-web-dist
+RUN chmod +x /usr/local/bin/install-web-dist
+CMD ["install-web-dist"]
