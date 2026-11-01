@@ -3,6 +3,7 @@ import { Bookmark, LayoutDashboard, LogIn, LogOut, PencilLine } from 'lucide-rea
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthActions, useLoginRedirect, useMe } from '@/hooks';
 import type { Me } from '@/lib/schemas/auth';
+import { ATLAS_PATH } from '@/lib/site-links';
 import { cn } from '@/lib/utils';
 import { MENU_ITEM, POPUP } from './styles';
 
@@ -20,6 +21,9 @@ export function Avatar({ me, className }: { me: Me; className?: string }) {
     </span>
   );
 }
+
+/** Pages that need a signed-in user (signing out there leaves for the atlas). */
+const SIGNED_IN_ONLY = ['/saved', '/contributions'];
 
 /** Account links shared by the desktop menu and the mobile tools menu. */
 export function accountLinks(me: Me) {
@@ -87,9 +91,11 @@ export function UserMenu() {
             <Menu.Separator className="-mx-1.5 my-1 h-px bg-border" />
             <Menu.Item
               className={MENU_ITEM}
-              // Leave the account pages (they need a user); the atlas stays put.
+              // Leave the pages that need a user for the atlas; every other page stays put.
               onClick={() =>
-                signOut.mutate(undefined, { onSuccess: () => pathname !== '/' && navigate('/') })
+                signOut.mutate(undefined, {
+                  onSuccess: () => SIGNED_IN_ONLY.includes(pathname) && navigate(ATLAS_PATH),
+                })
               }
             >
               <LogOut size={15} className="text-muted-foreground" /> Sign out
