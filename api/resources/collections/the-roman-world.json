@@ -1,0 +1,25 @@
+{
+  "slug": "the-roman-world",
+  "title": "The Roman World",
+  "subtitle": "From a city on the Tiber to an empire of the Mediterranean",
+  "description": "Rome grew from a small Italian city into a republic that conquered the Mediterranean, then an empire that held it for five centuries. Follow its wars with Carthage and Parthia, the fall of the Republic, and the monuments and frontiers the emperors left behind.",
+  "cover_qid": "Q2277",
+  "sort_order": 10,
+  "items": [
+    { "kind": "entity", "ref": "Q2277", "note": "At its height the empire stretched from Britain to Mesopotamia." },
+    { "kind": "chronicle", "ref": "the-etruscans-and-the-birth-of-rome-c-750330-bce" },
+    { "kind": "chronicle", "ref": "punic-wars-carthage-against-rome-c-264146-bce" },
+    { "kind": "entity", "ref": "Q36456" },
+    { "kind": "story", "ref": "battle-of-cannae", "note": "Hannibal's double envelopment, step by step." },
+    { "kind": "chronicle", "ref": "fall-of-the-roman-republic-c-100-30-bce" },
+    { "kind": "entity", "ref": "Q1048" },
+    { "kind": "story", "ref": "battle-of-carrhae" },
+    { "kind": "entity", "ref": "Q1405" },
+    { "kind": "chronicle", "ref": "imperial-rome-augustus-to-the-fall-of-the-west-30-bce476-ce" },
+    { "kind": "entity", "ref": "Q10285" },
+    { "kind": "entity", "ref": "Q43332" },
+    { "kind": "entity", "ref": "Q57357" },
+    { "kind": "entity", "ref": "Q8413" },
+    { "kind": "tag", "ref": "classical" }
+  ]
+}

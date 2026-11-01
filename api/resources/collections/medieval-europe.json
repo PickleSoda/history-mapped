@@ -1,0 +1,25 @@
+{
+  "slug": "medieval-europe",
+  "title": "Medieval Europe",
+  "subtitle": "Kings, crusaders, cathedrals and the Black Death",
+  "description": "Between the fall of the Western Roman Empire and the Renaissance, Europe was remade by Frankish emperors, Viking raiders, Norman conquerors and the Church. This set follows that thousand years from Charlemagne's coronation to the Hundred Years' War.",
+  "cover_qid": "Q3044",
+  "sort_order": 40,
+  "items": [
+    { "kind": "entity", "ref": "Q3044", "note": "Crowned emperor in Rome on Christmas Day 800." },
+    { "kind": "chronicle", "ref": "carolingians-ottonians-and-vikings-in-the-west-751987" },
+    { "kind": "entity", "ref": "Q12567" },
+    { "kind": "entity", "ref": "Q12548" },
+    { "kind": "story", "ref": "battle-of-hastings" },
+    { "kind": "entity", "ref": "Q37594" },
+    { "kind": "chronicle", "ref": "high-medieval-europe-church-crusades-orders-cathedrals-and-charters-c-1000-1350-" },
+    { "kind": "entity", "ref": "Q51649" },
+    { "kind": "entity", "ref": "Q12519" },
+    { "kind": "entity", "ref": "Q2981" },
+    { "kind": "story", "ref": "hanseatic-league" },
+    { "kind": "story", "ref": "black-death", "note": "The plague kills perhaps a third of Europe in five years." },
+    { "kind": "chronicle", "ref": "hundred-years-war-hussites-and-late-medieval-europe-c-1350-1456-ce" },
+    { "kind": "entity", "ref": "Q7226" },
+    { "kind": "tag", "ref": "medieval" }
+  ]
+}

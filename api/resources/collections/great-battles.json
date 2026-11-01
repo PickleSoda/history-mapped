@@ -1,0 +1,23 @@
+{
+  "slug": "great-battles",
+  "title": "Great Battles",
+  "subtitle": "Battle maps from Salamis to Navarino",
+  "description": "A handful of days decided the fate of empires, from the straits of Salamis to the field of Waterloo. Each battle map replays the fighting step by step on the map, with the armies, commanders and terrain of the day.",
+  "cover_qid": "Q48314",
+  "sort_order": 30,
+  "items": [
+    { "kind": "entity", "ref": "Q31900" },
+    { "kind": "story", "ref": "battle-of-salamis", "note": "The Greek fleet traps the Persians in the narrows." },
+    { "kind": "story", "ref": "battle-of-gaugamela" },
+    { "kind": "story", "ref": "battle-of-cannae" },
+    { "kind": "story", "ref": "battle-of-carrhae" },
+    { "kind": "story", "ref": "battle-of-hastings" },
+    { "kind": "entity", "ref": "Q160077" },
+    { "kind": "story", "ref": "battle-of-blenheim" },
+    { "kind": "chronicle", "ref": "revolutionary-and-napoleonic-wars-campaigns-and-empire-c-1796-1815-ce" },
+    { "kind": "story", "ref": "battle-of-waterloo", "note": "Napoleon's last battle." },
+    { "kind": "story", "ref": "battle-of-navarino" },
+    { "kind": "entity", "ref": "Q38789" },
+    { "kind": "tag", "ref": "war" }
+  ]
+}

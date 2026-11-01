@@ -172,4 +172,12 @@ class SyncCollectionsCommandTest extends TestCase
         $this->assertSame($rome->entity_id, Collection::query()->where('slug', 'the-roman-world')->value('cover_entity_id'));
         $this->assertNull(Collection::query()->where('slug', 'silk-roads')->value('cover_entity_id'));
     }
+
+    public function test_the_seed_collections_are_valid(): void
+    {
+        [$code, $output] = $this->sync('');
+
+        $this->assertSame(0, $code, $output);
+        $this->assertGreaterThanOrEqual(5, Collection::query()->published()->count());
+    }
 }

@@ -1,0 +1,25 @@
+{
+  "slug": "plagues-and-pandemics",
+  "title": "Plagues and Pandemics",
+  "subtitle": "How disease shaped history, from Athens to the 1918 flu",
+  "description": "Epidemics have emptied cities, toppled empires and changed how people live, from the plague of Athens to the influenza of 1918. This set traces the great outbreaks and the doctors and scientists who learned to fight them.",
+  "cover_qid": "Q42005",
+  "sort_order": 70,
+  "items": [
+    { "kind": "entity", "ref": "Q758173" },
+    { "kind": "entity", "ref": "Q599141" },
+    { "kind": "entity", "ref": "Q821711" },
+    { "kind": "story", "ref": "black-death", "note": "Its spread across Europe and the Middle East, month by month." },
+    { "kind": "chronicle", "ref": "great-famine-and-black-death-c-1000-1350-ce" },
+    { "kind": "chronicle", "ref": "plague-recurrences-after-the-black-death-c-1350-1750-ce" },
+    { "kind": "entity", "ref": "Q12214" },
+    { "kind": "chronicle", "ref": "the-columbian-exchange-1492-1750-c-1350-1750-ce" },
+    { "kind": "entity", "ref": "Q40852", "note": "His cowpox vaccine of 1796 began the end of smallpox." },
+    { "kind": "entity", "ref": "Q356407" },
+    { "kind": "entity", "ref": "Q529" },
+    { "kind": "story", "ref": "1918-influenza" },
+    { "kind": "entity", "ref": "Q37064" },
+    { "kind": "chronicle", "ref": "disease-and-medicine-pandemics-and-public-health-c-1750-1999-ce" },
+    { "kind": "tag", "ref": "disease" }
+  ]
+}
