@@ -53,9 +53,11 @@ function StepEntities({ entities }: { entities: SecondaryEntity[] }) {
 }
 
 /** "What changed here" — the step's primary relationship, source → target.
- *  Shared with the chronicle page's step list. */
-export function WhatChanged({ rel }: { rel: Relationship }) {
+ *  Shared with the chronicle page's step list, which passes its link-mode
+ *  `openEntity` as `onOpen` (default: select the entity). */
+export function WhatChanged({ rel, onOpen }: { rel: Relationship; onOpen?: (id: string) => void }) {
   const { select } = useSelection();
+  const open = onOpen ?? select;
   const src = rel.source_entity;
   const tgt = rel.target_entity;
   if (!src && !tgt) return null;
@@ -68,7 +70,7 @@ export function WhatChanged({ rel }: { rel: Relationship }) {
         {src && (
           <button
             type="button"
-            onClick={() => select(src.id)}
+            onClick={() => open(src.id)}
             className="inline-flex min-w-0 items-center gap-1.5 hover:underline"
           >
             <GroupDot group={src.entity_group} />
@@ -84,7 +86,7 @@ export function WhatChanged({ rel }: { rel: Relationship }) {
         {tgt && (
           <button
             type="button"
-            onClick={() => select(tgt.id)}
+            onClick={() => open(tgt.id)}
             className="inline-flex min-w-0 items-center gap-1.5 hover:underline"
           >
             <GroupDot group={tgt.entity_group} />

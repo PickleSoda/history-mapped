@@ -7,11 +7,12 @@ import { nextMounted } from '@/lib/chronicle-page';
  * container), with hysteresis: it turns true within `near` px of the viewport
  * and false only beyond `far` px. Lazily mounted heavy children (step graphs)
  * key off it. `root` must be the actual scroll container — margins don't
- * extend past an ancestor's clip.
+ * extend past an ancestor's clip — or the document when the page scrolls the
+ * window (the site's standalone pages).
  */
 export function useNearViewport(
   ref: RefObject<Element | null>,
-  root: Element | null,
+  root: Element | Document | null,
   { near = 400, far = 1400 }: { near?: number; far?: number } = {},
 ): boolean {
   const [on, setOn] = useState(false);

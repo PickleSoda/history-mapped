@@ -1,5 +1,7 @@
 import { Hash } from 'lucide-react';
-import { useShowChroniclesTagged, useTags } from '@/hooks';
+import { usePageNav } from '@/components/atlas/link-mode';
+import { useTags } from '@/hooks';
+import { tagOpens } from '@/lib/page-nav';
 import { FACETS, displayTags } from '@/lib/tags';
 import { cn } from '@/lib/utils';
 
@@ -8,12 +10,13 @@ const PILL =
 
 /**
  * Tag pills for an entity or chronicle, most specific first (China, not also
- * East Asia and Asia). A tag that chronicles use opens the Chronicles tab
- * filtered to it.
+ * East Asia and Asia). In the atlas a tag that chronicles use opens the
+ * Chronicles tab filtered to it; on the site any tag with content opens its
+ * browse page (`/browse/:facet/:tag`).
  */
 export function TagPills({ slugs, className }: { slugs: string[]; className?: string }) {
   const { index } = useTags();
-  const showTagged = useShowChroniclesTagged();
+  const { mode, openTag } = usePageNav();
   const tags = displayTags(slugs, index);
   if (tags.length === 0) return null;
 
@@ -28,11 +31,15 @@ export function TagPills({ slugs, className }: { slugs: string[]; className?: st
           );
         return (
           <li key={t.slug}>
-            {t.chronicle_count > 0 ? (
+            {tagOpens(mode, t) ? (
               <button
                 type="button"
-                onClick={() => showTagged(t.slug)}
-                title={`${FACETS[t.facet].label} · show chronicles tagged ${t.name}`}
+                onClick={() => openTag(t.facet, t.slug)}
+                title={
+                  mode === 'site'
+                    ? `${FACETS[t.facet].label} · browse everything tagged ${t.name}`
+                    : `${FACETS[t.facet].label} · show chronicles tagged ${t.name}`
+                }
                 className={cn(PILL, 'hover:bg-muted hover:text-foreground')}
               >
                 {mark}

@@ -7,9 +7,11 @@ import {
   Route,
 } from 'lucide-react';
 import { memo, useCallback, useMemo, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { SaveControls } from '@/components/account/SaveControls';
 import { SuggestEditButton } from '@/components/account/SuggestEdit';
 import { WhatChanged } from '@/components/atlas/ChroniclePlayer';
+import { usePageNav } from '@/components/atlas/link-mode';
 import {
   ImpactMeter,
   PageFrame,
@@ -28,7 +30,6 @@ import {
   useChronicle,
   useChronicleGraph,
   useChronicleNav,
-  useFullPage,
   useNearViewport,
   useReducedMotion,
 } from '@/hooks';
@@ -43,6 +44,7 @@ import type { StepRow } from '@/lib/chronicle-page';
 import { humanise, spanText } from '@/lib/entity-format';
 import { formatYear } from '@/lib/format';
 import { externalNodeIds, stepHighlight, stepSubgraph } from '@/lib/graph';
+import { globeHref } from '@/lib/page-nav';
 import type { Chronicle } from '@/lib/schemas/chronicle';
 import type { ChronicleGraph } from '@/lib/schemas/graph';
 import { cn } from '@/lib/utils';
@@ -226,6 +228,7 @@ function WholeGraph({
   sectionRef: React.Ref<HTMLDivElement>;
 }) {
   const variant = usePageVariant();
+  const { openEntity } = usePageNav();
   const externals = useMemo(() => externalNodeIds(graph), [graph]);
   const primaries = useMemo(
     () => new Set(graph.edges.filter((e) => e.scope === 'primary').map((e) => e.id)),
@@ -273,6 +276,7 @@ function WholeGraph({
               fitHighlight
               height={variant === 'sheet' ? '56dvh' : 'min(70vh, 640px)'}
               label={`Relation graph of the chronicle, ${graph.nodes.length} entities`}
+              onOpen={openEntity}
             />
           </div>
         )}
@@ -286,7 +290,17 @@ function WholeGraph({
 /** A step's own graph. Mounts its canvas only while the row is near the
  *  viewport (and drops it again when far away), keeping a fixed-height box
  *  in place so the list never jumps. */
-function StepGraph({ graph, row, height }: { graph: ChronicleGraph; row: StepRow; height: number }) {
+function StepGraph({
+  graph,
+  row,
+  height,
+  onOpen,
+}: {
+  graph: ChronicleGraph;
+  row: StepRow;
+  height: number;
+  onOpen: (id: string) => void;
+}) {
   const boxRef = useRef<HTMLDivElement>(null);
   const near = useNearViewport(boxRef, useScrollRoot(), { near: 300, far: 1200 });
   const [external, setExternal] = useState(false);
@@ -341,6 +355,7 @@ function StepGraph({ graph, row, height }: { graph: ChronicleGraph; row: StepRow
             labelledEdges={primary}
             height={height}
             label={`Relation graph of step ${row.index + 1}`}
+            onOpen={onOpen}
           />
         ) : (
           <div
@@ -364,6 +379,7 @@ const StepItem = memo(function StepItem({
   graph,
   focused,
   onFocus,
+  onOpen,
 }: {
   row: StepRow;
   total: number;
@@ -371,6 +387,8 @@ const StepItem = memo(function StepItem({
   graph: ChronicleGraph | undefined;
   focused: boolean;
   onFocus: (index: number) => void;
+  /** Open an entity (the page's link-mode `openEntity`). */
+  onOpen: (id: string) => void;
 }) {
   const variant = usePageVariant();
   const { entry, index } = row;
@@ -379,7 +397,8 @@ const StepItem = memo(function StepItem({
     <li
       id={`chronicle-step-${index}`}
       className={cn(
-        'grid scroll-mt-16 gap-x-10 gap-y-5 border-t py-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]',
+        'grid scroll-mt-16 gap-x-10 gap-y-5 border-t py-8',
+        variant !== 'site' && 'lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]',
         focused && 'border-t-foreground',
       )}
       aria-label={`Step ${index + 1} of ${total}`}
@@ -426,7 +445,7 @@ const StepItem = memo(function StepItem({
             />
           </p>
         )}
-        {entry.primary_relationship && <WhatChanged rel={entry.primary_relationship} />}
+        {entry.primary_relationship && <WhatChanged rel={entry.primary_relationship} onOpen={onOpen} />}
         {graph && (
           <button
             type="button"
@@ -438,7 +457,7 @@ const StepItem = memo(function StepItem({
         )}
       </div>
       {graph ? (
-        <StepGraph graph={graph} row={row} height={variant === 'sheet' ? 240 : 280} />
+        <StepGraph graph={graph} row={row} height={variant === 'sheet' ? 240 : 280} onOpen={onOpen} />
       ) : (
         <div className="h-[280px] animate-pulse rounded-xl bg-muted/50 motion-reduce:animate-none" />
       )}
@@ -500,20 +519,35 @@ function About({ chronicle }: { chronicle: Chronicle }) {
 /**
  * The full chronicle page: the tour's header, its whole-chronicle relation
  * graph with a step scrubber, and every step with its own lazily mounted
- * graph. Rendered by the desktop page host and the mobile sheet at full snap.
- * Collapse returns to the tour at the step last in focus.
+ * graph. Rendered by the desktop page host, the mobile sheet at full snap and
+ * the standalone site route (`variant="site"`, site link mode, `step` from
+ * its `?step=`). Collapse returns to the tour at the step last in focus.
  */
-export function ChroniclePage({ id: slug, variant = 'page' }: { id: string; variant?: PageVariant }) {
+export function ChroniclePage({
+  id: slug,
+  variant = 'page',
+  step,
+  lead,
+}: {
+  id: string;
+  variant?: PageVariant;
+  /** Site only: the step to open on (null = the whole chronicle). In the
+   *  atlas the tour's `step` decides. Read once, on mount. */
+  step?: number | null;
+  /** Site only: the breadcrumb shown in the sticky header. */
+  lead?: ReactNode;
+}) {
   const { data: chronicle, isLoading, isError } = useChronicle(slug);
   const { data: graph, isError: graphError } = useChronicleGraph(slug);
   const { step: urlStep } = useChronicleNav();
-  const { collapseChronicle, closeChronicle } = useFullPage();
+  const nav = usePageNav();
   const reducedMotion = useReducedMotion();
 
   const rows = useMemo(() => stepRows(chronicle?.entries ?? [], graph?.steps), [chronicle, graph]);
   // Highlighted step (null = whole graph). Opened mid-tour, start on that step.
-  const [focus, setFocusState] = useState<number | null>(urlStep > 0 ? urlStep : null);
-  const [cursor, setCursor] = useState(urlStep);
+  const startStep = step !== undefined ? step : urlStep > 0 ? urlStep : null;
+  const [focus, setFocusState] = useState<number | null>(startStep);
+  const [cursor, setCursor] = useState(startStep ?? urlStep);
   const setFocus = useCallback((i: number | null) => {
     setFocusState(i);
     if (i != null) setCursor(i);
@@ -538,12 +572,14 @@ export function ChroniclePage({ id: slug, variant = 'page' }: { id: string; vari
       accent={ACCENT}
       wash="var(--accent)"
       resetKey={slug}
-      onCollapse={() => collapseChronicle(focus ?? cursor)}
-      onClose={closeChronicle}
+      onCollapse={() => nav.collapse(focus ?? cursor)}
+      onClose={() => nav.close('chronicle')}
       closeLabel="Exit tour"
+      globeHref={globeHref({ kind: 'chronicle', slug, step: focus })}
+      lead={lead}
       actions={
         chronicle && (
-          <SaveControls type="chronicle" id={chronicle.chronicle_id} compact={variant === 'sheet'} />
+          <SaveControls type="chronicle" id={chronicle.chronicle_id} compact={variant !== 'page'} />
         )
       }
     >
@@ -587,6 +623,7 @@ export function ChroniclePage({ id: slug, variant = 'page' }: { id: string; vari
                   graph={graph}
                   focused={focus === row.index}
                   onFocus={focusInGraph}
+                  onOpen={nav.openEntity}
                 />
               ))}
             </ol>
