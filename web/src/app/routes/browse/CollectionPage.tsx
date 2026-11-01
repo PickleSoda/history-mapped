@@ -4,7 +4,9 @@ import { EntityImage } from '@/components/atlas/EntityImage';
 import { TypeBadge } from '@/components/atlas/GroupBadge';
 import { useCollection, useTags } from '@/hooks';
 import { errorStatus } from '@/lib/api/errors';
+import { useDocumentMeta } from '@/lib/document-meta';
 import type { Collection, CollectionItem, CollectionItemKind } from '@/lib/schemas/collection';
+import { browsePath, entityPagePath } from '@/lib/site-links';
 import type { TagIndex } from '@/lib/tags';
 import {
   BrowseNotFound,
@@ -27,8 +29,6 @@ import {
   numberItems,
 } from './browse-model';
 import { ChronicleCard, EntityCard, StoryMapCard, TagCard } from './cards';
-import { browsePath, entityPagePath } from './links';
-import { useBrowseDocumentTitle } from './useBrowseDocumentTitle';
 
 function ItemCard({ item, index }: { item: CollectionItem; index: TagIndex }) {
   switch (item.kind) {
@@ -136,7 +136,7 @@ export function CollectionPage() {
   const { data: set, isLoading, isError, error, refetch } = useCollection(slug || null);
   const { index } = useTags();
   const missing = isError && errorStatus(error) === 404;
-  useBrowseDocumentTitle(set?.title ?? (missing ? 'Not found' : 'Curated set'), set?.subtitle ?? set?.description);
+  useDocumentMeta({ title: set?.title ?? (missing ? 'Not found' : 'Curated set'), description: set?.subtitle ?? set?.description });
 
   if (missing) {
     return (

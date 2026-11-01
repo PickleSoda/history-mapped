@@ -73,6 +73,8 @@ export interface AtlasLinkParams {
   full?: boolean;
   /** Timeline instant (the `t` param). */
   year?: number | null;
+  /** Chronicle-tag filter of the atlas browse tab (the `ct` param, one slug). */
+  ct?: string | null;
 }
 
 /**
@@ -93,11 +95,32 @@ export function atlasHref(params: AtlasLinkParams = {}): string {
     if (s) q.set('sstep', String(s));
   }
   if (params.full) q.set('full', '1');
+  if (params.ct) q.set('ct', params.ct);
   if (params.year != null && Number.isFinite(params.year)) {
     q.set('t', serializeTime({ kind: 'instant', year: Math.trunc(params.year) }));
   }
   const qs = q.toString();
   return qs ? `${ATLAS_PATH}?${qs}` : ATLAS_PATH;
+}
+
+/** The browse index. */
+export function browsePath(): string {
+  return '/browse';
+}
+
+/** "Open on the globe" for an entity: selected, full page open. */
+export function entityAtlasHref(id: string): string {
+  return atlasHref({ sel: id, full: true });
+}
+
+/** "Open on the globe" for a chronicle: the tour, playing on the map. */
+export function chronicleAtlasHref(slug: string): string {
+  return atlasHref({ chron: slug });
+}
+
+/** A battle map needs the globe: play it there. */
+export function storyAtlasHref(slug: string): string {
+  return atlasHref({ story: slug });
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

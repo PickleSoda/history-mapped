@@ -28,6 +28,7 @@ const SOURCES = import.meta.glob<string>(
     '../../../../docs/implementation-docs/setup.md',
     '../../../../docs/implementation-docs/data-contributor-guide.md',
     '../../../../docs/implementation-docs/map-story-authoring.md',
+    '../../../../docs/schemas/atlas-tiles.md',
   ],
   { query: '?raw', import: 'default' },
 );

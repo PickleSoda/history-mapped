@@ -2,11 +2,12 @@ import { ArrowRight, Database, Globe, PenLine, Route, ScrollText, Swords } from 
 import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { useChronicleList, useTags } from '@/hooks';
+import { CollectionCard, StoryMapCard } from '@/app/routes/browse/cards';
+import { useChronicleList, useCollections, useMapStoryList, useTags } from '@/hooks';
 import { yearSpanText } from '@/lib/chronicle-page';
 import { useDocumentMeta } from '@/lib/document-meta';
 import type { ChronicleSummary } from '@/lib/schemas/chronicle';
-import { ATLAS_PATH, chroniclePagePath } from '@/lib/site-links';
+import { ATLAS_PATH, browsePath, chroniclePagePath, storiesPath } from '@/lib/site-links';
 import { displayTags } from '@/lib/tags';
 
 const PRIMARY =
@@ -218,41 +219,115 @@ function ChronicleCard({ chronicle }: { chronicle: ChronicleSummary }) {
   );
 }
 
-function StartHere() {
-  const { data, isLoading, isError } = useChronicleList({ sort: 'impact' });
-  const chronicles = data?.pages[0]?.data.slice(0, 3) ?? [];
-  // TODO(track D): featured curated sets and battle maps via useCollections / useMapStoryList
+const SKELETON = 'h-48 animate-pulse rounded-xl border bg-muted/50 motion-reduce:animate-none';
+
+function FeaturedRow({
+  title,
+  to,
+  linkText,
+  isLoading,
+  isError,
+  errorText,
+  children,
+}: {
+  title: string;
+  to: string;
+  linkText: string;
+  isLoading: boolean;
+  isError: boolean;
+  errorText: string;
+  children: ReactNode[];
+}) {
+  const empty = !isLoading && !isError && children.length === 0;
   return (
-    <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 md:py-20">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <SectionHeading eyebrow="Start here" title="Three chronicles to begin with" />
+    <div className="mt-10 first:mt-8">
+      <div className="flex flex-wrap items-baseline justify-between gap-3">
+        <h3 className="font-heading text-[20px] font-semibold tracking-tight">{title}</h3>
         <Link
-          to="/browse"
+          to={to}
           className="inline-flex items-center gap-1.5 text-[14px] font-medium underline-offset-4 hover:underline"
         >
-          Browse everything <ArrowRight size={15} aria-hidden />
+          {linkText} <ArrowRight size={15} aria-hidden />
         </Link>
       </div>
-      <ul className="mt-8 grid gap-4 md:grid-cols-3">
-        {isLoading &&
-          [0, 1, 2].map((i) => (
-            <li key={i} aria-hidden className="h-48 animate-pulse rounded-xl border bg-muted/50 motion-reduce:animate-none" />
-          ))}
-        {chronicles.map((c) => (
-          <li key={c.chronicle_id}>
-            <ChronicleCard chronicle={c} />
-          </li>
-        ))}
+      <ul className="mt-4 grid gap-4 md:grid-cols-3">
+        {isLoading && [0, 1, 2].map((i) => <li key={i} aria-hidden className={SKELETON} />)}
+        {children}
       </ul>
-      {isError && (
+      {(isError || empty) && (
         <p className="mt-2 text-[14px] text-muted-foreground">
-          The chronicles could not be loaded right now.{' '}
-          <Link to="/browse" className="underline underline-offset-4">
+          {errorText}{' '}
+          <Link to={to} className="underline underline-offset-4">
             Browse instead
           </Link>
           .
         </p>
       )}
+    </div>
+  );
+}
+
+/** Three curated sets, three chronicles and three battle maps, live from the API. */
+function StartHere() {
+  const sets = useCollections();
+  const chronicles = useChronicleList({ sort: 'impact' });
+  const stories = useMapStoryList({ perPage: 3 });
+  const setRows = sets.data?.data.slice(0, 3) ?? [];
+  const chronicleRows = chronicles.data?.pages[0]?.data.slice(0, 3) ?? [];
+  const storyRows = stories.data?.pages[0]?.data.slice(0, 3) ?? [];
+  return (
+    <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 md:py-20">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <SectionHeading eyebrow="Start here" title="A few doors in" />
+        <Link
+          to={browsePath()}
+          className="inline-flex items-center gap-1.5 text-[14px] font-medium underline-offset-4 hover:underline"
+        >
+          Browse everything <ArrowRight size={15} aria-hidden />
+        </Link>
+      </div>
+      <FeaturedRow
+        title="Curated sets"
+        to={browsePath()}
+        linkText="All sets"
+        isLoading={sets.isLoading}
+        isError={sets.isError}
+        errorText="The curated sets are not available right now."
+      >
+        {setRows.map((c) => (
+          <li key={c.slug}>
+            <CollectionCard collection={c} />
+          </li>
+        ))}
+      </FeaturedRow>
+      <FeaturedRow
+        title="Chronicles"
+        to={browsePath()}
+        linkText="All chronicles"
+        isLoading={chronicles.isLoading}
+        isError={chronicles.isError}
+        errorText="The chronicles could not be loaded right now."
+      >
+        {chronicleRows.map((c) => (
+          <li key={c.chronicle_id}>
+            <ChronicleCard chronicle={c} />
+          </li>
+        ))}
+      </FeaturedRow>
+      <FeaturedRow
+        title="Battle maps"
+        to={storiesPath()}
+        linkText="All battle maps"
+        isLoading={stories.isLoading}
+        isError={stories.isError}
+        errorText="The battle maps are not available right now."
+      >
+        {storyRows.map((s) => (
+          <li key={s.slug}>
+            <StoryMapCard story={s} />
+          </li>
+        ))}
+      </FeaturedRow>
     </section>
   );
 }

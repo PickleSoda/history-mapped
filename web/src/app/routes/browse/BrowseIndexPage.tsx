@@ -2,12 +2,12 @@ import { ArrowRight } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useChronicleList, useCollections, useMapStoryList, useTags } from '@/hooks';
+import { useDocumentMeta } from '@/lib/document-meta';
+import { storiesPath } from '@/lib/site-links';
 import { BrowseSection, BrowseShell, CardSkeletons, Notice, QueryNotice } from './browse-kit';
 import { facetSections } from './browse-model';
 import type { FacetSection } from './browse-model';
 import { ChronicleCard, CollectionCard, StoryMapCard, TagCard } from './cards';
-import { storiesPath } from './links';
-import { useBrowseDocumentTitle } from './useBrowseDocumentTitle';
 
 const STRIP = 6;
 
@@ -153,10 +153,10 @@ function useScrollToHash(ready: boolean) {
 /** `/browse` (spec D4): curated sets, the era / region / theme / type grids,
  *  the leading chronicles and the battle maps. */
 export function BrowseIndexPage() {
-  useBrowseDocumentTitle(
-    'Browse',
-    'Browse History Mapped by curated set, era, region and theme, or open a chronicle or a battle map.',
-  );
+  useDocumentMeta({
+    title: 'Browse',
+    description: 'Browse History Mapped by curated set, era, region and theme, or open a chronicle or a battle map.',
+  });
   const { tags, isLoading, isError, error, refetch } = useTags();
   const sections = useMemo(() => facetSections(tags), [tags]);
   useScrollToHash(!isLoading);

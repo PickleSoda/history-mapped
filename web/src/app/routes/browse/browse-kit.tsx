@@ -10,11 +10,11 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { errorStatus } from '@/lib/api/errors';
 import type { TagFacet } from '@/lib/schemas/tag';
+import { browsePath, facetPath } from '@/lib/site-links';
 import { FACETS } from '@/lib/tags';
 import type { IndexedTag } from '@/lib/tags';
 import { cn } from '@/lib/utils';
 import { markdownParagraphs } from './browse-model';
-import { browsePath, facetPath } from './links';
 
 const TEXT_LINK = 'underline decoration-foreground/30 underline-offset-2 hover:decoration-foreground';
 

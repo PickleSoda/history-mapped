@@ -17,6 +17,15 @@ import type { ChronicleSummary } from '@/lib/schemas/chronicle';
 import type { CollectionSummary } from '@/lib/schemas/collection';
 import type { EntitySummary } from '@/lib/schemas/entity';
 import type { MapStoryListItem } from '@/lib/schemas/map-story-list';
+import {
+  chronicleAtlasHref,
+  chroniclePagePath,
+  collectionPath,
+  entityAtlasHref,
+  entityPagePath,
+  facetPath,
+  storyAtlasHref,
+} from '@/lib/site-links';
 import { FACETS } from '@/lib/tags';
 import type { IndexedTag, TagIndex } from '@/lib/tags';
 import { cn } from '@/lib/utils';
@@ -31,15 +40,6 @@ import {
   yearRangeLabel,
 } from './browse-model';
 import type { TagNode } from './browse-model';
-import {
-  chronicleAtlasHref,
-  chroniclePagePath,
-  collectionPath,
-  entityAtlasHref,
-  entityPagePath,
-  facetPath,
-  storyAtlasHref,
-} from './links';
 
 const CARD =
   'group relative flex flex-col rounded-xl border bg-card p-4 transition hover:border-foreground/25 hover:shadow-sm focus-within:ring-2 focus-within:ring-ring/50';

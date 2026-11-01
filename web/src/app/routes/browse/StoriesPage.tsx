@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useMapStoryList } from '@/hooks';
 import type { MapStoryListParams } from '@/lib/api';
+import { useDocumentMeta } from '@/lib/document-meta';
+import { atlasHref, browsePath } from '@/lib/site-links';
 import {
   BrowseShell,
   Breadcrumbs,
@@ -14,8 +16,6 @@ import {
 } from './browse-kit';
 import { storyKindName, storyKinds } from './browse-model';
 import { StoryMapCard } from './cards';
-import { atlasHref, browsePath } from './links';
-import { useBrowseDocumentTitle } from './useBrowseDocumentTitle';
 
 type StorySort = NonNullable<MapStoryListParams['sort']>;
 
@@ -27,10 +27,10 @@ const SORTS: { value: StorySort; label: string }[] = [
 /** `/browse/stories` (spec D4): every battle map (map story) as a card, with
  *  kind filters and a year / title sort. Cards open the story on the globe. */
 export function StoriesPage() {
-  useBrowseDocumentTitle(
-    'Battle maps',
-    'Step-by-step maps of battles, sieges, epidemics and trade routes, played on the History Mapped globe.',
-  );
+  useDocumentMeta({
+    title: 'Battle maps',
+    description: 'Step-by-step maps of battles, sieges, epidemics and trade routes, played on the History Mapped globe.',
+  });
   const [kind, setKind] = useState<string | null>(null);
   const [sort, setSort] = useState<StorySort>('year');
   // The unfiltered list names the kinds for the chips; with no kind picked it

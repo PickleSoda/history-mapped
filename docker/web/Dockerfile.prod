@@ -29,6 +29,8 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
     pnpm install --frozen-lockfile --filter @history-mapped/web...
 
 COPY web/ ./web/
+# The /docs pages are built from the repo markdown (web/src/content/docs/manifest.ts).
+COPY docs/ ./docs/
 ENV VITE_API_URL=$VITE_API_URL \
     VITE_APP_NAME=$VITE_APP_NAME \
     VITE_MAP_TILES_URL=$VITE_MAP_TILES_URL \

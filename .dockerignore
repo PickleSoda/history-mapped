@@ -21,3 +21,5 @@ api/storage/*.key
 # Docs & host-only files
 docs
 **/*.md
+# The public site renders a curated set of docs (web/src/content/docs/manifest.ts).
+!docs/**/*.md

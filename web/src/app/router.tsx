@@ -1,9 +1,13 @@
-import { lazy } from 'react';
+import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { legacyAtlasRedirect } from '@/lib/legacy-redirect';
 import { AccountLayout } from './routes/AccountLayout';
-import { AtlasLayout } from './routes/AtlasLayout';
 import { SiteLayout } from './routes/site/SiteLayout';
+
+// The atlas (MapLibre, the shells, the timeline) is its own chunk, so the
+// landing, browse and docs pages do not download it; it is precached by the
+// service worker, so opening /app later costs one cached fetch.
+const AtlasLayout = lazy(() => import('./routes/AtlasLayout').then((m) => ({ default: m.AtlasLayout })));
 
 // Account pages load on first visit, keeping them out of the atlas entry chunk.
 const LoginPage = lazy(() => import('./routes/LoginPage').then((m) => ({ default: m.LoginPage })));
@@ -61,7 +65,14 @@ function IndexRoute() {
 export function AppRoutes() {
   return (
     <Routes>
-      <Route path="/app" element={<AtlasLayout />} />
+      <Route
+        path="/app"
+        element={
+          <Suspense fallback={<div className="h-dvh w-full bg-background" aria-busy="true" />}>
+            <AtlasLayout />
+          </Suspense>
+        }
+      />
       <Route element={<AccountLayout />}>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />

@@ -139,6 +139,11 @@ export const DOC_PAGES: readonly DocEntry[] = [
     path: 'docs/implementation-docs/map-story-authoring.md',
     description: 'Authoring map stories: step-by-step battle maps with formations, movements and narrative on the atlas.',
   },
-  // Contracts: `docs/schemas/atlas-tiles.md` (slug `atlas-tiles`) joins once the
-  // Martin tiles branch lands on main; the file does not exist here yet.
+  {
+    slug: 'atlas-tiles',
+    title: 'Atlas vector tiles',
+    section: 'contracts',
+    path: 'docs/schemas/atlas-tiles.md',
+    description: 'The atlas_entities vector-tile contract: endpoints, layer properties, the decimal-date rule and the OHM link.',
+  },
 ];

@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 import { useChronicleList, useEntitiesByTag, useTags } from '@/hooks';
 import type { ChronicleListParams } from '@/lib/api';
+import { useDocumentMeta } from '@/lib/document-meta';
+import { atlasHref, browsePath, facetPath } from '@/lib/site-links';
 import type { IndexedTag, TagIndex } from '@/lib/tags';
 import {
   BrowseNotFound,
@@ -20,8 +22,6 @@ import {
 } from './browse-kit';
 import { childTags, facetLabel, resolveFacetRoute, tagCountsLabel, tagLineage, yearRangeLabel } from './browse-model';
 import { ChronicleCard, EntityCard } from './cards';
-import { atlasHref, browsePath, facetPath } from './links';
-import { useBrowseDocumentTitle } from './useBrowseDocumentTitle';
 
 type ChronicleSort = NonNullable<ChronicleListParams['sort']>;
 
@@ -142,7 +142,7 @@ export function BrowseFacetPage() {
   const { tags, index, isLoading, isError, error, refetch } = useTags();
   const route = useMemo(() => resolveFacetRoute(facet, slug, index), [facet, slug, index]);
   const tag = route.status === 'ok' ? route.tag : null;
-  useBrowseDocumentTitle(tag?.name ?? (isLoading ? 'Browse' : 'Not found'), tag?.description);
+  useDocumentMeta({ title: tag?.name ?? (isLoading ? 'Browse' : 'Not found'), description: tag?.description });
 
   if (isLoading) {
     return (

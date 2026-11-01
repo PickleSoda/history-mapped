@@ -56,7 +56,10 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
         // Wireframe artifacts in public/ are not app assets.
-        globIgnores: ['**/*.jsx', '**/Historical Atlas Wireframes.html'],
+        // Wireframe artifacts in public/ are not app assets; the docs pages'
+        // chunks (markdown sources, mermaid and its diagram types, ~3 MB) are
+        // fetched on demand instead of precached for every atlas visitor.
+        globIgnores: ['**/*.jsx', '**/Historical Atlas Wireframes.html', 'assets/docs/**'],
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/sanctum\//],
         // The MapLibre chunk exceeds workbox's 2 MB default.
@@ -156,6 +159,20 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        // Docs-only code lands under assets/docs/, which the service worker
+        // leaves out of its precache (see workbox.globIgnores above).
+        chunkFileNames: (chunk) =>
+          chunk.moduleIds.some((id) =>
+            /\.md\?raw$|\/node_modules\/\.pnpm\/(?:mermaid|katex|@mermaid-js\+[^@/]+)@/.test(id),
+          )
+            ? 'assets/docs/[name]-[hash].js'
+            : 'assets/[name]-[hash].js',
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
