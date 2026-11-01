@@ -75,7 +75,10 @@ width up to `max-w-3xl`, and the page title is the document title. The standalon
   synced by `php artisan collections:sync` (upsert by slug; `--path=`; no admin editing in v1), table `collections`:
   `collection_id uuid pk, slug unique, title, subtitle null, description text null (markdown), cover_entity_id uuid null
   (fk entities, null on delete), items jsonb (ordered), status enum draft|published default published, sort_order int,
-  timestamps`. An item is `{kind: "entity"|"chronicle"|"story"|"tag", ref: <uuid|slug>, note?: string}`.
+  timestamps`. An item is `{kind: "entity"|"chronicle"|"story"|"tag", ref: string, note?: string}`: for an entity `ref` is its Wikidata
+  id (`Q…`, resolved through `entities.wikidata_id` when served, so merges and re-imports that change uuids do not break a
+  set; a uuid is accepted as a fallback), for a chronicle or story its slug, for a tag its slug. Items are resolved when
+  served, not at sync time.
   API: `GET /api/v1/collections` → `{data: [{slug,title,subtitle,description,cover (entity summary|null),
   item_count, items_by_kind: {entity,chronicle,story,tag}}]}` (published only, by sort_order, then title);
   `GET /api/v1/collections/{slug}` → the same plus `items: [{kind, note, entity?|chronicle?|story?|tag?}]` resolved
