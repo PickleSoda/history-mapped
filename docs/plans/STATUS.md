@@ -48,6 +48,7 @@
 | [2026-10-31-identity-audit](../superpowers/plans/2026-10-31-identity-audit.md) | 🟡 | `pipeline/audit` is built. 2,569 safe fixes applied locally. **User:** 119 merges (42 high reviewed), type, relation and text flags; prod gets the fixes with the next content load. |
 | [2026-10-31-battle-bulk-run-readiness](../superpowers/plans/2026-10-31-battle-bulk-run-readiness.md) | 🟡 | Tooling and Sonnet author/reviewer agents are built. Pilot measured 2026-11-01 (Carrhae, Navarino, Blenheim): 0.3M tokens and 1–3 min per author on the first pass, which came out thin. With the raised depth floor (runbook §5), it took 0.7–1.0M and 4–5 min for Opus-like depth, against the 8M / 15 min target. **Remaining:** the first full batch from `queue.tsv`. |
 | [2026-06-12-map-bbox-query-optimization](../superpowers/plans/2026-06-12-map-bbox-query-optimization.md) | 🟡 | Phases 1–3 shipped. **Remaining:** single-statement `ResolveOhmFeatureAction` (T12), EntityBuilder spatial EXISTS/LATERAL rewrite (T13), destructive borders-from-OHM storage migration (T15–17), admin dashboard FE (T10/11, intentionally skipped). |
+| [2026-10-31-atlas-tiles-ohm-correlation](../archive/superpowers-plans/2026-10-31-atlas-tiles-ohm-correlation.md) | ✅ | Merged to main 2026-11-01; spec and plan archived. Shipped: `tiles` schema and `tiles.atlas_entities` MVT (rank cap per tile and century, ETag, `has_map_story`); Martin 1.16.1 sidecar and Caddy `/tiles`, or the app serving the same tiles itself (`TILES_DRIVER=martin|app` in `docker/.env.prod`, `api/routes/tiles.php`; Martin runs only as the driver); SPA tile mode behind `VITE_MAP_TILES_URL`; signed-`osm_id` resolver and click resolution; OHM label/polygon highlight with two-way hover; `ohm-links` Overpass fetch and `pipeline:import-ohm-links`; CI deploy recreates caddy + martin. Contract: [schemas/atlas-tiles.md](../schemas/atlas-tiles.md). Prod: the SPA is built in CI into the `web` image (2026-11-01, after an on-droplet `vite build` hung a deploy); tile mode is on only when the repository variable `VITE_MAP_TILES_URL=https://<APP_DOMAIN>/tiles` is set. Backfill (dev DB, 2026-10-31): 4,476 refs created, 3,120 updated; entities with an OHM ref 3,305 → 3,593; polities linked 766 → 958; refs with years 0 → 7,391 / 7,781; linked tile features 62 → 299. **Remaining:** the same backfill on prod, then `map-stories:relink` (dated step borders read the filled temporal years). **Follow-ups:** ~3,294 OHM-linked entities have no map geometry (only 41 have a location point, so `entity:backfill` cannot place the rest; a cheap next step is fetching `out center` for linked refs); a `tiles.story_features` source over `map_stories.ambient_steps` once ambient stories grow beyond a handful; one shared signed-id helper (`map-story/layers.ts` and `ohm-resolve.ts` each convert `relation/123`); `story_slug`/`story_kind` on entity tiles; live-network tests in `pipeline/tests/test_ohm_borders_cli.py`; a read-only DB role for Martin. |
 
 ### Completed this cycle (archived → [`../archive/superpowers-plans/`](../archive/superpowers-plans/))
 
@@ -68,6 +69,21 @@ Forward-looking / partial design material kept live for direction:
 
 ---
 
+## Production: pending steps and decisions (2026-11-01)
+
+Branch `feat/martin-tiles-ohm-correlation` (tiles + CI-built SPA + tile driver) is merged with `main` b9875b8 and
+verified, not pushed. Prod runs b9875b8's API (deployed 17:17 UTC). Steps, in order, with who does what:
+
+| # | Step | Owner | State / decision |
+|---|------|-------|------------------|
+| 1 | Set GitHub repository variables `VITE_API_URL=https://api.historymapped.org` and `VITE_MAP_TILES_URL=https://api.historymapped.org/tiles` (Settings → Secrets and variables → Actions → Variables). `VITE_APP_NAME` is unused by the SPA; `VITE_ADMIN_ORIGINS` defaults to the API origin. | user | ⬜ The `images` job fails without `VITE_API_URL`, so no deploy runs. |
+| 2 | Push the branch to `main`; CI builds the `api` + `web` images and deploys (`web-dist` → `migrate` → `up -d` → recreate caddy + martin). Then check `https://api.historymapped.org/tiles/atlas_entities` (TileJSON) and `/tiles/atlas_entities/0/0/0` (200, `application/x-protobuf`). | user says go; Claude pushes | ⬜ Do **not** re-run the failed run 41291976458 afterwards: it would reset the droplet to 8c91db9. |
+| 3 | Tile driver | decided | ✅ `TILES_DRIVER` stays `martin` on prod (own pool and cache; Octane has one PHP worker per vCPU). `app` is the fallback: one env line, no SPA rebuild. |
+| 4 | GHCR `web` package visibility | watch | If the first deploy fails at `compose pull`, the new package was created private: make it public (or set `GHCR_USERNAME`/`GHCR_TOKEN`) and re-run the deploy job. |
+| 5 | Map stories on prod (`map_stories` is empty) | user decides | ⬜ Either run `map-stories:sync`, `entities:sync-descriptions`, `map-stories:relink` once in the app container, or approve them as a post-deploy step in `ci.yml` (idempotent, keeps admin/AI edits; writes content on every deploy). |
+| 6 | OHM link backfill on prod (`pipeline:import-ohm-links` + `map-stories:relink`) | user decides | ⬜ Recommended: skip it; the next full content load carries the 2026-10-31 backfill, the 1,063 deactivated name-only refs and the new map points. Alternative: scp `output/ohm_links/2026-10-31/ohm_links.jsonl` to `/opt/history-mapped/output/ohm_links/2026-10-31/` and run the import (auto mode denies ssh/scp to the droplet; needs a permission rule or the user's terminal). |
+| 7 | Full content load to prod | user | ⬜ After the peer session reports the local DB final (date/QID/merge cleanup, backfill_geo). Pull prod's approved contributions first ([content-data-transfer](../implementation-docs/content-data-transfer.md)); `load-content-on-droplet.sh` repairs sequences. |
+
 ## What still needs execution (priority view)
 
 **Pipeline / data quality**
@@ -79,6 +95,7 @@ Forward-looking / partial design material kept live for direction:
 - Single-statement `ResolveOhmFeatureAction` (T12), EntityBuilder spatial EXISTS/LATERAL (T13) — perf, optional.
 - Borders-from-OHM storage cleanup (T15–17) — destructive; serving path already correct, low urgency.
 - MQ-2 (dashboard unbounded `/entities/map/year` fetch) + MQ-15 (display_priority NULLS ordering).
+- Atlas tiles (2026-10-31 plan): merge to main with a `has_map_story` tile migration, then give the ~3,294 OHM-linked entities map geometry.
 
 **Frontend (admin)**
 - FE-1 admin date padding, FE-5/7/10/11 viewer bugs (bug-report).

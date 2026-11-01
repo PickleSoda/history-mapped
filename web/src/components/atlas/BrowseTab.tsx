@@ -1,5 +1,5 @@
 import { Clock, MapPin, Search, Sparkles } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { GroupDot, TypeBadge } from '@/components/atlas/GroupBadge';
 import {
   useEntityList,
@@ -11,6 +11,7 @@ import {
 import { formatTime, formatYear } from '@/lib/format';
 import { GROUPS, GROUP_ORDER } from '@/lib/groups';
 import type { EntitySummary } from '@/lib/schemas/entity';
+import { useEphemeralStore } from '@/stores/ephemeral';
 
 /** Group filter chips — wired to the URL `g` param via useFilters. */
 function FilterChips() {
@@ -78,13 +79,29 @@ function spanLabel(e: EntitySummary): string {
 function ListRow({ e }: { e: EntitySummary }) {
   const { sel, select } = useSelection();
   const prefetch = usePrefetchEntity();
+  // List <-> map hover (D5). A per-row selector, so a hover change re-renders
+  // only the rows it enters and leaves, not the whole list.
+  const setHover = useEphemeralStore((s) => s.setHover);
+  const hovered = useEphemeralStore((s) => s.hoverId === e.id);
+  // A row that unmounts under the pointer (list refetch, tab switch) gets no
+  // mouseleave; drop its hover so the map highlight does not stick.
+  useEffect(
+    () => () => {
+      if (useEphemeralStore.getState().hoverId === e.id) setHover(null);
+    },
+    [e.id, setHover],
+  );
   return (
     <button
       type="button"
       onClick={() => select(e.id)}
-      onMouseEnter={() => prefetch(e.id)}
+      onMouseEnter={() => {
+        prefetch(e.id);
+        setHover(e.id);
+      }}
+      onMouseLeave={() => setHover(null)}
       className={`flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left transition-colors ${
-        sel === e.id ? 'bg-muted' : 'hover:bg-muted/60'
+        sel === e.id ? 'bg-muted' : hovered ? 'bg-muted/60' : 'hover:bg-muted/60'
       }`}
     >
       <GroupDot group={e.entity_group} />

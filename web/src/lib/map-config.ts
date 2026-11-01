@@ -1,5 +1,21 @@
 import type { FilterSpecification, StyleSpecification } from 'maplibre-gl';
+import {
+    OHM_ADMIN_SOURCE,
+    OHM_CENTROID_SOURCE_LAYER,
+    OHM_SOURCE,
+    linkedLabelColor,
+} from '@/lib/ohm-highlight';
 import type { BasemapId } from '@/types/atlas';
+
+// The correlation vocabulary (spec D5) is defined next to the highlight logic
+// in ohm-highlight.ts (one import direction, no cycle) and re-exported here
+// with the style it names.
+export {
+    LINK_COLOR,
+    OHM_ADMIN_LAYER,
+    OHM_ADMIN_SOURCE,
+    OHM_CENTROID_SOURCE_LAYER,
+} from '@/lib/ohm-highlight';
 
 const OHM_STYLES = 'https://www.openhistoricalmap.org/map-styles';
 
@@ -173,17 +189,73 @@ function recolorWater(layer: StyleLayer): StyleLayer {
     } as StyleLayer;
 }
 
+/** OHM's polygon tileset (admin boundaries; heavy, ~1.3 MB at z5). */
+const OHM_ADMIN_TILES =
+    'https://vtiles.openhistoricalmap.org/maps/ohm_admin/{z}/{x}/{y}.pbf';
+
+/**
+ * Correlation sources (spec D5): OHM label points get their signed `osm_id`
+ * as feature id, so feature-state can mark the linked ones, and the
+ * `ohm_admin` polygon source joins the style for the hover / selection
+ * highlight (ohm-highlight.ts; its layers stay hidden, so no tiles load until
+ * something is emphasised). Copies; never mutates the cached document.
+ */
+function withCorrelationSources(
+    sources: StyleSpecification['sources'],
+): StyleSpecification['sources'] {
+    const ohm = sources?.[OHM_SOURCE];
+    if (!ohm || ohm.type !== 'vector') {
+        return sources;
+    }
+
+    return {
+        ...sources,
+        [OHM_SOURCE]: {
+            ...ohm,
+            promoteId: { [OHM_CENTROID_SOURCE_LAYER]: 'osm_id' },
+        },
+        [OHM_ADMIN_SOURCE]: {
+            type: 'vector',
+            tiles: [OHM_ADMIN_TILES],
+            minzoom: 2,
+            maxzoom: 14,
+            promoteId: 'osm_id',
+            attribution: OHM_ATTRIBUTION,
+        },
+    };
+}
+
+/** OHM label points linked to one of our entities draw in LINK_COLOR. */
+function highlightLinkedLabels(layer: StyleLayer): StyleLayer {
+    if (
+        layer.type !== 'symbol' ||
+        layer.source !== OHM_SOURCE ||
+        layer['source-layer'] !== OHM_CENTROID_SOURCE_LAYER
+    ) {
+        return layer;
+    }
+
+    return {
+        ...layer,
+        paint: {
+            ...layer.paint,
+            'text-color': linkedLabelColor(layer.paint?.['text-color']),
+        },
+    } as StyleLayer;
+}
+
 function normalizeOhmLabels(
     style: StyleSpecification,
     basemap: BasemapId,
 ): StyleSpecification {
     return {
         ...style,
+        sources: withCorrelationSources(style.sources),
         layers: (style.layers ?? [])
             .filter((layer) => !OHM_HIDDEN_LAYER_IDS.has(layer.id))
             .map((layer) => {
-                const normalized = excludeKnownOhmFeatures(
-                    normalizeLabelFieldToEnglish(layer),
+                const normalized = highlightLinkedLabels(
+                    excludeKnownOhmFeatures(normalizeLabelFieldToEnglish(layer)),
                 );
 
                 return basemap === 'woodblock'

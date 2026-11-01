@@ -227,3 +227,113 @@ Find them: `WHERE name ~ '^[0-9]{3,4}( CE)?$'`. Set a location and backfill as i
 | `backfill_geo.py` | map points from the entity's own OHM feature (QID-tagged; admin_centre/label for polities), else its own Wikidata P625 for point-like types; writes both tables, ties the period to the OHM ref; plan CSV in `output/audit/geo-backfill-*/` (§1) |
 | `locate_events.py` / `hand_locate_events.py` | event locations (§9) |
 | `php artisan entity:backfill` | materialise `geometry_periods` from canonical location |
+
+---
+
+## OHM link backfill (2026-10-31)
+
+This run filled temporal years and tags on the existing OHM geo-refs. It also linked OHM features to entities by Wikidata id. The run was against the dev DB, from the `feat/martin-tiles-ohm-correlation` worktree.
+
+### Commands
+
+```bash
+WT=/home/pickle/code/history-mapped/.claude/worktrees/martin-tiles
+PHP="docker run --rm --network history-mapped_default -v $WT/api:/var/www/html -v history-mapped_api_vendor:/var/www/html/vendor -w /var/www/html history-mapped-app"
+
+# 1. Export the OHM ids already referenced by entity_geo_refs (the container mounts only api/)
+$PHP php artisan pipeline:export-ohm-ref-ids storage/app/ohm_ref_ids.txt
+cp $WT/api/storage/app/ohm_ref_ids.txt $WT/output/ohm_ref_ids.txt
+
+# 2. Tags-only Overpass fetch (boundaries, places with wikidata, then the exported ids)
+cd $WT && uv run python -m pipeline ohm-links fetch --run-id 2026-10-31 --ids-file output/ohm_ref_ids.txt
+
+# 3. Import (each chunk commits on its own, so queue/scheduler can keep running)
+mkdir -p $WT/api/storage/app/ohm_links/2026-10-31
+cp $WT/output/ohm_links/2026-10-31/ohm_links.jsonl $WT/api/storage/app/ohm_links/2026-10-31/
+$PHP php artisan pipeline:import-ohm-links storage/app/ohm_links/2026-10-31/ohm_links.jsonl --run-id=2026-10-31 --dry-run
+$PHP php artisan pipeline:import-ohm-links storage/app/ohm_links/2026-10-31/ohm_links.jsonl --run-id=2026-10-31
+```
+
+### Fetch (`output/ohm_links/2026-10-31/manifest.json`)
+
+- **Export:** 3,255 distinct ids (1,496 node, 1,142 relation, 617 way). These come from 3,305 refs, because some entities share an OHM feature.
+- **Overpass fetch:** 40 s wall time, no retries. Boundaries took 18.6 s, places 12.4 s, and 7 id batches about 1 s each.
+
+| Source | Elements |
+|--------|---------:|
+| boundaries (`relation["boundary"="administrative"]`) | 78,828 |
+| places (`nwr["place"]["wikidata"]`) | 52,209 |
+| ids (exported refs) | 3,248 of 3,255 |
+| **elements / merged records / duplicates** | 134,285 / **111,567** / 22,718 |
+
+- **Record breakdown:** relation 82,772, node 27,791, way 1,004.
+- **Wikidata ids:** 85,190 records carry a `wikidata_id` (51,146 distinct).
+- **Boundaries:** 79,012 records have `admin_level`.
+- **Overlap with the dev DB:** 5,826 records have a QID found in `entities.wikidata_id` (1,815 of 27,177 distinct entity QIDs).
+- **Not returned by Overpass** (probably deleted or redacted in OHM; their refs keep no years):
+  - node/2108692917, node/2108734354
+  - relation/2694198, relation/2694201, relation/2828418, relation/2848338, relation/2957565
+
+### Import counters
+
+The dry run and the real run returned identical counters. Each took 19 s wall time.
+
+| Counter | Value |
+|---------|------:|
+| records | 111,567 |
+| refs_updated | 3,120 |
+| refs_created | 4,476 |
+| skipped_existing | 1,350 |
+| invalid_years | 40 |
+| qid_duplicates | 0 |
+| unmatched | 103,896 |
+| malformed | 0 |
+
+The 4,476 new refs (`source_meta->>'run_id' = '2026-10-31'`) break down as follows. The "with years" column counts refs that have a `temporal_start_year`.
+
+| Type | Role | Refs | With years |
+|------|------|-----:|-----------:|
+| relation | candidate | 3,448 | 3,440 |
+| relation | primary | 180 | 178 |
+| node | candidate | 740 | 730 |
+| node | primary | 108 | 107 |
+
+They cover 288 entities that had no OHM ref before. Most new refs are `candidate`: OHM keeps one boundary relation per period, so a single QID often matches many relations.
+
+### Before / after (dev DB)
+
+| Metric | Before | After |
+|--------|-------:|------:|
+| Entities with an active OHM ref | 3,305 | 3,593 |
+| Polities linked to an OHM relation | 766 / 17,515 | 958 / 17,515 |
+| OHM refs with `temporal_start_year` | 0 / 3,305 | 7,391 / 7,781 |
+| OHM refs by role (all active) | primary 3,305 | primary 3,593, candidate 4,188 |
+| Tile features with `ohm_osm_id` (`tiles.atlas_entity_features`) | 62 / 20,676 | 299 / 20,676 |
+| Linked entities without a geometry period (gap) | 3,243 | 3,294 |
+| Gap entities with a primary location point **and** a primary temporal range | 1 | 1 |
+
+Sanity sample of new refs:
+
+| Entity | Role | OHM ref | OHM `name` | OHM years | Entity years |
+|--------|------|---------|-----------|-----------|--------------|
+| Rozvi Empire | primary | relation/2914608 | Rozvi | 1681–1822 | 1683–1866 |
+| Kingdom of León | candidate | node/2100809014 | Reino de León | 910–1071 | 910–1833 |
+| Confederation of the Rhine | candidate | relation/2914481 | Rheinbund | 1810–1810 | 1806–1813 |
+| British Empire | candidate | relation/2831545 | British Empire | 1890–1890 | 1707–1997 |
+| Israel | candidate | relation/2863758 | ישראל | 1982–1994 | 1948– |
+
+### The linked-but-unmapped gap (not addressed by this run)
+
+After the run, 3,294 entities have an active OHM ref but no `geometry_periods` row, so they cannot appear in the tiles.
+
+- **By group:** 1,993 PLACE, 1,218 POLITY, 80 EVENT, 3 CULTURE.
+- **Existing backfill path:** `php artisan entity:backfill` (`BackfillEntityAction` → `App\Actions\Entity\BackfillGeometryPeriodsAction`). It turns an entity's primary `entity_locations` geometry plus its temporal ranges into geometry periods.
+- **Why it would place few entities:** the action writes nothing when the primary location has no geometry. All 3,294 entities have an `entity_locations` row, but:
+  - only 41 have a primary location with geometry;
+  - 2,032 have a primary temporal range with a start year;
+  - only 1 has both.
+
+  So the backfill would give at most 41 of them a period.
+- **What the rest need:** a location from the place-repair tools, or geometry derived from the linked OHM feature.
+
+Both options are a separate decision. `entity:backfill` was **not** run as part of this backfill.

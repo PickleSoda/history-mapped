@@ -45,3 +45,13 @@ export function normalizeOhmDate(
 
     return OHM_DATE_PATTERN.test(trimmed) ? trimmed : null;
 }
+
+export const DECDATE_START_OFFSET = 0.00137;
+export const DECDATE_END_OFFSET = 0.99863;
+
+/** OHM decimal-date convention for a year-only date (spec D2); mirrors tiles.year_to_decdate. */
+export function yearToDecdate(year: number, bound: 'start' | 'end'): number {
+    return (
+        year + (bound === 'start' ? DECDATE_START_OFFSET : DECDATE_END_OFFSET)
+    );
+}

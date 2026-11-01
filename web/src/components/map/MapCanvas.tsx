@@ -8,6 +8,8 @@ import { StoryOverlay } from '@/components/map/StoryOverlay';
 import {
   useBasemap,
   useEntitiesInView,
+  useFilters,
+  useHover,
   useMapInstance,
   useSelection,
   useTimeState,
@@ -18,17 +20,39 @@ import { instantYear } from '@/lib/format';
 import { loadHistoricalBasemapStyle } from '@/lib/map-config';
 import { registerGroupMarkers, refreshGroupMarkers, STORY_MARKER_ID } from '@/lib/map-icons';
 import { STORY_SOURCES } from '@/lib/map-story/layers';
+import {
+  applyEntityLayerFilters,
+  ENTITY_SOURCE_LAYER,
+  entityTileSource,
+  isMapTilesEnabled,
+  isPoint,
+  isPolygon,
+  SOURCE_ID,
+} from '@/lib/map-tiles';
 import { yearToOhmDate } from '@/lib/ohm-date';
+import {
+  addOhmAdminLayers,
+  hoverMarkerData,
+  LINK_COLOR,
+  OhmCorrelation,
+} from '@/lib/ohm-highlight';
 import { applyOhmLayerDateFilter } from '@/lib/ohm-layer-date-filter';
 import { resolveOhmClickToEntity } from '@/lib/ohm-resolve';
 import { useTheme } from '@/lib/theme';
 import { useEphemeralStore } from '@/stores/ephemeral';
 import type { ViewMode } from '@/types/atlas';
 
-const SOURCE_ID = 'entities';
 const FILL_LAYER = 'entities-fill';
 const LINE_LAYER = 'entities-line';
 const SYMBOL_LAYER = 'entities-symbols';
+/** The hovered entity's marker, drawn larger over SYMBOL_LAYER (D5), from
+ *  its own one-feature GeoJSON source. */
+const HOVER_LAYER = 'entities-hover';
+const HOVER_SOURCE = 'entities-hover-src';
+/** Rebuild the OHM link index this long after our source's last tile. */
+const LINK_INDEX_DEBOUNCE_MS = 150;
+/** Our three layers, for the tile-mode time / group filters. */
+const ENTITY_LAYERS = { fill: FILL_LAYER, line: LINE_LAYER, symbol: SYMBOL_LAYER };
 const EMPTY_FC: FeatureCollection = { type: 'FeatureCollection', features: [] };
 const MOVE_DEBOUNCE_MS = 250;
 
@@ -73,21 +97,23 @@ function groupColorExpression(): maplibregl.ExpressionSpecification {
  * whichever basemap is loaded. Group marker icons must be registered first.
  */
 function addEntityLayers(map: maplibregl.Map, data: FeatureCollection | undefined): void {
-  map.addSource(SOURCE_ID, { type: 'geojson', data: data ?? EMPTY_FC });
+  // Tile mode (VITE_MAP_TILES_URL): all-time vector tiles, filtered per layer
+  // by applyEntityLayerFilters; otherwise the viewport GeoJSON.
+  const tiles = isMapTilesEnabled();
+  map.addSource(
+    SOURCE_ID,
+    tiles ? entityTileSource() : { type: 'geojson', data: data ?? EMPTY_FC },
+  );
+  const sourceLayer = tiles ? { 'source-layer': ENTITY_SOURCE_LAYER } : {};
 
   const groupColor = groupColorExpression();
-  const isPolygon: maplibregl.FilterSpecification = [
-    'match', ['geometry-type'], ['Polygon', 'MultiPolygon'], true, false,
-  ];
-  const isPoint: maplibregl.FilterSpecification = [
-    'match', ['geometry-type'], ['Point', 'MultiPoint'], true, false,
-  ];
 
   // Entity territories (fill + outline) — drawn over the OHM basemap.
   map.addLayer({
     id: FILL_LAYER,
     type: 'fill',
     source: SOURCE_ID,
+    ...sourceLayer,
     filter: isPolygon,
     paint: { 'fill-color': groupColor, 'fill-opacity': 0.15 },
   });
@@ -95,29 +121,36 @@ function addEntityLayers(map: maplibregl.Map, data: FeatureCollection | undefine
     id: LINE_LAYER,
     type: 'line',
     source: SOURCE_ID,
+    ...sourceLayer,
     filter: isPolygon,
     paint: { 'line-color': groupColor, 'line-width': 1 },
   });
+
+  // Marker icon, shared by the symbol and hover layers: the battle-map pin
+  // for an entity with a map story (REST and tile `has_map_story`), else its
+  // group icon. A playable battle map also gets a slightly larger pin.
+  const hasMapStory: maplibregl.ExpressionSpecification = ['==', ['get', 'has_map_story'], true];
+  const markerIcon: maplibregl.ExpressionSpecification = [
+    'case',
+    hasMapStory,
+    ['image', STORY_MARKER_ID],
+    [
+      'coalesce',
+      ['image', ['concat', 'marker-', ['get', 'entity_group']]],
+      ['image', 'marker-DEFAULT'],
+    ],
+  ];
 
   // Points (OHM-linked / unplaced entities) — group icon + label.
   map.addLayer({
     id: SYMBOL_LAYER,
     type: 'symbol',
     source: SOURCE_ID,
+    ...sourceLayer,
     filter: isPoint,
     layout: {
-      'icon-image': [
-        'case',
-        ['==', ['get', 'has_map_story'], true],
-        ['image', STORY_MARKER_ID],
-        [
-          'coalesce',
-          ['image', ['concat', 'marker-', ['get', 'entity_group']]],
-          ['image', 'marker-DEFAULT'],
-        ],
-      ],
-      // A playable battle map gets a slightly larger pin.
-      'icon-size': ['case', ['==', ['get', 'has_map_story'], true], 0.95, 0.8],
+      'icon-image': markerIcon,
+      'icon-size': ['case', hasMapStory, 0.95, 0.8],
       'icon-allow-overlap': true,
       'icon-anchor': 'bottom',
       'text-field': ['get', 'name'],
@@ -129,12 +162,57 @@ function addEntityLayers(map: maplibregl.Map, data: FeatureCollection | undefine
     },
     paint: {
       // Every OHM basemap is light in both UI themes, so map labels keep
-      // light-map colors regardless of the app theme.
-      'text-color': '#2a2722',
+      // light-map colors regardless of the app theme. OHM-linked entities
+      // (tile `ohm_osm_id` / REST `ohm_external_id`) take the link colour.
+      'text-color': [
+        'case',
+        ['!=', ['coalesce', ['get', 'ohm_osm_id'], ['get', 'ohm_external_id']], null],
+        LINK_COLOR,
+        '#2a2722',
+      ],
       'text-halo-color': '#ffffff',
       'text-halo-width': 1.4,
     },
   });
+
+  // The hovered entity's marker (list <-> map hover, D5): a copy of its
+  // point in a one-feature source, updated with setData. Not feature-state
+  // (MapLibre rejects it in layout properties such as icon-size; the marker
+  // images are not SDF) and not setFilter (that reloads our whole source).
+  map.addSource(HOVER_SOURCE, { type: 'geojson', data: EMPTY_FC });
+  map.addLayer({
+    id: HOVER_LAYER,
+    type: 'symbol',
+    source: HOVER_SOURCE,
+    layout: {
+      'icon-image': markerIcon,
+      'icon-size': ['case', hasMapStory, 1.2, 1.05],
+      'icon-allow-overlap': true,
+      'icon-ignore-placement': true,
+      'icon-anchor': 'bottom',
+    },
+  });
+}
+
+/** Point the hover source at `hoverId`'s marker for `year` (or at nothing). */
+function showHoveredMarker(
+  map: maplibregl.Map,
+  hoverId: string | null,
+  year: number,
+  data: FeatureCollection | undefined,
+): void {
+  const source = map.getSource(HOVER_SOURCE) as GeoJSONSource | undefined;
+  if (!source) return;
+  const candidates =
+    hoverId === null
+      ? []
+      : isMapTilesEnabled()
+        ? map.querySourceFeatures(SOURCE_ID, {
+            sourceLayer: ENTITY_SOURCE_LAYER,
+            filter: ['==', ['get', 'id'], hoverId],
+          })
+        : (data?.features ?? []);
+  source.setData(hoverMarkerData(candidates, hoverId, year));
 }
 
 /**
@@ -154,7 +232,9 @@ export function MapCanvas() {
   const { basemap } = useBasemap();
   const { bbox, setBbox } = useViewport();
   const { time } = useTimeState();
-  const { select } = useSelection();
+  const { groups } = useFilters();
+  const { sel, select } = useSelection();
+  const { hoverId, setHover } = useHover();
   const { data } = useEntitiesInView();
   const theme = useTheme((s) => s.theme);
 
@@ -165,8 +245,18 @@ export function MapCanvas() {
   setBboxRef.current = setBbox;
   const selectRef = useRef(select);
   selectRef.current = select;
+  const selRef = useRef(sel);
+  selRef.current = sel;
+  const setHoverRef = useRef(setHover);
+  setHoverRef.current = setHover;
+  /** OHM correlation state of the live map (D5); null until it exists. */
+  const correlationRef = useRef<OhmCorrelation | null>(null);
   const yearRef = useRef(year);
   yearRef.current = year;
+  const timeRef = useRef(time);
+  timeRef.current = time;
+  const groupsRef = useRef(groups);
+  groupsRef.current = groups;
   const dataRef = useRef(data);
   dataRef.current = data;
   const viewRef = useRef(view);
@@ -187,6 +277,7 @@ export function MapCanvas() {
     let cancelled = false;
     let mapInstance: maplibregl.Map | null = null;
     let timer: ReturnType<typeof setTimeout>;
+    let linkTimer: ReturnType<typeof setTimeout> | undefined;
 
     loadHistoricalBasemapStyle(appliedBasemapRef.current).then((style) => {
       if (cancelled) return;
@@ -203,6 +294,8 @@ export function MapCanvas() {
       });
       mapInstance = map;
       mapRef.current = map;
+      const correlation = new OhmCorrelation(map);
+      correlationRef.current = correlation;
 
       // Every style load — the first, and each basemap switch, which replaces
       // the whole style — re-adds marker icons and our overlay, then filters
@@ -214,6 +307,19 @@ export function MapCanvas() {
         if (cancelled || map.style !== loading) return;
 
         addEntityLayers(map, dataRef.current as FeatureCollection | undefined);
+        if (isMapTilesEnabled()) {
+          applyEntityLayerFilters(map, {
+            layers: ENTITY_LAYERS,
+            time: timeRef.current,
+            groups: groupsRef.current,
+          });
+        }
+        // OHM correlation (D5): polygon highlight layers under ours, then
+        // labels / emphasis / hovered marker re-applied to the new style.
+        addOhmAdminLayers(map, FILL_LAYER);
+        const hovered = useEphemeralStore.getState().hoverId;
+        correlation.styleLoaded(hovered, selRef.current);
+        showHoveredMarker(map, hovered, yearRef.current, dataRef.current as FeatureCollection | undefined);
         // Catch up on a Map/Globe toggle made while the style was loading.
         map.setProjection(projectionFor(viewRef.current));
         applyOhmLayerDateFilter(map, yearToOhmDate(yearRef.current));
@@ -264,6 +370,50 @@ export function MapCanvas() {
         );
       });
 
+      // OHM correlation (D5): rebuild the osm-id → entity index once our
+      // source settles (tiles stream in; GeoJSON is replaced per viewport).
+      map.on('sourcedata', (e) => {
+        if (e.sourceId !== SOURCE_ID) return;
+        clearTimeout(linkTimer);
+        linkTimer = setTimeout(() => {
+          if (!styleReadyRef.current || !map.getSource(SOURCE_ID)) return;
+          if (!map.isSourceLoaded(SOURCE_ID)) return;
+          correlation.setFeatures(
+            isMapTilesEnabled()
+              ? map.querySourceFeatures(SOURCE_ID, {
+                  sourceLayer: ENTITY_SOURCE_LAYER,
+                  filter: ['has', 'ohm_osm_id'],
+                })
+              : ((dataRef.current as FeatureCollection | undefined)?.features ?? []),
+          );
+        }, LINK_INDEX_DEBOUNCE_MS);
+      });
+
+      // Map side of the hover sync: our marker, else a linked OHM label,
+      // writes hoverId. Cleared only if this map set it, so a list row's
+      // hover is never wiped by the map.
+      let mapHover: string | null = null;
+      const setMapHover = (id: string | null) => {
+        if (id === mapHover) return;
+        if (id !== null || useEphemeralStore.getState().hoverId === mapHover) {
+          setHoverRef.current(id);
+        }
+        mapHover = id;
+      };
+      map.on('mousemove', (e) => {
+        if (!styleReadyRef.current) return;
+        // During a battle map our markers are hidden and OHM labels are not
+        // hover targets either (as with clicks above).
+        if (map.getSource(STORY_SOURCES.units)) {
+          setMapHover(null);
+          return;
+        }
+        setMapHover(correlation.entityAt(e.point, SYMBOL_LAYER));
+      });
+      map.on('mouseout', () => setMapHover(null));
+      // Idle OHM polygon layers go before the new view fetches their tiles.
+      map.on('moveend', () => correlation.viewMoved());
+
       const onMoveEnd = () => {
         clearTimeout(timer);
         timer = setTimeout(() => {
@@ -282,6 +432,9 @@ export function MapCanvas() {
     return () => {
       cancelled = true;
       clearTimeout(timer);
+      clearTimeout(linkTimer);
+      correlationRef.current?.dispose();
+      correlationRef.current = null;
       setMap(null);
       mapInstance?.remove();
       mapRef.current = null;
@@ -324,10 +477,31 @@ export function MapCanvas() {
     applyOhmLayerDateFilter(map, yearToOhmDate(year));
   }, [year]);
 
+  // ── tile mode: filter our layers by time + groups client-side (D1) ─────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !styleReadyRef.current || !isMapTilesEnabled()) return;
+    applyEntityLayerFilters(map, { layers: ENTITY_LAYERS, time, groups });
+  }, [time, groups]);
+
+  // ── correlation: the hovered entity's marker (both modes, D5) ──────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !styleReadyRef.current) return;
+    showHoveredMarker(map, hoverId, yearRef.current, dataRef.current as FeatureCollection | undefined);
+  }, [hoverId]);
+
+  // ── correlation: OHM polygon of the hovered / selected entity (D5) ─────────
+  useEffect(() => {
+    if (!styleReadyRef.current) return;
+    correlationRef.current?.emphasize(hoverId, sel);
+  }, [hoverId, sel]);
+
   // ── push entity data imperatively when the query updates ───────────────────
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !data) return;
+    // Tile mode has no GeoJSON to push (and the viewport query is off).
+    if (!map || !data || isMapTilesEnabled()) return;
     const source = map.getSource(SOURCE_ID) as GeoJSONSource | undefined;
     source?.setData(data as FeatureCollection);
   }, [data]);

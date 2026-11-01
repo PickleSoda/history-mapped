@@ -448,7 +448,7 @@ page). Contract: `docs/schemas/relation-graph-api.md`.
   scope keys the cache. The grid is two levels finer than the map zoom (a tile ≈ ¼
   viewport), so sub-tile pans = same key = cache hit, zero fetch, while the fetched box
   stays ~1.5–2× the visible span rather than a whole viewport-sized tile ring.
-- **Center-weighted map fetch** — `useEntitiesInView` merges two `/entities/map` layers:
+- **Center-weighted map fetch** (REST mode; tile mode turns it off, see below) — `useEntitiesInView` merges two `/entities/map` layers:
   `outer` (visible area + one grid-tile ring, at the map's own impact threshold) and
   `core` (the middle half of each axis, fetched as if zoomed 3 levels closer — about one
   impact band lower). Dense where the user looks, only prominent pins at the edges.
@@ -465,6 +465,34 @@ page). Contract: `docs/schemas/relation-graph-api.md`.
 - **Prefetch on intent** — hover a row/pin warms `useEntity`; chronicles prefetch step
   n+1.
 
+## Map overlay: tile mode and OHM correlation
+
+- **Tile mode.** It is on when `VITE_MAP_TILES_URL` is set (`web/src/lib/map-tiles.ts`).
+  - The `entities` source reads our all-time vector tiles, from Martin or the app ([contract](../schemas/atlas-tiles.md)).
+  - `useEntitiesInView` is disabled (`enabled: ready && !isMapTilesEnabled()`), so no `/entities/map` requests are sent.
+  - The timeline position and the `g` groups become client-side filters on our fill, line and symbol layers
+    (`entityLayerFilter` / `applyEntityLayerFilters`). The date part is the `start_decdate` / `end_decdate` window from
+    `ohmDateRange`; the group part matches `entity_group`. The filters are re-applied on each style load and when `time` or
+    `groups` change, so scrubbing and group toggles send no requests.
+  - The OHM layers keep `applyOhmLayerDateFilter`. The service worker caches tiles (`atlas-tiles`, stale-while-revalidate).
+  - With the variable unset, the REST path above is unchanged.
+- **OHM correlation.** The logic is in `web/src/lib/ohm-highlight.ts` and is wired in `MapCanvas.tsx`.
+  - Each map has one `OhmCorrelation`. It keeps a signed `osm_id` → entity id index, rebuilt (debounced) on `sourcedata` for
+    our source: from `querySourceFeatures` in tile mode, from the GeoJSON in REST mode.
+  - It sets feature-state `linked` on matching OHM label points, which are then painted in `LINK_COLOR`.
+  - It moves `hover` / `selected` feature-state on two `ohm_admin` polygon layers. These layers stay `visibility: none`, so none of
+    their heavy tiles load, until a linked entity is hovered or selected.
+  - `map-config.ts` adds the `promoteId`s and the `ohm_admin` source when it normalises the style. Our own labels for linked
+    entities also use `LINK_COLOR`.
+  - OHM label clicks resolve through `ohm-resolve.ts`: the loaded tiles first, then the resolver.
+- **Hover: `hoverId`.** The ephemeral store's `hoverId` (`useHover`) is the one hover state.
+  - Writers: Browse-list rows (on enter and leave), and the map's `mousemove`. On the map, our marker wins, else a linked OHM
+    label resolved through the index. The map clears `hoverId` only if it set it.
+  - Readers: list rows, through a per-row selector (`s.hoverId === e.id`), so only the two affected rows re-render.
+  - Readers: the `entities-hover` marker layer, through a filter on `id`. It is not feature-state, because MapLibre rejects
+    feature-state in layout properties.
+  - Readers: `OhmCorrelation.emphasize(hoverId, sel)`, for the OHM polygon.
+
 ## Re-render budget
 
 The map pins, list, panel, and timeline are independent subscribers. The enforced budget:
@@ -476,7 +504,7 @@ The map pins, list, panel, and timeline are independent subscribers. The enforce
 | Scrub (drag) | scrubber readout, ghost filter | list, panel, map source |
 | Release scrub | map pins, list, density | panel (unless sel left view) |
 | Select entity | detail panel + 1 feature-state flag | list, map component, timeline |
-| Hover entity | 1 feature-state flag | everything in React |
+| Hover entity | the 2 affected list rows; `MapCanvas` (its hover effects only call `setFilter` / `setFeatureState`) | rest of the list, panel, timeline |
 | Toggle filter | list, map pins, chips | panel, timeline, top bar |
 
 Bought by: per-key URL subscriptions, snap-before-key, gestures outside React, imperative
