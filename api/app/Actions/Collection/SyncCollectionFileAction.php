@@ -6,7 +6,6 @@ namespace App\Actions\Collection;
 
 use App\Enums\CollectionStatus;
 use App\Models\Collection;
-use App\Models\Entity;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -15,10 +14,10 @@ use Illuminate\Validation\Validator as ValidatorInstance;
 /**
  * Load one resources/collections/<slug>.json file into `collections`,
  * upserting by slug. The file is the source of truth (there is no admin
- * editing), so a changed file overwrites its row. Items are stored as
- * written and resolved when served; only `cover_qid` is resolved here, to
- * `cover_entity_id` (a cover that matches no entity is a warning, not an
- * error). File format: docs/schemas/collections.md.
+ * editing), so a changed file overwrites its row. Items and the cover
+ * (`cover_qid` → `cover_ref`) are stored as written and resolved when
+ * served, so a sync needs no entity to exist. File format:
+ * docs/schemas/collections.md.
  */
 class SyncCollectionFileAction
 {
@@ -38,14 +37,7 @@ class SyncCollectionFileAction
             return $this->result('invalid', $name, $errors);
         }
 
-        $warnings = [];
-        $cover = null;
-        if (! empty($data['cover_qid'])) {
-            $cover = self::entityId($data['cover_qid']);
-            if ($cover === null) {
-                $warnings[] = "cover_qid {$data['cover_qid']}: no such entity, so no cover";
-            }
-        }
+        $cover = empty($data['cover_qid']) ? null : self::entityRef($data['cover_qid']);
 
         $row = Collection::query()->firstOrNew(['slug' => $name]);
         $before = $row->exists ? self::snapshot($row) : null;
@@ -53,20 +45,20 @@ class SyncCollectionFileAction
             'title' => $data['title'],
             'subtitle' => $data['subtitle'] ?? null,
             'description' => $data['description'] ?? null,
-            'cover_entity_id' => $cover,
+            'cover_ref' => $cover,
             'items' => self::items($data['items']),
             'status' => $data['status'] ?? CollectionStatus::Published->value,
             'sort_order' => $data['sort_order'] ?? 0,
         ]);
 
         if ($before !== null && $before == self::snapshot($row)) {
-            return $this->result('unchanged', $name, warnings: $warnings);
+            return $this->result('unchanged', $name);
         }
 
         $status = $row->exists ? 'updated' : 'created';
         $row->save();
 
-        return $this->result($status, $name, warnings: $warnings);
+        return $this->result($status, $name);
     }
 
     /**
@@ -135,24 +127,17 @@ class SyncCollectionFileAction
     private static function items(array $items): array
     {
         return array_map(function (array $item): array {
-            $ref = Str::isUuid($item['ref']) ? Str::lower($item['ref']) : $item['ref'];
+            $ref = $item['kind'] === 'entity' ? self::entityRef($item['ref']) : $item['ref'];
             $note = trim((string) ($item['note'] ?? ''));
 
             return ['kind' => $item['kind'], 'ref' => $ref, ...($note === '' ? [] : ['note' => $note])];
         }, $items);
     }
 
-    /** The entity a Wikidata id (the most prominent one, should two share it) or a uuid names. */
-    private static function entityId(string $ref): ?string
+    /** An entity ref as stored: uuids lower-case, Wikidata ids as written. */
+    private static function entityRef(string $ref): string
     {
-        $query = Entity::query();
-        $query = Str::isUuid($ref)
-            ? $query->whereKey(Str::lower($ref))
-            : $query->where('wikidata_id', $ref)->orderByRaw('impact_score DESC NULLS LAST');
-
-        $id = $query->value('entity_id');
-
-        return is_string($id) ? $id : null;
+        return Str::isUuid($ref) ? Str::lower($ref) : $ref;
     }
 
     /**
@@ -167,7 +152,7 @@ class SyncCollectionFileAction
             'title' => $row->title,
             'subtitle' => $row->subtitle,
             'description' => $row->description,
-            'cover_entity_id' => $row->cover_entity_id,
+            'cover_ref' => $row->cover_ref,
             'items' => $row->items,
             'status' => $row->status?->value,
             'sort_order' => $row->sort_order,

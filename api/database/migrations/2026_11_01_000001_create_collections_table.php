@@ -11,9 +11,11 @@ use Illuminate\Support\Facades\Schema;
  * Curated collections for the public site's browse pages: editorial,
  * file-authored sets (resources/collections/<slug>.json) loaded by
  * `collections:sync`. `items` is the ordered list of
- * `{kind: entity|chronicle|story|tag, ref, note?}`; refs are Wikidata ids
- * (entities) or slugs, resolved when served, so merges and re-imports that
- * change uuids do not break a set. See docs/schemas/collections.md.
+ * `{kind: entity|chronicle|story|tag, ref, note?}`; refs (and `cover_ref`)
+ * are Wikidata ids (entities) or slugs, resolved when served, so merges and
+ * re-imports that change uuids do not break a set. No foreign keys: the rows
+ * ship with the code and stay out of content dumps and loads. See
+ * docs/schemas/collections.md.
  */
 return new class extends Migration
 {
@@ -26,17 +28,14 @@ return new class extends Migration
             $table->text('subtitle')->nullable();
             // Markdown.
             $table->text('description')->nullable();
-            $table->uuid('cover_entity_id')->nullable();
+            // The cover entity: a Wikidata id, or an entity uuid.
+            $table->text('cover_ref')->nullable();
             $table->jsonb('items')->default(DB::raw("'[]'::jsonb"));
             $table->string('status', 16)->default('published');
             $table->integer('sort_order')->default(0);
             $table->timestamps();
 
             $table->index(['status', 'sort_order']);
-            $table->foreign('cover_entity_id')
-                ->references('entity_id')
-                ->on('entities')
-                ->nullOnDelete();
         });
 
         DB::statement("ALTER TABLE collections ADD CONSTRAINT collections_status_check CHECK (status IN ('draft', 'published'))");

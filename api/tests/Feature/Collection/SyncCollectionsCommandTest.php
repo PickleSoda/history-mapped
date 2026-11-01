@@ -6,7 +6,6 @@ namespace Tests\Feature\Collection;
 
 use App\Enums\CollectionStatus;
 use App\Models\Collection;
-use App\Models\Entity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
@@ -66,9 +65,8 @@ class SyncCollectionsCommandTest extends TestCase
         ];
     }
 
-    public function test_creates_a_collection_and_resolves_its_cover(): void
+    public function test_creates_a_collection_without_needing_its_entities(): void
     {
-        $rome = Entity::factory()->create(['name' => 'Roman Empire', 'wikidata_id' => 'Q2277']);
         $this->write($this->set());
 
         [$code, $output] = $this->sync();
@@ -79,7 +77,7 @@ class SyncCollectionsCommandTest extends TestCase
         $this->assertSame(['the-roman-world', 'The Roman World', 'From republic to empire', 2], [$row->slug, $row->title, $row->subtitle, $row->sort_order]);
         $this->assertSame("Rome's rise.\n\nAnd its fall.", $row->description);
         $this->assertSame(CollectionStatus::Published, $row->status);
-        $this->assertSame($rome->entity_id, $row->cover_entity_id);
+        $this->assertSame('Q2277', $row->cover_ref, 'the cover is resolved when served, not synced');
         $this->assertEquals([
             ['kind' => 'entity', 'ref' => 'Q2277', 'note' => 'The empire itself.'],
             ['kind' => 'chronicle', 'ref' => 'punic-wars'],
@@ -111,7 +109,7 @@ class SyncCollectionsCommandTest extends TestCase
         $this->assertSame($id, $row->collection_id, 'upserted by slug');
         $this->assertSame('Rome', $row->title);
         $this->assertEquals([['kind' => 'tag', 'ref' => 'europe']], $row->items);
-        $this->assertNull($row->cover_entity_id, 'no entity carries Q2277 here');
+        $this->assertSame('Q2277', $row->cover_ref);
         $this->assertTrue(Collection::query()->where('slug', 'silk-roads')->exists(), 'a removed file deletes nothing');
     }
 
@@ -158,19 +156,22 @@ class SyncCollectionsCommandTest extends TestCase
         $this->assertSame(['the-roman-world'], Collection::query()->pluck('slug')->all());
     }
 
-    public function test_a_cover_given_as_a_uuid_or_naming_no_entity(): void
+    public function test_a_cover_is_a_wikidata_id_or_a_uuid_stored_as_written(): void
     {
-        $rome = Entity::factory()->create(['wikidata_id' => null]);
-        $this->write($this->set(['cover_qid' => strtoupper($rome->entity_id)]));
+        $uuid = 'A1B2C3D4-0000-4000-8000-00000000000F';
+        $this->write($this->set(['cover_qid' => $uuid]));
         $this->write($this->set(['slug' => 'silk-roads', 'cover_qid' => 'Q999999999']));
+        $this->write($this->set(['slug' => 'no-cover', 'cover_qid' => null]));
+        $this->write($this->set(['slug' => 'bad-cover', 'cover_qid' => 'Roman Empire']));
 
         [$code, $output] = $this->sync();
 
-        $this->assertSame(0, $code);
-        $this->assertStringContainsString('silk-roads: cover_qid Q999999999: no such entity, so no cover', $output);
-
-        $this->assertSame($rome->entity_id, Collection::query()->where('slug', 'the-roman-world')->value('cover_entity_id'));
-        $this->assertNull(Collection::query()->where('slug', 'silk-roads')->value('cover_entity_id'));
+        $this->assertSame(1, $code);
+        $this->assertStringContainsString("cover_qid 'Roman Empire' is neither a Wikidata id (Q123) nor an entity uuid", $output);
+        $this->assertSame(
+            ['no-cover' => null, 'silk-roads' => 'Q999999999', 'the-roman-world' => strtolower($uuid)],
+            Collection::query()->orderBy('slug')->pluck('cover_ref', 'slug')->all(),
+        );
     }
 
     public function test_the_seed_collections_are_valid(): void

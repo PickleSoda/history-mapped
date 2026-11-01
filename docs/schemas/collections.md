@@ -2,7 +2,9 @@
 
 Editorial sets of entities, chronicles, map stories and tags for the public site's browse pages (`/browse`,
 `/browse/collections/:slug`). They are authored as JSON files, loaded into the `collections` table by an artisan command,
-and served read-only under `/api/v1`. There is no admin editing in v1: the file is the source of truth.
+and served read-only under `/api/v1`. There is no admin editing in v1: the file is the source of truth. The sets ship
+with the code, not with the content: the table has no foreign keys, content dumps exclude it, and the prod `migrate` job
+runs `collections:sync` on every deploy (see [content data transfer](../implementation-docs/content-data-transfer.md)).
 
 Code: `App\Models\Collection`, `App\Actions\Collection\SyncCollectionFileAction` (file to row),
 `App\Actions\Collection\ResolveCollectionItemsAction` (items to payloads), `App\Console\Commands\SyncCollectionsCommand`,
@@ -19,7 +21,7 @@ One file per set: `api/resources/collections/<slug>.json`.
   "title": "The Roman World",           // required, ≤ 255
   "subtitle": "From a city on the Tiber to an empire of the Mediterranean",   // optional, ≤ 255
   "description": "Two sentences of **markdown**.",                            // optional, ≤ 10,000
-  "cover_qid": "Q2277",                 // optional: the cover entity (Wikidata id, or an entity uuid)
+  "cover_qid": "Q2277",                 // optional: the cover entity (Wikidata id, or an entity uuid), stored as `cover_ref`
   "status": "published",                // optional: published (default) | draft
   "sort_order": 10,                     // optional integer, default 0; lower comes first
   "items": [                            // required list (may be empty), ≤ 200, in display order
@@ -41,15 +43,14 @@ One file per set: `api/resources/collections/<slug>.json`.
 Rules the sync enforces (an invalid file is reported and skipped, the others still load):
 
 - the file is a JSON object; unknown top-level fields are errors (keys starting with `_`, e.g. `_comment`, are ignored);
-- `slug` matches the file name; `status` is `published` or `draft`;
+- `slug` matches the file name; `status` is `published` or `draft`; `cover_qid` is `Q<digits>` or a uuid;
 - each item has exactly `kind`, `ref` and optionally `note`; an entity `ref` is `Q<digits>` or a uuid; other refs are slugs
   (no spaces or slashes); the same `kind` + `ref` appears once.
 
-Refs use Wikidata ids and slugs, not uuids, because entity merges and re-imports change uuids. **Items are resolved when
-served, not at sync time**: a ref that matches nothing is simply left out of the response (with a `Log::warning` when the
-set is shown), never an error. Only `cover_qid` is resolved at sync time, into `collections.cover_entity_id` (FK to
-`entities`, set null on delete); a cover that matches no entity is a warning and leaves the cover empty. Re-run the sync
-after a content load that may have replaced the cover entities.
+Refs use Wikidata ids and slugs, not uuids, because entity merges and re-imports change uuids. **Items and the cover are
+resolved when served, not at sync time**, so a sync needs no entity to exist and a content load never breaks a set: an
+item ref that matches nothing is simply left out of the response (with a `Log::warning` when the set is shown), and a
+cover that matches nothing is `null`, never an error.
 
 ## Loading: `php artisan collections:sync`
 
@@ -63,9 +64,9 @@ file (`<slug> ...... created | updated | unchanged | invalid`), then any errors 
 invalid.
 
 Table `collections`: `collection_id uuid pk`, `slug text unique`, `title text`, `subtitle text null`,
-`description text null` (markdown), `cover_entity_id uuid null` (FK `entities`, null on delete), `items jsonb not null
-default '[]'` (as written, with empty notes dropped), `status varchar(16) default 'published'` (check: draft | published),
-`sort_order int default 0`, timestamps.
+`description text null` (markdown), `cover_ref text null` (the file's `cover_qid`: a Wikidata id or an entity uuid),
+`items jsonb not null default '[]'` (as written, with empty notes dropped), `status varchar(16) default 'published'`
+(check: draft | published), `sort_order int default 0`, timestamps. No foreign keys.
 
 ## API
 
@@ -82,8 +83,8 @@ Both endpoints are public, return `Cache-Control: public, max-age=300`, and only
 ] }
 ```
 
-Ordered by `sort_order`, then `title`. The counts include only items that currently resolve (one existence query per kind
-for the whole list).
+Ordered by `sort_order`, then `title`. `cover` resolves `cover_ref` like an entity item (one query for all covers). The
+counts include only items that currently resolve (one existence query per kind for the whole list).
 
 ### `GET /api/v1/collections/{slug}`
 

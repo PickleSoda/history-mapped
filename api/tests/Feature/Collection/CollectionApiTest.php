@@ -42,7 +42,7 @@ class CollectionApiTest extends TestCase
             'title' => 'The Roman World',
             'subtitle' => 'Republic and empire',
             'description' => 'Two sentences. Of markdown.',
-            'cover_entity_id' => $rome->entity_id,
+            'cover_ref' => 'Q2277',
             'sort_order' => 1,
             'items' => [
                 ['kind' => 'entity', 'ref' => 'Q2277'],
@@ -51,7 +51,7 @@ class CollectionApiTest extends TestCase
                 ['kind' => 'story', 'ref' => 'missing-story'],
             ],
         ]);
-        $this->collection('first', ['sort_order' => 0]);
+        $this->collection('first', ['sort_order' => 0, 'cover_ref' => 'Q404404404']);
         $this->collection('hidden', ['status' => 'draft']);
 
         $response = $this->getJson('/api/v1/collections')
@@ -92,7 +92,7 @@ class CollectionApiTest extends TestCase
         DB::table('chronicle_tags')->insert(['chronicle_id' => $chronicle->chronicle_id, 'tag' => 'classical']);
 
         $this->collection('the-roman-world', [
-            'cover_entity_id' => $rome->entity_id,
+            'cover_ref' => 'Q2277',
             'items' => [
                 ['kind' => 'entity', 'ref' => 'Q2277', 'note' => 'The empire.'],
                 ['kind' => 'story', 'ref' => 'battle-of-cannae'],
@@ -162,15 +162,20 @@ class CollectionApiTest extends TestCase
         $this->getJson('/api/v1/collections/nope')->assertNotFound();
     }
 
-    public function test_a_deleted_cover_entity_leaves_no_cover(): void
+    public function test_the_cover_resolves_when_served_by_wikidata_id_or_uuid(): void
     {
-        $rome = Entity::factory()->create();
-        $this->collection('the-roman-world', ['cover_entity_id' => $rome->entity_id]);
+        $rome = Entity::factory()->create(['name' => 'Roman Empire', 'wikidata_id' => null]);
+        $this->collection('the-roman-world', ['cover_ref' => $rome->entity_id]);
+        $this->collection('silk-roads', ['cover_ref' => 'Q36288']);
+
+        $this->getJson('/api/v1/collections/the-roman-world')->assertOk()->assertJsonPath('data.cover.id', $rome->entity_id);
+        $this->getJson('/api/v1/collections/silk-roads')->assertOk()->assertJsonPath('data.cover', null);
+
+        // An entity re-imported under a new uuid with the same Wikidata id: the set follows it.
+        $road = Entity::factory()->create(['name' => 'Silk Road', 'wikidata_id' => 'Q36288']);
+        $this->getJson('/api/v1/collections/silk-roads')->assertJsonPath('data.cover.id', $road->entity_id);
 
         $rome->delete();
-
-        $this->getJson('/api/v1/collections/the-roman-world')
-            ->assertOk()
-            ->assertJsonPath('data.cover', null);
+        $this->getJson('/api/v1/collections/the-roman-world')->assertOk()->assertJsonPath('data.cover', null);
     }
 }

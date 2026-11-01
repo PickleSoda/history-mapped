@@ -18,8 +18,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 /**
- * Resolve curated collections' items when they are served, one query per
- * kind however many items or collections there are:
+ * Resolve curated collections' items and covers when they are served, one
+ * query per kind however many items or collections there are:
  *  - entity: by Wikidata id (`entities.wikidata_id`; the most prominent
  *    entity should two share one) or by uuid, as EntitySummaryResource;
  *  - chronicle: by slug, as ChronicleResource without entries;
@@ -77,8 +77,9 @@ class ResolveCollectionItemsAction
     }
 
     /**
-     * Each collection's cover entity as EntitySummaryResource (or null), keyed
-     * by collection id, in one query.
+     * Each collection's cover (`cover_ref`, resolved like an entity item) as
+     * EntitySummaryResource, or null when it names nothing, keyed by
+     * collection id, in one query.
      *
      * @param  iterable<Collection>  $collections
      * @return array<string, array<string, mixed>|null>
@@ -86,11 +87,14 @@ class ResolveCollectionItemsAction
     public function covers(iterable $collections): array
     {
         $collections = collect($collections);
-        $ids = $collections->pluck('cover_entity_id')->filter()->unique()->values()->all();
-        $entities = $ids === [] ? collect() : Entity::query()->withGeoJson()->whereIn('entities.entity_id', $ids)->get()->keyBy('entity_id');
+        $refs = $collections->pluck('cover_ref')
+            ->filter(fn (mixed $ref) => is_string($ref) && Collection::isEntityRef($ref))
+            ->map(fn (string $ref) => self::key('entity', $ref))
+            ->unique()->values()->all();
+        $entities = $this->entities($refs, full: true);
 
-        return $collections->mapWithKeys(fn (Collection $c) => [$c->collection_id => $entities->has((string) $c->cover_entity_id)
-            ? (new EntitySummaryResource($entities->get($c->cover_entity_id)))->resolve()
+        return $collections->mapWithKeys(fn (Collection $c) => [$c->collection_id => is_string($c->cover_ref)
+            ? ($entities[self::key('entity', $c->cover_ref)] ?? null)
             : null,
         ])->all();
     }
