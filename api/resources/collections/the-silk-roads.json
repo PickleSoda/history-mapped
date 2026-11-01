@@ -1,0 +1,25 @@
+{
+  "slug": "the-silk-roads",
+  "title": "The Silk Roads",
+  "subtitle": "Caravans, monks and merchants between China and the Mediterranean",
+  "description": "For two thousand years overland and sea routes carried silk, spices, horses, paper and ideas across Eurasia. Meet the envoys, traders and pilgrims who travelled them, and the oasis cities and empires that grew rich along the way.",
+  "cover_qid": "Q36288",
+  "sort_order": 20,
+  "items": [
+    { "kind": "entity", "ref": "Q36288" },
+    { "kind": "entity", "ref": "Q197276", "note": "The Han envoy whose missions west opened the routes." },
+    { "kind": "chronicle", "ref": "the-opening-of-the-silk-road-c-330-30-bce" },
+    { "kind": "entity", "ref": "Q7209" },
+    { "kind": "chronicle", "ref": "rome-han-and-maritime-trade-c-30-bce500-ce" },
+    { "kind": "entity", "ref": "Q1299584" },
+    { "kind": "entity", "ref": "Q5753" },
+    { "kind": "chronicle", "ref": "sogdians-radhanites-and-the-silk-and-volga-routes-c-500-1000-ce" },
+    { "kind": "entity", "ref": "Q42063" },
+    { "kind": "entity", "ref": "Q43286" },
+    { "kind": "entity", "ref": "Q492415" },
+    { "kind": "story", "ref": "indian-ocean-dhow-trade", "note": "The maritime routes, carried by the monsoon." },
+    { "kind": "chronicle", "ref": "pax-mongolica-travellers-and-trade-c-1000-1350-ce" },
+    { "kind": "entity", "ref": "Q6101" },
+    { "kind": "tag", "ref": "silk-roads" }
+  ]
+}

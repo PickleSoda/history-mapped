@@ -93,6 +93,7 @@ Files: [`docker/docker-compose.prod.yml`](../../docker/docker-compose.prod.yml),
    profile when `TILES_DRIVER=martin`.)
 4. Caddy auto-provisions Let's Encrypt TLS for both domains; it proxies `APP_DOMAIN` to the app on 8080 (and `/tiles/*` to the tile driver) and serves the SPA on `WEB_DOMAIN`.
 5. To update after new images: `pull`, re-run `web-dist` + `migrate`, then `up -d`, then recreate `caddy` (and `martin` when it is the driver; see below). The automated SSH deploy does exactly this.
+   The `migrate` job also runs `php artisan collections:sync`, which loads the curated sets shipped in `api/resources/collections/` (they come with the code, not with content loads).
 
 **SPA bundle (built in CI, 2026-11-01).** A `vite build` on the 2 GB droplet starved it of memory and hung a deploy, so the
 bundle is built by the `images` job into `ghcr.io/<owner>/history-mapped/web:<sha>` ([`docker/web/Dockerfile.prod`](../../docker/web/Dockerfile.prod))

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Api\V1\Controllers\ChronicleGraphController;
+use App\Http\Api\V1\Controllers\CollectionController;
 use App\Http\Api\V1\Controllers\ContributionController;
 use App\Http\Api\V1\Controllers\EntityChronicleController;
 use App\Http\Api\V1\Controllers\EntityController;
@@ -91,9 +92,17 @@ Route::prefix('v1')->group(function () {
         ->name('api.v1.chronicles.show');
 
     // Map stories (step-by-step battle maps)
+    Route::get('/map-stories', [MapStoryController::class, 'index'])
+        ->name('api.v1.map-stories.index');
     Route::get('/map-stories/ambient', MapStoryAmbientController::class)->name('api.v1.map-stories.ambient');
     Route::get('/map-stories/{slug}', [MapStoryController::class, 'show'])
         ->name('api.v1.map-stories.show');
+
+    // Curated collections (public site browse pages; resources/collections)
+    Route::get('/collections', [CollectionController::class, 'index'])
+        ->name('api.v1.collections.index');
+    Route::get('/collections/{slug}', [CollectionController::class, 'show'])
+        ->name('api.v1.collections.show');
 
     // Tags (vocabulary shared by chronicles and entities)
     Route::get('/tags', [TagController::class, 'index'])

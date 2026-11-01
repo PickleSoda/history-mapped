@@ -81,7 +81,8 @@ class MapStoryController extends Controller
                 ->map(fn (object $e) => ['sequence_order' => (int) $e->sequence_order, 'start_year' => $e->start_year, 'text' => $e->text]),
             'linked' => self::linked($authored),
             'vocabulary' => self::vocabulary(),
-            'preview_url' => config('app.frontend_url'),
+            // The atlas (the editor adds ?story=…&sstep=0&preview=1).
+            'preview_url' => config('app.frontend_url').'/app',
             'can_edit' => (bool) $request->user()?->can('entities.write'),
             'ai_context' => $story->entity_id !== null
                 ? ['type' => 'entity', 'id' => $story->entity_id]

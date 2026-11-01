@@ -127,7 +127,9 @@ services:
       CACHE_STORE: array
     # db:repair-sequences first: a content load can leave sequences behind
     # their rows (migrations_id_seq included), which fails the ledger insert.
-    command: sh -c "php artisan db:repair-sequences && php artisan migrate --force && php artisan config:cache"
+    # collections:sync loads the curated sets shipped in api/resources/collections
+    # (code, not content: content dumps exclude the table).
+    command: sh -c "php artisan db:repair-sequences && php artisan migrate --force && php artisan collections:sync && php artisan config:cache"
     depends_on:
       db:
         condition: service_healthy

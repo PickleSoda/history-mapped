@@ -150,11 +150,16 @@ class DescribeContributionTargetsAction
         })->all();
     }
 
-    /** @param  array<string, string>  $params */
+    /**
+     * A link into the public atlas, which lives at `/app` (the site's landing
+     * page is `/`).
+     *
+     * @param  array<string, string>  $params
+     */
     private static function atlas(array $params): string
     {
-        $base = config('app.frontend_url');
+        $base = config('app.frontend_url').'/app';
 
-        return $params === [] ? $base.'/' : $base.'/?'.http_build_query($params);
+        return $params === [] ? $base : $base.'?'.http_build_query($params);
     }
 }
