@@ -1,5 +1,5 @@
 {
- "schema": 1,
+ "schema": 2,
  "slug": "battle-of-salamis",
  "kind": "naval_battle",
  "entity": {
@@ -128,6 +128,7 @@
    "kind": "warship",
    "label": "Athenians",
    "strength": "200 triremes",
+   "strength_n": 200,
    "commander": "Themistocles",
    "note": "180 Athenian triremes and 20 more lent to crews from Chalcis"
   },
@@ -137,6 +138,7 @@
    "kind": "warship",
    "label": "Corinthians",
    "strength": "40 triremes",
+   "strength_n": 40,
    "commander": "Adeimantus",
    "note": "Said by the Athenians to have fled north; the other Greeks denied it"
   },
@@ -154,6 +156,7 @@
    "kind": "warship",
    "label": "Aeginetans",
    "strength": "30 triremes",
+   "strength_n": 30,
    "note": "Judged the bravest of the Greeks that day"
   },
   {
@@ -234,6 +237,21 @@
    "strength": "200 at the muster",
    "commander": "Achaemenes",
    "note": "Sent round Salamis to close the Megara channel (Diodorus)"
+  },
+  {
+   "id": "artemisia",
+   "side": "persia",
+   "kind": "ship",
+   "label": "Artemisia's ship",
+   "commander": "Artemisia",
+   "note": "Chased by the Athenian Ameinias, she escaped by ramming a ship of her own side"
+  },
+  {
+   "id": "calyndian",
+   "side": "persia",
+   "kind": "ship",
+   "label": "Calyndian ship",
+   "note": "Carrying Damasithymus, king of Calynda; rammed and sunk by Artemisia (Herodotus 8.87)"
   },
   {
    "id": "psyttaleia-troops",
@@ -459,6 +477,329 @@
     23.47,
     37.918
    ]
+  },
+  {
+   "id": "sea",
+   "kind": "sea",
+   "label": "Sea, 480 BC (approx.)",
+   "area": [
+    [
+     23.551313,
+     37.992573
+    ],
+    [
+     23.5534,
+     37.9797
+    ],
+    [
+     23.5539,
+     37.9687
+    ],
+    [
+     23.5566,
+     37.9625
+    ],
+    [
+     23.5641,
+     37.9614
+    ],
+    [
+     23.5734,
+     37.9614
+    ],
+    [
+     23.5799,
+     37.9607
+    ],
+    [
+     23.5891,
+     37.9592
+    ],
+    [
+     23.5975,
+     37.9585
+    ],
+    [
+     23.6049,
+     37.96
+    ],
+    [
+     23.6077,
+     37.9534
+    ],
+    [
+     23.6073,
+     37.9482
+    ],
+    [
+     23.606632,
+     37.947158
+    ],
+    [
+     23.609483,
+     37.942212
+    ],
+    [
+     23.611764,
+     37.935916
+    ],
+    [
+     23.615186,
+     37.93052
+    ],
+    [
+     23.62203,
+     37.926024
+    ],
+    [
+     23.639139,
+     37.925124
+    ],
+    [
+     23.651685,
+     37.926923
+    ],
+    [
+     23.66081,
+     37.93142
+    ],
+    [
+     23.665372,
+     37.935017
+    ],
+    [
+     23.674497,
+     37.935017
+    ],
+    [
+     23.684762,
+     37.933218
+    ],
+    [
+     23.689325,
+     37.93142
+    ],
+    [
+     23.692176,
+     37.927822
+    ],
+    [
+     23.693887,
+     37.920628
+    ],
+    [
+     23.698449,
+     37.899044
+    ],
+    [
+     23.536485,
+     37.899044
+    ],
+    [
+     23.551313,
+     37.921527
+    ],
+    [
+     23.566141,
+     37.938614
+    ],
+    [
+     23.568422,
+     37.94401
+    ],
+    [
+     23.577547,
+     37.945359
+    ],
+    [
+     23.580968,
+     37.947158
+    ],
+    [
+     23.577547,
+     37.947607
+    ],
+    [
+     23.568422,
+     37.947338
+    ],
+    [
+     23.560438,
+     37.947248
+    ],
+    [
+     23.555305,
+     37.947158
+    ],
+    [
+     23.550172,
+     37.948057
+    ],
+    [
+     23.544469,
+     37.947158
+    ],
+    [
+     23.540477,
+     37.948507
+    ],
+    [
+     23.540477,
+     37.950755
+    ],
+    [
+     23.544469,
+     37.951654
+    ],
+    [
+     23.548461,
+     37.951654
+    ],
+    [
+     23.552225,
+     37.953453
+    ],
+    [
+     23.549032,
+     37.954802
+    ],
+    [
+     23.54561,
+     37.956151
+    ],
+    [
+     23.541048,
+     37.956601
+    ],
+    [
+     23.535345,
+     37.95705
+    ],
+    [
+     23.529642,
+     37.958849
+    ],
+    [
+     23.529071,
+     37.963795
+    ],
+    [
+     23.531923,
+     37.969191
+    ],
+    [
+     23.542188,
+     37.979983
+    ],
+    [
+     23.543329,
+     37.992573
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "megara-water",
+   "kind": "sea",
+   "area": [
+    [
+     23.438446,
+     37.972023
+    ],
+    [
+     23.437925,
+     37.972458
+    ],
+    [
+     23.437137,
+     37.972726
+    ],
+    [
+     23.436135,
+     37.972808
+    ],
+    [
+     23.434988,
+     37.972698
+    ],
+    [
+     23.433773,
+     37.972404
+    ],
+    [
+     23.432574,
+     37.971947
+    ],
+    [
+     23.431472,
+     37.971357
+    ],
+    [
+     23.430542,
+     37.970674
+    ],
+    [
+     23.429848,
+     37.969946
+    ],
+    [
+     23.429437,
+     37.969221
+    ],
+    [
+     23.429337,
+     37.968549
+    ],
+    [
+     23.429554,
+     37.967977
+    ],
+    [
+     23.430075,
+     37.967542
+    ],
+    [
+     23.430863,
+     37.967274
+    ],
+    [
+     23.431865,
+     37.967192
+    ],
+    [
+     23.433012,
+     37.967302
+    ],
+    [
+     23.434227,
+     37.967596
+    ],
+    [
+     23.435426,
+     37.968053
+    ],
+    [
+     23.436528,
+     37.968643
+    ],
+    [
+     23.437458,
+     37.969326
+    ],
+    [
+     23.438152,
+     37.970054
+    ],
+    [
+     23.438563,
+     37.970779
+    ],
+    [
+     23.438663,
+     37.971451
+    ]
+   ],
+   "conjectural": true
   },
   {
    "id": "aigaleo",
@@ -742,6 +1083,7 @@
     ],
     "zoom": 11.35
    },
+   "light": "dusk",
    "moves": [
     {
      "side": "greeks",
@@ -803,6 +1145,7 @@
    "title": "The exits are closed by night",
    "time": "Night",
    "narrative": "After dark the Persian squadrons rowed out of Phalerum and took station across the eastern exits of the strait, on either side of the islet of Psyttaleia, where some 400 picked soldiers were landed to kill or capture any Greeks cast ashore there. According to Diodorus the Egyptian squadron was sent right round Salamis to block the western channel by Megara, so that no ship could slip away toward the Isthmus. The Persian crews spent the whole night at the oars. Before dawn Aristides crossed from Aegina with the news that the Greeks were surrounded: there was no longer any choice but to fight.",
+   "light": "night",
    "positions": {
     "ionians": {
      "at": [
@@ -884,7 +1227,8 @@
        23.602069,
        37.945629
       ]
-     ]
+     ],
+     "orient": "path"
     },
     {
      "unit": "persian-centre",
@@ -910,7 +1254,8 @@
        23.589523,
        37.947158
       ]
-     ]
+     ],
+     "orient": "path"
     },
     {
      "unit": "carians",
@@ -936,7 +1281,8 @@
        23.579257,
        37.938165
       ]
-     ]
+     ],
+     "orient": "path"
     },
     {
      "unit": "ionians",
@@ -962,7 +1308,8 @@
        23.572414,
        37.940593
       ]
-     ]
+     ],
+     "orient": "path"
     },
     {
      "unit": "egyptians",
@@ -1009,11 +1356,13 @@
        37.97
       ]
      ],
-     "label": "Egyptians round Salamis"
+     "label": "Egyptians round Salamis",
+     "orient": "path",
+     "conjectural": true
     },
     {
      "unit": "psyttaleia-troops",
-     "type": "march",
+     "type": "landing",
      "path": [
       [
        23.665,
@@ -1034,6 +1383,24 @@
       [
        23.58822,
        37.94058
+      ]
+     ]
+    },
+    {
+     "side": "persia",
+     "type": "blockade",
+     "path": [
+      [
+       23.580398,
+       37.945809
+      ],
+      [
+       23.589523,
+       37.945359
+      ],
+      [
+       23.605491,
+       37.946258
       ]
      ]
     }
@@ -1061,7 +1428,14 @@
     ],
     "zoom": 12.85
    },
+   "light": "dawn",
    "positions": {
+    "egyptians": {
+     "frame": false
+    },
+    "persian-base": {
+     "frame": false
+    },
     "athenians": {
      "at": [
       23.550335,
@@ -1191,7 +1565,8 @@
        23.538196,
        37.967842
       ]
-     ]
+     ],
+     "orient": "path"
     },
     {
      "unit": "xerxes",
@@ -1245,6 +1620,7 @@
     ],
     "zoom": 12.4
    },
+   "light": "day",
    "positions": {
     "phoenicians": {
      "at": [
@@ -1317,7 +1693,8 @@
        23.556882,
        37.959029
       ]
-     ]
+     ],
+     "orient": "path"
     },
     {
      "unit": "persian-centre",
@@ -1335,7 +1712,8 @@
        23.567076,
        37.955759
       ]
-     ]
+     ],
+     "orient": "path"
     },
     {
      "unit": "carians",
@@ -1357,7 +1735,8 @@
        23.573468,
        37.953708
       ]
-     ]
+     ],
+     "orient": "path"
     },
     {
      "unit": "ionians",
@@ -1379,7 +1758,8 @@
        23.579383,
        37.951809
       ]
-     ]
+     ],
+     "orient": "path"
     },
     {
      "unit": "corinthians",
@@ -1398,7 +1778,8 @@
        37.989876
       ]
      ],
-     "label": "Corinthians sail north"
+     "label": "Corinthians sail north",
+     "orient": "path"
     }
    ],
    "focus": [
@@ -1496,12 +1877,15 @@
      "width": 800,
      "depth": 190,
      "state": "wavering"
+    },
+    "corinthians": {
+     "frame": false
     }
    },
    "moves": [
     {
      "unit": "athenians",
-     "type": "retreat",
+     "type": "back_water",
      "path": [
       [
        23.550335,
@@ -1515,7 +1899,7 @@
     },
     {
      "unit": "greek-centre",
-     "type": "retreat",
+     "type": "back_water",
      "path": [
       [
        23.562221,
@@ -1529,7 +1913,7 @@
     },
     {
      "unit": "aeginetans",
-     "type": "retreat",
+     "type": "back_water",
      "path": [
       [
        23.567397,
@@ -1543,7 +1927,7 @@
     },
     {
      "unit": "spartans",
-     "type": "retreat",
+     "type": "back_water",
      "path": [
       [
        23.572573,
@@ -1610,6 +1994,21 @@
        37.950976
       ]
      ]
+    },
+    {
+     "side": "greeks",
+     "type": "ram",
+     "path": [
+      [
+       23.557166,
+       37.954083
+      ],
+      [
+       23.558474,
+       37.956624
+      ]
+     ],
+     "label": "Ameinias"
     }
    ],
    "notes": [
@@ -1720,7 +2119,7 @@
    "moves": [
     {
      "unit": "athenians",
-     "type": "charge",
+     "type": "ram",
      "path": [
       [
        23.549777,
@@ -1734,7 +2133,7 @@
     },
     {
      "unit": "greek-centre",
-     "type": "attack",
+     "type": "ram",
      "path": [
       [
        23.561663,
@@ -1748,7 +2147,7 @@
     },
     {
      "unit": "aeginetans",
-     "type": "attack",
+     "type": "ram",
      "path": [
       [
        23.566839,
@@ -1762,7 +2161,7 @@
     },
     {
      "unit": "spartans",
-     "type": "attack",
+     "type": "ram",
      "path": [
       [
        23.572015,
@@ -1866,8 +2265,8 @@
     },
     "carians": {
      "at": [
-      23.575888,
-      37.954582
+      23.5773,
+      37.95374
      ],
      "facing": 112.12487289726852,
      "state": "routed"
@@ -1881,6 +2280,23 @@
      "width": 800,
      "depth": 190,
      "state": "engaged"
+    },
+    "artemisia": {
+     "from": "carians",
+     "at": [
+      23.579486,
+      37.954398
+     ],
+     "facing": 112.12487289726852,
+     "conjectural": true
+    },
+    "calyndian": {
+     "at": [
+      23.581644,
+      37.954288
+     ],
+     "facing": 112.12487289726852,
+     "conjectural": true
     }
    },
    "moves": [
@@ -1935,8 +2351,8 @@
        37.952227
       ],
       [
-       23.575888,
-       37.954582
+       23.5773,
+       37.95374
       ]
      ]
     },
@@ -1953,6 +2369,64 @@
        37.955024
       ]
      ]
+    },
+    {
+     "unit": "artemisia",
+     "type": "retreat",
+     "path": [
+      [
+       23.572336,
+       37.952227
+      ],
+      [
+       23.579486,
+       37.954398
+      ]
+     ],
+     "conjectural": true
+    }
+   ],
+   "beats": [
+    {
+     "label": "Artemisia, chased by Ameinias, rams one of her own side",
+     "positions": {
+      "artemisia": {
+       "at": [
+        23.581284,
+        37.954306
+       ]
+      },
+      "calyndian": {
+       "state": "sunk"
+      }
+     },
+     "moves": [
+      {
+       "unit": "artemisia",
+       "type": "ram",
+       "path": [
+        [
+         23.579486,
+         37.954398
+        ],
+        [
+         23.581284,
+         37.954306
+        ]
+       ],
+       "conjectural": true
+      }
+     ],
+     "notes": [
+      {
+       "at": [
+        23.581987,
+        37.954954
+       ],
+       "text": "Artemisia sinks a Calyndian ship",
+       "kind": "event"
+      }
+     ]
     }
    ],
    "notes": [
@@ -1962,14 +2436,6 @@
       37.960082
      ],
      "text": "Phoenician ships run aground",
-     "kind": "event"
-    },
-    {
-     "at": [
-      23.577987,
-      37.955073
-     ],
-     "text": "Artemisia sinks a Calyndian ship",
      "kind": "event"
     }
    ],
@@ -2070,6 +2536,9 @@
      "width": 600,
      "depth": 230,
      "state": "routed"
+    },
+    "artemisia": {
+     "into": "carians"
     }
    },
    "moves": [
@@ -2089,15 +2558,16 @@
        23.595796,
        37.948057
       ]
-     ]
+     ],
+     "orient": "path"
     },
     {
      "unit": "carians",
      "type": "rout",
      "path": [
       [
-       23.575888,
-       37.954582
+       23.5773,
+       37.95374
       ],
       [
        23.590093,
@@ -2107,7 +2577,8 @@
        23.60321,
        37.94446
       ]
-     ]
+     ],
+     "orient": "path"
     },
     {
      "unit": "ionians",
@@ -2139,7 +2610,8 @@
        23.575265,
        37.9575
       ]
-     ]
+     ],
+     "orient": "path"
     },
     {
      "unit": "aeginetans",
@@ -2254,6 +2726,9 @@
     "psyttaleia-troops": {
      "state": "destroyed"
     },
+    "calyndian": {
+     "state": "hidden"
+    },
     "persian-centre": {
      "at": [
       23.628,
@@ -2286,7 +2761,7 @@
    "moves": [
     {
      "unit": "hoplites",
-     "type": "attack",
+     "type": "landing",
      "path": [
       [
        23.554735,
@@ -2323,7 +2798,8 @@
        23.628,
        37.918
       ]
-     ]
+     ],
+     "orient": "path"
     },
     {
      "unit": "carians",
@@ -2341,7 +2817,8 @@
        23.645,
        37.917
       ]
-     ]
+     ],
+     "orient": "path"
     },
     {
      "unit": "ionians",
@@ -2363,7 +2840,8 @@
        23.615,
        37.925
       ]
-     ]
+     ],
+     "orient": "path"
     },
     {
      "unit": "phoenicians",
@@ -2385,7 +2863,8 @@
        23.605,
        37.932
       ]
-     ]
+     ],
+     "orient": "path"
     }
    ],
    "notes": [
@@ -2415,6 +2894,7 @@
     ],
     "zoom": 11.4
    },
+   "light": "dusk",
    "positions": {
     "phoenicians": {
      "at": [
@@ -2492,7 +2972,8 @@
      ],
      "facing": 70,
      "width": 380,
-     "depth": 110
+     "depth": 110,
+     "frame": true
     },
     "xerxes": {
      "with": "persian-base"
@@ -2522,7 +3003,8 @@
        23.672,
        37.93
       ]
-     ]
+     ],
+     "orient": "path"
     },
     {
      "unit": "persian-centre",
@@ -2544,7 +3026,8 @@
        23.682083,
        37.927471
       ]
-     ]
+     ],
+     "orient": "path"
     },
     {
      "unit": "carians",
@@ -2566,7 +3049,8 @@
        23.68,
        37.9225
       ]
-     ]
+     ],
+     "orient": "path"
     },
     {
      "unit": "ionians",
@@ -2588,7 +3072,8 @@
        23.67,
        37.924
       ]
-     ]
+     ],
+     "orient": "path"
     },
     {
      "unit": "corinthians",

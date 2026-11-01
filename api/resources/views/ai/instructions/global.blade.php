@@ -20,3 +20,5 @@ Rules:
 @include('ai.instructions.partials.fields')
 
 @include('ai.instructions.partials.placement')
+
+@include('ai.instructions.partials.map-stories')

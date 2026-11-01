@@ -1,5 +1,5 @@
 {
- "schema": 1,
+ "schema": 2,
  "slug": "battle-of-waterloo",
  "kind": "battle",
  "entity": {
@@ -72,6 +72,29 @@
     }
    ],
    "strength": "c. 68,000–73,000; 156 guns (British, KGL, Dutch-Belgian, Hanoverian, Brunswick, Nassau)",
+   "contingents": [
+    {
+     "id": "british",
+     "name": "British",
+     "color": "#c0392b"
+    },
+    {
+     "id": "kgl-hanoverian",
+     "name": "King's German Legion and Hanoverians"
+    },
+    {
+     "id": "dutch-belgian",
+     "name": "Netherlanders (Dutch-Belgian)"
+    },
+    {
+     "id": "brunswick",
+     "name": "Brunswickers"
+    },
+    {
+     "id": "nassau",
+     "name": "Nassauers"
+    }
+   ],
    "losses": "c. 15,000–17,000 killed, wounded and missing"
   },
   {
@@ -94,10 +117,12 @@
     },
     {
      "name": "Friedrich Wilhelm von Bülow",
+     "wikidata": "Q63023",
      "role": "IV Corps"
     },
     {
      "name": "Hans Ernst Karl von Zieten",
+     "wikidata": "Q67913",
      "role": "I Corps"
     },
     {
@@ -129,6 +154,7 @@
     },
     {
      "name": "Jean-de-Dieu Soult",
+     "wikidata": "Q296023",
      "role": "chief of staff"
     },
     {
@@ -137,10 +163,12 @@
     },
     {
      "name": "Jean-Baptiste Drouet, Comte d'Erlon",
+     "wikidata": "Q921887",
      "role": "I Corps"
     },
     {
      "name": "Georges Mouton, Comte de Lobau",
+     "wikidata": "Q1509041",
      "role": "VI Corps"
     }
    ],
@@ -159,6 +187,7 @@
   {
    "id": "hougoumont",
    "side": "allied",
+   "contingent": "british",
    "kind": "infantry",
    "label": "Hougoumont garrison",
    "strength": "c. 1,500, later more",
@@ -168,6 +197,7 @@
   {
    "id": "maitland",
    "side": "allied",
+   "contingent": "british",
    "kind": "infantry",
    "label": "Maitland's Foot Guards",
    "strength": "c. 1,500–1,900",
@@ -177,6 +207,7 @@
   {
    "id": "adam",
    "side": "allied",
+   "contingent": "british",
    "kind": "light_infantry",
    "label": "Adam's brigade (52nd)",
    "strength": "c. 2,600",
@@ -186,6 +217,7 @@
   {
    "id": "brunswick",
    "side": "allied",
+   "contingent": "brunswick",
    "kind": "infantry",
    "label": "Brunswick contingent",
    "strength": "c. 5,900",
@@ -204,6 +236,7 @@
   {
    "id": "lhs",
    "side": "allied",
+   "contingent": "kgl-hanoverian",
    "kind": "light_infantry",
    "label": "La Haye Sainte (KGL)",
    "strength": "c. 400, later c. 800",
@@ -222,6 +255,7 @@
   {
    "id": "heavy-cav",
    "side": "allied",
+   "contingent": "british",
    "kind": "heavy_cavalry",
    "label": "Household & Union Bdes",
    "strength": "c. 2,000",
@@ -240,6 +274,7 @@
   {
    "id": "saxe-weimar",
    "side": "allied",
+   "contingent": "nassau",
    "kind": "light_infantry",
    "label": "Saxe-Weimar's Nassauers",
    "strength": "c. 4,000",
@@ -249,6 +284,7 @@
   {
    "id": "chasse",
    "side": "allied",
+   "contingent": "dutch-belgian",
    "kind": "infantry",
    "label": "Chassé's division",
    "strength": "c. 6,500",
@@ -1483,7 +1519,14 @@
        50.701
       ]
      ],
-     "unit": "bulow"
+     "unit": "bulow",
+     "continues": {
+      "toward": [
+       4.5005,
+       50.6927
+      ],
+      "label": "to Chapelle-Saint-Lambert"
+     }
     }
    ],
    "notes": [
@@ -1530,7 +1573,31 @@
     ],
     "zoom": 12.85
    },
-   "positions": {},
+   "positions": {
+    "bulow": {
+     "frame": false
+    },
+    "zieten": {
+     "frame": false
+    },
+    "blucher": {
+     "frame": false
+    }
+   },
+   "terrain_state": {
+    "hougoumont": {
+     "held_by": "allied",
+     "state": "held"
+    },
+    "la-haye-sainte": {
+     "held_by": "allied",
+     "state": "held"
+    },
+    "papelotte": {
+     "held_by": "allied",
+     "state": "held"
+    }
+   },
    "notes": [
     {
      "at": [
@@ -1617,7 +1684,8 @@
        50.668002
       ]
      ],
-     "side": "allied"
+     "side": "allied",
+     "target": "jerome"
     },
     {
      "type": "attack",
@@ -1652,6 +1720,11 @@
      "kind": "death"
     }
    ],
+   "terrain_state": {
+    "hougoumont": {
+     "state": "contested"
+    }
+   },
    "focus": [
     "jerome",
     "hougoumont"
@@ -1714,7 +1787,8 @@
        50.6812
       ]
      ],
-     "unit": "grand-battery"
+     "unit": "grand-battery",
+     "target": "picton"
     },
     {
      "type": "fire",
@@ -1728,7 +1802,8 @@
        50.6818
       ]
      ],
-     "unit": "grand-battery"
+     "unit": "grand-battery",
+     "target": "picton"
     },
     {
      "type": "march",
@@ -1952,6 +2027,11 @@
      "kind": "clash"
     }
    ],
+   "terrain_state": {
+    "la-haye-sainte": {
+     "state": "contested"
+    }
+   },
    "focus": [
     "quiot",
     "donzelot",
@@ -2115,6 +2195,11 @@
      "kind": "clash"
     }
    ],
+   "terrain_state": {
+    "la-haye-sainte": {
+     "state": "held"
+    }
+   },
    "focus": [
     "heavy-cav"
    ]
@@ -2321,6 +2406,7 @@
      "width": 340,
      "depth": 120,
      "shape": "square",
+     "subunits": 2,
      "state": "engaged",
      "label": "Maitland's Guards (squares)"
     },
@@ -2333,6 +2419,8 @@
      "width": 340,
      "depth": 130,
      "shape": "square",
+     "subunits": 4,
+     "lines": 2,
      "state": "engaged",
      "label": "Brunswickers (squares)"
     },
@@ -2345,6 +2433,8 @@
      "width": 480,
      "depth": 140,
      "shape": "square",
+     "subunits": 5,
+     "lines": 2,
      "state": "engaged",
      "label": "Alten's division (squares)"
     },
@@ -2356,7 +2446,9 @@
      "facing": 165,
      "width": 420,
      "depth": 120,
-     "shape": "square"
+     "shape": "square",
+     "subunits": 2,
+     "lines": 2
     },
     "chasse": {
      "at": [
@@ -2512,6 +2604,11 @@
      "kind": "label"
     }
    ],
+   "terrain_state": {
+    "hougoumont": {
+     "state": "burning"
+    }
+   },
    "focus": [
     "milhaud",
     "kellermann",
@@ -2541,7 +2638,11 @@
      "facing": 262,
      "width": 1800,
      "depth": 300,
-     "state": "engaged"
+     "state": "engaged",
+     "frame": true
+    },
+    "blucher": {
+     "frame": true
     },
     "lobau": {
      "at": [
@@ -2684,7 +2785,14 @@
        50.7075
       ]
      ],
-     "unit": "zieten"
+     "unit": "zieten",
+     "continues": {
+      "toward": [
+       4.4707,
+       50.6977
+      ],
+      "label": "to Ohain"
+     }
     }
    ],
    "notes": [
@@ -2705,6 +2813,12 @@
      "kind": "event"
     }
    ],
+   "terrain_state": {
+    "plancenoit": {
+     "held_by": "france",
+     "state": "contested"
+    }
+   },
    "focus": [
     "bulow",
     "lobau",
@@ -2754,8 +2868,8 @@
     },
     "milhaud": {
      "at": [
-      4.4082,
-      50.67
+      4.411,
+      50.6672
      ],
      "facing": 10,
      "width": 650,
@@ -2775,7 +2889,7 @@
     "light-cav": {
      "at": [
       4.405,
-      50.6862
+      50.6876
      ],
      "facing": 185,
      "width": 650,
@@ -2790,7 +2904,8 @@
      "facing": 225,
      "width": 700,
      "depth": 400,
-     "shape": "block"
+     "shape": "block",
+     "frame": true
     },
     "durutte": {
      "at": [
@@ -2814,8 +2929,8 @@
     },
     "guard-grenadiers": {
      "at": [
-      4.4108,
-      50.6702
+      4.4128,
+      50.6704
      ],
      "facing": 330,
      "width": 260,
@@ -2878,8 +2993,8 @@
        50.6786
       ],
       [
-       4.4082,
-       50.67
+       4.411,
+       50.6672
       ]
      ],
      "unit": "milhaud"
@@ -2911,7 +3026,7 @@
       ],
       [
        4.405,
-       50.6862
+       50.6876
       ]
      ],
      "unit": "light-cav"
@@ -2942,12 +3057,12 @@
        50.660038
       ],
       [
-       4.411,
+       4.412,
        50.666
       ],
       [
-       4.4108,
-       50.6702
+       4.4128,
+       50.6704
       ]
      ],
      "unit": "guard-grenadiers"
@@ -2982,7 +3097,8 @@
        50.6812
       ]
      ],
-     "side": "france"
+     "side": "france",
+     "target": "alten"
     }
    ],
    "notes": [
@@ -3003,6 +3119,12 @@
      "kind": "death"
     }
    ],
+   "terrain_state": {
+    "la-haye-sainte": {
+     "held_by": "france",
+     "state": "captured"
+    }
+   },
    "focus": [
     "donzelot",
     "lhs",
@@ -3062,6 +3184,7 @@
      "width": 380,
      "depth": 50,
      "shape": "line",
+     "subunits": 1,
      "state": "engaged",
      "label": "Maitland's Foot Guards"
     },
@@ -3077,13 +3200,15 @@
     },
     "alten": {
      "at": [
-      4.4098,
+      4.408,
       50.6824
      ],
      "facing": 185,
      "width": 460,
      "depth": 120,
      "shape": "block",
+     "subunits": 1,
+     "lines": 1,
      "state": "wavering",
      "label": "Alten's division"
     },
@@ -3096,6 +3221,8 @@
      "width": 380,
      "depth": 110,
      "shape": "block",
+     "subunits": 1,
+     "lines": 1,
      "label": "Brunswickers"
     },
     "adam": {
@@ -3107,6 +3234,8 @@
      "width": 420,
      "depth": 60,
      "shape": "line",
+     "subunits": 1,
+     "lines": 1,
      "state": "engaged"
     },
     "quiot": {
@@ -3171,8 +3300,8 @@
      "type": "attack",
      "path": [
       [
-       4.4108,
-       50.6702
+       4.4128,
+       50.6704
       ],
       [
        4.4085,
@@ -3338,6 +3467,12 @@
      "kind": "clash"
     }
    ],
+   "terrain_state": {
+    "papelotte": {
+     "held_by": null,
+     "state": "contested"
+    }
+   },
    "focus": [
     "guard-grenadiers",
     "guard-chasseurs",
@@ -3358,6 +3493,7 @@
     ],
     "zoom": 12.95
    },
+   "light": "dusk",
    "positions": {
     "alten": {
      "at": [
@@ -3629,7 +3765,7 @@
      "type": "advance",
      "path": [
       [
-       4.4098,
+       4.408,
        50.6824
       ],
       [
@@ -3676,7 +3812,7 @@
      "path": [
       [
        4.405,
-       50.6862
+       50.6876
       ],
       [
        4.406,
@@ -3860,8 +3996,8 @@
      "type": "rout",
      "path": [
       [
-       4.406,
-       50.673
+       4.411,
+       50.6672
       ],
       [
        4.4055,
@@ -3888,7 +4024,21 @@
      "text": "Plancenoit falls for the last time",
      "kind": "capture"
     }
-   ]
+   ],
+   "terrain_state": {
+    "plancenoit": {
+     "held_by": "prussia",
+     "state": "captured"
+    },
+    "papelotte": {
+     "held_by": "prussia",
+     "state": "held"
+    },
+    "la-haye-sainte": {
+     "held_by": "allied",
+     "state": "held"
+    }
+   }
   },
   {
    "id": "pursuit",
@@ -4057,7 +4207,14 @@
        50.6372
       ]
      ],
-     "unit": "napoleon"
+     "unit": "napoleon",
+     "continues": {
+      "toward": [
+       4.444,
+       50.411
+      ],
+      "label": "to Charleroi"
+     }
     },
     {
      "type": "march",

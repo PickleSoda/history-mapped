@@ -9,20 +9,22 @@
  * front, `width` its frontage and `depth` front-to-back, in metres. Schema 2
  * (docs/superpowers/specs/2026-10-31-map-story-schema-v2-design.md) adds
  * beats, detach/merge (`from`/`into`), split formations and per-step terrain
- * state, light, wind and sun.
+ * state, light, wind and sun; schema 3 generalises terrain state into feature
+ * state (values, intensity, visibility and geometry, each carried forward).
  */
 import type {
+  FeatureState,
   Light,
   LngLat,
   MapStoryDocument,
   Placement,
   Shape,
+  StoryEntityRef,
   StoryMove,
   StoryNote,
   StoryStep,
   StorySun,
   StoryWind,
-  TerrainState,
   UnitState,
 } from '@/lib/schemas/map-story';
 import { POINT_UNIT_KINDS } from '@/lib/schemas/map-story';
@@ -315,32 +317,71 @@ function behind(host: Resolved): number {
   return host.depth / 2 + bow + 60;
 }
 
-// ── terrain state, light, wind, sun ──────────────────────────────────────────
+// ── feature state, light, wind, sun ──────────────────────────────────────────
 
-/** Who holds a terrain feature and in what state, at one step. */
-export interface TerrainHold {
+/** A feature's state at one step; `null` = not set (the feature's own value applies). */
+export interface FeatureHold {
   held_by: string | null;
-  state: TerrainState | null;
+  state: FeatureState | null;
   label: string | null;
+  active: boolean | null;
+  value_n: number | null;
+  value_label: string | null;
+  intensity: number | null;
+  at: LngLat | null;
+  line: LngLat[] | null;
+  area: LngLat[][] | null;
+  /** The entity whose atlas geometry is the area (`area_from_entity`). */
+  area_entity: StoryEntityRef | null;
 }
+/** v2 name: who holds a terrain feature and in what state. */
+export type TerrainHold = FeatureHold;
 
-/** Each step's terrain state (terrain id → hold): carries forward; `null` clears. */
-export function resolveTerrainState(doc: MapStoryDocument): Map<string, TerrainHold>[] {
-  const current = new Map<string, TerrainHold>();
+const NO_HOLD: FeatureHold = {
+  held_by: null,
+  state: null,
+  label: null,
+  active: null,
+  value_n: null,
+  value_label: null,
+  intensity: null,
+  at: null,
+  line: null,
+  area: null,
+  area_entity: null,
+};
+
+/** State keys copied as written (`null` clears one). */
+const HOLD_KEYS = ['held_by', 'state', 'label', 'active', 'value_n', 'value_label', 'intensity', 'at', 'line'] as const;
+
+/**
+ * Each step's feature state (feature id → hold). Every key carries forward on
+ * its own and `null` clears it; a `null` entry clears the feature's state.
+ * The latest geometry wins: an `area` replaces an earlier `area_from_entity`
+ * and vice versa.
+ */
+export function resolveFeatureStates(doc: MapStoryDocument): Map<string, FeatureHold>[] {
+  const current = new Map<string, FeatureHold>();
   return doc.steps.map((step) => {
-    for (const [tid, ts] of Object.entries(step.terrain_state)) {
-      const prev = current.get(tid);
-      if (!ts) {
-        current.delete(tid);
+    for (const [fid, fs] of Object.entries(step.features)) {
+      if (!fs) {
+        current.delete(fid);
         continue;
       }
-      const next: TerrainHold = {
-        held_by: ts.held_by !== undefined ? ts.held_by : (prev?.held_by ?? null),
-        state: ts.state !== undefined ? ts.state : (prev?.state ?? null),
-        label: ts.label !== undefined ? ts.label : (prev?.label ?? null),
-      };
-      if (next.held_by || next.state || next.label) current.set(tid, next);
-      else current.delete(tid);
+      const next: FeatureHold = { ...(current.get(fid) ?? NO_HOLD) };
+      for (const k of HOLD_KEYS) {
+        if (fs[k] !== undefined) (next as unknown as Record<string, unknown>)[k] = fs[k];
+      }
+      if (fs.area !== undefined) {
+        next.area = fs.area;
+        if (fs.area) next.area_entity = null;
+      }
+      if (fs.area_from_entity !== undefined) {
+        next.area_entity = fs.area_from_entity;
+        if (fs.area_from_entity) next.area = null;
+      }
+      if (Object.values(next).some((v) => v !== null)) current.set(fid, next);
+      else current.delete(fid);
     }
     return new Map(current);
   });
@@ -682,15 +723,17 @@ export type Bounds = [[number, number], [number, number]];
 
 /**
  * Bounds of a step: its units' outlines, its arrows and its notes (beats
- * included). Off-stage placements (`frame: false`) and their arrows,
+ * included), plus any `extra` points (a generic story's routes, regions and
+ * places). Off-stage placements (`frame: false`) and their arrows,
  * `continues` tails and alternative sites are left out.
  */
 export function stepBounds(
   doc: MapStoryDocument,
   frame: Frame,
   stepIndex: number,
+  extra: LngLat[] = [],
 ): Bounds | null {
-  const pts: LngLat[] = [];
+  const pts: LngLat[] = [...extra];
   const kinds = new Map(doc.units.map((u) => [u.id, u.kind]));
   const offstage = new Set<string>();
   for (const [uid, r] of frame) {

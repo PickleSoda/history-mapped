@@ -1,6 +1,7 @@
 /** Zod schema for GET /chronicles/{slug} (ChronicleResource + entries). */
 import { z } from 'zod';
 import { RelationshipSchema } from './entity';
+import { MapStorySummarySchema } from './map-story';
 
 /** A secondary entity referenced by a chronicle entry. */
 const SecondaryEntitySchema = z.object({
@@ -43,6 +44,8 @@ export const ChronicleSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).nullable().catch(null),
   /** Tag slugs, ancestors included (resolve via GET /tags). */
   tags: z.array(z.string()).default([]),
+  /** The chronicle's map layer: a map story whose steps match its entries. */
+  map_story: MapStorySummarySchema.nullable().default(null).catch(null),
   entries: z.array(ChronicleEntrySchema).default([]),
 });
 export type Chronicle = z.infer<typeof ChronicleSchema>;

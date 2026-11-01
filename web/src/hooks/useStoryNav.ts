@@ -1,5 +1,6 @@
 import { useQueryStates } from 'nuqs';
 import { useCallback } from 'react';
+import { PREVIEW } from '@/lib/map-story/preview';
 import { parseAsChronicle, parseAsFull, parseAsStep, parseAsStory, parseAsStoryStep } from '@/lib/url/params';
 import { useSelection } from './useSelection';
 
@@ -8,6 +9,7 @@ import { useSelection } from './useSelection';
  * `push` so the back button walks steps backward and then leaves the story.
  * A story takes the same place as a chronicle tour, so entering one closes
  * the tour, the open entity and any full page (the map has to be visible).
+ * In the admin's preview (`?preview=1`) steps replace the history entry instead.
  */
 export function useStoryNav() {
   const [{ story, sstep }, set] = useQueryStates(
@@ -18,7 +20,7 @@ export function useStoryNav() {
       step: parseAsStep,
       full: parseAsFull,
     },
-    { history: 'push' },
+    { history: PREVIEW ? 'replace' : 'push' },
   );
   const { clear: clearSelection } = useSelection();
 

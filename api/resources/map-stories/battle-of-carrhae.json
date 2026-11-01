@@ -1,0 +1,2532 @@
+{
+ "schema": 3,
+ "slug": "battle-of-carrhae",
+ "kind": "battle",
+ "entity": {
+  "name": "Battle of Carrhae",
+  "wikidata": "Q205887"
+ },
+ "title": "Battle of Carrhae",
+ "date_label": "9 June 53 BC",
+ "year": -53,
+ "intro": "In June 53 BC Marcus Licinius Crassus, the richest man in Rome, led seven legions into Mesopotamia against Parthia without the Senate's consent. He rejected the Armenian king's offer of a safer route through the hills and followed a caravan track north along the Balikh. Near the town of Carrhae, now Harran in Turkey, he met a force of about 10,000 under the Parthian spahbod Surena: 1,000 armoured cataphracts and 9,000 horse archers, backed by a train of camels carrying arrows. Crassus drew his infantry into a hollow square on open ground. Surena's horse archers circled it and shot into it while the cataphracts waited to charge whenever the Romans moved. Crassus's son Publius was lured away and destroyed with his detachment, and the army's night retreat ended at the parley where Crassus himself died. It is one of the heaviest defeats in Roman history.",
+ "outcome": "Decisive Parthian victory: Crassus was killed at the parley and Rome lost some 20,000 dead and 10,000 captured.",
+ "uncertainty": "The exact battlefield is not known. Everything south of Harran in this replay is a reconstruction and is marked conjectural: the field, the stream where the Romans halted, the hill where Publius died, the retreat road and the lost cohorts' hill. The Roman light troops and cavalry are drawn behind the square though Plutarch has them inside it. The Parthian approach from the north-east is implied rather than stated. Troop numbers are ancient estimates, chiefly Plutarch's, and modern historians dispute his account of the guide Ariamnes leading the army into a waterless desert.",
+ "sources": [
+  {
+   "title": "Battle of Carrhae, Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Battle_of_Carrhae",
+   "kind": "web"
+  }
+ ],
+ "sides": [
+  {
+   "id": "rome",
+   "name": "Roman Republic",
+   "color": "#b91c1c",
+   "polity": {
+    "name": "Roman Republic",
+    "wikidata": "Q17167"
+   },
+   "commanders": [
+    {
+     "name": "Marcus Licinius Crassus",
+     "wikidata": "Q175121",
+     "role": "commander, killed"
+    },
+    {
+     "name": "Publius Licinius Crassus",
+     "wikidata": "Q382280",
+     "role": "cavalry commander, killed"
+    },
+    {
+     "name": "Gaius Cassius Longinus",
+     "wikidata": "Q207370",
+     "role": "quaestor, led the survivors out"
+    }
+   ],
+   "strength": "c. 42,000",
+   "losses": "c. 20,000 killed, 10,000 captured"
+  },
+  {
+   "id": "parthia",
+   "name": "Parthian Empire",
+   "color": "#1d4ed8",
+   "polity": {
+    "name": "Parthian Empire",
+    "wikidata": "Q1986139"
+   },
+   "commanders": [
+    {
+     "name": "Surena",
+     "wikidata": "Q470523",
+     "role": "commander"
+    },
+    {
+     "name": "Silaces",
+     "wikidata": "Q86755352",
+     "role": "commander"
+    }
+   ],
+   "strength": "c. 10,000",
+   "losses": "minimal"
+  }
+ ],
+ "units": [
+  {
+   "id": "rome-sq",
+   "side": "rome",
+   "kind": "heavy_infantry",
+   "label": "Legions",
+   "strength": "c. 28,000-35,000",
+   "strength_n": 31000
+  },
+  {
+   "id": "rome-light",
+   "side": "rome",
+   "kind": "light_infantry",
+   "label": "Light foot",
+   "strength": "c. 4,000",
+   "strength_n": 4000
+  },
+  {
+   "id": "rome-cav",
+   "side": "rome",
+   "kind": "cavalry",
+   "label": "Cavalry",
+   "strength": "c. 2,700"
+  },
+  {
+   "id": "publius-cav",
+   "side": "rome",
+   "kind": "cavalry",
+   "label": "Publius: Gallic horse",
+   "strength": "1,300",
+   "strength_n": 1300
+  },
+  {
+   "id": "publius-inf",
+   "side": "rome",
+   "kind": "heavy_infantry",
+   "label": "Publius: 8 cohorts",
+   "strength": "8 cohorts, 500 archers"
+  },
+  {
+   "id": "rome-wounded",
+   "side": "rome",
+   "kind": "group",
+   "label": "Wounded left behind",
+   "strength": "c. 4,000"
+  },
+  {
+   "id": "rome-lost",
+   "side": "rome",
+   "kind": "heavy_infantry",
+   "label": "4 lost cohorts",
+   "strength": "4 cohorts"
+  },
+  {
+   "id": "crassus",
+   "side": "rome",
+   "kind": "commander",
+   "label": "Crassus"
+  },
+  {
+   "id": "cassius",
+   "side": "rome",
+   "kind": "commander",
+   "label": "Cassius"
+  },
+  {
+   "id": "par-cat",
+   "side": "parthia",
+   "kind": "heavy_cavalry",
+   "label": "Cataphracts",
+   "strength": "1,000",
+   "strength_n": 1000
+  },
+  {
+   "id": "par-ha-w",
+   "side": "parthia",
+   "kind": "horse_archers",
+   "label": "Archers W",
+   "strength": "c. 2,250"
+  },
+  {
+   "id": "par-ha-e",
+   "side": "parthia",
+   "kind": "horse_archers",
+   "label": "Archers E",
+   "strength": "c. 2,250"
+  },
+  {
+   "id": "par-ha-n",
+   "side": "parthia",
+   "kind": "horse_archers",
+   "label": "Archers N",
+   "strength": "c. 2,250"
+  },
+  {
+   "id": "par-ha-s",
+   "side": "parthia",
+   "kind": "horse_archers",
+   "label": "Archers S",
+   "strength": "c. 2,250"
+  },
+  {
+   "id": "par-camels",
+   "side": "parthia",
+   "kind": "baggage",
+   "label": "Arrow camels",
+   "strength": "c. 1,000 camels"
+  },
+  {
+   "id": "surena",
+   "side": "parthia",
+   "kind": "commander",
+   "label": "Surena"
+  }
+ ],
+ "terrain": [
+  {
+   "id": "carrhae",
+   "kind": "town",
+   "label": "Carrhae (Harran)",
+   "at": [
+    39.02514,
+    36.87101
+   ]
+  },
+  {
+   "id": "balikh",
+   "kind": "river",
+   "label": "Balikh",
+   "line": [
+    [
+     38.93934,
+     36.67035
+    ],
+    [
+     38.9689,
+     36.64325
+    ],
+    [
+     38.96675,
+     36.63224
+    ],
+    [
+     38.9786,
+     36.62544
+    ],
+    [
+     38.97663,
+     36.61984
+    ]
+   ]
+  },
+  {
+   "id": "caravan-road",
+   "kind": "road",
+   "label": "Caravan route (approx.)",
+   "line": [
+    [
+     38.953193,
+     36.665965
+    ],
+    [
+     38.966683,
+     36.692945
+    ],
+    [
+     38.976801,
+     36.71183
+    ],
+    [
+     38.991415,
+     36.737911
+    ],
+    [
+     39.002657,
+     36.768487
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "stream",
+   "kind": "stream",
+   "label": "Stream (site conjectural)",
+   "line": [
+    [
+     38.952069,
+     36.773883
+    ],
+    [
+     38.980173,
+     36.77838
+    ],
+    [
+     39.008277,
+     36.780179
+    ],
+    [
+     39.042003,
+     36.781078
+    ],
+    [
+     39.070107,
+     36.784675
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "hill",
+   "kind": "hill",
+   "label": "Hill of Publius (conj.)",
+   "area": [
+    [
+     38.952062,
+     36.753199
+    ],
+    [
+     38.951909,
+     36.753897
+    ],
+    [
+     38.95146,
+     36.754548
+    ],
+    [
+     38.950747,
+     36.755107
+    ],
+    [
+     38.949817,
+     36.755536
+    ],
+    [
+     38.948734,
+     36.755805
+    ],
+    [
+     38.947572,
+     36.755897
+    ],
+    [
+     38.94641,
+     36.755805
+    ],
+    [
+     38.945327,
+     36.755536
+    ],
+    [
+     38.944397,
+     36.755107
+    ],
+    [
+     38.943684,
+     36.754548
+    ],
+    [
+     38.943235,
+     36.753897
+    ],
+    [
+     38.943082,
+     36.753199
+    ],
+    [
+     38.943235,
+     36.752501
+    ],
+    [
+     38.943684,
+     36.75185
+    ],
+    [
+     38.944397,
+     36.751291
+    ],
+    [
+     38.945327,
+     36.750862
+    ],
+    [
+     38.94641,
+     36.750593
+    ],
+    [
+     38.947572,
+     36.750501
+    ],
+    [
+     38.948734,
+     36.750593
+    ],
+    [
+     38.949817,
+     36.750862
+    ],
+    [
+     38.950747,
+     36.751291
+    ],
+    [
+     38.95146,
+     36.75185
+    ],
+    [
+     38.951909,
+     36.752501
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "lost-hill",
+   "kind": "hill",
+   "label": "Hill (conj.)",
+   "area": [
+    [
+     38.967804,
+     36.781078
+    ],
+    [
+     38.967689,
+     36.78166
+    ],
+    [
+     38.967352,
+     36.782202
+    ],
+    [
+     38.966817,
+     36.782668
+    ],
+    [
+     38.966119,
+     36.783025
+    ],
+    [
+     38.965307,
+     36.78325
+    ],
+    [
+     38.964435,
+     36.783326
+    ],
+    [
+     38.963563,
+     36.78325
+    ],
+    [
+     38.962751,
+     36.783025
+    ],
+    [
+     38.962053,
+     36.782668
+    ],
+    [
+     38.961518,
+     36.782202
+    ],
+    [
+     38.961181,
+     36.78166
+    ],
+    [
+     38.961066,
+     36.781078
+    ],
+    [
+     38.961181,
+     36.780496
+    ],
+    [
+     38.961518,
+     36.779954
+    ],
+    [
+     38.962053,
+     36.779488
+    ],
+    [
+     38.962751,
+     36.779131
+    ],
+    [
+     38.963563,
+     36.778906
+    ],
+    [
+     38.964435,
+     36.77883
+    ],
+    [
+     38.965307,
+     36.778906
+    ],
+    [
+     38.966119,
+     36.779131
+    ],
+    [
+     38.966817,
+     36.779488
+    ],
+    [
+     38.967352,
+     36.779954
+    ],
+    [
+     38.967689,
+     36.780496
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "carrhae-road",
+   "kind": "road",
+   "label": "Road to Carrhae (approx.)",
+   "line": [
+    [
+     38.994787,
+     36.76579
+    ],
+    [
+     39.004905,
+     36.809856
+    ],
+    [
+     39.015022,
+     36.845829
+    ],
+    [
+     39.02514,
+     36.87101
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "plain",
+   "kind": "field",
+   "label": "Open plain (conjectural)",
+   "area": [
+    [
+     39.0397,
+     36.773883
+    ],
+    [
+     39.038246,
+     36.779469
+    ],
+    [
+     39.033984,
+     36.784675
+    ],
+    [
+     39.027204,
+     36.789145
+    ],
+    [
+     39.018368,
+     36.792575
+    ],
+    [
+     39.008078,
+     36.794731
+    ],
+    [
+     38.997036,
+     36.795467
+    ],
+    [
+     38.985994,
+     36.794731
+    ],
+    [
+     38.975704,
+     36.792575
+    ],
+    [
+     38.966868,
+     36.789145
+    ],
+    [
+     38.960088,
+     36.784675
+    ],
+    [
+     38.955826,
+     36.779469
+    ],
+    [
+     38.954372,
+     36.773883
+    ],
+    [
+     38.955826,
+     36.768297
+    ],
+    [
+     38.960088,
+     36.763091
+    ],
+    [
+     38.966868,
+     36.758621
+    ],
+    [
+     38.975704,
+     36.755191
+    ],
+    [
+     38.985994,
+     36.753035
+    ],
+    [
+     38.997036,
+     36.752299
+    ],
+    [
+     39.008078,
+     36.753035
+    ],
+    [
+     39.018368,
+     36.755191
+    ],
+    [
+     39.027204,
+     36.758621
+    ],
+    [
+     39.033984,
+     36.763091
+    ],
+    [
+     39.038246,
+     36.768297
+    ]
+   ],
+   "conjectural": true
+  }
+ ],
+ "steps": [
+  {
+   "id": "march",
+   "title": "Up the Balikh, refusing the Armenian road",
+   "time": "Spring 53 BC",
+   "narrative": "Crassus marches north from Syria with seven legions, about 4,000 light infantry and 4,000 cavalry. King Artavasdes of Armenia has twice offered troops and a route through the hills, away from the open plain; Crassus declines and takes the direct road through Mesopotamia. The guide Ariamnes urges haste and says the Parthians are weak. Modern study suggests the army kept to a busy caravan track beside the Balikh, where water was plentiful, not a waterless desert.",
+   "positions": {
+    "rome-cav": {
+     "at": [
+      38.97638,
+      36.710997
+     ],
+     "facing": 22,
+     "width": 260,
+     "depth": 200,
+     "shape": "column",
+     "state": "ready",
+     "conjectural": true
+    },
+    "rome-sq": {
+     "at": [
+      38.972126,
+      36.702578
+     ],
+     "facing": 22,
+     "width": 260,
+     "depth": 1700,
+     "shape": "column",
+     "state": "ready",
+     "conjectural": true
+    },
+    "rome-light": {
+     "at": [
+      38.967661,
+      36.693743
+     ],
+     "facing": 22,
+     "width": 260,
+     "depth": 300,
+     "shape": "column",
+     "state": "ready",
+     "conjectural": true
+    },
+    "crassus": {
+     "with": "rome-sq"
+    },
+    "par-cat": {
+     "at": [
+      39.064486,
+      36.839534
+     ],
+     "facing": 200,
+     "width": 320,
+     "depth": 40,
+     "state": "ready",
+     "frame": false,
+     "conjectural": true
+    },
+    "par-ha-w": {
+     "at": [
+      39.049872,
+      36.845829
+     ],
+     "facing": 200,
+     "width": 600,
+     "depth": 30,
+     "state": "ready",
+     "frame": false,
+     "conjectural": true
+    },
+    "par-ha-e": {
+     "at": [
+      39.0791,
+      36.84403
+     ],
+     "facing": 200,
+     "width": 600,
+     "depth": 30,
+     "state": "ready",
+     "frame": false,
+     "conjectural": true
+    },
+    "par-ha-n": {
+     "at": [
+      39.058865,
+      36.854822
+     ],
+     "facing": 200,
+     "width": 600,
+     "depth": 30,
+     "state": "ready",
+     "frame": false,
+     "conjectural": true
+    },
+    "par-ha-s": {
+     "at": [
+      39.072355,
+      36.855722
+     ],
+     "facing": 200,
+     "width": 600,
+     "depth": 30,
+     "state": "ready",
+     "frame": false,
+     "conjectural": true
+    },
+    "surena": {
+     "at": [
+      39.06561,
+      36.849426
+     ],
+     "frame": false,
+     "conjectural": true
+    }
+   },
+   "notes": [
+    {
+     "at": [
+      38.939703,
+      36.68575
+     ],
+     "text": "Armenian route refused",
+     "kind": "event",
+     "conjectural": true
+    }
+   ],
+   "camera": {
+    "center": [
+     38.97118,
+     36.695643
+    ],
+    "zoom": 12.6
+   }
+  },
+  {
+   "id": "contact",
+   "title": "Scouts slain: the army forms a square",
+   "time": "Morning, 9 June",
+   "narrative": "Near Carrhae the Roman reconnaissance screen finds its scouts dead and a large body of cavalry approaching. The army panics. Cassius advises the old order, legions in the centre and horse on both wings. Crassus agrees, then thinks again and closes the army into a hollow square, twelve cohorts to a side. A square cannot be turned, but it can barely manoeuvre. Light troops and cavalry are shown behind it here; Plutarch places them within.",
+   "positions": {
+    "rome-sq": {
+     "at": [
+      38.991415,
+      36.737911
+     ],
+     "facing": 0,
+     "shape": "square",
+     "width": 900,
+     "depth": 900
+    },
+    "rome-cav": {
+     "at": [
+      38.987705,
+      36.733054
+     ],
+     "facing": 0,
+     "width": 300,
+     "depth": 40
+    },
+    "rome-light": {
+     "at": [
+      38.995125,
+      36.733054
+     ],
+     "facing": 0,
+     "width": 400,
+     "depth": 60
+    },
+    "par-cat": {
+     "at": [
+      39.054368,
+      36.815252
+     ],
+     "frame": true
+    },
+    "par-ha-w": {
+     "at": [
+      39.039754,
+      36.822447
+     ],
+     "frame": true
+    },
+    "par-ha-e": {
+     "at": [
+      39.067858,
+      36.820648
+     ],
+     "frame": true
+    },
+    "surena": {
+     "at": [
+      39.055493,
+      36.819749
+     ],
+     "frame": true
+    }
+   },
+   "moves": [
+    {
+     "unit": "rome-sq",
+     "type": "advance",
+     "path": [
+      [
+       38.972126,
+       36.702578
+      ],
+      [
+       38.991415,
+       36.737911
+      ]
+     ]
+    },
+    {
+     "unit": "rome-cav",
+     "type": "advance",
+     "path": [
+      [
+       38.97638,
+       36.710997
+      ],
+      [
+       38.987705,
+       36.733054
+      ]
+     ]
+    },
+    {
+     "unit": "rome-light",
+     "type": "advance",
+     "path": [
+      [
+       38.967661,
+       36.693743
+      ],
+      [
+       38.995125,
+       36.733054
+      ]
+     ]
+    },
+    {
+     "unit": "par-cat",
+     "type": "advance",
+     "path": [
+      [
+       39.064486,
+       36.839534
+      ],
+      [
+       39.054368,
+       36.815252
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-w",
+     "type": "advance",
+     "path": [
+      [
+       39.049872,
+       36.845829
+      ],
+      [
+       39.039754,
+       36.822447
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-e",
+     "type": "advance",
+     "path": [
+      [
+       39.0791,
+       36.84403
+      ],
+      [
+       39.067858,
+       36.820648
+      ]
+     ]
+    },
+    {
+     "unit": "surena",
+     "type": "advance",
+     "path": [
+      [
+       39.06561,
+       36.849426
+      ],
+      [
+       39.055493,
+       36.819749
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      38.991415,
+      36.744206
+     ],
+     "text": "Square formed, twelve cohorts a side",
+     "kind": "label",
+     "conjectural": true
+    }
+   ],
+   "camera": {
+    "center": [
+     39.02514,
+     36.776581
+    ],
+    "zoom": 12.0
+   }
+  },
+  {
+   "id": "stream",
+   "title": "The stream: rest, or fight at once?",
+   "time": "Midday",
+   "narrative": "The square plods on to a stream. The senior officers want to camp and fight the next morning, so the men can rest and the Parthians can be scouted. Publius, eager for battle, wins his father over. Historians have noted that no one proposed moving to ground less friendly to cavalry. Crassus gives the order to fight immediately, and the Romans halt on the stream bank with the Parthians in sight to the north.",
+   "positions": {
+    "rome-sq": {
+     "at": [
+      39.002657,
+      36.768487
+     ]
+    },
+    "rome-cav": {
+     "at": [
+      38.998947,
+      36.763631
+     ]
+    },
+    "rome-light": {
+     "at": [
+      39.006366,
+      36.763631
+     ]
+    },
+    "par-cat": {
+     "at": [
+      39.042003,
+      36.812554
+     ]
+    },
+    "par-ha-w": {
+     "at": [
+      39.020643,
+      36.814353
+     ]
+    },
+    "par-ha-e": {
+     "at": [
+      39.056617,
+      36.812554
+     ]
+    },
+    "surena": {
+     "at": [
+      39.043127,
+      36.816151
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "rome-sq",
+     "type": "advance",
+     "path": [
+      [
+       38.991415,
+       36.737911
+      ],
+      [
+       39.002657,
+       36.768487
+      ]
+     ]
+    },
+    {
+     "unit": "rome-cav",
+     "type": "advance",
+     "path": [
+      [
+       38.987705,
+       36.733054
+      ],
+      [
+       38.998947,
+       36.763631
+      ]
+     ]
+    },
+    {
+     "unit": "rome-light",
+     "type": "advance",
+     "path": [
+      [
+       38.995125,
+       36.733054
+      ],
+      [
+       39.006366,
+       36.763631
+      ]
+     ]
+    },
+    {
+     "unit": "par-cat",
+     "type": "advance",
+     "path": [
+      [
+       39.054368,
+       36.815252
+      ],
+      [
+       39.042003,
+       36.812554
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-w",
+     "type": "advance",
+     "path": [
+      [
+       39.039754,
+       36.822447
+      ],
+      [
+       39.020643,
+       36.814353
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-e",
+     "type": "advance",
+     "path": [
+      [
+       39.067858,
+       36.820648
+      ],
+      [
+       39.056617,
+       36.812554
+      ]
+     ]
+    },
+    {
+     "unit": "surena",
+     "type": "advance",
+     "path": [
+      [
+       39.055493,
+       36.819749
+      ],
+      [
+       39.043127,
+       36.816151
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      39.005467,
+      36.774783
+     ],
+     "text": "Council at the stream: Publius urges battle",
+     "kind": "label",
+     "conjectural": true
+    }
+   ],
+   "camera": {
+    "center": [
+     39.021767,
+     36.79187
+    ],
+    "zoom": 12.4
+   }
+  },
+  {
+   "id": "drums",
+   "title": "Drums and unveiled armour",
+   "time": "Afternoon",
+   "narrative": "Surena tries to frighten the Romans before a blow is struck. His men beat a great number of hollow drums, whose din unsettles the legionaries. Then the cataphracts, who had advanced with their armour hidden under cloths, throw the cloths away together and appear in blazing steel. Surena had meant to break the square with a cataphract charge, but judges it will not yet suffice and sends the horse archers to circle round it instead.",
+   "positions": {
+    "par-cat": {
+     "at": [
+      39.016147,
+      36.79187
+     ],
+     "facing": 190
+    },
+    "par-ha-w": {
+     "at": [
+      39.003781,
+      36.793668
+     ],
+     "facing": 190
+    },
+    "par-ha-e": {
+     "at": [
+      39.028513,
+      36.794568
+     ],
+     "facing": 190
+    },
+    "par-ha-n": {
+     "at": [
+      39.016147,
+      36.801762
+     ],
+     "facing": 190,
+     "frame": true
+    },
+    "par-ha-s": {
+     "at": [
+      39.016147,
+      36.807158
+     ],
+     "facing": 190,
+     "frame": true
+    },
+    "surena": {
+     "at": [
+      39.016147,
+      36.800863
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "par-cat",
+     "type": "advance",
+     "path": [
+      [
+       39.042003,
+       36.812554
+      ],
+      [
+       39.016147,
+       36.79187
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-w",
+     "type": "advance",
+     "path": [
+      [
+       39.020643,
+       36.814353
+      ],
+      [
+       39.003781,
+       36.793668
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-e",
+     "type": "advance",
+     "path": [
+      [
+       39.056617,
+       36.812554
+      ],
+      [
+       39.028513,
+       36.794568
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-n",
+     "type": "advance",
+     "path": [
+      [
+       39.058865,
+       36.854822
+      ],
+      [
+       39.016147,
+       36.801762
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-s",
+     "type": "advance",
+     "path": [
+      [
+       39.072355,
+       36.855722
+      ],
+      [
+       39.016147,
+       36.807158
+      ]
+     ]
+    },
+    {
+     "unit": "surena",
+     "type": "advance",
+     "path": [
+      [
+       39.043127,
+       36.816151
+      ],
+      [
+       39.016147,
+       36.800863
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      39.016147,
+      36.796366
+     ],
+     "text": "Drums; cloths dropped",
+     "kind": "event"
+    }
+   ],
+   "camera": {
+    "center": [
+     39.008277,
+     36.788273
+    ],
+    "zoom": 12.8
+   }
+  },
+  {
+   "id": "encircle",
+   "title": "The horse archers ring the square",
+   "time": "Afternoon",
+   "narrative": "The horse archers ride round the square and loose from every side, always beyond javelin range. Crassus sends his skirmishers out to drive them off, but arrows force these back among the legions. Shields and mail protect much of the body, yet not the whole of it, and arrows find the exposed limbs. Each time the legionaries lunge at their tormentors, the archers draw away, shooting as they go, and the square can neither catch nor outrun them.",
+   "positions": {
+    "par-ha-n": {
+     "at": [
+      39.002657,
+      36.774603
+     ],
+     "facing": 180,
+     "width": 700,
+     "state": "engaged"
+    },
+    "par-ha-s": {
+     "at": [
+      39.002657,
+      36.762372
+     ],
+     "facing": 0,
+     "width": 700,
+     "state": "engaged"
+    },
+    "par-ha-w": {
+     "at": [
+      38.995012,
+      36.768487
+     ],
+     "facing": 90,
+     "width": 700,
+     "state": "engaged"
+    },
+    "par-ha-e": {
+     "at": [
+      39.010301,
+      36.768487
+     ],
+     "facing": 270,
+     "width": 700,
+     "state": "engaged"
+    },
+    "par-cat": {
+     "at": [
+      39.002657,
+      36.77838
+     ],
+     "facing": 180
+    },
+    "surena": {
+     "at": [
+      39.012774,
+      36.777481
+     ]
+    },
+    "rome-sq": {
+     "state": "engaged"
+    },
+    "rome-light": {
+     "at": [
+      39.002657,
+      36.773524
+     ],
+     "width": 500,
+     "depth": 30,
+     "state": "wavering"
+    }
+   },
+   "moves": [
+    {
+     "unit": "par-ha-n",
+     "type": "flank",
+     "path": [
+      [
+       39.016147,
+       36.801762
+      ],
+      [
+       39.002657,
+       36.774603
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-s",
+     "type": "flank",
+     "path": [
+      [
+       39.016147,
+       36.807158
+      ],
+      [
+       39.002657,
+       36.762372
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-w",
+     "type": "flank",
+     "path": [
+      [
+       39.003781,
+       36.793668
+      ],
+      [
+       38.995012,
+       36.768487
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-e",
+     "type": "flank",
+     "path": [
+      [
+       39.028513,
+       36.794568
+      ],
+      [
+       39.010301,
+       36.768487
+      ]
+     ]
+    },
+    {
+     "unit": "par-cat",
+     "type": "retreat",
+     "path": [
+      [
+       39.016147,
+       36.79187
+      ],
+      [
+       39.002657,
+       36.77838
+      ]
+     ]
+    },
+    {
+     "unit": "surena",
+     "type": "retreat",
+     "path": [
+      [
+       39.016147,
+       36.800863
+      ],
+      [
+       39.012774,
+       36.777481
+      ]
+     ]
+    },
+    {
+     "unit": "rome-light",
+     "type": "attack",
+     "path": [
+      [
+       39.006366,
+       36.763631
+      ],
+      [
+       39.002657,
+       36.773524
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-n",
+     "type": "fire",
+     "path": [
+      [
+       39.002657,
+       36.774603
+      ],
+      [
+       39.002657,
+       36.768487
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-w",
+     "type": "fire",
+     "path": [
+      [
+       38.995012,
+       36.768487
+      ],
+      [
+       39.002657,
+       36.768487
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-e",
+     "type": "fire",
+     "path": [
+      [
+       39.010301,
+       36.768487
+      ],
+      [
+       39.002657,
+       36.768487
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-s",
+     "type": "fire",
+     "path": [
+      [
+       39.002657,
+       36.762372
+      ],
+      [
+       39.002657,
+       36.768487
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      39.007715,
+      36.777481
+     ],
+     "text": "Skirmishers driven back by arrows",
+     "kind": "clash"
+    }
+   ],
+   "camera": {
+    "center": [
+     39.002657,
+     36.768487
+    ],
+    "zoom": 13.4
+   }
+  },
+  {
+   "id": "testudo",
+   "title": "Shields locked, cataphracts charge",
+   "time": "Late afternoon",
+   "narrative": "The legionaries lock their shields into a testudo to blunt the arrows, but in that dense order they cannot fight hand to hand. The cataphracts exploit it, charging the line again and again and spreading panic and loss. When the Romans loosen ranks to face them, the cataphracts draw off and the archers, whose shooting has barely paused, strike the opened ranks. Crassus hopes the Parthians will run short of arrows.",
+   "positions": {
+    "rome-light": {
+     "at": [
+      39.006366,
+      36.763631
+     ],
+     "width": 400,
+     "depth": 60,
+     "state": "engaged"
+    },
+    "par-cat": {
+     "at": [
+      39.002657,
+      36.773704
+     ],
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "rome-light",
+     "type": "retreat",
+     "path": [
+      [
+       39.002657,
+       36.773524
+      ],
+      [
+       39.006366,
+       36.763631
+      ]
+     ]
+    },
+    {
+     "unit": "par-cat",
+     "type": "charge",
+     "path": [
+      [
+       39.002657,
+       36.77838
+      ],
+      [
+       39.002657,
+       36.773704
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-w",
+     "type": "fire",
+     "path": [
+      [
+       38.995012,
+       36.768487
+      ],
+      [
+       39.002657,
+       36.768487
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-s",
+     "type": "fire",
+     "path": [
+      [
+       39.002657,
+       36.762372
+      ],
+      [
+       39.002657,
+       36.768487
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      39.002657,
+      36.776581
+     ],
+     "text": "Cataphracts charge the locked shields",
+     "kind": "clash"
+    }
+   ],
+   "camera": {
+    "center": [
+     39.002657,
+     36.768487
+    ],
+    "zoom": 13.4
+   }
+  },
+  {
+   "id": "camels",
+   "title": "Camels bring fresh arrows",
+   "time": "Late afternoon",
+   "narrative": "Crassus's hope fails. Surena has a baggage train of some thousand camels, and they carry arrows up to the horse archers, who shoot without a break. Once he sees this, Crassus knows he cannot wait for the Parthians to run dry. The square has stood under fire for hours with its wounded growing in number; he must act, and he turns to the one body of mobile troops he has.",
+   "positions": {
+    "par-cat": {
+     "at": [
+      39.002657,
+      36.77838
+     ],
+     "state": "ready"
+    },
+    "par-camels": {
+     "at": [
+      39.01446,
+      36.770286
+     ],
+     "facing": 270,
+     "width": 200,
+     "depth": 40,
+     "conjectural": true
+    }
+   },
+   "moves": [
+    {
+     "unit": "par-cat",
+     "type": "retreat",
+     "path": [
+      [
+       39.002657,
+       36.773704
+      ],
+      [
+       39.002657,
+       36.77838
+      ]
+     ]
+    },
+    {
+     "unit": "par-camels",
+     "type": "advance",
+     "path": [
+      [
+       39.034133,
+       36.771185
+      ],
+      [
+       39.01446,
+       36.770286
+      ]
+     ]
+    },
+    {
+     "unit": "par-camels",
+     "type": "fire",
+     "path": [
+      [
+       39.01446,
+       36.770286
+      ],
+      [
+       39.010301,
+       36.768487
+      ]
+     ],
+     "label": "arrows"
+    },
+    {
+     "unit": "par-ha-e",
+     "type": "fire",
+     "path": [
+      [
+       39.010301,
+       36.768487
+      ],
+      [
+       39.002657,
+       36.768487
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      39.021767,
+      36.772984
+     ],
+     "text": "Camel train resupplies the archers",
+     "kind": "event"
+    }
+   ],
+   "camera": {
+    "center": [
+     39.012774,
+     36.770286
+    ],
+    "zoom": 13.4
+   }
+  },
+  {
+   "id": "sortie",
+   "title": "Publius sallies out; the Parthians feign flight",
+   "time": "Evening",
+   "narrative": "Crassus detaches his son Publius with 1,300 Gallic horse, 500 archers and eight cohorts of legionaries to drive off the horse archers. The archers appear to give way and Publius follows, drawn steadily westward. His men suffer heavy loss to arrow fire on the way and lose touch with the main army. The pursuit is exactly what Surena wanted.",
+   "positions": {
+    "publius-cav": {
+     "at": [
+      38.973428,
+      36.763092
+     ],
+     "facing": 270,
+     "width": 260,
+     "depth": 30,
+     "state": "ready",
+     "conjectural": true
+    },
+    "publius-inf": {
+     "at": [
+      38.976801,
+      36.763541
+     ],
+     "facing": 270,
+     "width": 220,
+     "depth": 40,
+     "state": "ready",
+     "conjectural": true
+    },
+    "par-ha-w": {
+     "at": [
+      38.958814,
+      36.755897
+     ],
+     "facing": 270,
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "publius-cav",
+     "type": "attack",
+     "path": [
+      [
+       38.996361,
+       36.767948
+      ],
+      [
+       38.973428,
+       36.763092
+      ]
+     ]
+    },
+    {
+     "unit": "publius-inf",
+     "type": "attack",
+     "path": [
+      [
+       38.996811,
+       36.768757
+      ],
+      [
+       38.976801,
+       36.763541
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-w",
+     "type": "feint",
+     "path": [
+      [
+       38.995012,
+       36.768487
+      ],
+      [
+       38.958814,
+       36.755897
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      38.974552,
+      36.770736
+     ],
+     "text": "Archers feign retreat westward",
+     "kind": "event",
+     "conjectural": true
+    }
+   ],
+   "camera": {
+    "center": [
+     38.983546,
+     36.76489
+    ],
+    "zoom": 13.0
+   }
+  },
+  {
+   "id": "hill",
+   "title": "Publius is cut off on a hill",
+   "time": "Evening",
+   "narrative": "With Publius well away from the army, the cataphracts turn on his column while the horse archers close the way back. The Gauls fight bravely but are outclassed in arms and armour. The survivors fall back to a hill, where Publius and his officers fall on their swords. Only 500 of the Gauls are taken alive. The main army, a few kilometres away, still does not know what has happened.",
+   "positions": {
+    "publius-cav": {
+     "at": [
+      38.949821,
+      36.754998
+     ],
+     "state": "destroyed"
+    },
+    "publius-inf": {
+     "at": [
+      38.953193,
+      36.756796
+     ],
+     "state": "destroyed"
+    },
+    "par-cat": {
+     "at": [
+      38.961062,
+      36.759494
+     ],
+     "facing": 270,
+     "state": "engaged"
+    },
+    "par-ha-w": {
+     "at": [
+      38.965559,
+      36.762192
+     ],
+     "width": 400,
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "publius-cav",
+     "type": "retreat",
+     "path": [
+      [
+       38.973428,
+       36.763092
+      ],
+      [
+       38.949821,
+       36.754998
+      ]
+     ]
+    },
+    {
+     "unit": "publius-inf",
+     "type": "retreat",
+     "path": [
+      [
+       38.976801,
+       36.763541
+      ],
+      [
+       38.953193,
+       36.756796
+      ]
+     ]
+    },
+    {
+     "unit": "par-cat",
+     "type": "charge",
+     "path": [
+      [
+       39.002657,
+       36.77838
+      ],
+      [
+       38.961062,
+       36.759494
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-w",
+     "type": "advance",
+     "path": [
+      [
+       38.958814,
+       36.755897
+      ],
+      [
+       38.965559,
+       36.762192
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      38.946448,
+      36.75185
+     ],
+     "text": "Publius dies on the hill",
+     "kind": "death",
+     "conjectural": true
+    }
+   ],
+   "camera": {
+    "center": [
+     38.975677,
+     36.761293
+    ],
+    "zoom": 12.8
+   }
+  },
+  {
+   "id": "head",
+   "title": "Publius's head; the barrage goes on",
+   "time": "Dusk",
+   "narrative": "Fearing for Publius, Crassus orders a general advance and is met by the sight of his son's head carried on a spear. The Parthians close round the whole square again. Horse archers shoot from every side, and cataphract charges tear the order of the legions. The pressure does not slacken until nightfall. Crassus, hearing that his son is dead and the day lost, is said to have collapsed into near despair.",
+   "positions": {
+    "rome-sq": {
+     "at": [
+      38.994787,
+      36.76579
+     ]
+    },
+    "rome-cav": {
+     "at": [
+      38.991078,
+      36.760933
+     ]
+    },
+    "rome-light": {
+     "at": [
+      38.998497,
+      36.760933
+     ]
+    },
+    "par-ha-n": {
+     "at": [
+      38.994787,
+      36.771905
+     ]
+    },
+    "par-ha-s": {
+     "at": [
+      38.994787,
+      36.759674
+     ]
+    },
+    "par-ha-w": {
+     "at": [
+      38.987143,
+      36.76579
+     ],
+     "facing": 90
+    },
+    "par-ha-e": {
+     "at": [
+      39.002432,
+      36.76579
+     ]
+    },
+    "par-cat": {
+     "at": [
+      38.994787,
+      36.771006
+     ],
+     "facing": 180
+    },
+    "publius-cav": {
+     "state": "hidden"
+    },
+    "publius-inf": {
+     "state": "hidden"
+    }
+   },
+   "moves": [
+    {
+     "unit": "rome-sq",
+     "type": "advance",
+     "path": [
+      [
+       39.002657,
+       36.768487
+      ],
+      [
+       38.994787,
+       36.76579
+      ]
+     ]
+    },
+    {
+     "unit": "rome-cav",
+     "type": "advance",
+     "path": [
+      [
+       38.998947,
+       36.763631
+      ],
+      [
+       38.991078,
+       36.760933
+      ]
+     ]
+    },
+    {
+     "unit": "rome-light",
+     "type": "advance",
+     "path": [
+      [
+       39.006366,
+       36.763631
+      ],
+      [
+       38.998497,
+       36.760933
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-n",
+     "type": "advance",
+     "path": [
+      [
+       39.002657,
+       36.774603
+      ],
+      [
+       38.994787,
+       36.771905
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-s",
+     "type": "advance",
+     "path": [
+      [
+       39.002657,
+       36.762372
+      ],
+      [
+       38.994787,
+       36.759674
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-w",
+     "type": "advance",
+     "path": [
+      [
+       38.965559,
+       36.762192
+      ],
+      [
+       38.987143,
+       36.76579
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-e",
+     "type": "advance",
+     "path": [
+      [
+       39.010301,
+       36.768487
+      ],
+      [
+       39.002432,
+       36.76579
+      ]
+     ]
+    },
+    {
+     "unit": "par-cat",
+     "type": "charge",
+     "path": [
+      [
+       38.961062,
+       36.759494
+      ],
+      [
+       38.994787,
+       36.771006
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-n",
+     "type": "fire",
+     "path": [
+      [
+       38.994787,
+       36.771905
+      ],
+      [
+       38.994787,
+       36.76579
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-e",
+     "type": "fire",
+     "path": [
+      [
+       39.002432,
+       36.76579
+      ],
+      [
+       38.994787,
+       36.76579
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      38.979049,
+      36.767138
+     ],
+     "text": "Publius's head shown on a spear",
+     "kind": "capture",
+     "conjectural": true
+    }
+   ],
+   "camera": {
+    "center": [
+     38.991415,
+     36.76579
+    ],
+    "zoom": 13.2
+   }
+  },
+  {
+   "id": "night",
+   "title": "Night: retreat to Carrhae",
+   "time": "Night, 9-10 June",
+   "narrative": "After dark the Parthians break off. Crassus orders a ragged retreat to Carrhae and leaves about 4,000 wounded, who are killed next morning. Four cohorts lose their way in the dark and are surrounded on a hill, and only 20 men survive. Plutarch makes the disorder of this withdrawal one of Crassus's worst failures, and the modern view agrees that the poorly organised retreat did most to destroy the army's chance of regrouping.",
+   "positions": {
+    "rome-wounded": {
+     "at": [
+      38.994787,
+      36.76579
+     ],
+     "facing": 0,
+     "width": 500,
+     "depth": 60,
+     "state": "wounded",
+     "conjectural": true
+    },
+    "rome-lost": {
+     "at": [
+      38.964435,
+      36.779279
+     ],
+     "facing": 0,
+     "width": 240,
+     "depth": 60,
+     "state": "engaged",
+     "conjectural": true
+    },
+    "rome-sq": {
+     "at": [
+      39.020643,
+      36.85842
+     ],
+     "shape": "column",
+     "width": 260,
+     "depth": 1700,
+     "state": "wavering"
+    },
+    "rome-cav": {
+     "at": [
+      39.02233,
+      36.867862
+     ],
+     "width": 240,
+     "depth": 60
+    },
+    "rome-light": {
+     "at": [
+      39.017833,
+      36.867862
+     ],
+     "width": 240
+    },
+    "par-cat": {
+     "at": [
+      39.008277,
+      36.776581
+     ],
+     "facing": 0,
+     "state": "ready"
+    },
+    "par-ha-s": {
+     "at": [
+      38.973428,
+      36.781977
+     ],
+     "facing": 270,
+     "width": 400
+    }
+   },
+   "moves": [
+    {
+     "unit": "rome-sq",
+     "type": "retreat",
+     "path": [
+      [
+       38.994787,
+       36.76579
+      ],
+      [
+       39.020643,
+       36.85842
+      ]
+     ]
+    },
+    {
+     "unit": "rome-cav",
+     "type": "retreat",
+     "path": [
+      [
+       38.991078,
+       36.760933
+      ],
+      [
+       39.02233,
+       36.867862
+      ]
+     ]
+    },
+    {
+     "unit": "rome-light",
+     "type": "retreat",
+     "path": [
+      [
+       38.998497,
+       36.760933
+      ],
+      [
+       39.017833,
+       36.867862
+      ]
+     ]
+    },
+    {
+     "unit": "par-cat",
+     "type": "pursuit",
+     "path": [
+      [
+       38.994787,
+       36.771006
+      ],
+      [
+       39.008277,
+       36.776581
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-s",
+     "type": "advance",
+     "path": [
+      [
+       38.994787,
+       36.759674
+      ],
+      [
+       38.973428,
+       36.781977
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      38.970056,
+      36.787373
+     ],
+     "text": "Four lost cohorts surrounded; 20 survive",
+     "kind": "death",
+     "conjectural": true
+    },
+    {
+     "at": [
+      39.000408,
+      36.768487
+     ],
+     "text": "About 4,000 wounded left behind",
+     "kind": "event"
+    }
+   ],
+   "light": "night",
+   "camera": {
+    "center": [
+     39.002657,
+     36.818849
+    ],
+    "zoom": 11.4
+   }
+  },
+  {
+   "id": "parley",
+   "title": "The parley and Crassus's death",
+   "time": "10 June",
+   "narrative": "Next day Surena offers the Romans a truce and safe return to Syria if Rome gives up all land east of the Euphrates. Crassus is reluctant, but his troops threaten to mutiny unless he agrees. At the meeting a Parthian tugs at Crassus's reins, a struggle breaks out, and Crassus and his officers are killed. The remaining Romans try to run and most are killed or taken. Cassius leads about 10,000 survivors out of the trap and back to Syria.",
+   "positions": {
+    "rome-sq": {
+     "at": [
+      39.015022,
+      36.85752
+     ],
+     "state": "routed",
+     "shape": "block",
+     "width": 500,
+     "depth": 500
+    },
+    "crassus": {
+     "at": [
+      39.028513,
+      36.854822
+     ],
+     "state": "killed"
+    },
+    "surena": {
+     "at": [
+      39.035258,
+      36.853024
+     ]
+    },
+    "par-cat": {
+     "at": [
+      39.042003,
+      36.845829
+     ],
+     "facing": 200
+    },
+    "par-ha-n": {
+     "at": [
+      39.028513,
+      36.849426
+     ],
+     "state": "ready"
+    },
+    "par-ha-e": {
+     "at": [
+      38.997036,
+      36.84403
+     ]
+    },
+    "par-ha-w": {
+     "at": [
+      38.982422,
+      36.827843
+     ],
+     "facing": 0,
+     "state": "ready"
+    },
+    "par-ha-s": {
+     "at": [
+      39.040878,
+      36.84403
+     ],
+     "facing": 200,
+     "state": "ready"
+    },
+    "par-camels": {
+     "state": "hidden"
+    },
+    "rome-wounded": {
+     "state": "hidden"
+    },
+    "rome-lost": {
+     "state": "hidden"
+    },
+    "cassius": {
+     "at": [
+      38.962187,
+      36.823346
+     ],
+     "conjectural": true
+    }
+   },
+   "moves": [
+    {
+     "unit": "rome-sq",
+     "type": "rout",
+     "path": [
+      [
+       39.020643,
+       36.85842
+      ],
+      [
+       39.015022,
+       36.85752
+      ]
+     ]
+    },
+    {
+     "unit": "surena",
+     "type": "advance",
+     "path": [
+      [
+       39.012774,
+       36.777481
+      ],
+      [
+       39.035258,
+       36.853024
+      ]
+     ]
+    },
+    {
+     "unit": "par-cat",
+     "type": "advance",
+     "path": [
+      [
+       39.008277,
+       36.776581
+      ],
+      [
+       39.042003,
+       36.845829
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-n",
+     "type": "advance",
+     "path": [
+      [
+       38.994787,
+       36.771905
+      ],
+      [
+       39.028513,
+       36.849426
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-e",
+     "type": "pursuit",
+     "path": [
+      [
+       39.002432,
+       36.76579
+      ],
+      [
+       38.997036,
+       36.84403
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-w",
+     "type": "pursuit",
+     "path": [
+      [
+       38.987143,
+       36.76579
+      ],
+      [
+       38.982422,
+       36.827843
+      ]
+     ]
+    },
+    {
+     "unit": "par-ha-s",
+     "type": "advance",
+     "path": [
+      [
+       38.973428,
+       36.781977
+      ],
+      [
+       39.040878,
+       36.84403
+      ]
+     ]
+    },
+    {
+     "unit": "cassius",
+     "type": "retreat",
+     "path": [
+      [
+       39.008277,
+       36.861117
+      ],
+      [
+       38.962187,
+       36.823346
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      39.028513,
+      36.85842
+     ],
+     "text": "Crassus killed at the parley",
+     "kind": "death",
+     "conjectural": true
+    },
+    {
+     "at": [
+      38.962187,
+      36.827843
+     ],
+     "text": "Cassius leads c. 10,000 back to Syria",
+     "kind": "event"
+    }
+   ],
+   "camera": {
+    "center": [
+     39.000408,
+     36.849426
+    ],
+    "zoom": 12.3
+   }
+  }
+ ]
+}

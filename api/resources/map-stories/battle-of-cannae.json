@@ -1,5 +1,5 @@
 {
- "schema": 1,
+ "schema": 2,
  "slug": "battle-of-cannae",
  "kind": "battle",
  "entity": {
@@ -11,7 +11,17 @@
  "year": -216,
  "intro": "By the summer of 216 BC Hannibal had spent two years loose in Italy and had already destroyed Roman armies at the Trebia and Lake Trasimene. Rome answered by sending both consuls of the year, Lucius Aemilius Paullus and Gaius Terentius Varro, with eight legions and as many allied troops, the largest army the Republic had ever put into a single field. Hannibal drew it south into Apulia by seizing the hilltop depot at Cannae, and the two armies camped facing each other along the river Aufidus, the modern Ofanto, a few kilometres from the Adriatic. The consuls took command on alternate days. On 2 August it was Varro's turn: he crossed the river and offered battle on the narrow plain below the Cannae ridge, trusting the sheer weight of his infantry. Hannibal, outnumbered by almost two to one, arranged his army so that this weight would carry the Romans into a trap.",
  "outcome": "A crushing Carthaginian victory: the Roman army was surrounded and largely destroyed, Paullus was killed and Varro fled, in one of the bloodiest single days of battle in ancient history.",
- "uncertainty": "Where the battle was fought is disputed. This map follows the view of most modern historians (among them Goldsworthy) and of the Cannae site museum: the right, south-eastern bank, in the plain between the river and the Cannae ridge, with the Romans facing roughly south-west and their right on the river. Older scholars such as Delbrück put it on the left bank. The river is drawn on its modern course, but the Aufidus has moved since 216 BC and probably ran a few hundred metres further north-west, which would have widened the field; the frontages here are therefore slightly compressed. The camp sites and Varro's route are conjectural. Numbers follow Polybius and Goldsworthy; Livy's differ, and modern estimates of the Roman dead vary widely.",
+ "uncertainty": "Where the battle was fought is disputed. This map follows the view of most modern historians (among them Goldsworthy) and of the Cannae site museum: the right, south-eastern bank, in the plain between the river and the Cannae ridge, with the Romans facing roughly south-west and their right on the river. Older scholars such as Delbrück put it on the left bank. The river is drawn on its modern course, but the Aufidus has moved since 216 BC and probably ran a few hundred metres further north-west, which would have widened the field; the frontages here are therefore slightly compressed; the river is drawn dashed for that reason. The camp sites, the crossings and Varro's route are conjectural. The legions are drawn in the usual three lines, though Connolly thought the triarii stayed behind to guard the camps. Livy's wind, the Volturnus, is usually read as a south-easterly; Dodge made it easterly. Numbers follow Polybius and Goldsworthy; Livy's differ, and modern estimates of the Roman dead vary widely.",
+ "alt_sites": [
+  {
+   "at": [
+    16.134894,
+    41.312684
+   ],
+   "label": "Left-bank theory",
+   "note": "Some reconstructions put the battle on the north-western (left) bank of the Aufidus; the point is approximate."
+  }
+ ],
  "sources": [
   {
    "title": "Polybius, Histories 3.107–118",
@@ -64,6 +74,7 @@
     },
     {
      "name": "Gnaeus Servilius Geminus",
+     "wikidata": "Q554632",
      "role": "proconsul, centre; killed"
     }
    ],
@@ -198,8 +209,7 @@
    "kind": "light_cavalry",
    "label": "Numidian horse",
    "strength": "c. 3,500",
-   "commander": "Hanno",
-   "wikidata": "Q2391196"
+   "commander": "Hanno"
   },
   {
    "id": "hannibal",
@@ -559,7 +569,8 @@
      16.184365,
      41.326572
     ]
-   ]
+   ],
+   "conjectural": true
   },
   {
    "id": "cannae-ridge",
@@ -650,7 +661,8 @@
      16.144965,
      41.315877
     ]
-   ]
+   ],
+   "conjectural": true
   },
   {
    "id": "small-camp",
@@ -673,7 +685,8 @@
      16.164767,
      41.306902
     ]
-   ]
+   ],
+   "conjectural": true
   },
   {
    "id": "punic-camp",
@@ -696,7 +709,8 @@
      16.114256,
      41.299744
     ]
-   ]
+   ],
+   "conjectural": true
   }
  ],
  "steps": [
@@ -768,6 +782,7 @@
    "title": "Varro crosses the river",
    "time": "2 August, dawn",
    "narrative": "Command passed to Varro, who meant to fight. At first light the army marched out of the main camp, forded the river and joined the troops of the smaller camp on the south-eastern bank. He formed it facing roughly south-west across a cramped plain: the citizen cavalry under Paullus on the right against the river, the allied cavalry under Varro himself on the left beneath the Cannae ridge, and between them the heavy infantry under Gnaeus Servilius Geminus. The maniples were closed up and stacked many times deeper than their width, so some 55,000 men held only about a kilometre of front, screened by the light-armed velites. About 10,000 men stayed behind to hold the camps.",
+   "light": "dawn",
    "positions": {
     "numidians": {
      "state": "hidden"
@@ -779,7 +794,8 @@
      ],
      "facing": 215.0,
      "width": 760,
-     "depth": 80
+     "depth": 80,
+     "lines": 3
     },
     "roman-horse": {
      "at": [
@@ -832,7 +848,8 @@
        16.146395,
        41.303056
       ]
-     ]
+     ],
+     "conjectural": true
     },
     {
      "unit": "roman-horse",
@@ -850,7 +867,8 @@
        16.14159,
        41.305583
       ]
-     ]
+     ],
+     "conjectural": true
     },
     {
      "unit": "allied-horse",
@@ -868,7 +886,8 @@
        16.151396,
        41.300425
       ]
-     ]
+     ],
+     "conjectural": true
     }
    ],
    "notes": [
@@ -891,7 +910,16 @@
    "id": "crescent",
    "title": "Hannibal forms the crescent",
    "time": "Early morning",
-   "narrative": "Hannibal answered by sending his Balearic slingers and light spearmen over the river as a screen and following with the rest of the army at two crossings. Beside the river he massed the Spanish and Gallic heavy horse under Hasdrubal, opposite the Roman cavalry; on the far right, under the ridge, stood the Numidians. The centre was Gallic and Spanish foot in alternating companies, which he pushed forward into a thin convex crescent, while the veteran African infantry waited in deep blocks on either side of it, held back from the bulge. Hannibal and his brother Mago took post in the centre. The hot south-westerly wind the locals called Volturnus was at their backs, blowing dust into the Romans' faces.",
+   "narrative": "Hannibal answered by sending his Balearic slingers and light spearmen over the river as a screen and following with the rest of the army at two crossings. Beside the river he massed the Spanish and Gallic heavy horse under Hasdrubal, opposite the Roman cavalry; on the far right, under the ridge, stood the Numidians. The centre was Gallic and Spanish foot in alternating companies, which he pushed forward into a thin convex crescent, while the veteran African infantry waited in deep blocks on either side of it, held back from the bulge. Hannibal and his brother Mago took post in the centre. Livy says a wind the locals called the Volturnus rose against the Romans and drove dust into their faces, while the morning sun fell side-on to both armies.",
+   "light": "day",
+   "wind": {
+    "from": 135,
+    "label": "Volturnus: dust in Roman faces (Livy)"
+   },
+   "sun": {
+    "from": 95,
+    "label": "Morning sun, side-on to both lines (Livy)"
+   },
    "positions": {
     "slingers": {
      "at": [
@@ -976,7 +1004,8 @@
        41.299626
       ]
      ],
-     "label": "first crossing"
+     "label": "first crossing",
+     "conjectural": true
     },
     {
      "side": "carthage",
@@ -999,7 +1028,8 @@
        41.297383
       ]
      ],
-     "label": "second crossing"
+     "label": "second crossing",
+     "conjectural": true
     }
    ],
    "notes": [
@@ -1039,6 +1069,9 @@
       41.299519
      ],
      "state": "engaged"
+    },
+    "paullus": {
+     "state": "wounded"
     }
    },
    "moves": [
@@ -1251,36 +1284,8 @@
      "width": 220,
      "state": "ready"
     },
-    "roman-infantry": {
-     "at": [
-      16.142157,
-      41.296941
-     ],
-     "width": 560,
-     "depth": 120,
-     "shape": "crescent",
-     "curve": 120,
-     "state": "engaged"
-    },
-    "gauls-spaniards": {
-     "at": [
-      16.141608,
-      41.296352
-     ],
-     "curve": -120,
-     "state": "engaged"
-    },
-    "hannibal": {
-     "at": [
-      16.140647,
-      41.29532
-     ]
-    },
     "paullus": {
-     "at": [
-      16.141745,
-      41.296499
-     ]
+     "with": "roman-infantry"
     }
    },
    "moves": [
@@ -1321,38 +1326,6 @@
      ]
     },
     {
-     "unit": "roman-infantry",
-     "type": "attack",
-     "path": [
-      [
-       16.146395,
-       41.303056
-      ],
-      [
-       16.144138,
-       41.299851
-      ],
-      [
-       16.142157,
-       41.296941
-      ]
-     ]
-    },
-    {
-     "unit": "gauls-spaniards",
-     "type": "retreat",
-     "path": [
-      [
-       16.142569,
-       41.297383
-      ],
-      [
-       16.141608,
-       41.296352
-      ]
-     ]
-    },
-    {
      "unit": "paullus",
      "type": "march",
      "path": [
@@ -1361,24 +1334,116 @@
        41.305583
       ],
       [
-       16.142265,
-       41.300507
+       16.144384,
+       41.304662
       ],
       [
-       16.141745,
-       41.296499
+       16.146395,
+       41.303056
       ]
      ]
     }
    ],
-   "notes": [
+   "beats": [
     {
-     "at": [
-      16.138764,
-      41.29675
+     "label": "The legions strike the bulge of the crescent",
+     "positions": {
+      "roman-infantry": {
+       "at": [
+        16.143108,
+        41.298746
+       ],
+       "state": "engaged"
+      },
+      "gauls-spaniards": {
+       "state": "engaged"
+      }
+     },
+     "moves": [
+      {
+       "unit": "roman-infantry",
+       "type": "attack",
+       "path": [
+        [
+         16.146395,
+         41.303056
+        ],
+        [
+         16.143108,
+         41.298746
+        ]
+       ]
+      }
+     ]
+    },
+    {
+     "label": "The centre gives ground into a hollow",
+     "positions": {
+      "roman-infantry": {
+       "at": [
+        16.142157,
+        41.296941
+       ],
+       "width": 560,
+       "depth": 120,
+       "shape": "crescent",
+       "curve": 120,
+       "lines": 1
+      },
+      "gauls-spaniards": {
+       "at": [
+        16.141608,
+        41.296352
+       ],
+       "curve": -120
+      },
+      "hannibal": {
+       "at": [
+        16.140647,
+        41.29532
+       ]
+      }
+     },
+     "moves": [
+      {
+       "unit": "roman-infantry",
+       "type": "attack",
+       "path": [
+        [
+         16.143108,
+         41.298746
+        ],
+        [
+         16.142157,
+         41.296941
+        ]
+       ]
+      },
+      {
+       "unit": "gauls-spaniards",
+       "type": "retreat",
+       "path": [
+        [
+         16.142569,
+         41.297383
+        ],
+        [
+         16.141608,
+         41.296352
+        ]
+       ]
+      }
      ],
-     "text": "The centre gives ground on purpose",
-     "kind": "event"
+     "notes": [
+      {
+       "at": [
+        16.138764,
+        41.29675
+       ],
+       "text": "The centre gives ground on purpose",
+       "kind": "event"
+      }
+     ]
     }
    ],
    "focus": [
@@ -1391,6 +1456,10 @@
    "title": "Hasdrubal rides behind the Roman army",
    "time": "Around midday",
    "narrative": "Hasdrubal now led his rallied horsemen right across the field behind the backs of the struggling legions to the far wing. The allied cavalry, still tangled with the Numidians, saw this mass of heavy horse bearing down on its rear and broke without waiting for the blow. Varro fled with them and, with some seventy riders, eventually reached Venusia, about 45 km to the south-west. Hasdrubal left the chase to the Numidians, who were ideal for running down fugitives, and kept his own squadrons in hand for the decisive stroke.",
+   "sun": {
+    "from": 180,
+    "label": "Midday sun"
+   },
    "positions": {
     "roman-horse": {
      "state": "hidden"
@@ -1526,7 +1595,8 @@
        41.290651
       ]
      ],
-     "label": "to Venusia"
+     "label": "to Venusia",
+     "conjectural": true
     }
    ],
    "notes": [
@@ -1724,12 +1794,16 @@
    "title": "The slaughter",
    "time": "Afternoon to evening",
    "narrative": "For hours the trapped army was cut down from the edges inward. Livy tells how Paullus, wounded and sitting on a stone, refused a horse that would have let him escape and died with his men; Servilius Geminus and Marcus Minucius Rufus fell too, with dozens of senators and military tribunes. Polybius puts the Roman dead at about 70,000 and Livy at about 48,000, against 5,700 to 8,000 on Hannibal's side, most of them Gauls of the centre. Only a few thousand Romans cut their way out and scattered to the camps and nearby towns.",
+   "sun": {
+    "from": 255,
+    "label": "Afternoon sun"
+   },
    "positions": {
     "roman-infantry": {
      "state": "destroyed"
     },
     "paullus": {
-     "state": "destroyed"
+     "state": "killed"
     }
    },
    "moves": [],
@@ -1754,9 +1828,6 @@
    "time": "Night and 3 August",
    "narrative": "The men left to guard the main camp had attacked Hannibal's camp during the battle, Polybius says, and were driven back once the fighting on the plain was over. That night a group from the smaller camp under the tribune Publius Sempronius Tuditanus cut its way through to the main camp, and from there several thousand survivors slipped away to Canusium. The next day both camps surrendered. Within weeks Capua and much of southern Italy went over to Hannibal, but Rome refused to treat with him and fought on.",
    "positions": {
-    "paullus": {
-     "state": "hidden"
-    },
     "slingers": {
      "state": "hidden"
     }

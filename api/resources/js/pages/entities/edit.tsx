@@ -6,6 +6,8 @@ import EntityGeoRefEditor from '@/components/entity-geo-ref-editor';
 import EntityGeometryPeriodsPanel from '@/components/entity-geometry-periods-panel';
 import EntityImagesPanel from '@/components/entity-images-panel';
 import HistoricalMapViewer from '@/components/historical-map-viewer';
+import { EntityMapStoriesPanel } from '@/components/map-story/entity-map-stories-panel';
+import type { EntityMapStory } from '@/components/map-story/entity-map-stories-panel';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import type { GeoJsonLike } from '@/lib/geojson';
@@ -20,6 +22,8 @@ const RelationshipPanel = lazy(() => import('@/components/relationship-panel'));
 type Props = {
     entity: EntityDetail;
     formOptions: EntityFormOptions;
+    map_stories?: EntityMapStory[];
+    map_story_kinds?: string[];
 };
 
 /** Populate EntityFormData from an existing EntityDetail for the edit form. */
@@ -106,7 +110,12 @@ function mergeServerChanges(
 const sameGeometry = (a: GeoJsonLike, b: GeoJsonLike) =>
     JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 
-export default function EntityEdit({ entity, formOptions }: Props) {
+export default function EntityEdit({
+    entity,
+    formOptions,
+    map_stories = [],
+    map_story_kinds = [],
+}: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Entities', href: '/entities' },
@@ -343,6 +352,19 @@ export default function EntityEdit({ entity, formOptions }: Props) {
                         </div>
                     )}
                 </div>
+
+                <EntityMapStoriesPanel
+                    entityId={entity.id}
+                    entityName={entity.name}
+                    entityType={entity.entity_type}
+                    startYear={
+                        entity.temporal_start === null
+                            ? null
+                            : Number.parseInt(String(entity.temporal_start), 10)
+                    }
+                    stories={map_stories}
+                    kinds={map_story_kinds}
+                />
 
                 {/* Images — collapsible */}
                 <div className="mt-4 rounded-lg border">

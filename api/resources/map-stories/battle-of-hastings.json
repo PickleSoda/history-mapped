@@ -1,5 +1,5 @@
 {
- "schema": 1,
+ "schema": 2,
  "slug": "battle-of-hastings",
  "kind": "battle",
  "entity": {
@@ -76,10 +76,12 @@
     },
     {
      "name": "Gyrth Godwinson",
+     "wikidata": "Q1249857",
      "role": "Earl of East Anglia, Harold's brother (killed)"
     },
     {
      "name": "Leofwine Godwinson",
+     "wikidata": "Q1249624",
      "role": "Earl, Harold's brother (killed)"
     }
    ],
@@ -92,7 +94,7 @@
    "color": "#1d4ed8",
    "polity": {
     "name": "Duchy of Normandy",
-    "wikidata": "Q2219635"
+    "wikidata": "Q842091"
    },
    "commanders": [
     {
@@ -106,10 +108,12 @@
     },
     {
      "name": "Alan the Red",
+     "wikidata": "Q2067294",
      "role": "Breton division (left)"
     },
     {
      "name": "William fitzOsbern",
+     "wikidata": "Q1244579",
      "role": "Franco-Flemish division (right)"
     },
     {
@@ -169,6 +173,13 @@
    "label": "Harold",
    "wikidata": "Q159597",
    "note": "Fought on foot beside his standards at the crest"
+  },
+  {
+   "id": "standards",
+   "side": "english",
+   "kind": "standard",
+   "label": "Dragon & Fighting Man",
+   "note": "Harold's two standards: the Dragon of Wessex and his own Fighting Man, later sent to the pope"
   },
   {
    "id": "breton-archers",
@@ -916,15 +927,6 @@
    ]
   },
   {
-   "id": "standards",
-   "kind": "label",
-   "label": "Standards: Dragon & Fighting Man",
-   "at": [
-    0.486956,
-    50.91456
-   ]
-  },
-  {
    "id": "hastings",
    "kind": "town",
    "label": "Hastings (Norman camp)",
@@ -1291,6 +1293,12 @@
      "at": [
       0.498866,
       50.907455
+     ]
+    },
+    "standards": {
+     "at": [
+      0.486956,
+      50.91456
      ]
     }
    },
@@ -2357,8 +2365,8 @@
     },
     "french-foot": {
      "at": [
-      0.493304,
-      50.911412
+      0.493271,
+      50.91098
      ],
      "facing": 335,
      "state": "wavering"
@@ -2490,8 +2498,8 @@
        50.913318
       ],
       [
-       0.493304,
-       50.911412
+       0.493271,
+       50.91098
       ]
      ]
     }
@@ -2653,7 +2661,7 @@
    "id": "feigned-flight",
    "title": "The feigned flight",
    "time": "Early afternoon",
-   "narrative": "After a lull in which both armies re-formed, the Normans turned the morning's near disaster into a ruse. A body of horsemen rode up against the English line, then pretended to break and galloped back down the slope. Remembering how the Bretons had run, a group of Englishmen left the wall to chase them. Where on the field this happened is not recorded; the map shows it on the right, where the gentler saddle suited horses.",
+   "narrative": "After a lull in which both armies re-formed, the Normans turned the morning's near disaster into a ruse. A body of horsemen rode up against the English line, then pretended to break and galloped back down the slope, and a group of Englishmen left the wall to chase them. Once the pursuers were well clear of the ridge the riders wheeled about while other knights rode in from the flank, and the English were caught in the open and killed. William of Poitiers says the ruse was played twice. Where on the field it happened is not recorded; the map shows it on the right, where the gentler saddle suited horses.",
    "positions": {
     "west-pursuers": {
      "state": "hidden"
@@ -2703,22 +2711,6 @@
      ],
      "facing": 335
     },
-    "french-horse": {
-     "at": [
-      0.49473,
-      50.910063
-     ],
-     "facing": 150
-    },
-    "feint-followers": {
-     "at": [
-      0.493161,
-      50.911007
-     ],
-     "facing": 150,
-     "width": 150,
-     "depth": 30
-    },
     "fyrd-east": {
      "at": [
       0.490291,
@@ -2727,62 +2719,12 @@
      "width": 230
     }
    },
-   "moves": [
-    {
-     "unit": "french-horse",
-     "type": "feint",
-     "path": [
-      [
-       0.492876,
-       50.911997
-      ],
-      [
-       0.491449,
-       50.913346
-      ],
-      [
-       0.492662,
-       50.913256
-      ],
-      [
-       0.49473,
-       50.910063
-      ]
-     ],
-     "label": "Feigned flight"
-    },
-    {
-     "unit": "feint-followers",
-     "type": "pursuit",
-     "path": [
-      [
-       0.490736,
-       50.91384
-      ],
-      [
-       0.491449,
-       50.912491
-      ],
-      [
-       0.493161,
-       50.911007
-      ]
-     ]
-    }
-   ],
-   "notes": [
-    {
-     "at": [
-      0.495158,
-      50.911322
-     ],
-     "text": "Horsemen feign flight to draw the English out",
-     "kind": "event"
-    }
-   ],
+   "moves": [],
+   "notes": [],
    "focus": [
     "french-horse",
-    "feint-followers"
+    "feint-followers",
+    "norman-knights"
    ],
    "camera": {
     "center": [
@@ -2790,108 +2732,169 @@
      50.911592
     ],
     "zoom": 15.2
-   }
-  },
-  {
-   "id": "trap",
-   "title": "The trap closes",
-   "time": "Early afternoon",
-   "narrative": "Once their pursuers were well clear of the ridge, the fleeing riders wheeled about while other knights rode in from the flank, and the English were caught in the open and killed. William of Poitiers says the ruse was played twice, and most historians accept that feigned flights, a manoeuvre known to Norman and Breton horsemen, were used that day. Each time the shield wall closed up behind its losses, levies of the fyrd taking the places of fallen housecarls, but the line was growing shorter and thinner.",
-   "positions": {
-    "feint-followers": {
-     "at": [
-      0.493161,
-      50.911007
-     ],
-     "width": 90,
-     "depth": 60,
-     "shape": "circle",
-     "state": "destroyed"
-    },
-    "french-horse": {
-     "at": [
-      0.493867,
-      50.910562
-     ],
-     "facing": 315,
-     "state": "engaged"
-    },
-    "norman-knights": {
-     "at": [
-      0.491616,
-      50.910835
-     ],
-     "facing": 80,
-     "width": 220,
-     "state": "engaged"
-    }
    },
-   "moves": [
+   "beats": [
     {
-     "unit": "french-horse",
-     "type": "charge",
-     "path": [
-      [
-       0.49473,
-       50.910063
-      ],
-      [
-       0.495158,
-       50.910513
-      ],
-      [
-       0.493867,
-       50.910562
-      ]
+     "label": "Horsemen feign flight; English give chase",
+     "positions": {
+      "french-horse": {
+       "at": [
+        0.49473,
+        50.910063
+       ],
+       "facing": 150
+      },
+      "feint-followers": {
+       "at": [
+        0.493161,
+        50.911007
+       ],
+       "facing": 150,
+       "width": 150,
+       "depth": 30
+      }
+     },
+     "moves": [
+      {
+       "unit": "french-horse",
+       "type": "feint",
+       "path": [
+        [
+         0.492876,
+         50.911997
+        ],
+        [
+         0.491449,
+         50.913346
+        ],
+        [
+         0.492662,
+         50.913256
+        ],
+        [
+         0.49473,
+         50.910063
+        ]
+       ],
+       "label": "Feigned flight"
+      },
+      {
+       "unit": "feint-followers",
+       "type": "pursuit",
+       "path": [
+        [
+         0.490736,
+         50.91384
+        ],
+        [
+         0.491449,
+         50.912491
+        ],
+        [
+         0.493161,
+         50.911007
+        ]
+       ]
+      }
+     ],
+     "notes": [
+      {
+       "at": [
+        0.495158,
+        50.911322
+       ],
+       "text": "Horsemen feign flight to draw the English out",
+       "kind": "event"
+      }
      ]
     },
     {
-     "unit": "norman-knights",
-     "type": "charge",
-     "path": [
-      [
-       0.486742,
-       50.911592
-      ],
-      [
-       0.489452,
-       50.911052
-      ],
-      [
-       0.491616,
-       50.910835
-      ]
+     "label": "…then wheel on the pursuers",
+     "positions": {
+      "feint-followers": {
+       "at": [
+        0.493161,
+        50.911007
+       ],
+       "width": 90,
+       "depth": 60,
+       "shape": "circle",
+       "state": "destroyed"
+      },
+      "french-horse": {
+       "at": [
+        0.493867,
+        50.910562
+       ],
+       "facing": 315,
+       "state": "engaged"
+      },
+      "norman-knights": {
+       "at": [
+        0.491616,
+        50.910835
+       ],
+       "facing": 80,
+       "width": 220,
+       "state": "engaged"
+      }
+     },
+     "moves": [
+      {
+       "unit": "french-horse",
+       "type": "charge",
+       "path": [
+        [
+         0.49473,
+         50.910063
+        ],
+        [
+         0.495158,
+         50.910513
+        ],
+        [
+         0.493867,
+         50.910562
+        ]
+       ]
+      },
+      {
+       "unit": "norman-knights",
+       "type": "charge",
+       "path": [
+        [
+         0.486742,
+         50.911592
+        ],
+        [
+         0.489452,
+         50.911052
+        ],
+        [
+         0.491616,
+         50.910835
+        ]
+       ]
+      }
+     ],
+     "notes": [
+      {
+       "at": [
+        0.492771,
+        50.910331
+       ],
+       "text": "Riders wheel and cut down the pursuers",
+       "kind": "clash"
+      }
      ]
     }
-   ],
-   "notes": [
-    {
-     "at": [
-      0.493161,
-      50.911547
-     ],
-     "text": "Riders wheel and cut down the pursuers",
-     "kind": "clash"
-    }
-   ],
-   "focus": [
-    "french-horse",
-    "norman-knights",
-    "feint-followers"
-   ],
-   "camera": {
-    "center": [
-     0.491734,
-     50.911592
-    ],
-    "zoom": 15.2
-   }
+   ]
   },
   {
    "id": "attrition",
    "title": "The long afternoon",
    "time": "c. 14:00–16:00",
-   "narrative": "Through the afternoon William alternated his arms: archers to wear the line down, then foot and horse together to test it. Twelfth-century writers say he had the bowmen shoot high so that their arrows dropped onto the ranks behind the shields, though the accounts written soon after the battle do not mention it. The duke fought in the thick of it and had two or, by another account, three horses killed under him. The English, exhausted and bleeding, held a front that had shrunk inwards along the crest.",
+   "narrative": "Each time the shield wall closed up behind its losses, levies of the fyrd taking the places of fallen housecarls. Through the afternoon William alternated his arms: archers to wear the line down, then foot and horse together to test it. Twelfth-century writers say he had the bowmen shoot high so that their arrows dropped onto the ranks behind the shields, though the accounts written soon after the battle do not mention it. The duke fought in the thick of it and had two or, by another account, three horses killed under him. The English, exhausted and bleeding, held a front that had shrunk inwards along the crest.",
    "positions": {
     "fyrd-west": {
      "state": "engaged",
@@ -3059,6 +3062,7 @@
        50.91411
       ]
      ],
+     "arc": true,
      "label": "Shot high"
     },
     {
@@ -3122,7 +3126,7 @@
       0.487099,
       50.914335
      ],
-     "state": "destroyed"
+     "state": "killed"
     },
     "norman-knights": {
      "at": [
@@ -3357,6 +3361,10 @@
       0.487741,
       50.91393
      ]
+    },
+    "standards": {
+     "state": "captured",
+     "by": "normans"
     }
    },
    "moves": [

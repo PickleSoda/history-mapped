@@ -1,0 +1,2277 @@
+{
+ "schema": 3,
+ "slug": "1918-influenza",
+ "kind": "epidemic",
+ "entity": {
+  "name": "1918 influenza pandemic",
+  "wikidata": "Q178275"
+ },
+ "title": "The 1918 influenza pandemic",
+ "date_label": "1918–1919",
+ "year": 1918,
+ "period": {
+  "start": {
+   "year": 1918,
+   "month": 1
+  },
+  "end": {
+   "year": 1919,
+   "month": 12
+  }
+ },
+ "ambient": true,
+ "camera": {
+  "center": [
+   20.0,
+   20.0
+  ],
+  "zoom": 1.3
+ },
+ "intro": "The influenza pandemic of 1918–1920, caused by an H1N1 influenza A virus and misleadingly called the Spanish flu, infected perhaps a third of the world's people and killed somewhere between 17 and 50 million, possibly more. It came in waves: a mild one in the spring of 1918, a devastating one from late August to December that by most accounts struck young adults unusually hard, and a third through 1919. The last year of the First World War spread it: troopships, training camps and crowded hospitals carried it from port to port and then along rivers and railways inland. This map follows the three waves, shading each region by how hard it was hit and marking the cities where the sources record its arrival or its dead.",
+ "outcome": "Between 17 and 50 million died, possibly 100 million; smaller waves followed in 1920 before the virus became a seasonal flu.",
+ "uncertainty": "Where the pandemic began is unknown. The first confirmed cases were in the United States: Haskell County, Kansas in early 1918 (Barry), though a 2018 study found the Kansas cases milder than those in New York and leaned only towards a North American origin. Others propose the British army camp at Étaples in France, hit by a similar illness in late 1916; Austria in early 1917; or northern China, where a respiratory illness in November 1917 preceded the dispatch of the Chinese Labour Corps to France. The alternative sites are marked. Regional shading is schematic and the intensities are relative, read from the dates and tolls the sources give; China's toll in particular is poorly known. The ships' tracks are inferred from the ports they linked.",
+ "alt_sites": [
+  {
+   "at": [
+    -100.87,
+    37.57
+   ],
+   "label": "Haskell County, Kansas",
+   "note": "severe influenza reported Jan–Feb 1918"
+  },
+  {
+   "at": [
+    -73.94,
+    40.73
+   ],
+   "label": "New York",
+   "note": "2018 study: deadlier early cases than Kansas"
+  },
+  {
+   "at": [
+    1.641,
+    50.518
+   ],
+   "label": "Étaples",
+   "note": "British army camp; similar illness in late 1916"
+  },
+  {
+   "at": [
+    16.373,
+    48.208
+   ],
+   "label": "Austria",
+   "note": "Austrian archives suggest early 1917"
+  },
+  {
+   "at": [
+    117.0,
+    36.65
+   ],
+   "label": "Northern China",
+   "note": "respiratory illness, November 1917 (place schematic)"
+  }
+ ],
+ "legend": [
+  {
+   "swatch": "#c2410c",
+   "label": "Region hit, shaded by severity (schematic)",
+   "style": "fill"
+  },
+  {
+   "swatch": "#991b1b",
+   "label": "City with a recorded outbreak",
+   "style": "dot"
+  }
+ ],
+ "sources": [
+  {
+   "title": "Spanish flu — Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Spanish_flu",
+   "kind": "web"
+  },
+  {
+   "title": "1918 influenza pandemic (Q178275) — Wikidata",
+   "url": "https://www.wikidata.org/wiki/Q178275",
+   "kind": "web"
+  }
+ ],
+ "sides": [],
+ "units": [
+  {
+   "id": "aef-convoys",
+   "kind": "fleet",
+   "label": "US troopships"
+  },
+  {
+   "id": "brest-boston",
+   "kind": "fleet",
+   "label": "Ships from Brest to Boston"
+  },
+  {
+   "id": "brest-freetown",
+   "kind": "fleet",
+   "label": "Ships from Brest to Freetown"
+  },
+  {
+   "id": "labour-corps",
+   "kind": "fleet",
+   "label": "Labour Corps ships"
+  },
+  {
+   "id": "north-russia",
+   "kind": "fleet",
+   "label": "North Russia intervention"
+  }
+ ],
+ "features": [
+  {
+   "id": "north-america",
+   "kind": "region",
+   "region_kind": "affected",
+   "label": "North America",
+   "area": [
+    [
+     -88.3541,
+     32.3362
+    ],
+    [
+     -90.4258,
+     32.0213
+    ],
+    [
+     -117.5801,
+     31.008
+    ],
+    [
+     -119.8495,
+     31.2366
+    ],
+    [
+     -125.2463,
+     35.611
+    ],
+    [
+     -126.3095,
+     37.1566
+    ],
+    [
+     -126.7439,
+     48.7195
+    ],
+    [
+     -125.7637,
+     49.7649
+    ],
+    [
+     -123.2255,
+     50.6418
+    ],
+    [
+     -69.1464,
+     45.139
+    ],
+    [
+     -67.3711,
+     43.9646
+    ],
+    [
+     -66.8022,
+     42.3071
+    ],
+    [
+     -67.5235,
+     40.686
+    ],
+    [
+     -73.2635,
+     37.2074
+    ]
+   ],
+   "active": false,
+   "conjectural": true
+  },
+  {
+   "id": "europe",
+   "kind": "region",
+   "region_kind": "affected",
+   "label": "Europe",
+   "area": [
+    [
+     -7.9757,
+     35.7493
+    ],
+    [
+     -10.243,
+     35.7101
+    ],
+    [
+     -11.6033,
+     36.2557
+    ],
+    [
+     -12.9342,
+     37.7403
+    ],
+    [
+     -13.0002,
+     39.5797
+    ],
+    [
+     -8.6326,
+     49.9819
+    ],
+    [
+     7.8529,
+     62.731
+    ],
+    [
+     11.4913,
+     63.0408
+    ],
+    [
+     19.5115,
+     62.3911
+    ],
+    [
+     22.6578,
+     61.5119
+    ],
+    [
+     35.2901,
+     46.5551
+    ],
+    [
+     34.5179,
+     44.7916
+    ],
+    [
+     32.516,
+     43.6221
+    ],
+    [
+     13.516,
+     38.8528
+    ]
+   ],
+   "active": false,
+   "conjectural": true
+  },
+  {
+   "id": "russia",
+   "kind": "region",
+   "region_kind": "affected",
+   "label": "Russia and Siberia",
+   "area": [
+    [
+     33.0749,
+     43.8738
+    ],
+    [
+     30.6114,
+     43.3713
+    ],
+    [
+     28.19,
+     43.8956
+    ],
+    [
+     26.5476,
+     45.2847
+    ],
+    [
+     26.1846,
+     46.4849
+    ],
+    [
+     33.3984,
+     65.4651
+    ],
+    [
+     36.0948,
+     67.1139
+    ],
+    [
+     39.2794,
+     67.6358
+    ],
+    [
+     108.0499,
+     54.3392
+    ],
+    [
+     109.3343,
+     52.7367
+    ],
+    [
+     108.9263,
+     51.0203
+    ],
+    [
+     106.303,
+     49.4646
+    ],
+    [
+     102.6754,
+     49.4292
+    ],
+    [
+     73.3581,
+     51.8537
+    ]
+   ],
+   "active": false,
+   "conjectural": true
+  },
+  {
+   "id": "west-africa",
+   "kind": "region",
+   "region_kind": "affected",
+   "label": "West Africa",
+   "area": [
+    [
+     0.62,
+     2.5622
+    ],
+    [
+     -0.9088,
+     2.5417
+    ],
+    [
+     -14.4889,
+     5.6093
+    ],
+    [
+     -16.2106,
+     7.3914
+    ],
+    [
+     -16.1054,
+     9.849
+    ],
+    [
+     -14.804,
+     11.2141
+    ],
+    [
+     -12.9285,
+     11.6015
+    ],
+    [
+     4.9942,
+     9.2282
+    ],
+    [
+     6.4509,
+     7.3011
+    ],
+    [
+     6.1011,
+     4.9232
+    ],
+    [
+     4.7481,
+     3.6931
+    ]
+   ],
+   "active": false,
+   "conjectural": true
+  },
+  {
+   "id": "southern-africa",
+   "kind": "region",
+   "region_kind": "affected",
+   "label": "Southern Africa",
+   "area": [
+    [
+     19.5905,
+     -36.9141
+    ],
+    [
+     17.356,
+     -36.9458
+    ],
+    [
+     15.5037,
+     -35.9694
+    ],
+    [
+     14.6573,
+     -34.3284
+    ],
+    [
+     15.0404,
+     -32.571
+    ],
+    [
+     26.1517,
+     -18.0103
+    ],
+    [
+     27.8274,
+     -17.0873
+    ],
+    [
+     29.7503,
+     -17.203
+    ],
+    [
+     31.2893,
+     -18.3186
+    ],
+    [
+     31.8353,
+     -19.4467
+    ],
+    [
+     34.5236,
+     -29.0806
+    ],
+    [
+     34.4565,
+     -30.9228
+    ],
+    [
+     32.5399,
+     -32.7254
+    ]
+   ],
+   "active": false,
+   "conjectural": true
+  },
+  {
+   "id": "east-africa",
+   "kind": "region",
+   "region_kind": "affected",
+   "label": "East Africa",
+   "area": [
+    [
+     35.6151,
+     9.6027
+    ],
+    [
+     36.9408,
+     11.6255
+    ],
+    [
+     38.7154,
+     12.1773
+    ],
+    [
+     40.9876,
+     11.274
+    ],
+    [
+     41.9299,
+     9.055
+    ],
+    [
+     39.7364,
+     -2.4554
+    ],
+    [
+     38.5961,
+     -3.8813
+    ],
+    [
+     36.8552,
+     -4.4332
+    ],
+    [
+     34.6206,
+     -3.5408
+    ],
+    [
+     33.6731,
+     -1.3299
+    ]
+   ],
+   "active": false,
+   "conjectural": true
+  },
+  {
+   "id": "south-asia",
+   "kind": "region",
+   "region_kind": "affected",
+   "label": "India",
+   "area": [
+    [
+     82.8053,
+     11.1495
+    ],
+    [
+     80.5881,
+     9.9515
+    ],
+    [
+     78.7083,
+     10.3401
+    ],
+    [
+     70.8154,
+     16.6153
+    ],
+    [
+     64.1471,
+     23.1141
+    ],
+    [
+     63.5758,
+     25.4006
+    ],
+    [
+     64.4369,
+     26.9992
+    ],
+    [
+     75.9313,
+     31.5601
+    ],
+    [
+     77.4817,
+     31.7528
+    ],
+    [
+     78.9784,
+     31.3615
+    ],
+    [
+     90.7743,
+     24.806
+    ],
+    [
+     91.6962,
+     23.2693
+    ],
+    [
+     91.2884,
+     20.9912
+    ]
+   ],
+   "active": false,
+   "conjectural": true
+  },
+  {
+   "id": "iran",
+   "kind": "region",
+   "region_kind": "affected",
+   "label": "Iran",
+   "area": [
+    [
+     55.263,
+     27.5583
+    ],
+    [
+     52.9054,
+     26.4618
+    ],
+    [
+     50.9284,
+     26.7801
+    ],
+    [
+     49.8472,
+     27.51
+    ],
+    [
+     42.6334,
+     36.8728
+    ],
+    [
+     42.3687,
+     38.7562
+    ],
+    [
+     43.5617,
+     40.4114
+    ],
+    [
+     46.6883,
+     41.2083
+    ],
+    [
+     60.5583,
+     39.3486
+    ],
+    [
+     62.9613,
+     37.9547
+    ],
+    [
+     63.5094,
+     36.2401
+    ],
+    [
+     62.8239,
+     34.5601
+    ]
+   ],
+   "active": false,
+   "conjectural": true
+  },
+  {
+   "id": "east-asia",
+   "kind": "region",
+   "region_kind": "affected",
+   "label": "China and Japan",
+   "area": [
+    [
+     115.1569,
+     20.5559
+    ],
+    [
+     113.3272,
+     19.9991
+    ],
+    [
+     112.0613,
+     20.1922
+    ],
+    [
+     110.5307,
+     21.2588
+    ],
+    [
+     109.8666,
+     22.9392
+    ],
+    [
+     112.3375,
+     40.3497
+    ],
+    [
+     113.8166,
+     42.3739
+    ],
+    [
+     116.8362,
+     43.0247
+    ],
+    [
+     141.0512,
+     38.6259
+    ],
+    [
+     143.2892,
+     36.9126
+    ],
+    [
+     143.4701,
+     35.0563
+    ],
+    [
+     141.734,
+     33.055
+    ]
+   ],
+   "active": false,
+   "conjectural": true
+  },
+  {
+   "id": "south-america",
+   "kind": "region",
+   "region_kind": "affected",
+   "label": "South America",
+   "area": [
+    [
+     -53.4418,
+     -37.1468
+    ],
+    [
+     -56.3858,
+     -38.0425
+    ],
+    [
+     -71.3929,
+     -36.5228
+    ],
+    [
+     -73.7451,
+     -35.2863
+    ],
+    [
+     -80.1142,
+     -12.7811
+    ],
+    [
+     -80.0775,
+     -11.0613
+    ],
+    [
+     -79.1194,
+     -9.6494
+    ],
+    [
+     -77.5371,
+     -8.9681
+    ],
+    [
+     -75.8025,
+     -9.2236
+    ],
+    [
+     -42.4798,
+     -19.8519
+    ],
+    [
+     -40.8218,
+     -20.6491
+    ],
+    [
+     -39.7671,
+     -22.7211
+    ],
+    [
+     -40.1848,
+     -24.4222
+    ]
+   ],
+   "active": false,
+   "conjectural": true
+  },
+  {
+   "id": "australia",
+   "kind": "region",
+   "region_kind": "affected",
+   "label": "Australia",
+   "area": [
+    [
+     154.668,
+     -35.2064
+    ],
+    [
+     146.0249,
+     -40.8514
+    ],
+    [
+     143.747,
+     -40.8178
+    ],
+    [
+     135.9395,
+     -37.2231
+    ],
+    [
+     134.8503,
+     -35.662
+    ],
+    [
+     135.3266,
+     -33.3342
+    ],
+    [
+     136.9027,
+     -32.1256
+    ],
+    [
+     151.0572,
+     -24.8764
+    ],
+    [
+     152.3297,
+     -24.3916
+    ],
+    [
+     154.3658,
+     -24.5626
+    ],
+    [
+     155.9605,
+     -25.7328
+    ],
+    [
+     156.5669,
+     -27.5132
+    ]
+   ],
+   "active": false,
+   "conjectural": true
+  },
+  {
+   "id": "haskell",
+   "kind": "outbreak",
+   "label": "Haskell County",
+   "at": [
+    -100.87,
+    37.57
+   ],
+   "active": false,
+   "entity": {
+    "name": "Haskell County",
+    "wikidata": "Q374663"
+   }
+  },
+  {
+   "id": "funston",
+   "kind": "outbreak",
+   "label": "Camp Funston",
+   "at": [
+    -96.79,
+    39.07
+   ],
+   "active": false,
+   "entity": {
+    "name": "Camp Funston",
+    "wikidata": "Q1029832"
+   }
+  },
+  {
+   "id": "new-york",
+   "kind": "outbreak",
+   "label": "New York",
+   "at": [
+    -73.94,
+    40.73
+   ],
+   "active": false,
+   "entity": {
+    "name": "New York City",
+    "wikidata": "Q60"
+   }
+  },
+  {
+   "id": "brest",
+   "kind": "port",
+   "label": "Brest",
+   "at": [
+    -4.486,
+    48.39
+   ],
+   "active": false,
+   "entity": {
+    "name": "Brest",
+    "wikidata": "Q12193"
+   }
+  },
+  {
+   "id": "madrid",
+   "kind": "outbreak",
+   "label": "Madrid",
+   "at": [
+    -3.704,
+    40.417
+   ],
+   "active": false,
+   "entity": {
+    "name": "Madrid",
+    "wikidata": "Q2807"
+   }
+  },
+  {
+   "id": "istanbul",
+   "kind": "outbreak",
+   "label": "Constantinople",
+   "at": [
+    28.976,
+    41.006
+   ],
+   "active": false
+  },
+  {
+   "id": "boston",
+   "kind": "port",
+   "label": "Boston",
+   "at": [
+    -71.06,
+    42.36
+   ],
+   "active": false,
+   "entity": {
+    "name": "Boston",
+    "wikidata": "Q100"
+   }
+  },
+  {
+   "id": "freetown",
+   "kind": "port",
+   "label": "Freetown",
+   "at": [
+    -13.234,
+    8.484
+   ],
+   "active": false,
+   "entity": {
+    "name": "Freetown",
+    "wikidata": "Q3780"
+   }
+  },
+  {
+   "id": "cape-town",
+   "kind": "port",
+   "label": "Cape Town",
+   "at": [
+    18.424,
+    -33.925
+   ],
+   "active": false,
+   "entity": {
+    "name": "Cape Town",
+    "wikidata": "Q5465"
+   }
+  },
+  {
+   "id": "arkhangelsk",
+   "kind": "outbreak",
+   "label": "Arkhangelsk",
+   "at": [
+    40.516,
+    64.54
+   ],
+   "active": false,
+   "entity": {
+    "name": "Arkhangelsk",
+    "wikidata": "Q1851"
+   }
+  },
+  {
+   "id": "philadelphia",
+   "kind": "outbreak",
+   "label": "Philadelphia",
+   "at": [
+    -75.17,
+    39.95
+   ],
+   "active": false,
+   "entity": {
+    "name": "Philadelphia",
+    "wikidata": "Q1345"
+   }
+  },
+  {
+   "id": "bombay",
+   "kind": "outbreak",
+   "label": "Bombay",
+   "at": [
+    72.877,
+    19.076
+   ],
+   "active": false,
+   "entity": {
+    "name": "Mumbai",
+    "wikidata": "Q1156"
+   }
+  },
+  {
+   "id": "kimberley",
+   "kind": "outbreak",
+   "label": "Kimberley",
+   "at": [
+    24.763,
+    -28.738
+   ],
+   "active": false,
+   "entity": {
+    "name": "Kimberley",
+    "wikidata": "Q125905"
+   }
+  },
+  {
+   "id": "mashhad",
+   "kind": "outbreak",
+   "label": "Mashhad",
+   "at": [
+    59.606,
+    36.297
+   ],
+   "active": false,
+   "entity": {
+    "name": "Mashhad",
+    "wikidata": "Q121157"
+   }
+  },
+  {
+   "id": "lima",
+   "kind": "outbreak",
+   "label": "Lima",
+   "at": [
+    -77.043,
+    -12.046
+   ],
+   "active": false,
+   "entity": {
+    "name": "Lima",
+    "wikidata": "Q2868"
+   }
+  },
+  {
+   "id": "nairobi",
+   "kind": "outbreak",
+   "label": "Nairobi",
+   "at": [
+    36.817,
+    -1.286
+   ],
+   "active": false,
+   "entity": {
+    "name": "Nairobi",
+    "wikidata": "Q3870"
+   }
+  },
+  {
+   "id": "apia",
+   "kind": "outbreak",
+   "label": "Apia, Western Samoa",
+   "at": [
+    -171.76,
+    -13.833
+   ],
+   "active": false,
+   "entity": {
+    "name": "Apia",
+    "wikidata": "Q36260"
+   }
+  },
+  {
+   "id": "nukualofa",
+   "kind": "outbreak",
+   "label": "Nuku'alofa, Tonga",
+   "at": [
+    -175.198,
+    -21.139
+   ],
+   "active": false
+  },
+  {
+   "id": "suva",
+   "kind": "outbreak",
+   "label": "Suva, Fiji",
+   "at": [
+    178.441,
+    -18.141
+   ],
+   "active": false
+  },
+  {
+   "id": "melbourne",
+   "kind": "outbreak",
+   "label": "Melbourne",
+   "at": [
+    144.963,
+    -37.814
+   ],
+   "active": false,
+   "entity": {
+    "name": "Melbourne",
+    "wikidata": "Q3141"
+   }
+  },
+  {
+   "id": "antananarivo",
+   "kind": "outbreak",
+   "label": "Antananarivo",
+   "at": [
+    47.508,
+    -18.879
+   ],
+   "active": false
+  },
+  {
+   "id": "hong-kong",
+   "kind": "outbreak",
+   "label": "Hong Kong",
+   "at": [
+    114.169,
+    22.319
+   ],
+   "active": false,
+   "entity": {
+    "name": "Hong Kong",
+    "wikidata": "Q8646"
+   }
+  },
+  {
+   "id": "santiago",
+   "kind": "outbreak",
+   "label": "Santiago",
+   "at": [
+    -70.649,
+    -33.449
+   ],
+   "active": false
+  },
+  {
+   "id": "montevideo",
+   "kind": "outbreak",
+   "label": "Montevideo",
+   "at": [
+    -56.165,
+    -34.901
+   ],
+   "active": false,
+   "entity": {
+    "name": "Montevideo",
+    "wikidata": "Q1335"
+   }
+  }
+ ],
+ "steps": [
+  {
+   "id": "kansas",
+   "title": "Kansas, early 1918",
+   "time": "January–March 1918",
+   "narrative": "The first cases that can be pinned down came from rural Haskell County in Kansas, where a local doctor reported a severe influenza in January and February 1918. On 4 March an army cook at Camp Funston, a huge training camp at Fort Riley some 320 km away, reported sick, and within days 522 men at the camp had followed. By 11 March the virus was in Queens, New York. The United States was at war, and its camps were filling with recruits bound for France.",
+   "date": {
+    "year": 1918,
+    "month": 1,
+    "end": {
+     "year": 1918,
+     "month": 3
+    }
+   },
+   "camera": {
+    "center": [
+     -88.0,
+     39.5
+    ],
+    "zoom": 3.6
+   },
+   "entities": [
+    {
+     "name": "Haskell County",
+     "wikidata": "Q374663",
+     "role": "earliest reported cases"
+    },
+    {
+     "name": "Camp Funston",
+     "wikidata": "Q1029832",
+     "role": "outbreak from 4 March 1918"
+    },
+    {
+     "name": "New York City",
+     "wikidata": "Q60",
+     "role": "cases by 11 March"
+    }
+   ],
+   "features": {
+    "north-america": {
+     "area": [
+      [
+       -73.3835,
+       38.5414
+      ],
+      [
+       -101.153,
+       35.3402
+      ],
+      [
+       -102.6516,
+       35.8371
+      ],
+      [
+       -103.5737,
+       36.9198
+      ],
+      [
+       -103.5901,
+       38.2323
+      ],
+      [
+       -102.6507,
+       39.3254
+      ],
+      [
+       -98.0011,
+       41.116
+      ],
+      [
+       -73.8235,
+       42.958
+      ],
+      [
+       -72.1668,
+       42.5316
+      ],
+      [
+       -71.0024,
+       41.0827
+      ],
+      [
+       -71.5367,
+       39.4471
+      ]
+     ],
+     "active": true,
+     "intensity": 0.2
+    },
+    "haskell": {
+     "active": true,
+     "state": "infected"
+    },
+    "funston": {
+     "active": true,
+     "state": "infected",
+     "value_label": "522 sick within days"
+    },
+    "new-york": {
+     "active": true,
+     "state": "infected"
+    }
+   }
+  },
+  {
+   "id": "across-the-atlantic",
+   "title": "Across the Atlantic",
+   "time": "April–May 1918",
+   "narrative": "Troops of the American Expeditionary Forces carried the disease from the training camps to the French ports, and by mid-April it was on the Western Front. It ran through France, Britain, Italy and Spain and in May reached Wrocław and Odessa, North Africa, India and Japan. This first wave was mild: in Madrid fewer than a thousand people died of it in May and June. But neutral Spain's uncensored newspapers reported it freely while the warring countries kept quiet, and so it became known as the Spanish flu.",
+   "positions": {
+    "aef-convoys": {
+     "at": [
+      -5.298569,
+      48.210136
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "aef-convoys",
+     "type": "spread",
+     "path": [
+      [
+       -72.159856,
+       40.190408
+      ],
+      [
+       -50.0,
+       44.5
+      ],
+      [
+       -25.0,
+       47.5
+      ],
+      [
+       -5.298569,
+       48.210136
+      ]
+     ],
+     "label": "US troopships"
+    }
+   ],
+   "date": {
+    "year": 1918,
+    "month": 4,
+    "end": {
+     "year": 1918,
+     "month": 5
+    }
+   },
+   "camera": {
+    "center": [
+     -30.0,
+     42.0
+    ],
+    "zoom": 2.2
+   },
+   "entities": [
+    {
+     "name": "Brest",
+     "wikidata": "Q12193",
+     "role": "main landing port of US troops"
+    },
+    {
+     "name": "Western Front",
+     "wikidata": "Q152989",
+     "role": "reached by mid-April"
+    },
+    {
+     "name": "Madrid",
+     "wikidata": "Q2807",
+     "role": "gave the pandemic its name"
+    }
+   ],
+   "features": {
+    "north-america": {
+     "area": [
+      [
+       -88.3541,
+       32.3362
+      ],
+      [
+       -90.4258,
+       32.0213
+      ],
+      [
+       -117.5801,
+       31.008
+      ],
+      [
+       -119.8495,
+       31.2366
+      ],
+      [
+       -125.2463,
+       35.611
+      ],
+      [
+       -126.3095,
+       37.1566
+      ],
+      [
+       -126.7439,
+       48.7195
+      ],
+      [
+       -125.7637,
+       49.7649
+      ],
+      [
+       -123.2255,
+       50.6418
+      ],
+      [
+       -69.1464,
+       45.139
+      ],
+      [
+       -67.3711,
+       43.9646
+      ],
+      [
+       -66.8022,
+       42.3071
+      ],
+      [
+       -67.5235,
+       40.686
+      ],
+      [
+       -73.2635,
+       37.2074
+      ]
+     ],
+     "active": true,
+     "intensity": 0.3,
+     "value_label": "≈75,000 US flu deaths, Jan–Jun 1918"
+    },
+    "europe": {
+     "active": true,
+     "intensity": 0.35
+    },
+    "south-asia": {
+     "active": true,
+     "intensity": 0.15
+    },
+    "east-asia": {
+     "active": true,
+     "intensity": 0.1
+    },
+    "brest": {
+     "active": true,
+     "state": "infected"
+    },
+    "madrid": {
+     "active": true,
+     "state": "infected",
+     "value_label": "<1,000 deaths, May–June"
+    }
+   }
+  },
+  {
+   "id": "first-wave-ebbs",
+   "title": "The first wave ebbs",
+   "time": "June–July 1918",
+   "narrative": "By June an outbreak was reported in China, and in July the Ottoman army recorded its first cases. The first wave had disrupted the war more than it had killed: three-quarters of the French troops, half the British forces and over 900,000 German soldiers fell sick. In the United States about 75,000 influenza deaths were reported in the first half of 1918, against some 63,000 in the same months of 1915. Through July the wave receded.",
+   "positions": {
+    "aef-convoys": {
+     "state": "hidden"
+    }
+   },
+   "date": {
+    "year": 1918,
+    "month": 6,
+    "end": {
+     "year": 1918,
+     "month": 7
+    }
+   },
+   "camera": {
+    "center": [
+     40.0,
+     35.0
+    ],
+    "zoom": 1.6
+   },
+   "entities": [
+    {
+     "name": "Ottoman Empire",
+     "wikidata": "Q12560",
+     "role": "first cases in July",
+     "show": true
+    }
+   ],
+   "features": {
+    "north-america": {
+     "active": true,
+     "intensity": 0.1
+    },
+    "europe": {
+     "active": true,
+     "intensity": 0.2
+    },
+    "russia": {
+     "active": true,
+     "intensity": 0.1
+    },
+    "south-asia": {
+     "active": true,
+     "intensity": 0.1
+    },
+    "east-asia": {
+     "active": true,
+     "intensity": 0.15
+    },
+    "istanbul": {
+     "active": true,
+     "state": "infected"
+    },
+    "haskell": {
+     "state": "recovered"
+    },
+    "funston": {
+     "state": "recovered"
+    },
+    "new-york": {
+     "state": "recovered"
+    },
+    "madrid": {
+     "state": "recovered"
+    }
+   }
+  },
+  {
+   "id": "second-wave",
+   "title": "Brest, Boston and Freetown",
+   "time": "August–September 1918",
+   "narrative": "In the second half of August a far deadlier wave began. It probably reached Boston and Freetown in Sierra Leone on ships from Brest, where American troops or French naval recruits had likely brought it. From the Boston Navy Yard and Camp Devens it moved to other army camps and onto troopships bound for Europe; from Freetown it spread along the West African coast, rivers and railways. In September ships bringing men of the South African Native Labour Corps home from France landed it in South Africa. The Allied force in North Russia brought it to Arkhangelsk, and from the east it entered Iran at Mashhad.",
+   "positions": {
+    "brest-boston": {
+     "at": [
+      -69.964642,
+      41.91034
+     ]
+    },
+    "brest-freetown": {
+     "at": [
+      -13.961416,
+      8.214204
+     ]
+    },
+    "labour-corps": {
+     "at": [
+      17.773708,
+      -34.194796
+     ]
+    },
+    "north-russia": {
+     "at": [
+      39.679191,
+      64.809796
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "brest-boston",
+     "type": "spread",
+     "path": [
+      [
+       -5.298569,
+       48.210136
+      ],
+      [
+       -30.0,
+       46.5
+      ],
+      [
+       -55.0,
+       43.5
+      ],
+      [
+       -69.964642,
+       41.91034
+      ]
+     ],
+     "label": "ships from Brest",
+     "conjectural": true
+    },
+    {
+     "unit": "brest-freetown",
+     "type": "spread",
+     "path": [
+      [
+       -5.433998,
+       48.030272
+      ],
+      [
+       -12.0,
+       40.0
+      ],
+      [
+       -20.0,
+       20.0
+      ],
+      [
+       -13.961416,
+       8.214204
+      ]
+     ],
+     "label": "ships from Brest",
+     "conjectural": true
+    },
+    {
+     "unit": "labour-corps",
+     "type": "spread",
+     "path": [
+      [
+       -1.5,
+       48.0
+      ],
+      [
+       -12.0,
+       40.0
+      ],
+      [
+       -20.0,
+       10.0
+      ],
+      [
+       -2.0,
+       -15.0
+      ],
+      [
+       12.0,
+       -30.0
+      ],
+      [
+       17.773708,
+       -34.194796
+      ]
+     ],
+     "label": "Labour Corps ships",
+     "conjectural": true
+    },
+    {
+     "unit": "north-russia",
+     "type": "spread",
+     "path": [
+      [
+       -1.2,
+       55.5
+      ],
+      [
+       4.0,
+       62.5
+      ],
+      [
+       18.0,
+       70.5
+      ],
+      [
+       33.0,
+       69.8
+      ],
+      [
+       39.0,
+       66.0
+      ],
+      [
+       39.679191,
+       64.809796
+      ]
+     ],
+     "label": "Allied intervention",
+     "conjectural": true
+    }
+   ],
+   "date": {
+    "year": 1918,
+    "month": 8,
+    "end": {
+     "year": 1918,
+     "month": 9
+    }
+   },
+   "camera": {
+    "center": [
+     -25.0,
+     15.0
+    ],
+    "zoom": 1.7
+   },
+   "entities": [
+    {
+     "name": "Brest",
+     "wikidata": "Q12193",
+     "role": "probable source of the second wave"
+    },
+    {
+     "name": "Boston",
+     "wikidata": "Q100",
+     "role": "outbreak late August"
+    },
+    {
+     "name": "Fort Devens",
+     "wikidata": "Q1413867",
+     "role": "Camp Devens outbreak"
+    },
+    {
+     "name": "Freetown",
+     "wikidata": "Q3780",
+     "role": "outbreak late August"
+    },
+    {
+     "name": "Cape Town",
+     "wikidata": "Q5465",
+     "role": "landing, September"
+    },
+    {
+     "name": "Arkhangelsk",
+     "wikidata": "Q1851",
+     "role": "via the North Russia intervention"
+    },
+    {
+     "name": "Mashhad",
+     "wikidata": "Q121157",
+     "role": "entry into Iran"
+    }
+   ],
+   "features": {
+    "north-america": {
+     "active": true,
+     "intensity": 0.55
+    },
+    "europe": {
+     "active": true,
+     "intensity": 0.45
+    },
+    "russia": {
+     "active": true,
+     "intensity": 0.3
+    },
+    "west-africa": {
+     "active": true,
+     "intensity": 0.55
+    },
+    "southern-africa": {
+     "active": true,
+     "intensity": 0.4
+    },
+    "south-asia": {
+     "active": true,
+     "intensity": 0.5
+    },
+    "iran": {
+     "active": true,
+     "intensity": 0.2
+    },
+    "east-asia": {
+     "active": true,
+     "intensity": 0.1
+    },
+    "brest": {
+     "active": true,
+     "state": "peak"
+    },
+    "boston": {
+     "active": true,
+     "state": "infected"
+    },
+    "freetown": {
+     "active": true,
+     "state": "infected"
+    },
+    "cape-town": {
+     "active": true,
+     "state": "infected"
+    },
+    "arkhangelsk": {
+     "active": true,
+     "state": "infected"
+    },
+    "mashhad": {
+     "active": true,
+     "state": "infected"
+    }
+   }
+  },
+  {
+   "id": "october",
+   "title": "October 1918, the deadliest month",
+   "time": "October 1918",
+   "narrative": "October 1918 was the worst month of the whole pandemic. The United States reported about 292,000 deaths between September and December; a war-bond parade in Philadelphia on 28 September was followed by an outbreak that killed some 12,000. Bombay counted about 15,000 dead out of 1.1 million, and India as a whole lost at least 12 million people. South Africa lost about 300,000 in six weeks, among them almost a quarter of the diamond-mine workforce of Kimberley. The wave swept across Russia and reached China, Japan and Brazil.",
+   "positions": {
+    "brest-boston": {
+     "state": "hidden"
+    },
+    "brest-freetown": {
+     "state": "hidden"
+    },
+    "labour-corps": {
+     "state": "hidden"
+    },
+    "north-russia": {
+     "state": "hidden"
+    }
+   },
+   "date": {
+    "year": 1918,
+    "month": 10
+   },
+   "camera": {
+    "center": [
+     20.0,
+     20.0
+    ],
+    "zoom": 1.3
+   },
+   "entities": [
+    {
+     "name": "Philadelphia",
+     "wikidata": "Q1345",
+     "role": "≈12,000 dead after the 28 September parade"
+    },
+    {
+     "name": "Mumbai",
+     "wikidata": "Q1156",
+     "role": "≈15,000 dead"
+    },
+    {
+     "name": "British Raj",
+     "wikidata": "Q129286",
+     "role": "at least 12 million dead",
+     "show": true
+    },
+    {
+     "name": "Union of South Africa",
+     "wikidata": "Q193619",
+     "role": "≈300,000 dead",
+     "show": true
+    },
+    {
+     "name": "Kimberley",
+     "wikidata": "Q125905",
+     "role": "a quarter of the mine workers died"
+    }
+   ],
+   "features": {
+    "north-america": {
+     "active": true,
+     "intensity": 1.0,
+     "value_label": "≈292,000 US deaths, Sep–Dec 1918"
+    },
+    "europe": {
+     "active": true,
+     "intensity": 0.9
+    },
+    "russia": {
+     "active": true,
+     "intensity": 0.75
+    },
+    "west-africa": {
+     "active": true,
+     "intensity": 0.8
+    },
+    "southern-africa": {
+     "active": true,
+     "intensity": 1.0,
+     "value_label": "≈300,000 dead in six weeks (6%)"
+    },
+    "east-africa": {
+     "active": true,
+     "intensity": 0.3
+    },
+    "south-asia": {
+     "active": true,
+     "intensity": 1.0,
+     "value_label": "at least 12 million dead (≈5%)"
+    },
+    "iran": {
+     "active": true,
+     "intensity": 0.8,
+     "value_label": "0.9–2.4 million dead (8–22%)"
+    },
+    "east-asia": {
+     "active": true,
+     "intensity": 0.5
+    },
+    "south-america": {
+     "active": true,
+     "intensity": 0.5,
+     "area": [
+      [
+       -69.5702,
+       -36.4259
+      ],
+      [
+       -72.4922,
+       -36.1876
+      ],
+      [
+       -74.2794,
+       -34.3599
+      ],
+      [
+       -73.9624,
+       -32.0343
+      ],
+      [
+       -71.8379,
+       -30.512
+      ],
+      [
+       -47.806,
+       -20.605
+      ],
+      [
+       -43.1859,
+       -19.773
+      ],
+      [
+       -41.8681,
+       -20.0113
+      ],
+      [
+       -40.3225,
+       -21.1964
+      ],
+      [
+       -39.7594,
+       -22.9901
+      ],
+      [
+       -40.8811,
+       -25.2388
+      ]
+     ]
+    },
+    "philadelphia": {
+     "active": true,
+     "state": "peak",
+     "value_n": 12000,
+     "value_label": "≈12,000 dead"
+    },
+    "bombay": {
+     "active": true,
+     "state": "peak",
+     "value_n": 15000,
+     "value_label": "≈15,000 of 1.1 million died"
+    },
+    "kimberley": {
+     "active": true,
+     "state": "peak",
+     "value_label": "≈¼ of mine workers died"
+    },
+    "boston": {
+     "active": true,
+     "state": "peak"
+    }
+   }
+  },
+  {
+   "id": "armistice",
+   "title": "Armistice and the Pacific",
+   "time": "November–December 1918",
+   "narrative": "Crowds celebrating the armistice of 11 November set off fresh outbreaks in places such as Lima and Nairobi, and the disease reached Ethiopia. Ships from New Zealand, which was slow to stop infected vessels leaving its ports, carried it to the Pacific islands: Tonga lost 8% of its people and Fiji 5%, about 9,000. In Western Samoa, under New Zealand occupation, nine in ten people were infected and three in ten adult men died. Iran, already in famine, lost between 8% and 22% of its population. By December the second wave was largely over.",
+   "date": {
+    "year": 1918,
+    "month": 11,
+    "end": {
+     "year": 1918,
+     "month": 12
+    }
+   },
+   "camera": {
+    "center": [
+     10.0,
+     0.0
+    ],
+    "zoom": 1.3
+   },
+   "entities": [
+    {
+     "name": "Armistice of 11 November 1918",
+     "wikidata": "Q253224",
+     "role": "celebrations spread the flu"
+    },
+    {
+     "name": "Lima",
+     "wikidata": "Q2868",
+     "role": "armistice outbreak"
+    },
+    {
+     "name": "Nairobi",
+     "wikidata": "Q3870",
+     "role": "armistice outbreak"
+    },
+    {
+     "name": "Apia",
+     "wikidata": "Q36260",
+     "role": "Western Samoa, the worst hit"
+    },
+    {
+     "name": "Tonga",
+     "wikidata": "Q678",
+     "role": "8% died"
+    },
+    {
+     "name": "Fiji",
+     "wikidata": "Q712",
+     "role": "≈9,000 died (5%)"
+    }
+   ],
+   "features": {
+    "north-america": {
+     "active": true,
+     "intensity": 0.5
+    },
+    "europe": {
+     "active": true,
+     "intensity": 0.5
+    },
+    "russia": {
+     "active": true,
+     "intensity": 0.5
+    },
+    "west-africa": {
+     "active": true,
+     "intensity": 0.3
+    },
+    "southern-africa": {
+     "active": true,
+     "intensity": 0.3
+    },
+    "east-africa": {
+     "active": true,
+     "intensity": 0.6
+    },
+    "south-asia": {
+     "active": true,
+     "intensity": 0.6
+    },
+    "iran": {
+     "active": true,
+     "intensity": 0.7
+    },
+    "east-asia": {
+     "active": true,
+     "intensity": 0.4
+    },
+    "south-america": {
+     "active": true,
+     "intensity": 0.7,
+     "area": [
+      [
+       -53.4418,
+       -37.1468
+      ],
+      [
+       -56.3858,
+       -38.0425
+      ],
+      [
+       -71.3929,
+       -36.5228
+      ],
+      [
+       -73.7451,
+       -35.2863
+      ],
+      [
+       -80.1142,
+       -12.7811
+      ],
+      [
+       -80.0775,
+       -11.0613
+      ],
+      [
+       -79.1194,
+       -9.6494
+      ],
+      [
+       -77.5371,
+       -8.9681
+      ],
+      [
+       -75.8025,
+       -9.2236
+      ],
+      [
+       -42.4798,
+       -19.8519
+      ],
+      [
+       -40.8218,
+       -20.6491
+      ],
+      [
+       -39.7671,
+       -22.7211
+      ],
+      [
+       -40.1848,
+       -24.4222
+      ]
+     ]
+    },
+    "lima": {
+     "active": true,
+     "state": "infected"
+    },
+    "nairobi": {
+     "active": true,
+     "state": "infected"
+    },
+    "apia": {
+     "active": true,
+     "state": "peak",
+     "value_label": "90% infected; 30% of adult men died"
+    },
+    "nukualofa": {
+     "active": true,
+     "state": "peak",
+     "value_label": "8% died"
+    },
+    "suva": {
+     "active": true,
+     "state": "peak",
+     "value_n": 9000,
+     "value_label": "≈9,000 died (5%)"
+    },
+    "brest": {
+     "state": "recovered"
+    },
+    "freetown": {
+     "state": "recovered"
+    },
+    "cape-town": {
+     "state": "recovered"
+    },
+    "arkhangelsk": {
+     "state": "recovered"
+    },
+    "istanbul": {
+     "state": "recovered"
+    },
+    "philadelphia": {
+     "state": "recovered"
+    },
+    "bombay": {
+     "state": "recovered"
+    },
+    "kimberley": {
+     "state": "recovered"
+    },
+    "boston": {
+     "state": "recovered"
+    }
+   }
+  },
+  {
+   "id": "third-wave",
+   "title": "A third wave",
+   "time": "January–April 1919",
+   "narrative": "In January 1919 death rates jumped again in most American cities, from New York to San Francisco, before falling from mid-February; nearly 160,000 Americans died of influenza and pneumonia in the first half of the year. England and Wales peaked in early March, France and the Netherlands in February, and Spain suffered a strong recurrence from January to April. Australia, shielded through 1918 by a strict maritime quarantine, saw its first epidemic in Melbourne in January, peaking in mid-February before spreading to New South Wales and South Australia. Madagascar had its first cases in April.",
+   "date": {
+    "year": 1919,
+    "month": 1,
+    "end": {
+     "year": 1919,
+     "month": 4
+    }
+   },
+   "camera": {
+    "center": [
+     40.0,
+     10.0
+    ],
+    "zoom": 1.3
+   },
+   "entities": [
+    {
+     "name": "Melbourne",
+     "wikidata": "Q3141",
+     "role": "Australia's first epidemic"
+    },
+    {
+     "name": "Madagascar",
+     "wikidata": "Q1019",
+     "role": "first cases in April 1919"
+    }
+   ],
+   "features": {
+    "north-america": {
+     "active": true,
+     "intensity": 0.5,
+     "value_label": "≈160,000 US deaths, Jan–Jun 1919"
+    },
+    "europe": {
+     "active": true,
+     "intensity": 0.6
+    },
+    "russia": {
+     "active": true,
+     "intensity": 0.3
+    },
+    "west-africa": {
+     "active": true,
+     "intensity": 0.1
+    },
+    "southern-africa": {
+     "active": true,
+     "intensity": 0.2
+    },
+    "east-africa": {
+     "active": true,
+     "intensity": 0.2
+    },
+    "south-asia": {
+     "active": true,
+     "intensity": 0.2
+    },
+    "iran": {
+     "active": true,
+     "intensity": 0.3
+    },
+    "east-asia": {
+     "active": true,
+     "intensity": 0.2
+    },
+    "south-america": {
+     "active": true,
+     "intensity": 0.5
+    },
+    "australia": {
+     "active": true,
+     "intensity": 0.7
+    },
+    "lima": {
+     "state": "recovered"
+    },
+    "nairobi": {
+     "state": "recovered"
+    },
+    "apia": {
+     "state": "recovered"
+    },
+    "nukualofa": {
+     "state": "recovered"
+    },
+    "suva": {
+     "state": "recovered"
+    },
+    "mashhad": {
+     "state": "recovered"
+    },
+    "melbourne": {
+     "active": true,
+     "state": "peak"
+    },
+    "antananarivo": {
+     "active": true,
+     "state": "infected"
+    }
+   }
+  },
+  {
+   "id": "last-outbreaks",
+   "title": "The last outbreaks of 1919",
+   "time": "May–December 1919",
+   "narrative": "Through the rest of 1919 the pandemic flared on in pieces. Hong Kong had another outbreak in June and South Africa a third wave in its winter; Portugal suffered from March to September. Chile, first struck in October 1918, had a severe second wave that peaked in August 1919, and Montevideo had another outbreak from July to September. Tasmania stayed free until mid-August. Smaller recurrences followed in 1920, after which the virus settled into ordinary seasonal influenza.",
+   "date": {
+    "year": 1919,
+    "month": 5,
+    "end": {
+     "year": 1919,
+     "month": 12
+    }
+   },
+   "camera": {
+    "center": [
+     30.0,
+     0.0
+    ],
+    "zoom": 1.3
+   },
+   "entities": [
+    {
+     "name": "Hong Kong",
+     "wikidata": "Q8646",
+     "role": "outbreak in June 1919"
+    },
+    {
+     "name": "Chile",
+     "wikidata": "Q298",
+     "role": "second wave peaking August 1919",
+     "show": true
+    },
+    {
+     "name": "Montevideo",
+     "wikidata": "Q1335",
+     "role": "outbreak July–September 1919"
+    }
+   ],
+   "features": {
+    "north-america": {
+     "active": true,
+     "intensity": 0.1
+    },
+    "europe": {
+     "active": true,
+     "intensity": 0.2
+    },
+    "russia": {
+     "active": true,
+     "intensity": 0.1
+    },
+    "west-africa": {
+     "active": false
+    },
+    "southern-africa": {
+     "active": true,
+     "intensity": 0.35
+    },
+    "east-africa": {
+     "active": false
+    },
+    "south-asia": {
+     "active": true,
+     "intensity": 0.1
+    },
+    "iran": {
+     "active": false
+    },
+    "east-asia": {
+     "active": true,
+     "intensity": 0.2
+    },
+    "south-america": {
+     "active": true,
+     "intensity": 0.6
+    },
+    "australia": {
+     "active": true,
+     "intensity": 0.4
+    },
+    "melbourne": {
+     "state": "recovered"
+    },
+    "antananarivo": {
+     "state": "recovered"
+    },
+    "hong-kong": {
+     "active": true,
+     "state": "infected"
+    },
+    "santiago": {
+     "active": true,
+     "state": "peak",
+     "value_label": "second wave peaked August 1919"
+    },
+    "montevideo": {
+     "active": true,
+     "state": "infected"
+    }
+   }
+  }
+ ]
+}

@@ -49,8 +49,14 @@ class GlobalAgentTest extends TestCase
         $this->assertContains('point_from_offset', $names);
         $this->assertContains('point_between', $names);
         $this->assertContains('nearest_coast', $names);
+        $this->assertContains('get_map_story', $names);
+        $this->assertContains('validate_map_story', $names);
 
-        $this->assertCount(15, $tools);
+        // Map stories
+        $this->assertContains('create_map_story', $names);
+        $this->assertContains('update_map_story', $names);
+
+        $this->assertCount(19, $tools);
     }
 
     public function test_global_agent_injects_context_on_staging_tools(): void

@@ -9,6 +9,7 @@ use App\Http\Api\V1\Controllers\EntityGraphController;
 use App\Http\Api\V1\Controllers\EntityRelationshipController;
 use App\Http\Api\V1\Controllers\EntityTimelineController;
 use App\Http\Api\V1\Controllers\MapResolutionController;
+use App\Http\Api\V1\Controllers\MapStoryAmbientController;
 use App\Http\Api\V1\Controllers\MapStoryController;
 use App\Http\Api\V1\Controllers\MeController;
 use App\Http\Api\V1\Controllers\ReferenceController;
@@ -90,6 +91,7 @@ Route::prefix('v1')->group(function () {
         ->name('api.v1.chronicles.show');
 
     // Map stories (step-by-step battle maps)
+    Route::get('/map-stories/ambient', MapStoryAmbientController::class)->name('api.v1.map-stories.ambient');
     Route::get('/map-stories/{slug}', [MapStoryController::class, 'show'])
         ->name('api.v1.map-stories.show');
 

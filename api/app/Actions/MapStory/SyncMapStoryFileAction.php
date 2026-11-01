@@ -4,159 +4,76 @@ declare(strict_types=1);
 
 namespace App\Actions\MapStory;
 
-use App\Enums\EntityType;
-use App\Models\Entity;
 use App\Models\MapStory;
-use App\Support\MapStory\MapStoryDocument;
-use Illuminate\Support\Collection;
-use stdClass;
+use App\Support\MapStory\MapStoryFile;
 
 /**
  * Load one resources/map-stories/<slug>.json file into `map_stories`.
  *
- * The file is checked (MapStoryDocument), its story entity resolved (Q-id,
- * else the exact name of a unique event entity), and every Q-id it carries
- * (story entity, side polities, commanders, units) gets an `entity_id` next to
- * it so the atlas can link to those pages. Rows are upserted by slug; a file
- * whose hash matches the stored row is skipped unless forced.
+ * The DB row is the live copy (the admin and the AI agent edit it); the file
+ * is a seed or an export. Per row:
+ *  - the file is unchanged since it was last synced or exported (`file_hash`
+ *    matches): skip;
+ *  - the file changed but the row was edited since then: skip and keep the
+ *    edits ("kept") — export them first, or force;
+ *  - otherwise: check, resolve and save it (SaveMapStoryAction, which writes
+ *    a revision first, so a forced overwrite of edits can be restored).
+ *
+ * `$force` re-syncs an unchanged file and overwrites edits.
  */
 class SyncMapStoryFileAction
 {
+    public const KEPT_EDITS = 'kept admin edits — export first or use --force';
+
+    public function __construct(private SaveMapStoryAction $save) {}
+
     /**
-     * @return array{status: 'created'|'updated'|'unchanged'|'failed', slug: string, errors: list<string>}
+     * @return array{status: 'created'|'updated'|'unchanged'|'kept'|'failed', slug: string, errors: list<string>, warnings: list<string>}
      */
     public function __invoke(string $path, bool $force = false): array
     {
         $slug = basename($path, '.json');
         $raw = (string) file_get_contents($path);
-        $hash = sha1($raw);
+        $hash = MapStoryFile::hash($raw);
 
-        $existing = MapStory::query()->where('slug', $slug)->first(['story_id', 'slug', 'content_hash']);
-        if (! $force && $existing !== null && $existing->content_hash === $hash) {
-            return ['status' => 'unchanged', 'slug' => $slug, 'errors' => []];
+        $existing = MapStory::query()->where('slug', $slug)->first();
+        if (! $force && $existing !== null && $existing->file_hash === $hash) {
+            return $this->result('unchanged', $slug);
+        }
+        if (! $force && $existing !== null && $existing->isEdited()) {
+            return $this->result('kept', $slug, warnings: [self::KEPT_EDITS]);
         }
 
-        $array = json_decode($raw, true);
-        $object = json_decode($raw);
-        if (json_last_error() !== JSON_ERROR_NONE || ! $object instanceof stdClass) {
-            return $this->failed($slug, ['not a JSON object: '.json_last_error_msg()]);
+        $doc = MapStoryFile::decode($raw);
+        if ($doc === null) {
+            return $this->result('failed', $slug, ['not a JSON object: '.json_last_error_msg()]);
+        }
+        if (($doc->slug ?? null) !== $slug) {
+            return $this->result('failed', $slug, ["slug '".(is_string($doc->slug ?? null) ? $doc->slug : '')."' must match the file name '{$slug}'"]);
         }
 
-        $errors = MapStoryDocument::errors($array);
-        if (($array['slug'] ?? null) !== $slug) {
-            $errors[] = "slug '".($array['slug'] ?? '')."' must match the file name '{$slug}'";
-        }
-        if ($errors !== []) {
-            return $this->failed($slug, $errors);
-        }
-
-        $entity = $this->storyEntity($array['entity']);
-        if ($entity === null) {
-            $wikidata = $array['entity']['wikidata'] ?? 'no Q-id';
-
-            return $this->failed($slug, ["entity '{$array['entity']['name']}' ({$wikidata}) is not in the atlas (or its name is ambiguous)"]);
+        $saved = ($this->save)(
+            $existing,
+            $doc,
+            $existing === null ? 'import' : 'sync',
+            note: 'map-stories:sync from resources/map-stories/'.basename($path).($force && $existing?->isEdited() ? ' (forced over edits)' : ''),
+            file: ['file_hash' => $hash, 'source_path' => 'resources/map-stories/'.basename($path)],
+        );
+        if ($saved['errors'] !== []) {
+            return $this->result('failed', $slug, $saved['errors']);
         }
 
-        $this->resolveIds($object, $entity);
-
-        $story = MapStory::query()->updateOrCreate(['slug' => $slug], [
-            'entity_id' => $entity->entity_id,
-            'kind' => $array['kind'],
-            'title' => $array['title'],
-            'year' => $array['year'],
-            'step_count' => count($array['steps'] ?? []),
-            'document' => $object,
-            'source_path' => 'resources/map-stories/'.basename($path),
-            'content_hash' => $hash,
-        ]);
-
-        return ['status' => $story->wasRecentlyCreated ? 'created' : 'updated', 'slug' => $slug, 'errors' => []];
+        return $this->result($existing === null ? 'created' : 'updated', $slug);
     }
 
     /**
+     * @param  'created'|'updated'|'unchanged'|'kept'|'failed'  $status
      * @param  list<string>  $errors
-     * @return array{status: 'failed', slug: string, errors: list<string>}
+     * @param  list<string>  $warnings
+     * @return array{status: 'created'|'updated'|'unchanged'|'kept'|'failed', slug: string, errors: list<string>, warnings: list<string>}
      */
-    private function failed(string $slug, array $errors): array
+    private function result(string $status, string $slug, array $errors = [], array $warnings = []): array
     {
-        return ['status' => 'failed', 'slug' => $slug, 'errors' => $errors];
-    }
-
-    /** @param  array<string, mixed>  $ref  {name, wikidata?} */
-    private function storyEntity(array $ref): ?Entity
-    {
-        if (is_string($ref['wikidata'] ?? null)) {
-            $byQid = $this->byQid([$ref['wikidata']])->get($ref['wikidata']);
-            if ($byQid !== null) {
-                return Entity::query()->find($byQid);
-            }
-        }
-
-        $byName = Entity::query()
-            ->where('name', $ref['name'])
-            ->whereIn('entity_type', self::eventTypes())
-            ->limit(2)
-            ->get(['entity_id']);
-
-        return $byName->count() === 1 ? $byName->first() : null;
-    }
-
-    /** @return list<string> */
-    private static function eventTypes(): array
-    {
-        return array_values(array_map(
-            fn (EntityType $t) => $t->value,
-            array_filter(EntityType::cases(), fn (EntityType $t) => str_starts_with($t->value, 'event_')),
-        ));
-    }
-
-    /**
-     * Write `entity_id` beside every Q-id in the document (null when the atlas
-     * lacks it); the story entity is the resolved one even without a Q-id.
-     */
-    private function resolveIds(stdClass $doc, Entity $entity): void
-    {
-        $refs = [];
-        foreach ($doc->sides ?? [] as $side) {
-            if (isset($side->polity) && $side->polity instanceof stdClass) {
-                $refs[] = $side->polity;
-            }
-            foreach ($side->commanders ?? [] as $commander) {
-                $refs[] = $commander;
-            }
-        }
-        foreach ($doc->units ?? [] as $unit) {
-            $refs[] = $unit;
-        }
-
-        $qids = collect($refs)->pluck('wikidata')->filter(fn ($q) => is_string($q))->unique()->values()->all();
-        $ids = $this->byQid($qids);
-
-        foreach ($refs as $ref) {
-            $ref->entity_id = is_string($ref->wikidata ?? null) ? $ids->get($ref->wikidata) : null;
-        }
-        $doc->entity->entity_id = $entity->entity_id;
-    }
-
-    /**
-     * Q-id → entity id. When several rows share a Q-id (an unmerged duplicate),
-     * the most prominent wins.
-     *
-     * @param  list<string>  $qids
-     * @return Collection<string, string>
-     */
-    private function byQid(array $qids): Collection
-    {
-        if ($qids === []) {
-            return collect();
-        }
-
-        return Entity::query()
-            ->whereIn('wikidata_id', $qids)
-            ->orderByRaw('impact_score DESC NULLS LAST')
-            ->orderBy('entity_id')
-            ->get(['entity_id', 'wikidata_id'])
-            ->groupBy('wikidata_id')
-            ->map(fn (Collection $rows) => (string) $rows->first()->entity_id);
+        return ['status' => $status, 'slug' => $slug, 'errors' => $errors, 'warnings' => $warnings];
     }
 }

@@ -29,7 +29,7 @@ LngLat = tuple[float, float]
 
 REPO = Path(__file__).resolve().parents[2]
 CACHE_DIR = REPO / "output" / "map-stories" / "cache"
-USER_AGENT = "history-mapped map-story builder (https://historymapped.org)"
+USER_AGENT = "history-mapped/1.0 (https://github.com/PickleSoda/history-mapped)"
 _last_call = 0.0
 
 
@@ -157,6 +157,32 @@ def clip(line: Sequence[Sequence[float]], center: Sequence[float], radius_m: flo
     return run if len(run) > len(best) else best
 
 
+def point_in_ring(p: Sequence[float], ring: Sequence[Sequence[float]]) -> bool:
+    """Whether `p` lies inside the (open or closed) ring — even-odd ray casting
+    in lon/lat, fine at battlefield scale."""
+    inside = False
+    x, y = p[0], p[1]
+    for i in range(len(ring)):
+        (x1, y1), (x2, y2) = ring[i - 1][:2], ring[i][:2]
+        if (y1 > y) != (y2 > y) and x < x1 + (y - y1) * (x2 - x1) / (y2 - y1):
+            inside = not inside
+    return inside
+
+
+def distance_to_line(p: Sequence[float], line: Sequence[Sequence[float]]) -> float:
+    """The shortest distance in metres from `p` to a polyline."""
+    if len(line) == 1:
+        return distance(p, line[0])
+    best = math.inf
+    for a, b in zip(line, line[1:]):
+        (ax, ay), (bx, by) = local(a, p), local(b, p)
+        dx, dy = bx - ax, by - ay
+        seg = dx * dx + dy * dy
+        t = 0.0 if seg == 0 else max(0.0, min(1.0, -(ax * dx + ay * dy) / seg))
+        best = min(best, math.hypot(ax + t * dx, ay + t * dy))
+    return best
+
+
 def ellipse(center: Sequence[float], rx: float, ry: float, rotate: float = 0.0, n: int = 24) -> list[list[float]]:
     """An oval ring (`rx` east–west, `ry` north–south radius in metres, turned
     clockwise by `rotate` degrees) — for hills, woods, marshes, camps."""
@@ -167,6 +193,87 @@ def ellipse(center: Sequence[float], rx: float, ry: float, rotate: float = 0.0, 
         r = math.radians(rotate)
         ring.append(offset(center, east=x * math.cos(r) + y * math.sin(r), north=-x * math.sin(r) + y * math.cos(r)))
     return ring
+
+
+# ── map scale (schema 3: routes, regions) ─────────────────────────────────
+
+
+def r4(p: Sequence[float]) -> list[float]:
+    """A point rounded to 4 decimals (~10 m): enough for continental features."""
+    return [round(float(p[0]), 4), round(float(p[1]), 4)]
+
+
+def great_circle(a: Sequence[float], b: Sequence[float], n: int = 16) -> list[list[float]]:
+    """`n + 1` points along the shortest path over the globe from `a` to `b`
+    (both included). Paths crossing the antimeridian are not split: keep
+    stories on one side of it."""
+    lon1, lat1, lon2, lat2 = map(math.radians, (a[0], a[1], b[0], b[1]))
+    va = (math.cos(lat1) * math.cos(lon1), math.cos(lat1) * math.sin(lon1), math.sin(lat1))
+    vb = (math.cos(lat2) * math.cos(lon2), math.cos(lat2) * math.sin(lon2), math.sin(lat2))
+    omega = math.acos(max(-1.0, min(1.0, sum(x * y for x, y in zip(va, vb)))))
+    if omega < 1e-9 or n < 1:
+        return [r4(a), r4(b)]
+    out = []
+    for i in range(n + 1):
+        t = i / n
+        ka, kb = math.sin((1 - t) * omega) / math.sin(omega), math.sin(t * omega) / math.sin(omega)
+        x, y, z = (ka * pa + kb * pb for pa, pb in zip(va, vb))
+        out.append(r4((math.degrees(math.atan2(y, x)), math.degrees(math.atan2(z, math.hypot(x, y))))))
+    return out
+
+
+def _projection(origin: Sequence[float]):  # noqa: ANN202
+    """Azimuthal equidistant metres around `origin` (true distances from it): (forward, inverse)."""
+
+    def fwd(p: Sequence[float]) -> tuple[float, float]:
+        d, b = distance(origin, p), math.radians(bearing(origin, p))
+        return d * math.sin(b), d * math.cos(b)
+
+    def inv(x: float, y: float) -> list[float]:
+        return r4(dest(origin, math.degrees(math.atan2(x, y)), math.hypot(x, y)))
+
+    return fwd, inv
+
+
+def buffer_ring(point: Sequence[float], km: float, n: int = 24) -> list[list[float]]:
+    """A circle of radius `km` around `point`, as an open ring of `n` points."""
+    return [r4(dest(point, 360 * i / n, km * 1000)) for i in range(n)]
+
+
+def hull_region(points: Iterable[Sequence[float]], buffer_km: float, max_points: int = 48) -> list[list[float]]:
+    """A spread region grown from places: the convex hull of `points`, widened
+    by `buffer_km` all round and simplified to about `max_points` vertices (an
+    open ring). One place gives a circle; two give a rounded band."""
+    from shapely.geometry import MultiPoint
+
+    pts = [tuple(p[:2]) for p in points]
+    if not pts:
+        raise ValueError("hull_region needs at least one point")
+    origin = (sum(p[0] for p in pts) / len(pts), sum(p[1] for p in pts) / len(pts))
+    fwd, inv = _projection(origin)
+    shape = MultiPoint([fwd(p) for p in pts]).convex_hull.buffer(buffer_km * 1000, quad_segs=8)
+    tol = buffer_km * 1000 / 12
+    while len(shape.exterior.coords) - 1 > max_points and tol < buffer_km * 1000:
+        shape = shape.simplify(tol)
+        tol *= 1.5
+    return [inv(x, y) for x, y in list(shape.exterior.coords)[:-1]]
+
+
+def merge_rings(*areas: Sequence) -> list[list[list[float]]]:
+    """The union of rings (each argument one ring or a list of rings) as a list
+    of simple rings — a multipolygon `area` (schema 3). Holes are dropped."""
+    from shapely.geometry import Polygon
+    from shapely.ops import unary_union
+
+    polys = []
+    for area in areas:
+        is_multi = bool(area) and isinstance(area[0], (list, tuple)) and bool(area[0]) and isinstance(area[0][0], (list, tuple))
+        for ring in area if is_multi else [area]:
+            poly = Polygon([tuple(p[:2]) for p in ring])
+            polys.append(poly if poly.is_valid else poly.buffer(0))
+    merged = unary_union(polys)
+    parts = list(merged.geoms) if hasattr(merged, "geoms") else [merged]
+    return [[r4(c) for c in list(part.exterior.coords)[:-1]] for part in parts if not part.is_empty]
 
 
 # ── lookups (cached, rate-limited) ────────────────────────────────────────

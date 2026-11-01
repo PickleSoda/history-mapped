@@ -352,6 +352,27 @@ function buildExpressionDateFilter(
     return dateFilter as FilterSpecification;
 }
 
+/**
+ * The date filter applyOhmLayerDateFilter gives the basemap's layers, for a
+ * layer of our own on OHM tiles: features current at `date`, combined with
+ * `base`. Null when the date can't be read.
+ */
+export function ohmDateFilter(
+    date: OhmDateFilterInput,
+    base: FilterSpecification | null,
+    options?: ApplyOptions,
+): FilterSpecification | null {
+    const dateRange = dateRangeFromInput(date);
+
+    return dateRange
+        ? buildExpressionDateFilter(
+              dateRange,
+              base,
+              options?.includeUndated ?? false,
+          )
+        : null;
+}
+
 export function applyOhmLayerDateFilter(
     map: MapLibreMap,
     date: OhmDateFilterInput,

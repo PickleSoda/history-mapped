@@ -1,8 +1,9 @@
 /**
- * The battle-map overlay on the MapLibre map: GeoJSON builders for one frame
- * and the sources/layers that draw them (masks and terrain under everything,
- * then strongpoint state and the light tint, units, arrows, glyphs and
- * labels, pins, arrowheads, notes).
+ * The map-story overlay on the MapLibre map: GeoJSON builders for one frame
+ * and the sources/layers that draw them (the step's highlighted entities,
+ * masks and terrain under everything, then regions, strongpoint state and the
+ * light tint, routes and places, units, arrows, glyphs and labels, pins,
+ * arrowheads, notes).
  */
 import type { Feature, FeatureCollection, Geometry } from 'geojson';
 import type {
@@ -11,11 +12,22 @@ import type {
   GeoJSONSource,
   Map as MapLibreMap,
 } from 'maplibre-gl';
-import type { Light, LngLat, MapStoryDocument, StorySide, StoryStep, StoryUnit } from '@/lib/schemas/map-story';
-import { POINT_UNIT_KINDS } from '@/lib/schemas/map-story';
-import { unitColor } from './colors';
+import { ohmDateFilter } from '@/lib/ohm-layer-date-filter';
+import type {
+  AmbientStory,
+  Light,
+  LngLat,
+  MapStoryDocument,
+  StoryFeature,
+  StorySide,
+  StoryStep,
+  StoryStepEntity,
+  StoryUnit,
+} from '@/lib/schemas/map-story';
+import { DYNAMIC_FEATURE_KINDS, POINT_UNIT_KINDS } from '@/lib/schemas/map-story';
+import { DISRUPTED_COLOR, featureColor, NEUTRAL_COLOR, unitColor } from './colors';
 import { along, bearing, dest, formation, movePath, onField, rankBands, stepPhases } from './geometry';
-import type { Frame, TerrainHold } from './geometry';
+import type { FeatureHold, Frame } from './geometry';
 import {
   ALT_SITE_ICON,
   arrowId,
@@ -33,7 +45,12 @@ import {
 } from './icons';
 
 export const STORY_SOURCES = {
+  entities: 'story-entities',
   terrain: 'story-terrain',
+  regions: 'story-regions',
+  regionsOld: 'story-regions-old',
+  routes: 'story-routes',
+  places: 'story-places',
   mask: 'story-mask',
   hold: 'story-hold',
   light: 'story-light',
@@ -44,17 +61,21 @@ export const STORY_SOURCES = {
   notes: 'story-notes',
   dem: 'story-dem',
   modern: 'story-modern',
+  ohmAdmin: 'story-ohm-admin',
 } as const;
 
 /** Sources added from remote tiles rather than our GeoJSON. */
-const REMOTE_SOURCES: string[] = [STORY_SOURCES.dem, STORY_SOURCES.modern];
+const REMOTE_SOURCES: string[] = [STORY_SOURCES.dem, STORY_SOURCES.modern, STORY_SOURCES.ohmAdmin];
 
 /** Layers a pointer can hover/click for unit details. */
 export const STORY_INTERACTIVE_LAYERS = ['story-unit-fill', 'story-unit-glyphs', 'story-pins', 'story-standards', 'story-ships'];
 
-/** Our entity overlay, hidden while a story plays (MapCanvas's layer ids,
+/** Layers a pointer can hover/click for a route, region or place's details. */
+export const STORY_FEATURE_LAYERS = ['story-place-circle', 'story-route-base', 'story-route-disrupted', 'story-region-fill'];
+
+/** Our entity overlay, hidden while a story plays (MapCanvas's layer ids, bottom first,
  *  including the hovered-entity marker). */
-const ENTITY_LAYERS = ['entities-fill', 'entities-line', 'entities-symbols', 'entities-hover'];
+export const ENTITY_LAYERS = ['entities-fill', 'entities-line', 'entities-symbols', 'entities-hover'];
 
 const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] };
 
@@ -108,8 +129,11 @@ const close = <T,>(ring: T[]): T[] => (ring.length && ring[0] !== ring[ring.leng
 interface StoryIndex {
   units: Map<string, StoryUnit>;
   sides: Map<string, StorySide>;
-  /** unit id → the colour it is drawn in (its contingent's, else its side's). */
+  /** unit id → the colour it is drawn in (its contingent's, else its side's, else neutral). */
   colors: Map<string, string>;
+  /** The largest `value_n` any route / place reaches (scales widths and circles). */
+  maxRoute: number;
+  maxPlace: number;
 }
 
 const INDEX = new WeakMap<MapStoryDocument, StoryIndex>();
@@ -120,27 +144,60 @@ function storyIndex(doc: MapStoryDocument): StoryIndex {
     const sides = new Map(doc.sides.map((s) => [s.id, s]));
     const colors = new Map<string, string>();
     for (const u of doc.units) {
-      const side = sides.get(u.side);
+      const side = u.side ? sides.get(u.side) : undefined;
       if (side) colors.set(u.id, unitColor(side, u));
+      else if (!u.side) colors.set(u.id, NEUTRAL_COLOR);
     }
-    idx = { units: new Map(doc.units.map((u) => [u.id, u])), sides, colors };
+    // Every value a route or place takes, on the feature or at a step.
+    const values = new Map<string, number[]>();
+    for (const f of doc.features) values.set(f.id, f.value_n != null ? [f.value_n] : []);
+    for (const step of doc.steps) {
+      for (const [fid, fs] of Object.entries(step.features)) {
+        if (fs?.value_n != null) values.get(fid)?.push(fs.value_n);
+      }
+    }
+    const maxOf = (pred: (f: StoryFeature) => boolean) =>
+      Math.max(0, ...doc.features.filter(pred).flatMap((f) => values.get(f.id) ?? []));
+    idx = {
+      units: new Map(doc.units.map((u) => [u.id, u])),
+      sides,
+      colors,
+      maxRoute: maxOf((f) => f.kind === 'route'),
+      maxPlace: maxOf((f) => f.kind !== 'route' && f.kind !== 'region'),
+    };
     INDEX.set(doc, idx);
   }
   return idx;
 }
 
-function terrainGeometry(t: MapStoryDocument['terrain'][number]): Geometry | null {
-  if (t.area && t.area.length >= 3) return { type: 'Polygon', coordinates: [close(t.area)] };
+/** Rings as a Polygon (one) or a MultiPolygon (several), closed; degenerate rings dropped. */
+function areaGeometry(area: LngLat[][]): Geometry | null {
+  const polys = area.filter((r) => r.length >= 3).map((r) => [close(r)]);
+  if (polys.length === 0) return null;
+  return polys.length === 1 ? { type: 'Polygon', coordinates: polys[0] } : { type: 'MultiPolygon', coordinates: polys };
+}
+
+function terrainGeometry(t: StoryFeature): Geometry | null {
+  const area = t.area && areaGeometry(t.area);
+  if (area) return area;
   if (t.line && t.line.length >= 2) return { type: 'LineString', coordinates: t.line };
   if (t.at) return { type: 'Point', coordinates: t.at };
   return null;
 }
 
-/** Static terrain (rivers, ridges, woods, villages…), masks excluded. */
+/** The middle of a set of rings: the centre of the largest ring's vertices. */
+function ringsCentre(area: LngLat[][]): LngLat | null {
+  let best: LngLat[] | null = null;
+  for (const r of area) if (!best || r.length > best.length) best = r;
+  if (!best || best.length === 0) return null;
+  return [best.reduce((s, p) => s + p[0], 0) / best.length, best.reduce((s, p) => s + p[1], 0) / best.length];
+}
+
+/** Static terrain (rivers, ridges, woods, villages…): masks and the per-step kinds excluded. */
 export function terrainCollection(doc: MapStoryDocument): FeatureCollection {
   const features: Feature[] = [];
-  for (const t of doc.terrain) {
-    const geometry = t.kind === 'mask' ? null : terrainGeometry(t);
+  for (const t of doc.features) {
+    const geometry = t.kind === 'mask' || DYNAMIC_FEATURE_KINDS.includes(t.kind) ? null : terrainGeometry(t);
     if (geometry) features.push({ type: 'Feature', properties: { kind: t.kind, label: t.label ?? '', conj: t.conjectural === true }, geometry });
   }
   return { type: 'FeatureCollection', features };
@@ -149,10 +206,9 @@ export function terrainCollection(doc: MapStoryDocument): FeatureCollection {
 /** `mask` areas: land-coloured patches hiding today's water and names (landfill, reservoirs). */
 export function maskCollection(doc: MapStoryDocument): FeatureCollection {
   const features: Feature[] = [];
-  for (const t of doc.terrain) {
-    if (t.kind === 'mask' && t.area && t.area.length >= 3) {
-      features.push({ type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [close(t.area)] } });
-    }
+  for (const t of doc.features) {
+    const geometry = t.kind === 'mask' && t.area ? areaGeometry(t.area) : null;
+    if (geometry) features.push({ type: 'Feature', properties: {}, geometry });
   }
   return { type: 'FeatureCollection', features };
 }
@@ -186,11 +242,12 @@ const WORLD: FeatureCollection = {
  * its holder's colour, and a badge for its state (flames, crossed swords, the
  * captor's flag…) with the step's label for it.
  */
-export function holdCollection(doc: MapStoryDocument, holds: Map<string, TerrainHold>): FeatureCollection {
+export function holdCollection(doc: MapStoryDocument, holds: Map<string, FeatureHold>): FeatureCollection {
   const { sides } = storyIndex(doc);
   const features: Feature[] = [];
   for (const [tid, h] of holds) {
-    const t = doc.terrain.find((x) => x.id === tid);
+    // Routes, regions and places show their state themselves (featureCollections).
+    const t = doc.features.find((x) => x.id === tid && !DYNAMIC_FEATURE_KINDS.includes(x.kind));
     const geometry = t && terrainGeometry(t);
     if (!t || !geometry) continue;
     const color = (h.held_by && sides.get(h.held_by)?.color) || NEUTRAL;
@@ -200,11 +257,7 @@ export function holdCollection(doc: MapStoryDocument, holds: Map<string, Terrain
     }
     const icon = h.state && h.state !== 'held' ? terrainStateId(h.state, color) : '';
     if (!icon && !h.label) continue;
-    const at: LngLat = t.area
-      ? [t.area.reduce((s, p) => s + p[0], 0) / t.area.length, t.area.reduce((s, p) => s + p[1], 0) / t.area.length]
-      : t.line
-        ? along(t.line, 0.5)
-        : (t.at as LngLat);
+    const at: LngLat = (t.area && ringsCentre(t.area)) || (t.line ? along(t.line, 0.5) : (t.at as LngLat));
     features.push({ type: 'Feature', properties: { role: 'badge', icon, label: h.label ?? '' }, geometry: { type: 'Point', coordinates: at } });
   }
   return { type: 'FeatureCollection', features };
@@ -228,9 +281,10 @@ export function unitCollections(
 
   for (const [uid, r] of frame) {
     const unit = units.get(uid);
-    const side = unit ? sides.get(unit.side) : undefined;
-    if (!unit || !side || !onField(r)) continue;
-    const color = colors.get(uid) ?? side.color;
+    const side = unit?.side ? sides.get(unit.side) : undefined;
+    // A unit without a side is drawn in the neutral colour; one with an unknown side isn't drawn.
+    if (!unit || (unit.side && !side) || !onField(r)) continue;
+    const color = colors.get(uid) ?? side?.color ?? NEUTRAL_COLOR;
     const dim = focused.size > 0 && !focused.has(uid);
     const fade = r.fade ?? 1;
     const captor = r.state === 'captured' && r.by ? sides.get(r.by)?.color : undefined;
@@ -316,9 +370,13 @@ const DASH: Record<string, 'solid' | 'dashed' | 'dotted'> = {
   march: 'dotted',
   fire: 'dotted',
   blockade: 'dotted',
+  // v3
+  trade: 'dashed',
+  spread: 'dashed',
+  explore: 'dotted',
 };
 
-const WEIGHT: Record<string, number> = { charge: 1.6, fire: 0.55, ram: 1.9, blockade: 0.8, landing: 1.15 };
+const WEIGHT: Record<string, number> = { charge: 1.6, fire: 0.55, ram: 1.9, blockade: 0.8, landing: 1.15, migrate: 1.2, spread: 1.2, sail: 0.9 };
 
 /** Segments a `continues` tail fades over. */
 const TAIL_STEPS = 8;
@@ -327,7 +385,7 @@ const TAIL_STEPS = 8;
 function moveColor(doc: MapStoryDocument, mv: { unit?: string | null; side?: string | null }): string {
   const { units, sides, colors } = storyIndex(doc);
   const sideId = mv.side ?? (mv.unit ? units.get(mv.unit)?.side : undefined);
-  return (mv.unit && colors.get(mv.unit)) || (sideId && sides.get(sideId)?.color) || '#3f3f46';
+  return (mv.unit && colors.get(mv.unit)) || (sideId && sides.get(sideId)?.color) || NEUTRAL_COLOR;
 }
 
 /**
@@ -458,6 +516,315 @@ export function noteCollection(step: StoryStep | undefined, upto = Infinity): Fe
   };
 }
 
+// ── routes, regions and places (schema 3) ─────────────────────────────────────
+
+/** A route's width (px) with no value, and the range a value scales over. */
+const ROUTE_WIDTH = { plain: 3, min: 2, span: 7 };
+/** A place's radius (px) with no value, and the range a value scales over. */
+const PLACE_RADIUS = { plain: 5, min: 4, span: 14 };
+
+/** The step's routes, regions and places, ready for their sources. */
+export interface FeatureSet {
+  /** Region polygons (`role: 'area'`) and their label points (`role: 'label'`). */
+  regions: FeatureCollection;
+  routes: FeatureCollection;
+  /** Place circles (`role: 'place'`) and state badges for all three (`role: 'badge'`). */
+  places: FeatureCollection;
+  /** region id → what its geometry was drawn from (by identity), to tell a reshape from a reshade. */
+  regionRefs: Map<string, unknown>;
+}
+
+/** A GeoJSON geometry out of an entity's `geom` (a Feature or a bare geometry). */
+export function asGeometry(geom: unknown): Geometry | null {
+  if (!geom || typeof geom !== 'object') return null;
+  const g = geom as { type?: string; geometry?: unknown };
+  if (g.type === 'Feature') return asGeometry(g.geometry);
+  return typeof g.type === 'string' && g.type !== 'FeatureCollection' ? (geom as Geometry) : null;
+}
+
+/** The first outer ring's centre of a Polygon / MultiPolygon. */
+function polygonCentre(g: Geometry): LngLat | null {
+  if (g.type === 'Polygon') return ringsCentre([g.coordinates[0] as LngLat[]]);
+  if (g.type === 'MultiPolygon') return ringsCentre(g.coordinates.map((p) => p[0] as LngLat[]));
+  return null;
+}
+
+const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+
+/**
+ * The step's routes, regions and places, from each feature and its state at
+ * the step (`holds`). `active: false` hides one; `line`, `at`, `area` or an
+ * entity's area (`areaGeoms`, entity id → geometry) replace its geometry.
+ * Routes are as wide as their value, places as large; regions are shaded by
+ * intensity. Colours: the holder's side, the feature's side, the palette.
+ */
+export function featureCollections(
+  doc: MapStoryDocument,
+  holds: Map<string, FeatureHold> | undefined,
+  areaGeoms: Map<string, unknown> = new Map(),
+): FeatureSet {
+  const { sides, maxRoute, maxPlace } = storyIndex(doc);
+  const regions: Feature[] = [];
+  const labels: Feature[] = [];
+  const routes: Feature[] = [];
+  const places: Feature[] = [];
+  const badges: Feature[] = [];
+  const regionRefs = new Map<string, unknown>();
+
+  for (const f of doc.features) {
+    if (!DYNAMIC_FEATURE_KINDS.includes(f.kind)) continue;
+    const h = holds?.get(f.id);
+    if ((h?.active ?? f.active ?? true) === false) continue;
+    const color = featureColor(sides, f, h?.held_by);
+    const label = h?.label ?? f.label ?? '';
+    const valueN = h?.value_n ?? f.value_n ?? null;
+    const valueLabel = h?.value_label ?? f.value_label ?? '';
+    const state = h?.state ?? '';
+    const base = { id: f.id, kind: f.kind, color, label, value_label: valueLabel, state, conj: f.conjectural === true };
+    let badgeAt: LngLat | null = null;
+
+    if (f.kind === 'route') {
+      const line = h?.line ?? f.line;
+      if (!line || line.length < 2) continue;
+      const disrupted = state === 'disrupted';
+      const width = valueN != null && maxRoute > 0 ? ROUTE_WIDTH.min + ROUTE_WIDTH.span * Math.sqrt(Math.max(0, valueN) / maxRoute) : ROUTE_WIDTH.plain;
+      routes.push({
+        type: 'Feature',
+        properties: {
+          ...base,
+          route_kind: f.route_kind ?? '',
+          goods: f.goods.join(', '),
+          width,
+          disrupted,
+          flow: !disrupted,
+          bidir: f.bidirectional === true,
+        },
+        geometry: { type: 'LineString', coordinates: line },
+      });
+      badgeAt = along(line, 0.5);
+    } else if (f.kind === 'region') {
+      const entityId = h?.area_entity?.entity_id;
+      const fromEntity = entityId ? asGeometry(areaGeoms.get(entityId)) : null;
+      const area = h?.area ?? (h?.area_entity ? null : f.area);
+      const geometry =
+        fromEntity && (fromEntity.type === 'Polygon' || fromEntity.type === 'MultiPolygon') ? fromEntity : area ? areaGeometry(area) : null;
+      if (!geometry) continue;
+      const shade = 0.1 + 0.45 * clamp01(h?.intensity ?? f.intensity ?? 0.5);
+      regions.push({
+        type: 'Feature',
+        properties: { ...base, role: 'area', region_kind: f.region_kind ?? '', shade, shade0: shade, xf: false },
+        geometry,
+      });
+      regionRefs.set(f.id, fromEntity ?? area);
+      badgeAt = (area && ringsCentre(area)) || polygonCentre(geometry);
+      const text = [label, valueLabel].filter(Boolean).join('\n');
+      if (text && badgeAt) {
+        labels.push({ type: 'Feature', properties: { id: f.id, role: 'label', text, xf: false }, geometry: { type: 'Point', coordinates: badgeAt } });
+      }
+    } else {
+      const at = h?.at ?? f.at;
+      if (!at) continue;
+      const radius =
+        valueN != null && maxPlace > 0 ? PLACE_RADIUS.min + PLACE_RADIUS.span * Math.sqrt(Math.max(0, valueN) / maxPlace) : PLACE_RADIUS.plain;
+      places.push({
+        type: 'Feature',
+        properties: { ...base, role: 'place', radius, text: [label, valueLabel].filter(Boolean).join('\n') },
+        geometry: { type: 'Point', coordinates: at },
+      });
+      badgeAt = at;
+    }
+
+    // A captured feature flies its holder's flag; other states have a badge of their own.
+    const holder = h?.held_by ? sides.get(h.held_by)?.color : undefined;
+    if (badgeAt && state && state !== 'held' && (state !== 'captured' || holder)) {
+      badges.push({
+        type: 'Feature',
+        properties: { id: f.id, role: 'badge', icon: terrainStateId(state, holder ?? '') },
+        geometry: { type: 'Point', coordinates: badgeAt },
+      });
+    }
+  }
+  // Small circles over large ones.
+  places.sort((a, b) => (b.properties?.radius ?? 0) - (a.properties?.radius ?? 0));
+  return {
+    regions: { type: 'FeatureCollection', features: [...regions, ...labels] },
+    routes: { type: 'FeatureCollection', features: routes },
+    places: { type: 'FeatureCollection', features: [...places, ...badges] },
+    regionRefs,
+  };
+}
+
+/** Every coordinate of a step's routes, regions and places (for framing it). */
+export function featurePoints(set: FeatureSet): LngLat[] {
+  const pts: LngLat[] = [];
+  const walk = (c: unknown): void => {
+    if (!Array.isArray(c)) return;
+    if (typeof c[0] === 'number') pts.push(c as LngLat);
+    else for (const x of c) walk(x);
+  };
+  for (const fc of [set.regions, set.routes, set.places]) {
+    for (const f of fc.features) if (f.geometry.type !== 'GeometryCollection') walk(f.geometry.coordinates);
+  }
+  return pts;
+}
+
+/** Regions on screen: id → the geometry they were drawn from, and their shade. */
+export type ShownRegions = Map<string, { ref: unknown; shade: number; feature: Feature; label: Feature | null }>;
+
+/**
+ * The step change from the regions `shown` to `next`: regions reshaped or new
+ * fade in (`xf`), those whose geometry is the same reshade from `shade0`, and
+ * the old shapes of reshaped or dropped regions fade out (`old`).
+ */
+export function regionTransition(
+  shown: ShownRegions,
+  next: FeatureSet,
+): { current: FeatureCollection; old: FeatureCollection; shown: ShownRegions; changed: boolean } {
+  const out: ShownRegions = new Map();
+  const current: Feature[] = [];
+  const labels: Feature[] = [];
+  const old: Feature[] = [];
+  let changed = false;
+  const labelOf = new Map<string, Feature>();
+  for (const f of next.regions.features) if (f.properties?.role === 'label') labelOf.set(f.properties.id, f);
+
+  for (const f of next.regions.features) {
+    if (f.properties?.role !== 'area') continue;
+    const id: string = f.properties.id;
+    const ref = next.regionRefs.get(id);
+    const prev = shown.get(id);
+    const same = prev != null && prev.ref === ref;
+    const shade: number = f.properties.shade;
+    if (!same || prev.shade !== shade) changed = true;
+    const feature: Feature = { ...f, properties: { ...f.properties, xf: !same, shade0: same ? prev.shade : shade } };
+    const label = labelOf.get(id) ?? null;
+    current.push(feature);
+    if (label) labels.push({ ...label, properties: { ...label.properties, xf: !same || prev.label?.properties?.text !== label.properties?.text } });
+    out.set(id, { ref, shade, feature: f, label });
+  }
+  for (const [id, prev] of shown) {
+    const now = out.get(id);
+    if (now && now.ref === prev.ref) continue;
+    changed = true;
+    old.push(prev.feature);
+  }
+  return {
+    current: { type: 'FeatureCollection', features: [...current, ...labels] },
+    old: { type: 'FeatureCollection', features: old },
+    shown: out,
+    changed,
+  };
+}
+
+/** The step's `show` entities, drawn from their atlas geometry (aligned `geoms`). */
+/**
+ * The shown step entities whose geometry the player fetches (their undated
+ * `geom`): those without a `geometry` of their own, i.e. stories saved before
+ * sync added it and admin preview drafts.
+ */
+export function stepEntityFetchIds(entities: StoryStepEntity[]): string[] {
+  return entities.filter((e) => e.geometry === undefined && e.entity_id).map((e) => e.entity_id as string);
+}
+
+/**
+ * Each shown step entity's geometry: its own `geometry` (sync's atlas geometry
+ * at the step's date; null draws nothing), else the one fetched for it
+ * (`fetched`, aligned to stepEntityFetchIds).
+ */
+export function stepEntityGeoms(entities: StoryStepEntity[], fetchIds: string[], fetched: unknown[]): unknown[] {
+  return entities.map((e) => {
+    const i = e.entity_id ? fetchIds.indexOf(e.entity_id) : -1;
+    const geom = e.geometry !== undefined ? e.geometry : i >= 0 ? (fetched[i] ?? null) : null;
+    // An entity outlined on OHM's boundaries (`ohm`) needs no dot of its own.
+    const g = asGeometry(geom);
+    return e.ohm?.length && g?.type !== 'Polygon' && g?.type !== 'MultiPolygon' ? null : geom;
+  });
+}
+
+// ── the step's entities outlined on OpenHistoricalMap's boundary polygons ──
+//
+// OHM's general `ohm` tiles carry boundary *lines* by way id, which can't be
+// matched to a polity; its `ohm_admin` tiles carry the boundary polygons with
+// a signed `osm_id` (negative: the relation id). The outline layers read
+// those tiles (heavy, so only while a step outlines something), filtered to
+// the step's boundaries and to the step's date the way the basemap is.
+
+/** OHM's boundary-polygon tiles (`boundaries` layer; heavy: about 1.3 MB a tile at z5). */
+const OHM_ADMIN_TILES = 'https://vtiles.openhistoricalmap.org/maps/ohm_admin/{z}/{x}/{y}.pbf';
+/** The style's own `ohm_admin` source, when it has one, is used instead of ours. */
+const STYLE_OHM_ADMIN_SOURCE = 'ohm_admin';
+export const OHM_ADMIN_SOURCE_LAYER = 'boundaries';
+export const OHM_OUTLINE_LAYERS = ['story-ohm-fill', 'story-ohm-line'];
+
+/** "relation/123" → -123, "way/456" → 456 (OHM's signed `osm_id`); anything else is dropped. */
+export function ohmOsmIds(refs: string[]): number[] {
+  const ids = new Set<number>();
+  for (const ref of refs) {
+    const m = /^(relation|way)\/(\d+)$/.exec(ref);
+    if (m) ids.add(m[1] === 'relation' ? -Number(m[2]) : Number(m[2]));
+  }
+  return [...ids];
+}
+
+/** The outline layers' filter: these boundaries, current at `date` (an OHM date string); null for none. */
+export function ohmOutlineFilter(ids: number[], date: string | null): FilterSpecification | null {
+  if (ids.length === 0 || !date) return null;
+  const byId: ExpressionSpecification = ['in', ['to-number', ['get', 'osm_id']], ['literal', ids]];
+  return ohmDateFilter(date, byId, { includeUndated: true });
+}
+
+/**
+ * Outline the step's OHM boundaries (`ids`, signed) as they stood at `date`,
+ * styled like the step's highlighted entities; with none, remove the layers
+ * (and our tile source, so its tiles stop loading).
+ */
+export function setOhmOutline(map: MapLibreMap, ids: number[], date: string | null): void {
+  const filter = ohmOutlineFilter(ids, date);
+  if (!filter) {
+    for (const id of OHM_OUTLINE_LAYERS) if (map.getLayer(id)) map.removeLayer(id);
+    if (map.getSource(STORY_SOURCES.ohmAdmin)) map.removeSource(STORY_SOURCES.ohmAdmin);
+    return;
+  }
+  if (map.getLayer(OHM_OUTLINE_LAYERS[0])) {
+    for (const id of OHM_OUTLINE_LAYERS) map.setFilter(id, filter);
+    return;
+  }
+  let source = STYLE_OHM_ADMIN_SOURCE;
+  if (!map.getSource(source)) {
+    source = STORY_SOURCES.ohmAdmin;
+    if (!map.getSource(source)) {
+      // From z0: a world-wide story (an epidemic) frames below z2. (About 1–1.5 MB a tile there.)
+      map.addSource(source, { type: 'vector', tiles: [OHM_ADMIN_TILES], minzoom: 0, maxzoom: 14 });
+    }
+  }
+  // Under everything of the story's, like the step's own entities.
+  const before = map.getLayer('story-entity-fill') ? 'story-entity-fill' : undefined;
+  const common = { source, 'source-layer': OHM_ADMIN_SOURCE_LAYER, filter } as const;
+  map.addLayer({ id: OHM_OUTLINE_LAYERS[0], type: 'fill', ...common, paint: { 'fill-color': ENTITY_HIGHLIGHT, 'fill-opacity': 0.08 } }, before);
+  map.addLayer(
+    {
+      id: OHM_OUTLINE_LAYERS[1],
+      type: 'line',
+      ...common,
+      layout: { 'line-join': 'round' },
+      paint: { 'line-color': ENTITY_HIGHLIGHT, 'line-opacity': 0.8, 'line-width': 1.8, 'line-dasharray': [3, 1.5] },
+    },
+    before,
+  );
+}
+
+export function entityCollection(entities: StoryStepEntity[], geoms: unknown[]): FeatureCollection {
+  const features: Feature[] = [];
+  entities.forEach((e, i) => {
+    const geometry = asGeometry(geoms[i]);
+    if (!geometry) return;
+    features.push({ type: 'Feature', properties: { name: e.name, role: 'shape' }, geometry });
+    const at = geometry.type === 'Point' ? null : polygonCentre(geometry);
+    if (at) features.push({ type: 'Feature', properties: { name: e.name, role: 'label' }, geometry: { type: 'Point', coordinates: at } });
+  });
+  return { type: 'FeatureCollection', features };
+}
+
 /** `match` on the feature's `kind` (TS can't type a spread match expression). */
 function matchKind(values: Record<string, string | number>, fallback: string | number): ExpressionSpecification {
   return ['match', ['get', 'kind'], ...Object.entries(values).flat(), fallback] as unknown as ExpressionSpecification;
@@ -474,16 +841,14 @@ const zoomed = (
  *  `background` is no guide: OHM's is a saturated tan its land fills cover.) */
 const MASK_COLOR = '#f3ebdc';
 
+/** The step's own entities, drawn from the atlas under the story. */
+const ENTITY_HIGHLIGHT = '#4338ca';
+
 const role = (r: string): ExpressionSpecification => ['==', ['get', 'role'], r];
 
-/**
- * Add the overlay's sources and layers on top of the current style
- * (idempotent). The hillshade goes under the basemap's labels so terrain
- * reads at battlefield zoom, where the historical styles have no relief.
- */
-export function addStoryLayers(map: MapLibreMap): void {
-  if (map.getSource(STORY_SOURCES.units)) return;
-
+/** Battlefield relief: a hillshade under the basemap's labels, and today's
+ *  water and village names, faint, for orientation. */
+function addRelief(map: MapLibreMap): void {
   if (!map.getSource(STORY_SOURCES.dem)) {
     map.addSource(STORY_SOURCES.dem, {
       type: 'raster-dem',
@@ -563,6 +928,35 @@ export function addStoryLayers(map: MapLibreMap): void {
     paint: { 'text-color': '#7a7064', 'text-halo-color': 'rgba(250,247,240,0.85)', 'text-halo-width': 1.2 },
   });
 
+}
+
+/** A region's fill opacity `t` (0–1) of the way through a step change:
+ *  reshaped ones fade in, reshaded ones blend from `shade0` to `shade`. */
+const regionShade = (t: number): ExpressionSpecification => [
+  'case',
+  ['==', ['get', 'xf'], true],
+  ['*', ['get', 'shade'], t],
+  ['+', ['get', 'shade0'], ['*', ['-', ['get', 'shade'], ['get', 'shade0']], t]],
+];
+const fadeIn = (t: number, v: number): ExpressionSpecification => ['case', ['==', ['get', 'xf'], true], v * t, v];
+
+/** The flowing dashes of a route: one period of a 3-on/4-off pattern in 14
+ *  phases (MapLibre's "animate a line" sequence), stepped to make them move. */
+export const ROUTE_DASHES: number[][] = [
+  [0, 4, 3], [0.5, 4, 2.5], [1, 4, 2], [1.5, 4, 1.5], [2, 4, 1], [2.5, 4, 0.5], [3, 4, 0],
+  [0, 0.5, 3, 3.5], [0, 1, 3, 3], [0, 1.5, 3, 2.5], [0, 2, 3, 2], [0, 2.5, 3, 1.5], [0, 3, 3, 1], [0, 3.5, 3, 0.5],
+];
+
+/**
+ * Add the overlay's sources and layers on top of the current style
+ * (idempotent). With `relief` (battlefields), a hillshade goes under the
+ * basemap's labels so terrain reads at battlefield zoom, where the historical
+ * styles have no relief, with today's water and place names over it.
+ */
+export function addStoryLayers(map: MapLibreMap, { relief = true }: { relief?: boolean } = {}): void {
+  if (map.getSource(STORY_SOURCES.units)) return;
+  if (relief) addRelief(map);
+
   for (const id of Object.values(STORY_SOURCES)) {
     if (!REMOTE_SOURCES.includes(id) && !map.getSource(id)) map.addSource(id, { type: 'geojson', data: EMPTY });
   }
@@ -577,6 +971,31 @@ export function addStoryLayers(map: MapLibreMap): void {
   const fillColor = matchKind(Object.fromEntries(Object.entries(TERRAIN_FILL).map(([k, [c]]) => [k, c])), '#a8a29e');
   const fillOpacity = matchKind(Object.fromEntries(Object.entries(TERRAIN_FILL).map(([k, [, o]]) => [k, o])), 0.12);
   const lineColor = matchKind(TERRAIN_LINE, '#57534e');
+
+  // ── the step's entities, from the atlas, under everything of the story's ──
+  const shape = role('shape');
+  map.addLayer({
+    id: 'story-entity-fill',
+    type: 'fill',
+    source: STORY_SOURCES.entities,
+    filter: ['all', shape, ['match', ['geometry-type'], ['Polygon', 'MultiPolygon'], true, false]],
+    paint: { 'fill-color': ENTITY_HIGHLIGHT, 'fill-opacity': 0.1 },
+  });
+  map.addLayer({
+    id: 'story-entity-line',
+    type: 'line',
+    source: STORY_SOURCES.entities,
+    filter: ['all', shape, ['!=', ['geometry-type'], 'Point']],
+    layout: { 'line-join': 'round' },
+    paint: { 'line-color': ENTITY_HIGHLIGHT, 'line-opacity': 0.8, 'line-width': 1.8, 'line-dasharray': [3, 1.5] },
+  });
+  map.addLayer({
+    id: 'story-entity-dot',
+    type: 'circle',
+    source: STORY_SOURCES.entities,
+    filter: ['all', shape, ['==', ['geometry-type'], 'Point']],
+    paint: { 'circle-radius': 6, 'circle-color': ENTITY_HIGHLIGHT, 'circle-opacity': 0.25, 'circle-stroke-color': ENTITY_HIGHLIGHT, 'circle-stroke-width': 2 },
+  });
 
   // ── masks: today's water and names hidden where the ground was different ──
   map.addLayer({ id: 'story-mask', type: 'fill', source: STORY_SOURCES.mask, paint: { 'fill-color': MASK_COLOR, 'fill-opacity': 1 } });
@@ -629,6 +1048,25 @@ export function addStoryLayers(map: MapLibreMap): void {
       'circle-opacity': conjFade(1, 0.5),
       'circle-stroke-opacity': conjFade(1, 0.45),
     },
+  });
+
+  // ── regions: the old shapes fade out as the new ones fade in ──
+  const isPolygon: FilterSpecification = ['all', role('area'), ['match', ['geometry-type'], ['Polygon', 'MultiPolygon'], true, false]];
+  const regionEdge = (opacity: ExpressionSpecification | number) => ({
+    'line-color': ['get', 'color'] as ExpressionSpecification,
+    'line-opacity': opacity,
+    'line-width': 1.3,
+  });
+  map.addLayer({ id: 'story-region-old-fill', type: 'fill', source: STORY_SOURCES.regionsOld, filter: isPolygon, paint: { 'fill-color': ['get', 'color'], 'fill-opacity': ['get', 'shade'] } });
+  map.addLayer({ id: 'story-region-old-edge', type: 'line', source: STORY_SOURCES.regionsOld, filter: isPolygon, paint: regionEdge(REGION_EDGE) });
+  map.addLayer({ id: 'story-region-fill', type: 'fill', source: STORY_SOURCES.regions, filter: isPolygon, paint: { 'fill-color': ['get', 'color'], 'fill-opacity': regionShade(1) } });
+  map.addLayer({ id: 'story-region-edge', type: 'line', source: STORY_SOURCES.regions, filter: ['all', isPolygon, notConj], paint: regionEdge(fadeIn(1, REGION_EDGE)) });
+  map.addLayer({
+    id: 'story-region-edge-conj',
+    type: 'line',
+    source: STORY_SOURCES.regions,
+    filter: ['all', isPolygon, conj],
+    paint: { ...regionEdge(fadeIn(1, REGION_EDGE)), 'line-dasharray': [3, 2] },
   });
 
   // ── who holds the strongpoints ──
@@ -700,6 +1138,59 @@ export function addStoryLayers(map: MapLibreMap): void {
       'text-optional': true,
     },
     paint: { 'icon-opacity': 0.8, 'text-color': '#57534e', 'text-halo-color': 'rgba(255,253,245,0.9)', 'text-halo-width': 1.4 },
+  });
+
+  // ── routes: a pale line with dashes flowing along it (both ways when bidirectional) ──
+  const width: ExpressionSpecification = ['get', 'width'];
+  const bidir: ExpressionSpecification = ['==', ['get', 'bidir'], true];
+  const disrupted: ExpressionSpecification = ['==', ['get', 'disrupted'], true];
+  map.addLayer({
+    id: 'story-route-casing',
+    type: 'line',
+    source: STORY_SOURCES.routes,
+    layout: { 'line-cap': 'round', 'line-join': 'round' },
+    paint: { 'line-color': '#fffdf5', 'line-opacity': conjFade(0.55, 0.3), 'line-width': ['+', width, 2.5] },
+  });
+  map.addLayer({
+    id: 'story-route-base',
+    type: 'line',
+    source: STORY_SOURCES.routes,
+    filter: ['!', disrupted],
+    layout: { 'line-cap': 'round', 'line-join': 'round' },
+    paint: { 'line-color': ['get', 'color'], 'line-opacity': conjFade(0.32, 0.2), 'line-width': width },
+  });
+  map.addLayer({
+    id: 'story-route-disrupted',
+    type: 'line',
+    source: STORY_SOURCES.routes,
+    filter: disrupted,
+    paint: { 'line-color': DISRUPTED_COLOR, 'line-opacity': 0.9, 'line-width': width, 'line-dasharray': [1.6, 1.2] },
+  });
+  const flow = (back: boolean) => ({
+    'line-color': ['get', 'color'] as ExpressionSpecification,
+    'line-opacity': conjFade(0.95, 0.6),
+    'line-width': ['case', bidir, ['*', width, 0.55], width] as ExpressionSpecification,
+    'line-offset': ['case', bidir, ['*', width, back ? -0.35 : 0.35], 0] as ExpressionSpecification,
+    'line-dasharray': ROUTE_DASHES[0],
+    'line-dasharray-transition': { duration: 0, delay: 0 },
+  });
+  map.addLayer({ id: 'story-route-flow', type: 'line', source: STORY_SOURCES.routes, filter: ['==', ['get', 'flow'], true], paint: flow(false) });
+  map.addLayer({ id: 'story-route-flow-back', type: 'line', source: STORY_SOURCES.routes, filter: ['all', ['==', ['get', 'flow'], true], bidir], paint: flow(true) });
+
+  // ── places: circles sized by their value ──
+  map.addLayer({
+    id: 'story-place-circle',
+    type: 'circle',
+    source: STORY_SOURCES.places,
+    filter: role('place'),
+    paint: {
+      'circle-radius': ['get', 'radius'],
+      'circle-color': ['get', 'color'],
+      'circle-opacity': conjFade(0.72, 0.4),
+      'circle-stroke-color': '#fffdf5',
+      'circle-stroke-width': 1.6,
+      'circle-stroke-opacity': conjFade(1, 0.6),
+    },
   });
 
   // ── formations ──
@@ -804,6 +1295,66 @@ export function addStoryLayers(map: MapLibreMap): void {
       'text-optional': true,
     },
     paint: { 'text-color': '#44403c', 'text-halo-color': 'rgba(255,253,245,0.95)', 'text-halo-width': 1.6 },
+  });
+
+  // Place and region labels, values beside them, and their state badges.
+  const featureText = {
+    'text-color': '#292524',
+    'text-halo-color': 'rgba(255,253,245,0.95)',
+    'text-halo-width': 1.6,
+  };
+  map.addLayer({
+    id: 'story-region-label',
+    type: 'symbol',
+    source: STORY_SOURCES.regions,
+    filter: role('label'),
+    layout: { 'text-field': ['get', 'text'], 'text-size': 12, 'text-font': FONT_ITALIC, 'text-max-width': 10, 'text-optional': true },
+    paint: { ...featureText, 'text-opacity': fadeIn(1, 1) },
+  });
+  map.addLayer({
+    id: 'story-place-label',
+    type: 'symbol',
+    source: STORY_SOURCES.places,
+    filter: role('place'),
+    layout: {
+      'text-field': ['get', 'text'],
+      'text-size': 11.5,
+      'text-font': FONT_BOLD,
+      'text-radial-offset': ['+', 0.5, ['/', ['get', 'radius'], 11.5]],
+      'text-variable-anchor': ['left', 'right', 'top', 'bottom'],
+      'text-max-width': 10,
+      'text-optional': true,
+    },
+    paint: featureText,
+  });
+  map.addLayer({
+    id: 'story-entity-label',
+    type: 'symbol',
+    source: STORY_SOURCES.entities,
+    filter: ['==', ['geometry-type'], 'Point'],
+    layout: {
+      'text-field': ['get', 'name'],
+      'text-size': 12,
+      'text-font': FONT_ITALIC,
+      'text-variable-anchor': ['left', 'right', 'top', 'bottom'],
+      'text-radial-offset': ['case', ['==', ['get', 'role'], 'label'], 0, 0.9],
+      'text-max-width': 10,
+      'text-optional': true,
+    },
+    paint: { 'text-color': ENTITY_HIGHLIGHT, 'text-halo-color': 'rgba(255,253,245,0.92)', 'text-halo-width': 1.6 },
+  });
+  map.addLayer({
+    id: 'story-feature-badges',
+    type: 'symbol',
+    source: STORY_SOURCES.places,
+    filter: role('badge'),
+    layout: {
+      'icon-image': ['get', 'icon'],
+      'icon-size': 0.6,
+      'icon-offset': [-16, -16],
+      'icon-allow-overlap': true,
+      'icon-ignore-placement': true,
+    },
   });
 
   const glyphOpacity: ExpressionSpecification = ['*', fade, ['min', 1, ['+', ['get', 'opacity'], 0.25]]];
@@ -948,6 +1499,41 @@ export function removeStoryLayers(map: MapLibreMap): void {
     if (map.getSource(id)) map.removeSource(id);
   }
   SHOWN_MOVE_OPACITY.delete(map);
+  SHOWN_REGION_FADE.delete(map);
+  SHOWN_DASH.delete(map);
+}
+
+/** Region opacity per layer at full strength. */
+const REGION_EDGE = 0.75;
+
+/** Where each map's region crossfade and route dashes were last set, so a frame that changes nothing sends nothing. */
+const SHOWN_REGION_FADE = new WeakMap<MapLibreMap, number>();
+const SHOWN_DASH = new WeakMap<MapLibreMap, number>();
+
+/**
+ * Set the regions `t` (0–1) of the way through a step change: new and
+ * reshaped regions fade in while the old shapes fade out (a crossfade over two
+ * sources), and regions that only change shade blend from the old to the new.
+ */
+export function setRegionFade(map: MapLibreMap, t: number): void {
+  if (SHOWN_REGION_FADE.get(map) === t || !map.getLayer('story-region-fill')) return;
+  SHOWN_REGION_FADE.set(map, t);
+  map.setPaintProperty('story-region-fill', 'fill-opacity', regionShade(t));
+  map.setPaintProperty('story-region-edge', 'line-opacity', fadeIn(t, REGION_EDGE));
+  map.setPaintProperty('story-region-edge-conj', 'line-opacity', fadeIn(t, REGION_EDGE));
+  map.setPaintProperty('story-region-label', 'text-opacity', fadeIn(t, 1));
+  map.setPaintProperty('story-region-old-fill', 'fill-opacity', ['*', ['get', 'shade'], 1 - t]);
+  map.setPaintProperty('story-region-old-edge', 'line-opacity', REGION_EDGE * (1 - t));
+}
+
+/** Show phase `k` of the routes' flowing dashes (the back layer runs the other way). */
+export function setRouteDash(map: MapLibreMap, k: number): void {
+  const n = ROUTE_DASHES.length;
+  const phase = ((k % n) + n) % n;
+  if (SHOWN_DASH.get(map) === phase || !map.getLayer('story-route-flow')) return;
+  SHOWN_DASH.set(map, phase);
+  map.setPaintProperty('story-route-flow', 'line-dasharray', ROUTE_DASHES[phase]);
+  map.setPaintProperty('story-route-flow-back', 'line-dasharray', ROUTE_DASHES[(n - phase) % n]);
 }
 
 /** Hide (or restore) the atlas's own entity pins and territories. */
@@ -997,4 +1583,115 @@ export function setLight(map: MapLibreMap, light: Light, animate: boolean): void
   map.setPaintProperty('story-light', 'fill-opacity-transition', transition);
   map.setPaintProperty('story-light', 'fill-color', color);
   map.setPaintProperty('story-light', 'fill-opacity', opacity);
+}
+
+// ── ambient mode: stories faint on the plain atlas ───────────────────────────
+
+export const AMBIENT_SOURCE = 'ambient-stories';
+export const AMBIENT_LAYERS = {
+  fill: 'ambient-region-fill',
+  edge: 'ambient-region-edge',
+  route: 'ambient-route',
+  place: 'ambient-place',
+} as const;
+/** Ambient layers a pointer can hover (story title) and click ("Play" card), topmost first. */
+export const AMBIENT_INTERACTIVE_LAYERS: string[] = [AMBIENT_LAYERS.place, AMBIENT_LAYERS.route, AMBIENT_LAYERS.fill];
+
+/**
+ * Every ambient story's features in one collection, each tagged with its
+ * story (`story`, `title`, `step`, `step_title`) and sized against the
+ * largest value in view: faint shades, thin routes, small circles.
+ */
+export function ambientCollection(stories: AmbientStory[]): FeatureCollection {
+  let maxRoute = 0;
+  let maxPlace = 0;
+  for (const s of stories) {
+    for (const f of s.features.features) {
+      const v = f.properties?.value_n;
+      if (typeof v !== 'number') continue;
+      if (f.geometry?.type === 'LineString') maxRoute = Math.max(maxRoute, v);
+      else if (f.geometry?.type === 'Point') maxPlace = Math.max(maxPlace, v);
+    }
+  }
+  const features: Feature[] = [];
+  for (const s of stories) {
+    for (const f of s.features.features) {
+      if (!f.geometry) continue;
+      const p = f.properties ?? {};
+      const v = typeof p.value_n === 'number' ? p.value_n : null;
+      const intensity = typeof p.intensity === 'number' ? p.intensity : 0.5;
+      features.push({
+        type: 'Feature',
+        geometry: f.geometry,
+        properties: {
+          id: p.id ?? '',
+          label: p.label ?? '',
+          color: typeof p.color === 'string' && p.color ? p.color : NEUTRAL_COLOR,
+          disrupted: p.state === 'disrupted',
+          shade: 0.05 + 0.17 * clamp01(intensity),
+          width: v != null && maxRoute > 0 ? 1 + 3 * Math.sqrt(Math.max(0, v) / maxRoute) : 1.6,
+          radius: v != null && maxPlace > 0 ? 2.5 + 6 * Math.sqrt(Math.max(0, v) / maxPlace) : 3,
+          story: s.slug,
+          kind: s.kind,
+          title: s.title,
+          step: s.step_index,
+          step_title: s.step_title ?? '',
+        },
+      });
+    }
+  }
+  return { type: 'FeatureCollection', features };
+}
+
+/** Add the ambient source and layers under `beforeId` (the entity overlay), idempotently. */
+export function addAmbientLayers(map: MapLibreMap, beforeId: string | undefined): void {
+  if (map.getSource(AMBIENT_SOURCE)) return;
+  map.addSource(AMBIENT_SOURCE, { type: 'geojson', data: EMPTY });
+  const polygon: FilterSpecification = ['match', ['geometry-type'], ['Polygon', 'MultiPolygon'], true, false];
+  const color: ExpressionSpecification = ['get', 'color'];
+  map.addLayer({ id: AMBIENT_LAYERS.fill, type: 'fill', source: AMBIENT_SOURCE, filter: polygon, paint: { 'fill-color': color, 'fill-opacity': ['get', 'shade'] } }, beforeId);
+  map.addLayer({ id: AMBIENT_LAYERS.edge, type: 'line', source: AMBIENT_SOURCE, filter: polygon, paint: { 'line-color': color, 'line-opacity': 0.3, 'line-width': 0.8 } }, beforeId);
+  map.addLayer(
+    {
+      id: AMBIENT_LAYERS.route,
+      type: 'line',
+      source: AMBIENT_SOURCE,
+      filter: ['==', ['geometry-type'], 'LineString'],
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: {
+        'line-color': ['case', ['==', ['get', 'disrupted'], true], DISRUPTED_COLOR, color],
+        'line-opacity': 0.45,
+        'line-width': ['get', 'width'],
+      },
+    },
+    beforeId,
+  );
+  map.addLayer(
+    {
+      id: AMBIENT_LAYERS.place,
+      type: 'circle',
+      source: AMBIENT_SOURCE,
+      filter: ['==', ['geometry-type'], 'Point'],
+      paint: {
+        'circle-radius': ['get', 'radius'],
+        'circle-color': color,
+        'circle-opacity': 0.5,
+        'circle-stroke-color': '#fffdf5',
+        'circle-stroke-width': 0.8,
+        'circle-stroke-opacity': 0.7,
+      },
+    },
+    beforeId,
+  );
+}
+
+export function removeAmbientLayers(map: MapLibreMap): void {
+  for (const id of Object.values(AMBIENT_LAYERS)) if (map.getLayer(id)) map.removeLayer(id);
+  if (map.getSource(AMBIENT_SOURCE)) map.removeSource(AMBIENT_SOURCE);
+}
+
+export function setAmbientVisible(map: MapLibreMap, visible: boolean): void {
+  for (const id of Object.values(AMBIENT_LAYERS)) {
+    if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
+  }
 }

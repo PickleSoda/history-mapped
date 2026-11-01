@@ -7,6 +7,8 @@ use App\Http\Controllers\Admin\ContributionController;
 use App\Http\Controllers\Admin\EntityController;
 use App\Http\Controllers\Admin\EntityGeometryPeriodController;
 use App\Http\Controllers\Admin\EntityImageController;
+use App\Http\Controllers\Admin\MapStoryController;
+use App\Http\Controllers\Admin\MapStoryRevisionController;
 use App\Http\Controllers\Admin\Reference\CalendarSystemController;
 use App\Http\Controllers\Admin\Reference\EraDateLookupController;
 use App\Http\Controllers\Admin\Reference\GeographicRegionController;
@@ -71,6 +73,24 @@ Route::middleware(['auth', 'verified', 'permission:admin.access'])->group(functi
     Route::get('entities/{entity}/images/candidates', [EntityImageController::class, 'candidates'])->name('entities.images.candidates');
     Route::middleware('permission:entities.write')->group(function () {
         Route::put('entities/{entity}/images', [EntityImageController::class, 'update'])->name('entities.images.update');
+    });
+
+    // ── Map stories (battle maps and other step-by-step map stories) ─
+    // The DB row is the live copy; resources/map-stories/*.json are seeds and
+    // exports (map-stories:sync / map-stories:export). JSON endpoints except
+    // the index and the editor page.
+    Route::get('map-stories', [MapStoryController::class, 'index'])->name('map-stories.index');
+    Route::get('map-stories/lookup/entities', [MapStoryController::class, 'entities'])->name('map-stories.entities');
+    Route::get('map-stories/{slug}', [MapStoryController::class, 'show'])->name('map-stories.show');
+    Route::get('map-stories/{slug}/edit', [MapStoryController::class, 'edit'])->name('map-stories.edit');
+    Route::post('map-stories/{slug}/validate', [MapStoryController::class, 'validateDocument'])->name('map-stories.validate');
+    Route::get('map-stories/{slug}/revisions', [MapStoryRevisionController::class, 'index'])->name('map-stories.revisions.index');
+    Route::get('map-stories/{slug}/revisions/{revision}', [MapStoryRevisionController::class, 'show'])->whereNumber('revision')->name('map-stories.revisions.show');
+    Route::middleware('permission:entities.write')->group(function () {
+        Route::post('map-stories', [MapStoryController::class, 'store'])->name('map-stories.store');
+        Route::put('map-stories/{slug}', [MapStoryController::class, 'update'])->name('map-stories.update');
+        Route::delete('map-stories/{slug}', [MapStoryController::class, 'destroy'])->name('map-stories.destroy');
+        Route::post('map-stories/{slug}/revisions/{revision}/restore', [MapStoryRevisionController::class, 'restore'])->whereNumber('revision')->name('map-stories.revisions.restore');
     });
 
     // ── Reference Tables ─────────────────────────────────────────────

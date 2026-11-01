@@ -153,6 +153,7 @@ The backend actions now persist the admin payload into the normalized model:
 - Supports point and line editing for `geom`
 - Supports polygon and multipolygon editing for `territory_geom`
 - Normalizes editor output back to GeoJSON for form submission
+- `only="location" | "territory"` shows one panel without the tab bar, and `fitToGeometry` zooms to the initial geometry; the map-story editor uses both to draw a feature's `at` / `line` / `area` (`components/map-story/geometry-dialog.tsx`)
 
 ### Georef-assisted hydration
 
@@ -235,6 +236,56 @@ The public `/api/v1/...` endpoints are for consumer-facing API access and should
 
 ---
 
+## 7a. Map-story editor
+
+`/map-stories/{slug}/edit` (`pages/map-stories/edit.tsx`, controller
+`Admin\MapStoryController`) edits a map story document — the schema in
+[map-story-authoring.md](../implementation-docs/map-story-authoring.md). It is a
+split view: a structured form on the left (Overview, Sides & units, Features,
+Steps, JSON; `components/map-story/*`, helpers in `lib/map-story-doc.ts`) and
+the **public SPA in an iframe** on the right as the preview, so the story is
+drawn by the real player rather than a second renderer.
+
+- The page receives the authored document as a JSON string (`document_json`,
+  so key order and empty objects survive), the vocabulary, the live
+  warnings, the chronicle's entries, and the atlas entity behind each Q-id.
+  Edits change a client-side draft; each change is sent to the preview and,
+  debounced, to `POST /map-stories/{slug}/validate` (a dry run) for errors and
+  warnings. `PUT /map-stories/{slug}` saves the whole document through
+  `SaveMapStoryAction` (422 with the errors, which the form maps to tabs and
+  fields by their path). Revisions: `GET /map-stories/{slug}/revisions`,
+  `…/revisions/{id}`, `POST …/revisions/{id}/restore`.
+- Renaming a side, unit or feature id rewrites every reference to it.
+- An approved AI edit reloads the page props; the editor takes the new
+  document, or warns when there are unsaved edits.
+
+### Preview bridge
+
+The iframe loads `${FRONTEND_URL}/?story=<slug>&sstep=<n>&preview=1`. In
+preview mode the SPA (`web/src/hooks/useStoryPreviewBridge.ts`, protocol in
+`web/src/lib/map-story/preview.ts`) talks to the admin over `postMessage`:
+
+| Direction | Message | Meaning |
+|---|---|---|
+| admin → SPA | `map-story:document {document}` | draw this draft (put in the story's query cache, so the player needs no other change) |
+| admin → SPA | `map-story:step {index}` | go to a step |
+| admin → SPA | `map-story:pick {mode: point\|path}` / `map-story:pick-cancel` | pick on the map |
+| admin → SPA | `map-story:get-camera` | report the current view |
+| SPA → admin | `map-story:ready` | the admin then sends the draft and the step |
+| SPA → admin | `map-story:step-changed {index}` | the player moved; the form follows |
+| SPA → admin | `map-story:picked {at}` or `{path}` / `map-story:pick-cancelled` | a pick's result (double-click or Enter ends a path, Esc cancels) |
+| SPA → admin | `map-story:unit-dragged {unit, step, at}` | a unit dropped in a new place; the form moves it and the end of its arrow |
+| SPA → admin | `map-story:camera {center, zoom, bearing}` | the answer to `get-camera` |
+| SPA → admin | `map-story:document-rejected {issues}` | the SPA's schema refused the draft; it keeps drawing the last good one |
+
+Both sides check origins: the SPA only listens to `VITE_ADMIN_ORIGINS`
+(comma-separated; dev default `http://localhost:8000`) and parses every
+message with zod; the admin only accepts messages from the iframe's window and
+`FRONTEND_URL`'s origin. In preview mode the SPA replaces history entries
+instead of pushing them and does not open entity selections.
+
+---
+
 ## 8. Current Limitations
 
 The admin editor is live, but a few boundaries are still worth documenting explicitly.
@@ -257,3 +308,4 @@ For current implementation truth, use:
 - `api/resources/js/components/historical-map-viewer.tsx`
 - `api/app/Http/Controllers/Admin/EntityController.php`
 - `api/app/Http/Controllers/Admin/EntityGeometryPeriodController.php`
+- `api/resources/js/pages/map-stories/edit.tsx`, `api/app/Http/Controllers/Admin/MapStoryController.php` (map stories)

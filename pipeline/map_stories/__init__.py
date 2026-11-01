@@ -1,4 +1,5 @@
-"""Map stories: step-by-step battle (and campaign) maps attached to an entity.
+"""Map stories: step-by-step map replays (battles, campaigns, epidemics, trade
+networks, a chronicle's map layer) attached to an entity or a chronicle.
 
 Authoring guide: docs/implementation-docs/map-story-authoring.md. A story is
 built by a small Python script in `pipeline/map_stories/stories/` (using the

@@ -101,7 +101,7 @@ ALLIED_FLIGHT = F(-500, -1150)  # over the Cannae ridge to the east
 
 def build() -> dict:
     return {
-        "schema": 1,
+        "schema": 2,
         "slug": "battle-of-cannae",
         "kind": "battle",
         "entity": {"name": "Battle of Cannae", "wikidata": "Q179591"},
@@ -129,9 +129,19 @@ def build() -> dict:
             "the Cannae ridge, with the Romans facing roughly south-west and their right on the river. Older scholars such "
             "as Delbrück put it on the left bank. The river is drawn on its modern course, but the Aufidus has moved since "
             "216 BC and probably ran a few hundred metres further north-west, which would have widened the field; the "
-            "frontages here are therefore slightly compressed. The camp sites and Varro's route are conjectural. Numbers "
-            "follow Polybius and Goldsworthy; Livy's differ, and modern estimates of the Roman dead vary widely."
+            "frontages here are therefore slightly compressed; the river is drawn dashed for that reason. The camp sites, "
+            "the crossings and Varro's route are conjectural. The legions are drawn in the usual three lines, though "
+            "Connolly thought the triarii stayed behind to guard the camps. Livy's wind, the Volturnus, is usually read as "
+            "a south-easterly; Dodge made it easterly. Numbers follow Polybius and Goldsworthy; Livy's differ, and modern "
+            "estimates of the Roman dead vary widely."
         ),
+        "alt_sites": [
+            {
+                "at": L(200, 700),
+                "label": "Left-bank theory",
+                "note": "Some reconstructions put the battle on the north-western (left) bank of the Aufidus; the point is approximate.",
+            }
+        ],
         "sources": [
             {"title": "Polybius, Histories 3.107–118", "kind": "primary"},
             {"title": "Livy, History of Rome 22.40–52", "kind": "primary"},
@@ -153,7 +163,7 @@ def build() -> dict:
                 "commanders": [
                     {"name": "Gaius Terentius Varro", "wikidata": "Q315274", "role": "consul, in command on the day; left wing"},
                     {"name": "Lucius Aemilius Paullus", "wikidata": "Q432244", "role": "consul, right wing; killed"},
-                    {"name": "Gnaeus Servilius Geminus", "role": "proconsul, centre; killed"},
+                    {"name": "Gnaeus Servilius Geminus", "wikidata": "Q554632", "role": "proconsul, centre; killed"},
                 ],
                 "strength": "c. 86,000 (c. 76,000 on the field, 10,000 guarding the camps)",
                 "losses": "c. 48,000–70,000 killed; c. 10,000–19,000 captured",
@@ -216,17 +226,16 @@ def build() -> dict:
                 "label": "Numidian horse",
                 "strength": "c. 3,500",
                 "commander": "Hanno",
-                "wikidata": "Q2391196",
             },
             {"id": "hannibal", "side": "carthage", "kind": "commander", "label": "Hannibal", "wikidata": "Q36456"},
         ],
         "terrain": [
-            {"id": "aufidus", "kind": "river", "label": "Aufidus (Ofanto), modern course", "line": river()},
+            {"id": "aufidus", "kind": "river", "label": "Aufidus (Ofanto), modern course", "line": river(), "conjectural": True},
             {"id": "cannae-ridge", "kind": "ridge", "label": "Cannae ridge", "line": [L(e, n) for e, n in RIDGE_EDGE]},
             {"id": "cannae", "kind": "town", "label": "Cannae", "at": r6(CANNAE)},
-            {"id": "main-camp", "kind": "camp", "label": "Main Roman camp", "area": rect(MAIN_CAMP, 35, 700, 600)},
-            {"id": "small-camp", "kind": "camp", "label": "Smaller Roman camp", "area": rect(SMALL_CAMP, 35, 450, 420)},
-            {"id": "punic-camp", "kind": "camp", "label": "Hannibal's camp", "area": rect(PUNIC_CAMP, 35, 650, 550)},
+            {"id": "main-camp", "kind": "camp", "label": "Main Roman camp", "area": rect(MAIN_CAMP, 35, 700, 600), "conjectural": True},
+            {"id": "small-camp", "kind": "camp", "label": "Smaller Roman camp", "area": rect(SMALL_CAMP, 35, 450, 420), "conjectural": True},
+            {"id": "punic-camp", "kind": "camp", "label": "Hannibal's camp", "area": rect(PUNIC_CAMP, 35, 650, 550), "conjectural": True},
         ],
         "steps": steps(),
     }
@@ -278,9 +287,10 @@ def steps() -> list[dict]:
                 "so some 55,000 men held only about a kilometre of front, screened by the light-armed velites. About 10,000 "
                 "men stayed behind to hold the camps."
             ),
+            "light": "dawn",
             "positions": {
                 "numidians": {"state": "hidden"},
-                "roman-infantry": dict(R_INF),
+                "roman-infantry": {**R_INF, "lines": 3},
                 "roman-horse": dict(R_HORSE),
                 "allied-horse": dict(A_HORSE),
                 "velites": {"at": F(-140, 0), "facing": ROMAN_FACING, "width": 900, "depth": 15},
@@ -288,9 +298,9 @@ def steps() -> list[dict]:
                 "varro": {"with": "allied-horse"},
             },
             "moves": [
-                {"unit": "roman-infantry", "type": "march", "path": [MAIN_CAMP, L(1350, 250), R_INF["at"]]},
-                {"unit": "roman-horse", "type": "march", "path": [MAIN_CAMP, L(1150, 200), R_HORSE["at"]]},
-                {"unit": "allied-horse", "type": "march", "path": [SMALL_CAMP, L(2300, -350), A_HORSE["at"]]},
+                {"unit": "roman-infantry", "type": "march", "path": [MAIN_CAMP, L(1350, 250), R_INF["at"]], "conjectural": True},
+                {"unit": "roman-horse", "type": "march", "path": [MAIN_CAMP, L(1150, 200), R_HORSE["at"]], "conjectural": True},
+                {"unit": "allied-horse", "type": "march", "path": [SMALL_CAMP, L(2300, -350), A_HORSE["at"]], "conjectural": True},
             ],
             "notes": [
                 {"at": MAIN_CAMP, "text": "About 10,000 men left to guard the camps", "kind": "event"},
@@ -311,9 +321,13 @@ def steps() -> list[dict]:
                 "heavy horse under Hasdrubal, opposite the Roman cavalry; on the far right, under the ridge, stood the "
                 "Numidians. The centre was Gallic and Spanish foot in alternating companies, which he pushed forward into a "
                 "thin convex crescent, while the veteran African infantry waited in deep blocks on either side of it, held "
-                "back from the bulge. Hannibal and his brother Mago took post in the centre. The hot south-westerly wind the "
-                "locals called Volturnus was at their backs, blowing dust into the Romans' faces."
+                "back from the bulge. Hannibal and his brother Mago took post in the centre. Livy says a wind the locals "
+                "called the Volturnus rose against the Romans and drove dust into their faces, while the morning sun fell "
+                "side-on to both armies."
             ),
+            "light": "day",
+            "wind": {"from": 135, "label": "Volturnus: dust in Roman faces (Livy)"},
+            "sun": {"from": 95, "label": "Morning sun, side-on to both lines (Livy)"},
             "positions": {
                 "slingers": {"at": F(225, P_VC), "facing": PUNIC_FACING, "width": 860, "depth": 15},
                 "gauls-spaniards": dict(CRESCENT),
@@ -324,8 +338,8 @@ def steps() -> list[dict]:
                 "hannibal": {"with": "gauls-spaniards"},
             },
             "moves": [
-                {"side": "carthage", "type": "march", "path": [PUNIC_CAMP, L(-350, -620), L(150, -660), HASDRUBAL["at"]], "label": "first crossing"},
-                {"side": "carthage", "type": "march", "path": [PUNIC_CAMP, L(-500, -1000), L(80, -1050), CRESCENT["at"]], "label": "second crossing"},
+                {"side": "carthage", "type": "march", "path": [PUNIC_CAMP, L(-350, -620), L(150, -660), HASDRUBAL["at"]], "label": "first crossing", "conjectural": True},
+                {"side": "carthage", "type": "march", "path": [PUNIC_CAMP, L(-500, -1000), L(80, -1050), CRESCENT["at"]], "label": "second crossing", "conjectural": True},
             ],
             "notes": [
                 {"at": F(80, 520), "text": "Volturnus wind blows dust at the Romans", "kind": "event"},
@@ -349,6 +363,7 @@ def steps() -> list[dict]:
             "positions": {
                 "velites": {"at": F(40, 0), "state": "engaged"},
                 "slingers": {"at": F(130, P_VC), "state": "engaged"},
+                "paullus": {"state": "wounded"},
             },
             "moves": [
                 {"unit": "velites", "type": "advance", "path": [F(-140, 0), F(40, 0)]},
@@ -403,8 +418,8 @@ def steps() -> list[dict]:
     # 6 ── the infantry clash: the crescent bends back ───────────────────
     roman_rout = F(-500, 140)
     hasdrubal_rally = F(-380, 250)
+    roman_contact = F(270, -50)  # the legions' front against the bulge of the crescent
     roman_mass = F(ROMAN_PUSH_AT, P_VC)
-    paullus_in_centre = F(540, P_VC)
     s.append(
         {
             "id": "crescent-bends",
@@ -422,20 +437,35 @@ def steps() -> list[dict]:
                 "velites": {"state": "hidden"},
                 "roman-horse": {"at": roman_rout, "width": 140, "depth": 30, "state": "routed"},
                 "hasdrubal-horse": {"at": hasdrubal_rally, "width": 220, "state": "ready"},
-                "roman-infantry": {"at": roman_mass, "width": 560, "depth": 120, "shape": "crescent", "curve": 120, "state": "engaged"},
-                "gauls-spaniards": {"at": F(BENT_AT, P_VC), "curve": -120, "state": "engaged"},
-                "hannibal": {"at": F(700, P_VC)},
-                "paullus": {"at": paullus_in_centre},
+                "paullus": {"with": "roman-infantry"},
             },
             "moves": [
                 {"unit": "roman-horse", "type": "rout", "path": [R_HORSE["at"], F(-420, 330), roman_rout]},
                 {"unit": "hasdrubal-horse", "type": "pursuit", "path": [hasdrubal_clash, F(-330, 400), hasdrubal_rally]},
-                {"unit": "roman-infantry", "type": "attack", "path": [R_INF["at"], F(120, -50), roman_mass]},
-                {"unit": "gauls-spaniards", "type": "retreat", "path": [CRESCENT["at"], F(BENT_AT, P_VC)]},
-                {"unit": "paullus", "type": "march", "path": [R_HORSE["at"], F(150, 120), paullus_in_centre]},
+                {"unit": "paullus", "type": "march", "path": [R_HORSE["at"], F(-330, 240), R_INF["at"]]},
             ],
-            "notes": [
-                {"at": F(660, 120), "text": "The centre gives ground on purpose", "kind": "event"},
+            "beats": [
+                {
+                    "label": "The legions strike the bulge of the crescent",
+                    "positions": {
+                        "roman-infantry": {"at": roman_contact, "state": "engaged"},
+                        "gauls-spaniards": {"state": "engaged"},
+                    },
+                    "moves": [{"unit": "roman-infantry", "type": "attack", "path": [R_INF["at"], roman_contact]}],
+                },
+                {
+                    "label": "The centre gives ground into a hollow",
+                    "positions": {
+                        "roman-infantry": {"at": roman_mass, "width": 560, "depth": 120, "shape": "crescent", "curve": 120, "lines": 1},
+                        "gauls-spaniards": {"at": F(BENT_AT, P_VC), "curve": -120},
+                        "hannibal": {"at": F(700, P_VC)},
+                    },
+                    "moves": [
+                        {"unit": "roman-infantry", "type": "attack", "path": [roman_contact, roman_mass]},
+                        {"unit": "gauls-spaniards", "type": "retreat", "path": [CRESCENT["at"], F(BENT_AT, P_VC)]},
+                    ],
+                    "notes": [{"at": F(660, 120), "text": "The centre gives ground on purpose", "kind": "event"}],
+                },
             ],
             "focus": ["roman-infantry", "gauls-spaniards"],
         }
@@ -462,6 +492,7 @@ def steps() -> list[dict]:
                 "Numidians, who were ideal for running down fugitives, and kept his own squadrons in hand for the decisive "
                 "stroke."
             ),
+            "sun": {"from": 180, "label": "Midday sun"},
             "positions": {
                 "roman-horse": {"state": "hidden"},
                 "hasdrubal-horse": {"at": behind_allies, "facing": ROMAN_FACING, "state": "ready"},
@@ -473,7 +504,7 @@ def steps() -> list[dict]:
                 {"unit": "hasdrubal-horse", "type": "flank", "path": arc(hasdrubal_rally, behind_allies, -220)},
                 {"unit": "allied-horse", "type": "rout", "path": [allied_fwd, F(-260, -800), ALLIED_FLIGHT]},
                 {"unit": "numidians", "type": "pursuit", "path": [numidian_screen, F(-150, -760), numidian_chase]},
-                {"unit": "varro", "type": "retreat", "path": varro_path, "label": "to Venusia"},
+                {"unit": "varro", "type": "retreat", "path": varro_path, "label": "to Venusia", "conjectural": True},
             ],
             "notes": [
                 {"at": F(-60, -720), "text": "Allied cavalry breaks without a fight", "kind": "clash"},
@@ -556,9 +587,10 @@ def steps() -> list[dict]:
                 "at about 70,000 and Livy at about 48,000, against 5,700 to 8,000 on Hannibal's side, most of them Gauls of "
                 "the centre. Only a few thousand Romans cut their way out and scattered to the camps and nearby towns."
             ),
+            "sun": {"from": 255, "label": "Afternoon sun"},
             "positions": {
                 "roman-infantry": {"state": "destroyed"},
-                "paullus": {"state": "destroyed"},
+                "paullus": {"state": "killed"},
             },
             "moves": [],
             "notes": [
@@ -582,7 +614,6 @@ def steps() -> list[dict]:
                 "southern Italy went over to Hannibal, but Rome refused to treat with him and fought on."
             ),
             "positions": {
-                "paullus": {"state": "hidden"},
                 "slingers": {"state": "hidden"},
             },
             "moves": [

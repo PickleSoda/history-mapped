@@ -116,7 +116,9 @@ services:
     # migrations independent of the cache backend. (overrides .env.prod)
     environment:
       CACHE_STORE: array
-    command: sh -c "php artisan migrate --force && php artisan config:cache"
+    # db:repair-sequences first: a content load can leave sequences behind
+    # their rows (migrations_id_seq included), which fails the ledger insert.
+    command: sh -c "php artisan db:repair-sequences && php artisan migrate --force && php artisan config:cache"
     depends_on:
       db:
         condition: service_healthy
@@ -136,6 +138,9 @@ services:
       # Martin tile base URL (e.g. https://api.example.org/tiles). Unset keeps the
       # REST GeoJSON entity overlay; set switches the atlas to vector tiles (D7).
       VITE_MAP_TILES_URL: "${VITE_MAP_TILES_URL:-}"
+      # The admin origin(s) allowed to drive the map-story editor's live preview
+      # (postMessage); unset, the SPA only trusts http://localhost:8000.
+      VITE_ADMIN_ORIGINS: "${VITE_ADMIN_ORIGINS:-}"
       # Stamped into the built bundle on success so a deploy can tell whether the
       # bundle is stale (compared against the web/ tree + lockfile hash). See ci.yml.
       WEB_FINGERPRINT: "${WEB_FINGERPRINT:-}"

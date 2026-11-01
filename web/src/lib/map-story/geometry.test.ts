@@ -13,7 +13,7 @@ import {
   resolveBeats,
   resolveConditions,
   resolveFrames,
-  resolveTerrainState,
+  resolveFeatureStates,
   stepBounds,
   tween,
 } from './geometry';
@@ -277,10 +277,10 @@ describe('terrain state and conditions', () => {
   ]);
 
   it('carries terrain state forward key by key, and clears it', () => {
-    const holds = resolveTerrainState(doc);
-    expect(holds[0].get('farm')).toEqual({ held_by: 'a', state: null, label: null });
-    expect(holds[1].get('farm')).toEqual({ held_by: 'a', state: 'burning', label: null });
-    expect(holds[2].get('farm')).toEqual({ held_by: null, state: 'burning', label: null });
+    const holds = resolveFeatureStates(doc);
+    expect(holds[0].get('farm')).toMatchObject({ held_by: 'a', state: null, label: null });
+    expect(holds[1].get('farm')).toMatchObject({ held_by: 'a', state: 'burning', label: null });
+    expect(holds[2].get('farm')).toMatchObject({ held_by: null, state: 'burning', label: null });
     expect(holds[3].has('farm')).toBe(false);
   });
 

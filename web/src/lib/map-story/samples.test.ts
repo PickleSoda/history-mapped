@@ -5,8 +5,8 @@
  */
 import { describe, expect, it } from 'vitest';
 import { MapStoryDocumentSchema } from '@/lib/schemas/map-story';
-import { resolveBeatFrames, resolveConditions, resolveTerrainState, stepBounds, stepPhases } from './geometry';
-import { holdCollection, moveCollection, noteCollection, unitCollections } from './layers';
+import { resolveBeatFrames, resolveConditions, resolveFeatureStates, stepBounds, stepPhases } from './geometry';
+import { featureCollections, featurePoints, holdCollection, moveCollection, noteCollection, unitCollections } from './layers';
 
 type Json = Record<string, unknown>;
 
@@ -22,7 +22,7 @@ describe.each(Object.keys(stories))('%s', (path) => {
     (raw.steps as Json[]).forEach((rawStep, i) => {
       const step = doc.steps[i];
       expect(step.light ?? null).toBe((rawStep.light as string) ?? null);
-      expect(Object.keys(step.terrain_state)).toEqual(Object.keys((rawStep.terrain_state as Json) ?? {}));
+      expect(Object.keys(step.features)).toEqual(Object.keys(((rawStep.features ?? rawStep.terrain_state) as Json) ?? {}));
       [rawStep, ...((rawStep.beats as Json[]) ?? [])].forEach((rawPhase, q) => {
         const phase = stepPhases(step)[q];
         expect(phase.moves.map((m) => m.type)).toEqual(((rawPhase.moves as Json[]) ?? []).map((m) => m.type));
@@ -33,22 +33,26 @@ describe.each(Object.keys(stories))('%s', (path) => {
       });
     });
     expect(doc.alt_sites).toHaveLength(((raw.alt_sites as unknown[]) ?? []).length);
+    expect(doc.features).toHaveLength(((raw.features ?? raw.terrain) as unknown[] | undefined)?.length ?? 0);
   });
 
   it('resolves and draws every phase of every step', () => {
     const phases = resolveBeatFrames(doc);
-    const holds = resolveTerrainState(doc);
+    const holds = resolveFeatureStates(doc);
     expect(resolveConditions(doc)).toHaveLength(doc.steps.length);
     phases.forEach((frames, i) => {
       const step = doc.steps[i];
       expect(frames).toHaveLength(step.beats.length + 1);
       frames.forEach((frame, q) => {
-        expect(unitCollections(doc, frame, step.focus).units.features.length).toBeGreaterThan(0);
+        const drawn = unitCollections(doc, frame, step.focus);
+        // A battle always has formations on the field; a wider story may have only markers or features.
+        if (doc.schema < 3) expect(drawn.units.features.length).toBeGreaterThan(0);
         moveCollection(doc, step, frames, q);
         noteCollection(step, q);
       });
       holdCollection(doc, holds[i]);
-      expect(stepBounds(doc, frames[frames.length - 1], i)).not.toBeNull();
+      const bounds = stepBounds(doc, frames[frames.length - 1], i, featurePoints(featureCollections(doc, holds[i])));
+      if (doc.schema < 3 || !step.camera) expect(bounds).not.toBeNull();
     });
   });
 });

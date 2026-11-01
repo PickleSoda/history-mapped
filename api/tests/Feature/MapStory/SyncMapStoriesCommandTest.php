@@ -7,6 +7,7 @@ namespace Tests\Feature\MapStory;
 use App\Enums\EntityType;
 use App\Models\Entity;
 use App\Models\MapStory;
+use App\Support\MapStory\MapStoryFile;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -124,6 +125,41 @@ class SyncMapStoriesCommandTest extends TestCase
         $this->artisan('map-stories:sync', ['--path' => $this->dir])
             ->expectsOutputToContain("'dragons'")
             ->expectsOutputToContain("must match the file name 'other-name'")
+            ->assertFailed();
+        $this->assertSame(0, MapStory::query()->count());
+    }
+
+    public function test_syncs_a_schema_2_story(): void
+    {
+        $this->battle();
+        $gauls = Entity::factory()->ofType(EntityType::PoliticalEntity)->create(['name' => 'Gauls', 'wikidata_id' => 'Q29890']);
+        $doc = MapStoryFixture::v2Document();
+        $doc['sides'][0]['contingents'][0]['wikidata'] = 'Q29890';
+        $doc['sides'][0]['contingents'][1]['wikidata'] = 'Q999999998';
+        MapStoryFixture::write($this->dir, $doc);
+
+        $this->assertSame(0, $this->sync());
+
+        $story = MapStory::query()->sole();
+        $doc = $story->document;
+        $this->assertSame(2, $doc->schema);
+        $this->assertSame('The wing rejoins the line', $doc->steps[1]->beats[0]->label);
+        $this->assertNull($doc->steps[1]->terrain_state->town->held_by);
+        $this->assertSame('gauls', $doc->units[0]->contingent);
+        // A contingent's Q-id links like a side's polity; the authored copy drops the id.
+        $this->assertSame([$gauls->entity_id, null], [$doc->sides[0]->contingents[0]->entity_id, $doc->sides[0]->contingents[1]->entity_id]);
+        $this->assertObjectNotHasProperty('entity_id', MapStoryFile::authored($doc)->sides[0]->contingents[0]);
+    }
+
+    public function test_rejects_a_schema_1_story_that_uses_schema_2_fields(): void
+    {
+        $this->battle();
+        $doc = MapStoryFixture::v2Document();
+        $doc['schema'] = 1;
+        MapStoryFixture::write($this->dir, $doc);
+
+        $this->artisan('map-stories:sync', ['--path' => $this->dir])
+            ->expectsOutputToContain('need schema 2 — set `schema: 2`')
             ->assertFailed();
         $this->assertSame(0, MapStory::query()->count());
     }

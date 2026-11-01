@@ -17,7 +17,7 @@ along the Greek baseline from its left end and `g` metres forward of it
 
 from __future__ import annotations
 
-from pipeline.map_stories.geo import bearing, dest, offset, path
+from pipeline.map_stories.geo import bearing, dest, ellipse, offset, path
 
 # ── anchors (OSM / Nominatim / Overpass, October 2026) ─────────────────────
 
@@ -51,6 +51,30 @@ PSYTTALEIA_OUTLINE = [
 def at(east: float, north: float) -> list[float]:
     """A point `east`/`north` metres from the middle of the strait."""
     return offset(O, east=east, north=north)
+
+
+#: The Attic side of the strait, Perama to Cape Akrokeramos (480 BC, approx.).
+ATTIC_SHORE = path(
+    (23.5534, 37.9797), (23.5539, 37.9687), (23.5566, 37.9625), (23.5641, 37.9614), (23.5734, 37.9614), (23.5799, 37.9607),
+    (23.5891, 37.9592), (23.5975, 37.9585), (23.6049, 37.9600), (23.6077, 37.9534), (23.6073, 37.9482),
+)
+
+
+def sea_area() -> list[list[float]]:
+    """The water the fleets used, as one conjectural ring: the north channel,
+    the strait along the Attic shore, round Piraeus into the bay of Phalerum,
+    the open gulf to the south, and back up the east coast of Salamis past
+    Kynosoura, the bay of Ambelaki and Paloukia. The Salamis and Piraeus
+    shores are traced from the anchors above, a little to seaward; Psyttaleia
+    and St George's islet are islands within it."""
+    north = [at(-1200, 3900)]
+    piraeus = [at(3650, -1150), at(3900, -1700), at(4100, -2400), at(4400, -3000), at(5000, -3500), at(6500, -3600), at(7600, -3400), at(8400, -2900), at(8800, -2500)]
+    phalerum = [at(9600, -2500), at(10500, -2700), at(10900, -2900), at(11150, -3300), at(11300, -4100), at(11700, -6500)]
+    gulf = [at(-2500, -6500), at(-1200, -4000), at(100, -2100), at(300, -1500)]
+    kynosoura = [at(1100, -1350), at(1400, -1150), at(1100, -1100), at(300, -1130), at(-400, -1140), at(-850, -1150)]
+    ambelaki = [at(-1300, -1050), at(-1800, -1150), at(-2150, -1000), at(-2150, -750), at(-1800, -650), at(-1450, -650), at(-1120, -450)]
+    paloukia = [at(-1400, -300), at(-1700, -150), at(-2100, -100), at(-2600, -50), at(-3100, 150), at(-3150, 700), at(-2900, 1300), at(-2000, 2500), at(-1900, 3900)]
+    return [*north, *ATTIC_SHORE, *piraeus, *phalerum, *gulf, *kynosoura, *ambelaki, *paloukia]
 
 
 # The Greek baseline: left end just south of St George's islet, right end just
@@ -157,9 +181,13 @@ def build() -> dict:
     deploy_ds = {"phoenicians": 120, "persian-centre": 60, "carians": 30, "ionians": 0}
 
     athenian_push = line(G["athenians"][0] + 100, 245)
+    # Artemisia's flight (Herodotus 8.87-88); where in the strait it happened is not known.
+    artemisia_flight = line(3300, 700)
+    calyndian_at = line(3480, 760)
+    artemisia_ram = line(3450, 750)
     # Where the broken Persian squadrons are as the front collapses.
     centre_broken = line(2550, 470)
-    carians_flight = line(3000, 600)
+    carians_flight = line(3150, 560)
     phoenicians_aground = line(P["phoenicians"][0] + 200, 430)
     centre_wedge = line(1950, 330)
 
@@ -180,7 +208,7 @@ def build() -> dict:
     strait_cam = {"center": at(-300, -350), "zoom": 13.1}
 
     doc: dict = {
-        "schema": 1,
+        "schema": 2,
         "slug": "battle-of-salamis",
         "kind": "naval_battle",
         "entity": {"name": "Battle of Salamis", "wikidata": "Q178850"},
@@ -255,13 +283,13 @@ def build() -> dict:
             },
         ],
         "units": [
-            {"id": "athenians", "side": "greeks", "kind": "warship", "label": "Athenians", "strength": "200 triremes",
+            {"id": "athenians", "side": "greeks", "kind": "warship", "label": "Athenians", "strength": "200 triremes", "strength_n": 200,
              "commander": "Themistocles", "note": "180 Athenian triremes and 20 more lent to crews from Chalcis"},
-            {"id": "corinthians", "side": "greeks", "kind": "warship", "label": "Corinthians", "strength": "40 triremes",
+            {"id": "corinthians", "side": "greeks", "kind": "warship", "label": "Corinthians", "strength": "40 triremes", "strength_n": 40,
              "commander": "Adeimantus", "note": "Said by the Athenians to have fled north; the other Greeks denied it"},
             {"id": "greek-centre", "side": "greeks", "kind": "warship", "label": "Megarians & islanders", "strength": "c. 47 triremes",
              "note": "Megara 20, Eretria 7, Ambracia 7, Naxos 4, Leucas 3 and small island crews"},
-            {"id": "aeginetans", "side": "greeks", "kind": "warship", "label": "Aeginetans", "strength": "30 triremes",
+            {"id": "aeginetans", "side": "greeks", "kind": "warship", "label": "Aeginetans", "strength": "30 triremes", "strength_n": 30,
              "note": "Judged the bravest of the Greeks that day"},
             {"id": "spartans", "side": "greeks", "kind": "warship", "label": "Spartans & Peloponnesians", "strength": "c. 49 triremes",
              "commander": "Eurybiades", "note": "Sparta 16, Sicyon 15, Epidaurus 10, Troezen 5, Hermione 3"},
@@ -280,6 +308,10 @@ def build() -> dict:
              "note": "Ionians 100, Hellespontines 100, Aeolians 60, Dorians 30"},
             {"id": "egyptians", "side": "persia", "kind": "warship", "label": "Egyptians", "strength": "200 at the muster",
              "commander": "Achaemenes", "note": "Sent round Salamis to close the Megara channel (Diodorus)"},
+            {"id": "artemisia", "side": "persia", "kind": "ship", "label": "Artemisia's ship", "commander": "Artemisia",
+             "note": "Chased by the Athenian Ameinias, she escaped by ramming a ship of her own side"},
+            {"id": "calyndian", "side": "persia", "kind": "ship", "label": "Calyndian ship",
+             "note": "Carrying Damasithymus, king of Calynda; rammed and sunk by Artemisia (Herodotus 8.87)"},
             {"id": "psyttaleia-troops", "side": "persia", "kind": "infantry", "label": "Persian troops",
              "strength": "c. 400", "note": "Landed on Psyttaleia to kill or take Greeks washed ashore"},
             {"id": "xerxes", "side": "persia", "kind": "commander", "label": "Xerxes", "wikidata": "Q129165"},
@@ -292,12 +324,11 @@ def build() -> dict:
             {"id": "salamis-town", "kind": "town", "label": "Salamis (old town)", "at": [23.5340, 37.9515]},
             {"id": "ambelaki-bay", "kind": "label", "label": "Bay of Ambelaki", "at": [23.5440, 37.9480]},
             {"id": "salamis-island", "kind": "label", "label": "SALAMIS", "at": [23.4700, 37.9180]},
+            {"id": "sea", "kind": "sea", "label": "Sea, 480 BC (approx.)", "area": sea_area(), "conjectural": True},
+            {"id": "megara-water", "kind": "sea", "area": ellipse(MEGARA_CHANNEL["at"], 450, 250, rotate=-30), "conjectural": True},
             {"id": "aigaleo", "kind": "ridge", "label": "Mount Aigaleo",
              "line": path((23.5638, 37.9733), (23.5766, 37.9713), (23.5895, 37.9685), (23.6126, 37.9765), (23.6195, 37.9971))},
-            {"id": "attic-shore", "kind": "coast", "label": "Attic shore, 480 BC (approx.)",
-             "line": path((23.5534, 37.9797), (23.5539, 37.9687), (23.5566, 37.9625), (23.5641, 37.9614),
-                          (23.5734, 37.9614), (23.5799, 37.9607), (23.5891, 37.9592), (23.5975, 37.9585),
-                          (23.6049, 37.9600), (23.6077, 37.9534), (23.6073, 37.9482))},
+            {"id": "attic-shore", "kind": "coast", "label": "Attic shore, 480 BC (approx.)", "line": ATTIC_SHORE},
             {"id": "piraeus", "kind": "label", "label": "Piraeus (Munychia)", "at": list(MUNYCHIA)},
             {"id": "phalerum", "kind": "town", "label": "Phalerum", "at": list(PHALERUM)},
             {"id": "athens", "kind": "town", "label": "Athens (sacked)", "at": list(ATHENS)},
@@ -352,6 +383,7 @@ def build() -> dict:
             "without risking a sea battle at all; the king and his other advisers chose to fight."
         ),
         "camera": {"center": [23.6200, 37.9420], "zoom": 11.35},
+        "light": "dusk",
         "moves": [{"side": "greeks", "type": "march", "path": sicinnus, "label": "Sicinnus' boat"}],
         "notes": [
             {"at": [23.6800, 37.9330], "text": "\"The Greeks will flee tonight\"", "kind": "event"},
@@ -361,12 +393,14 @@ def build() -> dict:
 
     # 3 ── the night blockade
     night_moves = [
-        {"unit": "phoenicians", "type": "march", "path": _phalerum_to("phoenicians", NIGHT["phoenicians"]["at"], ROUND_PIRAEUS)},
-        {"unit": "persian-centre", "type": "march", "path": _phalerum_to("persian-centre", NIGHT["persian-centre"]["at"], [*ROUND_PIRAEUS[:2], at(3000, -1950)])},
-        {"unit": "carians", "type": "march", "path": _phalerum_to("carians", NIGHT["carians"]["at"], [*ROUND_PIRAEUS[:2], at(2600, -2600)])},
-        {"unit": "ionians", "type": "march", "path": _phalerum_to("ionians", NIGHT["ionians"]["at"], [*ROUND_PIRAEUS[:2], at(1600, -2700)])},
-        {"unit": "egyptians", "type": "march", "path": _round_salamis(), "label": "Egyptians round Salamis"},
-        {"unit": "psyttaleia-troops", "type": "march", "path": path([23.6650, 37.9290], *ROUND_PIRAEUS[:2], at(2700, -2000), PSYTTALEIA)},
+        {"unit": "phoenicians", "type": "march", "path": _phalerum_to("phoenicians", NIGHT["phoenicians"]["at"], ROUND_PIRAEUS), "orient": "path"},
+        {"unit": "persian-centre", "type": "march", "path": _phalerum_to("persian-centre", NIGHT["persian-centre"]["at"], [*ROUND_PIRAEUS[:2], at(3000, -1950)]), "orient": "path"},
+        {"unit": "carians", "type": "march", "path": _phalerum_to("carians", NIGHT["carians"]["at"], [*ROUND_PIRAEUS[:2], at(2600, -2600)]), "orient": "path"},
+        {"unit": "ionians", "type": "march", "path": _phalerum_to("ionians", NIGHT["ionians"]["at"], [*ROUND_PIRAEUS[:2], at(1600, -2700)]), "orient": "path"},
+        {"unit": "egyptians", "type": "march", "path": _round_salamis(), "label": "Egyptians round Salamis", "orient": "path", "conjectural": True},
+        {"unit": "psyttaleia-troops", "type": "landing", "path": path([23.6650, 37.9290], *ROUND_PIRAEUS[:2], at(2700, -2000), PSYTTALEIA)},
+        # The cordon across the eastern exits, from off Kynosoura past Psyttaleia to the Attic shore.
+        {"side": "persia", "type": "blockade", "path": path(at(1350, -1300), at(2150, -1350), at(3550, -1250))},
     ]
     steps.append({
         "id": "night-blockade",
@@ -381,6 +415,7 @@ def build() -> dict:
             "dawn Aristides crossed from Aegina with the news that the Greeks were surrounded: there was no "
             "longer any choice but to fight."
         ),
+        "light": "night",
         "positions": {
             **{uid: dict(pl) for uid, pl in NIGHT.items()},
             "egyptians": dict(MEGARA_CHANNEL),
@@ -405,7 +440,10 @@ def build() -> dict:
             "scribes beside him to record which captains fought well."
         ),
         "camera": {"center": at(600, -500), "zoom": 12.85},
+        "light": "dawn",
         "positions": {
+            "egyptians": {"frame": False},
+            "persian-base": {"frame": False},
             "athenians": g_pos("athenians", g_form),
             "greek-centre": g_pos("greek-centre", g_form),
             "aeginetans": g_pos("aeginetans", g_form),
@@ -418,7 +456,7 @@ def build() -> dict:
             {"unit": "greek-centre", "type": "advance", "path": path(G_BEACH["greek-centre"]["at"], at(-1100, -900), line(G["greek-centre"][0], g_form))},
             {"unit": "aeginetans", "type": "advance", "path": path(G_BEACH["aeginetans"]["at"], line(G["aeginetans"][0], g_form))},
             {"unit": "spartans", "type": "advance", "path": path(G_BEACH["spartans"]["at"], line(G["spartans"][0], g_form))},
-            {"unit": "corinthians", "type": "advance", "path": path(G_BEACH["corinthians"]["at"], at(-2700, 950), CORINTH_LINE["at"])},
+            {"unit": "corinthians", "type": "advance", "path": path(G_BEACH["corinthians"]["at"], at(-2700, 950), CORINTH_LINE["at"]), "orient": "path"},
             {"unit": "xerxes", "type": "march", "path": path(PERSIAN_BASE, [23.6400, 37.9600], [23.5800, 37.9700], XERXES_SEAT)},
         ],
         "notes": [{"at": at(-700, -350), "text": "Greek paean echoes across the strait", "kind": "event"}],
@@ -448,11 +486,12 @@ def build() -> dict:
             "coming round the island."
         ),
         "camera": {"center": at(-200, 1000), "zoom": 12.4},
+        "light": "day",
         "positions": {
             uid: p_pos(uid, p_deploy, ds=deploy_ds[uid]) for uid in P
         } | {"corinthians": dict(CORINTH_NORTH)},
-        "moves": [{"unit": uid, "type": "advance", "path": p} for uid, p in persian_in.items()]
-        + [{"unit": "corinthians", "type": "feint", "path": path(CORINTH_LINE["at"], at(-1500, 2200), CORINTH_NORTH["at"]), "label": "Corinthians sail north"}],
+        "moves": [{"unit": uid, "type": "advance", "path": p, "orient": "path"} for uid, p in persian_in.items()]
+        + [{"unit": "corinthians", "type": "feint", "path": path(CORINTH_LINE["at"], at(-1500, 2200), CORINTH_NORTH["at"]), "label": "Corinthians sail north", "orient": "path"}],
         "focus": list(P),
     })
 
@@ -474,11 +513,14 @@ def build() -> dict:
         "positions": {
             **{uid: g_pos(uid, g_back) for uid in G},
             **{uid: p_pos(uid, p_press, state="wavering") for uid in P},
+            "corinthians": {"frame": False},  # away up the northern channel until evening
         },
         "moves": [
-            {"unit": uid, "type": "retreat", "path": path(line(G[uid][0], g_form), line(G[uid][0], g_back))} for uid in G
+            {"unit": uid, "type": "back_water", "path": path(line(G[uid][0], g_form), line(G[uid][0], g_back))} for uid in G
         ] + [
             {"unit": uid, "type": "advance", "path": path(deployed[uid], line(P[uid][0], p_press))} for uid in P
+        ] + [
+            {"side": "greeks", "type": "ram", "path": path(line(1500, g_back + 60), line(1500, p_press - P_DEPTH / 2)), "label": "Ameinias"},
         ],
         "notes": [{"at": line(1500, 120), "text": "Ameinias rams first", "kind": "clash"}],
     })
@@ -502,8 +544,7 @@ def build() -> dict:
             **{uid: p_pos(uid, p_contact, state="engaged") for uid in P},
         },
         "moves": [
-            {"unit": uid, "type": "charge" if uid == "athenians" else "attack",
-             "path": path(line(G[uid][0], g_back), line(G[uid][0], g_strike))} for uid in G
+            {"unit": uid, "type": "ram", "path": path(line(G[uid][0], g_back), line(G[uid][0], g_strike))} for uid in G
         ],
         "notes": [
             {"at": line(1000, 360), "text": "Ariabignes killed", "kind": "death"},
@@ -535,6 +576,8 @@ def build() -> dict:
             "persian-centre": {"at": centre_broken, "state": "wavering"},
             "carians": {"at": carians_flight, "facing": ALONG, "state": "routed"},
             "ionians": p_pos("ionians", p_contact + 60, state="engaged"),
+            "artemisia": {"from": "carians", "at": artemisia_flight, "facing": ALONG, "conjectural": True},
+            "calyndian": {"at": calyndian_at, "facing": ALONG, "conjectural": True},
         },
         "moves": [
             {"unit": "athenians", "type": "attack", "path": path(line(G["athenians"][0], g_strike), athenian_push)},
@@ -542,10 +585,18 @@ def build() -> dict:
             {"unit": "phoenicians", "type": "rout", "path": path(line(P["phoenicians"][0], p_contact), phoenicians_aground)},
             {"unit": "carians", "type": "retreat", "path": path(line(P["carians"][0], p_contact), carians_flight)},
             {"unit": "persian-centre", "type": "retreat", "path": path(line(P["persian-centre"][0], p_contact), centre_broken)},
+            {"unit": "artemisia", "type": "retreat", "path": path(line(P["carians"][0], p_contact), artemisia_flight), "conjectural": True},
+        ],
+        "beats": [
+            {
+                "label": "Artemisia, chased by Ameinias, rams one of her own side",
+                "positions": {"artemisia": {"at": artemisia_ram}, "calyndian": {"state": "sunk"}},
+                "moves": [{"unit": "artemisia", "type": "ram", "path": path(artemisia_flight, artemisia_ram), "conjectural": True}],
+                "notes": [{"at": line(3480, 840), "text": "Artemisia sinks a Calyndian ship", "kind": "event"}],
+            },
         ],
         "notes": [
             {"at": line(1500, 650), "text": "Phoenician ships run aground", "kind": "event"},
-            {"at": line(3150, 720), "text": "Artemisia sinks a Calyndian ship", "kind": "event"},
         ],
         "focus": ["phoenicians", "greek-centre", "carians"],
     })
@@ -583,12 +634,13 @@ def build() -> dict:
             "carians": {"at": rout_targets["carians"], "facing": 140, "width": 220, "depth": 160, "state": "routed"},
             "ionians": {"at": rout_targets["ionians"], "facing": 110, "width": 600, "depth": 200, "state": "routed"},
             "phoenicians": {"at": rout_targets["phoenicians"], "facing": 100, "width": 600, "depth": 230, "state": "routed"},
+            "artemisia": {"into": "carians"},
         },
         "moves": [
-            {"unit": "persian-centre", "type": "rout", "path": path(centre_broken, at(1500, -650), rout_targets["persian-centre"])},
-            {"unit": "carians", "type": "rout", "path": path(carians_flight, at(2200, -950), rout_targets["carians"])},
+            {"unit": "persian-centre", "type": "rout", "path": path(centre_broken, at(1500, -650), rout_targets["persian-centre"]), "orient": "path"},
+            {"unit": "carians", "type": "rout", "path": path(carians_flight, at(2200, -950), rout_targets["carians"]), "orient": "path"},
             {"unit": "ionians", "type": "rout", "path": path(line(P["ionians"][0], p_contact + 60), rout_targets["ionians"])},
-            {"unit": "phoenicians", "type": "rout", "path": path(phoenicians_aground, at(0, 120), rout_targets["phoenicians"])},
+            {"unit": "phoenicians", "type": "rout", "path": path(phoenicians_aground, at(0, 120), rout_targets["phoenicians"]), "orient": "path"},
             {"unit": "aeginetans", "type": "flank", "path": path(line(G["aeginetans"][0], g_strike + 120), at(1100, -900), aeg_ambush)},
             {"unit": "athenians", "type": "pursuit", "path": path(athenian_push, athenians_chase)},
             {"unit": "greek-centre", "type": "pursuit", "path": path(centre_wedge, centre_chase)},
@@ -616,12 +668,13 @@ def build() -> dict:
             "hoplites": {"at": hoplites_land, "facing": 120, "width": 250, "depth": 40, "state": "engaged"},
             **{uid: {"state": "ready"} for uid in G},
             "psyttaleia-troops": {"state": "destroyed"},
+            "calyndian": {"state": "hidden"},
             **{uid: {"at": off_piraeus[uid], "facing": 120} for uid in off_piraeus},
         },
         "moves": [
-            {"unit": "hoplites", "type": "attack", "path": path(at(-900, -1330), at(0, -1700), at(1000, -1900), hoplites_land), "label": "Aristides crosses"},
+            {"unit": "hoplites", "type": "landing", "path": path(at(-900, -1330), at(0, -1700), at(1000, -1900), hoplites_land), "label": "Aristides crosses"},
         ] + [
-            {"unit": uid, "type": "rout", "path": path(rout_targets[uid], *([at(2300, -950), at(3200, -1300)] if uid in ("phoenicians", "ionians") else [at(3200, -1300)]), off_piraeus[uid])}
+            {"unit": uid, "type": "rout", "path": path(rout_targets[uid], *([at(2300, -950), at(3200, -1300)] if uid in ("phoenicians", "ionians") else [at(3200, -1300)]), off_piraeus[uid]), "orient": "path"}
             for uid in off_piraeus
         ],
         "notes": [{"at": dest(PSYTTALEIA, 160, 300), "text": "Persian garrison wiped out", "kind": "death"}],
@@ -642,18 +695,19 @@ def build() -> dict:
             "Plataea and Mycale."
         ),
         "camera": {"center": [23.6150, 37.9450], "zoom": 11.4},
+        "light": "dusk",
         "positions": {
             **{uid: {**pl, "state": "routed"} for uid, pl in phalerum_return.items()},
             "athenians": {"at": line(900, 120), "state": "ready"},
             "greek-centre": {"at": line(1950, 60), "state": "ready"},
             "aeginetans": {"at": line(2600, 60), "facing": FACING, "state": "ready"},
             "spartans": {"at": line(3100, 0), "state": "ready"},
-            "corinthians": {**CORINTH_LINE},
+            "corinthians": {**CORINTH_LINE, "frame": True},
             "xerxes": {"with": "persian-base"},
             "hoplites": {"state": "hidden"},
         },
         "moves": [
-            {"unit": uid, "type": "retreat", "path": path(off_piraeus[uid], [23.6400, 37.9150], [23.6600, 37.9200], pl["at"])}
+            {"unit": uid, "type": "retreat", "path": path(off_piraeus[uid], [23.6400, 37.9150], [23.6600, 37.9200], pl["at"]), "orient": "path"}
             for uid, pl in phalerum_return.items()
         ] + [
             {"unit": "corinthians", "type": "march", "path": path(CORINTH_NORTH["at"], at(-1500, 2200), CORINTH_LINE["at"]), "label": "Corinthians return"},

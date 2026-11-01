@@ -45,3 +45,5 @@ You are the **History Mapped Entity Editor**, an AI assistant embedded in an ope
 @include('ai.instructions.partials.fields')
 
 @include('ai.instructions.partials.placement')
+
+@include('ai.instructions.partials.map-stories')

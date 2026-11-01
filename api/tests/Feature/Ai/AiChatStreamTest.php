@@ -9,9 +9,11 @@ use App\Ai\Agents\EntityEditorAgent;
 use App\Ai\Agents\GlobalAgent;
 use App\Ai\Tools\CreateChronicleEntry;
 use App\Ai\Tools\CreateEntity;
+use App\Ai\Tools\CreateMapStory;
 use App\Ai\Tools\CreateRelationship;
 use App\Ai\Tools\FindPlace;
 use App\Ai\Tools\GetEntityContext;
+use App\Ai\Tools\GetMapStory;
 use App\Ai\Tools\MergeDuplicateEntities;
 use App\Ai\Tools\NearestCoast;
 use App\Ai\Tools\PointBetween;
@@ -20,6 +22,8 @@ use App\Ai\Tools\SetEntityLocation;
 use App\Ai\Tools\SetEntityWikidata;
 use App\Ai\Tools\UpdateChronicleEntry;
 use App\Ai\Tools\UpdateEntityFields;
+use App\Ai\Tools\UpdateMapStory;
+use App\Ai\Tools\ValidateMapStory;
 use App\Ai\Tools\VerifyWikidata;
 use App\Models\Chronicle;
 use App\Models\Entity;
@@ -101,8 +105,11 @@ class AiChatStreamTest extends TestCase
         $agent = new EntityEditorAgent($entity, $user, $context);
         $tools = collect($agent->tools());
 
-        // 2 lookups + 4 place tools + 6 staging tools.
-        $this->assertCount(12, $tools);
+        // 2 lookups + 4 place tools + 2 map-story reads + 6 staging tools + 2 map-story staging tools.
+        $this->assertCount(16, $tools);
+        foreach ([GetMapStory::class, ValidateMapStory::class, CreateMapStory::class, UpdateMapStory::class] as $toolClass) {
+            $this->assertTrue($tools->contains(fn ($t) => $t instanceof $toolClass), "{$toolClass} must be in the tools list");
+        }
 
         // Place tools present (read-only).
         foreach ([FindPlace::class, PointFromOffset::class, PointBetween::class, NearestCoast::class] as $toolClass) {
@@ -128,7 +135,7 @@ class AiChatStreamTest extends TestCase
         }
 
         // Every staging tool has the context injected.
-        $readOnly = [GetEntityContext::class, VerifyWikidata::class, FindPlace::class, PointFromOffset::class, PointBetween::class, NearestCoast::class];
+        $readOnly = [GetEntityContext::class, VerifyWikidata::class, FindPlace::class, PointFromOffset::class, PointBetween::class, NearestCoast::class, GetMapStory::class, ValidateMapStory::class];
         $stagingTools = $tools->filter(fn ($t) => ! in_array($t::class, $readOnly, true));
         foreach ($stagingTools as $tool) {
             $reflection = new \ReflectionProperty($tool, 'context');
@@ -627,8 +634,8 @@ class AiChatStreamTest extends TestCase
         $agent = new ChronicleEditorAgent($chronicle, $user, $context);
         $tools = collect($agent->tools());
 
-        // No GetEntityContext: VerifyWikidata + 4 place tools + 8 staging tools.
-        $this->assertCount(13, $tools);
+        // No GetEntityContext: VerifyWikidata + 4 place tools + 2 map-story reads + 8 staging tools + 2 map-story staging tools.
+        $this->assertCount(17, $tools);
 
         // VerifyWikidata present.
         $this->assertTrue(
@@ -645,7 +652,7 @@ class AiChatStreamTest extends TestCase
         }
 
         // Every staging tool (all but the read-only lookups) has context injected.
-        $readOnly = [VerifyWikidata::class, FindPlace::class, PointFromOffset::class, PointBetween::class, NearestCoast::class];
+        $readOnly = [VerifyWikidata::class, FindPlace::class, PointFromOffset::class, PointBetween::class, NearestCoast::class, GetMapStory::class, ValidateMapStory::class];
         $stagingTools = $tools->filter(fn ($t) => ! in_array($t::class, $readOnly, true));
         foreach ($stagingTools as $tool) {
             $reflection = new \ReflectionProperty($tool, 'context');

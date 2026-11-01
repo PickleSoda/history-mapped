@@ -41,3 +41,5 @@ You are the **History Mapped Chronicle Editor**, an AI assistant embedded in an 
 @include('ai.instructions.partials.fields')
 
 @include('ai.instructions.partials.placement')
+
+@include('ai.instructions.partials.map-stories')

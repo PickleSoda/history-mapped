@@ -26,6 +26,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreEntityRequest;
 use App\Http\Requests\Admin\UpdateEntityRequest;
 use App\Models\Entity;
+use App\Models\MapStory;
+use App\Support\MapStory\MapStoryVocabulary;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -160,6 +162,10 @@ class EntityController extends Controller
             'entity' => self::buildEntityDetail($entity),
             'formOptions' => self::buildFormOptions(),
             'ai_context' => ['type' => 'entity', 'id' => $entity->entity_id],
+            // Its map stories (battle maps), edited at /map-stories/{slug}/edit.
+            'map_stories' => MapStory::query()->where('entity_id', $entity->entity_id)->orderBy('year')
+                ->get(['slug', 'title', 'kind', 'year', 'step_count'])->toArray(),
+            'map_story_kinds' => MapStoryVocabulary::STORY_KINDS,
         ]);
     }
 

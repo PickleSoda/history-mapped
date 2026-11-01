@@ -12,6 +12,7 @@ import {
   useFocusPage,
 } from '@/components/atlas/FullPage';
 import { NavBreadcrumb } from '@/components/atlas/NavBreadcrumb';
+import { storyKindLabel } from '@/components/atlas/StoryCard';
 import { StoryPlayerContent } from '@/components/atlas/StoryPlayer';
 import {
   useBrowseTab,
@@ -19,6 +20,7 @@ import {
   useFullPage,
   useSelection,
   useSheet,
+  useMapStory,
   useSheetContent,
   useStoryNav,
 } from '@/hooks';
@@ -29,7 +31,8 @@ import { cn } from '@/lib/utils';
 function SheetDetail() {
   const { clear } = useSelection();
   const { isActive } = useChronicleNav();
-  const { isActive: storyActive } = useStoryNav();
+  const { isActive: storyActive, story } = useStoryNav();
+  const { data: storyData } = useMapStory(story);
   const { expand } = useFullPage();
   return (
     <div className="flex h-full flex-col">
@@ -39,7 +42,11 @@ function SheetDetail() {
           onClick={clear}
           className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[13px] text-muted-foreground hover:bg-muted hover:text-foreground"
         >
-          <ChevronLeft size={15} /> {storyActive ? 'Back to battle map' : isActive ? 'Back to tour' : 'Results'}
+          <ChevronLeft size={15} /> {storyActive
+            ? `Back to ${storyKindLabel(storyData?.kind ?? 'battle').toLowerCase()}`
+            : isActive
+              ? 'Back to tour'
+              : 'Results'}
         </button>
         <ExpandButton
           onClick={expand}
@@ -85,7 +92,8 @@ function SheetChronicle() {
 
 /** Battle map in the sheet: an exit bar over the shared player body. */
 function SheetStory() {
-  const { exit } = useStoryNav();
+  const { exit, story } = useStoryNav();
+  const { data } = useMapStory(story);
   return (
     <div className="flex h-full flex-col">
       <div className="flex flex-none items-center px-2 py-1.5">
@@ -94,7 +102,7 @@ function SheetStory() {
           onClick={exit}
           className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[13px] text-muted-foreground hover:bg-muted hover:text-foreground"
         >
-          <ChevronLeft size={15} /> Exit battle map
+          <ChevronLeft size={15} /> Exit {storyKindLabel(data?.kind ?? 'battle').toLowerCase()}
         </button>
       </div>
       <div className="min-h-0 flex-1">

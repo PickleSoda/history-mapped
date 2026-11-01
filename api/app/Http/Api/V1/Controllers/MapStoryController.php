@@ -13,11 +13,11 @@ class MapStoryController extends Controller
     /**
      * GET /api/v1/map-stories/{slug}
      *
-     * A battle map with its whole document (sides, units, terrain, steps); an
-     * entity's detail lists its stories without documents.
+     * A map story with its whole document (sides, units, features, steps); an
+     * entity's or chronicle's detail lists its stories without documents.
      */
     public function show(string $slug): MapStoryResource
     {
-        return new MapStoryResource(MapStory::query()->where('slug', $slug)->firstOrFail());
+        return new MapStoryResource(MapStory::query()->where('slug', $slug)->firstOrFail(MapStory::DETAIL_COLUMNS));
     }
 }

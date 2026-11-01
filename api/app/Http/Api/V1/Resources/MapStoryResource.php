@@ -10,7 +10,9 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Collection;
 
 /**
- * A map story with its document (GET /map-stories/{slug}).
+ * A map story with its document (GET /map-stories/{slug}). `entity_id` or
+ * `chronicle_id` may be null (a story belongs to at least one); `period` is
+ * its [start, end] year span.
  *
  * @mixin MapStory
  */
@@ -22,12 +24,15 @@ class MapStoryResource extends JsonResource
         return [
             ...self::summary($this->resource),
             'entity_id' => $this->entity_id,
+            'chronicle_id' => $this->chronicle_id,
+            'period' => $this->period_start === null ? null : ['start' => $this->period_start, 'end' => $this->period_end ?? $this->period_start],
+            'ambient' => (bool) $this->ambient,
             'document' => $this->document,
         ];
     }
 
     /**
-     * The list-view shape embedded in an entity's detail.
+     * The list-view shape embedded in an entity's and a chronicle's detail.
      *
      * @return array{id: string, slug: string, kind: string, title: string, year: int|null, step_count: int}
      */

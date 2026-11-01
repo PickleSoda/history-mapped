@@ -63,7 +63,7 @@ Persistent features are the generalised v2 terrain items:
 ```jsonc
 { "id": "s3", "title": "…", "narrative": "…",
   "date": { "year": 1347, "month": 10, "end": { "year": 1348, "month": 3 } },
-  "entry": 4,                        // chronicle stories only: the entry's sequence_order; sync adds "entry_id"
+  "entry": 4,                        // chronicle stories only: the entry's sequence_order as stored (0-based); sync adds "entry_id"
   "entities": [ { "name": "Messina", "wikidata": "Q13666", "role": "first Sicilian outbreak", "show": true } ],
   "features": {                      // = v2 terrain_state (alias accepted; both at once is an error)
     "plague-1348": { "area": [[...ring...], [...ring...]], "intensity": 0.8, "value_label": "≈30–50% died" },
@@ -153,7 +153,7 @@ The `map_stories` table also gains:
     - the entity/chronicle requirement;
     - `side` optional when there are no sides;
     - multipolygon areas;
-    - `area_from_entity`, `entry` (an integer ≥ 1) and the per-kind scale limits.
+    - `area_from_entity`, `entry` (an integer ≥ 0: the 0-based sequence_order as stored) and the per-kind scale limits.
   - Keep `resolve_steps` stable, and add `resolve_features(doc) -> list[dict]`, which gives the feature state per step.
   - Tests: one valid and one invalid case per rule.
 - [ ] **G1.2 Toolkit.**

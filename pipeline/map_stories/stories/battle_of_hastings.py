@@ -74,9 +74,17 @@ class Story:
     def __init__(self) -> None:
         self.cur: dict[str, dict] = {}
         self.steps: list[dict] = []
+        self.phase: dict = {}
 
     def step(self, sid: str, title: str, time: str, narrative: str, **extra) -> None:
         self.steps.append({"id": sid, "title": title, "time": time, "narrative": " ".join(narrative.split()), "positions": {}, "moves": [], "notes": [], **extra})
+        self.phase = self.steps[-1]
+
+    def beat(self, label: str) -> None:
+        """Start a beat of the current step: the placements, arrows and notes
+        that follow play after the step's own, captioned with `label`."""
+        self.phase = {"label": label, "positions": {}, "moves": [], "notes": []}
+        self.s.setdefault("beats", []).append(self.phase)
 
     @property
     def s(self) -> dict:
@@ -90,7 +98,7 @@ class Story:
         arrow from where it stood (or `start`, for a unit entering the field)
         through `via` to its new point."""
         prev = start or self.cur.get(uid, {}).get("at")
-        self.s["positions"][uid] = dict(pl)
+        self.phase["positions"][uid] = dict(pl)
         if "at" in pl:
             self.cur.setdefault(uid, {}).pop("with", None)
         self.cur.setdefault(uid, {}).update(pl)
@@ -98,11 +106,11 @@ class Story:
             mv = {"unit": uid, "type": move, "path": [prev, *[list(v) for v in via], pl["at"]]}
             if mlabel:
                 mv["label"] = mlabel
-            self.s["moves"].append(mv)
+            self.phase["moves"].append(mv)
 
     def pin(self, uid: str, host: str) -> None:
         """Pin a marker to a unit (drawn just behind it, moving with it)."""
-        self.s["positions"][uid] = {"with": host}
+        self.phase["positions"][uid] = {"with": host}
         self.cur[uid] = {"with": host, "at": self.cur[host]["at"]}
 
     def markers(self) -> None:
@@ -113,19 +121,19 @@ class Story:
             if not host:
                 continue
             prev, now = pl["at"], self.cur[host]["at"]
-            host_move = next((m for m in self.s["moves"] if m.get("unit") == host), None)
+            host_move = next((m for m in self.phase["moves"] if m.get("unit") == host), None)
             if host_move and distance(prev, now) > 800:
-                self.s["moves"].append({"unit": uid, "type": host_move["type"], "path": [prev, *host_move["path"][1:]]})
+                self.phase["moves"].append({"unit": uid, "type": host_move["type"], "path": [prev, *host_move["path"][1:]]})
             pl["at"] = now
 
-    def fire(self, uid: str, target: list[float], mlabel: str | None = None) -> None:
-        mv = {"unit": uid, "type": "fire", "path": [self.at(uid), target]}
+    def fire(self, uid: str, target: list[float], mlabel: str | None = None, **extra) -> None:
+        mv = {"unit": uid, "type": "fire", "path": [self.at(uid), target], **extra}
         if mlabel:
             mv["label"] = mlabel
-        self.s["moves"].append(mv)
+        self.phase["moves"].append(mv)
 
     def note(self, at: list[float], text: str, kind: str = "event") -> None:
-        self.s["notes"].append({"at": at, "text": text, "kind": kind})
+        self.phase["notes"].append({"at": at, "text": text, "kind": kind})
 
 
 MARKERS_WITH = {"harold": "housecarls", "william": "norman-knights", "alan": "breton-horse", "eustace": "french-horse"}
@@ -163,7 +171,7 @@ def build() -> dict:
     for uid in ("william", "alan", "eustace"):
         st.pin(uid, MARKERS_WITH[uid])
     st.put("baggage", at=along(ROAD[15:18], 0.35))
-    st.s["moves"].append(
+    st.phase["moves"].append(
         {
             "side": "normans",
             "type": "march",
@@ -222,6 +230,7 @@ def build() -> dict:
     deploy("french-foot", rel(f_arch, 335, ahead=-42), 335, 230, 14, [])
     deploy("french-horse", rel(f_arch, 335, ahead=-110), 335, 200, 22, [])
     st.put("baggage", move="march", via=ROAD[15:10:-1], at=P(820, -760))
+    st.put("standards", at=P(-15, 30))
     st.markers()
 
     # ── 3. Archery ──────────────────────────────────────────────────────────
@@ -312,7 +321,7 @@ def build() -> dict:
     st.put("norman-knights", move="retreat", at=P(-40, -330), facing=0, state="wavering")
     st.put("norman-foot", move="retreat", at=P(-50, -390), state="wavering")
     st.put("french-horse", move="retreat", at=P(400, -255), facing=335, state="wavering")
-    st.put("french-foot", move="retreat", at=P(430, -320), facing=335, state="wavering")
+    st.put("french-foot", move="retreat", at=rel(f_arch, 335, ahead=-42), facing=335, state="wavering")
     st.put("housecarls", state="ready")
     st.put("fyrd-east", state="ready")
     st.markers()
@@ -352,11 +361,13 @@ def build() -> dict:
         "Early afternoon",
         """After a lull in which both armies re-formed, the Normans turned the morning's near
         disaster into a ruse. A body of horsemen rode up against the English line, then
-        pretended to break and galloped back down the slope. Remembering how the Bretons had
-        run, a group of Englishmen left the wall to chase them. Where on the field this happened
-        is not recorded; the map shows it on the right, where the gentler saddle suited
-        horses.""",
-        focus=["french-horse", "feint-followers"],
+        pretended to break and galloped back down the slope, and a group of Englishmen left the
+        wall to chase them. Once the pursuers were well clear of the ridge the riders wheeled
+        about while other knights rode in from the flank, and the English were caught in the
+        open and killed. William of Poitiers says the ruse was played twice. Where on the field
+        it happened is not recorded; the map shows it on the right, where the gentler saddle
+        suited horses.""",
+        focus=["french-horse", "feint-followers", "norman-knights"],
         camera={"center": P(320, -300), "zoom": 15.2},
     )
     st.put("west-pursuers", state="hidden")  # the dead on the hillock: shown in the previous step
@@ -367,40 +378,29 @@ def build() -> dict:
     fe_now = st.cur["fyrd-east"]
     st.put("french-foot", at=P(570, -565), facing=335)  # the right's foot and archers re-form up the spur
     st.put("french-archers", at=P(665, -470), facing=335)
-    st.put("french-horse", move="feint", via=[P(300, -105), P(385, -115)], at=P(530, -470), facing=150, mlabel="Feigned flight")
-    st.put("feint-followers", move="pursuit", start=P(250, -50), via=[P(300, -200)], at=P(420, -365), facing=150, width=150, depth=30)
     st.put("fyrd-east", at=rel(fe_now["at"], fe_now["facing"], right=-25), width=230)
     st.markers()
+    st.beat("Horsemen feign flight; English give chase")
+    st.put("french-horse", move="feint", via=[P(300, -105), P(385, -115)], at=P(530, -470), facing=150, mlabel="Feigned flight")
+    st.put("feint-followers", move="pursuit", start=P(250, -50), via=[P(300, -200)], at=P(420, -365), facing=150, width=150, depth=30)
+    st.markers()
     st.note(P(560, -330), "Horsemen feign flight to draw the English out")
-
-    # ── 9. The trap closes ──────────────────────────────────────────────────
-    st.step(
-        "trap",
-        "The trap closes",
-        "Early afternoon",
-        """Once their pursuers were well clear of the ridge, the fleeing riders wheeled about
-        while other knights rode in from the flank, and the English were caught in the open and
-        killed. William of Poitiers says the ruse was played twice, and most historians accept
-        that feigned flights, a manoeuvre known to Norman and Breton horsemen, were used that
-        day. Each time the shield wall closed up behind its losses, levies of the fyrd taking
-        the places of fallen housecarls, but the line was growing shorter and thinner.""",
-        focus=["french-horse", "norman-knights", "feint-followers"],
-        camera={"center": P(320, -300), "zoom": 15.2},
-    )
+    st.beat("…then wheel on the pursuers")
     ff = st.cur["feint-followers"]["at"]
     st.put("feint-followers", at=ff, width=90, depth=60, shape="circle", state="destroyed")
     st.put("french-horse", move="charge", via=[P(560, -420)], at=rel(ff, 135, ahead=70), facing=315, state="engaged")
     st.put("norman-knights", move="charge", via=[P(160, -360)], at=rel(ff, 260, ahead=110), facing=80, width=220, state="engaged")
     st.markers()
-    st.note(rel(ff, 0, ahead=60), "Riders wheel and cut down the pursuers", "clash")
+    st.note(rel(ff, 200, ahead=80), "Riders wheel and cut down the pursuers", "clash")
 
     # ── 10. The long afternoon ──────────────────────────────────────────────
     st.step(
         "attrition",
         "The long afternoon",
         "c. 14:00–16:00",
-        """Through the afternoon William alternated his arms: archers to wear the line down,
-        then foot and horse together to test it. Twelfth-century writers say he had the bowmen
+        """Each time the shield wall closed up behind its losses, levies of the fyrd taking the
+        places of fallen housecarls. Through the afternoon William alternated his arms: archers
+        to wear the line down, then foot and horse together to test it. Twelfth-century writers say he had the bowmen
         shoot high so that their arrows dropped onto the ranks behind the shields, though the
         accounts written soon after the battle do not mention it. The duke fought in the thick
         of it and had two or, by another account, three horses killed under him. The English,
@@ -417,7 +417,7 @@ def build() -> dict:
     st.put("breton-archers", at=P(-470, -170), facing=10)
     st.put("norman-archers", at=P(-210, -175), facing=0)
     st.put("french-archers", at=P(320, -175), facing=330)
-    st.fire("breton-archers", P(-330, -20), mlabel="Shot high")
+    st.fire("breton-archers", P(-330, -20), mlabel="Shot high", arc=True)
     st.fire("norman-archers", P(-110, 0))
     st.fire("french-archers", P(170, 10))
     st.put("breton-horse", at=P(-330, -265), facing=0, state="ready")
@@ -440,7 +440,7 @@ def build() -> dict:
         focus=["housecarls", "harold", "norman-knights"],
     )
     st.put("housecarls", at=P(-15, 0), facing=175, width=130, depth=110, shape="circle")
-    st.put("harold", at=P(-5, 5), state="destroyed")
+    st.put("harold", at=P(-5, 5), state="killed")
     st.put("norman-knights", move="charge", via=[P(-40, -140)], at=P(-30, -85), facing=0, width=200, state="engaged")
     st.put("breton-horse", move="charge", via=[P(-330, -120)], at=P(-250, -10), facing=60, width=160, state="engaged")
     st.put("french-horse", move="charge", via=[P(260, -110)], at=P(170, 20), facing=290, width=160, state="engaged")
@@ -474,13 +474,14 @@ def build() -> dict:
     st.put("french-horse", move="pursuit", via=[P(100, 500), P(0, 1000)], at=P(-30, 1215), facing=320, width=150, state="engaged")
     st.put("breton-horse", move="pursuit", via=[P(-420, 500)], at=P(-560, 960), facing=330, width=150, state="ready")
     st.put("william", at=P(40, -40))
+    st.put("standards", state="captured", by="normans")
     st.markers()
     st.note(rel(gill, 270, ahead=120), "Malfosse: riders plunge into a hidden ditch", "clash")
     st.note(P(80, 1170), "Eustace of Boulogne badly wounded")
     st.note(P(60, -10), "Harold's standard taken", "capture")
 
     return {
-        "schema": 1,
+        "schema": 2,
         "slug": "battle-of-hastings",
         "kind": "battle",
         "entity": {"name": "Battle of Hastings", "wikidata": "Q83224"},
@@ -539,8 +540,8 @@ def build() -> dict:
                 "polity": {"name": "Kingdom of England", "wikidata": "Q179876"},
                 "commanders": [
                     {"name": "Harold Godwinson", "wikidata": "Q159597", "role": "King of England (killed)"},
-                    {"name": "Gyrth Godwinson", "role": "Earl of East Anglia, Harold's brother (killed)"},
-                    {"name": "Leofwine Godwinson", "role": "Earl, Harold's brother (killed)"},
+                    {"name": "Gyrth Godwinson", "wikidata": "Q1249857", "role": "Earl of East Anglia, Harold's brother (killed)"},
+                    {"name": "Leofwine Godwinson", "wikidata": "Q1249624", "role": "Earl, Harold's brother (killed)"},
                 ],
                 "strength": "c. 7,000–8,000 (estimates range 5,000–13,000)",
                 "losses": "Perhaps 4,000 killed, including the king and his brothers",
@@ -549,12 +550,12 @@ def build() -> dict:
                 "id": "normans",
                 "name": "Norman army",
                 "color": "#1d4ed8",
-                "polity": {"name": "Duchy of Normandy", "wikidata": "Q2219635"},
+                "polity": {"name": "Duchy of Normandy", "wikidata": "Q842091"},
                 "commanders": [
                     {"name": "William the Conqueror", "wikidata": "Q37594", "role": "Duke of Normandy, commander-in-chief"},
                     {"name": "Odo of Bayeux", "role": "Bishop of Bayeux, William's half-brother"},
-                    {"name": "Alan the Red", "role": "Breton division (left)"},
-                    {"name": "William fitzOsbern", "role": "Franco-Flemish division (right)"},
+                    {"name": "Alan the Red", "wikidata": "Q2067294", "role": "Breton division (left)"},
+                    {"name": "William fitzOsbern", "wikidata": "Q1244579", "role": "Franco-Flemish division (right)"},
                     {"name": "Eustace II of Boulogne", "role": "Franco-Flemish division (right)"},
                 ],
                 "strength": "c. 8,000, about a quarter mounted (estimates 7,000–12,000)",
@@ -574,6 +575,8 @@ def build() -> dict:
              "note": "Drawn off the ridge by a feigned flight"},
             {"id": "harold", "side": "english", "kind": "commander", "label": "Harold", "wikidata": "Q159597",
              "note": "Fought on foot beside his standards at the crest"},
+            {"id": "standards", "side": "english", "kind": "standard", "label": "Dragon & Fighting Man",
+             "note": "Harold's two standards: the Dragon of Wessex and his own Fighting Man, later sent to the pope"},
             {"id": "breton-archers", "side": "normans", "kind": "archers", "label": "Breton archers", "strength": "c. 500"},
             {"id": "breton-foot", "side": "normans", "kind": "infantry", "label": "Breton foot", "strength": "c. 1,000",
              "note": "Bretons with men of Anjou, Poitou and Maine"},
@@ -609,7 +612,6 @@ def build() -> dict:
             {"id": "woods-east", "kind": "woods", "label": "Woods", "area": ring(640, 260, 200, 180, -20, k=16)},
             {"id": "road", "kind": "road", "label": "Road to Hastings", "line": ROAD},
             {"id": "oakwood-gill", "kind": "stream", "label": "Oakwood Gill (Malfosse?)", "line": OAKWOOD_GILL},
-            {"id": "standards", "kind": "label", "label": "Standards: Dragon & Fighting Man", "at": P(-15, 30)},
             {"id": "hastings", "kind": "town", "label": "Hastings (Norman camp)", "at": list(HASTINGS)},
         ],
         "steps": st.steps,
