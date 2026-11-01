@@ -69,6 +69,21 @@ Forward-looking / partial design material kept live for direction:
 
 ---
 
+## Production: pending steps and decisions (2026-11-01)
+
+Branch `feat/martin-tiles-ohm-correlation` (tiles + CI-built SPA + tile driver) is merged with `main` b9875b8 and
+verified, not pushed. Prod runs b9875b8's API (deployed 17:17 UTC). Steps, in order, with who does what:
+
+| # | Step | Owner | State / decision |
+|---|------|-------|------------------|
+| 1 | Set GitHub repository variables `VITE_API_URL=https://api.historymapped.org` and `VITE_MAP_TILES_URL=https://api.historymapped.org/tiles` (Settings → Secrets and variables → Actions → Variables). `VITE_APP_NAME` is unused by the SPA; `VITE_ADMIN_ORIGINS` defaults to the API origin. | user | ⬜ The `images` job fails without `VITE_API_URL`, so no deploy runs. |
+| 2 | Push the branch to `main`; CI builds the `api` + `web` images and deploys (`web-dist` → `migrate` → `up -d` → recreate caddy + martin). Then check `https://api.historymapped.org/tiles/atlas_entities` (TileJSON) and `/tiles/atlas_entities/0/0/0` (200, `application/x-protobuf`). | user says go; Claude pushes | ⬜ Do **not** re-run the failed run 41291976458 afterwards: it would reset the droplet to 8c91db9. |
+| 3 | Tile driver | decided | ✅ `TILES_DRIVER` stays `martin` on prod (own pool and cache; Octane has one PHP worker per vCPU). `app` is the fallback: one env line, no SPA rebuild. |
+| 4 | GHCR `web` package visibility | watch | If the first deploy fails at `compose pull`, the new package was created private: make it public (or set `GHCR_USERNAME`/`GHCR_TOKEN`) and re-run the deploy job. |
+| 5 | Map stories on prod (`map_stories` is empty) | user decides | ⬜ Either run `map-stories:sync`, `entities:sync-descriptions`, `map-stories:relink` once in the app container, or approve them as a post-deploy step in `ci.yml` (idempotent, keeps admin/AI edits; writes content on every deploy). |
+| 6 | OHM link backfill on prod (`pipeline:import-ohm-links` + `map-stories:relink`) | user decides | ⬜ Recommended: skip it; the next full content load carries the 2026-10-31 backfill, the 1,063 deactivated name-only refs and the new map points. Alternative: scp `output/ohm_links/2026-10-31/ohm_links.jsonl` to `/opt/history-mapped/output/ohm_links/2026-10-31/` and run the import (auto mode denies ssh/scp to the droplet; needs a permission rule or the user's terminal). |
+| 7 | Full content load to prod | user | ⬜ After the peer session reports the local DB final (date/QID/merge cleanup, backfill_geo). Pull prod's approved contributions first ([content-data-transfer](../implementation-docs/content-data-transfer.md)); `load-content-on-droplet.sh` repairs sequences. |
+
 ## What still needs execution (priority view)
 
 **Pipeline / data quality**
