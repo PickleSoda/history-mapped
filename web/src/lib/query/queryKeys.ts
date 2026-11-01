@@ -5,9 +5,11 @@
  * invalidation and prefetch line up. TanStack hashes object/array keys
  * deterministically, so passing the snapped `Scope` is stable.
  */
+import type { EntitiesByTagsParams } from '@/lib/api/browse';
 import type { ChronicleListParams } from '@/lib/api/chronicles';
 import type { MyContributionsParams } from '@/lib/api/contributions';
 import type { ChronicleGraphParams, EntityGraphParams } from '@/lib/api/graph';
+import type { MapStoryListParams } from '@/lib/api/map-stories';
 import type { ListOptions, MapLayer } from '@/lib/api/params';
 import type { StarListParams } from '@/lib/api/saved';
 import type { Scope, TimeState } from '@/types/atlas';
@@ -53,6 +55,18 @@ export const qk = {
     ['chronicle', slug, 'graph', params] as const,
   /** Public historical-periods reference list (timeline gantt). */
   historicalPeriods: () => ['reference', 'historical-periods'] as const,
+
+  // ── Browse (public site): curated sets, the story index, tag listings.
+  /** Every published curated set (GET /collections). */
+  collections: () => ['collections'] as const,
+  /** One curated set with its resolved items (GET /collections/{slug}). */
+  collection: (slug: string) => ['collections', slug] as const,
+  /** Story index (GET /map-stories); pages are the infinite query's. */
+  mapStoryList: (params: Omit<MapStoryListParams, 'page'>) => ['map-stories', 'list', params] as const,
+  /** Everything carrying the tags (GET /entities?tags=), not scoped to the map;
+   *  pages are the infinite query's. */
+  entitiesByTags: (params: Omit<EntitiesByTagsParams, 'page'>) =>
+    ['entities', 'by-tags', params] as const,
 
   // ── Personal (signed-in) data — everything under the `me` root, so sign-out
   //    can drop it in one `removeQueries({ queryKey: qk.personal() })`.
