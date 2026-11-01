@@ -37,7 +37,11 @@ export { useEntityGraph, useChronicleGraph, useFetchNeighbourhood } from './useG
 export { usePrefetchEntity } from './usePrefetchEntity';
 export { useHistoricalPeriods } from './useHistoricalPeriods';
 
-// Browse (track D): add collection and map-story list hooks here.
+// Browse (track D)
+export { useCollections } from './useCollections';
+export { useCollection } from './useCollection';
+export { useMapStoryList } from './useMapStoryList';
+export { useEntitiesByTag } from './useEntitiesByTag';
 
 // Account (personal, signed-in)
 export { useMe, useLoginRedirect, safeNext } from './useMe';
