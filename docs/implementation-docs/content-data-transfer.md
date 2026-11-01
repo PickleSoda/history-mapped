@@ -36,6 +36,7 @@ What's deliberately **excluded** from the dump, and why:
 |----------|-----|
 | `users`, `roles`, `permissions`, `model_has_*`, `role_has_permissions` | Keep prod's own admin accounts — don't clobber them |
 | `stars`, `saved_folders`, `saved_folder_star`, `contributions` | Per-user data created on prod (saved items, suggested edits) — never overwrite it, and never ship local test rows |
+| `collections` | Curated sets for the public site's browse pages. They ship with the code, not the content: the rows come from `api/resources/collections/*.json` through `php artisan collections:sync`, which the prod `migrate` job runs on every deploy (format: [collections.md](../schemas/collections.md)). Entity refs are Wikidata ids resolved when served and the table has no foreign keys, so a load neither carries nor truncates it: `output/truncate-content.sql` must not list `collections` |
 | `map_story_revisions` | Edit history of map stories, per environment: its `user_id`s are local users (not transferred), it holds up to 50 full documents per story (large, and useless on prod), and prod keeps its own history. Note that the load's `TRUNCATE map_stories … CASCADE` empties prod's revisions anyway |
 | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs`, `sessions`, `password_reset_tokens` | Laravel runtime/volatile state — rebuilt on demand |
 | `migrations` | Prod's migration ledger is managed by `migrate`, not us |
@@ -62,7 +63,8 @@ OUT=output/history-mapped-content-$STAMP.sql
 EXCLUDES="cache cache_locks failed_jobs job_batches jobs migrations \
 password_reset_tokens sessions spatial_ref_sys users roles permissions \
 model_has_permissions model_has_roles role_has_permissions \
-stars saved_folders saved_folder_star contributions map_story_revisions"
+stars saved_folders saved_folder_star contributions map_story_revisions \
+collections"
 ARGS=""
 for t in $EXCLUDES; do ARGS="$ARGS --exclude-table-data=public.$t"; done
 
