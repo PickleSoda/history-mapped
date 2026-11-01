@@ -41,8 +41,10 @@ import {
 } from './browse-model';
 import type { TagNode } from './browse-model';
 
+/** Card shell. `min-w-0`: as a grid item, a card otherwise sets its column to its
+ *  intrinsic minimum width, which overflows a phone-width single column. */
 const CARD =
-  'group relative flex flex-col rounded-xl border bg-card p-4 transition hover:border-foreground/25 hover:shadow-sm focus-within:ring-2 focus-within:ring-ring/50';
+  'min-w-0 group relative flex flex-col rounded-xl border bg-card p-4 transition hover:border-foreground/25 hover:shadow-sm focus-within:ring-2 focus-within:ring-ring/50';
 const STRETCH = "after:absolute after:inset-0 after:content-[''] focus-visible:outline-none";
 const SECONDARY = 'relative z-10 underline-offset-2 hover:text-foreground hover:underline';
 
@@ -219,8 +221,9 @@ export function StoryMapCard({ story: s }: { story: MapStoryListItem }) {
             Read the entry
           </Link>
         )}
+        {/* min-w-0: a nowrap flex item otherwise sets the card's minimum width to the full title. */}
         {s.chronicle && (
-          <Link to={chroniclePagePath(s.chronicle.slug)} className={cn(SECONDARY, 'truncate')}>
+          <Link to={chroniclePagePath(s.chronicle.slug)} className={cn(SECONDARY, 'min-w-0 max-w-full truncate')}>
             Chronicle: {s.chronicle.title}
           </Link>
         )}
