@@ -224,7 +224,7 @@ Find them: `WHERE name ~ '^[0-9]{3,4}( CE)?$'`. Set a location and backfill as i
 | `merge_entities.py` | split-entity duplicates (§3) |
 | `repair_committed_data.py` | bulk QID verify + gap-fill geo/dates |
 | `backfill_summaries.py` | entities missing a summary |
-| `backfill_geo.py` | bulk Wikidata coordinates (writes both tables) (§1) |
+| `backfill_geo.py` | map points from the entity's own OHM feature (QID-tagged; admin_centre/label for polities), else its own Wikidata P625 for point-like types; writes both tables, ties the period to the OHM ref; plan CSV in `output/audit/geo-backfill-*/` (§1) |
 | `locate_events.py` / `hand_locate_events.py` | event locations (§9) |
 | `php artisan entity:backfill` | materialise `geometry_periods` from canonical location |
 
