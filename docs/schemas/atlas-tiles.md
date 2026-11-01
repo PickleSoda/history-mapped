@@ -2,7 +2,7 @@
 
 All-time vector tiles of our entity overlay, served by [Martin](https://martin.maplibre.org/) from PostGIS. The public SPA
 (`web/`) reads them when `VITE_MAP_TILES_URL` is set; the admin app keeps the REST `GET /api/v1/entities/map`. Design:
-[spec 2026-10-31](../superpowers/specs/2026-10-31-atlas-tiles-ohm-correlation-design.md) (decisions D1–D9).
+[spec 2026-10-31](../archive/superpowers-specs/2026-10-31-atlas-tiles-ohm-correlation-design.md) (decisions D1–D9).
 
 Code: `tiles` schema in `api/database/migrations/2026_10_31_000001_create_tiles_schema.php` (helpers + view
 `tiles.atlas_entity_features`) and `2026_10_31_000002_create_atlas_entities_tile_function.php` (`tiles.atlas_entities(z, x, y)`);
