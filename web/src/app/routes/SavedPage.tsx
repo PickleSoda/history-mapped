@@ -19,6 +19,7 @@ import { chronicleHref, entityHref } from '@/lib/atlas-links';
 import { yearSpanText } from '@/lib/chronicle-page';
 import { SAVEABLE_TYPES } from '@/lib/schemas/saved';
 import type { Folder, SaveableType, Star as StarRow } from '@/lib/schemas/saved';
+import { ATLAS_PATH } from '@/lib/site-links';
 import { cn } from '@/lib/utils';
 import { AccountHeading, RequireUser } from './AccountLayout';
 
@@ -481,7 +482,7 @@ function SavedContent() {
               Use the star on any entity, chronicle or relationship in the atlas
               {folder ? ', then file it here from its folder menu' : ''}.
             </p>
-            <Link to="/" className="mt-4 inline-flex h-8 items-center rounded-lg border bg-card px-3 text-[12px] font-medium hover:bg-muted">
+            <Link to={ATLAS_PATH} className="mt-4 inline-flex h-8 items-center rounded-lg border bg-card px-3 text-[12px] font-medium hover:bg-muted">
               Explore the atlas
             </Link>
           </div>

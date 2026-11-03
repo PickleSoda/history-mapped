@@ -1,0 +1,14 @@
+# Martin vector-tile server (dev and prod). Publishes only the tile functions
+# in the `tiles` schema (see docs/schemas/atlas-tiles.md). D9 of the spec.
+listen_addresses: '0.0.0.0:3000'
+route_prefix: /tiles          # NOT base_path: base_path only rewrites TileJSON URLs (verified on 1.16.1)
+cache:
+  size_mb: 128
+  expiry: 5m   # tiles come from a plain view: data edits and backfills must show up without a restart
+postgres:
+  connection_string: ${MARTIN_DATABASE_URL}
+  pool_size: 10
+  auto_publish:
+    tables: false
+    functions:
+      from_schemas: [tiles]

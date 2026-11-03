@@ -16,7 +16,7 @@ three inputs. The map is a persistent WebGL surface that never unmounts.
 | Layer | Technology |
 |---|---|
 | Framework | React 19 + Vite 7 (TypeScript, bundler module resolution) |
-| Routing | react-router-dom v7 — one route (`/`); everything else is URL search params |
+| Routing | react-router-dom v7 — the atlas is one route (`/app`) whose state is URL search params; the public site's pages (landing, browse, entity, chronicle, docs) are routes |
 | URL state | nuqs (typed, validated, per-key search-param hooks) |
 | Server cache | TanStack Query v5 |
 | Ephemeral state | zustand (selector reads) + `useRef` |
@@ -73,8 +73,9 @@ single debounce is what stops history spam and re-fetch storms.
 ```
 app/
   providers.tsx     QueryClientProvider + NuqsAdapter + BrowserRouter
-  router.tsx        the single `/` route → AtlasLayout
+  router.tsx        the route tree: `/app` → AtlasLayout, the site pages, the account pages
   routes/AtlasLayout.tsx  picks DesktopShell or MobileShell by breakpoint
+  routes/site/      SiteLayout (header, footer), LandingPage, EntityRoute, ChronicleRoute, NotFoundPage
 lib/
   api/              typed endpoint fns (entitiesInView, entity, entityTimeline,
                     fetchEntityGraph, fetchChronicleGraph, search, …) over axios
@@ -126,23 +127,108 @@ keeps the three-layer boundary enforceable in one place.
 
 ## Routing
 
-There is **one route**, `/` → `AtlasLayout`, which mounts `DesktopShell` (≥ `md`) or
-`MobileShell` (below it). There is no `<Outlet/>` and no per-panel routes: browse,
-chronicles, selection, search, time, bbox and the full page are all **search params**
-read through the hooks above.
+One SPA, two frames (spec
+[`2026-11-01-public-site-design.md`](../superpowers/specs/2026-11-01-public-site-design.md)). The
+route tree is `app/router.tsx`; every page except the atlas is a lazy chunk.
 
 ```
-/                      AtlasLayout → DesktopShell | MobileShell
+/                          LandingPage                     SiteLayout
+/app                       AtlasLayout → DesktopShell | MobileShell
+/browse                    collections index               SiteLayout
+/browse/stories            battle maps list                SiteLayout
+/browse/collections/:slug  a curated set                   SiteLayout
+/browse/:facet/:tag        everything carrying a tag       SiteLayout
+/entities/:id              EntityRoute (EntityPage)        SiteLayout
+/chronicles/:slug?step=n   ChronicleRoute (ChroniclePage)  SiteLayout
+/docs, /docs/:slug         rendered markdown               SiteLayout
+/login /register /saved /contributions                     AccountLayout
+*                          NotFoundPage                    SiteLayout
+```
+
+### The atlas (`/app`)
+
+`/app` → `AtlasLayout`, which mounts `DesktopShell` (≥ `md`) or `MobileShell` (below it).
+There is no `<Outlet/>` and no per-panel routes: browse, chronicles, selection, search, time,
+bbox and the full page are all **search params** read through the hooks above.
+
+```
+/app                   AtlasLayout → DesktopShell | MobileShell
   ?sel=<uuid>          entity detail (desktop right panel / mobile sheet)
   ?chron=<slug>&step=n chronicle tour (desktop left panel / mobile sheet)
   ?story=<slug>&sstep=n battle map (desktop left panel / mobile sheet; see below)
   ?full=1              expand the focus into its full page (see below)
+  ?t=<year>            the timeline (an instant, or `a..b` for a range)
 ```
 
 The map is persistent: the shells overlay panels on it instead of swapping it out.
 
 **History hygiene:** pan/zoom/scrub/filter-toggle use `replace`; entity select, chronicle
 step and `full` use `push` (so the back button deselects / walks steps / collapses the page).
+nuqs writes these shallowly (`history.pushState` / `replaceState`), so the router's own
+location does not follow them; code that needs the live atlas URL reads `window.location`
+(`useLoginRedirect`).
+
+**Links into the atlas** are built in one place: `atlasHref(params)` in `lib/site-links.ts`
+(`/app?sel=…&full=1`, `/app?story=…&sstep=n`, `/app?sel=…&t=<year>`), wrapped by
+`entityHref` / `chronicleHref` in `lib/atlas-links.ts` for the "open the full page" links
+(saved items, contributions). The PWA manifest's `start_url` is `/app`; the service worker's
+scope stays `/`.
+
+**Links from before `/app`.** The atlas used to live at `/`, so links shared before the move
+carry its state as a query on `/` (`/?sel=…&full=1`, `/?chron=…`, `/?story=…`). The landing
+has no query params of its own: the index route sends `/` with any query to `/app` with the
+same query and hash, replacing the history entry. The rule is pure and tested
+(`legacyAtlasRedirect` in `lib/legacy-redirect.ts`); `inAppPath` applies it too, so a stored
+absolute URL like `https://…/?sel=…` comes back as `/app?sel=…`.
+
+### The site frame
+
+`SiteLayout` (`app/routes/site/SiteLayout.tsx`) wraps every page except the atlas and the
+account pages: a header (wordmark → `/`, Browse, Docs, theme toggle, `UserMenu`, "Open the
+globe" → `/app`; a menu button below `md`), the page in `<Suspense>` with a light skeleton,
+and a footer (explore, project with GitHub and Docs, account). Site pages are ordinary
+documents that scroll the window; a push or replace navigation starts at the top, Back and
+Forward leave the scroll to the browser, and a `#hash` to the page. Each page sets
+`document.title` ("Battle of Cannae · History Mapped") and the meta description through
+`useDocumentMeta` (`lib/document-meta.ts`), restored on unmount. Paths are built with
+`lib/site-links.ts` (`entityPagePath`, `chroniclePagePath`, `collectionPath`, `facetPath`,
+`storiesPath`, `docPath`).
+
+### Link mode: one page, two homes
+
+`EntityPage` and `ChroniclePage` render both as the atlas's full page and as the standalone
+`/entities/:id` and `/chronicles/:slug` pages. What their links do depends on the **link
+mode** (`components/atlas/link-mode.tsx`): `LinkModeProvider({ mode: 'atlas' | 'site' })`,
+read through `usePageNav()`, which returns `{ mode, openEntity, openChronicle, openStory,
+showOnMap, openTag, collapse, close }`. No provider means `atlas`, so nothing under `/app`
+opts in. The URLs are a pure, tested policy (`lib/page-nav.ts`: `siteHref`, `globeHref`,
+`tagOpens`).
+
+| Action in the page | atlas mode (`/app`) | site mode |
+|---|---|---|
+| open another entity | `useSelection().select` (push `sel`) | `/entities/:id` |
+| open a chronicle (step) | `useChronicleNav().enter` (+ `goto`) | `/chronicles/:slug?step=n` |
+| open a battle map (step) | `useStoryNav().enter(slug, step)` | `/app?story=…&sstep=n` (needs the map) |
+| show on map / at a year | `setInstant` + collapse + `useMapFocus` | `/app?sel=…&t=<year>` |
+| a tag pill | `useShowChroniclesTagged` (chronicle tags only) | `/browse/:facet/:tag` (any tag with content) |
+| Collapse / Close | `useFullPage` collapse / `closeEntity` / `collapseChronicle(step)` / `closeChronicle` | no-ops; hidden |
+
+Site mode never writes `sel`, `chron`, `step`, `story`, `sstep` or `full` into the page it is
+on: it stays on the site or leaves for a fresh `/app?…` link. Atlas mode calls the same hooks
+the pages always called. The atlas implementation subscribes to those hooks' URL keys, so
+per-row components take `openEntity` as a prop instead of calling `usePageNav` (`WhatChanged`
+and the chronicle step graphs, like `RelationGraph`'s `onOpen`).
+
+`PageFrame` has a third variant, `site`: no scroll box (the document scrolls; the frame's
+scroll root, which the title observer and `useNearViewport` use, is the document), no
+Collapse / Close, a single column up to `max-w-3xl` (the pages' two-column grids and the
+six-across stats ledger stay narrow), and a sticky header that shows the breadcrumb (`lead`)
+until the title scrolls away, then the page's name, beside the save controls and "Open on the
+globe" (`globeHref`: `/app?sel=<id>&full=1`, or `/app?chron=<slug>(&step=n)&full=1` at the
+step in focus). `EntityRoute` and `ChronicleRoute` add the breadcrumb (Browse › name), the
+document title and the not-found states (an entity id that is not a UUID, or a 404).
+`?step=n` on a chronicle page is 0-based like the atlas `step`, read once on mount (the route
+keys the page on slug and step) and never written back.
 
 ### The full page (`full`)
 
@@ -179,7 +265,7 @@ page. Policy lives in `lib/full-page.ts` (pure, tested); `useFullPage()` exposes
 ### EntityPage
 
 `components/atlas/EntityPage.tsx`, taking the entity id as a prop (`variant: 'page' |
-'sheet'`). In order: header (type, name, alternative names, dates with `date_raw` on hover,
+'sheet' | 'site'`). In order: header (type, name, alternative names, dates with `date_raw` on hover,
 location, Wikidata link) and a stats ledger (began / ended / span / impact meter /
 confidence signal / verification ladder); **summary and significance** as separate
 sections; the relation graph (1 or 2 hops); attributes and tags; chronicle chips; the
@@ -189,7 +275,7 @@ free-form JSON fields are flattened defensively by `lib/entity-format.ts`.
 
 ### ChroniclePage
 
-`components/atlas/ChroniclePage.tsx` (`?chron=<slug>&full=1`), from `useChronicle` (the
+`components/atlas/ChroniclePage.tsx` (`/app?chron=<slug>&full=1`, or `/chronicles/<slug>`), from `useChronicle` (the
 entries' narrative) and `useChronicleGraph` (the graph + per-step membership), joined by
 `entry_id` (`stepRows`; the row index is the `step` param).
 
@@ -362,7 +448,7 @@ page). Contract: `docs/schemas/relation-graph-api.md`.
   scope keys the cache. The grid is two levels finer than the map zoom (a tile ≈ ¼
   viewport), so sub-tile pans = same key = cache hit, zero fetch, while the fetched box
   stays ~1.5–2× the visible span rather than a whole viewport-sized tile ring.
-- **Center-weighted map fetch** — `useEntitiesInView` merges two `/entities/map` layers:
+- **Center-weighted map fetch** (REST mode; tile mode turns it off, see below) — `useEntitiesInView` merges two `/entities/map` layers:
   `outer` (visible area + one grid-tile ring, at the map's own impact threshold) and
   `core` (the middle half of each axis, fetched as if zoomed 3 levels closer — about one
   impact band lower). Dense where the user looks, only prominent pins at the edges.
@@ -379,6 +465,34 @@ page). Contract: `docs/schemas/relation-graph-api.md`.
 - **Prefetch on intent** — hover a row/pin warms `useEntity`; chronicles prefetch step
   n+1.
 
+## Map overlay: tile mode and OHM correlation
+
+- **Tile mode.** It is on when `VITE_MAP_TILES_URL` is set (`web/src/lib/map-tiles.ts`).
+  - The `entities` source reads our all-time vector tiles, from Martin or the app ([contract](../schemas/atlas-tiles.md)).
+  - `useEntitiesInView` is disabled (`enabled: ready && !isMapTilesEnabled()`), so no `/entities/map` requests are sent.
+  - The timeline position and the `g` groups become client-side filters on our fill, line and symbol layers
+    (`entityLayerFilter` / `applyEntityLayerFilters`). The date part is the `start_decdate` / `end_decdate` window from
+    `ohmDateRange`; the group part matches `entity_group`. The filters are re-applied on each style load and when `time` or
+    `groups` change, so scrubbing and group toggles send no requests.
+  - The OHM layers keep `applyOhmLayerDateFilter`. The service worker caches tiles (`atlas-tiles`, stale-while-revalidate).
+  - With the variable unset, the REST path above is unchanged.
+- **OHM correlation.** The logic is in `web/src/lib/ohm-highlight.ts` and is wired in `MapCanvas.tsx`.
+  - Each map has one `OhmCorrelation`. It keeps a signed `osm_id` → entity id index, rebuilt (debounced) on `sourcedata` for
+    our source: from `querySourceFeatures` in tile mode, from the GeoJSON in REST mode.
+  - It sets feature-state `linked` on matching OHM label points, which are then painted in `LINK_COLOR`.
+  - It moves `hover` / `selected` feature-state on two `ohm_admin` polygon layers. These layers stay `visibility: none`, so none of
+    their heavy tiles load, until a linked entity is hovered or selected.
+  - `map-config.ts` adds the `promoteId`s and the `ohm_admin` source when it normalises the style. Our own labels for linked
+    entities also use `LINK_COLOR`.
+  - OHM label clicks resolve through `ohm-resolve.ts`: the loaded tiles first, then the resolver.
+- **Hover: `hoverId`.** The ephemeral store's `hoverId` (`useHover`) is the one hover state.
+  - Writers: Browse-list rows (on enter and leave), and the map's `mousemove`. On the map, our marker wins, else a linked OHM
+    label resolved through the index. The map clears `hoverId` only if it set it.
+  - Readers: list rows, through a per-row selector (`s.hoverId === e.id`), so only the two affected rows re-render.
+  - Readers: the `entities-hover` marker layer, through a filter on `id`. It is not feature-state, because MapLibre rejects
+    feature-state in layout properties.
+  - Readers: `OhmCorrelation.emphasize(hoverId, sel)`, for the OHM polygon.
+
 ## Re-render budget
 
 The map pins, list, panel, and timeline are independent subscribers. The enforced budget:
@@ -390,7 +504,7 @@ The map pins, list, panel, and timeline are independent subscribers. The enforce
 | Scrub (drag) | scrubber readout, ghost filter | list, panel, map source |
 | Release scrub | map pins, list, density | panel (unless sel left view) |
 | Select entity | detail panel + 1 feature-state flag | list, map component, timeline |
-| Hover entity | 1 feature-state flag | everything in React |
+| Hover entity | the 2 affected list rows; `MapCanvas` (its hover effects only call `setFilter` / `setFeatureState`) | rest of the list, panel, timeline |
 | Toggle filter | list, map pins, chips | panel, timeline, top bar |
 
 Bought by: per-key URL subscriptions, snap-before-key, gestures outside React, imperative

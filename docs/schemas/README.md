@@ -14,6 +14,8 @@ Schema specifications for pipeline payloads, import contracts, and georef API re
 
 - [entity-georef-write-request.md](entity-georef-write-request.md) — georef write-request payload.
 - [relation-graph-api.md](relation-graph-api.md) — `GET /entities/{uuid}/graph` and `GET /chronicles/{slug}/graph` response contracts.
+- [atlas-tiles.md](atlas-tiles.md) — Martin vector tiles `{TILES}/atlas_entities/{z}/{x}/{y}`: properties, decimal-date window, per-century cap, signed `ohm_osm_id`, caching, `VITE_MAP_TILES_URL`.
+- [collections.md](collections.md) — curated collections: file format, `collections:sync`, `GET /collections(/{slug})`.
 
 ## Experimental
 

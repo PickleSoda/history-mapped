@@ -3,17 +3,24 @@
  * frame with its sticky header, titled sections, and the stats-ledger cells.
  * Imported only by the lazy page chunks, so it ships with them.
  */
-import { ChevronDown, X } from 'lucide-react';
+import { ChevronDown, Globe, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { createContext, useContext, useEffect, useId, useState } from 'react';
 import type { ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
-export type PageVariant = 'page' | 'sheet';
+/**
+ * Where a page renders: `page` slides over the atlas (desktop), `sheet` is the
+ * mobile sheet's full snap, `site` is a standalone site route (`/entities/:id`,
+ * `/chronicles/:slug`) that scrolls with the document.
+ */
+export type PageVariant = 'page' | 'sheet' | 'site';
 
 interface FrameContext {
-  /** The page's scroll container — the root for IntersectionObservers. */
-  scrollRoot: HTMLElement | null;
+  /** The page's scroll container — the root for IntersectionObservers (the
+   *  document on the site, whose pages scroll the window). */
+  scrollRoot: Element | Document | null;
   /** Register the hero title so the sticky header can name the page once it
    *  scrolls away. */
   setTitle: (el: HTMLElement | null) => void;
@@ -27,7 +34,7 @@ const PageFrameContext = createContext<FrameContext>({
 });
 
 /** The enclosing page's scroll container (null outside a page / pre-mount). */
-export function useScrollRoot(): HTMLElement | null {
+export function useScrollRoot(): Element | Document | null {
   return useContext(PageFrameContext).scrollRoot;
 }
 
@@ -84,6 +91,11 @@ export function HeaderButton({
  * Scrollable page with a sticky header (Collapse / Close) that names the page
  * once its title has scrolled out of view, over an optional colour wash.
  * `resetKey` scrolls back to the top when it changes (a new entity / chronicle).
+ *
+ * The `site` variant is an ordinary document section instead: no scroll box
+ * and no Collapse / Close; its sticky header carries `lead` (the breadcrumb)
+ * until the title scrolls away, the actions and an "Open on the globe" link,
+ * and the content is a single column up to `max-w-3xl`.
  */
 export function PageFrame({
   variant,
@@ -94,6 +106,8 @@ export function PageFrame({
   onCollapse,
   onClose,
   closeLabel = 'Close',
+  globeHref,
+  lead,
   actions,
   children,
 }: {
@@ -105,21 +119,29 @@ export function PageFrame({
   /** Soft colour washed down from the top of the page. */
   wash?: string | null;
   resetKey: string;
-  onCollapse: () => void;
-  onClose: () => void;
+  /** Page / sheet only: the header's Collapse and Close buttons. */
+  onCollapse?: () => void;
+  onClose?: () => void;
   closeLabel?: string;
+  /** Site only: the same page in the atlas ("Open on the globe"). */
+  globeHref?: string;
+  /** Site only: shown at the start of the sticky header until the title
+   *  scrolls away (the breadcrumb). */
+  lead?: ReactNode;
   /** Extra header controls (star / save) shown before Collapse. */
   actions?: ReactNode;
   children: ReactNode;
 }) {
-  const [scrollRoot, setScrollRoot] = useState<HTMLDivElement | null>(null);
+  const [scrollBox, setScrollBox] = useState<HTMLDivElement | null>(null);
   const [title, setTitle] = useState<HTMLElement | null>(null);
   const [titleHidden, setTitleHidden] = useState(false);
   const sheet = variant === 'sheet';
+  const site = variant === 'site';
+  const scrollRoot: Element | Document | null = site ? document : scrollBox;
 
   useEffect(() => {
-    scrollRoot?.scrollTo({ top: 0 });
-  }, [resetKey, scrollRoot]);
+    scrollBox?.scrollTo({ top: 0 });
+  }, [resetKey, scrollBox]);
   useEffect(() => {
     if (!scrollRoot || !title) return;
     const io = new IntersectionObserver(([e]) => setTitleHidden(!e.isIntersecting), {
@@ -130,17 +152,85 @@ export function PageFrame({
     return () => io.disconnect();
   }, [scrollRoot, title]);
 
+  const washLayer = wash && (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-x-0 top-0 h-72"
+      style={{ background: `linear-gradient(to bottom, ${wash}, transparent)` }}
+    />
+  );
+  const stickyName = (
+    <>
+      {name && (
+        <>
+          {accent && <span className="size-2 flex-none rounded-full" style={{ background: accent }} />}
+          <span className="truncate font-heading text-[15px] font-semibold">{name}</span>
+        </>
+      )}
+    </>
+  );
+
+  if (site) {
+    return (
+      <PageFrameContext.Provider value={{ scrollRoot, setTitle, variant }}>
+        <div className="relative">
+          {washLayer}
+          <div
+            className={cn(
+              'sticky top-0 z-20 border-b bg-background/95 backdrop-blur',
+              !titleHidden && 'border-transparent bg-transparent backdrop-blur-none',
+            )}
+          >
+            <div className="mx-auto flex h-14 w-full max-w-3xl items-center gap-2 px-4 sm:px-6">
+              <div className="grid min-w-0 flex-1 items-center">
+                {lead && (
+                  <div
+                    inert={titleHidden}
+                    className={cn(
+                      'col-start-1 row-start-1 min-w-0 transition-opacity duration-200 motion-reduce:transition-none',
+                      titleHidden ? 'opacity-0' : 'opacity-100',
+                    )}
+                  >
+                    {lead}
+                  </div>
+                )}
+                <div
+                  aria-hidden={!titleHidden}
+                  className={cn(
+                    'col-start-1 row-start-1 flex min-w-0 items-center gap-2 transition-opacity duration-200 motion-reduce:transition-none',
+                    titleHidden ? 'opacity-100' : 'pointer-events-none opacity-0',
+                  )}
+                >
+                  {stickyName}
+                </div>
+              </div>
+              {actions}
+              {globeHref && (
+                <Link
+                  to={globeHref}
+                  aria-label="Open on the globe"
+                  title="Open on the globe"
+                  className="inline-flex h-8 flex-none items-center gap-1.5 rounded-lg border bg-card px-2.5 text-[12px] font-medium shadow-xs transition-colors hover:bg-muted"
+                >
+                  <Globe size={14} />
+                  <span className="hidden sm:inline">Open on the globe</span>
+                  <span className="sm:hidden">Globe</span>
+                </Link>
+              )}
+            </div>
+          </div>
+
+          <article className="relative mx-auto w-full max-w-3xl px-4 pb-20 sm:px-6">{children}</article>
+        </div>
+      </PageFrameContext.Provider>
+    );
+  }
+
   return (
     <PageFrameContext.Provider value={{ scrollRoot, setTitle, variant }}>
       <div className="flex h-full min-h-0 flex-col">
-        <div ref={setScrollRoot} className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain">
-          {wash && (
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-x-0 top-0 h-72"
-              style={{ background: `linear-gradient(to bottom, ${wash}, transparent)` }}
-            />
-          )}
+        <div ref={setScrollBox} className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          {washLayer}
 
           <div
             className={cn(
@@ -156,16 +246,13 @@ export function PageFrame({
               )}
               aria-hidden={!titleHidden}
             >
-              {name && (
-                <>
-                  {accent && <span className="size-2 flex-none rounded-full" style={{ background: accent }} />}
-                  <span className="truncate font-heading text-[15px] font-semibold">{name}</span>
-                </>
-              )}
+              {stickyName}
             </div>
             {actions}
-            <HeaderButton icon={ChevronDown} label="Collapse" onClick={onCollapse} compact={sheet} />
-            <HeaderButton icon={X} label={closeLabel} onClick={onClose} compact />
+            {onCollapse && (
+              <HeaderButton icon={ChevronDown} label="Collapse" onClick={onCollapse} compact={sheet} />
+            )}
+            {onClose && <HeaderButton icon={X} label={closeLabel} onClick={onClose} compact />}
           </div>
 
           <article className={cn('relative mx-auto max-w-[1120px] pb-20', sheet ? 'px-4' : 'px-5 md:px-10')}>
@@ -222,12 +309,15 @@ export function Section({
   );
 }
 
-/** The stats ledger: a hairline grid of `Stat` cells. */
+/** The stats ledger: a hairline grid of `Stat` cells (three across at most
+ *  in the site's narrower column). */
 export function StatGrid({ className, children }: { className?: string; children: ReactNode }) {
+  const site = usePageVariant() === 'site';
   return (
     <dl
       className={cn(
-        'mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-xl border bg-border sm:grid-cols-3 lg:grid-cols-6',
+        'mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-xl border bg-border sm:grid-cols-3',
+        !site && 'lg:grid-cols-6',
         className,
       )}
     >

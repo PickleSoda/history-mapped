@@ -39,7 +39,7 @@ export default defineConfig({
         short_name: 'History Mapped',
         description: 'Interactive historical atlas',
         display: 'standalone',
-        start_url: '/',
+        start_url: '/app',
         theme_color: '#ffffff',
         background_color: '#ffffff',
         icons: [
@@ -56,7 +56,10 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
         // Wireframe artifacts in public/ are not app assets.
-        globIgnores: ['**/*.jsx', '**/Historical Atlas Wireframes.html'],
+        // Wireframe artifacts in public/ are not app assets; the docs pages'
+        // chunks (markdown sources, mermaid and its diagram types, ~3 MB) are
+        // fetched on demand instead of precached for every atlas visitor.
+        globIgnores: ['**/*.jsx', '**/Historical Atlas Wireframes.html', 'assets/docs/**'],
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/sanctum\//],
         // The MapLibre chunk exceeds workbox's 2 MB default.
@@ -126,6 +129,17 @@ export default defineConfig({
               cacheableResponse: { statuses: [0, 200] },
             },
           },
+          // Our entity vector tiles (Martin, spec D8). Revalidated in the
+          // background: they change when the data does, Martin sends an ETag.
+          {
+            urlPattern: /\/tiles\/atlas_entities\//i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'atlas-tiles',
+              expiration: { maxEntries: 2000, maxAgeSeconds: DAY_SECONDS },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
           // API reads. Anchored regex so cross-origin (:8000 in dev) matches;
           // /sanctum/csrf-cookie is outside /api/v1 and stays uncached. The
           // authenticated /api/v1/user and /api/v1/me* endpoints (profile,
@@ -145,6 +159,20 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        // Docs-only code lands under assets/docs/, which the service worker
+        // leaves out of its precache (see workbox.globIgnores above).
+        chunkFileNames: (chunk) =>
+          chunk.moduleIds.some((id) =>
+            /\.md\?raw$|\/node_modules\/\.pnpm\/(?:mermaid|katex|@mermaid-js\+[^@/]+)@/.test(id),
+          )
+            ? 'assets/docs/[name]-[hash].js'
+            : 'assets/[name]-[hash].js',
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

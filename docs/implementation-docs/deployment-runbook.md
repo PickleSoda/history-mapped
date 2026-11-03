@@ -58,28 +58,69 @@ Components in the spec: `api` (HTTP), `queue` + `scheduler` (workers), `migrate`
 
 ## 4. Option B — Droplet (cheapest, you own ops)
 
-Files: [`docker/docker-compose.prod.yml`](../../docker/docker-compose.prod.yml), [`docker/Caddyfile`](../../docker/Caddyfile), [`docker/.env.prod.example`](../../docker/.env.prod.example).
+Files: [`docker/docker-compose.prod.yml`](../../docker/docker-compose.prod.yml), [`docker/Caddyfile`](../../docker/Caddyfile), [`docker/.env.prod.example`](../../docker/.env.prod.example), [`docker/martin/config.yaml`](../../docker/martin/config.yaml).
 
 **Two domains.** The admin (Inertia, served by the app) and the customer SPA both live at `/`, so they need separate hostnames:
 - **`APP_DOMAIN`** → the app container (API `/api`, admin UI, OpenAPI `/docs`).
-- **`WEB_DOMAIN`** → the customer SPA (static files, built into the `web_dist` volume by the `web-build` service and served by Caddy). Point an A record for each at the Droplet.
+- **`WEB_DOMAIN`** → the customer SPA (static files: CI builds them into the `web` image, the `web-dist` service installs them into the `web_dist` volume as `releases/<sha>`, and Caddy serves `/srv/web/current`). Point an A record for each at the Droplet.
+
+**Vector tiles.** `APP_DOMAIN/tiles/*` serves the atlas tiles from Postgres ([contract](../schemas/atlas-tiles.md)).
+`TILES_DRIVER` in `docker/.env.prod` picks who answers, with no SPA rebuild either way:
+- `martin` (default): the `martin` sidecar, image `ghcr.io/maplibre/martin:1.16.1`, config
+  [`docker/martin/config.yaml`](../../docker/martin/config.yaml). It connects with the app's `DB_*` credentials (keep `DB_PASSWORD`
+  URL-safe, because it is interpolated into Martin's connection URL). The port is not published. The service sits in the `martin`
+  compose profile, which [`docker/compose-prod.sh`](../../docker/compose-prod.sh) enables from this value: always use the wrapper,
+  a plain `docker compose up -d` would not start it.
+- `app`: the app serves the same tiles at the same URLs (`api/routes/tiles.php`, 5-min cache in Redis). One container fewer;
+  tile requests then share Octane's PHP workers (one per vCPU) with the API.
+- Caddy imports the matching upstream and adds `Cache-Control: public, max-age=300` plus gzip/zstd. It reads the value at start:
+  recreate `caddy` after a change.
+- The SPA switches to tiles only when the repository variable `VITE_MAP_TILES_URL=https://<APP_DOMAIN>/tiles` is set when CI
+  builds the `web` image. Unset keeps the REST GeoJSON overlay.
 
 1. Create a Droplet (≥2 GB RAM), point DNS A records for **both** `APP_DOMAIN` and `WEB_DOMAIN` at it.
 2. Install Docker Engine + Compose plugin.
-3. Clone the repo (the `db` image and the SPA are built locally, so the full repo is needed), then:
+3. Clone the repo (the `db` image is built locally, so the full repo is needed), then:
    ```bash
    cp docker/.env.prod.example docker/.env.prod   # fill APP_KEY, passwords, APP_DOMAIN, WEB_DOMAIN, ...
    docker login ghcr.io                            # PAT with read:packages (skip if package is public)
-   cd docker
-   docker compose --env-file .env.prod -f docker-compose.prod.yml pull
-   docker compose --env-file .env.prod -f docker-compose.prod.yml --profile setup run --rm web-build  # build the SPA
-   docker compose --env-file .env.prod -f docker-compose.prod.yml --profile setup run --rm migrate
-   docker compose --env-file .env.prod -f docker-compose.prod.yml up -d
+   bash docker/compose-prod.sh pull
+   bash docker/compose-prod.sh --profile setup run --rm web-dist   # install the SPA bundle from the web image
+   bash docker/compose-prod.sh --profile setup run --rm migrate
+   bash docker/compose-prod.sh up -d
    ```
-4. Caddy auto-provisions Let's Encrypt TLS for both domains; it proxies `APP_DOMAIN` to the app on 8080 and serves the SPA on `WEB_DOMAIN`.
-5. To update after a new image: `pull`, re-run `web-build` + `migrate`, then `up -d` (the automated SSH deploy does exactly this).
+   (`docker/compose-prod.sh` is `docker compose --env-file docker/.env.prod -f docker/docker-compose.prod.yml` plus the `martin`
+   profile when `TILES_DRIVER=martin`.)
+4. Caddy auto-provisions Let's Encrypt TLS for both domains; it proxies `APP_DOMAIN` to the app on 8080 (and `/tiles/*` to the tile driver) and serves the SPA on `WEB_DOMAIN`.
+5. To update after new images: `pull`, re-run `web-dist` + `migrate`, then `up -d`, then recreate `caddy` (and `martin` when it is the driver; see below). The automated SSH deploy does exactly this.
+   The `migrate` job also runs `php artisan collections:sync`, which loads the curated sets shipped in `api/resources/collections/` (they come with the code, not with content loads).
 
-> **Map-story editor preview.** The admin's map-story editor embeds the SPA (`FRONTEND_URL`) in an iframe and drives it with `postMessage`. The SPA only accepts messages from the origins in `VITE_ADMIN_ORIGINS`, baked in at `web-build` time — set it in `docker/.env.prod` to the admin origin, `https://<APP_DOMAIN>`. The bundle is rebuilt only when the `web/` tree changes (the `WEB_FINGERPRINT` check), so after setting it on a running droplet force one rebuild (`--profile setup run --rm web-build`). Without it the editor still saves, but the preview can't draw drafts or pick points.
+**SPA bundle (built in CI, 2026-11-01).** A `vite build` on the 2 GB droplet starved it of memory and hung a deploy, so the
+bundle is built by the `images` job into `ghcr.io/<owner>/history-mapped/web:<sha>` ([`docker/web/Dockerfile.prod`](../../docker/web/Dockerfile.prod))
+with the `VITE_*` repository variables baked in. On the droplet, `web-dist` ([`docker/web/install-web-dist.sh`](../../docker/web/install-web-dist.sh))
+copies it to `web_dist:/srv/web/releases/<sha>` and renames the `current` symlink onto it, keeping the previous release for a
+rollback: `WEB_IMAGE=ghcr.io/<owner>/history-mapped/web:<old sha> $COMPOSE --profile setup run --rm web-dist`. Files from the
+former on-droplet build remain at the volume root until deleted by hand; Caddy no longer reads them.
+
+**Tiles: first deploy and later changes.** Commands run from the repo root with `COMPOSE="bash docker/compose-prod.sh"`.
+- **Set the flag before the first tiles deploy.** Set the repository variable `VITE_MAP_TILES_URL` before pushing the code; the
+  `images` job bakes it into the `web` image on every push to `main`.
+- **Caddy must be restarted when the Caddyfile changes.** It is a single-file bind mount, and `git pull` replaces the file, so the
+  running container keeps the old copy. `up -d` does not recreate Caddy, because its compose config did not change. The same
+  applies to `docker/martin/config.yaml`.
+- **Martin must be restarted after migrations that add tile functions.** It discovers them only at startup. The app driver
+  needs nothing: it calls the function by name on each request.
+- **The CI deploy does both restarts.** After `migrate` and `up -d` it runs
+  `$COMPOSE up -d --force-recreate --no-deps caddy martin` (with `TILES_DRIVER=app`: `caddy` only, then `$COMPOSE rm -sf martin`,
+  because `--remove-orphans` leaves a profiled service's container alone). When deploying by hand, run the same. Recreating
+  Caddy drops connections briefly on each deploy; certificates persist in the `caddy_data` volume.
+- **Switching the driver** is a `TILES_DRIVER` edit in `docker/.env.prod` followed by the next deploy, or by hand:
+  `$COMPOSE up -d --remove-orphans`, then the recreate line above for the new value. Check with
+  `curl -sI https://<APP_DOMAIN>/tiles/atlas_entities/0/0/0` (200 or 204, `application/x-protobuf`).
+- **Toggling the flag later** is a repository-variable change plus a push to `main` (or a re-run of the `images` and deploy jobs);
+  nothing is rebuilt on the droplet.
+
+> **Map-story editor preview.** The admin's map-story editor embeds the SPA (`FRONTEND_URL`) in an iframe and drives it with `postMessage`. The SPA trusts the API origin (`VITE_API_URL`) by default; other admin origins go in the repository variable `VITE_ADMIN_ORIGINS` (comma-separated), baked into the `web` image by CI.
 
 > Note: migrations run **without** `route:cache` — `/health` and `/user` are closure routes, which `route:cache` rejects (it would fail the one-off job and, with `script_stop: true`, abort the whole SSH deploy).
 
@@ -100,7 +141,9 @@ The `deploy-droplet` job in `.github/workflows/ci.yml` SSHes into the droplet an
 3. **Repo variables** (→ Variables):
    - `DEPLOY_TO_DROPLET` = `true` (enables the job — it stays skipped otherwise).
    - *Optional:* `DROPLET_APP_DIR` if you cloned somewhere other than `/opt/history-mapped`.
-4. Push to `main` → CI builds + pushes the image, then SSHes in and runs `git pull → compose pull → migrate → up -d → prune`.
+   - `VITE_API_URL` = `https://<APP_DOMAIN>` (required: the `images` job fails without it, so no deploy runs).
+   - *Optional:* `VITE_MAP_TILES_URL` = `https://<APP_DOMAIN>/tiles` (atlas tile mode), `VITE_APP_NAME`, `VITE_ADMIN_ORIGINS`.
+4. Push to `main` → CI builds + pushes the `api` and `web` images, then SSHes in and runs `git pull → compose pull → web-dist → migrate → up -d → recreate caddy (+ martin, or remove it under the app driver) → /up health gate → prune`.
 
 **Security:** use a dedicated low-privilege deploy user and an SSH key scoped to that host; the private key lives only in GitHub Secrets.
 

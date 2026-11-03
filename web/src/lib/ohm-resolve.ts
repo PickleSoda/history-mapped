@@ -1,52 +1,91 @@
 /**
  * Resolve a click on the OpenHistoricalMap basemap to one of our entities.
  *
- * The OHM vector layers carry an `@id` ("relation/1880") or `osm_type`/`osm_id`
- * on each feature. We pull that identity off the rendered features near the
- * click and ask the public resolver (GET /map/resolve-ohm-feature) whether any
- * of them is linked to an entity via a geo-ref. Ported from the admin editor's
- * detection, trimmed to the read path.
+ * OHM's Martin-served tiles name each feature by a signed `osm_id` only
+ * (negative = relation, positive = node or way; spec §1, D3). Older tiles
+ * carried `@id` ("relation/1880") or `osm_type` + unsigned `osm_id`; both are
+ * folded into the same signed id. For each OHM feature near the click we
+ * first look the id up in our loaded entity tiles (`ohm_osm_id`, tile mode
+ * only), then ask the public resolver (GET /map/resolve-ohm-feature?osm_id=).
  */
 import type { Map as MapLibreMap, MapMouseEvent, PointLike } from 'maplibre-gl';
 import { api } from '@/lib/api/client';
+import { ENTITY_SOURCE_LAYER, SOURCE_ID, isMapTilesEnabled } from '@/lib/map-tiles';
+import { yearToDecdate } from '@/lib/ohm-date';
 
-type ExternalType = 'node' | 'way' | 'relation';
-interface OhmIdentity {
-  external_type: ExternalType;
-  external_id: string;
+/** An OHM feature named by its signed OSM id (negative = relation). */
+export interface OhmIdentity {
+  osm_id: number;
 }
 
 /** How many distinct nearby OHM features to try before giving up. */
 const MAX_CANDIDATES = 5;
-/** Square half-size (px) around the click used to catch thin boundary lines. */
+/** Square half-size (px) around the click, so a near miss on a label still counts. */
 const HIT_RADIUS_PX = 6;
+/**
+ * OHM boundary lines: their `osm_id` is a member **way** id, never a linkable
+ * identity (spec §1), and a positive way id would otherwise resolve to an
+ * unrelated node ref with the same number. Skipped when collecting candidates.
+ */
+const BOUNDARY_LINE_SOURCE_LAYER = 'land_ohm_lines';
+/**
+ * Slack on the decimal-date comparison: tile decdates are computed in
+ * Postgres and the click year in JS, so a window starting in the clicked year
+ * must not hinge on both sides rounding the sum identically.
+ */
+const DECDATE_EPSILON = 1e-6;
 
-function prefixToType(prefix: string): ExternalType {
-  if (prefix === 'n') return 'node';
-  if (prefix === 'w') return 'way';
-  return 'relation';
+/** A non-zero integer id from a number or numeric string, else null. */
+function toOsmId(value: unknown): number | null {
+  let n = Number.NaN;
+  if (typeof value === 'number') n = value;
+  else if (typeof value === 'string' && /^\s*-?\d+\s*$/.test(value)) n = Number(value);
+  return Number.isSafeInteger(n) && n !== 0 ? n : null;
 }
 
-/** Pull a {type,id} OHM identity off a rendered feature, or null. */
-function extractIdentity(props: Record<string, unknown>): OhmIdentity | null {
+/** Pull a signed OHM identity off a rendered feature's properties, or null. */
+export function extractIdentity(props: Record<string, unknown>): OhmIdentity | null {
   const rawAtId = props['@id'];
   if (typeof rawAtId === 'string' && rawAtId.trim() !== '') {
     const normalized = rawAtId.trim().toLowerCase();
-    const slash = normalized.match(/^(node|way|relation)\/(\d+)$/);
-    if (slash) return { external_type: slash[1] as ExternalType, external_id: slash[2] };
-    const prefix = normalized.match(/^([nwr])(\d+)$/);
-    if (prefix) return { external_type: prefixToType(prefix[1]), external_id: prefix[2] };
+    const match =
+      normalized.match(/^(node|way|relation)\/(\d+)$/) ?? normalized.match(/^([nwr])(\d+)$/);
+    const id = match ? toOsmId(match[2]) : null;
+    if (match && id !== null) return { osm_id: match[1].startsWith('r') ? -id : id };
   }
 
+  const osmId = toOsmId(props.osm_id);
+  if (osmId === null) return null;
+
+  // Legacy tiles paired an unsigned id with its type; sign it the same way.
   const osmType = typeof props.osm_type === 'string' ? props.osm_type.toLowerCase() : null;
-  const osmId = props.osm_id;
-  if (
-    (osmType === 'node' || osmType === 'way' || osmType === 'relation') &&
-    (typeof osmId === 'string' || typeof osmId === 'number')
-  ) {
-    return { external_type: osmType, external_id: String(osmId) };
-  }
+  if (osmType === 'relation') return { osm_id: -Math.abs(osmId) };
+  if (osmType === 'node' || osmType === 'way') return { osm_id: Math.abs(osmId) };
+  return { osm_id: osmId };
+}
 
+/** A finite number from a tile property, else null (absent bound). */
+function toDecdate(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+/**
+ * The first feature whose `[start_decdate, end_decdate]` window contains the
+ * start of `year` (OHM convention, D2), or null. A missing bound is
+ * open-ended, as the layer filter treats a missing `end_decdate`.
+ */
+export function pickFeatureForYear<T extends { properties?: Record<string, unknown> | null }>(
+  features: readonly T[],
+  year: number,
+): T | null {
+  const at = yearToDecdate(year, 'start');
+  for (const feature of features) {
+    const start = toDecdate(feature.properties?.start_decdate);
+    const end = toDecdate(feature.properties?.end_decdate);
+    const started = start === null || start <= at + DECDATE_EPSILON;
+    const notEnded = end === null || end >= at - DECDATE_EPSILON;
+    if (started && notEnded) return feature;
+  }
   return null;
 }
 
@@ -76,40 +115,55 @@ function candidateIdentities(map: MapLibreMap, e: MapMouseEvent): OhmIdentity[] 
   ];
   const features = map.queryRenderedFeatures(box, { layers });
 
-  const seen = new Set<string>();
+  const seen = new Set<number>();
   const out: OhmIdentity[] = [];
   for (const f of features) {
+    if (f.sourceLayer === BOUNDARY_LINE_SOURCE_LAYER) continue;
     const identity = extractIdentity((f.properties ?? {}) as Record<string, unknown>);
-    if (!identity) continue;
-    const key = `${identity.external_type}/${identity.external_id}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
+    if (!identity || seen.has(identity.osm_id)) continue;
+    seen.add(identity.osm_id);
     out.push(identity);
     if (out.length >= MAX_CANDIDATES) break;
   }
   return out;
 }
 
-/** GET the public resolver; returns the entity id on a hit, null on 404. */
+/**
+ * Tile mode: the entity linked to `osmId` among our loaded entity tiles
+ * (`ohm_osm_id`, spec D3) and visible in `year`, or null. Only loaded tiles
+ * are searched, and low zooms cap features per tile (D4), so a miss here
+ * falls through to the resolver.
+ */
+function resolveFromTiles(map: MapLibreMap, osmId: number, year: number): string | null {
+  if (!isMapTilesEnabled() || !map.getSource(SOURCE_ID)) return null;
+  const features = map.querySourceFeatures(SOURCE_ID, {
+    sourceLayer: ENTITY_SOURCE_LAYER,
+    filter: ['==', ['get', 'ohm_osm_id'], osmId],
+  });
+  const id = pickFeatureForYear(features, year)?.properties?.id;
+  return typeof id === 'string' && id ? id : null;
+}
+
+/** Local tile lookup, else GET the public resolver; the entity id or null. */
 async function resolveIdentity(
+  map: MapLibreMap,
   identity: OhmIdentity,
   year: number,
   signal?: AbortSignal,
 ): Promise<string | null> {
   try {
+    const local = resolveFromTiles(map, identity.osm_id, year);
+    if (local) return local;
+
     const { data } = await api.get('/api/v1/map/resolve-ohm-feature', {
       signal,
-      params: {
-        provider: 'ohm',
-        external_type: identity.external_type,
-        external_id: identity.external_id,
-        target_year: year,
-      },
+      params: { provider: 'ohm', osm_id: identity.osm_id, target_year: year },
     });
     const id = (data as { data?: { entity?: { id?: string } } }).data?.entity?.id;
     return typeof id === 'string' && id ? id : null;
   } catch {
-    return null; // 404 (no linked entity) or transient error — treat as a miss.
+    // 404 (no linked entity), a MapLibre query error or a transient error.
+    return null;
   }
 }
 
@@ -124,7 +178,7 @@ export async function resolveOhmClickToEntity(
   signal?: AbortSignal,
 ): Promise<string | null> {
   for (const identity of candidateIdentities(map, e)) {
-    const entityId = await resolveIdentity(identity, year, signal);
+    const entityId = await resolveIdentity(map, identity, year, signal);
     if (entityId) return entityId;
   }
   return null;

@@ -73,8 +73,9 @@ export const STORY_INTERACTIVE_LAYERS = ['story-unit-fill', 'story-unit-glyphs',
 /** Layers a pointer can hover/click for a route, region or place's details. */
 export const STORY_FEATURE_LAYERS = ['story-place-circle', 'story-route-base', 'story-route-disrupted', 'story-region-fill'];
 
-/** Our entity overlay, hidden while a story plays (MapCanvas's layer ids, bottom first). */
-export const ENTITY_LAYERS = ['entities-fill', 'entities-line', 'entities-symbols'];
+/** Our entity overlay, hidden while a story plays (MapCanvas's layer ids, bottom first,
+ *  including the hovered-entity marker). */
+export const ENTITY_LAYERS = ['entities-fill', 'entities-line', 'entities-symbols', 'entities-hover'];
 
 const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] };
 

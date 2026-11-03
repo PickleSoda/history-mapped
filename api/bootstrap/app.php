@@ -6,6 +6,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
@@ -17,6 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
         apiPrefix: 'api',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        // Vector tiles served by the app (TILES_DRIVER=app): Martin's /tiles
+        // URLs, outside the `api` group (no session, CSRF or throttle).
+        then: function (): void {
+            Route::prefix('tiles')->group(base_path('routes/tiles.php'));
+        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Behind Nginx (TLS terminated at the proxy), trust the forwarded

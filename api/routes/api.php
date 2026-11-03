@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Api\V1\Controllers\ChronicleGraphController;
+use App\Http\Api\V1\Controllers\CollectionController;
 use App\Http\Api\V1\Controllers\ContributionController;
 use App\Http\Api\V1\Controllers\EntityChronicleController;
 use App\Http\Api\V1\Controllers\EntityController;
@@ -20,6 +21,10 @@ use App\Http\Api\V1\Controllers\TagController;
 use App\Http\Controllers\Api\V1\ChronicleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+// Entity ids are UUIDs: anything else is a 404 at the router, not a database
+// error from the model binding.
+Route::pattern('entity', '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}');
 
 Route::prefix('v1')->group(function () {
 
@@ -91,9 +96,17 @@ Route::prefix('v1')->group(function () {
         ->name('api.v1.chronicles.show');
 
     // Map stories (step-by-step battle maps)
+    Route::get('/map-stories', [MapStoryController::class, 'index'])
+        ->name('api.v1.map-stories.index');
     Route::get('/map-stories/ambient', MapStoryAmbientController::class)->name('api.v1.map-stories.ambient');
     Route::get('/map-stories/{slug}', [MapStoryController::class, 'show'])
         ->name('api.v1.map-stories.show');
+
+    // Curated collections (public site browse pages; resources/collections)
+    Route::get('/collections', [CollectionController::class, 'index'])
+        ->name('api.v1.collections.index');
+    Route::get('/collections/{slug}', [CollectionController::class, 'show'])
+        ->name('api.v1.collections.show');
 
     // Tags (vocabulary shared by chronicles and entities)
     Route::get('/tags', [TagController::class, 'index'])

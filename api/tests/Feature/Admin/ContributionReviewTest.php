@@ -81,7 +81,7 @@ class ContributionReviewTest extends TestCase
                 ->where('contribution.is_stale', false)
                 ->where('current_diff', null)
                 ->where('current_text', 'Rome fell in 476.')
-                ->where('public_url', config('app.frontend_url').'/?sel='.$entity->entity_id.'&full=1')
+                ->where('public_url', config('app.frontend_url').'/app?sel='.$entity->entity_id.'&full=1')
             );
 
         $entity->update(['summary' => 'The Western Empire fell in 476.']);

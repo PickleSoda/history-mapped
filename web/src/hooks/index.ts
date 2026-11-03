@@ -12,6 +12,9 @@ export { useView } from './useView';
 export { useBasemap } from './useBasemap';
 export { useFullPage } from './useFullPage';
 
+// Public site (track B)
+export { useDocumentMeta } from '@/lib/document-meta';
+
 // Derived
 export { useScope } from './useScope';
 export { useMapInsetsObserver } from './useMapInsetsObserver';
@@ -34,6 +37,12 @@ export { useEntityTimeline } from './useEntityTimeline';
 export { useEntityGraph, useChronicleGraph, useFetchNeighbourhood } from './useGraph';
 export { usePrefetchEntity } from './usePrefetchEntity';
 export { useHistoricalPeriods } from './useHistoricalPeriods';
+
+// Browse (track D)
+export { useCollections } from './useCollections';
+export { useCollection } from './useCollection';
+export { useMapStoryList } from './useMapStoryList';
+export { useEntitiesByTag } from './useEntitiesByTag';
 
 // Account (personal, signed-in)
 export { useMe, useLoginRedirect, safeNext } from './useMe';

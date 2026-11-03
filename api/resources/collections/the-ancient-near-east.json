@@ -1,0 +1,48 @@
+{
+    "slug": "the-ancient-near-east",
+    "title": "The Ancient Near East",
+    "subtitle": "Writing, law and the first empires",
+    "description": "Between the Tigris and the Euphrates people built the first cities, invented writing and wrote down the first law codes. From Uruk and Akkad to Babylon, Assyria and Persia, the region saw empire after empire until Alexander's conquest.",
+    "cover_qid": "Q5684",
+    "sort_order": 50,
+    "items": [
+        {
+            "kind": "chronicle",
+            "ref": "uruk-expansion-and-the-invention-of-writing-in-mesopotamia-c-4000-2900-bce"
+        },
+        {
+            "kind": "entity",
+            "ref": "Q401",
+            "note": "Wedge-shaped signs pressed into clay, first used for accounts."
+        },
+        { "kind": "entity", "ref": "Q8272" },
+        { "kind": "entity", "ref": "Q4461035" },
+        {
+            "kind": "chronicle",
+            "ref": "mesopotamia-in-the-bronze-age-early-dynastic-sumer-to-kassite-babylon-and-middle"
+        },
+        { "kind": "entity", "ref": "Q93304" },
+        { "kind": "entity", "ref": "Q203729" },
+        {
+            "kind": "chronicle",
+            "ref": "amarna-age-great-power-diplomacy-c-1500-1200-bce"
+        },
+        {
+            "kind": "chronicle",
+            "ref": "neo-assyrian-empire-at-its-zenith-c-745-609-bce"
+        },
+        { "kind": "entity", "ref": "Q856544" },
+        { "kind": "entity", "ref": "Q5684" },
+        { "kind": "entity", "ref": "Q8423" },
+        {
+            "kind": "chronicle",
+            "ref": "achaemenid-persian-empire-c-700330-bce"
+        },
+        {
+            "kind": "story",
+            "ref": "battle-of-gaugamela",
+            "note": "Alexander defeats Darius III and the Persian Empire falls."
+        },
+        { "kind": "tag", "ref": "mesopotamia" }
+    ]
+}

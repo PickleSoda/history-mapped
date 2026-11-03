@@ -90,7 +90,7 @@ class MapStoryAdminTest extends TestCase
                 ->where('ai_context.type', 'entity')
                 ->has('vocabulary.unit_kinds')
                 ->has('vocabulary.feature_kinds.route')
-                ->where('preview_url', config('app.frontend_url')));
+                ->where('preview_url', config('app.frontend_url').'/app'));
     }
 
     public function test_update_saves_and_returns_warnings_or_blocks_on_errors(): void

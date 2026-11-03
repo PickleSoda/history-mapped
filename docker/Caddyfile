@@ -5,6 +5,14 @@
 # docker-compose.prod.yml. For a local/staging host without public domains,
 # replace the site addresses with ":80" / ":8081" to serve plain HTTP.
 
+# Tile upstreams, one per TILES_DRIVER value (see the /tiles/* handler).
+(tiles-martin) {
+	reverse_proxy martin:3000
+}
+(tiles-app) {
+	reverse_proxy app:8080
+}
+
 # API + admin (Inertia) + OpenAPI docs — the FrankenPHP/Octane app on :8080.
 {$APP_DOMAIN} {
 	# The AI chat endpoint streams Server-Sent Events (text/event-stream). The
@@ -20,6 +28,17 @@
 		}
 	}
 
+	# Vector tiles for the public atlas. Short TTL: tiles follow the data.
+	# TILES_DRIVER (docker/.env.prod, default martin) picks who answers:
+	# the Martin sidecar, or the app serving the same functions at the same
+	# URLs (routes/tiles.php). Caddy reads it at start: recreate after a change.
+	@tiles path /tiles/*
+	handle @tiles {
+		header Cache-Control "public, max-age=300"
+		encode zstd gzip
+		import tiles-{$TILES_DRIVER:martin}
+	}
+
 	handle {
 		encode zstd gzip
 		reverse_proxy app:8080
@@ -29,7 +48,9 @@
 # Public customer SPA — static files built into the web_dist volume.
 {$WEB_DOMAIN} {
 	encode zstd gzip
-	root * /srv/web
+	# The web-dist service installs each CI-built bundle as releases/<sha> and
+	# points this symlink at it (docker/web/install-web-dist.sh).
+	root * /srv/web/current
 	try_files {path} /index.html   # SPA client-side routing
 	file_server
 }

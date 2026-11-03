@@ -17,14 +17,29 @@ class ResolveOhmFeatureRequest extends FormRequest
     }
 
     /**
+     * A feature is named either by `external_type` + `external_id`, or by the
+     * signed `osm_id` that OHM tiles carry (spec D3: negative = relation,
+     * positive = node or way). The two forms are mutually exclusive.
+     *
      * @return array<string, mixed>
      */
     public function rules(): array
     {
         return [
             'provider' => ['required', 'string', Rule::enum(GeoRefProvider::class)],
-            'external_type' => ['required', 'string', Rule::enum(GeoRefExternalType::class)],
-            'external_id' => ['required', 'string', 'max:255'],
+            'external_type' => ['required_without:osm_id', 'string', Rule::enum(GeoRefExternalType::class), 'prohibits:osm_id'],
+            'external_id' => ['required_without:osm_id', 'string', 'max:255', 'prohibits:osm_id'],
+            // `not_in:0` compares strings, so "-0" / "+0" would slip through and
+            // reach OhmDate::externalTypesForSignedId(0), which throws. Check numerically.
+            'osm_id' => [
+                'required_without:external_id',
+                'integer',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ((int) $value === 0) {
+                        $fail('The osm_id must be a non-zero integer.');
+                    }
+                },
+            ],
             'target_year' => ['required', 'integer'],
         ];
     }

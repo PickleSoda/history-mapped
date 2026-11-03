@@ -7,7 +7,9 @@ name: CI
 #   push to main  -> all of the above, then build & push container images
 #
 # The `images` job builds docker/api/Dockerfile.prod (multi-stage, --no-dev,
-# compiled assets, opcache) and pushes to GHCR tagged with the commit SHA.
+# compiled assets, opcache) and docker/web/Dockerfile.prod (the customer SPA
+# bundle with its VITE_* values baked in, plus an installer) and pushes both
+# to GHCR tagged with the commit SHA. The droplet never builds the SPA itself.
 
 on:
   pull_request:
@@ -236,8 +238,10 @@ jobs:
       # the owner's original case (e.g. "PickleSoda/history-mapped"), which makes
       # buildx reject the tag with "repository name must be lowercase". Normalise
       # it once here and reuse it for both push and scan.
-      - name: Resolve lowercase image name
-        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}/api" >> "$GITHUB_ENV"
+      - name: Resolve lowercase image names
+        run: |
+          echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}/api" >> "$GITHUB_ENV"
+          echo "WEB_IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}/web" >> "$GITHUB_ENV"
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -269,6 +273,44 @@ jobs:
           output: trivy-api.sarif
           severity: HIGH,CRITICAL
           exit-code: "0"   # report-only at first; flip to "1" to gate merges
+
+      # The customer SPA, built here rather than on the droplet: a `vite build`
+      # on the 2 GB box starved it of memory and hung the deploy of 2026-11-01.
+      # Vite bakes VITE_* in at build time, so they come from repository
+      # variables (Settings → Secrets and variables → Actions → Variables),
+      # not from docker/.env.prod. VITE_API_URL is required (the API origin the
+      # browser calls, e.g. https://api.example.org). VITE_MAP_TILES_URL
+      # (https://<APP_DOMAIN>/tiles) switches the atlas to vector tiles; unset
+      # keeps the REST GeoJSON overlay. The image also carries the installer
+      # the deploy runs (web-dist in docker-compose.prod.yml).
+      - name: Check the SPA build variables
+        if: vars.VITE_API_URL == ''
+        run: |
+          echo "::error::Repository variable VITE_API_URL is not set (the SPA's API origin, e.g. https://api.example.org)"
+          exit 1
+
+      - name: Build & push web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/web/Dockerfile.prod
+          push: true
+          tags: |
+            ${{ env.WEB_IMAGE }}:${{ github.sha }}
+            ${{ env.WEB_IMAGE }}:latest
+          # Links the package to this repository, so it inherits the repo's
+          # (public) visibility and the deploy can pull it without a token.
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.description=history-mapped customer SPA bundle and installer
+          build-args: |
+            VITE_API_URL=${{ vars.VITE_API_URL }}
+            VITE_APP_NAME=${{ vars.VITE_APP_NAME || 'history-mapped' }}
+            VITE_MAP_TILES_URL=${{ vars.VITE_MAP_TILES_URL }}
+            VITE_ADMIN_ORIGINS=${{ vars.VITE_ADMIN_ORIGINS }}
+            WEB_RELEASE=${{ github.sha }}
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web,ignore-error=true
 
   # ───────────────────────────────────────────────────────────────────────────
   # Deploy to DigitalOcean App Platform — main branch only, and OPT-IN: the job
@@ -312,8 +354,10 @@ jobs:
     steps:
       # Deploy the exact image this run built (immutable + rollback-able) rather
       # than chasing :latest. Lowercased to satisfy GHCR.
-      - name: Resolve image tag
-        run: echo "APP_IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}/api:${GITHUB_SHA}" >> "$GITHUB_ENV"
+      - name: Resolve image tags
+        run: |
+          echo "APP_IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}/api:${GITHUB_SHA}" >> "$GITHUB_ENV"
+          echo "WEB_IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}/web:${GITHUB_SHA}" >> "$GITHUB_ENV"
 
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.2.0
@@ -327,17 +371,18 @@ jobs:
           # the "SPA bundle current" branch exited 1 silently (right after the
           # image pull) on every deploy that didn't touch web/. The script's own
           # `set -Eeuo pipefail` and ERR trap stop on failure instead.
-          # The action's default is 10m. A deploy that pulls a new image and
-          # rebuilds the SPA can take longer, and a timeout lands after the
-          # build but before migrate/up, leaving the new SPA on the old API.
-          command_timeout: 30m
-          envs: GHCR_USERNAME,GHCR_TOKEN,APP_DIR,APP_IMAGE
+          # The action's default is 10m. Nothing is built on the box any more
+          # (the SPA bundle arrives as an image), so a deploy is two pulls, a
+          # copy, migrate and up; 15m leaves room for a slow pull.
+          command_timeout: 15m
+          envs: GHCR_USERNAME,GHCR_TOKEN,APP_DIR,APP_IMAGE,WEB_IMAGE
           script: |
             set -Eeuo pipefail
             # drone-ssh only reports "Process exited with status 1"; name the command.
             trap 'echo "::error::deploy failed (exit $?) at: $BASH_COMMAND"' ERR
             cd "${APP_DIR:-/opt/history-mapped}"
             export APP_IMAGE="${APP_IMAGE:?image tag not provided}"
+            export WEB_IMAGE="${WEB_IMAGE:?web image tag not provided}"
 
             # Pull new sources (compose, Caddyfile, db build context, web/ src).
             git pull --ff-only
@@ -347,38 +392,35 @@ jobs:
               echo "$GHCR_TOKEN" | docker login ghcr.io -u "${GHCR_USERNAME:-}" --password-stdin
             fi
 
-            COMPOSE="docker compose --env-file docker/.env.prod -f docker/docker-compose.prod.yml"
+            # The wrapper adds the `martin` compose profile when TILES_DRIVER=martin
+            # (the default) in docker/.env.prod, so Martin runs only as the tile driver.
+            COMPOSE="bash docker/compose-prod.sh"
+            TILES_DRIVER="$(sed -n 's/^TILES_DRIVER=//p' docker/.env.prod | tail -n 1 | tr -d '[:space:]')"
+            TILES_DRIVER="${TILES_DRIVER:-martin}"
 
-            # Pull the pinned API image. `</dev/null` keeps it (like the
-            # migrate/web-build runs below) off the SSH session's stdin.
-            $COMPOSE pull --quiet app </dev/null
+            # Pull the pinned API and web images. `</dev/null` keeps it (like
+            # the one-off runs below) off the SSH session's stdin.
+            $COMPOSE pull --quiet app web-dist </dev/null
 
-            # Rebuild the customer SPA only when its built bundle is stale vs the
-            # current checkout — not merely when *this pull* touched web/. We
-            # fingerprint the web/ tree + lockfile (git object hashes, stable
-            # unless those inputs change) and compare against the fingerprint the
-            # last successful build recorded inside the web_dist volume. So a
-            # deploy that pulled web/ changes but failed before building still
-            # rebuilds next time, instead of being skipped forever.
-            WEB_FP="$(git rev-parse 'HEAD:web' 2>/dev/null || echo none):$(git rev-parse 'HEAD:pnpm-lock.yaml' 2>/dev/null || echo none)"
-            # Read the marker straight from the volume's mountpoint (root, instant);
-            # assumes a single compose stack on this host.
-            WEB_VOL="$(docker volume ls -q -f label=com.docker.compose.volume=web_dist 2>/dev/null | head -n1 || true)"
-            WEB_MP="$(docker volume inspect -f '{{.Mountpoint}}' "$WEB_VOL" 2>/dev/null || true)"
-            BUILT_FP="$(cat "${WEB_MP:-/nonexistent}/.web-fingerprint" 2>/dev/null || true)"
-            if [ "$WEB_FP" != "$BUILT_FP" ]; then
-              echo "SPA bundle stale (built='${BUILT_FP:-none}', want='$WEB_FP') → rebuilding"
-              # -T + </dev/null: drone-ssh has no TTY and `compose run` attaches
-              # stdin even with -T; detach it so the build runs non-interactively.
-              # WEB_FINGERPRINT is recorded into the bundle on success (see compose).
-              WEB_FINGERPRINT="$WEB_FP" $COMPOSE --profile setup run --rm -T web-build </dev/null
-            else
-              echo "SPA bundle current ($WEB_FP) → skipping rebuild"
-            fi
+            # Install the CI-built SPA bundle into the web_dist volume as
+            # releases/<sha> and switch Caddy's `current` symlink to it (one
+            # rename, so no half-served tree). -T + </dev/null: drone-ssh has no
+            # TTY and `compose run` attaches stdin even with -T.
+            $COMPOSE --profile setup run --rm -T web-dist </dev/null
 
             # Migrate before the new code takes traffic, then roll the services.
             $COMPOSE --profile setup run --rm -T migrate </dev/null
             $COMPOSE up -d --remove-orphans </dev/null
+            # `up -d` skips both: Caddy keeps the pre-pull Caddyfile (single-file bind
+            # mount), Martin finds new tile functions only at startup. With the app
+            # driver, a Martin left from an earlier setting is stopped and removed
+            # (`--remove-orphans` leaves a profiled service's container alone).
+            if [ "$TILES_DRIVER" = "app" ]; then
+              $COMPOSE up -d --force-recreate --no-deps caddy </dev/null
+              $COMPOSE rm -sf martin </dev/null
+            else
+              $COMPOSE up -d --force-recreate --no-deps caddy martin </dev/null
+            fi
 
             # Health gate: probe /up directly instead of waiting on Docker's
             # health state machine. The container healthcheck's first probe only
@@ -404,3 +446,4 @@ jobs:
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
           APP_DIR: ${{ vars.DROPLET_APP_DIR }}
           APP_IMAGE: ${{ env.APP_IMAGE }}
+          WEB_IMAGE: ${{ env.WEB_IMAGE }}

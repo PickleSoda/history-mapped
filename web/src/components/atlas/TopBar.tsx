@@ -1,4 +1,5 @@
 import { Compass, Globe, MapPin, Search, SlidersHorizontal } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { UserMenu } from '@/components/account/UserMenu';
 import { LayersMenu } from '@/components/atlas/LayersMenu';
 import { ThemeToggle } from '@/components/atlas/ThemeToggle';
@@ -36,15 +37,15 @@ export function TopBar() {
 
   return (
     <header className="flex h-[54px] flex-none items-center gap-3.5 border-b bg-card px-4">
-      {/* Brand */}
-      <div className="flex items-center gap-2">
+      {/* Brand: back to the site's landing page */}
+      <Link to="/" className="flex items-center gap-2 rounded-md outline-none focus-visible:ring-2" title="History Mapped home">
         <span className="grid size-[30px] place-items-center rounded-lg bg-primary text-primary-foreground">
           <Compass size={17} />
         </span>
         <span className="font-heading text-[17px] font-semibold tracking-tight">
           History Mapped
         </span>
-      </div>
+      </Link>
 
       {/* Center: omni-search */}
       <div className="flex flex-1 items-center justify-center gap-3.5">
