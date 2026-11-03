@@ -225,5 +225,7 @@ Find them: `WHERE name ~ '^[0-9]{3,4}( CE)?$'`. Set a location and backfill as i
 | `repair_committed_data.py` | bulk QID verify + gap-fill geo/dates |
 | `backfill_summaries.py` | entities missing a summary |
 | `backfill_geo.py` | map points from the entity's own OHM feature (QID-tagged; admin_centre/label for polities), else its own Wikidata P625 for point-like types; writes both tables, ties the period to the OHM ref; plan CSV in `output/audit/geo-backfill-*/` (§1) |
+| `backfill_dates.py` | start/end years for undated entities from their own Wikidata item (per-type properties; year or decade precision; no conflicting or part-scoped values; never before the entity's own dated DB facts); writes `entity_temporal_ranges` only, then rebuilds those entities' timelines; run before `backfill_geo.py`; plan CSV, pre-apply dump and rollback in `output/audit/dates-backfill-*/` |
+| `audit_ohm_refs.py` | name-only OHM refs that fail backfill_geo's QID-tag rule: WRONG / OK / UNSURE per ref (other item's tag, name, kind, distance from own P625 or capital, dates); `--apply` deactivates WRONG refs without geometry (`source_meta.deactivated_by`), moves their `primary_geo_ref_id`; verdicts, backup and rollback in `output/audit/ohm-refs-*/` |
 | `locate_events.py` / `hand_locate_events.py` | event locations (§9) |
 | `php artisan entity:backfill` | materialise `geometry_periods` from canonical location |
