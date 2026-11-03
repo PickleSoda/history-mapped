@@ -1,25 +1,45 @@
 {
-  "slug": "the-age-of-empires",
-  "title": "The Age of Empires",
-  "subtitle": "Gunpowder empires and seaborne empires, 1450–1750",
-  "description": "After 1450 a handful of great powers divided much of the world between them: the Ottomans, Safavids and Mughals on land, Spain and Portugal across the oceans, and the Qing in China. Explore their conquests, their courts and the treaties that carved up the globe.",
-  "cover_qid": "Q12560",
-  "sort_order": 60,
-  "items": [
-    { "kind": "entity", "ref": "Q12560" },
-    { "kind": "entity", "ref": "Q34503", "note": "Took Constantinople in 1453 at the age of twenty-one." },
-    { "kind": "chronicle", "ref": "ottoman-imperial-rise-from-mehmed-the-conqueror-to-karlowitz-c-14511699-ce" },
-    { "kind": "entity", "ref": "Q745110" },
-    { "kind": "entity", "ref": "Q33296" },
-    { "kind": "entity", "ref": "Q8597" },
-    { "kind": "entity", "ref": "Q9141" },
-    { "kind": "chronicle", "ref": "the-mughal-empire-from-babur-to-aurangzeb-c-14831679-ce" },
-    { "kind": "entity", "ref": "Q80702" },
-    { "kind": "entity", "ref": "Q180897", "note": "Spain and Portugal split the newly found lands along a line in the Atlantic." },
-    { "kind": "chronicle", "ref": "portugal-and-its-seaborne-empire-c-1385-1750-ce" },
-    { "kind": "entity", "ref": "Q8733" },
-    { "kind": "chronicle", "ref": "manchu-qing-conquest-and-the-high-qing-c-1559-1749-ce" },
-    { "kind": "story", "ref": "battle-of-blenheim" },
-    { "kind": "tag", "ref": "empires-states" }
-  ]
+    "slug": "the-age-of-empires",
+    "title": "The Age of Empires",
+    "subtitle": "Gunpowder empires and seaborne empires, 1450–1750",
+    "description": "After 1450 a handful of great powers divided much of the world between them: the Ottomans, Safavids and Mughals on land, Spain and Portugal across the oceans, and the Qing in China. Explore their conquests, their courts and the treaties that carved up the globe.",
+    "cover_qid": "Q12560",
+    "sort_order": 60,
+    "items": [
+        { "kind": "entity", "ref": "Q12560" },
+        {
+            "kind": "entity",
+            "ref": "Q34503",
+            "note": "Took Constantinople in 1453 at the age of twenty-one."
+        },
+        {
+            "kind": "chronicle",
+            "ref": "ottoman-imperial-rise-from-mehmed-the-conqueror-to-karlowitz-c-14511699-ce"
+        },
+        { "kind": "entity", "ref": "Q745110" },
+        { "kind": "entity", "ref": "Q33296" },
+        { "kind": "entity", "ref": "Q8597" },
+        { "kind": "entity", "ref": "Q9141" },
+        {
+            "kind": "chronicle",
+            "ref": "the-mughal-empire-from-babur-to-aurangzeb-c-14831679-ce"
+        },
+        { "kind": "entity", "ref": "Q80702" },
+        {
+            "kind": "entity",
+            "ref": "Q180897",
+            "note": "Spain and Portugal split the newly found lands along a line in the Atlantic."
+        },
+        {
+            "kind": "chronicle",
+            "ref": "portugal-and-its-seaborne-empire-c-1385-1750-ce"
+        },
+        { "kind": "entity", "ref": "Q8733" },
+        {
+            "kind": "chronicle",
+            "ref": "manchu-qing-conquest-and-the-high-qing-c-1559-1749-ce"
+        },
+        { "kind": "story", "ref": "battle-of-blenheim" },
+        { "kind": "tag", "ref": "empires-states" }
+    ]
 }
