@@ -8,6 +8,7 @@ from pipeline.backfill_geo import (
     period_years,
     pick_ohm,
     plan_points,
+    point_years,
 )
 
 LIUZHOU = (109.41, 24.32)
@@ -105,3 +106,35 @@ def test_an_ohm_point_replaces_this_scripts_earlier_wikidata_point() -> None:
     meta = {"Q1": {"coordinates": "Point(2.01 41.01)"}}
     planned, _, _, _ = plan_points([e], {"w": [ref("node", 1)]}, elements, {}, meta)
     assert planned["w"]["tier"] == OHM_TIER and planned["w"]["extid"] == "node/1"
+
+
+def test_the_attested_span_is_the_last_resort_and_is_marked() -> None:
+    attested = entity(start_year=None, attested_start=1134, attested_end=1218)
+    assert point_years(attested) == (1134, 1218, "attested")
+    assert point_years(attested, ref("node", 1, start=1100)) == (1100, None, "ohm_ref")
+    assert point_years(entity(start_year=805, attested_start=1134, attested_end=1218)) == (805, None, "entity")
+    assert point_years(entity(start_year=None)) is None
+
+
+def test_a_point_placed_on_attested_years_is_medium_confidence() -> None:
+    e = entity(entity_id="a", start_year=None, attested_start=-25, attested_end=150)
+    planned, _, _, _ = plan_points([e], {}, {}, {}, {"Q1": {"coordinates": "Point(34.2 26.2)"}})
+    p = planned["a"]
+    assert (p["start"], p["end"], p["years_from"], p["confidence"]) == (-25, 150, "attested", "medium")
+
+
+def test_a_living_city_stays_on_the_map_from_its_first_attested_year() -> None:
+    carcassonne = entity(entity_id="c", start_year=None, attested_start=1348, attested_end=1348)
+    ruin = entity(entity_id="g", wikidata_id="Q2", start_year=None, attested_start=-1550, attested_end=-1550)
+    meta = {"Q1": {"coordinates": "Point(2.35 43.21)", "populated": True},
+            "Q2": {"coordinates": "Point(30.95 29.2)", "populated": False}}
+    planned, _, _, _ = plan_points([carcassonne, ruin], {}, {}, {}, meta)
+    assert (planned["c"]["start"], planned["c"]["end"]) == (1348, None)
+    assert (planned["g"]["start"], planned["g"]["end"]) == (-1550, -1550)
+
+
+def test_a_relation_across_the_antimeridian_gives_no_bbox_point() -> None:
+    fiji = relation(1, bounds=(-179.9, -21.0, 179.9, -16.0))  # corners 25 km apart, centre in the Atlantic
+    assert ohm_point(fiji, {}) is None
+    labelled = relation(1, [("node", 5, "label")], bounds=(-179.9, -21.0, 179.9, -16.0))
+    assert ohm_point(labelled, {5: (178.4, -18.1)}) == (178.4, -18.1, "label")

@@ -397,6 +397,8 @@ def fetch_entity_meta(qids: list[str]) -> dict[str, dict[str, Any]]:
                 **dates,
                 "coordinates": coordinates,
                 "location_qid": location_qid,
+                # A population figure means a living settlement (for places).
+                "populated": "P1082" in claims,
             }
     logger.info("Wikidata meta: %d/%d resolved (batched)", len(out), len(qids))
     return out

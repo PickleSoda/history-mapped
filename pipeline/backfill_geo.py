@@ -25,7 +25,13 @@ Wikidata site (Nanning's QID tags a node named Liuzhou). Relationship inference
 and OSM Nominatim stay out too (bare ancient names hit modern hamlets).
 
 The map reads geometry_periods only, filtered by start_year (NULL shows at every
-year), so a point needs a start year: the entity's own range, else the OHM ref's.
+year), so a point needs a start year: the entity's own range, else the OHM ref's,
+else the span the atlas itself attests: the first to the last year of the
+entity's dated relationships (low confidence ones aside), left open for a city
+Wikidata gives a population and no end date. That span is a lower
+bound, never a founding or end date, so it goes on the period only (with a
+description saying so, confidence medium) and not into entity_temporal_ranges.
+Wikidata had no usable start date for ~5k of these (pipeline/backfill_dates.py).
 Dry run by default; --apply writes in a single transaction. Either way the plan
 is written to --out as CSV. Every period this writes has created_by
 'geo-backfill:ohm' or 'geo-backfill:wikidata_p625'.
@@ -68,6 +74,10 @@ WIKIDATA_POINT_TYPES = frozenset({
     "event_battle", "event_treaty", "event_natural_disaster", "cultural_work",
 })
 MAX_DISAGREE_KM = 50
+# Types whose Wikidata population figure (and no end date) means they still exist.
+LIVING_TYPES = frozenset({"city"})
+ATTESTED_NOTE = ("Years attested in the atlas (from its first dated relationship; to its last, "
+                 "unless the place still exists), not a founding or end date.")
 MAX_BBOX_KM = 1500
 
 # Lower is better: a real node beats a computed centre.
@@ -103,6 +113,10 @@ def ohm_point(el: dict, nodes: dict[int, tuple[float, float]]) -> tuple[float, f
             if m["type"] == "node" and m["role"] == role and m["ref"] in nodes:
                 return (*nodes[m["ref"]], role)
     b = el.get("bounds")
+    # A relation across the 180th meridian (Fiji, Tuvalu) gets a ~360°-wide bbox whose
+    # corners are close, so it looks compact and its centre lands near 0° in the Atlantic.
+    if b and b["maxlon"] - b["minlon"] > 180:
+        return None
     if b and km((b["minlon"], b["minlat"]), (b["maxlon"], b["maxlat"])) <= MAX_BBOX_KM:
         return (b["minlon"] + b["maxlon"]) / 2, (b["minlat"] + b["maxlat"]) / 2, "bbox_centre"
     return None
@@ -154,6 +168,25 @@ def period_years(entity: dict, ref: dict | None = None) -> tuple[int, int | None
     return None
 
 
+def confidence(kind: str, years_from: str) -> str:
+    return "medium" if years_from == "attested" else KIND_CONFIDENCE.get(kind, "high")
+
+
+def point_years(entity: dict, ref: dict | None = None,
+                living: bool = False) -> tuple[int, int | None, str] | None:
+    """period_years, else the attested span; with where the years came from.
+
+    A place that still stands stays on the map from its first attested year on,
+    rather than flashing up for the one year (1348 for Carcassonne) it is cited.
+    """
+    years = period_years(entity, ref)
+    if years is not None:
+        return *years, "entity" if entity["start_year"] is not None else "ohm_ref"
+    if entity.get("attested_start") is not None:
+        return entity["attested_start"], None if living else entity["attested_end"], "attested"
+    return None
+
+
 def overpass(query: str) -> list[dict]:
     for attempt in range(5):
         r = requests.post(OHM_OVERPASS, data={"data": query}, timeout=300,
@@ -197,10 +230,18 @@ def load_state(cur) -> tuple[list[dict], int]:
     cur.execute("""
         SELECT e.entity_id, e.name, e.entity_type::text AS entity_type, e.wikidata_id,
                t.start_year, t.end_year, e.primary_geo_ref_id,
+               a.attested_start, a.attested_end,
                EXISTS (SELECT 1 FROM geometry_periods gp
                        WHERE gp.entity_id = e.entity_id AND gp.created_by = %(wd)s) AS has_wikidata_point
         FROM entities e
         LEFT JOIN entity_temporal_ranges t ON t.entity_id = e.entity_id
+        LEFT JOIN LATERAL (
+            SELECT MIN(r.start_year) AS attested_start,
+                   MAX(COALESCE(r.end_year, r.start_year)) AS attested_end
+            FROM relationships r
+            WHERE (r.source_entity_id = e.entity_id OR r.target_entity_id = e.entity_id)
+              AND r.start_year IS NOT NULL AND r.confidence IS DISTINCT FROM 'low'
+        ) a ON t.start_year IS NULL
         WHERE NOT EXISTS (
             SELECT 1 FROM geometry_periods gp
             WHERE gp.entity_id = e.entity_id
@@ -255,19 +296,20 @@ def plan_points(no_point: list[dict], refs_by_entity: dict, elements: dict, node
         m = meta.get(qid, {})
         wd = parse_pt(m["coordinates"]) if m.get("coordinates") else None
 
+        living = e["entity_type"] in LIVING_TYPES and m.get("populated") and not m.get("end_date")
         refs = refs_by_entity.get(eid, [])
         if refs:
             pick, reason = pick_ohm(e, refs, elements, nodes, wd)
             if pick:
                 ref, (lon, lat, kind) = pick
-                years = period_years(e, ref)
+                years = point_years(e, ref, living)
                 if years is None:
                     skip("no_start_year", e)
                     continue
                 planned[eid] = {"tier": OHM_TIER, "kind": kind, "lon": lon, "lat": lat,
-                                "start": years[0], "end": years[1], "ref": ref,
-                                "extid": f"{ref['external_type']}/{ref['external_id']}",
-                                "confidence": KIND_CONFIDENCE.get(kind, "high"),
+                                "start": years[0], "end": years[1], "years_from": years[2],
+                                "ref": ref, "extid": f"{ref['external_type']}/{ref['external_id']}",
+                                "confidence": confidence(kind, years[2]),
                                 "wd_km": round(km((lon, lat), wd), 1) if wd else None}
                 continue
             # The entity's own Wikidata site below may still place it.
@@ -282,13 +324,14 @@ def plan_points(no_point: list[dict], refs_by_entity: dict, elements: dict, node
         if wd is None:
             skipped["no_coordinate"] += 1
             continue
-        years = period_years(e)
+        years = point_years(e, living=living)
         if years is None:
             skip("no_start_year", e)
             continue
         planned[eid] = {"tier": WIKIDATA_TIER, "kind": "p625", "lon": wd[0], "lat": wd[1],
-                        "start": years[0], "end": years[1], "ref": None, "extid": qid,
-                        "confidence": "high", "wd_km": 0.0}
+                        "start": years[0], "end": years[1], "years_from": years[2],
+                        "ref": None, "extid": qid,
+                        "confidence": confidence("p625", years[2]), "wd_km": 0.0}
     return planned, rejected, skipped, samples
 
 
@@ -297,11 +340,11 @@ def write_plan(path: Path, planned: dict, id2row: dict) -> None:
     with path.open("w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["entity_id", "name", "type", "qid", "tier", "kind", "source", "lon", "lat",
-                    "start_year", "end_year", "km_from_wikidata"])
+                    "start_year", "end_year", "years_from", "km_from_wikidata"])
         for eid, p in planned.items():
             r = id2row[eid]
             w.writerow([eid, r["name"], r["entity_type"], r["wikidata_id"], p["tier"], p["kind"],
-                        p["extid"], f"{p['lon']:.5f}", f"{p['lat']:.5f}", p["start"], p["end"], p["wd_km"]])
+                        p["extid"], f"{p['lon']:.5f}", f"{p['lat']:.5f}", p["start"], p["end"], p["years_from"], p["wd_km"]])
 
 
 def apply_plan(cur, planned: dict, id2row: dict) -> None:
@@ -320,12 +363,13 @@ def apply_plan(cur, planned: dict, id2row: dict) -> None:
         cur.execute("""
             INSERT INTO geometry_periods
                 (entity_id, period_type, start_year, end_year, provenance_mode, geom,
-                 confidence, created_by, created_at, updated_at)
+                 confidence, created_by, description, created_at, updated_at)
             VALUES (%s, 'territory', %s, %s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326),
-                    %s::confidence_level, %s, now(), now())
+                    %s::confidence_level, %s, %s, now(), now())
             RETURNING geometry_period_id
         """, (eid, p["start"], p["end"], "ohm_import" if ohm else "manual",
-              p["lon"], p["lat"], p["confidence"], p["tier"]))
+              p["lon"], p["lat"], p["confidence"], p["tier"],
+              ATTESTED_NOTE if p["years_from"] == "attested" else None))
         period_id = cur.fetchone()[0]
 
         if ohm:
@@ -358,7 +402,9 @@ def apply_plan(cur, planned: dict, id2row: dict) -> None:
 
         # Mirror onto the canonical primary location (what the admin editor reads).
         # An OHM point also replaces this script's own earlier Wikidata point.
-        method = "ohm" if ohm else "wikidata"
+        # LocationResolutionMethod values (the app throws on others); OHM is 'ohm_nominatim',
+        # as in HydrateEntityGeometryFromGeoRefAction.
+        method = "ohm_nominatim" if ohm else "wikidata"
         cur.execute("""
             UPDATE entity_locations
             SET geom = ST_SetSRID(ST_MakePoint(%s, %s), 4326), location_method = %s, updated_at = now()
@@ -410,9 +456,14 @@ def main() -> int:
     print("\n" + "=" * 72)
     print("GEO BACKFILL" + ("  (APPLYING)" if args.apply else "  (DRY RUN)"))
     print("=" * 72)
-    print(f"Points to add: {len(planned)} / {len(no_point)} missing   (plan: {args.out})")
+    # An entity whose only point is ours from Wikidata is both located and reloaded here.
+    missing = sum(1 for r in no_point if not r["has_wikidata_point"])
+    total = located + missing
+    print(f"Points to add: {len(planned)} / {missing} missing   (plan: {args.out})")
     for (tier, kind), n in sorted(Counter((p["tier"], p["kind"]) for p in planned.values()).items()):
         print(f"   {tier:28s} {kind:13s} {n}")
+    print("Years from: " + ", ".join(f"{k} {n}" for k, n in
+                                     Counter(p["years_from"] for p in planned.values()).most_common()))
     print("By type:")
     for t, n in Counter(id2row[eid]["entity_type"] for eid in planned).most_common(12):
         print(f"   {t:28s} {n}")
@@ -422,7 +473,6 @@ def main() -> int:
     print("Not placed:")
     for reason, n in skipped.most_common():
         print(f"   {reason:28s} {n}")
-    total = located + len(no_point)
     print(f"Coverage: {located}/{total} ({100 * located // total}%) → "
           f"{located + len(planned)}/{total} ({100 * (located + len(planned)) // total}%)\n")
     for reason in (*OHM_REASONS, "no_start_year"):
