@@ -20,6 +20,9 @@ from pipeline.audit.text import text_flags
 from pipeline.audit.wd import WikidataClient
 
 SECTIONS = ("qid", "places", "dups", "names", "text", "relations", "stories")
+# Opt-in sections: never part of a plain run, named with --only.
+#   reconcile — C3 over rows that have no QID (reconcile.py)
+OPTIONAL_SECTIONS = ("reconcile",)
 PLACE_FIELDS = ["entity_id", "name", "entity_type", "qid", "wd_description", "qid_places", "summary", "action",
                 "proposed_qid", "proposed_description", "held_by"]
 # QID-wrong rules whose rows lose the QID when no correct one is found. W6
@@ -40,15 +43,20 @@ REL_FIELDS = ["relationship_id", "check", "severity", "detail", "relationship_ty
               "source_type", "source_span", "target_id", "target_name", "target_type", "target_span", "description"]
 STORY_FIELDS = ["story", "source", "where", "role", "name", "qid", "wd_label", "wd_description", "wd_era", "db_row",
                 "problems", "proposed_qid", "evidence"]
+RECONCILE_DUP_FIELDS = ["group", "category", "confidence", "entity_type", "qid", "wd_label", "wd_description",
+                        "survivor_id", "survivor_name", "survivor_type", "survivor_qid", "survivor_rels",
+                        "survivor_span", "loser_id", "loser_name", "loser_type", "loser_qid", "loser_rels",
+                        "loser_span", "evidence", "moves", "lost_on_delete", "merge_command"]
 
 
 class Audit:
-    def __init__(self, out_dir: Path, *, offline: bool = False, limit: int | None = None, workers: int = 4):
+    def __init__(self, out_dir: Path, *, offline: bool = False, limit: int | None = None, workers: int = 4,
+                 max_rps: float = 4.0):
         self.out = out_dir
         self.out.mkdir(parents=True, exist_ok=True)
         self.conn = connect()
         self.rows = load_rows(self.conn)
-        self.client = WikidataClient(CACHE_DIR, offline=offline, workers=workers)
+        self.client = WikidataClient(CACHE_DIR, offline=offline, workers=workers, max_rps=max_rps)
         self.limit = limit
         self.results: dict[str, Any] = {}
 
@@ -133,6 +141,68 @@ class Audit:
             self.results["qid_flags"] = flags
         self.log(f"C2 flags: {Counter(f['verdict'] for f in flags)}")
         return flags
+
+    # ── reconcile: C3 over rows without a QID ────────────────────────────────
+    def reconcile(self, types: set[str] | None = None) -> list[dict[str, Any]]:
+        """Find the QID of QID-less rows (reconcile.py). Writes outcomes.csv
+        (every row), planned.csv (the set_qid lines) and duplicate-candidates.csv
+        (the match is already on another row, or two rows match one QID)."""
+        from pipeline.audit.reconcile import FIELDS, reconcile_rows, settle
+
+        targets = sorted((r for r in self.rows.values() if not r.qid and (not types or r.type in types)),
+                         key=lambda r: r.id)
+        if self.limit:
+            targets = targets[:self.limit]
+        self.log(f"reconcile: {len(targets)} rows without a QID")
+        recs = reconcile_rows(targets, self.rows, load_relationships(self.conn), self.client, self.closure,
+                              log=self.log)
+        settle(recs, self.rows)
+        recs.sort(key=lambda x: (x["outcome"] != "accepted", x["entity_type"], x["name"]))
+        write_csv(self.out / "outcomes.csv", recs, FIELDS)
+        write_csv(self.out / "planned.csv", [x for x in recs if x["action"] == "set_qid"], FIELDS)
+        dups = self._reconcile_dups(recs)
+        write_csv(self.out / "duplicate-candidates.csv", dups, RECONCILE_DUP_FIELDS)
+        self.results["reconcile"] = recs
+        self.results["reconcile_dups"] = dups
+        self.log(f"reconcile: {Counter(x['outcome'] for x in recs)}; "
+                 f"actions {Counter(x['action'].split(':')[0] for x in recs if x['action'])}")
+        return recs
+
+    def _reconcile_dups(self, recs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        from pipeline.audit.dups import merge_command, survivor_key
+
+        out, seen = [], set()
+        for x in recs:
+            if not x["action"].startswith("duplicate_of:"):
+                continue
+            row = self.rows[x["entity_id"]]
+            for hid in x["action"].split(":", 1)[1].split(","):
+                holder = self.rows[hid]
+                pair = frozenset((row.id, holder.id))
+                if pair in seen:
+                    continue
+                seen.add(pair)
+                held = holder.qid == x["qid"]
+                surv, loser = sorted([row, holder], key=survivor_key, reverse=True)
+                out.append({"group": f"R-{row.id[:8]}", "category": "qid_held" if held else "qid_contested",
+                            "confidence": "high" if held and holder.type == row.type else "medium",
+                            "entity_type": row.type, "qid": x["qid"], "wd_label": x["wd_label"],
+                            "wd_description": x["wd_description"], "survivor_id": surv.id,
+                            "survivor_name": surv.name, "survivor_type": surv.type, "survivor_qid": surv.qid,
+                            "survivor_rels": surv.rels, "survivor_span": surv.span, "loser_id": loser.id,
+                            "loser_name": loser.name, "loser_type": loser.type, "loser_qid": loser.qid,
+                            "loser_rels": loser.rels, "loser_span": loser.span,
+                            "evidence": f"{row.name!r} ({row.type}, no QID) matches {x['qid']} "
+                                        f"({x['name_match']}; {x['date_check']}"
+                                        + (f"; place {x['place_check']}" if x["place_check"] else "")
+                                        + (f"; link {x['link_check']}" if x["link_check"] else "") + "), "
+                                        + (f"held by {holder.name!r} ({holder.type})" if held
+                                           else f"also the match of QID-less {holder.name!r} ({holder.type})"),
+                            "moves": f"{loser.rels} relationship ends; {loser.chron} chronicle links",
+                            "lost_on_delete": ("MAP STORY " + ",".join(loser.stories)) if loser.stories else "",
+                            "merge_command": merge_command(surv.id, loser.id)})
+        out.sort(key=lambda d: (d["category"], d["confidence"] != "high", d["entity_type"], d["survivor_name"]))
+        return out
 
     # ── C4–C8 ────────────────────────────────────────────────────────────────
     def dups(self) -> list[dict[str, Any]]:
@@ -241,6 +311,15 @@ class Audit:
             elif act.startswith("needs_review"):
                 changes.append({"fix": "needs_review", "id": f["entity_id"], "reason": f["rule"], "evidence": ev,
                                 "flag": "qid_suspect" + (":duplicate" if "duplicate_of" in act else "")})
+        for x in self.results.get("reconcile", []):
+            if x["action"] == "set_qid":  # a QID-less row: verification_status is left as it is
+                changes.append({"fix": "set_qid", "id": x["entity_id"], "old_qid": None, "new_qid": x["qid"],
+                                "reason": "reconcile: unique match (" + "; ".join(
+                                    f"{k} {x[c]}" for k, c in (("name", "name_match"), ("place", "place_check"),
+                                                                ("war", "war_check"), ("link", "link_check"))
+                                    if x[c]) + ")",
+                                "evidence": f"{x['qid']} {x['wd_label']!r} ({x['wd_description']}); "
+                                            f"dates {x['date_check']}"})
         changes.extend(self._pins())
         for n in self.results.get("names", []):
             if n["apply"]:

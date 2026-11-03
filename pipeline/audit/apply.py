@@ -28,7 +28,7 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-from pipeline.audit.common import COMPOSE, write_csv
+from pipeline.audit.common import COMPOSE, REPO, write_csv
 
 APPLIED_FIELDS = ["ts", "fix", "table", "id", "column", "old", "new", "reason", "evidence", "status"]
 BACKUP_TABLES = ["entities", "entity_aliases"]
@@ -95,6 +95,18 @@ def apply_changes(conn, changes: list[dict[str, Any]], out_dir: Path) -> list[di
                     entry(fix, "entities", eid, "wikidata_id", ch["old_qid"], ch.get("new_qid"), ch,
                           f"skipped: QID is now {qid}")
                     continue
+                new = ch.get("new_qid")
+                if fix == "set_qid" and new:
+                    # the QID guard, re-checked at write time: other writers share this DB
+                    cur.execute("SELECT entity_id::text FROM entities WHERE wikidata_id = %s AND entity_id <> %s "
+                                "LIMIT 1", (new, eid))
+                    holder = cur.fetchone()
+                    if holder:
+                        entry(fix, "entities", eid, "wikidata_id", qid, new, ch, f"skipped: {new} is on row {holder[0]}")
+                        continue
+                    if attrs.get("_rejected_wikidata_id") == new:
+                        entry(fix, "entities", eid, "wikidata_id", qid, new, ch, f"skipped: {new} was rejected for this row")
+                        continue
                 cur.execute("UPDATE entities SET wikidata_id = %s, updated_at = now() WHERE entity_id = %s "
                             "AND wikidata_id IS NOT DISTINCT FROM %s", (ch.get("new_qid"), eid, qid))
                 entry(fix, "entities", eid, "wikidata_id", qid, ch.get("new_qid"), ch)
@@ -136,9 +148,13 @@ def apply_changes(conn, changes: list[dict[str, Any]], out_dir: Path) -> list[di
     previous = _read_existing(applied_path)
     write_csv(applied_path, previous + log, APPLIED_FIELDS)
     rb = out_dir / "rollback.sql"
+    try:
+        rb_path = rb.resolve().relative_to(REPO)
+    except ValueError:
+        rb_path = rb
     header = ("-- Rollback of the identity audit's safe fixes (generated; newest batch first).\n"
               "-- Run: docker compose -f docker/docker-compose.yml exec -T db psql -U history-mapped "
-              "-d history-mapped -f - < output/audit/identity-20261031/rollback.sql\n"
+              f"-d history-mapped -f - < {rb_path}\n"
               "-- Every statement is guarded on the value the audit wrote; rows changed since are left alone.\n"
               "\\set ON_ERROR_STOP on\n")
     old_body = ""

@@ -92,6 +92,22 @@ def write_report(audit, sections) -> None:
                   _table([f for f in places if f["action"] != "flag"],
                          ["name", "qid", "wd_description", "proposed_qid", "proposed_description", "action"], n=40)]
 
+    rec = R.get("reconcile")
+    if rec is not None:
+        outcomes = Counter(x["outcome"] for x in rec)
+        acts = Counter((x.get("action") or "").split(":")[0] for x in rec if x.get("action"))
+        by_type = Counter(x["entity_type"] for x in rec if x.get("action") == "set_qid")
+        nwm = sum(1 for x in rec if x.get("action") == "set_qid" and str(x.get("no_wikidata_match")) == "True")
+        lines += ["## Reconcile: QIDs for rows without one — `planned.csv`, `outcomes.csv`, "
+                  "`duplicate-candidates.csv`", "",
+                  f"{len(rec)} rows without a QID. Outcomes: " + ", ".join(f"{k} {v}" for k, v in outcomes.most_common())
+                  + ". Actions: " + ", ".join(f"{k} {v}" for k, v in acts.most_common()) + ".", "",
+                  f"Planned set_qid by type ({nwm} of them flagged `no_wikidata_match`): "
+                  + ", ".join(f"{k} {v}" for k, v in by_type.most_common()) + ".", "",
+                  _table([x for x in rec if x.get("action") == "set_qid"],
+                         ["name", "entity_type", "qid", "wd_label", "wd_description", "name_match", "date_check"]),
+                  f"Duplicate candidates: {len(R.get('reconcile_dups') or [])} (the match is on another row).", ""]
+
     applied = R.get("applied")
     if applied is not None:
         ok = [a for a in applied if a["status"] == "applied"]

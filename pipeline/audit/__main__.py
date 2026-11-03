@@ -1,4 +1,4 @@
-"""CLI: python -m pipeline.audit identity [--only qid|dups|names|text|relations|stories] [--apply-safe] [--limit N]
+"""CLI: python -m pipeline.audit identity [--only qid|dups|names|text|relations|stories|reconcile] [--apply-safe] [--limit N]
 
 Read-only unless --apply-safe. See docs/implementation-docs/identity-audit.md.
 """
@@ -8,18 +8,25 @@ import argparse
 import sys
 from pathlib import Path
 
-from pipeline.audit.common import DEFAULT_OUT, load_rows, write_csv
+from pipeline.audit.common import DEFAULT_OUT, RECONCILE_OUT, load_rows, write_csv
 
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m pipeline.audit")
     sub = ap.add_subparsers(dest="command", required=True)
     idp = sub.add_parser("identity", help="audit entity identity (QIDs, names, types, dates, text)")
-    idp.add_argument("--only", help="comma-separated sections: qid,dups,names,text,relations,stories")
+    idp.add_argument("--only", help="comma-separated sections: qid,places,dups,names,text,relations,stories; "
+                                    "or the opt-in reconcile (find QIDs for rows that have none)")
     idp.add_argument("--apply-safe", action="store_true",
                      help="apply the safe fix classes (QID set/clear, redirects, mechanical renames, aliases, needs_review)")
     idp.add_argument("--limit", type=int, help="check at most N QID rows (for trial runs)")
-    idp.add_argument("--out", type=Path, default=DEFAULT_OUT, help=f"output directory (default {DEFAULT_OUT})")
+    idp.add_argument("--out", type=Path, help=f"output directory (default {DEFAULT_OUT}; "
+                                              f"{RECONCILE_OUT} for --only reconcile)")
+    idp.add_argument("--types", help="reconcile only: comma-separated entity types")
+    idp.add_argument("--apply-planned", action="store_true",
+                     help="reconcile only: apply the set_qid lines of planned.csv in --out as reviewed, "
+                          "without re-planning (backup first, one transaction, guarded per row)")
+    idp.add_argument("--max-rps", type=float, default=4.0, help="Wikidata requests per second (default 4)")
     idp.add_argument("--offline", action="store_true", help="use the Wikidata cache only; fail on a cache miss")
     idp.add_argument("--workers", type=int, default=4, help="parallel wbgetentities batches (shared 4 req/s limit)")
     idp.add_argument("--no-resolve", action="store_true", help="skip C3 (no Wikidata searches)")
@@ -27,18 +34,34 @@ def main(argv: list[str] | None = None) -> int:
                      help="rebuild report.md from the outputs on disk (re-runs only the read-only story check)")
     args = ap.parse_args(argv)
 
-    from pipeline.audit.identity import SECTIONS, Audit
+    from pipeline.audit.identity import OPTIONAL_SECTIONS, SECTIONS, Audit
     from pipeline.audit.report import write_report
 
     sections = SECTIONS if not args.only else tuple(s.strip() for s in args.only.split(",") if s.strip())
-    unknown = set(sections) - set(SECTIONS)
+    unknown = set(sections) - set(SECTIONS) - set(OPTIONAL_SECTIONS)
     if unknown:
         ap.error(f"unknown section(s): {', '.join(sorted(unknown))}")
-    audit = Audit(args.out, offline=args.offline, limit=args.limit, workers=args.workers)
+    if args.out is None:
+        args.out = RECONCILE_OUT if sections == ("reconcile",) else DEFAULT_OUT
+    audit = Audit(args.out, offline=args.offline, limit=args.limit, workers=args.workers, max_rps=args.max_rps)
+    if args.apply_planned:
+        if sections != ("reconcile",):
+            ap.error("--apply-planned goes with --only reconcile")
+        load_outputs(audit)  # outcomes.csv, for the report
+        # the set_qid lines are exactly planned.csv as reviewed; nothing is re-planned
+        audit.results["reconcile"] = load_planned(args.out) + [
+            x for x in audit.results.get("reconcile", []) if x.get("action") != "set_qid"]
+        audit.inventory("before")
+        apply_safe(audit)
+        write_report(audit, sections)
+        print(f"applied {sum(1 for e in audit.results.get('applied', []) if e['status'] == 'applied')} changes; "
+              f"report: {args.out / 'report.md'}")
+        return 0
     if args.report_only:
         load_outputs(audit)
-        audit.stories()
-        write_report(audit, SECTIONS)
+        if "stories" in sections:
+            audit.stories()
+        write_report(audit, sections)
         print(f"report: {args.out / 'report.md'}")
         return 0
     audit.inventory("before")
@@ -56,6 +79,9 @@ def main(argv: list[str] | None = None) -> int:
         audit.relations()
     if "stories" in sections:
         audit.stories()
+    if "reconcile" in sections:
+        types = {t.strip() for t in args.types.split(",") if t.strip()} if args.types else None
+        audit.reconcile(types)
     if args.apply_safe:
         apply_safe(audit)
     write_report(audit, sections)
@@ -90,6 +116,17 @@ def apply_safe(audit) -> None:
     if "stories" in audit.results:
         audit.stories()  # story refs resolve against the fixed rows
     audit.inventory("after")
+
+
+def load_planned(out: Path) -> list[dict]:
+    """planned.csv as reviewed: its set_qid lines, for --apply-planned."""
+    import csv
+
+    path = out / "planned.csv"
+    if not path.exists():
+        raise SystemExit(f"no {path}: run --only reconcile first")
+    with path.open(encoding="utf-8") as fh:
+        return [r for r in csv.DictReader(fh) if r.get("action") == "set_qid" and r.get("qid")]
 
 
 def load_outputs(audit) -> None:
@@ -134,6 +171,9 @@ def load_outputs(audit) -> None:
         R["relations"] = rel
     if (places := rows("place-flags.csv")) is not None:
         R["places"] = places
+    if (rec := rows("outcomes.csv")) is not None:
+        R["reconcile"] = rec
+        R["reconcile_dups"] = rows("duplicate-candidates.csv") or []
 
 
 if __name__ == "__main__":

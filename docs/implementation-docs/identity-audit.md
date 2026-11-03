@@ -33,11 +33,21 @@ scripts/capped.sh pipeline/.venv/bin/python3 -m pipeline.audit identity --apply-
 # rebuild report.md from the outputs on disk (after --apply-safe, a re-run
 # would see the fixed DB; this keeps the before/after view)
 scripts/capped.sh pipeline/.venv/bin/python3 -m pipeline.audit identity --report-only
+
+# reconcile (opt-in): find QIDs for rows that have none; read-only, report in
+# output/audit/qid-reconcile-20261101/
+scripts/capped.sh pipeline/.venv/bin/python3 -m pipeline.audit identity --only reconcile --max-rps 2 --workers 2
+
+# ... review planned.csv, then apply exactly those set_qid lines, without
+# re-planning (backup first, one transaction, guarded per row)
+scripts/capped.sh pipeline/.venv/bin/python3 -m pipeline.audit identity --only reconcile --apply-planned
 ```
 
-Options: `--out DIR` (default `output/audit/identity-20261031`), `--workers N`
-(parallel Wikidata batches; all workers share one 4 requests/s limit),
-`--no-resolve` (skip the C3 searches).
+Options: `--out DIR` (default `output/audit/identity-20261031`, or
+`output/audit/qid-reconcile-20261101` for `--only reconcile`), `--workers N`
+(parallel Wikidata batches; all workers share one rate limit), `--max-rps R`
+(that limit, default 4 requests/s), `--no-resolve` (skip the C3 searches),
+`--types a,b` (reconcile only these entity types).
 
 Tests (fixtures only, no network or DB):
 `scripts/capped.sh pipeline/.venv/bin/python3 -m pytest pipeline/audit/tests`.
@@ -48,7 +58,14 @@ Tests (fixtures only, no network or DB):
   `output/audit/cache/wd-entities.jsonl`. Each record keeps the label, aliases,
   description, P31, P279, dates and enwiki title. A re-run makes no request for
   an id it has already seen. Delete a line, or the whole file, to refresh.
+  Records also keep `links` (item-valued claims such as location, part of,
+  participant, author, family; `LINK_PROPS` in `wd.py`) and `coord`. Older
+  cache lines lack them; reconcile refetches those ids once (the newer line
+  wins when the cache is read back).
 - Searches use `wbsearchentities` and are cached in `wd-search.jsonl`.
+- Exact English Wikipedia titles are looked up with `wbgetentities
+  sites=enwiki`, 50 titles per call, cached in `wd-titles.jsonl`. Wikipedia
+  redirects are not followed, so a hit is the article of exactly that name.
 - Subclass closure (does a P31 class reach "battle" through P279*?) comes from
   the query service, 200 classes per query, cached in `wd-class-roots.json`.
   This is cheaper than walking P279 with `wbgetentities`.
@@ -72,6 +89,7 @@ minutes. A cached re-run takes about a minute.
 | `text` | C6 | `text-flags.csv` | never |
 | `relations` | C7 | `relation-flags.csv` | never |
 | `stories` | C8 | `story-refs.csv`, `story-fixes.md` | never (story files are not edited) |
+| `reconcile` (opt-in) | C3 for QID-less rows | `outcomes.csv`, `planned.csv`, `duplicate-candidates.csv` | QID set only |
 | `--apply-safe` | C9 | `applied.csv`, `qid-fixes-applied.csv`, `qid-recheck.csv`, `rollback.sql`, `backup-*.sql.gz` | yes |
 
 `report.md` is the one-page summary. It gives the counts per category, the
@@ -146,6 +164,92 @@ redirect whose target is already on another row is a duplicate too. For an
 undated row, a match through one of the row's aliases is not enough: the
 primary name must match ("Valabhi" carries the alias "Bhati", a Delhi town).
 A city row never takes an administrative district ("Kumbakonam Taluk").
+
+### Reconcile: QIDs for rows that have none (opt-in)
+
+`--only reconcile` runs C3 over the rows whose `wikidata_id` is NULL
+(`pipeline/audit/reconcile.py`). It is not part of a plain run. A QID brings an
+image, a map point and dates, and a wrong one corrupts all three, so this mode
+is stricter than C3 for wrong rows and gives up whenever there is doubt.
+
+Candidates are the top 20 `wbsearchentities` hits on the row's name plus the
+item whose enwiki article has exactly that title. A row's
+`_rejected_wikidata_id` never wins, but it is scored and blocks as a rival
+when it still fits: "Charles Dawes" had rejected Q184565 (Charles G. Dawes)
+and would otherwise have matched a photographer whose alias it is. Rows that cannot pass are not
+searched: an event without dates, or a person with no dates and no dated
+relation. Each candidate is checked on:
+
+- **Name.** The row's name equals the item's label, an alias or its enwiki
+  title (case, diacritics and punctuation aside; no partial names). A dropped
+  parenthetical must not say something else: a year in it must fit the row
+  ("Siege of Rhodes (1522)"), and its words must be generic for the type
+  ("Gaur (city)") or named in the row's text. "Harfleur (Samian Ware
+  Discovery Site)" fails for a town. A qualifier on the row's side
+  ("Antiochus (son of Seleucus IV)") must be named by the item.
+- **Class.** `classify` is `ok` and the item is not a concept, film, article,
+  fiction or a district for a city. A person must be human or person-like, a
+  battle a battle/siege/campaign, a city a settlement, archaeological site or
+  city-state.
+- **Dates.** `own`: the row's dates agree within the C2 tolerances, from
+  year- or decade-precise values (types without a tolerance, such as works and
+  buildings, compare the start ±25). `anchors`: the row has no dates, and the
+  years of its contemporaneous relations, of the one-off events it is linked
+  to, and in its text all fall inside the item's precise life or span. A
+  person row's reign inside the item's lifespan also counts as `anchors`.
+  `conflict` rules the item out.
+- **Place.** A location, admin area or country of the item, or a place in its
+  description, is named in the row's text or by a related row, or is a
+  related row's QID.
+- **War** (events). The item is part of a war (P361/P607) that a related row
+  carries, or that the row's text names.
+- **Link.** One of the item's links is a related row's QID, or a related
+  row's item links to it (continent, country and period don't count).
+
+What each type needs on top of name and class:
+
+| Type | Needs |
+|---|---|
+| person | dates `own` or `anchors`; a one-word name ("Mani") also the enwiki article of that name or a matching precise birth and death; a match through an alias alone also place or link |
+| event_battle | dates `own`, and place, war or link |
+| other events | dates `own` |
+| political_entity, dynasty, military_unit, diplomatic_relationship | dates `own`/`anchors`, or a link |
+| city, monument and other places | place below the country level, or a link; a country alone only for the enwiki article of exactly that name; a match through an alias alone needs a link |
+| everything else (polities, dynasties, works, codes, movements, ...) | a link, or dates `own`/`anchors` (archaeological cultures: century precision will do) together with place or the enwiki article of exactly that name |
+
+Two vetoes apply on top. A place or battle item more than 500 km from every
+related place (a related city, monument or battle, by DB point or Wikidata
+coordinates) is out, and is no rival either. This catches Wikidata's own
+slips, which a link would follow: the Wari Empire's capital is given as Huari
+village in Ancash, and the Siege of Alamut as located in a quarter of
+Bozdoğan in Turkey. A place named exactly like the row confirms nothing ("Salo"
+in Indonesia sits in a district called "Salo").
+
+A match is accepted only when exactly one candidate passes and no other
+candidate is a rival (same name and class, dates not in conflict). An undated
+namesake is a rival. For a place, a namesake elsewhere is a rival unless the
+winner has a link and the namesake has no place or link evidence. The accepted
+QID must then pass C2 clean, except for two suspects reconcile already
+weighed: S8 when the match is the enwiki title ("Henry the Proud" is the
+article of "Henry X") and S6 for a reign inside a lifespan.
+
+A QID already on another row is not set. The row goes to
+`duplicate-candidates.csv` (`qid_held`, with a merge command), and so do rows
+when two QID-less rows match one QID (`qid_contested`). `--apply-safe` writes
+only `wikidata_id`; `verification_status` and the `no_wikidata_match` flag are
+left alone. Apply with `--apply-planned`, which writes exactly the reviewed
+`planned.csv` instead of planning again on a DB that other writers keep
+changing. The apply re-checks the QID guard per row at write time: a row whose
+QID is no longer NULL, whose new QID is now on another row, or which rejected
+it, is skipped.
+
+Outputs: `outcomes.csv` (every row: `outcome` accepted, ambiguous, none_pass,
+no_candidates, skipped or c2_rejected, with `why` and the top candidates),
+`planned.csv` (the set_qid lines, with the evidence per axis) and
+`duplicate-candidates.csv`.
+
+Recall is modest by design. Campaign-created events often carry descriptive
+names ("Defeat and Death of Cyrus the Great") that no item has as a label.
 
 ### C2b: same-name places
 
@@ -233,7 +337,7 @@ Applied by `--apply-safe`, nothing else:
 
 | Fix | When |
 |---|---|
-| `set_qid` | C3 found a unique high-confidence QID not held by another row; or a redirect target; or a hand-verified pin |
+| `set_qid` | C3 found a unique high-confidence QID not held by another row; or a redirect target; or a hand-verified pin; or reconcile found one for a QID-less row. At write time it is skipped if another row now holds the QID or the row rejected it |
 | `clear_qid` | the QID is wrong by W1–W5 or W7 (`CLEAR_RULES` in `identity.py`) and C3 found nothing. The old id goes to `attributes._rejected_wikidata_id` (the importer's convention, so it is not re-attached) and the row becomes `needs_review` |
 | `needs_review` | W6 or W8 with no C3 winner (the QID is kept: a namesake judged on dates alone is flagged, not cleared), or a wrong QID whose correct id is on another row. The status changes and `identity_audit:<reason>` is appended to `attributes.validation_flags` |
 | `rename` / `add_alias` | C5 mechanical renames; aliases from pins |

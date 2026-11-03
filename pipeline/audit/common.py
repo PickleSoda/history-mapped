@@ -11,6 +11,7 @@ from typing import Any, Iterable
 
 REPO = Path(__file__).resolve().parents[2]
 DEFAULT_OUT = REPO / "output" / "audit" / "identity-20261031"
+RECONCILE_OUT = REPO / "output" / "audit" / "qid-reconcile-20261101"
 CACHE_DIR = REPO / "output" / "audit" / "cache"
 STORIES_DIR = REPO / "api" / "resources" / "map-stories"
 STORY_SOURCES = REPO / "pipeline" / "map_stories" / "stories"

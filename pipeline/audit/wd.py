@@ -29,6 +29,18 @@ QID_RE = re.compile(r"^Q[1-9]\d*$")
 # Date properties kept per record: birth/death, inception/dissolved,
 # start/end time, point in time, publication date.
 DATE_PROPS = ("P569", "P570", "P571", "P576", "P580", "P582", "P585", "P577")
+# Item-valued properties kept per record (``links``): where a thing is, what it
+# is part of, who took part, made, founded or ruled it, and family ties. The
+# QID-less reconcile (``reconcile.py``) checks them against the QIDs of a
+# row's related rows, both ways.
+LINK_PROPS = (
+    "P17", "P131", "P276", "P706", "P30",          # country, admin area, location, terrain, continent
+    "P361", "P527", "P607", "P793", "P1344",       # part of, has part, conflict, significant event, participant in
+    "P710", "P1001", "P2348",                      # participant, applies to jurisdiction, time period
+    "P50", "P170", "P112", "P88", "P84", "P127",   # author, creator, founded by, commissioned by, architect, owner
+    "P27", "P53", "P22", "P25", "P26", "P40", "P3373", "P19", "P20", "P140",  # people
+    "P36", "P1376", "P150", "P155", "P156", "P1365", "P1366", "P749", "P138",
+)
 
 
 def _parse_time(value: dict[str, Any]) -> tuple[int, int] | None:
@@ -95,6 +107,7 @@ def parse_entity(ent: dict[str, Any]) -> dict[str, Any]:
         if parsed:
             dates[prop] = list(parsed)
     enwiki = ((ent.get("sitelinks") or {}).get("enwiki") or {}).get("title")
+    links = {p: ids for p in LINK_PROPS if (ids := _item_ids(claims.get(p)))}
     return {
         "status": "ok",
         "label": label,
@@ -104,7 +117,22 @@ def parse_entity(ent: dict[str, Any]) -> dict[str, Any]:
         "p279": _item_ids(claims.get("P279")),
         "dates": dates,
         "enwiki": enwiki,
+        "links": links,
+        "coord": _coord(claims.get("P625")),
     }
+
+
+def _coord(statements: Any) -> list[float] | None:
+    """[lat, lon] of the first non-deprecated P625 (Earth) value."""
+    for st in statements or []:
+        if not isinstance(st, dict) or st.get("rank") == "deprecated":
+            continue
+        try:
+            v = st["mainsnak"]["datavalue"]["value"]
+            return [float(v["latitude"]), float(v["longitude"])]
+        except (KeyError, TypeError, ValueError):
+            continue
+    return None
 
 
 class WikidataClient:
@@ -125,6 +153,8 @@ class WikidataClient:
         self.entities: dict[str, dict[str, Any]] = self._load_jsonl("wd-entities.jsonl", "qid")
         self.searches: dict[str, list[dict[str, Any]]] = {
             k: v["results"] for k, v in self._load_jsonl("wd-search.jsonl", "q").items()}
+        self.titles: dict[str, str | None] = {
+            k: v["qid"] for k, v in self._load_jsonl("wd-titles.jsonl", "t").items()}
         closure_path = self.cache_dir / "wd-class-roots.json"
         self.closure: dict[str, Any] = (json.loads(closure_path.read_text())
                                         if closure_path.exists() else {"checked": {}, "reached": {}})
@@ -195,11 +225,15 @@ class WikidataClient:
         raise RuntimeError(f"Wikidata kept throttling: {url}")
 
     # ── entities ─────────────────────────────────────────────────────────────
-    def get_entities(self, qids: Iterable[str], *, progress: bool = False) -> dict[str, dict[str, Any]]:
+    def get_entities(self, qids: Iterable[str], *, progress: bool = False,
+                     need_links: bool = False) -> dict[str, dict[str, Any]]:
         """Records for ``qids`` (cached). A redirect record carries
-        ``status='redirect'`` and ``redirect_to``; a deleted id ``status='missing'``."""
+        ``status='redirect'`` and ``redirect_to``; a deleted id ``status='missing'``.
+        ``need_links`` refetches cached records written before ``links`` and
+        ``coord`` were kept (the newer line wins when the cache is read back)."""
         wanted = sorted({q for q in qids if q and QID_RE.match(q)}, key=lambda q: int(q[1:]))
-        todo = [q for q in wanted if q not in self.entities]
+        todo = [q for q in wanted if q not in self.entities
+                or (need_links and self.entities[q].get("status") == "ok" and "links" not in self.entities[q])]
         batches = [todo[i:i + 50] for i in range(0, len(todo), 50)]
         done = 0
         if self.workers > 1 and len(batches) > 1:
@@ -237,7 +271,8 @@ class WikidataClient:
 
     def _store(self, got: dict[str, dict[str, Any]], done: int, total: int, progress: bool) -> int:
         stamp = time.strftime("%Y-%m-%dT%H:%M:%S")
-        new = [{"qid": q, "fetched": stamp, **r} for q, r in got.items() if q not in self.entities]
+        new = [{"qid": q, "fetched": stamp, **r} for q, r in got.items()
+               if q not in self.entities or ("links" in r and "links" not in self.entities[q])]
         for rec in new:
             self.entities[rec["qid"]] = rec
         self._append("wd-entities.jsonl", new)
@@ -255,6 +290,44 @@ class WikidataClient:
             qid = rec["redirect_to"]
             rec = self.entities.get(qid)
         return qid, rec
+
+    # ── enwiki titles ────────────────────────────────────────────────────────
+    def by_titles(self, titles: Iterable[str], *, progress: bool = False) -> dict[str, str | None]:
+        """{title: QID of the item whose enwiki article has exactly that title, or None}.
+
+        ``wbgetentities`` with ``sites=enwiki``, 50 titles per call, cached in
+        ``wd-titles.jsonl``. Wikipedia redirects are not followed, so a hit is
+        an exact article title. The items come back whole and go into the
+        entity cache too."""
+        wanted = sorted({t for t in titles if t and len(t) < 250 and not set(t) & set("|#<>[]{}_")})
+        todo = [t for t in wanted if t not in self.titles]
+        for i in range(0, len(todo), 50):
+            batch = todo[i:i + 50]
+            data = self._get(API, {
+                "action": "wbgetentities", "sites": "enwiki", "titles": "|".join(batch), "format": "json",
+                "props": "info|labels|descriptions|aliases|claims|sitelinks",
+                "languages": "en|mul", "sitefilter": "enwiki",
+            }).json()
+            found: dict[str, str] = {}
+            got: dict[str, dict[str, Any]] = {}
+            for key, ent in (data.get("entities") or {}).items():
+                if "missing" in ent or not QID_RE.match(ent.get("id", "")):
+                    continue
+                rec = parse_entity(ent)
+                got[ent["id"]] = rec
+                if rec.get("enwiki"):
+                    found[rec["enwiki"]] = ent["id"]
+            self._store(got, 0, 0, False)
+            rows = []
+            for t in batch:
+                # MediaWiki upper-cases the first letter and treats _ as a space
+                norm = (t[:1].upper() + t[1:]).replace("_", " ")
+                self.titles[t] = found.get(norm) or found.get(t)
+                rows.append({"t": t, "qid": self.titles[t]})
+            self._append("wd-titles.jsonl", rows)
+            if progress and (i // 50) % 20 == 0:
+                print(f"  enwiki titles {i + len(batch)}/{len(todo)}", flush=True)
+        return {t: self.titles.get(t) for t in wanted}
 
     # ── search ───────────────────────────────────────────────────────────────
     def search(self, name: str, limit: int = 10) -> list[dict[str, Any]]:
