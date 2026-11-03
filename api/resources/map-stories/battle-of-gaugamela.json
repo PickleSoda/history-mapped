@@ -68,22 +68,22 @@
     },
     {
      "name": "Parmenion",
-     "wikidata": "Q1230252",
+     "wikidata": "Q296233",
      "role": "left wing"
     },
     {
      "name": "Philotas",
-     "wikidata": "Q5973506",
+     "wikidata": "Q346665",
      "role": "Companion cavalry"
     },
     {
      "name": "Craterus",
-     "wikidata": "Q16190036",
+     "wikidata": "Q297390",
      "role": "infantry of the left"
     },
     {
      "name": "Coenus",
-     "wikidata": "Q21866993",
+     "wikidata": "Q561955",
      "role": "phalanx battalion (wounded)"
     },
     {
@@ -165,7 +165,7 @@
    "side": "macedon",
    "kind": "commander",
    "label": "Parmenion",
-   "wikidata": "Q1230252"
+   "wikidata": "Q296233"
   },
   {
    "id": "baggage",

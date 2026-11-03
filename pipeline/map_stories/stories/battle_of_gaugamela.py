@@ -148,10 +148,10 @@ def build() -> dict:
             "polity": {"name": "Macedon", "wikidata": "Q83958"},
             "commanders": [
                 {"name": "Alexander the Great", "wikidata": "Q8409", "role": "king, commander-in-chief and the right wing"},
-                {"name": "Parmenion", "wikidata": "Q1230252", "role": "left wing"},
-                {"name": "Philotas", "wikidata": "Q5973506", "role": "Companion cavalry"},
-                {"name": "Craterus", "wikidata": "Q16190036", "role": "infantry of the left"},
-                {"name": "Coenus", "wikidata": "Q21866993", "role": "phalanx battalion (wounded)"},
+                {"name": "Parmenion", "wikidata": "Q296233", "role": "left wing"},
+                {"name": "Philotas", "wikidata": "Q346665", "role": "Companion cavalry"},
+                {"name": "Craterus", "wikidata": "Q297390", "role": "infantry of the left"},
+                {"name": "Coenus", "wikidata": "Q561955", "role": "phalanx battalion (wounded)"},
                 {"name": "Polyperchon", "wikidata": "Q312008", "role": "phalanx battalion"},
             ],
             "strength": "c. 47,000 (c. 7,000 horse, c. 40,000 foot)",
@@ -187,7 +187,7 @@ def build() -> dict:
     units = [
         # Macedonians
         {"id": "alexander", "side": "macedon", "kind": "commander", "label": "Alexander", "wikidata": "Q8409"},
-        {"id": "parmenion", "side": "macedon", "kind": "commander", "label": "Parmenion", "wikidata": "Q1230252"},
+        {"id": "parmenion", "side": "macedon", "kind": "commander", "label": "Parmenion", "wikidata": "Q296233"},
         {"id": "baggage", "side": "macedon", "kind": "baggage", "label": "Baggage & captives", "note": "Guarded by Thracian infantry; Darius's mother and family were held here"},
         {"id": "companions", "side": "macedon", "kind": "heavy_cavalry", "label": "Companion cavalry", "strength": "c. 1,800-2,000", "commander": "Philotas, under Alexander", "note": "Eight squadrons, the royal squadron under Cleitus nearest the flank"},
         {"id": "screen", "side": "macedon", "kind": "light_infantry", "label": "Javelinmen & archers", "strength": "c. 1,500", "commander": "Balacrus", "note": "Half the Agrianians and archers with Balacrus's javelinmen, posted to meet the chariots"},
