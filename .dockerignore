@@ -23,3 +23,5 @@ docs
 **/*.md
 # The public site renders a curated set of docs (web/src/content/docs/manifest.ts).
 !docs/**/*.md
+# entities:sync-descriptions reads these at runtime.
+!api/resources/entity-descriptions/*.md
