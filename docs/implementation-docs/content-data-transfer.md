@@ -173,6 +173,15 @@ cat output/truncate-content.sql output/prod-content-backup-<stamp>.sql \
   After the load, local `map_stories.edited_by` ids may point at no prod user
   (triggers are disabled during the load, so the FK isn't checked); clear them with
   `UPDATE map_stories SET edited_by = NULL WHERE edited_by NOT IN (SELECT id FROM users);`.
+- **`spatial_ref_sys` must keep its PostGIS rows.** The dump excludes the table
+  on purpose and the loader never truncates it, yet prod was found without its
+  rows on 2026-11-03 ("Cannot find SRID (3857) in spatial_ref_sys" on every atlas
+  tile; the tile function is the only code that calls `ST_Transform`). Reload it
+  any time with the file PostGIS ships in the db container:
+  `psql -U history-mapped -d history-mapped -f /usr/share/postgresql/16/contrib/postgis-3.5/spatial_ref_sys.sql`
+  (one `INSERT … ON CONFLICT DO NOTHING`, safe to re-run). The
+  `2026_11_03_000001_ensure_tile_srids` migration re-inserts the two rows the
+  tiles need on every deploy.
 - **Approved contributions live in prod content.** A reviewer approving a
   suggested edit on prod writes to prod's `entities` / `relationships` /
   `chronicles` / `chronicle_entries` / `entity_aliases`; the next full replace
