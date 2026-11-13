@@ -4,7 +4,7 @@ Schema specifications for pipeline payloads, import contracts, and georef API re
 
 ## Core
 
-- [pipeline-entity-record.md](pipeline-entity-record.md) — the JSONL entity record the pipeline emits and `pipeline:import` consumes.
+- [pipeline-entity-record.md](pipeline-entity-record.md) — the JSONL entity record the pipeline emits and `pipeline:import` consumes, including the private `_` keys.
 - [geo-resolution-manifest.md](geo-resolution-manifest.md) — geo-resolution manifest contract.
 - [relationship-hints-manifest.md](relationship-hints-manifest.md) — staged relationship-hint records.
 - [ref-table-record.md](ref-table-record.md) — reference-table (calendar systems, periods, regions, …) records.
@@ -12,6 +12,7 @@ Schema specifications for pipeline payloads, import contracts, and georef API re
 
 ## API
 
+- [rest-api.md](rest-api.md) — the public REST API under `/api/v1`: conventions, every endpoint, auth and writes.
 - [entity-georef-write-request.md](entity-georef-write-request.md) — georef write-request payload.
 - [relation-graph-api.md](relation-graph-api.md) — `GET /entities/{uuid}/graph` and `GET /chronicles/{slug}/graph` response contracts.
 - [atlas-tiles.md](atlas-tiles.md) — Martin vector tiles `{TILES}/atlas_entities/{z}/{x}/{y}`: properties, decimal-date window, per-century cap, signed `ohm_osm_id`, caching, `VITE_MAP_TILES_URL`.

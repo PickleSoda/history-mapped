@@ -5,6 +5,17 @@ Public, read-only endpoints under `/api/v1` that return a node/edge graph. Code:
 `ChronicleGraphController`; validation in `EntityGraphRequest` / `ChronicleGraphRequest`. Send `Accept: application/json`
 so validation errors come back as 422.
 
+> **Audience:** developers · **Use:** reference · **Last reviewed:** 2026-11-14
+
+```mermaid
+flowchart TB
+    EP["Entity page: relation graph (Cytoscape)"] -->|"GET /entities/{id}/graph"| EG["GetEntityGraphAction"]
+    CP["Chronicle page: relation graph"] -->|"GET /chronicles/{slug}/graph"| CG["GetChronicleGraphAction"]
+    EG --> RS["RelationGraphSupport: nodes, edges, edge budget"]
+    CG --> RS
+    RS --> DB[("entities, relationships, chronicle entries")]
+```
+
 ## Shapes
 
 ```jsonc
@@ -53,8 +64,8 @@ Response `{ "data": { "chronicle_id", "slug", "nodes", "edges", "steps" } }`:
 
 404 for an unknown slug.
 
-## Related fix
+## Related endpoints
 
-`GET /entities/{uuid}/relationships`, `GET /chronicles/{slug}`, and `include_relationships` on entity list/show now eager-load the
-embedded `source_entity` / `target_entity` summaries with `withGeoJson()` (via `EntityRelationship::withSummaryEnds()`), so
-`temporal_start`, `temporal_end`, `location_name` and `geom` are populated without N+1 queries.
+`GET /entities/{uuid}/relationships`, `GET /chronicles/{slug}` and `include_relationships` on the
+entity endpoints embed `source_entity` and `target_entity` summaries (dates, place name and point)
+for each relationship. They load in one query per batch (`EntityRelationship::withSummaryEnds()`).

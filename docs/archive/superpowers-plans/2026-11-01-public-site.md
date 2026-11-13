@@ -1,6 +1,6 @@
 # Public site: landing, browse and docs — implementation plan
 
-Spec: [`../specs/2026-11-01-public-site-design.md`](../specs/2026-11-01-public-site-design.md). Branch `feat/public-site`
+Spec: [`../superpowers-specs/2026-11-01-public-site-design.md`](../superpowers-specs/2026-11-01-public-site-design.md). Branch `feat/public-site`
 (worktree `.claude/worktrees/public-site`), skeleton committed first; four tracks on their own branches, merged back in
 the order A, B, C, D by the integrator, who runs the integration checks below.
 

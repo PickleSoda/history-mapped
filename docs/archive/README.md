@@ -10,7 +10,7 @@ and [../plans/STATUS.md](../plans/STATUS.md) for verified plan status.
 - **[superpowers-plans/](superpowers-plans/)** — completed or superseded agent-driven implementation plans (April–July 2026 cycles, including the June AI-agent/sessions program and the Atlas timeline/mobile work).
 - **[superpowers-specs/](superpowers-specs/)** — design specs whose work has shipped (paired with the archived plans above).
 - **[implementation-docs/](implementation-docs/)** — superseded runbooks and planning models.
-- **[entity-model/](entity-model/)** — historical entity-model proposals.
+- **[entity-model/](entity-model/)** — historical entity-model proposals, plus the June 2026 `diagrams.md`, `attributes.md` and `implementation-status.md` (archived 2026-11-14, superseded by [../entity-model/README.md](../entity-model/README.md)).
 - **[reference/](reference/)** — design references that have been superseded by live docs.
 
 ## Notable single docs

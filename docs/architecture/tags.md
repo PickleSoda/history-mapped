@@ -4,6 +4,23 @@ Chronicles and entities share one tag vocabulary. A tag belongs to a **facet**,
 and a row can carry many tags per facet, so "prehistoric Anatolia" is just
 `prehistory` + `anatolia`.
 
+> **Audience:** developers, editors, product · **Read time:** 6 minutes · **Last reviewed:** 2026-11-14 ·
+> **Code:** `api/app/Actions/Tag/*`, `api/database/data/tags/`, `web/src/lib/tags.ts`
+
+```mermaid
+flowchart LR
+    V[/"vocabulary.json: era, region, theme, type"/] -->|"tags:sync"| T[(tags)]
+    C[/"chronicles.json: curated chronicle tags"/] -->|"tags:sync, curated"| CT[(chronicle_tags)]
+    I["chronicles:import: the file's tags"] -->|curated| CT
+    A["Admin tag picker, API tags field"] -->|manual| CT
+    A -->|manual| ET[(entity_tags)]
+    D["DeriveTagsAction, on every tags:sync"] -->|derived| ET
+    D -->|"era, untagged chronicles only"| CT
+    T --> F["Tag filters: AND across facets, OR within one. Used by the atlas Chronicles tab, /browse, the admin index"]
+    CT --> F
+    ET --> F
+```
+
 | Facet | Examples | Applies to |
 |-------|----------|------------|
 | `era` | Prehistory, Neolithic, Ancient, Bronze Age, Classical Era, Medieval, Early Modern, Modern, Contemporary | both |

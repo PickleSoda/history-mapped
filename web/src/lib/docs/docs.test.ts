@@ -59,15 +59,24 @@ describe('manifest lookups', () => {
 
   it('groups pages by section in manifest order and drops empty sections', () => {
     const groups = docSections();
-    expect(groups.map((group) => group.section.id)).toEqual(['overview', 'architecture', 'data-model', 'guides', 'contracts']);
+    expect(groups.map((group) => group.section.id)).toEqual([
+      'start',
+      'domain',
+      'architecture',
+      'data-model',
+      'features',
+      'guides',
+      'reference',
+    ]);
     expect(groups.flatMap((group) => group.pages)).toHaveLength(DOC_PAGES.length);
   });
 
   it('links previous and next pages across sections', () => {
-    expect(docNeighbours(DOCS_INDEX_SLUG)).toEqual({ prev: undefined, next: findDoc('system-overview') });
-    expect(docNeighbours('frontend-app').prev?.slug).toBe('system-overview');
-    expect(docNeighbours('map-story-authoring').next?.slug).toBe('atlas-tiles');
-    expect(docNeighbours('atlas-tiles').next).toBeUndefined();
+    expect(docNeighbours(DOCS_INDEX_SLUG)).toEqual({ prev: undefined, next: findDoc('product-overview') });
+    expect(docNeighbours('frontend-app').prev?.slug).toBe('backend');
+    expect(docNeighbours('system-overview').prev?.slug).toBe('for-geographers');
+    expect(docNeighbours('map-story-authoring').next?.slug).toBe('api');
+    expect(docNeighbours('content-bundle').next).toBeUndefined();
     expect(docNeighbours('no-such-page')).toEqual({});
   });
 

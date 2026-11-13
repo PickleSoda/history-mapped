@@ -1,63 +1,108 @@
-# Documentation Index
+# History Mapped documentation
 
-> **Plan status:** [plans/STATUS.md](plans/STATUS.md) is the verified index of every plan
-> (✅ executed · 🟡 partial · ⬜ not started). Finished plans live in [archive/](archive/).
+History Mapped is an open atlas of world history. States, people, battles, places and ideas are
+**entities** with dates, a location and typed links to one another. They are drawn on a map whose
+borders change with the year you pick. These docs explain what the product is, how the history is
+modelled, and how the system is built and run.
 
-Start here, in order, for the project as it exists today:
+> Last reviewed against the code: 2026-11-14. If a page and the code disagree, the code is right.
+> Please report the mismatch, or fix it with **Edit on GitHub** at the bottom of each page.
 
-1. [../README.md](../README.md) — repository overview and quick start
-2. [architecture/system-overview.md](architecture/system-overview.md) — runtime surfaces, routing, responsibilities
-3. [implementation-docs/setup.md](implementation-docs/setup.md) — local setup, Docker services, commands
-4. [../pipeline/README.md](../pipeline/README.md) — Python pipeline overview
-5. [architecture/data-pipeline.md](architecture/data-pipeline.md) — scrape → OHM → import → embedding flow
+## Start with your role
 
-## Folder guide
+| You are… | Read first | Then |
+|---|---|---|
+| **New to the project** (any role) | [What is History Mapped?](overview/product-overview.md) | [Core concepts](overview/concepts.md) |
+| **Business, product, partners** | [What is History Mapped?](overview/product-overview.md) | [Map stories](architecture/map-stories.md) · [Data pipeline](architecture/data-pipeline.md) (how the content is produced) |
+| **Historian, editor, researcher** | [For historians](entity-model/for-historians.md) | [Core concepts](overview/concepts.md) · [Relationship types](entity-model/relationships.md) · [Entity types](entity-model/entity-specification.md) |
+| **Geographer, GIS, cartographer** | [For geographers](entity-model/for-geodata-contributors.md) | [Maps, tiles and OHM](architecture/ohm-integration.md) · [Atlas vector tiles](schemas/atlas-tiles.md) |
+| **Developer** | [System overview](architecture/system-overview.md) | [Local setup](implementation-docs/setup.md) · [Backend and API](architecture/backend.md) · [Public web app](architecture/frontend-app.md) |
+| **Data contributor / operator** | [Data pipeline](architecture/data-pipeline.md) | [Importing data](implementation-docs/data-contributor-guide.md) · [Deployment and operations](architecture/deployment.md) |
 
-| Folder | Contents |
-|--------|----------|
-| [architecture/](architecture/) | System and component architecture — the "how it's built" reference. |
-| [implementation-docs/](implementation-docs/) | Operator runbooks and how-to guides (setup, deployment, OHM pipelines, agentic pipeline, data contribution). |
-| [entity-model/](entity-model/) | Canonical entity / relationship / chronicle / geometry data-model reference. |
-| [schemas/](schemas/) | Payload and contract docs for pipeline artifacts and API requests. |
-| [reference/](reference/) | Forward-looking design references and proposals — useful for direction, **not** descriptions of the live app. |
-| [plans/](plans/) | Live product roadmap and backlog. See [plans/STATUS.md](plans/STATUS.md) for execution status. |
-| [superpowers/](superpowers/) | Agent-driven design specs (`specs/`) and implementation plans (`plans/`) for the current cycle. |
-| [archive/](archive/) | Superseded or completed documents, kept for decision history. Not source of truth. |
-| [TODO.md](TODO.md) | Fine-grained engineering backlog not owned by a specific plan. |
+## What is in these docs
 
-## Architecture
+```mermaid
+mindmap
+  root((The docs))
+    Start here
+      Product overview
+      Core concepts
+    Domain guides
+      Historians
+      Geographers
+    Architecture
+      System
+      Pipeline
+      Backend, API
+      Web app
+      Maps and OHM
+      Admin
+      Deployment
+    Data model
+      Overview
+      Entity types
+      Relationships
+    Features
+      Chronicles
+      Map stories
+      Tags
+      Collections
+      Images
+    Guides
+      Local setup
+      Importing data
+      Story authoring
+    Reference
+      REST API
+      Vector tiles
+      Graph API
+      Entity record
+      Bundles
+```
 
-- [architecture/system-overview.md](architecture/system-overview.md) — whole-system: runtime, routing, repositories
-- [architecture/frontend-app.md](architecture/frontend-app.md) — the public `web/` Atlas SPA foundation
-- [architecture/data-pipeline.md](architecture/data-pipeline.md) — all pipeline tracks + Laravel import layer
-- [architecture/admin-map-editor.md](architecture/admin-map-editor.md) — admin entity editor and map UI
-- [architecture/ohm-integration.md](architecture/ohm-integration.md) — OHM tile / MapLibre integration
-- [architecture/tags.md](architecture/tags.md) — faceted tags (era / region / theme / type) for chronicles and entities
-- [architecture/entity-images.md](architecture/entity-images.md) — linked Wikimedia Commons images with license credits: `entity:fetch-images`, the admin Images panel, display
+The sidebar lists the same sections. They are ordered from the broad picture to the detail, so
+reading top to bottom works:
 
-## Operator runbooks ([implementation-docs/](implementation-docs/))
+1. **Start here.** What the product does, for whom, and the ten terms used everywhere else.
+2. **Domain guides.** How the model fits historical and geographical knowledge. No code needed.
+3. **Architecture.** The running system, one page per part, with diagrams.
+4. **Data model.** The tables behind every entity, relationship, chronicle and border.
+5. **Features.** Chronicles, map stories, tags, collections and images, each from data to screen.
+6. **Guides.** Step-by-step tasks: run the stack, import data, author a map story.
+7. **Reference.** Contracts: the REST API, the vector tiles and the pipeline file formats.
 
-- Setup & deploy: [setup.md](implementation-docs/setup.md) · [deployment-runbook.md](implementation-docs/deployment-runbook.md) · [content-data-transfer.md](implementation-docs/content-data-transfer.md)
-- Admin AI agent: [admin-ai-agent.md](implementation-docs/admin-ai-agent.md)
-- Agentic pipeline: [agentic-pipeline-runbook.md](implementation-docs/agentic-pipeline-runbook.md) · [pipeline-eval-iterations.md](implementation-docs/pipeline-eval-iterations.md) · [campaign-orchestration.md](implementation-docs/campaign-orchestration.md) · [entity-reresolution.md](implementation-docs/entity-reresolution.md) · [data-quality-runbook.md](implementation-docs/data-quality-runbook.md)
-- OHM: [ohm-border-extraction.md](implementation-docs/ohm-border-extraction.md) · [ohm-country-subgraph-runbook.md](implementation-docs/ohm-country-subgraph-runbook.md) · [ohm-egypt-collection-runbook.md](implementation-docs/ohm-egypt-collection-runbook.md) · [egypt-wikidata-fallback-runbook.md](implementation-docs/egypt-wikidata-fallback-runbook.md)
-- Data contribution: [data-contributor-guide.md](implementation-docs/data-contributor-guide.md)
-- Map stories (battle maps): [map-story-authoring.md](implementation-docs/map-story-authoring.md) · [battle-map-bulk-run.md](implementation-docs/battle-map-bulk-run.md)
+## For maintainers: the `docs/` folder
 
-## Data model & contracts
+Only the pages in the sidebar are published on the site, and they are listed in
+[`web/src/content/docs/manifest.ts`](../web/src/content/docs/manifest.ts). Everything else in
+`docs/` is internal: runbooks, plans, design specs and the archive. On GitHub it reads like any
+other folder.
 
-- [entity-model/README.md](entity-model/README.md) — entity model overview and companion references
-- [entity-model/entity-specification.md](entity-model/entity-specification.md) — the 30-type / 5-group canonical spec
-- [schemas/README.md](schemas/README.md) — pipeline and API payload schemas
-- [schemas/content-bundle.md](schemas/content-bundle.md) — content bundle format guide (export, edit, validate)
-- [schemas/atlas-tiles.md](schemas/atlas-tiles.md) — atlas vector-tile contract (Martin `atlas_entities`, OHM link by signed `osm_id`)
+| Folder | What it holds | Published |
+|---|---|---|
+| [`overview/`](overview/) | Product overview and core concepts | yes |
+| [`architecture/`](architecture/) | How each part is built | yes |
+| [`entity-model/`](entity-model/) | The canonical data model; [`entity-specification.md`](entity-model/entity-specification.md) is the source of truth for types | mostly |
+| [`schemas/`](schemas/) | Contracts: API payloads, tiles, pipeline artifacts | some |
+| [`implementation-docs/`](implementation-docs/) | Operator runbooks and how-to guides | guides only |
+| [`plans/`](plans/) | Live roadmap; [`STATUS.md`](plans/STATUS.md) is the verified status of every plan | no |
+| [`superpowers/`](superpowers/) | Design specs and implementation plans for the current cycle | no |
+| [`reference/`](reference/) | Forward-looking design references, **not** the live app | no |
+| [`archive/`](archive/) | Shipped or superseded documents, kept as history | no |
+| [`TODO.md`](TODO.md) | Engineering backlog not owned by a plan | no |
 
-## Design references (not live)
+**Adding a published page:** write it under `docs/`, then add an entry to the manifest **and** to the
+`import.meta.glob` list in `web/src/lib/docs/load.ts`. A test keeps the two in sync. Runbooks, plans,
+specs, `reference/` and the archive are never published.
 
-- [reference/README.md](reference/README.md)
-- [reference/game-inspired-ui-ux.md](reference/game-inspired-ui-ux.md) · [reference/reference-timeline-schema.md](reference/reference-timeline-schema.md) · [reference/ohm-cookbook.md](reference/ohm-cookbook.md)
+**Writing conventions:**
 
-## Notes on currency
-
-- For command syntax, prefer the README files and the live signatures in `api/app/Console/Commands/` and `pipeline/` over older plan docs.
-- `plans/`, `superpowers/`, and `archive/` capture decisions and history — useful for rationale, not for current runtime behavior. When in doubt, the code wins; then this index; then `plans/STATUS.md`.
+- Open with two or three sentences on what the page covers and who it is for. Then put a diagram
+  first, and prose after it.
+- Prefer tables and Mermaid diagrams (flowchart, sequence, class, ER, state) to long paragraphs.
+  The site renders ```` ```mermaid ```` fences. It does not render raw HTML, so use no `<br>` or
+  `<details>`.
+- Name the real files, classes and commands, so a reader can check the page against the code.
+- File names are kebab-case. Design specs go in `superpowers/specs/YYYY-MM-DD-<topic>-design.md`
+  and plans in `superpowers/plans/YYYY-MM-DD-<feature>.md`. When a plan ships, move it and its
+  spec to `archive/` and update `plans/STATUS.md`.

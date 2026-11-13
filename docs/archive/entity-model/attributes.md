@@ -1,5 +1,8 @@
 # Entity Attributes — Current Reference
 
+> **Archived 2026-11-14.** Superseded by the data model overview, [`docs/entity-model/README.md`](../../entity-model/README.md), which was
+> rebuilt from the code. Kept as history: relative links below may point at files that have since moved.
+
 > Status: current live model after the normalized entity-model cutover.
 > An entity is no longer a single wide row. The live surface is split across `entities`, normalized companion tables, and a few controller-level helper fields.
 

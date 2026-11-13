@@ -1,7 +1,7 @@
 # Public site: landing, browse and docs — design
 
 **Status:** approved 2026-11-01 (user decisions in chat). Branch `feat/public-site` off `main` b9875b8.
-**Plan:** [`../plans/2026-11-01-public-site.md`](../plans/2026-11-01-public-site.md).
+**Plan:** [`../superpowers-plans/2026-11-01-public-site.md`](../superpowers-plans/2026-11-01-public-site.md).
 
 ## Why
 

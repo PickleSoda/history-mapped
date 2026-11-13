@@ -1,10 +1,11 @@
-# Pipeline Entity Record Schema
+# Pipeline entity record
 
-> Canonical JSONL record schema emitted by the Python pipeline for import into Laravel.
+The JSONL record the Python pipeline writes and `php artisan pipeline:import` reads: one entity per
+line. The importer maps the public keys into `EntityData` and handles the private `_` keys itself.
 
-## Purpose
-
-Each line in `*.jsonl` is a single entity record. Laravel import reads this shape and maps it into `EntityData`, then handles optional pipeline-private keys.
+> **Audience:** developers, data contributors · **Use:** reference · **Last reviewed:** 2026-11-14 ·
+> **Code:** `pipeline/wikidata/mapper/entity_mapper.py` (writer), `api/app/Jobs/ImportEntityJob.php`
+> and `api/app/DTOs/EntityData.php` (reader) · **How-to:** [Importing data](../implementation-docs/data-contributor-guide.md)
 
 ## Schema
 
@@ -66,7 +67,7 @@ Each line in `*.jsonl` is a single entity record. Laravel import reads this shap
 }
 ```
 
-## Required Fields
+## Required fields
 
 - `name`
 - `entity_type`
@@ -74,15 +75,18 @@ Each line in `*.jsonl` is a single entity record. Laravel import reads this shap
 
 Import skips records missing any of these.
 
-## Optional Pipeline-Private Keys
+## Pipeline-private keys
 
-- `_relationship_hints`: staged for relationship resolution jobs.
-- `_geo_resolution`: consumed by import georef action.
-- `_geometry_periods`: importer-facing temporal geometry payload used by the OHM borders pipeline.
+The importer reads these and strips them before building `EntityData`.
 
-These keys are stripped before constructing Laravel `EntityData`.
+| Key | Shape | What the importer does |
+|---|---|---|
+| `_relationship_hints` | `[{relationship_type, target_wikidata_id, target_label, temporal_start, temporal_end, confidence, source}]` | Stages each hint in `pipeline_relationship_hints`. They become relationships once both ends exist (`ResolveRelationshipsJob`) |
+| `_geo_resolution` | `{status, geo_ref: {provider, external_type, external_id, match_role, retrieval_method, match_score, …}, provenance, geometry}` | Only when `status` is `"matched"` and `geo_ref.external_id` is set: writes an `entity_geo_refs` row |
+| `_identity_span` | `[start_year, end_year]` | The record's era for the namesake guard when it has no dates of its own |
+| `_geometry_periods`, `_ohm_relation_id` | See below | OHM border records only (`pipeline:import-borders`) |
 
-## OHM Borders Contract
+## OHM borders contract
 
 The OHM borders pipeline uses `_geometry_periods[*].geojson` as its importer-facing spatial field.
 
@@ -123,6 +127,8 @@ Full OHM polygons may still exist transiently inside pipeline parse/build stages
 
 ## Notes
 
-- `verification_status` is forced to `pipeline_draft` during import.
+- The importer sets `verification_status` to `pipeline_draft`. It uses `needs_review` instead when the
+  record asks for it, when a namesake is suspected, or when a person's dates span more than 110 years.
+- `tags` are written as manual tags. A value that matches no tag slug or name becomes a new `topic` tag.
 - `_infobox` inside `attributes` is preserved in JSONL but stripped in import.
 - Unknown extra fields are tolerated but should be avoided in canonical output.

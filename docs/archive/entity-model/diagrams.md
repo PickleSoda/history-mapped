@@ -1,5 +1,8 @@
 # Entity Model — Current Diagrams
 
+> **Archived 2026-11-14.** Superseded by the data model overview, [`docs/entity-model/README.md`](../../entity-model/README.md), which was
+> rebuilt from the code. Kept as history: relative links below may point at files that have since moved.
+
 > Status: current live model.
 > This file replaces older diagrams that mixed historical planning material with removed columns such as direct entity-level temporal/location fields and `geometry_snapshots`.
 

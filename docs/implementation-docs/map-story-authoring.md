@@ -1,32 +1,40 @@
-# Map story authoring guide
+# Authoring map stories
 
-A **map story** replays how a battle (or siege, naval battle, campaign) unfolded,
-step by step, on the atlas map: coloured formation blocks for each body of troops,
-arrows for their movements, markers for commanders and camps, terrain the fight
-turned on, and a short narrative per step. The atlas animates units between steps.
+How to write, check and ship a map story: a battle, siege, campaign, epidemic, trade network or
+migration replayed step by step on the atlas. For what a story is and how the app plays it, read
+[Map stories](../architecture/map-stories.md) first.
 
-Design: [`2026-10-31-battle-maps-and-descriptions-design.md`](../superpowers/specs/2026-10-31-battle-maps-and-descriptions-design.md)
-(schema 1) and [`2026-10-31-map-story-schema-v2-design.md`](../superpowers/specs/2026-10-31-map-story-schema-v2-design.md)
-(schema 2), and [`2026-10-31-generic-map-stories-design.md`](../superpowers/specs/2026-10-31-generic-map-stories-design.md)
-with the contract in [its plan](../superpowers/plans/2026-10-31-generic-map-stories.md) (schema 3: any
-entity or chronicle, dated steps, routes, regions, ambient mode — see
-[Stories beyond battles](#stories-beyond-battles-schema-3)). Running many authors at once:
-[`battle-map-bulk-run.md`](battle-map-bulk-run.md).
+> **Audience:** story authors, developers · **Read time:** 25 minutes · **Last reviewed:** 2026-11-14 ·
+> **Design:** [schema 1](../superpowers/specs/2026-10-31-battle-maps-and-descriptions-design.md),
+> [schema 2](../superpowers/specs/2026-10-31-map-story-schema-v2-design.md),
+> [schema 3](../superpowers/specs/2026-10-31-generic-map-stories-design.md) and
+> [its contract](../superpowers/plans/2026-10-31-generic-map-stories.md) ·
+> **Bulk runs:** [battle-map bulk run](battle-map-bulk-run.md)
+
+## Before you start
+
+- **Python:** the pipeline virtualenv (`pipeline/.venv`) with the pipeline's requirements.
+- **A running dev stack** for `queue` (it reads the database through the `db` container) and for
+  `map-stories:sync`.
+- **Headless Chrome or Chromium** for `preview`. It draws the steps with Leaflet (from unpkg) over
+  OpenTopoMap tiles.
+- **Network access** the first time you look something up. Research, places and elevations are
+  cached under `output/map-stories/cache/`. OSM Nominatim and OpenTopoData are called at most once a
+  second.
 
 ## Pipeline
 
-```
-pipeline/map_stories/stories/<module>.py   build() -> dict      (you write this)
-        │  python -m pipeline.map_stories build <module>        (validates, lints, writes JSON)
-        ▼
-api/resources/map-stories/<slug>.json                            (committed, ships with the API image)
-        │  php artisan map-stories:sync                          (resolves Q-ids, upserts the DB)
-        │  php artisan map-stories:relink                        (re-resolves stored stories: new entities, step geometry)
-        ▼
-map_stories table  →  GET /api/v1/map-stories/{slug}  →  atlas story player
-        ▲   │
-        │   └─ php artisan map-stories:export   (DB → JSON file, when edited in the admin)
-  admin editor / AI tools (/map-stories/{slug}/edit; saves with a revision)
+```mermaid
+flowchart TD
+    Q["CLI queue: battles with a QID and no story → output/map-stories/queue.tsv"] --> R["CLI research and places: Wikipedia, Wikidata, OSM, elevation (cached)"]
+    R --> B["Builder module: pipeline/map_stories/stories/module.py"]
+    B -->|"CLI build: validate and lint"| F[/"api/resources/map-stories/slug.json (committed)"/]
+    F -->|"CLI preview: contact sheet"| P["Look at every step"]
+    F -->|"artisan map-stories:sync: resolve QIDs, write a revision"| DB[("map_stories: the live copy")]
+    DB -->|"artisan map-stories:relink"| DB
+    ED["Admin editor and AI patches"] --> DB
+    DB -->|"artisan map-stories:export"| F
+    DB --> API["GET /api/v1/map-stories/slug"] --> PL["Atlas story player"]
 ```
 
 Run every command through the repo's venv and memory cap. `CLI` below means
@@ -34,6 +42,7 @@ Run every command through the repo's venv and memory cap. `CLI` below means
 
 ```bash
 CLI cheatsheet                         # vocabulary, helper signatures, builder skeleton: read this first
+CLI queue --limit 50                   # battles, sieges and naval battles with a QID and no story yet
 CLI research "Battle of Cannae"        # infobox + section outline; --section NAME, --qids Q1 Q2 …
 CLI places "Canne della Battaglia" --near Q179591 --elevation    # coordinates; --geometry river for a line
 CLI build battle_of_cannae             # run the builder, validate + lint, write the JSON

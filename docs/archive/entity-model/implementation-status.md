@@ -1,5 +1,8 @@
 # Laravel Implementation Status — Entity Model
 
+> **Archived 2026-11-14.** Superseded by the data model overview, [`docs/entity-model/README.md`](../../entity-model/README.md), which was
+> rebuilt from the code. Kept as history: relative links below may point at files that have since moved.
+
 This document reflects the current Laravel status of the canonical entity model rather than the original cutover checklist.
 
 Related spec:

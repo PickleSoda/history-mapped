@@ -1,255 +1,186 @@
-# The Entity Model — A Guide for Geodata Contributors
+# For geographers
 
-This document is for people entering or correcting **geographic and spatial data** in the database. It explains what the location fields mean, what format coordinates should be in, and how to handle the different situations you will encounter — from a well-attested Roman city to a disputed tribal territory.
+How History Mapped stores and draws places, borders and movement over time, written for people who
+work with GIS, gazetteers or historical cartography. The short version: **we draw dated points,
+and OpenHistoricalMap (OHM) draws the borders.** Every entity on the map is placed by a geometry
+valid for a span of years. A polity's territory is the OHM feature it links to, filtered to the
+year being viewed.
 
----
+> **Audience:** geographers, GIS and geodata contributors, cartographers · **Read time:** 10 minutes ·
+> **Last reviewed:** 2026-11-14 · **Related:** [Maps, tiles and OHM](../architecture/ohm-integration.md)
 
-## Canonical Geometry Storage
+## At a glance
 
-## Canonical Geometry Note
-
-Legacy snapshot-style and legacy entity geometry write paths are removed. New writes flow through normalized location records (`entity_locations`) and time-scoped `geometry_periods`.
-
-Each entity should have one primary `entity_locations` row (for baseline map placement) and optional `geometry_periods` rows for time-varying geometry.
-
-### Geometry provenance modes
-
-The live system uses three provenance modes for time-varying geometry:
-
-- `manual`: created or edited directly by a human in admin workflows
-- `derived`: created from a relationship-driven presence workflow
-- `ohm_import`: imported from OHM or border-ingest jobs rather than entered by hand
-
-In practice, admin authoring flows currently create `manual` and `derived` periods, while import jobs are what produce `ohm_import` rows.
-
-### `entity_locations.geom` — The Primary Point Location
-
-This is a **single coordinate** representing the most meaningful geographic position for this entity.
-
-- For a **city**, it is the city centre (or the ancient city centre if the modern city has moved).
-- For a **battle**, it is the approximate location where the fighting occurred.
-- For a **person**, this field is usually left blank — use relationships (`born_in`, `resided_in`, `died_in`) instead.
-- For a **trade route**, this field is also usually left blank — use `territory_geom` for the route line, or use relationships to connect the route to the cities it passes through.
-- For a **state or empire**, `geom` typically marks the capital city or the political heartland, not the full extent. The full extent goes in `territory_geom`.
-
-**Format:** Longitude, latitude in decimal degrees (WGS 84 / EPSG:4326). Longitude comes first.
-
-```
-Correct:   [39.8261, 21.4225]   (longitude, latitude — Mecca)
-Incorrect: [21.4225, 39.8261]   (latitude first — this is a common mistake)
+```mermaid
+flowchart TB
+    subgraph Ours["Our database (PostGIS, EPSG:4326)"]
+        LOC["entity_locations: the base location an editor sets (point, line or polygon)"]
+        REF["entity_geo_refs: links to OHM features and Wikidata items"]
+        GP["geometry_periods: a geometry for a span of years. The only thing the map draws"]
+    end
+    OHMDB[(OpenHistoricalMap)]
+    LOC -->|"seeds on import, or Backfill in the admin"| GP
+    REF -->|"OHM feature whose wikidata tag matches"| GP
+    REF -.->|"signed osm id"| OHMDB
+    GP --> TILES["Vector tiles: our markers at year t (EPSG:3857)"]
+    OHMDB --> BASE["OHM basemap: borders and places at year t"]
+    TILES --> MAP(("The atlas"))
+    BASE --> MAP
 ```
 
-Positive longitude = East. Negative longitude = West.
-Positive latitude = North. Negative latitude = South.
+## Where geometry lives
 
-**Precision:** Use as many decimal places as the evidence supports, but do not invent false precision.
-
-| Situation | Appropriate precision | Example |
+| Store | Holds | Drawn on the public map? |
 |---|---|---|
-| Modern city with known ancient core | 4–5 decimal places | `44.4268, 26.1025` (Bucharest) |
-| Excavated ancient site | 3–4 decimal places | Site known from archaeology |
-| Location known to within ~5 km | 2 decimal places | |
-| Location known only to nearest region | 1 decimal place or omit | |
-| Location genuinely unknown | Leave `geom` blank | |
+| `geometry_periods` | One geometry per entity per span of years (`start_year`, `end_year`; an empty end means ongoing), with a period type, provenance, confidence and an optional cause | **Yes.** It is the map's only source |
+| `entity_locations` | The entity's base location: a place name, a point or line (`geom`) and a polygon (`territory_geom`), with confidence and method. Editors set it in the admin | No. It seeds a geometry period on import, or when an editor runs Backfill |
+| `entity_geo_refs` | References to external features: OHM nodes, ways and relations, Wikidata items. Each has a match role (`primary`, `candidate`, `fallback`, `rejected`) and its own years | Indirectly: an OHM reference links our marker to OHM's drawing of the feature |
 
----
+**Every geometry period on the map today is a point.** Borders are not copied into our database.
+An empire's territory is the OHM boundary relation it references, drawn by OHM's tiles for the
+year on screen. Our marker and OHM's polygon highlight together when you hover either.
 
-### `entity_locations.territory_geom` — The Primary Territorial Extent
+## Coordinates and formats
 
-This is a **polygon, multipolygon, or line** representing the spatial extent of the entity.
+| Topic | Rule |
+|---|---|
+| Storage | WGS 84, **EPSG:4326**, longitude then latitude, decimal degrees. PostGIS `geometry` columns |
+| Input | GeoJSON geometry: `Point`, `LineString`, `Polygon`, `MultiPoint`, `MultiPolygon` (and multi-lines for routes) |
+| Rendering | Vector tiles in Web Mercator (**EPSG:3857**), built from PostGIS at request time |
+| Order | `[39.8262, 21.4225]` is Mecca (longitude first). The reverse is the most common mistake |
+| Precision | As much as the evidence supports, no more: 4–5 decimals for a known site, 2 for "within a few km", none for "somewhere in the region" (leave it empty) |
 
-Use this for:
-- The borders of a **state or empire** at a given time
-- The route of a **trade route** (as a line or polyline)
-- The catchment area of a **natural resource**
-- The approximate zone of spread of a **migration** or **epidemic**
-- The area of an **archaeological culture**
+## Time: geometry that changes
 
-**Format:** GeoJSON geometry objects. The system stores these as PostGIS geometry. You do not need to write raw SQL — the input form accepts standard GeoJSON.
-
-```json
-{
-  "type": "Polygon",
-  "coordinates": [
-    [
-      [12.45, 41.90],
-      [13.00, 41.90],
-      [13.00, 41.50],
-      [12.45, 41.50],
-      [12.45, 41.90]
-    ]
-  ]
-}
+```mermaid
+flowchart LR
+    Y["Timeline year t"] --> Q{"Period covers t? start ≤ t ≤ end (events: ±10 years)"}
+    Q -->|yes| D["Draw it. One feature per entity at a time"]
+    Q -->|no| H[Hidden]
+    Y --> O["OHM features with start_date ≤ t ≤ end_date"]
+    O --> D2["OHM draws its borders and places for t"]
 ```
 
-For multi-part territories (e.g. an empire with disconnected holdings), use `MultiPolygon`.
+- Years are integers, negative before the common era, with no year 0. OHM uses decimal dates. We
+  convert with one rule (a year runs from `year + 0.00137` to `year + 0.99863`), so both layers
+  agree at the year boundary ([details](../architecture/ohm-integration.md#filtering-by-year)).
+- A territory that changed is a series of periods, each with its own geometry and years. Nothing
+  stops periods from overlapping, so check before adding one.
+- Events stay on the map for ten years either side of their dates, so they do not flicker past
+  while the timeline moves.
 
-For routes, use `LineString` or `MultiLineString`.
-
----
-
-## Location Confidence and Method
-
-Two fields document how reliable the location is and how it was determined.
-
-### `location_confidence`
-
-| Value | Meaning |
+| Period type | Use for |
 |---|---|
-| `high` | Location is attested in primary sources or confirmed by archaeology. Coordinates are within the actual site. |
-| `medium` | Location is well-established by scholarship but precise coordinates are estimated. |
-| `low` | Location is disputed, known only approximately, or inferred from context. |
-| `unresolved` | Location is genuinely unknown or there is no scholarly consensus. |
+| `territory` | The extent of a polity or region at a time |
+| `route` | A trade route, road or campaign path |
+| `spread_zone` | The extent of an epidemic, religion or culture |
+| `movement_path` | A migration or a journey |
+| `presence` | An entity at a place for a time. When a dated relationship is saved in the admin or through the API with "derive a presence period" on (the default; bulk imports skip it), the relationship's source gets a period at the target's base location (or its own, if the target has none) for the relationship's years. It is removed with the relationship |
 
-### `location_method`
+| Provenance | Meaning | Caveat |
+|---|---|---|
+| `manual` | Drawn or set by an editor | The Wikidata backfill also writes `manual` |
+| `derived` | Computed from a relationship or a source event | |
+| `ohm_import` | Imported from OHM or a border job | Imports also use it for any period seeded from a location |
 
-| Value | Meaning |
-|---|---|
-| `ohm_nominatim` | Geocoded from OpenHistoricalMap or Nominatim |
-| `ohm_overpass` | Matched directly to OHM node/way/relation via Overpass |
-| `ohm_rest_api` | Matched by explicit OHM element lookup in `/api/0.6` |
-| `wikidata` | Taken from a Wikidata coordinate claim |
-| `geonames` | Taken from the GeoNames database |
-| `pleiades` | Taken from the Pleiades gazetteer of ancient places |
-| `llm_disambiguation` | An automated tool resolved an ambiguous place name |
-| `human_assigned` | A researcher manually set the coordinates |
-| `source_database` | Taken directly from a trusted external source dataset |
+`provenance_mode` is therefore approximate. The `created_by` marker is reliable, for example
+`geo-backfill:ohm`, `geo-backfill:wikidata_p625`, `derive:located_at` or `borders:<batch>`.
 
----
+## How a map point is chosen
 
-## The `location_name` Field
-
-This is a **plain-text description** of where the entity is located, written for human readers. It is not a structured address — it is a label.
-
-Good examples:
-- *"Near modern Mosul, Iraq"*
-- *"Northern India, Ganges plain"*
-- *"Atlantic coast of West Africa, roughly modern Senegal to Guinea"*
-- *"Central Anatolia"*
-
-It should be consistent with the actual coordinates. If the coordinates place a battle in northern Syria, do not write *"Mesopotamia"* in the location name.
-
----
-
-## Common Situations and How to Handle Them
-
-### The location has moved or been renamed
-
-Use the **ancient or contemporary name** in `location_name`, and add the modern equivalent in parentheses for orientation.
-
-> *"Carthage (near modern Tunis, Tunisia)"*
-> *"Ctesiphon (near modern Salman Pak, Iraq)"*
-
-The coordinates should point to the **ancient site**, not the modern city.
-
-### The location is debated
-
-Set `location_confidence` to `low` or `unresolved`. Record the competing claims in `confidence_notes`:
-
-> *"Ancient sources give two possible locations: one near the Granicus River (modern Biga Çayı) and one further east. Coordinates follow the majority scholarly view."*
-
-Do not average competing coordinates or pick arbitrarily without noting the debate.
-
-### The entity covers a vast and changing area
-
-For empires and states whose borders shifted substantially over time, the `territory_geom` should represent the entity's **maximum extent** or **most typical extent**, with the time period noted in `confidence_notes`:
-
-> *"Territory polygon represents approximate maximum extent c. 120 CE under Trajan. Earlier and later extents were significantly different."*
-
-For time-varying geometries, create explicit `geometry_periods` rows keyed by year range and provenance.
-
-### The entity has no meaningful single point
-
-Some entities are inherently spatial in extent — a trade route, a migration, a nomadic confederation — and a single point would be misleading. In these cases:
-
-- Leave `geom` blank, or place it at the most important node (e.g. the origin point of a trade route, the political heartland of a confederacy).
-- Use `territory_geom` for the full extent.
-- Use relationships to connect the entity to the cities, regions, or routes it passes through.
-
-### The entity is a person
-
-Persons generally should **not** have coordinates in `geom`. Instead:
-
-- Use `born_in` relationship → birthplace entity
-- Use `died_in` relationship → death location entity
-- Use `resided_in` relationship → residence entity (with temporal start/end on the relationship)
-
-The exception: if a person's movements are themselves historically significant (e.g. Ibn Battuta's travels, Marco Polo's route), a `territory_geom` line can represent the journey.
-
-### The entity is an event
-
-**Battles and localised events:** Place the `geom` point at the battle site. If a specific location is known to within a few kilometres, set `location_confidence` to `high` or `medium`.
-
-**Wars (which span multiple locations):** Leave `geom` blank. Use relationships to link the war to the battles it comprised (`contains` relationship) and to the states involved (`at_war_with`).
-
-**Migrations:** Use `territory_geom` as a line or broad polygon representing the route or zone of movement. Set `location_confidence` to reflect how well the route is established.
-
-**Epidemics:** Use `territory_geom` as a polygon representing the known or estimated extent of spread. Note the time the polygon applies to in `confidence_notes`.
-
----
-
-## Coordinate Reference System
-
-All coordinates must be in **WGS 84 (EPSG:4326)** — the same system used by GPS devices, Google Maps, and OpenStreetMap. Decimal degrees only; do not use degrees-minutes-seconds notation.
-
-| Wrong | Right |
-|---|---|
-| `41°54'N, 12°27'E` | `41.900, 12.450` |
-| `EPSG:3857` projected coordinates | Convert to WGS 84 first |
-
----
-
-## A Worked Example: The Silk Road
-
-The Silk Road is an entity of type `trade_route` in the ECONOMY group. Here is how its spatial data should be populated.
-
-**`geom` (point):** The conventional western terminus, Antioch / Seleucia on the Orontes (near modern Antakya, Turkey): `[36.2021, 36.2021]`. Alternatively, leave blank and rely on `territory_geom`.
-
-**`territory_geom` (line):** A `MultiLineString` tracing the major routes from Chang'an westward through Central Asia, branching through Persia to the Levant, and through Sogdia to the Black Sea. This should reflect the **combined network**, not a single path.
-
-**`location_name`:** *"Overland network connecting Chang'an (China) to the eastern Mediterranean, via Central Asia and Persia"*
-
-**`location_confidence`:** `medium` — the general route is well-established; precise paths for particular periods are debated.
-
-**`location_method`:** `human_assigned`
-
-**`confidence_notes`:** *"Route geometry represents the approximate combined network of the classical period (c. 1st–8th centuries CE). Northern steppe variants and sea routes not included."*
-
-**Relationships:**
-```
-Silk Road  ──[connects]──────►  Chang'an
-Silk Road  ──[connects]──────►  Samarkand
-Silk Road  ──[connects]──────►  Ctesiphon
-Silk Road  ──[connects]──────►  Antioch
-Silk Road  ──[passes_through]►  Kushan Empire
-Silk Road  ──[controlled_by]─►  Han Dynasty      (−130 to 220)
-Silk Road  ──[controlled_by]─►  Tang Dynasty     (618 to 907)
+```mermaid
+flowchart TD
+    E["Entity without a map point"] --> A{"An active OHM reference whose feature's wikidata tag equals the entity's QID?"}
+    A -->|yes| P1["Use the feature: a node's position, a way's centre, a relation's admin centre or label node"]
+    P1 --> C{"Within 50 km of the entity's own Wikidata coordinates?"}
+    C -->|"yes, or no Wikidata point"| OK1["Point from OHM (geo-backfill:ohm)"]
+    C -->|no| B
+    A -->|no| B{"A point-like type (city, monument, battle, treaty, disaster…) with its own Wikidata P625?"}
+    B -->|yes| OK2["Point from Wikidata (geo-backfill:wikidata_p625)"]
+    B -->|no| N["Left unplaced: better than misplaced"]
 ```
 
----
+- **Rejected:** name-only OHM matches, Nominatim guesses, and coordinates borrowed from a related
+  place. Audit scripts remove existing points of those kinds.
+- **Explicit derivation:** an event or place with no point can be placed at the point of the place
+  it is `located_at` (`geometry:derive-located-at`, a dry run unless `--apply`). The result is a
+  derived period tied to that relationship.
+- **Known exception:** the extraction agent's place step and `pipeline.locate_events` can still
+  place an event at an associated place. The point audits catch these afterwards.
 
-## OHM-First Resolution Policy
+## OHM references
 
-For map interaction and provenance, resolve locations in this order:
+| Field | Values |
+|---|---|
+| Provider | `ohm`, `wikidata`, `geonames`, `pleiades`, `custom` |
+| External type | `node`, `way`, `relation` (OHM), `qid` (Wikidata), `feature` |
+| External id | The bare id: `2744968`, `Q16553` |
+| Match role | `primary` (one active per entity), `candidate`, `fallback`, `rejected` |
+| Retrieval method | `overpass`, `nominatim`, `rest`, `manual` |
+| Years | Optional start and end, filled from the OHM feature's dates |
 
-1. **Wikidata seed**: start from QID and any coordinates/place hints.
-2. **OHM match**: try OHM Nominatim, then OHM Overpass/REST to get a concrete `node`, `way`, or `relation`.
-3. **Fallback geometry source**: if no OHM match, use trusted external border datasets or manual digitization.
-4. **Empty geometry**: if both fail, leave the primary `entity_locations` geometry empty and mark `location_confidence` as `unresolved`.
+In tiles and on the client the OHM id travels **signed**: a relation is negative (`relation/1880` →
+`-1880`), and a node or way is positive, the same convention as `osm_id` in OHM's own tiles. A
+positive id cannot tell a node from a way. Setting a new primary reference deactivates the previous
+one.
 
-When possible, attach and keep the external reference ID (especially OHM relation IDs) so clicking an entity can open the underlying map feature directly.
+## Confidence and method
 
----
+| `location_confidence` | Meaning |
+|---|---|
+| `high` | Attested in primary sources or confirmed by archaeology; the point is on the site |
+| `medium` | Established by scholarship, but the coordinates are estimated |
+| `low` | Disputed, approximate or inferred from context |
+| `unresolved` | Unknown, or no scholarly consensus |
 
-## Checklist Before Submitting a Location
+| `location_method` | Meaning |
+|---|---|
+| `ohm_nominatim` | Geocoded through OpenHistoricalMap's Nominatim |
+| `wikidata` | A Wikidata coordinate claim |
+| `geonames`, `pleiades` | A gazetteer |
+| `llm_disambiguation` | An automated tool chose between candidate places |
+| `human_assigned` | Set by an editor |
+| `source_database` | Taken from a trusted source dataset |
 
-- [ ] Longitude comes **before** latitude in all coordinate pairs
-- [ ] Coordinates are in WGS 84 decimal degrees
-- [ ] `location_name` matches the actual coordinates (spot-check on a map)
-- [ ] `location_confidence` honestly reflects the evidence
-- [ ] `location_method` is filled in
-- [ ] OHM lookup was attempted before fallback geometry sources
-- [ ] If the location is disputed or estimated, this is noted in `confidence_notes`
-- [ ] Persons use relationships (`born_in`, `died_in`, `resided_in`) rather than `geom`
-- [ ] Wars and wide-area events use `territory_geom` rather than a misleading single point
-- [ ] `territory_geom` notes the time period it represents if the extent was time-varying
+Notes on a debated location go in the entity's confidence notes. Never average competing sites: pick
+the majority view and record the others. A map story can show alternative sites side by side.
+
+## Common situations
+
+| The entity is… | Do this |
+|---|---|
+| **A city or site** | A point on the ancient site, not the modern city. "Carthage (near modern Tunis)" as the place name |
+| **A battle or treaty** | A point at the site. Set the confidence from the evidence |
+| **A polity** | Link its OHM boundary relation as the primary reference. Its point marks the capital or heartland |
+| **A person** | No point of their own. Use relationships: `born_in`, `died_in`, `resided_in`. A presence period can show them at a place for a time |
+| **A war** | No single point. Link its battles with `contains` and its sides with `at_war_with` |
+| **A trade route** | Connect it to its cities with `connects` and to the polities it crosses with `passes_through`. A `route` period can carry the line |
+| **A migration or epidemic** | A `movement_path` or `spread_zone` period, or a [map story](../architecture/map-stories.md) that animates the spread |
+| **Unknown** | Leave it empty and set the confidence to `unresolved` |
+
+## Editing geometry
+
+Geometry is edited on the admin entity page. Dated geometry and OHM references need
+`geometry.write`, which the `geo_moderator` and `admin` roles have. The base location is part of
+the entity form, so it needs `entities.write` (`moderator`, `history_moderator`, `admin`).
+
+| Tool | Writes | Permission |
+|---|---|---|
+| Map editor: draw a point, line or polygon | `entity_locations` | `entities.write` |
+| Geometry periods panel: add dated geometry, or **Backfill** from the base location | `geometry_periods` | `geometry.write` |
+| Geography references: search OHM, attach or detach a feature, choose the primary | `entity_geo_refs` | `geometry.write` |
+| Relationship panel: "derive a presence period" | a `presence` period | `relationships.write` |
+
+After moving a base location, run Backfill so the map follows. See
+[Admin and editing](../architecture/admin-map-editor.md#editing-an-entity).
+
+**Before you save a location:** longitude first, WGS 84 decimals; the place name matches the point;
+the confidence is honest; the OHM reference was tried before a point was drawn by hand; a debated or
+time-bound extent is explained in the notes.
+
+## Where next
+
+- [Maps, tiles and OHM](../architecture/ohm-integration.md): basemaps, the date filter, tiles,
+  troubleshooting
+- [Atlas vector tiles](../schemas/atlas-tiles.md): the tile contract
+- [Data model](README.md): how geometry fits the rest of the model

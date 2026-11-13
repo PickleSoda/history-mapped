@@ -1,4 +1,7 @@
-# Atlas vector tiles (`atlas_entities`)
+# Atlas vector tiles
+
+> **Audience:** developers, GIS users · **Last reviewed:** 2026-11-14 · **Overview:**
+> [Maps, tiles and OHM](../architecture/ohm-integration.md)
 
 All-time vector tiles of our entity overlay, served from PostGIS by [Martin](https://martin.maplibre.org/) or by the app
 itself (`TILES_DRIVER`, see Operations). The public SPA (`web/`) reads them when `VITE_MAP_TILES_URL` is set; the admin app keeps the REST `GET /api/v1/entities/map`. Design:
@@ -89,7 +92,8 @@ inclusive years, applied before the conversion. `start_year` / `end_year` stay e
 **Client filter** (`entityLayerFilter` in `web/src/lib/map-tiles.ts`). The SPA computes the timeline position's decimal range
 with the same helper as the OHM layers (`ohmDateRange`). It keeps features where `start_decdate <= range.end` and
 (`end_decdate` absent or `end_decdate >= range.start`). It then applies the group subset as
-`['in', ['get', 'entity_group'], ['literal', [...UPPERCASE]]]`. Scrubbing the timeline sends no request.
+`['in', ['get', 'entity_group'], ['literal', [...UPPERCASE]]]`. Scrubbing the timeline fetches no tiles. The sidebar
+list (`GET /api/v1/entities?exists_at=…`) and the ambient stories still refetch for the new year.
 
 ## Density: rank-based cap per tile and per century
 
@@ -118,7 +122,7 @@ entity's top active OHM geo-ref: `match_role = primary` first, then the latest `
 - In OHM's own tiles the same number appears as `osm_id` on `ohm` / `land_ohm_centroids` and on `ohm_admin` / `boundaries`. The
   SPA promotes it to the feature id there to drive highlights. The reverse lookup is
   `GET /api/v1/map/resolve-ohm-feature?provider=ohm&osm_id=<signed>&target_year=<year>`. See
-  [ohm-integration.md § Feature identity](../architecture/ohm-integration.md#24-feature-identity).
+  [Maps, tiles and OHM § Linking our entities to OHM](../architecture/ohm-integration.md#linking-our-entities-to-ohm).
 
 ## Caching
 

@@ -5,6 +5,20 @@ copied or hosted**: we store links to the Commons thumbnails, and the
 author/license data their reuse terms ask us to display. The browser loads each
 image straight from Wikimedia.
 
+> **Audience:** developers, editors · **Read time:** 5 minutes · **Last reviewed:** 2026-11-14 ·
+> **Code:** `api/app/Actions/Entity/FetchEntityImagesAction.php`, `api/app/Services/WikimediaImages.php`
+
+```mermaid
+flowchart TB
+    Q["Entity with a QID, not yet checked"] --> WD["Wikidata: image, flag, arms, seal, map claims"]
+    WD -->|"no P18"| WP["English Wikipedia lead image (Commons files only)"]
+    WD --> CM["Commons imageinfo: 960px thumbnail, author, licence"]
+    WP --> CM
+    CM --> MR[("entities.attributes.media_refs: up to 4 links with credits")]
+    AD["Admin Images panel: pick, order, caption"] -->|"licence re-read from Commons"| MR
+    MR --> UI["Entity page and detail panel: image straight from Wikimedia, with its credit"]
+```
+
 ## Storage
 
 The images live in `entities.attributes.media_refs`, an ordered list where the
@@ -39,7 +53,7 @@ first entry is the primary image. The API returns it as `media_refs`.
   (`UpdateEntityAction::PRESERVED_ATTRIBUTES`). The admin entity form merges
   its fields into the stored attributes instead of replacing them, so it keeps
   images and every other key it doesn't edit
-  (`Admin\EntityController::mergeFormAttributes`).
+  (`ApplyEntityEditsAction::mergeAttributes`).
 
 ## Fetching (`entity:fetch-images`)
 

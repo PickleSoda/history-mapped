@@ -1,546 +1,196 @@
-# OpenHistoricalMap Integration Guide
+# Maps, tiles and OpenHistoricalMap
 
-> Status note: technical integration reference, not a claim that every pattern below is live across all clients.
-> Current repo state (2026-10-31):
-> - **Public SPA (`web/`)** mounts the OHM house styles (`web/src/lib/map-config.ts`) and filters OHM layers by the timeline year (`applyOhmLayerDateFilter`). Its entity overlay is REST GeoJSON by default, or **Martin vector tiles** when `VITE_MAP_TILES_URL` is set (§7.2, contract [schemas/atlas-tiles.md](../schemas/atlas-tiles.md)).
-> - **Correlation is live in the SPA (both overlay modes).** Our features carry the OHM feature's **signed `osm_id`** (§2.4). Linked OHM labels are painted in the link colour, and the hovered or selected entity's OHM polygon is highlighted. Hover syncs both ways (list ↔ marker ↔ OHM label), and a click on an OHM label resolves to our entity by signed `osm_id`. Links and their year ranges come from the `ohm-links` backfill ([data-quality-runbook.md](../implementation-docs/data-quality-runbook.md#ohm-link-backfill-2026-10-31)).
-> - **Admin app (`api/resources/js`)** still uses REST (`GET /entities/map`) through `HistoricalMapViewer`, `MapEditor`, and supporting helpers. It has no tiles and no correlation highlight.
+How the atlas map is put together: an OpenHistoricalMap (OHM) basemap whose borders change with the
+year, our own entity layer from vector tiles, and the links between the two. It also covers how
+everything is filtered by date, and which outside map services the browser talks to.
 
-**Historical Atlas Project**  
-*MapLibre GL JS, Vector Tiles, Date Filtering, and Custom Overlays*  
-*From OHM Tile Server to Production Map Application*
+> **Audience:** developers, geographers · **Read time:** 10 minutes · **Last reviewed:** 2026-11-14 ·
+> **Code:** `web/src/lib/map-config.ts`, `web/src/components/map/MapCanvas.tsx`,
+> `web/src/lib/ohm-layer-date-filter.ts`, `web/src/lib/map-tiles.ts`, `web/src/lib/ohm-highlight.ts`
 
-Version 1.0 — March 2026  
-Companion to: Data Pipeline Architecture Document
+## The layer stack
 
----
+From the top (drawn last) to the bottom:
 
-## Table of Contents
-
-1. [Overview and Architecture Decisions](#1-overview-and-architecture-decisions)
-2. [OHM Tile Sources and Endpoints](#2-ohm-tile-sources-and-endpoints)
-3. [OHM Stylesheets](#3-ohm-stylesheets)
-4. [Basic Map Setup with MapLibre GL JS](#4-basic-map-setup-with-maplibre-gl-js)
-5. [Date Filtering](#5-date-filtering)
-6. [Text Rendering and Localization](#6-text-rendering-and-localization)
-7. [Custom Entity Overlays](#7-custom-entity-overlays)
-8. [Querying OHM Data](#8-querying-ohm-data)
-9. [Alternative Embedding Methods](#9-alternative-embedding-methods)
-10. [Common Issues and Troubleshooting](#10-common-issues-and-troubleshooting)
-11. [Integration with the Data Pipeline](#11-integration-with-the-data-pipeline)
-12. [Quick Reference](#12-quick-reference)
-
----
-
-## 1. Overview and Architecture Decisions
-
-OpenHistoricalMap (OHM) is the live basemap for the admin map surfaces in `api/` and for the public Atlas SPA in `web/`. OHM provides vector tiles containing global historical geographic data with temporal metadata, enabling time-filtered map rendering. This guide covers the integration patterns used in the repo today as well as the broader reference setup for future map surfaces.
-
-### 1.1 Why OHM
-
-- **Vector tiles with temporal metadata:** Every feature includes `start_decdate` and `end_decdate` properties, allowing filtering by any date in history.
-- **Public domain data:** OHM data is available under CC0 dedication, with no API key required for tile access.
-- **MapLibre GL JS compatibility:** OHM publishes stylesheets conforming to the MapLibre Style Specification, which is the project's chosen map library.
-- **No raster tiles:** OHM does not publish pre-rendered raster tiles (it isn't feasible to render every zoom level for every day in history), so vector tiles are the only option.
-
-### 1.2 Key Architectural Decisions
-
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Map renderer | MapLibre GL JS | OHM's preferred library; open source fork of Mapbox GL JS |
-| Tile source | OHM vector tiles | Authoritative historical geodata with temporal filtering |
-| Base stylesheet | OHM "Historic" style | Best general-purpose historical style; alternatives: Railway, Japanese Scroll, Woodblock |
-| Date filtering | maplibre-gl-dates plugin | Official OHM plugin for filtering features by date |
-| Custom overlays | Separate vector/GeoJSON sources | Project entities rendered as a layer on top of OHM base map |
-
----
-
-## 2. OHM Tile Sources and Endpoints
-
-OHM publishes four vector tilesets. All tiles are served as Protobuf (.pbf) files from the vtiles subdomain.
-
-### 2.1 Available Tilesets
-
-| Tileset | URL Template | Contents | License |
-|---------|-------------|----------|---------|
-| General | `https://vtiles.openhistoricalmap.org/maps/ohm/{z}/{x}/{y}.pbf` (source `ohm` in the house styles) | Places, boundaries (linear), transport, POIs, land use, natural features | Public domain |
-| Boundary Polygons | `https://vtiles.openhistoricalmap.org/maps/ohm_admin/{z}/{x}/{y}.pbf` | Administrative boundary polygons. **Heavy tiles — filter aggressively.** | Public domain |
-| Landmasses | `https://vtiles.openhistoricalmap.org/maps/osm_land/{z}/{x}/{y}.pbf` | Land polygons from OSM coastlines. | ODbL |
-| Waterbodies | `https://vtiles.openhistoricalmap.org/maps/ne/{z}/{x}/{y}.pbf` | Low-resolution lakes and reservoirs from Natural Earth. | Public domain |
-
-> ⚠️ **Important:** OHM does not publish raster tiles. Do not attempt to use raster tile URL patterns (e.g., `.png`). The S3 404 errors in the console are caused by attempting to load raster tiles from a non-existent endpoint.
-
-### 2.2 Temporal Properties
-
-Every feature in OHM tiles includes two critical properties for date filtering:
-
-- **`start_decdate`** — The start date as a decimal year (e.g., 1939.0 = January 1, 1939)
-- **`end_decdate`** — The end date as a decimal year
-
-These correspond to the `start_date=*` and `end_date=*` OSM tags, converted to decimal years. Filtering by these properties is what prevents anachronisms on the map (e.g., showing modern borders on a 1939 map).
-
-### 2.3 Decimal Year Conversion
-
-To convert a calendar date to a decimal year for manual filtering:
-
-```javascript
-function dateToDecimalYear(dateStr) {
-  const d = new Date(dateStr);
-  const year = d.getFullYear();
-  const startOfYear = new Date(year, 0, 1);
-  const startOfNext = new Date(year + 1, 0, 1);
-  const yearLen = startOfNext - startOfYear;
-  const elapsed = d - startOfYear;
-  return year + elapsed / yearLen;
-}
-
-// Example: dateToDecimalYear('1939-09-01') => 1939.6657...
+```mermaid
+flowchart TB
+    L7["Map-story preview picks (admin preview only)"]
+    L6["Active map story: units, arrows, routes, regions, places, dated OHM border outlines"]
+    L5["Our entities: fills, outlines, group markers and labels, hover marker (source: entities)"]
+    L4["Ambient stories: faint background stories for the current year"]
+    L3["Battle relief: hillshade and modern water and names (battle stories only)"]
+    L2["OHM admin polygons: hidden until a linked entity is hovered or selected"]
+    L1["OpenHistoricalMap basemap: land, borders, places and labels, filtered by year"]
+    L7 --- L6 --- L5 --- L4 --- L3 --- L2 --- L1
 ```
 
-The `maplibre-gl-dates` plugin handles this conversion automatically when you pass ISO date strings.
+`MapCanvas` builds this stack on every `style.load`: the first load, and each basemap switch. In
+order, it registers the marker icons, adds the entity layers, adds the hidden OHM admin layers, sets
+the projection (flat map or globe), applies the year filter, and bumps `styleEpoch` so the story and
+ambient overlays re-add themselves.
 
-For a **year-only** date, OHM tiles carry `YYYY + 0.00137` as the start and `YYYY + 0.99863` as the end (noon on 1 January and
-on 31 December; verified on live tiles). Our integer years are converted with the same rule in SQL, PHP and TypeScript; see
-[schemas/atlas-tiles.md](../schemas/atlas-tiles.md#visibility-window-the-decimal-date-rule).
+## Why OpenHistoricalMap
 
-### 2.4 Feature identity
+- **Time-aware.** Every OHM feature carries a start and an end date, so one tileset can draw any
+  year in history.
+- **Open.** OHM data is CC0, and the tiles need no API key.
+- **MapLibre-native.** OHM publishes MapLibre styles over its vector tiles, so we use the styles
+  as they are and add our own layers on top.
+- **Linkable.** OHM features carry their OSM-style ids and often a Wikidata id, so our entities can
+  point at the exact feature that draws them.
 
-OHM's tiles (served by Martin since OHM left Tegola) name each feature by a **signed `osm_id`** only. Negative is a relation id;
-positive is a node or way id (verified by decoding live tiles, 2026-10-31). The older `@id` / `osm_type` properties are gone.
-The `wikidata` key exists, but its values are absent in practice, so tiles cannot be joined by QID.
+## The basemap
 
-| Tileset / layer | `osm_id` | Joinable to our entities |
+| Basemap (URL `base`) | Style | Notes |
 |---|---|---|
-| `ohm` / `land_ohm_centroids` (polity label points) | negative = relation id | yes: promoted to the feature id (`promoteId`); linked labels get feature-state `linked` |
-| `ohm` / `land_ohm_lines` (boundary lines) | positive = member **way** id (`group_id` is not a relation id) | no: the click resolver skips this layer |
-| `ohm` / `place_points_centroids` | positive = node (or way centroid), rarely negative | through the resolver (node, then way) |
-| `ohm_admin` / `boundaries` (polygons, heavy: ~1.3 MB at z5) | negative = relation id | yes: `promoteId: 'osm_id'`; highlight layers stay hidden until something is hovered or selected |
-| any | `wikidata` key present, values absent | no |
+| `woodblock` (default) | `openhistoricalmap.org/map-styles/woodblock/woodblock.json` | Paper texture; our water recolouring applies here only |
+| `historical` | `…/historical/historical.json` | OHM's default, with relief |
+| `railway` | `…/railway/railway.json` | Rail lines picked out |
+| fallback | `tiles.openfreemap.org/styles/liberty` | Used only if the OHM style cannot be fetched |
 
-**Our side.** `entity_geo_refs` keeps `provider = ohm` and an unsigned `external_type` + `external_id`. Tiles emit the signed form
-as `ohm_osm_id`; REST emits `ohm_external_type` / `ohm_external_id`. The signing rule is implemented in `tiles.signed_osm_id`,
-`App\Support\OhmDate::signedOsmId` / `externalTypesForSignedId`, and in the SPA's `linkIndexFromFeatures`
-(`web/src/lib/ohm-highlight.ts`) and `extractIdentity` (`web/src/lib/ohm-resolve.ts`).
+`loadHistoricalBasemapStyle()` fetches the style once per URL and normalises it before MapLibre
+sees it:
 
-**Resolver.** Two routes share one request class and action: the public `GET /api/v1/map/resolve-ohm-feature` and the editorial
-`POST`.
+- Labels are English-first: `coalesce(name_en, name:en, name_int, int_name, name)`.
+- A few noisy layers and point-of-interest icons are removed.
+- `promoteId` is set on OHM's label points, so they can carry feature-state highlights.
+- An `ohm_admin` polygon source is added for highlighting.
 
-- They accept **`osm_id`** (signed, non-zero) instead of `external_type` + `external_id`. The two forms are mutually exclusive.
-  `provider` and `target_year` are required.
-- Negative ids resolve to a relation. Positive ids try a node first, then a way.
-- Only active refs whose temporal years (when set) contain `target_year` match.
+Dark mode does not restyle the basemap. It dims the map canvas, and recolours our own layers.
 
-The SPA first looks the id up in its loaded entity tiles (`ohm_osm_id`, tile mode only) and calls the resolver only on a miss.
+## Filtering by year
 
----
+OHM writes dates as **decimal years**. A year-only date starts at noon on 1 January and ends at noon
+on 31 December. We store whole years, so we derive the same values everywhere with one rule:
 
-## 3. OHM Stylesheets
+| Year | Start (`year + 0.00137`) | End (`year + 0.99863`) |
+|---|---|---|
+| 1066 | 1066.00137 | 1066.99863 |
+| 216 BCE (`-216`) | −215.99863 | −215.00137 |
 
-### 3.1 Available Styles
+The rule exists three times, with parity tests: SQL `tiles.year_to_decdate`, PHP
+`App\Support\OhmDate`, TypeScript `web/src/lib/ohm-date.ts`.
 
-OHM publishes four pre-built stylesheets conforming to the MapLibre Style Specification:
-
-| Style | URL | Description |
-|-------|-----|-------------|
-| Historic | `https://www.openhistoricalmap.org/map-styles/main/main.json` | General-purpose historical style. **Recommended.** |
-| Railway | `.../map-styles/railway/railway.json` | Focused on railway infrastructure. |
-| Japanese Scroll | `.../map-styles/japanese_scroll/japanese_scroll.json` | Artistic scroll-style rendering. |
-| Woodblock | `.../map-styles/woodblock/woodblock.json` | Woodblock print aesthetic. |
-
-### 3.2 NPM Package
-
-Stylesheets are also available via NPM:
-
-```bash
-npm install @openhistoricalmap/map-styles
+```mermaid
+flowchart LR
+    T["Timeline year t"] --> R["Decimal range for t: start and end of the year"]
+    R --> F1["OHM layers: start_decdate before the end of t, end_decdate after its start; undated features hidden"]
+    R --> F2["Our layers in tile mode: the same test on our start_decdate and end_decdate, plus the group filter"]
+    R --> F3["REST mode: the API filters by year"]
 ```
 
-### 3.3 Custom Stylesheets
+- Only layers on the `ohm` source are filtered. Natural Earth and land layers are timeless.
+- **Events are "decade-sticky".** A battle or treaty stays visible for 10 years either side of its
+  dates, so it does not vanish while you scrub past.
+- In tile mode a year change re-filters tiles already loaded, so no tile is fetched. The sidebar
+  list and the ambient stories still refetch for the new year.
 
-For more control, write a custom stylesheet pointing to OHM vector tiles. Use [Maputnik](https://maputnik.github.io/) (a visual style editor) to design and export custom styles. The stylesheet must reference OHM tile sources and include temporal filters.
+## Our entity layer
 
-### 3.4 Known Font Limitations
+```mermaid
+sequenceDiagram
+    autonumber
+    participant ML as MapLibre
+    participant SW as Service worker
+    participant C as Caddy
+    participant T as Martin or the app
+    participant PG as PostgreSQL
 
-OHM's "OpenHistorical Bold" font does not include glyphs for all Unicode ranges. Console warnings about missing glyph ranges (Cuneiform U+103xx, Ethiopic U+120xx–U+123xx) are expected and non-breaking. MapLibre falls back to local rendering for these characters.
-
-To suppress these warnings, override the `glyphs` URL in the style to point to a more complete font stack (e.g., Noto Sans served from MapTiler or self-hosted).
-
----
-
-## 4. Basic Map Setup with MapLibre GL JS
-
-### 4.1 Required Dependencies
-
-```bash
-npm install maplibre-gl
-npm install @openhistoricalmap/maplibre-gl-dates
+    ML->>SW: nowrap: GET /tiles/atlas_entities/6/33/22
+    alt cached
+        SW-->>ML: tile (then revalidates in the background)
+    else
+        SW->>C: request
+        C->>T: proxy (adds max-age=300)
+        T->>PG: SELECT mvt, key FROM tiles.atlas_entities(6, 33, 22)
+        PG-->>T: MVT bytes and an md5 key (the ETag)
+        T-->>ML: 200 application/x-protobuf, or 204 if empty
+    end
+    ML->>ML: filter by year and group, draw markers and labels
 ```
 
-### 4.2 Minimal Implementation
+- One feature per **geometry period**, for all of time. Each feature carries `start_decdate`,
+  `end_decdate`, the entity group and type, impact, `has_map_story` and the signed `ohm_osm_id`.
+- Each tile keeps at most N features per century (12 at zoom 0–1, up to 96 at zoom 12; no cap from
+  zoom 13). They are ranked by curated priority and then impact, so every era is represented at a
+  world view.
+- Without `VITE_MAP_TILES_URL`, the app falls back to REST mode: `GET /api/v1/entities/map` per
+  viewport and year.
+- Full contract: [Atlas vector tiles](../schemas/atlas-tiles.md).
 
-The simplest working OHM map with date filtering:
+## Linking our entities to OHM
 
-```javascript
-import maplibregl from 'maplibre-gl';
-import 'maplibre-gl/dist/maplibre-gl.css';
-import { filterByDate } from '@openhistoricalmap/maplibre-gl-dates';
+An entity that OHM draws stores a geography reference to that OHM feature. In tiles it travels as
+a **signed id**: negative for an OHM relation (`relation/1880` → `-1880`), positive for a node or way.
+OHM's own tiles use the same convention in `osm_id`.
 
-const map = new maplibregl.Map({
-  container: 'map',
-  style: 'https://www.openhistoricalmap.org/map-styles/main/main.json',
-  center: [12.5, 41.9],  // Rome
-  zoom: 5,
-  attributionControl: {
-    customAttribution:
-      '<a href="https://www.openhistoricalmap.org/">OpenHistoricalMap</a>',
-  },
-});
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant M as MapCanvas
+    participant X as OhmCorrelation
+    participant API as /api/v1
 
-map.once('styledata', () => {
-  map.filterByDate('0117-01-01');  // Roman Empire at peak extent
-});
+    M->>X: our tiles loaded: index signed id → entity id
+    X->>M: paint linked OHM labels in the link colour
+    U->>M: hover or select an entity
+    M->>X: emphasize(hoverId, sel)
+    X->>M: show the OHM admin polygon with that id (hover or selected style)
+    U->>M: click an OHM label that is not ours
+    M->>X: look the id up in the index
+    alt not in the index
+        M->>API: GET /map/resolve-ohm-feature?provider=ohm&osm_id=-1880&target_year=t
+        API-->>M: entity id, or nothing
+    end
+    M->>M: select the entity
 ```
 
-### 4.3 React Component Implementation
-
-For the project's React + Inertia.js stack:
-
-```tsx
-import { useRef, useEffect, useState } from 'react';
-import maplibregl from 'maplibre-gl';
-import 'maplibre-gl/dist/maplibre-gl.css';
-
-const OHM_STYLE =
-  'https://www.openhistoricalmap.org/map-styles/main/main.json';
-
-interface HistoricalMapProps {
-  initialDate?: string;        // ISO date string
-  center?: [number, number];   // [lng, lat]
-  zoom?: number;
-  onMapReady?: (map: maplibregl.Map) => void;
-}
-
-export function HistoricalMap({
-  initialDate = '0117-01-01',
-  center = [12.5, 41.9],
-  zoom = 5,
-  onMapReady,
-}: HistoricalMapProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<maplibregl.Map | null>(null);
-  const [currentDate, setCurrentDate] = useState(initialDate);
-
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    const map = new maplibregl.Map({
-      container: containerRef.current,
-      style: OHM_STYLE,
-      center,
-      zoom,
-      attributionControl: {
-        customAttribution:
-          '<a href="https://www.openhistoricalmap.org/">OpenHistoricalMap</a>',
-      },
-    });
-
-    map.once('styledata', () => {
-      map.filterByDate(currentDate);
-      onMapReady?.(map);
-    });
-
-    mapRef.current = map;
-
-    return () => { map.remove(); };
-  }, []);
-
-  // Update date filter when currentDate changes
-  useEffect(() => {
-    if (mapRef.current?.isStyleLoaded()) {
-      mapRef.current.filterByDate(currentDate);
-    }
-  }, [currentDate]);
-
-  return (
-    <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
-  );
-}
-```
-
----
-
-## 5. Date Filtering
-
-### 5.1 The maplibre-gl-dates Plugin
-
-This plugin adds the `filterByDate()` method to MapLibre's Map object. It modifies the style's filter expressions on every layer to show only features whose temporal range includes the specified date. Without this plugin, the map displays all features from all time periods simultaneously.
-
-### 5.2 How Filtering Works
-
-When `filterByDate('1939-09-01')` is called, the plugin:
-
-1. Converts the ISO date string to a decimal year (1939.6657…)
-2. Iterates over all layers in the style
-3. Adds filter conditions: `start_decdate <= 1939.6657 AND end_decdate >= 1939.6657`
-4. Features outside this temporal range are hidden from rendering
-
-### 5.3 Building a Time Slider
-
-The project's time slider (inspired by Civilization VI's timeline) should call `filterByDate()` as the user moves the slider. OHM provides the Timescope component for more sophisticated date selection, but for custom implementations:
-
-```typescript
-function handleDateChange(newDate: string) {
-  setCurrentDate(newDate);
-  if (mapRef.current?.isStyleLoaded()) {
-    mapRef.current.filterByDate(newDate);
-  }
-}
-
-// Example: slider spanning 500 BCE to 2000 CE
-// Convert slider value (number) to ISO date string
-function sliderValueToDate(value: number): string {
-  const year = Math.floor(value);
-  const frac = value - year;
-  const dayOfYear = Math.floor(frac * 365);
-  const d = new Date(year, 0, 1 + dayOfYear);
-  return d.toISOString().split('T')[0];
-}
-```
-
-> ⚠️ **Performance:** Calling `filterByDate()` triggers a re-render of all layers. Debounce or throttle the call when using a continuously draggable slider to avoid performance issues.
-
----
-
-## 6. Text Rendering and Localization
-
-### 6.1 Right-to-Left Text
-
-To correctly display Arabic and Hebrew labels on the map, install the RTL text plugin:
-
-```javascript
-maplibregl.setRTLTextPlugin(
-  'https://cdn.maptiler.com/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.min.js',
-  true  // lazy load
-);
-```
-
-### 6.2 Label Localization
-
-OHM tiles contain localized names in languages with 50+ occurrences of `name:*` tags. To localize labels to the user's preferred language, install the mapbox-gl-language plugin:
-
-```javascript
-import MapboxLanguage from '@mapbox/mapbox-gl-language';
-
-map.addControl(new MapboxLanguage({
-  defaultLanguage: 'en',
-}));
-```
-
----
-
-## 7. Custom Entity Overlays
-
-The Historical Atlas project adds its own entity markers, boundary annotations, and relationship lines on top of the OHM base map. These are separate sources and layers added to MapLibre after the OHM style loads.
-
-### 7.1 Adding a GeoJSON Entity Layer
-
-```javascript
-map.on('load', () => {
-  // Add entity data source
-  map.addSource('atlas-entities', {
-    type: 'geojson',
-    data: {
-      type: 'FeatureCollection',
-      features: []  // populated from API
-    }
-  });
-
-  // Point entities (battles, cities, etc.)
-  map.addLayer({
-    id: 'entity-points',
-    type: 'circle',
-    source: 'atlas-entities',
-    filter: ['==', '$type', 'Point'],
-    paint: {
-      'circle-radius': 6,
-      'circle-color': ['match', ['get', 'entity_type'],
-        'battle', '#E74C3C',
-        'city', '#3498DB',
-        'person_birth', '#2ECC71',
-        '#95A5A6'  // default
-      ],
-      'circle-stroke-width': 2,
-      'circle-stroke-color': '#FFFFFF'
-    }
-  });
-});
-```
-
-### 7.2 Our Vector Tiles (Martin or the app)
-
-The public SPA's entity overlay can come from our own vector tiles, rendered by the PostGIS function
-`tiles.atlas_entities(z, x, y)`. Either Martin (`ghcr.io/maplibre/martin:1.16.1`, compose service `martin`, config
-`docker/martin/config.yaml`) or the app itself (`api/routes/tiles.php`; `TILES_DRIVER` in prod) serves them at the same URLs. The tile
-contract is [schemas/atlas-tiles.md](../schemas/atlas-tiles.md). With `VITE_MAP_TILES_URL` set, the SPA adds the source like this
-(`entityTileSource()` in `web/src/lib/map-tiles.ts`):
-
-```javascript
-map.addSource('entities', {
-  type: 'vector',
-  tiles: [`${VITE_MAP_TILES_URL}/atlas_entities/{z}/{x}/{y}`],  // dev: http://localhost:8000/tiles (app) or :3000 (Martin)
-  minzoom: 0,
-  maxzoom: 14
-});
-// our fill / line / symbol layers use 'source-layer': 'entities'
-```
-
-The tiles cover all time. The timeline year and the group filter are client-side filter expressions on `start_decdate`,
-`end_decdate` and `entity_group`, with the same decimal-date convention as OHM (§2.3), so scrubbing sends no requests.
-
-### 7.3 Bezier Curve Annotations
-
-For the custom annotation layer (relationship arrows, trade routes, migration paths), use MapLibre's line layers with GeoJSON LineString geometries. Bezier curves must be pre-interpolated into point sequences before being passed to MapLibre, as MapLibre does not natively support bezier curves.
-
----
-
-## 8. Querying OHM Data
-
-### 8.1 Overpass API
-
-OHM provides an Overpass API instance for querying the database with specific criteria. The endpoint accepts OverpassQL queries.
-
-**Endpoint:** `https://overpass-api.openhistoricalmap.org/api/interpreter`
-
-Useful for extracting specific features for batch processing in the data pipeline (Stage 1 ingestion).
-
-### 8.2 Nominatim
-
-OHM's Nominatim instance allows searching for features by name. This is useful for the geocoding cascade (Stage 3 of the data pipeline) as the first-priority geocoder.
-
-**Endpoint:** `https://nominatim.openhistoricalmap.org/`
-
-### 8.3 QLever (SPARQL)
-
-QLever provides SPARQL queries over the OHM dataset, with federation support for OpenStreetMap and Wikidata. Results can be returned as tables, maps, or heatmaps.
-
-### 8.4 Planet Files
-
-For bulk data processing, full OHM database dumps are available in `planet.osm` format on Amazon S3. New planet files are generated daily; full revision history files are generated weekly.
-
----
-
-## 9. Alternative Embedding Methods
-
-### 9.1 iframe Embed
-
-The simplest integration method, useful for previews or non-interactive displays:
-
-```html
-<iframe
-  src="https://embed.openhistoricalmap.org/#map=5/41.9/12.5&date=0117-01-01"
-  width="100%"
-  height="500"
-  frameborder="0"
-></iframe>
-```
-
-Limited interactivity — no programmatic control over layers, events, or custom overlays.
-
-### 9.2 Leaflet Integration
-
-If using Leaflet (not recommended for this project), MapLibre GL Leaflet bridges the two libraries:
-
-```javascript
-import L from 'leaflet';
-import '@maplibre/maplibre-gl-leaflet';
-
-const map = L.map('map').setView([41.9, 12.5], 5);
-
-const gl = L.maplibreGL({
-  style: 'https://www.openhistoricalmap.org/map-styles/main/main.json',
-}).addTo(map);
-
-const mlMap = gl.getMaplibreMap();
-mlMap.once('styledata', () => {
-  mlMap.filterByDate('0117-01-01');
-});
-```
-
----
-
-## 10. Common Issues and Troubleshooting
-
-### 10.1 Console Errors Reference
-
-| Error | Cause | Solution |
-|-------|-------|----------|
-| `Expected value to be of type number, but found string` | OHM tile data type mismatch in vector tile properties | Not fixable on your end. OHM data quality issue. Non-breaking — tiles still render. |
-| 404 on `.pbf` font files (OpenHistorical Bold) | Missing glyph ranges for non-Latin scripts (Cuneiform, Ethiopic) | Override glyphs URL to a complete font stack, or ignore — MapLibre falls back to local rendering. |
-| 404 on `.png` tile URLs | Attempting to load raster tiles — OHM does not serve raster tiles | Remove any raster tile sources. Use only vector tile (.pbf) URLs. |
-| All periods shown simultaneously | `filterByDate()` not called or called before style loads | Ensure `filterByDate()` is called inside the `styledata` or `load` event callback. |
-| Blank map with no features | Date filter too restrictive or OHM has no data for that region/period | Check date format (ISO string). Verify OHM has data coverage for the area. |
-
-### 10.2 Performance Considerations
-
-- **Boundary polygon tiles are heavy.** The `ohm_admin` tileset should be filtered aggressively in the stylesheet. Only request boundary polygons for the specific entities you need.
-- **Debounce `filterByDate()`.** When using a time slider, throttle calls to avoid re-rendering on every pixel of slider movement. 100–200ms debounce is recommended.
-- **Limit concurrent tile requests.** MapLibre's default of 6 concurrent requests per domain is usually sufficient. If the map feels slow, ensure no other code is making excessive requests to the OHM tile server.
-
-### 10.3 Legal and Attribution
-
-OHM data is public domain under CC0 dedication. As a courtesy, credit OpenHistoricalMap contributors on or near the map. The recommended attribution string:
-
-```html
-<a href="https://www.openhistoricalmap.org/">OpenHistoricalMap</a>
-```
-
----
-
-## 11. Integration with the Data Pipeline
-
-### 11.1 Stage 1: OHM as Source Data
-
-OHM's Overpass API and Planet files can serve as source documents for the data pipeline. Historical boundaries, place names, and temporal metadata in OHM can be ingested alongside academic PDFs, Wikipedia articles, and structured databases.
-
-### 11.2 Stage 3: OHM Nominatim in Geocoding Cascade
-
-OHM Nominatim is the first-priority geocoder in the cascade, searched before Wikidata, GeoNames, and Pleiades. A match from OHM Nominatim is the strongest signal because it confirms the place existed at the relevant time period with temporal metadata.
-
-### 11.3 Stage 8: Human Review Interface
-
-The review interface uses the OHM base map as the background for entity review. The reviewer sees the entity marker on the OHM map at the relevant time period, with the base map filtered to show the historical context (borders, cities, roads) as they existed at that time.
-
-This is implemented using the React component from Section 4.3, with the `initialDate` prop set to the entity's `temporal_start` value and the `center` prop set to the entity's coordinates.
-
----
-
-## 12. Quick Reference
-
-### 12.1 Essential URLs
-
-| Resource | URL |
-|----------|-----|
-| OHM Homepage | `https://www.openhistoricalmap.org/` |
-| Main Style JSON | `https://www.openhistoricalmap.org/map-styles/main/main.json` |
-| General Vector Tiles | `https://vtiles.openhistoricalmap.org/maps/ohm/{z}/{x}/{y}.pbf` |
-| Boundary Polygons | `https://vtiles.openhistoricalmap.org/maps/ohm_admin/{z}/{x}/{y}.pbf` |
-| Landmasses | `https://vtiles.openhistoricalmap.org/maps/osm_land/{z}/{x}/{y}.pbf` |
-| Waterbodies | `https://vtiles.openhistoricalmap.org/maps/ne/{z}/{x}/{y}.pbf` |
-| Nominatim | `https://nominatim.openhistoricalmap.org/` |
-| Overpass API | `https://overpass-api.openhistoricalmap.org/api/interpreter` |
-| NPM Styles | `@openhistoricalmap/map-styles` |
-| NPM Date Filter | `@openhistoricalmap/maplibre-gl-dates` |
-
-### 12.2 NPM Packages
-
-| Package | Purpose |
-|---------|---------|
-| `maplibre-gl` | Map renderer (required) |
-| `@openhistoricalmap/maplibre-gl-dates` | Date filtering plugin (required) |
-| `@openhistoricalmap/map-styles` | Pre-built OHM stylesheets (optional) |
-| `@mapbox/mapbox-gl-language` | Label localization (optional) |
-| `@maplibre/maplibre-gl-leaflet` | Leaflet bridge (only if using Leaflet) |
-
----
-
-*End of Document*
+- The `ohm_admin` polygon layers stay hidden, and so load no heavy tiles, until a linked entity is
+  hovered or selected. They hide again 4 seconds after the map goes idle.
+- Our links come from the geo-reference tables. The `ohm-links` pipeline step fills them by Wikidata
+  id ([Data pipeline](data-pipeline.md)).
+- Map stories use the same ids to outline a polity's border at each step's date.
+
+## Outside map services
+
+| Host | What | Cached by the service worker |
+|---|---|---|
+| `www.openhistoricalmap.org/map-styles/…` | Basemap styles, sprites, fonts | stale-while-revalidate, 30 days |
+| `vtiles.openhistoricalmap.org/maps/ohm`, `…/ohm_admin` | OHM vector tiles | cache-first, 2,000 tiles, 30 days |
+| OHM hillshade PNGs (referenced by the style) | Relief | cache-first |
+| `tiles.openfreemap.org` | Fallback style; modern water and names under battle maps | yes |
+| `elevation-tiles-prod.s3.amazonaws.com/terrarium` | Terrain for battle hillshade | no |
+| Wikimedia hosts | Entity images (not map tiles) | no |
+
+Attribution is shown in MapLibre's compact attribution control, from the styles' own attribution
+fields.
+
+## The admin's map
+
+The admin uses its own MapLibre components (`api/resources/js/components/historical-map-viewer.tsx`,
+`map-editor.tsx`). The viewer uses OHM's `main` style with the same date filter and REST data. The
+editor adds Mapbox Draw for points, lines and polygons. Clicking an OHM feature in the viewer calls
+`POST /api/v1/map/resolve-ohm-feature`. See [Admin and editing](admin-map-editor.md).
+
+## Getting OHM data yourself
+
+| Need | Tool |
+|---|---|
+| One feature's tags and members | `https://www.openhistoricalmap.org/api/0.6/relation/<id>` |
+| A query by tag, area or date | Overpass, at `overpass-api.openhistoricalmap.org` |
+| Place-name search | OHM Nominatim (the admin's geo-reference search uses it) |
+| Bulk extraction | Planet files; the pipeline's `borders` commands ([Data pipeline](data-pipeline.md)) |
+
+Extraction techniques (osmium, ogr2ogr, Overpass recipes) are collected in the internal
+[OHM cookbook](../reference/ohm-cookbook.md).
+
+## Troubleshooting
+
+| Symptom | Cause and fix |
+|---|---|
+| Tiles return 500 "Cannot find SRID (3857)" | `spatial_ref_sys` lost its rows: run migrations (`2026_11_03_000001_ensure_tile_srids`) |
+| A new tile property or function does not appear | Martin reads functions at startup: restart it |
+| Borders do not change while scrubbing | The style lacks dated `ohm` layers (check the basemap URL), or the year filter threw on a style change (see the console) |
+| An entity shows no OHM highlight | It has no resolvable signed id: no active OHM geo-reference of type relation, node or way |
+| The map is empty locally | REST mode with an empty database: import data, or point `VITE_MAP_TILES_URL` at `http://localhost:8000/tiles` |

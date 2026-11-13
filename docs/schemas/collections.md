@@ -6,10 +6,20 @@ and served read-only under `/api/v1`. There is no admin editing in v1: the file 
 with the code, not with the content: the table has no foreign keys, content dumps exclude it, and the prod `migrate` job
 runs `collections:sync` on every deploy (see [content data transfer](../implementation-docs/content-data-transfer.md)).
 
+> **Audience:** developers, editors · **Read time:** 4 minutes · **Last reviewed:** 2026-11-14
+
+```mermaid
+flowchart TB
+    F[/"api/resources/collections/*.json (7 sets)"/] -->|"collections:sync (also on every deploy)"| T[(collections)]
+    T --> R["ResolveCollectionItemsAction: entity, chronicle, story and tag items"]
+    R --> A["GET /api/v1/collections, /collections/{slug}"]
+    A --> W["/ landing page, /browse, /browse/collections/slug"]
+```
+
 Code: `App\Models\Collection`, `App\Actions\Collection\SyncCollectionFileAction` (file to row),
 `App\Actions\Collection\ResolveCollectionItemsAction` (items to payloads), `App\Console\Commands\SyncCollectionsCommand`,
 `App\Http\Api\V1\Controllers\CollectionController`. Spec: D4 in
-[`../superpowers/specs/2026-11-01-public-site-design.md`](../superpowers/specs/2026-11-01-public-site-design.md).
+[`../archive/superpowers-specs/2026-11-01-public-site-design.md`](../archive/superpowers-specs/2026-11-01-public-site-design.md).
 
 ## File format
 

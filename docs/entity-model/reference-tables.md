@@ -1,9 +1,18 @@
-# Historical Atlas — Reference Tables
+# Reference tables
 
-> **Companion to:** Entity Specification v2.0, Data Pipeline Architecture
-> **Storage:** All reference tables live in PostgreSQL. They are manually curated, not pipeline-generated. They serve as lookup data for entity resolution, display formatting, and analytical grouping.
-> **Key principle:** Reference tables describe *how we organize and interpret* history, not history itself. They don't have embeddings, don't appear on the map as clickable entities, and don't flow through the 8-stage pipeline.
-> **Admin UI:** Read-only Inertia admin pages exist for all 10 reference tables at `/reference/{table-name}` (e.g. `/reference/historical-periods`, `/reference/geographic-regions`). See `routes/web.php` for the full list.
+Ten curated lookup tables describe how we organise and interpret history: periods, regions,
+calendars, era phrases, writing systems, religious traditions, language families, measurement
+units, historiographical schools and source types. They are not entities: they have no map
+presence, no embeddings and no relationships.
+
+> **Audience:** developers, editors · **Last reviewed:** 2026-11-14
+
+**Status in code.** The tables (`ref_*`) are filled by seeders (`ReferenceTableSeeder` and one seeder
+per table). The API serves them read-only at `GET /api/v1/reference/{table}`, and the admin shows them
+read-only at `/reference/{table}`. No content table has a foreign key to them, and the pipeline does
+not use them yet: the Wikidata topic walk sets reference-like items aside in a `_ref.jsonl` file that
+nothing imports. The "Usage in Pipeline" notes below are design intent. Tags (eras, regions,
+themes) are a separate, live vocabulary: see [Tags](../architecture/tags.md).
 
 ---
 
@@ -11,7 +20,7 @@
 
 1. [Historical Periods / Eras](#1-historical-periods--eras)
 2. [Historiographical Schools](#2-historiographical-schools)
-3. [Geographic Regions (Standardized)](#3-geographic-regions)
+3. [Geographic Regions (Standardized)](#3-geographic-regions-standardized)
 4. [Calendar Systems](#4-calendar-systems)
 5. [Era-to-Date Resolution Table](#5-era-to-date-resolution-table)
 6. [Writing Systems](#6-writing-systems)

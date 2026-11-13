@@ -1,28 +1,66 @@
-# Historical Atlas — Entity Specification v2.1
+# Entity types
 
-> Status note (post-Task-13): canonical persistence now uses normalized tables for temporal/location aliases/tags and `geometry_periods` for time-varying geometry.
-> Some legacy schema snippets in this spec are retained for migration history and should not be used as implementation truth without checking current migrations/models.
+The reference for History Mapped's 30 entity types. It lists their five groups, the fields every
+entity shares, the enumerations, and the attributes each type can carry. For the ideas behind the
+model, read the [Data model overview](README.md) first.
 
-> **Companion to:** Data Pipeline Architecture, Foundational Architecture Document, Game-Inspired UI/UX Design Guide
-> **Storage context:** PostgreSQL (PostGIS + pgvector) for structured/queryable data, S3-compatible object storage for raw files and logs.
-> **Changes from v1.0:** Merged Economic/Trade Good into Natural Resource. Demoted Historical Period/Era and Historiographical School to reference tables (see `reference-tables.md`). Added Infrastructure/Monument, Diplomatic Relationship/Alliance, and Epidemic/Disease as new first-class entities.
-> **Changes from v2.0:** Consolidated entity groups from 10 to 5. Eliminated singleton groups (PERSON, MILITARY, BELIEF) and the catch-all SOCIETY group. Absorbed KNOWLEDGE into CULTURE and PLACE. See Section 1 rationale.
+> **Audience:** developers, data contributors, editors · **Use:** reference ·
+> **Last reviewed:** 2026-11-14 · **Source of truth:** the PHP enums in `api/app/Enums/` and the
+> attribute catalogue in `api/app/Support/EntityAttributeCatalog.php`
+
+```mermaid
+mindmap
+  root((30 entity types))
+    POLITY
+      p["`political_entity
+      dynasty
+      person
+      military_unit
+      diplomatic_relationship
+      social_class`"]
+    PLACE
+      pl["`city
+      infrastructure_monument
+      extraction_infra
+      educational_institution`"]
+    EVENT
+      ev["`event_war
+      event_battle
+      event_treaty
+      event_rebellion
+      event_natural_disaster
+      event_tech_adoption
+      event_legal_reform
+      migration
+      epidemic_disease`"]
+    ECONOMY
+      ec["`trade_route
+      natural_resource
+      currency_monetary_system`"]
+    CULTURE
+      cu["`cultural_work
+      intellectual_movement
+      archaeological_culture
+      language
+      religious_text
+      legal_code
+      religious_movement
+      technology`"]
+```
+
+## Contents
+
+1. [Entity groups and type hierarchy](#1-entity-groups-and-type-hierarchy)
+2. [Application-wide enums](#2-application-wide-enums)
+3. [Shared fields](#3-shared-fields)
+4. [Type-specific attributes](#4-type-specific-attributes)
+5. [Sources and citations](#5-sources-and-citations)
+6. [Relationships](#6-relationships)
+7. [Storage](#7-storage)
 
 ---
 
-## Table of Contents
-
-1. [Entity Groups and Type Hierarchy](#1-entity-groups-and-type-hierarchy)
-2. [Application-Wide Enums](#2-application-wide-enums)
-3. [Shared Base Fields (All Entities)](#3-shared-base-fields-all-entities)
-4. [Entity Specifications (1–30)](#4-entity-specifications)
-5. [Meta-Entity: Source](#5-meta-entity-source)
-6. [Relationship Types](#6-relationship-types)
-7. [Storage Split: PostgreSQL vs S3](#7-storage-split)
-
----
-
-## 1. Entity Groups and Type Hierarchy
+## 1. Entity groups and type hierarchy
 
 Every entity belongs to one of **5 groups**. Groups exist for UI navigation (tab filtering, icon families, color palettes), API query scoping, and map lens organization. Each group contains 3–9 concrete `entity_type` values.
 
@@ -47,21 +85,18 @@ CULTURE                      cultural_work, intellectual_movement,
                                                                           TOTAL:       30
 ```
 
-> **v2.1 consolidation rationale:**
-> - **PERSON → POLITY:** Persons are political actors (rulers, generals, diplomats). Singleton group provided no navigational benefit; players in Civ VI and Total War access characters through faction context.
-> - **MILITARY → POLITY:** Military units are instruments of political entities (`part_of` → Political Entity). In Rome II, armies belong to factions.
-> - **SOCIETY → split:** This was a catch-all. Diplomatic relationships and social classes belong with POLITY (power structures). Migration and epidemics are temporal occurrences that belong with EVENT.
-> - **BELIEF → CULTURE:** Religious movements are cultural phenomena. `religious_text` was already in CULTURE. No reason to separate belief from other intellectual/cultural movements.
-> - **KNOWLEDGE → split:** Educational institutions are physical places (Library of Alexandria, Al-Azhar). Technology is cultural innovation, alongside artistic/intellectual movements.
-> - **extraction_infra → PLACE:** Mines, quarries, and farms are physical map features with precise coordinates, rendering like cities and monuments.
->
-> **Note:** `event_battle` was split from `event_war` because battles are point-events with precise coordinates, while wars are period-events spanning large areas. They have different spatial and temporal rendering on the map.
+**Why five groups.** Groups drive navigation (tabs, icons, colours), API filters and map layers.
+Version 2.1 folded ten groups into five: people and armies act for polities (POLITY); mines and
+schools are places on the map (PLACE); migrations and epidemics happen in time (EVENT); belief and
+knowledge sit with other culture (CULTURE). `event_battle` is separate from `event_war` because a
+battle is a point in space and time, while a war spans a region and years.
 
 ---
 
-## 2. Application-Wide Enums
+## 2. Application-wide enums
 
-All enums are stored as PostgreSQL `enum` types or as `text` with CHECK constraints. Grouped below by domain.
+The PHP enums in `api/app/Enums/` are the source of truth. Some are PostgreSQL enum types, others
+are text columns that the models cast. The SQL below lists the values, grouped by domain.
 
 ### 2.1 Core System Enums
 
@@ -96,14 +131,15 @@ CREATE TYPE entity_type AS ENUM (
 ```sql
 CREATE TYPE verification_status AS ENUM (
   'pipeline_draft',        -- Created by pipeline, not yet validated
-  'auto_validated',        -- Passed Stage 7 automated checks
+  'ohm_draft',             -- Created by the OHM border import, not yet validated
+  'auto_validated',        -- Passed automated checks
   'needs_review',          -- In human review queue
   'in_review',             -- Currently assigned to a reviewer
   'human_verified',        -- Approved by reviewer
   'expert_verified',       -- Approved by domain expert
-  'flagged',               -- Flagged for re-examination
-  'rejected',              -- Rejected as invalid/duplicate
-  'merged'                 -- Merged into another entity
+  'flagged',               -- Flagged for re-examination (hidden from the map)
+  'rejected',              -- Rejected as invalid/duplicate (hidden from the map)
+  'merged'                 -- Merged into another entity (hidden; merges currently delete the loser instead)
 );
 
 CREATE TYPE confidence_level AS ENUM (
@@ -146,9 +182,7 @@ CREATE TYPE duration_type AS ENUM (
 
 ```sql
 CREATE TYPE location_resolution_method AS ENUM (
-  'ohm_nominatim',         -- OpenHistoricalMap geocoder
-  'ohm_overpass',          -- OpenHistoricalMap Overpass element/relation query
-  'ohm_rest_api',          -- OpenHistoricalMap REST API lookup by element ID
+  'ohm_nominatim',         -- OpenHistoricalMap (geocoder or a QID-tagged OHM feature)
   'wikidata',              -- Wikidata SPARQL coordinates
   'geonames',              -- GeoNames database
   'pleiades',              -- Pleiades ancient places gazetteer
@@ -476,189 +510,71 @@ CREATE TYPE icon_class AS ENUM (
   'university'
 );
 
--- Maps entity_group → color palette for map rendering (5 groups)
--- Defined in frontend config, not SQL, but documented here:
--- POLITY:  #1A3A5C (navy)    — authority, governance, power
--- PLACE:   #2E86C1 (blue)    — geographic, spatial, physical
--- EVENT:   #C0392B (red)     — action, conflict, change
--- ECONOMY: #D68910 (amber)   — trade, wealth, resources
--- CULTURE: #8E44AD (purple)  — ideas, beliefs, art, knowledge
+-- Group colours are CSS variables in web/src/styles.css (light / dark):
+-- POLITY:  --g-polity   #b4543f / #d47a63  (terracotta)
+-- PLACE:   --g-place    #6b7f4a / #9cae6f  (olive)
+-- EVENT:   --g-event    #bd8a2c / #d9a94e  (ochre)
+-- ECONOMY: --g-economy  #4d6a86 / #7d9db8  (slate blue)
+-- CULTURE: --g-culture  #8a5673 / #bb87a3  (plum)
 ```
 
 ---
 
-## 3. Shared Base Fields (All Entities)
+## 3. Shared fields
 
-Every entity in PostgreSQL shares these columns. Type-specific fields are stored in the JSONB `attributes` column (see Section 4). Time-varying geometries now use `geometry_periods` in the canonical entity model.
+Every entity has the columns below. Its dates, locations, names and tags live in small satellite
+tables, so an entity can have more than one of each. Type-specific fields are keys in `attributes`
+(Section 4).
 
-| Field | Type | Storage | Source | Notes |
-|-------|------|---------|--------|-------|
-| `entity_id` | UUID | PG (PK) | Generated at Stage 6 | |
-| `entity_type` | enum | PG (indexed) | LLM classification | One of 30 values |
-| `entity_group` | enum | PG (indexed) | Derived from entity_type | Computed, not stored separately if using lookup |
-| `name` | text | PG (indexed, tsvector) | NLP + LLM canonical form | Full-text searchable |
-| `alternative_names` | text[] | PG | NLP extraction from all sources | |
-| `wikidata_id` | text | PG (indexed) | Geocoding cascade | Nullable; stable cross-reference |
-| `primary_geo_ref_id` | UUID (FK) | PG (indexed) | Stage 3 georesolution | Active row in `entity_geo_refs`; nullable |
-| `geom` | geometry | PG + PostGIS (GIST index) | Geocoding at Stage 3 | Point, Polygon, LineString, etc. |
-| `territory_geom` | geometry | PG + PostGIS | Manual / LLM / import | Nullable; polygon extent for polities |
-| `location_name` | text | PG | Geocoding cascade | Human-readable |
-| `location_confidence` | enum | PG | Geocoding confidence | high/medium/low/unresolved |
-| `location_method` | enum | PG | Which geocoder matched | |
-| `geo_resolution_status` | text | PG | Stage 3 georesolution | `matched_ohm`, `matched_fallback`, `empty_geom` |
-| `temporal_start` | text | PG (indexed) | NLP Stage 4 | Integer year as string; negative = BCE (e.g. `"-500"`, `"1453"`) |
-| `temporal_end` | text | PG (indexed) | NLP Stage 4 | Same format as `temporal_start` |
-| `date_raw` | text | PG | Original source text | |
-| `date_method` | enum | PG | Resolution method | |
-| `date_confidence` | enum | PG | Stage 4 assessment | |
-| `duration_type` | enum | PG | LLM classification | point/period/ongoing/uncertain |
-| `summary` | text | PG | LLM synthesis at Stage 6 | 500–3000 chars typical |
-| `significance` | text | PG | LLM assessment | |
-| `confidence_notes` | text | PG | LLM-identified uncertainties | |
-| `tags` | text[] | PG (GIN index) | LLM + human tagging | Freeform categorical tags |
-| `impact_score` | integer | PG (B-tree index `DESC NULLS LAST`; composite index with `entity_type`) | LLM + editorial | 1–100 scale |
-| `parent_entity_id` | UUID (FK) | PG (indexed) | LLM / human | Nullable; hierarchical link |
-| `successor_entity_id` | UUID (FK) | PG (indexed) | LLM / human | Nullable; continuity link |
-| `verification_status` | enum | PG (indexed) | Pipeline tracking | |
-| `confidence` | enum | PG | Combined assessment | |
-| `reviewer_id` | UUID (FK) | PG | Stage 8 | Nullable |
-| `review_date` | timestamp | PG | Stage 8 | Nullable |
-| `validation_flags` | text[] | PG | Stage 7 results | |
-| `source_citations` | JSONB | PG | Accumulated Stages 1–6 | `[{document_id, page, quote, bucket_path}]` |
-| `media_refs` | JSONB | PG | Manual / import | `[{type, url, caption, date}]`, files in S3 |
-| `embedding` | vector(1536) | PG + pgvector (HNSW) | Generated after Stage 6 | |
-| `embedding_version` | text | PG | Model identifier | |
-| `display_priority` | integer | PG | LLM + editorial override | |
-| `icon_class` | enum | PG | Derived from entity_type | |
-| `entity_color` | text | PG | Derived / editorial | Hex color string |
-| `created_at` | timestamp | PG | Pipeline insertion time | |
-| `updated_at` | timestamp | PG | Last modification | |
-| `created_by` | text | PG | Pipeline batch ID or reviewer | |
+### 3.1 The `entities` table
 
-**Computed / cached fields** (regenerated on entity update, stored in PG):
+| Column | Type | Notes |
+|---|---|---|
+| `entity_id` | uuid | Primary key |
+| `name` | text | Display name. Full-text and trigram indexes (search is by name only) |
+| `entity_type`, `entity_group` | PG enums | One of the 30 types, and its group, both stored |
+| `wikidata_id` | text | Nullable and **not unique**. Import and write paths guard against reusing a QID |
+| `summary` | text | One sentence |
+| `significance` | text | Why it matters |
+| `description` | text | Optional long text in paragraphs |
+| `attributes` | jsonb | Type-specific keys (Section 4), plus shared keys: `date_raw`, `confidence_notes`, `validation_flags`, `media_refs`, `entity_color`, `temporal_display_range`, `era_label` |
+| `source_citations` | jsonb | Free-form citations (Section 5) |
+| `verification_status` | enum | Default `pipeline_draft` ([2.2](#22-verification-and-confidence-enums)) |
+| `confidence`, `date_confidence`, `location_confidence` | `confidence_level` | Separate confidence for the record, its dates and its place |
+| `date_method`, `duration_type`, `location_method`, `icon_class` | enums | Section 2 |
+| `impact_score`, `display_priority` | int | Ranking on the map and in lists |
+| `primary_geo_ref_id` | uuid | The active primary geography reference (3.2) |
+| `embedding` | vector(1536) | HNSW index. Generated, not yet used by search |
+| `reviewer_id`, `review_date` | bigint, timestamp | Who reviewed the entity, and when |
+| `created_by` | text | Provenance: `pipeline:<batch>`, `borders:<batch>`, `agent:<user id>`, … |
+| `created_at`, `updated_at` | timestamps | |
 
-| Field | Type | Derivation |
-|-------|------|-----------|
-| `confidence_breakdown` | JSONB | `{location: "high", date: "medium", sources: 3, verification: "human_verified"}` |
-| `relationship_summary` | JSONB | `{political: 4, military: 2, economic: 1, causal: 3}` |
-| `source_diversity_score` | integer | Count of unique source_types across source_citations |
-| `temporal_display_range` | text | Formatted display string: "500 BCE – 31 BCE", "From 27 CE", etc. Stored when pre-computed; otherwise computed from `temporal_start`/`temporal_end` at read time |
-| `nearby_entity_count` | integer | PostGIS + temporal proximity count (cached) |
-| `cluster_id` | integer | HDBSCAN cluster from periodic embedding analysis |
-| `era_label` | text | Mapped from temporal range via era reference table |
+### 3.2 Satellite tables
 
-### 3.1 External Geospatial References (`entity_geo_refs`)
+| Table | Holds | How many per entity |
+|---|---|---|
+| `entity_aliases` | Other names, with language and source. A primary alias becomes the display name on the map | Many; at most one primary |
+| `entity_temporal_ranges` | Dates: `start_date` and `end_date` as ISO-like text (month and day allowed), integer years derived by a trigger, a range type (`primary`, `secondary`, `disputed`), method and confidence | Many; one primary |
+| `entity_locations` | The base location: place name, `geom` (point or line), `territory_geom` (polygon), method and confidence | Many; one primary |
+| `geometry_periods` | Dated geometry. **The only geometry the map draws** | Many |
+| `entity_geo_refs` | References to OHM features and gazetteer items: provider, type, bare id (`2744968`, `Q16553`), match role, retrieval method, years | Many; one active primary |
+| `entity_tags` | Tags from the controlled vocabulary, each with its source (`manual`, `curated`, `derived`) | Many |
+| `entity_timeline_entries` | A derived read model for the entity's timeline, rebuilt automatically | Many |
 
-To link entities to OpenHistoricalMap (and additional border datasets), use a dedicated sub-table:
-
-```sql
-CREATE TABLE entity_geo_refs (
-  geo_ref_id         UUID PRIMARY KEY,
-  entity_id          UUID NOT NULL REFERENCES entities(entity_id) ON DELETE CASCADE,
-  provider           TEXT NOT NULL,      -- ohm | wikidata | geonames | pleiades | custom
-  external_type      TEXT NOT NULL,      -- node | way | relation | feature | qid
-  external_id        TEXT NOT NULL,      -- e.g. relation/2744968, way/198568124, Q16553
-  match_role         TEXT NOT NULL,      -- primary | candidate | fallback | rejected
-  retrieval_method   TEXT NOT NULL,      -- overpass | nominatim | rest | manual
-  temporal_start     TEXT,
-  temporal_end       TEXT,
-  temporal_start_year INTEGER,
-  temporal_end_year   INTEGER,
-  external_tags      JSONB,
-  source_meta        JSONB,              -- endpoint, query, attribution, license
-  match_score        NUMERIC,
-  is_active          BOOLEAN DEFAULT true,
-  last_verified_at   TIMESTAMP,
-  created_at         TIMESTAMP DEFAULT now(),
-  updated_at         TIMESTAMP DEFAULT now()
-);
-
-CREATE INDEX idx_geo_refs_entity ON entity_geo_refs(entity_id);
-CREATE INDEX idx_geo_refs_provider_extid ON entity_geo_refs(provider, external_type, external_id);
-CREATE INDEX idx_geo_refs_active_lookup ON entity_geo_refs(provider, external_type, external_id, is_active);
-CREATE INDEX idx_geo_refs_temporal_year ON entity_geo_refs(entity_id, temporal_start_year, temporal_end_year);
-
--- Allow composite FK from entities(entity_id, primary_geo_ref_id)
-CREATE UNIQUE INDEX uq_geo_refs_entity_pair ON entity_geo_refs(entity_id, geo_ref_id);
-
--- Optional: one active primary georef row per entity in refs table
-CREATE UNIQUE INDEX uq_geo_refs_primary_role_per_entity
-  ON entity_geo_refs(entity_id)
-  WHERE is_active = true AND match_role = 'primary';
-
--- Ensure entities.primary_geo_ref_id belongs to the same entity (soundness guard)
-ALTER TABLE entities
-  ADD CONSTRAINT fk_entities_primary_geo_ref_owned
-  FOREIGN KEY (entity_id, primary_geo_ref_id)
-  REFERENCES entity_geo_refs(entity_id, geo_ref_id)
-  DEFERRABLE INITIALLY DEFERRED;
-```
-
-`geometry_periods` should optionally reference `geo_ref_id` so every generated geometry is traceable to a specific OHM element or fallback source.
-
-### 3.1.1 Reverse Lookup Query (OHM Click -> Entity -> Date-Scoped Geometry)
-
-```sql
--- Inputs:
---   :provider        (e.g. 'ohm')
---   :external_type   ('node' | 'way' | 'relation')
---   :external_id     (e.g. '2704719')
---   :target_year     (integer year in app canonical format)
-
-WITH ref_match AS (
-  SELECT r.entity_id, r.geo_ref_id
-  FROM entity_geo_refs r
-  WHERE r.provider = :provider
-    AND r.external_type = :external_type
-    AND r.external_id = :external_id
-    AND r.is_active = true
-    AND (r.temporal_start_year IS NULL OR r.temporal_start_year <= :target_year)
-    AND (r.temporal_end_year   IS NULL OR r.temporal_end_year   >= :target_year)
-  ORDER BY CASE WHEN r.match_role = 'primary' THEN 0 ELSE 1 END, r.match_score DESC NULLS LAST
-  LIMIT 1
-),
-snap AS (
-  SELECT s.*
-  FROM geometry_periods s
-  JOIN ref_match rm ON rm.entity_id = s.entity_id
-  WHERE s.year_start <= :target_year
-    AND s.year_end   >= :target_year
-  ORDER BY s.display_priority DESC NULLS LAST, s.updated_at DESC
-  LIMIT 1
-)
-SELECT
-  e.entity_id,
-  e.name,
-  e.entity_type,
-  e.entity_group,
-  COALESCE(s.geom, e.geom) AS resolved_geom,
-  COALESCE(s.territory_geom, e.territory_geom) AS resolved_territory_geom,
-  rm.geo_ref_id AS matched_geo_ref_id
-FROM ref_match rm
-JOIN entities e ON e.entity_id = rm.entity_id
-LEFT JOIN snap s ON true;
-```
-
-### 3.2 Stage 3 Georesolution Decision Flow
-
-Pipeline logic for `geom`/`territory_geom` assignment:
-
-1. **Wikidata seed:** Start from QID and any available coordinates or place hints.
-2. **OHM lookup:** Query OHM (`nominatim`, then `overpass`/REST for `node|way|relation`, preferring `type=chronology` relations where applicable).
-3. **If OHM match found:** write `entity_geo_refs` row (`provider='ohm'`, `match_role='primary'`), hydrate `geom`/`territory_geom`, set `location_method` to `ohm_nominatim` or `ohm_overpass` or `ohm_rest_api`, and set `geo_resolution_status='matched_ohm'`.
-4. **Else fallback:** try non-OHM border/geometry sources and manual digitization inputs.
-5. **If fallback found:** write `entity_geo_refs` row (`match_role='fallback'`), hydrate geometry fields, set `location_method` to `source_database` or `human_assigned`, and set `geo_resolution_status='matched_fallback'`.
-6. **Else unresolved:** leave geometry fields null and set `geo_resolution_status='empty_geom'` with `location_confidence='unresolved'`.
+How these combine on the map, and the rules for choosing a point, are in
+[For geographers](for-geodata-contributors.md). When a reader clicks an OHM feature, the app sends
+its signed id and the year to `GET /api/v1/map/resolve-ohm-feature`, which picks the best active
+reference valid in that year ([Maps, tiles and OHM](../architecture/ohm-integration.md#linking-our-entities-to-ohm)).
 
 ---
 
-## 4. Entity Type–Specific Attributes
+## 4. Type-specific attributes
 
 > **Storage decision:** All type-specific fields are stored as keys in the JSONB `attributes` column on the `entities` table. They are **not** separate database columns or sub-tables. This section documents the expected JSONB schema per entity type for pipeline ingestion, validation, and admin panel form generation.
 >
-> **Rationale:** Type-specific attributes are never queried on the map hot path (which uses only base columns from Section 3). They are loaded only when displaying entity detail views — a single-row JSON decode. JSONB avoids 30 sub-tables, 30 models, and 30 migrations while allowing schema evolution without DDL changes. For the few attribute keys used in filters, PostgreSQL expression indexes provide indexed equality lookups.
+> **Rationale:** Type-specific attributes are never queried on the map hot path. They are loaded only when displaying entity detail views — a single-row JSON decode. JSONB avoids 30 sub-tables, 30 models, and 30 migrations while allowing schema evolution without DDL changes. For the few attribute keys used in filters, PostgreSQL expression indexes provide indexed equality lookups.
 >
-> **Cross-entity references in JSONB:** Fields like `"city_entity_id"` or `"person_id"` stored inside JSONB arrays are **soft references** (UUID strings), not foreign keys. Referential integrity for these is enforced at the application layer during pipeline validation (Stage 7) and admin panel saves. Hard FK references that need database-level enforcement are stored as base columns (`parent_entity_id`, `successor_entity_id`) or in the `relationships` table.
+> **Cross-entity references in JSONB:** Fields like `"city_entity_id"` or `"person_id"` stored inside JSONB arrays are **soft references** (UUID strings), not foreign keys. Referential integrity for these is enforced by the application, in pipeline validation and admin saves. Links that need database-level integrity belong in the `relationships` table instead.
 >
 > **Time-varying geometries:** Entities whose PostGIS geometries change over time (empire borders, trade route shifts, migration paths) use `geometry_periods` — not JSONB — because PostGIS spatial queries require GIST-indexed `geometry` columns.
 
@@ -685,8 +601,8 @@ All entities carry every field from Section 3 in addition to the `attributes` ke
 }
 ```
 
-**Key relationships:** `rules/governed_by` (Person), `vassal_of/suzerain_of` (Political Entity), `capital_of` (City), `at_war_with` (Political Entity), `controls` (Trade Route, Resource)
-**Geometry snapshots:** Yes — territory borders change over time.
+**Key relationships:** `governed_by` → Person · `vassal_of`, `suzerain_of`, `allied_with`, `at_war_with` → Political Entity · City → `capital_of` · Trade Route, Natural Resource → `controlled_by`
+**On the map:** borders come from the linked OpenHistoricalMap relation, dated to the year on screen. Our geometry periods hold dated points.
 
 ---
 
@@ -768,7 +684,7 @@ All entities carry every field from Section 3 in addition to the `attributes` ke
 }
 ```
 
-**Key relationships:** `capital_of` (Political Entity), `connects` (Trade Route), `location_of` (Event), `birth/death place of` (Person), `contains` (Monument)
+**Key relationships:** `capital_of`, `part_of` → Political Entity · Trade Route → `connects` · Person → `born_in`, `died_in`, `resided_in` · Event, Monument → `located_at`
 
 ---
 
@@ -793,7 +709,7 @@ All entities carry every field from Section 3 in addition to the `attributes` ke
 }
 ```
 
-**Key relationships:** `built_by` (Person, Political Entity), `located_at` (City), `destroyed_by` (Event, Person), `restored_by` (Person, Political Entity), `required` (Technology, Natural Resource)
+**Key relationships:** `built_by`, `restored_by` → Person, Political Entity · `located_at` → City · `destroyed_by` → Event, Political Entity · Technology, Natural Resource → `required_by`
 
 **Design rationale:** Separating monuments from cities allows Civ-style "Wonder" display. The Colosseum, Great Wall, Hagia Sophia are some of the most visually compelling map features.
 
@@ -817,7 +733,7 @@ All entities carry every field from Section 3 in addition to the `attributes` ke
 ```
 
 **Key relationships:** `founded` (Person), `official_religion_of` (Political Entity), `schism_from` (Religious Movement), `persecuted_by` (Political Entity), `inspired` (Intellectual Movement)
-**Geometry snapshots:** Yes — spread extent changes over time.
+**Changing extent:** a series of `spread_zone` geometry periods.
 
 ---
 
@@ -838,8 +754,8 @@ All entities carry every field from Section 3 in addition to the `attributes` ke
 }
 ```
 
-**Key relationships:** `connects` (City), `transports` (Natural Resource), `controlled_by` (Political Entity), `threatened_by` (Event War, Epidemic), `enabled_by` (Technology)
-**Geometry snapshots:** Yes — route paths shift over centuries.
+**Key relationships:** `connects` → City · `passes_through`, `controlled_by` → Political Entity · `supplies` → Natural Resource · Event War, Epidemic → `weakened` · Technology → `enabled`
+**Changing path:** a series of `route` geometry periods, or a trade-route [map story](../architecture/map-stories.md).
 
 ---
 
@@ -863,7 +779,7 @@ All entities carry every field from Section 3 in addition to the `attributes` ke
 }
 ```
 
-**Key relationships:** `extracted_by` (Extraction Infrastructure), `transported_via` (Trade Route), `controlled_by` (Political Entity), `required_by` (Technology), `caused` (Event War — resource wars)
+**Key relationships:** Extraction Infrastructure → `extracts` · Political Entity, Trade Route → `produces`, `supplies` · `controlled_by` → Political Entity · `required_by` → Technology · `caused` → Event War (resource wars)
 
 ---
 
@@ -883,7 +799,7 @@ All entities carry every field from Section 3 in addition to the `attributes` ke
 }
 ```
 
-**Key relationships:** `extracts` (Natural Resource), `controlled_by` (Political Entity), `near` (City), `targeted_in` (Event War), `uses` (Technology)
+**Key relationships:** `extracts` → Natural Resource · `controlled_by` → Political Entity · `located_at` → City · Technology → `required_by`
 
 ---
 
@@ -902,7 +818,7 @@ All entities carry every field from Section 3 in addition to the `attributes` ke
 }
 ```
 
-**Key relationships:** `minted_by` (Political Entity), `used_currency` (Political Entity, Trade Route), `required` (Natural Resource — metal)
+**Key relationships:** `minted_by` → Political Entity · Political Entity → `used_currency` · Natural Resource (the metal) → `required_by`
 
 ---
 
@@ -942,7 +858,7 @@ All entities carry every field from Section 3 in addition to the `attributes` ke
 }
 ```
 
-**Key relationships:** `located_at` (City), `founded` (Person), `patron` (Political Entity), `taught_at` (Person), `influenced` (Intellectual Movement)
+**Key relationships:** `located_at` → City · Person, Political Entity → `founded`, `patron_of` · Person → `taught_at` · Intellectual Movement → `influenced_by`
 
 ---
 
@@ -963,7 +879,7 @@ All entities carry every field from Section 3 in addition to the `attributes` ke
 }
 ```
 
-**Key relationships:** `between` (Political Entity), `commanded_by` (Person), `ended_by` (Event Treaty), `caused_by` (Event, Resource dispute), `resulted_in` (Territorial changes)
+**Key relationships:** Political Entity, Military Unit → `participated_in` (the sides are also linked to each other by `at_war_with`) · `commanded_by` → Person · `contains` → Event Battle · `resulted_from` → Event · `caused` → Event, Political Entity · Event Treaty → `resulted_from`
 
 ---
 
@@ -1007,7 +923,7 @@ All entities carry every field from Section 3 in addition to the `attributes` ke
 }
 ```
 
-**Key relationships:** `signed_by` (Political Entity), `negotiated_by` (Person), `ended` (Event War), `violated_by` (Political Entity), `created` (Diplomatic Relationship)
+**Key relationships:** `signed_by` → Political Entity, Person · `mediated_by`, `guaranteed_by` → Person, Political Entity · `violated_by` → Political Entity · `resulted_from` → Event War · `caused` → Diplomatic Relationship
 
 ---
 
@@ -1030,7 +946,7 @@ All entities carry every field from Section 3 in addition to the `attributes` ke
 }
 ```
 
-**Key relationships:** `within` (Political Entity), `led_by` (Person), `caused_by` (Famine, War, Reform failure), `resulted_in` (New Political Entity, Government change)
+**Key relationships:** Person, Political Entity → `participated_in` · `commanded_by` → Person · `resulted_from` → Event · `caused` → Political Entity, Event · `weakened` → Political Entity
 
 ---
 
@@ -1050,7 +966,7 @@ All entities carry every field from Section 3 in addition to the `attributes` ke
 }
 ```
 
-**Key relationships:** `affected` (Political Entity, City), `destroyed` (Infrastructure Monument), `caused` (Migration, Famine, Rebellion), `worsened_by` (pre-existing conditions)
+**Key relationships:** `weakened` → Political Entity, City · City, Monument → `destroyed_by` · `caused`, `contributed_to` → Migration, Rebellion, Epidemic
 
 ---
 
@@ -1111,8 +1027,8 @@ All entities carry every field from Section 3 in addition to the `attributes` ke
 }
 ```
 
-**Key relationships:** `spread_via` (Trade Route), `affected` (Political Entity, City), `caused` (Migration, Labor shortage → Reform), `worsened_by` (War, Famine)
-**Geometry snapshots:** Yes — spread wavefront changes over time.
+**Key relationships:** `spread_to` → City, Political Entity · `weakened` → Political Entity, City · `caused`, `contributed_to` → Migration, Event Legal Reform · Trade Route → `enabled` · Event War → `contributed_to`
+**Changing extent:** a series of `spread_zone` geometry periods, or an epidemic [map story](../architecture/map-stories.md).
 
 **Design rationale:** Epidemics spread geographically over time following trade and military networks. On the map, a natural disaster is a single marker; an epidemic is an animated wavefront.
 
@@ -1137,7 +1053,7 @@ All entities carry every field from Section 3 in addition to the `attributes` ke
 }
 ```
 
-**Key relationships:** `between` (Political Entity), `created_by` (Event Treaty), `violated_by` (Political Entity), `terminated_by` (Event War), `mediated_by` (Person, Political Entity)
+**Key relationships:** `signed_by` → Political Entity · `resulted_from` → Event Treaty · `mediated_by`, `guaranteed_by` → Person, Political Entity · `violated_by` → Political Entity · Event War → `weakened`
 
 **Design rationale:** Captures the ongoing *state* of a diplomatic relationship, while Event Treaty captures the *moment of creation*.
 
@@ -1164,7 +1080,7 @@ All entities carry every field from Section 3 in addition to the `attributes` ke
 }
 ```
 
-**Geometry snapshots:** Yes — migration paths and wavefronts change over time.
+**Changing path:** a series of `movement_path` geometry periods, or a migration [map story](../architecture/map-stories.md).
 
 ---
 
@@ -1308,117 +1224,56 @@ All entities carry every field from Section 3 in addition to the `attributes` ke
 
 ---
 
-## 5. Meta-Entity: Source
+## 5. Sources and citations
 
-**entity_type:** N/A — stored in a separate `sources` table, not in the main entity table.
+Citations are free-form JSON in three places: `entities.source_citations`,
+`relationships.source_citations` and `chronicle_entries.source_evidence`. Typical shapes are a
+Wikidata property reference (`{source_type: "reference", title: "Wikidata property: P…",
+reliability: "reference"}`) or a link to an article.
 
-| Field | Type | Storage | Notes |
-|-------|------|---------|-------|
-| `source_id` | UUID | PG (PK) | |
-| `title` | text | PG | |
-| `source_type` | enum (`reliability_tier`) | PG | authoritative, scholarly, reference, user_contributed |
-| `document_type` | text | PG | academic_paper, encyclopedia, primary_source, database_export, web_article |
-| `author` | text | PG | |
-| `date_created` | text | PG | When source was written |
-| `date_discovered` | text | PG | If archaeological |
-| `language` | text | PG | ISO 639-1 |
-| `current_location` | text | PG | Archive, museum, URL |
-| `source_url` | text | PG | Original retrieval URL |
-| `content_hash` | text | PG | SHA-256 for dedup |
-| `ingestion_date` | timestamp | PG | When entered pipeline |
-| `geographic_scope` | text | PG | Rough region label |
-| `temporal_scope` | text | PG | Rough date range |
-| `contemporaneity` | text | PG | Written during events or later? |
-| `author_bias` | text | PG | Perspective, agenda |
-| `corroboration` | text | PG | Other sources confirm? |
-| `scholarly_consensus` | text | PG | |
-| `raw_file_path` | text | PG → **S3 reference** | `s3://bucket/sources/{source_id}.pdf` |
-| `nlp_output_path` | text | PG → **S3 reference** | `s3://bucket/nlp/{source_id}.json` |
-| `llm_log_path` | text | PG → **S3 reference** | `s3://bucket/llm-logs/{source_id}/` |
+A `sources` table also exists (title, `reliability_tier`, author, dates, language, location, URL,
+content hash, and analysis notes), but nothing references it yet. Normalising citations into it is
+on the [backlog](../TODO.md).
+
+| `reliability_tier` | Meaning |
+|---|---|
+| `authoritative` | Primary sources, peer-reviewed archaeology |
+| `scholarly` | Academic secondary sources |
+| `reference` | Encyclopaedias and curated databases (Wikidata, Pleiades) |
+| `user_contributed` | Community submissions, Wikipedia, blogs |
 
 ---
 
-## 6. Relationship Types
+## 6. Relationships
 
-Relationships are stored in a dedicated `relationships` table:
+Relationships are directed, typed edges between two entities, stored in `relationships`. There are
+74 types in 8 families, listed with their intended source and target in
+[Relationship types](relationships.md).
 
-```sql
-CREATE TABLE relationships (
-  relationship_id   UUID PRIMARY KEY,
-  source_entity_id  UUID NOT NULL REFERENCES entities(entity_id),
-  target_entity_id  UUID NOT NULL REFERENCES entities(entity_id),
-  relationship_type relationship_type NOT NULL,   -- enum from 2.13
-  temporal_start    TEXT,                          -- Integer year string; negative = BCE
-  temporal_end      TEXT,                          -- Integer year string; negative = BCE
-  description       TEXT,
-  confidence        confidence_level,
-  source_citations  JSONB,
-  created_at        TIMESTAMP DEFAULT now(),
-  created_by        TEXT
-);
+| Column | Notes |
+|---|---|
+| `source_entity_id`, `target_entity_id` | Both ends; deleting an entity deletes its relationships |
+| `relationship_type` | PG enum, 74 values (2.13) |
+| `temporal_start`, `temporal_end` | Optional text dates. A trigger derives `start_year` and `end_year` |
+| `description`, `confidence`, `source_citations` | |
+| `derive_geometry_period` | On by default. Saving in the admin or the API derives a presence period |
+| `created_by`, `created_at` | No `updated_at` |
 
--- Indexes
-CREATE INDEX idx_rel_source ON relationships(source_entity_id);
-CREATE INDEX idx_rel_target ON relationships(target_entity_id);
-CREATE INDEX idx_rel_type   ON relationships(relationship_type);
-```
-
-Relationships are **directional**: `(Rome, vassal_of, Parthia)` is different from `(Parthia, suzerain_of, Rome)`. The pipeline should create both directions or the API should handle bidirectional lookup.
+There is no unique constraint on (source, target, type): importers check for duplicates instead.
+Direction matters: `(Rome, vassal_of, Parthia)` differs from `(Parthia, suzerain_of, Rome)`.
 
 ---
 
-## 7. Storage Split: PostgreSQL vs S3
+## 7. Storage
 
-### 7.1 In PostgreSQL (PostGIS + pgvector)
+Everything lives in PostgreSQL 16 with PostGIS and pgvector. There is no object storage:
 
-Everything that gets queried, joined, filtered, or indexed:
-
-- **Entity table** with all fields from Section 3 and type-specific JSONB attributes
-- **Geometry periods table** for time-varying PostGIS geometries (empire borders, trade route shifts)
-- **Relationships table** (Section 6)
-- **Sources metadata table** (Section 5, minus raw files)
-- **PostGIS geometry columns** with GIST spatial indexes on `geom` and `territory_geom`
-- **pgvector embedding column** with HNSW index for ANN search
-- **Full-text search** via tsvector index on `name`, `alternative_names`, `summary`
-- **GIN indexes** on `tags`, `source_citations`, and JSONB attribute fields
-- **Review history** (audit trail of every status change and field edit)
-- **User accounts and annotations** (bezier curves, labels, overlays)
-- **Computed/cached fields** (confidence_breakdown, relationship_summary, etc.)
-
-### 7.2 In S3-Compatible Object Storage
-
-Everything referenced by URL, written once, read infrequently:
-
-| Bucket / Prefix | Contents | Retention |
-|-----------------|----------|-----------|
-| `sources/{source_id}.*` | Raw PDFs, HTML, text files | Permanent |
-| `nlp/{source_id}.json` | Full NLP extraction output from Stage 2 | Permanent (pipeline debug) |
-| `llm-logs/{entity_id}/` | Prompt + response logs for each entity synthesis | Permanent (audit) |
-| `exports/{user_id}/{export_id}.*` | GeoJSON, Shapefile, CSV user exports | 90 days or permanent |
-| `media/{entity_id}/*` | Historical map images, archaeological photos, coin images | Permanent |
-| `backups/{date}/` | PostgreSQL pg_dump snapshots | Rolling 30 days |
-| `embeddings-archive/{version}/` | Full embedding dumps before model upgrades | Permanent |
-
-### 7.3 Linking Pattern
-
-Entity records in PG reference S3 via path strings:
-
-```sql
--- source_citations JSONB contains:
-[{
-  "source_id": "abc-123",
-  "page": 42,
-  "quote": "Valerian was captured at Edessa...",
-  "bucket_path": "sources/abc-123.pdf"   -- resolved to signed URL by API
-}]
-
--- media_refs JSONB contains:
-[{
-  "type": "archaeological_photo",
-  "url": "media/entity-456/ruins_01.jpg",  -- resolved to signed URL
-  "caption": "Remains of the forum, excavated 1923",
-  "date": "1923"
-}]
-```
-
-The API generates time-limited signed URLs when a user requests the full document or image. No direct S3 access from the frontend.
+| Data | Where |
+|---|---|
+| Entities, satellites, relationships, chronicles, map stories, tags, collections | PostgreSQL tables |
+| Geometry | PostGIS `geometry` columns in EPSG:4326, GiST-indexed |
+| Embeddings | `entities.embedding`, pgvector HNSW |
+| Images | Links to Wikimedia Commons with their credits, in `attributes.media_refs`. No copies are stored ([Entity images](../architecture/entity-images.md)) |
+| Long descriptions for curated entities | Markdown files in `api/resources/entity-descriptions/`, synced into `entities.description` |
+| Map stories | JSON files in `api/resources/map-stories/`, synced into `map_stories` |
+| Pipeline artifacts | Files under `output/` and `api/storage/app/pipeline/` |

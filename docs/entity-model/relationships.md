@@ -1,24 +1,71 @@
-# Relationship Types — Complete Reference
+# Relationship types
 
-A **relationship** connects two entities — a *source* and a *target* — with a named type, an optional time window, and an optional confidence level.
+A relationship is a typed, **directed** statement between two entities: *source* **[type]**
+*target*. It can carry a span of years, a confidence level, a description and its sources. This page
+lists all 74 types in 8 families, with the kind of entity each one usually connects.
 
-Relationships are **directed**: the arrow goes from source to target. The direction is part of the meaning.
+> **Audience:** historians, editors, data contributors, developers · **Use:** reference ·
+> **Last reviewed:** 2026-11-14 · **Source of truth:** `api/app/Enums/RelationshipType.php`
 
-> *Julius Caesar* **[rules]** *Roman Republic* means Caesar is the ruler; the Republic is the governed entity.
+```mermaid
+flowchart LR
+    S(["Source entity: Augustus"]) -->|"rules · 27 BCE–14 CE · high · sources"| T(["Target entity: Roman Empire"])
+```
 
-Many relationship types have a natural inverse. Where useful, both directions can be stored as separate records.
+```mermaid
+mindmap
+  root((74 types))
+    Political · 13
+      po["`rules
+      vassal_of
+      at_war_with
+      succeeded_by …`"]
+    Person · 16
+      pe["`born_in
+      married_to
+      parent_of
+      authored …`"]
+    Military · 7
+      mi["`fought_at
+      victorious_at
+      defeated_at …`"]
+    Economic · 9
+      ec["`trades_with
+      connects
+      produces …`"]
+    Religious and cultural · 11
+      re["`adheres_to
+      influenced_by
+      built_by …`"]
+    Causal · 7
+      ca["`caused
+      contributed_to
+      weakened …`"]
+    Knowledge · 6
+      kn["`invented
+      spread_to
+      replaced_by …`"]
+    Diplomatic · 5
+      di["`signed_by
+      violated_by
+      mediated_by …`"]
+```
 
----
+**Reading the direction.** *Julius Caesar* **[rules]** *Roman Republic* means Caesar is the ruler.
+Many types have an inverse: `rules` and `governed_by`, `vassal_of` and `suzerain_of`, `part_of`
+and `contains`, `parent_of` and `child_of`, `succeeded_by` and `preceded_by`, `caused` and
+`resulted_from`. Storing one direction is enough. Entity pages show a relationship from both ends.
 
-## How to Read the Tables
+**Symmetric types.** `married_to`, `allied_with`, `sibling_of`, `trades_with` and `at_war_with`
+mean the same in both directions. When the importer resolves relationship hints, it treats A–B and B–A
+as duplicates.
 
 | Column | Meaning |
 |---|---|
-| Type value | The internal identifier used in the system |
+| Type | The identifier stored in the database |
 | Description | What the relationship asserts |
-| Typical source | What kind of entity usually appears as the source |
-| Typical target | What kind of entity usually appears as the target |
-| Example | A concrete historical instance |
+| Typical source, typical target | The kinds of entity it usually connects (guidance, not enforced) |
+| Example | A historical instance |
 
 ---
 

@@ -1,9 +1,21 @@
-# Content Bundle Format Guide
+# Content bundles
 
-> How to export a content bundle, edit it by hand or by script, and validate it.
-> Design and intent: [../superpowers/specs/2026-10-18-content-bundles-import-export-design.md](../superpowers/specs/2026-10-18-content-bundles-import-export-design.md).
+A **content bundle** is a versioned, diff-friendly snapshot of site content (entities, relationships,
+geometry, geo refs, chronicles) as JSON Lines files, plus a manifest and a byte-identical snapshot of
+what was exported. This page explains how to export one, edit it by hand or by script, and validate it.
 
-A **content bundle** is a versioned, diff-friendly snapshot of site content (entities, relationships, geometry, geo refs, chronicles) as JSON Lines files, plus a manifest and a byte-identical snapshot of what was exported.
+> **Audience:** editors, data maintainers, developers · **Use:** guide and reference ·
+> **Last reviewed:** 2026-11-14 · **Design:** [content bundles spec](../superpowers/specs/2026-10-18-content-bundles-import-export-design.md)
+
+```mermaid
+flowchart TB
+    DB[(Site database)] -->|"content:export --scope --profile"| B[/"Bundle: manifest.json, *.jsonl, _base/"/]
+    B --> E["Edit the *.jsonl files by hand or by script"]
+    E -->|"content:validate"| V{"Errors?"}
+    V -->|yes| E
+    V -->|no| R["Ready"]
+    R -.->|"content:import: not built yet"| DB
+```
 
 ## What exists today
 

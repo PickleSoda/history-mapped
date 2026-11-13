@@ -1,181 +1,170 @@
-# history-mapped Architecture Overview
+# System overview
 
-## System Overview
+History Mapped has four parts: a public web app, a Laravel application that serves both the API
+and the admin, a PostgreSQL database with spatial and vector extensions, and an offline Python
+pipeline that produces the content. This page shows how they fit together. Each part has its own
+page in this section.
 
-history-mapped is a monorepo with three active product and engineering surfaces:
+> **Audience:** developers, architects, technical stakeholders · **Read time:** 8 minutes ·
+> **Last reviewed:** 2026-11-14
 
-- `api/`: the primary Laravel application, serving the REST API, auth flows, background jobs, and the Inertia-based admin/editor UI.
-- `web/`: a standalone React SPA served by Vite. Today it is a thin bootstrap client wired to the Laravel health endpoint.
-- `pipeline/`: a Python pipeline with three tracks — Wikidata/Wikipedia scraping, staged OpenHistoricalMap borders processing, and a **LangGraph agentic pipeline** (`pipeline/agent/`) that turns raw historical text into validated entity/relation/chronicle proposals.
+## Context
 
-The Laravel app is the richest implemented surface today. The standalone `web/` package is already connected to the backend but remains intentionally small, while the MapLibre-based historical map and geometry editing tooling currently lives in the admin code inside `api/resources/js`.
-
-> The LangGraph agentic pipeline is an MVP: it produces artifacts and is test-covered with mocked LLMs, but its database-commit path has known critical defects (it currently writes nothing to the DB on a real run). See [../implementation-docs/agentic-pipeline-runbook.md](../implementation-docs/agentic-pipeline-runbook.md) and [../plans/bug-report.md](../plans/bug-report.md) before relying on it.
-
-## Runtime Surfaces
-
-| Surface / Service | Port | Responsibility | Current state |
-|-------------------|------|----------------|---------------|
-| **Laravel app / admin** | `8000` | Main application entry point, Inertia admin UI, and public API host | Primary working application surface |
-| **Admin Vite HMR** | `5174` | Hot-module reload server for the admin frontend | Dev-only support service |
-| **Customer web SPA** | `5173` | Standalone React client | Bootstrap client; currently checks `/api/v1/health` |
-| **Python pipeline** | - | Wikidata/topic extraction and OHM borders processing | Host-side CLI workflow |
-| **PostgreSQL** | `5432` | Primary relational, spatial, and vector store | Backed by PostGIS + pgvector |
-| **Redis** | `6379` | Cache, sessions, and queue backend | Shared infra service |
-| **Queue worker** | - | Laravel background jobs | Used by imports and async processing |
-| **Scheduler** | - | Laravel scheduled tasks | Runs the app scheduler loop |
-| **Mailpit** | `8025` | Local mail testing UI | Local development support |
-| **CloudBeaver** | `8978` | Database inspection UI | Local development support |
-| **RedisInsight** | `5540` | Redis inspection UI | Local development support |
-
-```mermaid
-graph TB
-    Customer[Customer Browser]
-    Reviewer[Reviewer Browser]
-    Web[web/<br/>React + Vite<br/>:5173]
-    Admin[api/<br/>Laravel + Inertia<br/>:8000]
-    HMR[vite-admin<br/>:5174]
-    Laravel[Laravel routes + jobs]
-    DB[(PostgreSQL<br/>PostGIS + pgvector)]
-    Redis[(Redis)]
-    Pipeline[Python pipeline CLI]
-    Output[output/<br/>JSONL + OHM artifacts]
-    OHM[OpenHistoricalMap]
-
-    Customer --> Web
-    Reviewer --> Admin
-    HMR -. dev assets .-> Admin
-    Web --> Laravel
-    Admin --> Laravel
-    Laravel --> DB
-    Laravel --> Redis
-    Admin --> OHM
-    Pipeline --> Output
-    Output --> Laravel
-```
-
-## Repository Responsibilities
-
-| Area | Main responsibility | Key contents |
-|------|---------------------|--------------|
-| **`api/`** | Backend application and admin/editor surface | Laravel app code, Inertia React admin, `routes/web.php`, `routes/api.php`, `routes/settings.php`, queue jobs, models, actions |
-| **`web/`** | Standalone customer-facing SPA | React 19 + Vite app, TanStack Query, Axios, `src/pages/home.tsx`, `src/lib/api.ts` |
-| **`pipeline/`** | Offline ingestion, artifact generation, and agentic extraction | `wikidata/`, `ohm_borders/`, `ohm_collections/`, `agent/` (LangGraph), `tests/`, `config.py`, `__main__.py` |
-| **`output/`** | Generated pipeline artifacts | Topic JSONL files and `ohm_borders/<run_id>/...` stage output |
-| **`docker/`** | Local container orchestration | Dockerfiles plus `docker/docker-compose.yml` |
-| **`docs/`** | Architecture, runbooks, schemas, plans | Setup docs, pipeline docs, model docs, implementation plans |
-
-## Route and Auth Model
-
-### Route files in the repo
-
-| File | Responsibility |
-|------|----------------|
-| **`api/routes/web.php`** | Welcome page, authenticated admin pages, entity screens, reference-table pages, geometry-period routes, relationship routes, Chronicle CRUD pages (`chronicles.*`) |
-| **`api/routes/api.php`** | Versioned `/api/v1` JSON API: health check; public map reads (`entities/map`, `entities/map/year`, `map/resolve-ohm-feature`); entity/source/timeline/geo-reference reads; public Chronicle reads (`chronicles`, `chronicles/{slug}`); and Sanctum-protected writes |
-| **`api/routes/settings.php`** | Profile, security, and appearance routes for authenticated users |
-| **`api/routes/console.php`** | Console route definitions |
-
-Laravel Fortify provides the auth endpoints; there is no separate `routes/auth.php` file in the repository.
-
-### Authentication surfaces
-
-| Surface | Auth strategy | Notes |
-|---------|---------------|-------|
-| **Admin UI** | Laravel session auth via the `web` guard | Protected by `auth` and `verified` middleware |
-| **API write endpoints** | `auth:sanctum` | JSON writes under `/api/v1` require authenticated Sanctum sessions |
-| **Customer SPA** | Prepared for Sanctum SPA cookie auth | Current implementation only exercises a read-only health check path |
-
-## Map and Editor Placement
-
-- MapLibre-based historical map rendering currently lives in the Laravel admin frontend, not the standalone `web/` package.
-- Admin-side React includes the historical map viewer, geometry editor, entity history timeline, relationship editing, and geography-reference tooling.
-- The standalone `web/` package is currently a minimal client shell with React Router, TanStack Query, Axios, and a single home page that checks backend availability.
-
-## Data Pipeline and Import Flow
-
-The ingestion architecture is file-based rather than streaming-based.
-
-1. Python commands under `pipeline/` scrape or assemble source data. Three tracks exist: Wikidata/Wikipedia scraping (`pipeline/wikidata/`), staged OHM borders (`pipeline/ohm_borders/`, `pipeline/ohm_collections/`), and the **LangGraph agentic pipeline** (`pipeline/agent/`) that extracts entity/relation/chronicle proposals from raw historical text.
-2. The pipeline writes JSONL files and staged artifacts into `output/` (the agent writes to `output/agent_runs/<run_id>/`).
-3. Laravel artisan commands import those artifacts into PostgreSQL.
-4. Queue jobs and follow-up commands resolve relationship hints and generate embeddings.
-
-> **Caveat (agentic track):** the agent's commit node shells out to artisan importers but currently passes a host path the app container cannot see and never checks the return code, so on a real run it persists nothing while reporting success; chronicles are written to disk but not imported. Treat the agentic write path as not-yet-working — see [../plans/agentic-pipeline-improvements.md](../plans/agentic-pipeline-improvements.md).
+Who and what the system talks to (C4 level 1).
 
 ```mermaid
 flowchart LR
-    Wikidata[Wikidata / Wikipedia] --> Scrape["py -m pipeline scrape | topic | dedup"]
-    OHM[OpenHistoricalMap / Overpass] --> Borders[py -m pipeline borders ...]
-    Scrape --> Output[output/*.jsonl]
-    Borders --> Output
-    Output --> Import[php artisan pipeline:import*]
-    Import --> DB[(entities / relationships / hints)]
-    DB --> Embed[php artisan pipeline:embeddings]
+    V([Visitor]) -->|"browses, explores"| HM
+    R([Signed-in reader]) -->|"saves, suggests fixes"| HM
+    E([Editor or admin]) -->|"edits, reviews, uses AI"| HM
+    O([Operator]) -->|"pipeline, deploys"| HM
+    HM[["History Mapped"]]
+    HM -->|"facts, QIDs"| WD[(Wikidata)]
+    HM -->|"article text"| WP[(Wikipedia)]
+    HM -->|"basemap, borders"| OHM[(OpenHistoricalMap)]
+    HM -->|"images, credits"| WC[(Wikimedia Commons)]
+    HM -->|"AI models"| LLM[(LLM providers)]
+    HM -->|"embeddings"| OAI[(OpenAI)]
 ```
 
-Current Laravel-side import commands:
+## Containers
 
-| Command | Purpose |
-|---------|---------|
-| **`pipeline:import`** | Import generic Wikidata/topic JSONL files |
-| **`pipeline:import-borders`** | Import OHM country/entity JSONL output |
-| **`pipeline:import-border-relations`** | Import OHM relation entities and stage relation hints |
-| **`pipeline:embeddings`** | Generate or refresh pgvector embeddings |
-| **`chronicles:import`** | Import agent-produced `chronicle.json` into `chronicles`/`chronicle_entries` (not yet invoked by the agent — see caveat above) |
+The running pieces and how they connect (C4 level 2).
 
-## Local Development Topology
+```mermaid
+flowchart TB
+    subgraph Browser
+        SPA["Public web app: React, MapLibre, PWA"]
+        ADM["Admin UI: Inertia + React"]
+    end
+    OHMT[("OHM vector tiles")]
+    subgraph Server["Hosted server: Docker Compose"]
+        CAD["Caddy: TLS, routing"]
+        APP["Laravel app: /api/v1, admin, /tiles"]
+        MAR["Martin tile server"]
+        PG[("PostgreSQL 16: PostGIS, pgvector")]
+        RD[("Redis")]
+        WRK["Queue worker, scheduler"]
+    end
+    PIPE["Offline: Python pipeline and AI agent campaigns"]
+    SPA -->|"JSON, vector tiles"| CAD
+    SPA -->|"basemap, borders"| OHMT
+    ADM --> CAD
+    CAD --> APP
+    CAD --> MAR
+    APP --> PG
+    APP --> RD
+    MAR --> PG
+    PG <--> WRK
+    RD <--> WRK
+    PIPE -->|"JSONL files, artisan import"| APP
+```
 
-File: `docker/docker-compose.yml`
+| Part | Technology | Responsibility | Read more |
+|---|---|---|---|
+| Public web app | React 19, Vite, MapLibre GL, TanStack Query, nuqs | Landing, browse, entity and chronicle pages, docs, the atlas at `/app` | [Public web app](frontend-app.md) |
+| Laravel app | Laravel 13, PHP 8.4, Octane | Public JSON API, accounts, the admin, tiles (app driver), AI assistant | [Backend and API](backend.md) |
+| Admin UI | Inertia 2, React 19, MapLibre, Mapbox Draw | Editing entities, geometry, relationships, chronicles and map stories; reviewing contributions | [Admin and editing](admin-map-editor.md) |
+| Database | PostgreSQL 16, PostGIS 3.5, pgvector 0.8 | Entities, relationships, chronicles, time-aware geometry, tags, stories, accounts; the `tiles` SQL functions | [Data model overview](../entity-model/README.md) |
+| Tile server | Martin 1.16 (or the app) | Serves `tiles.atlas_entities` as vector tiles | [Maps, tiles and OHM](ohm-integration.md) |
+| Queue and scheduler | Laravel queue on Redis | Imports, relationship resolution, embeddings, timeline rebuilds, daily image fetch | [Backend and API](backend.md#background-work) |
+| Pipeline | Python, LangGraph | Fetches open data, extracts entities and relationships from text, writes import files | [Data pipeline](data-pipeline.md) |
+| Hosting | Docker Compose, Caddy, DigitalOcean, GHCR, GitHub Actions | One server; CI builds and deploys on every push to `main` | [Deployment and operations](deployment.md) |
 
-| Service | Port | Role |
-|---------|------|------|
-| **`composer-install`** | - | One-shot Composer install init container |
-| **`app`** | - | PHP-FPM runtime for Laravel |
-| **`nginx`** | `8000` | HTTP entry point for Laravel |
-| **`pnpm-install`** | - | One-shot pnpm install init container |
-| **`web`** | `5173` | Customer SPA Vite dev server |
-| **`vite-admin`** | `5174` | Admin frontend HMR server |
-| **`db`** | `5432` | PostgreSQL + PostGIS + pgvector |
-| **`redis`** | `6379` | Cache, sessions, queues |
-| **`queue`** | - | `php artisan queue:work` |
-| **`scheduler`** | - | `php artisan schedule:run` loop |
-| **`mailpit`** | `8025` | Local mail UI |
-| **`cloudbeaver`** | `8978` | DB inspection UI |
-| **`redisinsight`** | `5540` | Redis inspection UI |
+## How a page gets its data
 
-Working conventions:
+```mermaid
+sequenceDiagram
+    autonumber
+    participant B as Browser
+    participant C as Caddy
+    participant A as Laravel API
+    participant T as Martin
+    participant P as PostgreSQL
+    participant O as OHM
 
-- Run PHP and Node commands through Docker for the Laravel and Vite surfaces.
-- Use `pnpm` at the repo root for workspace-level scripts.
-- Run `py -m pipeline ...` from the repo root after activating `pipeline/.venv`.
+    B->>C: GET historymapped.org/app
+    C-->>B: index.html and JS chunks (static files)
+    B->>O: basemap style and tiles for the year
+    B->>C: GET /tiles/atlas_entities/z/x/y
+    C->>T: tile request
+    T->>P: SELECT tiles.atlas_entities(z, x, y)
+    P-->>B: vector tile, cached 5 minutes
+    B->>C: GET /api/v1/entities/{id}
+    C->>A: request
+    A->>P: entity, dates, place, relationships
+    A-->>B: JSON
+```
 
-## Architecture Summary
+The public app is static. Everything dynamic comes from three sources: our API, our vector tiles,
+and OpenHistoricalMap's basemap, which the browser loads directly.
 
-| Area | Current choice | Why it exists |
-|------|----------------|---------------|
-| **Backend framework** | Laravel 13 | Unifies admin delivery, API routing, queues, auth, and editorial workflows |
-| **Admin frontend** | Inertia.js + React inside Laravel | Keeps the most advanced editing and mapping tools close to the backend |
-| **Customer frontend** | React + Vite SPA | Separate browser client for future public-facing experiences |
-| **Map stack** | MapLibre GL JS + OpenHistoricalMap | Powers historical map rendering and geometry editing in the admin surface |
-| **Data pipeline** | Python CLI + JSONL artifacts | Supports repeatable offline scrape/import workflows |
-| **Primary data store** | PostgreSQL 16 + PostGIS + pgvector | Handles relational, spatial, temporal, and semantic queries |
-| **Local environment** | Docker Compose + host Python venv | Keeps app runtime containerized while leaving the Python pipeline ergonomic to run locally |
+## How content flows
 
----
+```mermaid
+flowchart TB
+    S1[(Wikidata)] --> P
+    S2[(Wikipedia)] --> P
+    S3[(OpenHistoricalMap)] --> P
+    S4[/"history texts, agent transcripts"/] --> P
+    P["Python pipeline"] --> F[/"JSONL artifacts"/]
+    F -->|"pipeline:import, chronicles:import"| DB[(PostgreSQL)]
+    G[/"Files in git: collections, map stories, descriptions, tags"/] -->|"sync commands"| DB
+    ED["Admin edits, AI proposals, approved contributions"] --> DB
+    DB --> API["/api/v1"]
+    DB --> TL["/tiles"]
+    API --> UI["Public app and admin"]
+    TL --> UI
+```
 
-## Related Documents
+The pipeline never writes to the database directly. It writes files, and Laravel commands import
+them, so a run can be inspected, re-imported or thrown away. The [Data pipeline](data-pipeline.md)
+page has the details.
 
-| Document | Description |
-|----------|-------------|
-| `README.md` | Foundational architecture for the Historical Atlas platform, including the three-layer map model and AI-to-human review lifecycle |
-| `docs/implementation-docs/setup.md` | Monorepo setup, workspace structure, Docker services, auth model, and contract generation flow |
-| `docs/entity-model/entity-specification.md` | Entity types, enums, and field-level data model details |
-| `docs/entity-model/reference-tables.md` | Historical periods, regions, and supporting reference data |
-| `docs/entity-model/` | Canonical entity/relationship/chronicle data model reference |
-| `docs/implementation-docs/agentic-pipeline-runbook.md` | LangGraph agentic pipeline node reference and run instructions |
-| `docs/architecture/data-pipeline.md` | All three pipeline tracks and the Laravel import layer |
-| `docs/plans/map-query-optimization.md` | Map bbox query optimization plan (headline) |
-| `docs/plans/agentic-pipeline-improvements.md` | Agentic pipeline reliability/idempotency/observability plan |
-| `docs/plans/bug-report.md` | Consolidated, severity-ranked audit bug report |
-| `docs/reference/game-inspired-ui-ux.md` | Design reference for the intended historical atlas frontend UI direction |
+## Key design decisions
+
+| Decision | Why | Consequence |
+|---|---|---|
+| One Laravel app for the API and the admin | One set of models, Actions and permissions | The admin calls the same `/api/v1` endpoints for some features |
+| A separate static app for the public | Cheap static hosting, installable PWA, its own release cycle | Cross-subdomain cookies and CORS for sign-in |
+| The atlas state lives in the URL | Every view is a shareable link, and Back works | URL rules are carefully tested |
+| Years stored as integers; the map uses decimal years | Simple storage and arithmetic for BCE | Decimal years are derived in SQL, PHP and TypeScript with the same rule |
+| Borders come from OpenHistoricalMap, not our database | Reuse community-drawn, time-aware borders | We store links to OHM features (signed `osm_id`) and draw outlines from OHM tiles |
+| Wikidata QIDs are the identity key | Merge sources, find duplicates, refer to entities in files | Writes are guarded against reusing one QID for two things |
+| Vector tiles from a SQL function | One contract, served by Martin or by the app | Martin must restart after tile migrations |
+| A file-based pipeline | Repeatable, reviewable, decoupled from the database | Imports are a separate step |
+| Images are linked, not copied | Licence compliance and no storage cost | Display depends on Wikimedia's availability |
+| AI proposes, people confirm | Keeps editors in charge of every change | Proposals are stored, previewed and applied part by part |
+
+## Repository map
+
+```text
+history-mapped/
+├── api/          Laravel app: API (app/Http/Api), admin (app/Http/Controllers, resources/js),
+│                 Actions, models, jobs, migrations, the tiles SQL, map-story and collection files
+├── web/          Public React app: atlas, site pages, docs renderer
+├── pipeline/     Python: wikidata/, ohm_borders/, ohm_links/, agent/ (LangGraph), campaign/,
+│                 map_stories/, audit/
+├── docker/       Dockerfiles, docker-compose.yml (local), docker-compose.prod.yml, Caddyfile,
+│                 Martin config
+├── docs/         These docs, runbooks, plans and the archive
+├── output/       Pipeline artifacts (git-ignored)
+└── .github/      CI and deployment workflow
+```
+
+## Quality attributes
+
+| Attribute | How it is addressed |
+|---|---|
+| Performance | Vector tiles cached at three layers (Martin, Caddy, service worker); snapped query keys; immutable data cached for the session |
+| Security | Spatie roles and permissions on every write; cookie-only sessions with CSRF; contribution writes rate-limited |
+| Data quality | QID identity guard, review status and confidence on every record, audits in `pipeline/audit` |
+| Availability | One server; images in GHCR make it reproducible; no automated database backup yet ([gaps](deployment.md#known-operational-gaps)) |
+| Observability | Container logs; no metrics or tracing stack |
+| Cost | Open data sources, one droplet, linked images; AI usage is paid per call |
+
+## Where next
+
+- [Data pipeline](data-pipeline.md): how content is produced
+- [Backend and API](backend.md) and [Public web app](frontend-app.md): the two codebases
+- [Local setup](../implementation-docs/setup.md): run it yourself

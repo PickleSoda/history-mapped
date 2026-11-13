@@ -1,180 +1,133 @@
-# history-mapped Setup Guide
+# Local setup
 
-This guide describes how to run the existing monorepo locally. It is not a scaffold-from-scratch guide.
+Run the whole stack on your machine with Docker Compose: the API and admin, the public web app,
+PostgreSQL, Redis, the tile server and the inspection tools. Allow about 15 minutes for the first
+start. After that, it starts in seconds.
 
-## Prerequisites
+> **Audience:** developers · **Last reviewed:** 2026-11-14 · **You need:** Docker Engine with
+> Compose v2, pnpm 10, Git; Python 3.10 or newer only for the pipeline
 
-- Docker Desktop or Docker Engine with Compose v2
-- pnpm >= 10
-- Python 3.10+ for the `pipeline/` workflow
-- Git
+## What you get
 
-## Repository Layout
-
-```text
-history-mapped/
-├── api/          # Laravel app, REST API, Inertia admin, queue and scheduler code
-├── web/          # Standalone React SPA served by Vite
-├── pipeline/     # Python scrape and OHM processing pipeline
-├── output/       # Generated JSONL files and OHM stage artifacts
-├── docker/       # Dockerfiles and docker-compose.yml
-└── docs/         # Architecture, runbooks, schemas, plans, and model docs
+```mermaid
+flowchart LR
+    H(("your machine")) -->|":8000"| APP["nginx, then app: Laravel on PHP-FPM"]
+    H -->|":5173"| WEB["web: public app, Vite"]
+    H -->|":5174"| VA["vite-admin: admin hot reload"]
+    H -->|":3000"| MA["martin: vector tiles"]
+    H -->|":8025, :8978, :5540"| UI["Mailpit, CloudBeaver, RedisInsight"]
+    APP --> DB[("db :5432: PostgreSQL, PostGIS, pgvector")]
+    APP --> R[("redis :6379")]
+    QS["queue, scheduler"] --> DB
+    MA --> DB
+    INS["composer-install, pnpm-install: run once"] -.-> APP
+    INS -.-> WEB
 ```
 
-## 1. Boot the Local Stack
+| URL | What |
+|---|---|
+| http://localhost:5173 | Public web app (landing, browse, docs; the atlas at `/app`) |
+| http://localhost:8000 | Admin (sign in), the API at `/api/v1`, tiles at `/tiles`, API docs at `/docs/api` |
+| http://localhost:3000/tiles/catalog | Martin's tile sources |
+| http://localhost:8025 | Mailpit: every e-mail the app sends |
+| http://localhost:8978 / :5540 | CloudBeaver (database) / RedisInsight |
+| `localhost:5432` | PostgreSQL: database, user `history-mapped`, password `secret` |
 
-From the repository root:
+## First start
 
 ```bash
+# 1. Get the code and the env files
+git clone https://github.com/PickleSoda/history-mapped.git && cd history-mapped
 cp api/.env.example api/.env
+cp web/.env.example web/.env
+cp pipeline/.env.example pipeline/.env      # only if you will run the pipeline
 
-# Optional: only needed if you plan to run the Python pipeline
-cp pipeline/.env.example pipeline/.env
+# 2. Start everything (installs PHP and JS dependencies on the first run)
+pnpm dev                                     # = docker compose -f docker/docker-compose.yml up
 
-pnpm dev
+# 3. In a second terminal: app key, schema, roles, demo users, reference tables
+alias dc='docker compose -f docker/docker-compose.yml'
+dc exec app php artisan key:generate
+dc exec app php artisan migrate --seed
+
+# 4. Content that lives in files
+dc exec app php artisan tags:sync
+dc exec app php artisan collections:sync
+dc exec app php artisan map-stories:sync
+dc exec app php artisan entities:sync-descriptions
 ```
 
-This starts the full Docker-based app stack and leaves logs attached to the terminal.
+The base seed creates one user per role, all with the password `password`: `admin@example.com`,
+`moderator@example.com`, `history@example.com`, `geo@example.com` and `user@example.com`. It
+deliberately leaves the knowledge graph empty. For a small sample graph, run
+`dc exec app php artisan db:seed --class=DemoSeeder`. For real data, import pipeline output
+([Importing data](data-contributor-guide.md)) or restore a dump from a teammate.
 
-If you need image rebuilds, run:
+Map stories and collections refer to entities by Wikidata id, so they only show their full content
+once those entities exist in your database.
+
+## Ports and configuration
+
+| File | Read by | Holds |
+|---|---|---|
+| `api/.env` | Laravel (app, queue, scheduler, vite-admin) | App key, database, Redis, mail, AI keys |
+| `web/.env` | The web app | `VITE_API_URL` (default `http://localhost:8000`); `VITE_MAP_TILES_URL` to use vector tiles (unset means REST mode) |
+| `docker/.env` | Docker Compose | Host ports: `FORWARD_NGINX_PORT`, `FORWARD_WEB_PORT`, `FORWARD_MARTIN_PORT`… |
+| `pipeline/.env` | The Python pipeline | Wikidata, Wikipedia and LLM settings, `OUTPUT_DIR` |
+
+> **Port clash?** Put the override in **`docker/.env`**. Compose reads that file because it sits
+> next to the first `-f` file. A `.env` at the repository root is ignored by `pnpm dev`. The Vite
+> ports are also fixed in each `vite.config.ts` for hot reload, so change those together.
+
+## Everyday commands
 
 ```bash
-pnpm dev:build
+dc exec app php artisan test                      # PHPUnit
+dc exec app php artisan test --filter=EntityTest  # one class or method
+dc exec app composer test                          # Pint check + tests
+dc exec app composer ci:check                      # what CI runs for the API and admin
+dc exec app php artisan route:list                 # or: pnpm api:routes
+dc exec app php artisan wayfinder:generate --with-form   # regenerate admin route helpers
+
+dc exec web pnpm --filter @history-mapped/web lint
+dc exec web pnpm --filter @history-mapped/web types:check
+dc exec web pnpm --filter @history-mapped/web test       # Vitest; CI does not run it
+dc exec web pnpm --filter @history-mapped/web build
+
+dc exec app php artisan migrate:fresh --seed      # reset the database
+dc restart martin                                 # after any migration that touches the tiles schema
 ```
 
-After the containers are healthy, run the initial database setup:
+Run PHP, Composer and Node through the containers, not on your host, so versions match CI.
+
+## The pipeline (optional)
 
 ```bash
-docker compose -f docker/docker-compose.yml exec app php artisan migrate --seed
-```
-
-To stop the stack:
-
-```bash
-pnpm dev:down
-```
-
-## 2. Docker Services
-
-File: `docker/docker-compose.yml`
-
-| Service | Port | Purpose |
-|---------|------|---------|
-| **`composer-install`** | - | One-shot Composer install init container |
-| **`app`** | - | PHP-FPM runtime for Laravel |
-| **`nginx`** | `8000` | HTTP entry point for Laravel and the admin UI |
-| **`pnpm-install`** | - | One-shot pnpm install init container |
-| **`web`** | `5173` | Customer SPA Vite dev server |
-| **`vite-admin`** | `5174` | Admin HMR server |
-| **`db`** | `5432` | PostgreSQL with PostGIS + pgvector |
-| **`redis`** | `6379` | Cache, sessions, and queues |
-| **`martin`** | `3000` | Vector tiles for the public SPA, `/tiles/atlas_entities` (Martin; config `docker/martin/config.yaml`). The app serves the same tiles at `:8000/tiles`, so Martin is optional in dev |
-| **`queue`** | - | `php artisan queue:work` |
-| **`scheduler`** | - | Laravel scheduler loop |
-| **`mailpit`** | `8025` | Mail testing UI |
-| **`cloudbeaver`** | `8978` | Database inspection UI |
-| **`redisinsight`** | `5540` | Redis inspection UI |
-
-Important runtime notes:
-
-- Open the admin UI at `http://localhost:8000`.
-- `http://localhost:5174` is only the admin HMR server, not the admin UI entry point.
-- Day-to-day PHP and Node work should run through Docker. The Python pipeline is the main host-side workflow.
-- **Martin discovers tile functions only at startup.** After running the `tiles` migrations against an already-running stack, restart it: `docker compose -f docker/docker-compose.yml restart martin`.
-
-## 3. Day-to-Day Commands
-
-From the repository root:
-
-```bash
-# Laravel tests
-docker compose -f docker/docker-compose.yml exec app php artisan test
-
-# Filtered Laravel test
-docker compose -f docker/docker-compose.yml exec app php artisan test --filter=EntityControllerTest
-
-# Workspace type checks
-pnpm typecheck
-
-# Route list
-pnpm api:routes
-
-# Any artisan command
-docker compose -f docker/docker-compose.yml exec app php artisan <command>
-
-# Fresh database reset
-docker compose -f docker/docker-compose.yml exec app php artisan migrate:fresh --seed
-
-# Tiles: list Martin's published sources (restart martin after tile migrations)
-curl -s http://localhost:3000/tiles/catalog
-```
-
-## 4. Route Layout
-
-The repo currently uses these route files:
-
-| File | Responsibility |
-|------|----------------|
-| **`api/routes/web.php`** | Welcome page, dashboard, entity CRUD pages, relationship routes, geometry-period routes, reference-table pages |
-| **`api/routes/api.php`** | `/api/v1` JSON API including health check, public reads, and Sanctum-protected writes |
-| **`api/routes/settings.php`** | Authenticated profile, security, and appearance pages |
-| **`api/routes/console.php`** | Console route definitions |
-
-Laravel Fortify registers the auth endpoints; there is no separate `routes/auth.php` file in this repository.
-
-## 5. Frontend Surfaces
-
-### `api/` admin frontend
-
-- Inertia.js + React rendered by Laravel
-- Richer implementation surface today: historical map viewer, geometry editing, timelines, entity relationships, and reference tables
-- Served at `http://localhost:8000`
-
-### `web/` standalone SPA
-
-- React 19 + Vite + TanStack Query + Axios
-- Current implementation is intentionally small: a single home route that checks `GET /api/v1/health`
-- Prepared for cookie-based Laravel auth via `withCredentials: true` and a Sanctum CSRF helper
-- Served at `http://localhost:5173`
-
-## 6. Python Pipeline Workflow
-
-Create and activate a virtual environment, then run all pipeline commands from the repository root:
-
-```powershell
-py -m venv pipeline/.venv
-.\pipeline\.venv\Scripts\Activate.ps1
+python -m venv pipeline/.venv && source pipeline/.venv/bin/activate
 pip install -r pipeline/requirements.txt
+python -m pipeline --help                 # run from the repository root
+python -m pytest pipeline/tests/          # tests
 ```
 
-Typical commands:
+The app container sees only `api/`, so files you want to import must be under `api/` (for example
+`api/storage/app/…`), or be copied in with `docker compose cp`. The extraction agent already writes
+its runs to `api/storage/app/pipeline/agent_runs/`. [Importing data](data-contributor-guide.md) has
+the full workflow.
 
-```powershell
-py -m pipeline scrape --type political_entity --limit 100
-py -m pipeline topic "Late Bronze Age Collapse"
-py -m pipeline borders run --run-id global-2026-04-15 --parse-workers 8 --enrich-names
-py -m pipeline borders relations-run --run-id global-2026-04-15 --resume
-```
+## Troubleshooting
 
-With the default `pipeline/.env`, `OUTPUT_DIR=output`, so running from the repo root writes artifacts into the repository-level `output/` directory.
+| Symptom | Fix |
+|---|---|
+| "No application encryption key has been specified" | `dc exec app php artisan key:generate` |
+| The atlas map is empty | Import data, or set `VITE_MAP_TILES_URL=http://localhost:8000/tiles` in `web/.env`, then restart `web` |
+| Tiles return 500 "Cannot find SRID" | `dc exec app php artisan migrate` (restores EPSG:3857 and 4326) |
+| A new tile function is missing from Martin | `dc restart martin` |
+| `wayfinder:generate` fails with "Permission denied" | An earlier run left `api/resources/js/{actions,routes}` owned by root: `chown` them back to your user |
+| Port already in use | Set the `FORWARD_*_PORT` in `docker/.env` |
+| Admin pages show no styles | Make sure `vite-admin` is running (`dc ps`) |
 
-Pipeline verification should use the Python test runner directly:
+## Where next
 
-```powershell
-py -m pytest pipeline/tests
-```
-
-## 7. Generated Artifacts
-
-Generated data is not confined to the `pipeline/` directory.
-
-- Topic and type-based JSONL files are written under `output/`.
-- OHM staged runs are written under `output/ohm_borders/<run_id>/`.
-- Laravel import commands read those artifacts back from mounted paths such as `/var/www/html/output/...` inside the `app` container.
-
-## 8. Current Working Conventions
-
-- Use Docker for Laravel, Composer, pnpm, Vite, queue, and scheduler work.
-- Use repo-root `pnpm` scripts for workspace-level tasks.
-- Use repo-root `py -m pipeline ...` commands for the Python pipeline.
-- Prefer the docs in [../../README.md](../../README.md), [../architecture/system-overview.md](../architecture/system-overview.md), and [../../pipeline/README.md](../../pipeline/README.md) over older planning docs when there is a discrepancy.
+- [System overview](../architecture/system-overview.md): how the pieces fit together
+- [Importing data](data-contributor-guide.md): fill the database
+- [Deployment and operations](../architecture/deployment.md): how the hosted site differs
