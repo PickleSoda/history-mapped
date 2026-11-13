@@ -26,7 +26,7 @@ cp pipeline/.env.example pipeline/.env
 
 **Phase 1 — Python pipeline → JSONL and OHM artifacts.** The pipeline scrapes Wikidata/Wikipedia, builds topic files, and runs staged OHM borders processing. With the default `pipeline/.env`, artifacts are written to the repository-level `output/` directory when commands are run from the repo root.
 
-**Phase 1.5 — Agentic enrichment → structured proposals.** The `pipeline agent` command accepts raw historical text (transcripts, articles, book excerpts) and runs an 11-node LangGraph workflow that parses events, extracts entities and relations, resolves them against Wikidata and OpenHistoricalMap, generates flowing summaries, validates proposals against risk policies, and writes importer-ready JSONL artifacts. High-confidence items are auto-committed; the rest are flagged for review.
+**Phase 1.5 — Agentic enrichment → structured proposals.** The `pipeline agent` command accepts raw historical text (transcripts, articles, book excerpts) and runs a 16-node LangGraph workflow that parses events, extracts entities and relations (with a completeness-critic loop), resolves them against the database, Wikidata and OpenHistoricalMap, generates summaries, validates them against per-type thresholds, and imports the result. Items below threshold become `needs_review` rows (campaign handoffs) or go to `review_items.jsonl`.
 
 **Phase 2 — Laravel import → PostgreSQL.** Artisan commands read the generated files and create entities, stage relationship hints, resolve relationships, and generate embeddings.
 
@@ -47,7 +47,7 @@ See [wikidata/README.md](wikidata/README.md) for full usage, output buckets, and
 ```powershell
 py -m pipeline borders fetch  --run-id global-2026-04-15
 py -m pipeline borders parse  --run-id global-2026-04-15 --resume --parse-workers 8
-py -m pipeline borders enrich --run-id global-2026-04-15 --enrich-names
+py -m pipeline borders enrich --run-id global-2026-04-15   # --enrich-names exists on enrich only, not on run
 py -m pipeline borders build  --run-id global-2026-04-15 --resume
 py -m pipeline borders relations-run --run-id global-2026-04-15 --resume
 ```
@@ -58,7 +58,7 @@ See [ohm_borders/README.md](ohm_borders/README.md) for stage breakdown, subgraph
 
 ```powershell
 py -m pipeline collections build-xml-index --input output/map.xml --index-path output/ohm_collections/map.sqlite3 --force
-py -m pipeline collections egypt-build --xml-index-path output/ohm_collections/map.sqlite3 --ohm-index-path output/ohm_borders/indexes/global-2026-04-14.sqlite3 --run-id egypt-historical-collection --force
+py -m pipeline collections egypt-build --xml-index-path output/ohm_collections/map.sqlite3 --run-id egypt-historical-collection --force
 py -m pipeline collections egypt-relations-run --run-id egypt-historical-collection --resume
 ```
 
@@ -70,19 +70,25 @@ Turn raw historical text into structured, validated entity and relation proposal
 
 ```powershell
 py -m pipeline agent --input transcript.txt --run-id demo_001
+py -m pipeline agent --from-candidates output/campaign/extractions/<run>/candidates.json   # campaign handoff
 ```
 
-The agent writes artifacts to `output/agent_runs/<run_id>/`:
+The agent writes artifacts to `api/storage/app/pipeline/agent_runs/<run_id>/` (inside `api/`, so the
+`app` container can read them; `AGENT_OUTPUT_DIR` overrides):
 
 - `entities_to_create.jsonl` — importer-ready entity records
-- `relations_to_create.jsonl` — importer-ready relation records  
-- `manifest.json` — full audit trail with decisions and confidence scores
+- `relations.jsonl` — relationships, naming both ends with their ids and QIDs where known
+- `review_items.jsonl` — items held back for review
+- `chronicle.json` — the chronicle built from the run
+- `manifest.json` — audit trail, counts, errors; a clean manifest makes a re-run a no-op
 
 Options:
-- `--input PATH` — path to raw historical text (required)
+- `--input PATH` or `--from-candidates PATH` — raw text, or a campaign handoff (starts at `db_lookup`)
 - `--run-id TEXT` — deterministic ID for the artifact directory
+- `--title TEXT`, `--create-chronicle/--no-create-chronicle`, `--refresh` (re-run a clean run)
 
-The pipeline uses an 11-node LangGraph workflow (LLM parsing, Wikidata/OHM resolution, policy-based validation, risk-aware approval) and invokes existing Laravel artisan commands for the final import. See the [agentic pipeline runbook](../docs/implementation-docs/agentic-pipeline-runbook.md) for full usage, architecture, and testing.
+The 16-node LangGraph workflow ends by running `pipeline:import --sync`, `pipeline:import-relations` and
+`chronicles:import --sync` in the `app` container, checking each return code. See the [agentic pipeline runbook](../docs/implementation-docs/agentic-pipeline-runbook.md) for full usage, architecture, and testing.
 
 ### Egypt Wikidata fallback
 
@@ -157,17 +163,17 @@ pipeline/
 │   ├── point_resolver.py
 │   └── entity_enricher.py
 └── agent/                # LangGraph agentic enrichment pipeline
-    ├── __main__.py       # CLI: py -m pipeline agent --input …
+    ├── __main__.py       # CLI: py -m pipeline agent --input … | --from-candidates …
     ├── config.py         # AgentConfig + risk policies
     ├── style_guide.md    # Content generation prose rules
     ├── graph/
     │   ├── state.py      # AgentRunState TypedDict
     │   ├── workflow.py   # StateGraph builder
-    │   └── nodes/        # 12 LangGraph nodes
-    ├── tools/            # DB, Wikidata, Wikipedia, OHM, artisan wrappers
+    │   └── nodes/        # the 16 LangGraph nodes
+    ├── tools/            # app_api, db, disambiguation, ohm, ohm_polity_resolver, wikidata
     ├── schemas/          # Pydantic models
-    ├── deepagents/       # Post-MVP research agent stubs
-    └── tests/            # 31 tests across schemas, nodes, tools, graph
+    ├── eval/             # evaluation harness (resets the DB by default: migrate:fresh)
+    └── tests/            # 235 tests across schemas, nodes, tools, graph
 ```
 
 See [../docs/architecture/data-pipeline.md](../docs/architecture/data-pipeline.md) for the current end-to-end pipeline architecture.  

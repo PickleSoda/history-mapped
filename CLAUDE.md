@@ -120,11 +120,13 @@ This project is indexed by GitNexus as **history-mapped** (9921 symbols, 18824 r
 # Documentation Map
 
 Project docs live under [`docs/`](docs/) and are kept tidy — start at [`docs/README.md`](docs/README.md),
-the master index. Layout:
+the master index. The pages listed in `web/src/content/docs/manifest.ts` are also published at `/docs`
+(add a page there and in the glob in `web/src/lib/docs/load.ts`). Layout:
 
 | Folder | What's there |
 |--------|--------------|
-| [`docs/architecture/`](docs/architecture/) | How it's built: `system-overview`, `frontend-app`, `data-pipeline`, `admin-map-editor`, `ohm-integration`. |
+| [`docs/overview/`](docs/overview/) | Start here: `product-overview` (business view) and `concepts` (the core ideas). |
+| [`docs/architecture/`](docs/architecture/) | How it's built: `system-overview`, `data-pipeline`, `backend`, `frontend-app`, `ohm-integration`, `admin-map-editor`, `deployment`, plus feature pages (`chronicles`, `map-stories`, `tags`, `entity-images`). |
 | [`docs/implementation-docs/`](docs/implementation-docs/) | Operator runbooks: setup, deployment, agentic + OHM pipelines, data contribution. |
 | [`docs/entity-model/`](docs/entity-model/) | Canonical data model — `entity-specification.md` is the single source of truth for the 30 types / 5 groups. |
 | [`docs/schemas/`](docs/schemas/) | Pipeline-artifact and API payload contracts. |
@@ -136,6 +138,8 @@ the master index. Layout:
 
 Conventions when writing docs here:
 
+- Published pages lead with a diagram, use tables over prose, and avoid raw HTML (the `/docs` renderer shows it as text). Mermaid diagrams render there.
+- Diagrams shrink to fit a ~730px column (renderer config in `web/src/lib/docs/mermaid.ts`), so keep each under ~950px wide: prefer `flowchart TB` or few ranks in `LR`, at most six sequence participants with short names, and no unbroken token over ~15 characters in a sequence message (Mermaid hyphen-splits it). Check both light and dark themes.
 - New design specs → `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`; implementation plans → `docs/superpowers/plans/YYYY-MM-DD-<feature>.md` (per the `brainstorming` / `writing-plans` skills).
 - When a plan ships, move it (and its spec) to `docs/archive/` and update `docs/plans/STATUS.md`.
 - Filenames are kebab-case. Code is the source of truth; then the relevant doc; then `STATUS.md`.

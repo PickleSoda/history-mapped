@@ -131,7 +131,7 @@ Main entry points:
 ```bash
 python -m pipeline scrape --type political_entity --limit 100
 python -m pipeline topic "Late Bronze Age Collapse"
-python -m pipeline borders run --run-id global-2026-04-15 --parse-workers 8 --enrich-names
+python -m pipeline borders run --run-id global-2026-04-15 --parse-workers 8
 python -m pipeline borders relations-run --run-id global-2026-04-15 --resume
 ```
 
@@ -146,25 +146,25 @@ Pipeline-specific docs:
 
 ## OHM Borders Import Workflow
 
-Run the country/entity import first, then the relation import for the same `run_id`.
+Run the country/entity import first, then the relation import for the same `run_id`. The `app`
+container sees only `api/`, so copy the run there first.
 
 ```bash
-# 1. Build importer-ready country/entity output
-python -m pipeline borders run --run-id global-2026-04-15 --parse-workers 8 --enrich-names
+# 1. Build importer-ready country/entity and relation output
+python -m pipeline borders run --run-id global-2026-04-15 --parse-workers 8
+python -m pipeline borders relations-run --run-id global-2026-04-15 --resume
+cp -r output/ohm_borders/global-2026-04-15 api/storage/app/pipeline/
 
 # 2. Import country entities into Laravel
 docker compose -f docker/docker-compose.yml exec app \
   php -d memory_limit=1024M artisan pipeline:import-borders \
-  /var/www/html/output/ohm_borders/global-2026-04-15/final/ohm_borders.jsonl \
+  storage/app/pipeline/global-2026-04-15/final/ohm_borders.jsonl \
   --sync --batch-id=global-2026-04-15
 
-# 3. Build importer-ready relation outputs
-python -m pipeline borders relations-run --run-id global-2026-04-15 --resume
-
-# 4. Import relation entities, stage hints, and resolve relationships
+# 3. Import relation entities, stage hints, and resolve relationships
 docker compose -f docker/docker-compose.yml exec app \
   php -d memory_limit=1024M artisan pipeline:import-border-relations \
-  /var/www/html/output/ohm_borders/global-2026-04-15/relations_final \
+  storage/app/pipeline/global-2026-04-15/relations_final \
   --sync --batch-id=global-2026-04-15
 ```
 
@@ -174,7 +174,7 @@ For larger imports, replace the final step with `--skip-resolve`, then run one r
 
 ## Environment Variables
 
-Docker Compose defaults are defined in `docker/docker-compose.yml`. Override them via a project-root `.env` file or exported environment variables.
+Docker Compose defaults are defined in `docker/docker-compose.yml`. Override them in `docker/.env` (Compose reads the `.env` beside the compose file, not one at the repository root) or with exported environment variables.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
@@ -197,14 +197,15 @@ Docker Compose defaults are defined in `docker/docker-compose.yml`. Override the
 
 | Document | Description |
 |----------|-------------|
-| [docs/README.md](docs/README.md) | Documentation index and guidance on which docs describe current state |
-| [docs/architecture/system-overview.md](docs/architecture/system-overview.md) | Runtime surfaces, routing, and repository architecture |
+| [docs/README.md](docs/README.md) | Documentation home: where to start for each reader, and the full map (also published at `/docs`) |
+| [docs/overview/product-overview.md](docs/overview/product-overview.md) | What History Mapped is, who it serves, how content is made |
+| [docs/overview/concepts.md](docs/overview/concepts.md) | The ten core concepts in brief |
+| [docs/architecture/system-overview.md](docs/architecture/system-overview.md) | System context, containers and the main flows |
 | [docs/implementation-docs/setup.md](docs/implementation-docs/setup.md) | Local setup and development workflow |
+| [docs/architecture/data-pipeline.md](docs/architecture/data-pipeline.md) | Every pipeline track, the agent, the campaign, the import contract |
+| [docs/entity-model/README.md](docs/entity-model/README.md) | Data model overview |
+| [docs/schemas/rest-api.md](docs/schemas/rest-api.md) | The public REST API |
 | [pipeline/README.md](pipeline/README.md) | Python pipeline overview and command entry points |
-| [docs/architecture/data-pipeline.md](docs/architecture/data-pipeline.md) | Detailed scrape, OHM, import, and embedding pipeline architecture |
-| [docs/entity-model/README.md](docs/entity-model/README.md) | Entity model overview and companion references |
-| [docs/schemas/README.md](docs/schemas/README.md) | Pipeline and API schema documentation |
-| [docs/implementation-docs/ohm-country-subgraph-runbook.md](docs/implementation-docs/ohm-country-subgraph-runbook.md) | OHM country subgraph extraction workflow |
 | [docs/plans/STATUS.md](docs/plans/STATUS.md) | Verified execution status of every roadmap and implementation plan |
 | [docs/TODO.md](docs/TODO.md) | Fine-grained engineering backlog |
 
