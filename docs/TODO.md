@@ -75,8 +75,9 @@
   and `validation_flags`. `confidence_notes` stays: the entity page shows it.
 - [x] **Rate-limit the public API.** `throttleApi()` now applies the `api` limiter: `API_RATE_LIMIT`
   (default 600) requests a minute per user, else per IP. Vector tiles stay outside it.
-- [ ] **Exclude the `agent_*` tables from the content dump.** AI conversations and proposals are not in
-  the `--exclude-table-data` list in `content-data-transfer.md`, so local chats ship to prod.
+- [x] **Exclude the `agent_*` tables from the content dump.** The four AI chat and proposal tables are
+  now in the `--exclude-table-data` list in `content-data-transfer.md` (the dump scripts live in the
+  gitignored `output/`).
 - [ ] **Align the agent's relation types.** `extract_candidates.py` offers `allied_with`, `trades_with`,
   `caused` and `resulted_from`, but `validate.py`'s `ALLOWED_RELATION_TYPES` blocks them.
 - [ ] **Stop borrowed event points in the agent.** `resolve_ohm` emits place-of-association and
