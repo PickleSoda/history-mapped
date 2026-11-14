@@ -1,0 +1,11 @@
+{
+  "id": "trial-ancient-battles",
+  "entity_type": "event_battle",
+  "description": "Trial: battles and sieges 800-1 BCE with an English article (tool shakedown).",
+  "where": "VALUES ?hm_cls { wd:Q178561 wd:Q188055 wd:Q1261499 } ?item wdt:P31 ?hm_cls .",
+  "min_sitelinks": 1,
+  "shards": {"years": {"prop": "P585", "from": -800, "to": 1, "step": 200}},
+  "require": ["dates"],
+  "priority": 1,
+  "notes": "battle, siege, naval battle; P585 point in time"
+}
