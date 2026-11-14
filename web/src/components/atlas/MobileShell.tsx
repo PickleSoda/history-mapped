@@ -30,7 +30,7 @@ export function MobileShell() {
           ref={topRef}
           className="pointer-events-none absolute inset-x-0 top-0 z-10 p-2"
         >
-          <div className="pointer-events-auto overflow-hidden rounded-xl border bg-card/95 shadow-sm backdrop-blur">
+          <div className="era-surface pointer-events-auto overflow-hidden rounded-xl border bg-card/95 shadow-sm backdrop-blur">
             <TimelineScope />
           </div>
         </div>

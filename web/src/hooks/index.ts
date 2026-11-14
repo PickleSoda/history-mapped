@@ -81,3 +81,6 @@ export { useSheetSelectionSync } from './useSheetSelectionSync';
 // Responsive
 export { useMediaQuery, useIsMobile, useReducedMotion } from './useMediaQuery';
 export { useNearViewport } from './useNearViewport';
+
+// Era themes
+export { useEraEntry, useEraTheme, useVisibleBbox } from './useEraTheme';

@@ -154,6 +154,42 @@ ambient stories.
 - **Search** (`CommandPalette.tsx`, ⌘K or Ctrl-K): global name search through
   `GET /entities?search=…&sort=relevance`. The Chronicles tab has its own server-side search.
 
+### Era themes
+
+The atlas restyles itself for the time and place on the map: sand and lapis for Ancient Egypt,
+off-white marble with fluted columns for Rome, grey and red for the Cold War. Colours, the heading
+font, a texture, an ornament band and the map's borders, land and sea all follow the era. Readers
+can turn it off in the Layers menu (stored per browser).
+
+```mermaid
+flowchart TB
+    T["Committed year (t)"] --> R["resolveEra"]
+    B["Visible map (bbox minus the panels)"] --> R
+    R -->|"zoomed in on a region in its years"| RE["Regional era: Egypt, Rome, Victorian Britain…"]
+    R -->|otherwise| GE["Global era for the year"]
+    RE --> L["Load the theme chunk (first use only)"]
+    GE --> L
+    L --> D["Document: tokens, font, texture, ornaments"]
+    L --> M["Map: border paint, land and sea washes, texture"]
+```
+
+| Part | What it does |
+|---|---|
+| **Manifest** (`lib/era/manifest.ts`) | The only part in the main bundle: each era's id, label, years, regions (lon/lat boxes) and priority. Nine global eras tile the whole timeline, from earthy Prehistory to the blue Global Age |
+| **Resolve** (`lib/era/resolve.ts`) | Zoomed in (the visible map at most 60° wide), the highest-priority regional era whose years and box hold the view's centre wins; else the global era for the year |
+| **Theme modules** (`lib/era/themes/*.ts`) | One lazily loaded chunk per theme (about 0.6 kB): paper, ink and accent colours, a heading font, a texture, an ornament, a pillar and the map styling |
+| **Tokens** (`lib/era/tokens.ts`) | Derives the full light and dark token set from those colours, pushing text until it meets WCAG contrast (tests check every theme in both modes) |
+| **Document** (`lib/era/apply.ts`, `hooks/useEraTheme.ts`) | Adds the theme's stylesheet under `html[data-era-theme=…]`, loads its @fontsource font, draws its texture. Colour tokens are registered with `@property`, so they ease between eras |
+| **Map** (`lib/era/map-style.ts`, `components/era/EraLayer.tsx`) | Recolours OHM's admin lines and adds a sea wash, a land wash and a land texture, after every basemap switch. Each call restores the basemap first, so eras never compound |
+| **UI pieces** (`components/era/`) | `EraRule` (an ornament band under the top bar and above the timeline), `EraPillar` (a column beside each panel), the `era-surface` texture on panels, a vignette, and an announcer that names a new era as the map enters it |
+| **Textures and ornaments** (`lib/era/textures.ts`, `ornaments.ts`) | Drawn in code (canvas noise, SVG masks): nothing to download, and only the active era's texture is drawn |
+
+To add an era: write `lib/era/themes/<id>.ts`, add a manifest row (with regions and a priority for a
+regional era), and run `pnpm test`, which checks contrast, colours and coverage.
+
+`prefers-reduced-motion` stops the easing and the announcer's slide; `prefers-contrast: more`
+removes textures and the vignette.
+
 ## Key flows
 
 ### Opening the atlas
@@ -287,7 +323,7 @@ published pages stay on the site; any other relative link goes to the file on Gi
 | Concern | How |
 |---|---|
 | **Offline and caching (PWA)** | `vite-plugin-pwa`, auto-update. Precaches the app shell (not the docs). Runtime caches: OHM tiles and styles (cache-first, 30 days), our vector tiles (stale-while-revalidate, 1 day), `GET /api/v1/*` except `/me` and `/user` (stale-while-revalidate, 7 days). Manifest `start_url` is `/app` |
-| **Themes** | Light and dark (`.dark` on `<html>`, set before first paint; follows the OS until toggled). MapLibre, Mermaid and the timeline are re-themed in code. The OHM basemaps stay light; dark mode dims the canvas |
+| **Themes** | Light and dark (`.dark` on `<html>`, set before first paint; follows the OS until toggled). MapLibre, Mermaid and the timeline are re-themed in code. The OHM basemaps stay light; dark mode dims the canvas. On top, the [era theme](#era-themes) of the time and place on the map, in both modes |
 | **Auth** | Sanctum cookie session on the API domain. axios sends credentials and fetches the CSRF cookie before each write. `GET /me` returning 401 means "guest". Two-factor sign-in is supported |
 | **Environment** | `VITE_API_URL` (required for builds), `VITE_MAP_TILES_URL` (turns on tile mode), `VITE_ADMIN_ORIGINS` (who may drive the preview iframe) |
 | **Analytics** | None: no analytics or telemetry script is loaded |
@@ -302,7 +338,8 @@ published pages stay on the site; any other relative link goes to the file on Gi
   React re-render of the map.
 - **Keep old data on screen** (`placeholderData`) and abort superseded requests through the query
   `signal`.
-- **Load heavy code late.** Cytoscape, Mermaid and the full pages are separate chunks.
+- **Load heavy code late.** Cytoscape, Mermaid, the full pages and each era theme (with its font)
+  are separate chunks.
 
 ## Code layout (`web/src/`)
 
@@ -311,10 +348,11 @@ app/            router, providers, route components (site/, browse/, docs/, atla
 components/
   atlas/        shells, panels, players, EntityPage, ChroniclePage, page kit
   map/          MapCanvas, StoryOverlay, StoryAmbientLayer
+  era/          EraLayer (map styling, vignette, announcer), EraRule, EraPillar
   graph/        RelationGraph (cytoscape, lazy)
   ui/           shadcn primitives
 hooks/          URL-state, server-cache and ephemeral hooks (the only way components reach state)
-lib/            api/, query/, url/, scope/, schemas/ (zod), map-story/, graph/, docs/, pure helpers
+lib/            api/, query/, url/, scope/, schemas/ (zod), map-story/, graph/, docs/, era/, pure helpers
 stores/         zustand stores
 content/docs/   the docs manifest
 ```

@@ -20,14 +20,16 @@ flowchart TB
     L4["Ambient stories: faint background stories for the current year"]
     L3["Battle relief: hillshade and modern water and names (battle stories only)"]
     L2["OHM admin polygons: hidden until a linked entity is hovered or selected"]
-    L1["OpenHistoricalMap basemap: land, borders, places and labels, filtered by year"]
+    L1["OpenHistoricalMap basemap: land, borders, places and labels, filtered by year; era washes and border colours inside it"]
     L7 --- L6 --- L5 --- L4 --- L3 --- L2 --- L1
 ```
 
 `MapCanvas` builds this stack on every `style.load`: the first load, and each basemap switch. In
 order, it registers the marker icons, adds the entity layers, adds the hidden OHM admin layers, sets
 the projection (flat map or globe), applies the year filter, and bumps `styleEpoch` so the story and
-ambient overlays re-add themselves.
+ambient overlays re-add themselves. The [era theme](frontend-app.md#era-themes) then restyles the
+new basemap from within: it recolours OHM's admin lines and inserts a sea wash above the basemap's
+background and a land wash and texture just above its land fill, under everything else.
 
 ## Why OpenHistoricalMap
 

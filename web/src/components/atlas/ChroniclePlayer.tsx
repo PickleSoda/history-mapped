@@ -240,7 +240,7 @@ export function ChroniclePlayer() {
   const { exit } = useChronicleNav();
   const { expandChronicle } = useFullPage();
   return (
-    <aside className="flex h-full w-[380px] max-w-[90vw] flex-none flex-col border-r bg-card">
+    <aside className="era-surface flex h-full w-[380px] max-w-[90vw] flex-none flex-col border-r bg-card">
       <NavBreadcrumb className="flex-none" />
       <div className="flex items-center justify-between border-b px-3 py-2">
         <button

@@ -378,7 +378,7 @@ export function StoryPlayer() {
   const kind = data?.kind ?? 'battle';
   const label = storyKindLabel(kind);
   return (
-    <aside className="flex h-full w-[380px] max-w-[90vw] flex-none flex-col border-r bg-card">
+    <aside className="era-surface flex h-full w-[380px] max-w-[90vw] flex-none flex-col border-r bg-card">
       <div className="flex items-center justify-between border-b px-3 py-2">
         <button
           type="button"

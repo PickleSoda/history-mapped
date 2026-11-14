@@ -8,7 +8,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: 'Fraunces Variable', serif;
+    /* An era theme can swap the heading face (src/lib/era). */
+    --font-heading: var(--era-font-heading, 'Fraunces Variable', serif);
     --font-sans: 'Geist Variable', sans-serif;
     --font-mono: 'Geist Mono Variable', ui-monospace, monospace;
 
@@ -197,4 +198,125 @@
    chrome. Targets only the WebGL canvas, so DOM controls stay crisp. */
 .dark .maplibregl-canvas {
   filter: brightness(0.82) contrast(1.05) sepia(0.08);
+}
+
+/* ── Era themes (src/lib/era) ───────────────────────────────────────────────
+   An era theme's stylesheet sets the tokens above under
+   html[data-era-theme=…]. Registering the main colour tokens lets them ease
+   between eras (and between light and dark) instead of jumping. */
+@property --background { syntax: '<color>'; inherits: true; initial-value: #faf9f6; }
+@property --foreground { syntax: '<color>'; inherits: true; initial-value: #2a2722; }
+@property --card { syntax: '<color>'; inherits: true; initial-value: #fdfcf9; }
+@property --popover { syntax: '<color>'; inherits: true; initial-value: #fdfcf9; }
+@property --primary { syntax: '<color>'; inherits: true; initial-value: #2a2722; }
+@property --muted { syntax: '<color>'; inherits: true; initial-value: #f0ede6; }
+@property --muted-foreground { syntax: '<color>'; inherits: true; initial-value: #6f685f; }
+@property --accent { syntax: '<color>'; inherits: true; initial-value: #e9e3d8; }
+@property --border { syntax: '<color>'; inherits: true; initial-value: #e6e1d8; }
+@property --sidebar { syntax: '<color>'; inherits: true; initial-value: #f7f5f0; }
+
+html {
+  transition:
+    --background 0.7s ease, --foreground 0.7s ease, --card 0.7s ease,
+    --popover 0.7s ease, --primary 0.7s ease, --muted 0.7s ease,
+    --muted-foreground 0.7s ease, --accent 0.7s ease, --border 0.7s ease,
+    --sidebar 0.7s ease;
+}
+
+/* A textured panel: the era's texture over the panel's own background. */
+.era-surface {
+  background-image: var(--era-texture, none);
+  background-size: 128px 128px;
+  background-attachment: local;
+}
+.dark .era-surface {
+  background-image: var(--era-texture-dark, none);
+}
+
+/* Ornament bands, drawn in the era's accent through an SVG mask. */
+.era-rule,
+.era-pillar {
+  display: none;
+}
+.era-rule {
+  height: 10px;
+  background-color: var(--era-ornament);
+  -webkit-mask: var(--era-ornament-image) repeat-x left center / auto 100%;
+  mask: var(--era-ornament-image) repeat-x left center / auto 100%;
+}
+/* A pillar is a stone shaft, shaded like a cylinder, with the era's
+   ornament (flutes, for a classical column) cut into it. */
+.era-pillar {
+  width: 14px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--era-stone) 72%, black),
+    var(--era-stone) 35%,
+    color-mix(in srgb, var(--era-stone) 80%, white) 55%,
+    color-mix(in srgb, var(--era-stone) 72%, black)
+  );
+}
+.era-pillar::after {
+  content: '';
+  position: absolute;
+  inset: 0 2px;
+  opacity: 0.55;
+  background-color: color-mix(in srgb, var(--era-stone) 50%, black);
+  -webkit-mask: var(--era-pillar-image) repeat center top / 3.4px 12px;
+  mask: var(--era-pillar-image) repeat center top / 3.4px 12px;
+}
+html[data-era-ornament] .era-rule,
+html[data-era-pillar] .era-pillar {
+  display: block;
+}
+
+/* The era's tint at the edges of the map. */
+.era-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.7s ease;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 58%,
+    color-mix(in srgb, var(--era-tint, transparent) 24%, transparent) 100%
+  );
+}
+html[data-era-theme] .era-vignette {
+  opacity: 1;
+}
+
+/* The era's name when the map enters it. */
+.era-announce {
+  opacity: 0;
+  transform: translate(-50%, -6px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.era-announce[data-show='true'] {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html,
+  .era-vignette {
+    transition: none;
+  }
+  .era-announce,
+  .era-announce[data-show='true'] {
+    transform: translate(-50%, 0);
+    transition: opacity 0.2s linear;
+  }
+}
+
+/* More contrast wanted: no textures, vignette or ornaments behind text. */
+@media (prefers-contrast: more) {
+  .era-surface,
+  .dark .era-surface {
+    background-image: none;
+  }
+  html[data-era-theme] .era-vignette {
+    opacity: 0;
+  }
 }

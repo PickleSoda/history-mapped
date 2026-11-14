@@ -3,6 +3,7 @@ import type { GeoJSONSource, ProjectionSpecification, StyleSpecification } from 
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useEffect, useRef } from 'react';
+import { EraLayer } from '@/components/era/EraLayer';
 import { StoryAmbientLayer } from '@/components/map/StoryAmbientLayer';
 import { StoryOverlay } from '@/components/map/StoryOverlay';
 import {
@@ -528,6 +529,7 @@ export function MapCanvas() {
   return (
     <>
       <div ref={containerRef} className="absolute inset-0 h-full w-full" />
+      <EraLayer />
       <StoryOverlay />
       <StoryAmbientLayer />
     </>

@@ -80,7 +80,7 @@ export function LeftSidebar() {
   return (
     <aside
       className={cn(
-        'flex h-full flex-none flex-col border-r bg-card transition-[width] duration-200',
+        'era-surface flex h-full flex-none flex-col border-r bg-card transition-[width] duration-200',
         collapsed ? 'w-[52px]' : 'w-[340px] max-w-[85vw]',
       )}
     >

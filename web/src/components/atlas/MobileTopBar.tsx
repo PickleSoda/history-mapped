@@ -14,6 +14,7 @@ import { Link } from 'react-router-dom';
 import { accountLinks } from '@/components/account/UserMenu';
 import { BASEMAP_IDS } from '@/components/atlas/LayersMenu';
 import { ThemeToggle } from '@/components/atlas/ThemeToggle';
+import { EraRule } from '@/components/era/EraOrnaments';
 import {
   useAuthActions,
   useBasemap,
@@ -22,6 +23,7 @@ import {
   useMe,
   useView,
 } from '@/hooks';
+import { useEra } from '@/lib/era/store';
 import { BASEMAPS } from '@/lib/map-config';
 import { cn } from '@/lib/utils';
 
@@ -34,13 +36,16 @@ export function MobileTopBar() {
   const { setOpen } = useCommandPalette();
   const { view, setView } = useView();
   const { basemap, setBasemap } = useBasemap();
+  const eraStyle = useEra((s) => s.enabled);
+  const setEraStyle = useEra((s) => s.setEnabled);
   const [tools, setTools] = useState(false);
   const { me } = useMe();
   const toLogin = useLoginRedirect();
   const { signOut } = useAuthActions();
 
   return (
-    <header className="relative flex h-[52px] flex-none items-center gap-2 border-b bg-card px-3">
+    <header className="era-surface relative flex h-[52px] flex-none items-center gap-2 border-b bg-card px-3">
+      <EraRule className="absolute inset-x-0 -bottom-[11px] z-20" />
       <span className="grid size-8 flex-none place-items-center rounded-lg bg-primary text-primary-foreground">
         <Compass size={16} />
       </span>
@@ -103,6 +108,15 @@ export function MobileTopBar() {
               {BASEMAPS[id].label}
             </button>
           ))}
+          <button
+            type="button"
+            aria-pressed={eraStyle}
+            onClick={() => setEraStyle(!eraStyle)}
+            className={cn(TOOL_ROW, eraStyle && 'text-foreground')}
+          >
+            <Check size={15} className={cn(!eraStyle && 'invisible')} />
+            Era styling
+          </button>
 
           <div className="-mx-1.5 my-1 h-px bg-border" />
           {me ? (

@@ -1,7 +1,9 @@
 import { Timescope } from '@timescope/react';
 import { useEffect, useMemo, useRef } from 'react';
-import { useLiveScrub, useTimeState } from '@/hooks';
-import { eraFor, formatYear, instantYear } from '@/lib/format';
+import { useEraEntry, useLiveScrub, useTimeState } from '@/hooks';
+import { useEra } from '@/lib/era/store';
+import { eraTokens } from '@/lib/era/tokens';
+import { formatYear, instantYear } from '@/lib/format';
 import { useTheme } from '@/lib/theme';
 import {
   APP_FONT_FAMILY,
@@ -32,6 +34,10 @@ export function TimelineScope() {
   const { liveScrub, setLiveScrub, commit } = useLiveScrub();
   const committedYear = instantYear(time);
   const displayYear = liveScrub ?? committedYear;
+  // The era of the year under the playhead and the visible map (live while
+  // scrubbing); its theme, once applied, also colours the axis.
+  const era = useEraEntry(displayYear);
+  const eraTheme = useEra((s) => s.theme);
   const scrubbingRef = useRef(false);
   // Latest year seen during the active drag; committed to global time on release.
   const pendingYearRef = useRef<number | null>(null);
@@ -64,27 +70,28 @@ export function TimelineScope() {
   }, []);
 
   // Canvas-themed axis: muted line/ticks, muted-foreground Geist labels.
-  // Memoised on `theme` so colours re-derive whenever the light/dark theme
-  // toggles, instead of staying frozen at whatever was active on mount.
-  const tracks = useMemo(
-    () => ({
+  // Memoised on the light/dark theme and the era theme so colours re-derive
+  // when either changes. An era's colours come from its tokens, not the CSS
+  // (which eases between eras and would be read mid-transition).
+  const tracks = useMemo(() => {
+    const tokens = eraTheme ? eraTokens(eraTheme, theme) : null;
+    const line = tokens?.['--border'] ?? axisLineColor();
+    return {
       [TRACK]: {
         timeAxis: {
-          axis: { color: axisLineColor() },
-          ticks: { color: axisLineColor() },
+          axis: { color: line },
+          ticks: { color: line },
           labels: {
             fontFamily: APP_FONT_FAMILY,
             fontSize: '11px',
-            color: axisLabelColor(),
+            color: tokens?.['--muted-foreground'] ?? axisLabelColor(),
           },
           timeFormat: (opts: { time: { number(): number } }) =>
             formatYear(Math.round(opts.time.number())),
         },
       },
-    }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- theme drives axis colors read via DOM helpers
-    [theme],
-  );
+    };
+  }, [theme, eraTheme]);
 
   return (
     <div className="relative flex flex-col-reverse md:flex-row h20 px-2 md:px-10 py-2 ">
@@ -92,7 +99,7 @@ export function TimelineScope() {
       <div className="leading-tight flex flex-none flex-row items-end justify-start gap-2 px-2 py-0.5 md:w-[150px] md:flex-col md:items-start md:justify-center md:py-0" >
         <div className="font-mono text-sm tabular-nums">{formatYear(displayYear)}</div>
         <div className="text-[10px] uppercase tracking-wide text-muted-foreground ">
-          {eraFor(displayYear)}
+          {era.label}
         </div>
 
       </div>
@@ -105,10 +112,10 @@ export function TimelineScope() {
         }}
       >
         <Timescope
-          // Remount on theme toggle: the canvas reads `tracks` (axis colors)
+          // Remount on a light/dark or era change: the canvas reads `tracks` (axis colors)
           // only once at mount, so this forces a fresh paint with the new
           // theme's colors — don't simplify this away.
-          key={theme}
+          key={`${theme}:${eraTheme?.id ?? 'default'}`}
           width="100%"
           height={`${BAR_PX}px`}
           time={committedYear}

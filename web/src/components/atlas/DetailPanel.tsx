@@ -260,7 +260,7 @@ export function DetailPanel() {
   const { expand } = useFullPage();
   if (!sel) return null;
   return (
-    <aside className="flex h-full w-[380px] max-w-[90vw] flex-none flex-col overflow-y-auto border-l bg-card">
+    <aside className="era-surface flex h-full w-[380px] max-w-[90vw] flex-none flex-col overflow-y-auto border-l bg-card">
       <div className="flex items-center justify-between px-3 py-2.5">
         <span className="px-1.5 text-xs font-medium text-muted-foreground">Detail</span>
         <div className="flex items-center gap-1">

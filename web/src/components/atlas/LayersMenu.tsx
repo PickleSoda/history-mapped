@@ -2,6 +2,7 @@ import { Menu } from '@base-ui/react/menu';
 import { Check, Layers } from 'lucide-react';
 import { MENU_ITEM, POPUP } from '@/components/account/styles';
 import { useBasemap } from '@/hooks';
+import { useEra } from '@/lib/era/store';
 import { BASEMAPS } from '@/lib/map-config';
 import { cn } from '@/lib/utils';
 import type { BasemapId } from '@/types/atlas';
@@ -9,9 +10,14 @@ import type { BasemapId } from '@/types/atlas';
 /** Basemap choices in menu order. */
 export const BASEMAP_IDS = Object.keys(BASEMAPS) as BasemapId[];
 
-/** Top-bar Layers control: pick the OpenHistoricalMap basemap style. */
+/**
+ * Top-bar Layers control: pick the OpenHistoricalMap basemap style, and turn
+ * the era styling (colours, fonts and borders that follow the map) on or off.
+ */
 export function LayersMenu() {
   const { basemap, setBasemap } = useBasemap();
+  const eraStyle = useEra((s) => s.enabled);
+  const setEraStyle = useEra((s) => s.setEnabled);
 
   return (
     <Menu.Root>
@@ -54,6 +60,24 @@ export function LayersMenu() {
                 ))}
               </Menu.RadioGroup>
             </Menu.Group>
+            <Menu.Separator className="-mx-1 my-1 h-px bg-border" />
+            <Menu.CheckboxItem
+              checked={eraStyle}
+              onCheckedChange={(checked: boolean) => setEraStyle(checked)}
+              className={cn(MENU_ITEM, 'items-start')}
+            >
+              <span className="grid size-4 flex-none place-items-center pt-0.5">
+                <Menu.CheckboxItemIndicator>
+                  <Check size={14} />
+                </Menu.CheckboxItemIndicator>
+              </span>
+              <span className="min-w-0">
+                <span className="block">Era styling</span>
+                <span className="block text-[11px] text-muted-foreground">
+                  Colours, fonts and borders follow the time and place
+                </span>
+              </span>
+            </Menu.CheckboxItem>
           </Menu.Popup>
         </Menu.Positioner>
       </Menu.Portal>
