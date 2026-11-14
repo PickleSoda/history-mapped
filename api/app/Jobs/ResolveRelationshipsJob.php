@@ -55,9 +55,40 @@ class ResolveRelationshipsJob implements ShouldQueue
         'at_war_with',
     ];
 
+    /**
+     * Wikidata properties stated on the far end of the relationship. A
+     * participant (P710) is listed on the battle, an author (P50) on the work,
+     * a founder (P112) on the institution and a capital (P36) on the polity,
+     * but in our model the participant participated_in the battle, the author
+     * authored the work, the founder founded the institution and the city is
+     * the capital_of the polity. Hints from these properties are created
+     * target -> source.
+     *
+     * @var list<string>
+     */
+    public const REVERSED_PROPERTIES = [
+        'wikidata:P710',
+        'wikidata:P50',
+        'wikidata:P112',
+        'wikidata:P36',
+    ];
+
     public function __construct(
         public readonly string $batchId,
     ) {}
+
+    /**
+     * The relationship's [source, target] for a hint on $hintEntityId that
+     * points at $otherEntityId.
+     *
+     * @return array{0: string, 1: string}
+     */
+    public static function orient(?string $wikidataProperty, string $hintEntityId, string $otherEntityId): array
+    {
+        return in_array($wikidataProperty, self::REVERSED_PROPERTIES, true)
+            ? [$otherEntityId, $hintEntityId]
+            : [$hintEntityId, $otherEntityId];
+    }
 
     public function handle(CreateRelationshipAction $createRelationship): void
     {
@@ -134,8 +165,10 @@ class ResolveRelationshipsJob implements ShouldQueue
                 continue;
             }
 
+            [$from, $to] = self::orient($hint->wikidata_property ?? null, $hint->source_entity_id, $targetEntity);
+
             // Dedup: skip if this relationship already exists
-            if ($this->relationshipExists($hint->source_entity_id, $targetEntity, $hint->relationship_type)) {
+            if ($this->relationshipExists($from, $to, $hint->relationship_type)) {
                 $this->markHint($hint->id, 'already_exists');
                 $skipped++;
 
@@ -146,8 +179,8 @@ class ResolveRelationshipsJob implements ShouldQueue
                 $citations = $this->buildCitations($hint->wikidata_property ?? null);
 
                 $data = new RelationshipData(
-                    sourceEntityId: $hint->source_entity_id,
-                    targetEntityId: $targetEntity,
+                    sourceEntityId: $from,
+                    targetEntityId: $to,
                     relationshipType: $type,
                     temporalStart: $hint->temporal_start,
                     temporalEnd: $hint->temporal_end,
@@ -217,7 +250,9 @@ class ResolveRelationshipsJob implements ShouldQueue
                     continue;
                 }
 
-                if ($this->relationshipExists($entity->entity_id, $targetId, $hint['relationship_type'])) {
+                [$from, $to] = self::orient($hint['source'] ?? null, $entity->entity_id, $targetId);
+
+                if ($this->relationshipExists($from, $to, $hint['relationship_type'])) {
                     continue;
                 }
 
@@ -233,8 +268,8 @@ class ResolveRelationshipsJob implements ShouldQueue
                     }
 
                     $data = new RelationshipData(
-                        sourceEntityId: $entity->entity_id,
-                        targetEntityId: $targetId,
+                        sourceEntityId: $from,
+                        targetEntityId: $to,
                         relationshipType: $type,
                         temporalStart: $temporalStart,
                         temporalEnd: $temporalEnd,

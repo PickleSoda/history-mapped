@@ -433,8 +433,8 @@ class EntityMapper:
             "P607":  "participated_in",   # conflict
             "P1344": "participated_in",   # participant of
 
-            # Economic
-            "P37":   "official_religion_of",  # official language (remapped in context)
+            # Economic (P37 official language has no relationship type; it
+            # was mapped to official_religion_of, which is wrong)
             "P38":   "used_currency",     # currency
 
             # Culture
@@ -450,6 +450,9 @@ class EntityMapper:
             # Military
             "P710":  "participated_in",   # participant
         }
+        # P710, P50, P112 and P36 sit on the far end of the relationship;
+        # ResolveRelationshipsJob::REVERSED_PROPERTIES creates those hints
+        # target -> source (the participant participated_in the battle).
 
         for prop_id, values in properties.items():
             rel_type = PROPERTY_TO_RELATIONSHIP.get(prop_id)
