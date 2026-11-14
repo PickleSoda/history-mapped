@@ -50,9 +50,9 @@
   the typecheck and the build.
 - [x] **Fix the root `pnpm typecheck` script.** It now runs each workspace's `types:check`. The web
   one is `tsc -b`: its `tsconfig.json` only lists project references, so `tsc --noEmit` checked nothing.
-- [ ] **Check BCE alignment with OHM dates.** `web/src/lib/ohm-date.ts` sends `-0044` for 44 BCE.
-  Under ISO 8601 astronomical numbering `-0044` is 45 BCE. Confirm OHM's convention and adjust the
-  date filter if needed.
+- [x] **Check BCE alignment with OHM dates.** OHM numbers years astronomically (`0000` is 1 BCE), so
+  `-0044` meant 45 BCE there. The atlas and admin filters on OHM layers now convert our BCE years
+  (`toOhmDate`); our own tiles keep our numbering.
 - [ ] **Remove dead web code:** the unused `q` URL param, `useSearch`, `useHighlights`,
   `useTimelineDensity`, `useHistoricalPeriods`, and the stale comments in `TimelineScope.tsx` and
   `ChroniclePlayer.tsx`.

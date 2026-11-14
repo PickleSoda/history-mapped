@@ -48,4 +48,16 @@ describe('applyOhmLayerDateFilter', () => {
             '[">=",["to-number",["get","end_decdate"]],50]',
         );
     });
+
+    // OHM numbers years astronomically: 44 BCE is its -0043.
+    it("looks up a BCE year of ours under OHM's number for it", () => {
+        const filter = filterFor('-0044');
+
+        expect(filter).toContain(
+            '["<",["to-number",["get","start_decdate"]],-42]',
+        );
+        expect(filter).toContain(
+            '[">=",["to-number",["get","end_decdate"]],-43]',
+        );
+    });
 });

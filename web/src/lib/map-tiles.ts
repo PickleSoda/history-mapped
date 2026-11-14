@@ -66,7 +66,7 @@ export interface EntityLayerFilterOptions {
   groups: readonly EntityGroup[];
 }
 
-/** The OHM-convention input for the timeline position. */
+/** The timeline position as date strings, in our numbering (BCE negative, no year 0). */
 function timeDateInput(time: TimeState) {
   return time.kind === 'instant'
     ? yearToOhmDate(time.year)
@@ -76,8 +76,9 @@ function timeDateInput(time: TimeState) {
 /**
  * The filter for one of our layers in tile mode: geometry type, then the
  * visibility window (`start_decdate` / `end_decdate`, a missing end being
- * open-ended), then the group subset. The same decimal bounds as the OHM
- * layers' filter (`ohmDateRange`).
+ * open-ended), then the group subset. The bounds come from `ohmDateRange`
+ * unconverted: our tiles' decimal dates use our year numbering, while the OHM
+ * basemap's filter shifts BCE years to OHM's.
  */
 export function entityLayerFilter({
   geometry,

@@ -90,7 +90,8 @@ inclusive years, applied before the conversion. `start_year` / `end_year` stay e
 `1056.00137 … 1076.99863`.
 
 **Client filter** (`entityLayerFilter` in `web/src/lib/map-tiles.ts`). The SPA computes the timeline position's decimal range
-with the same helper as the OHM layers (`ohmDateRange`). It keeps features where `start_decdate <= range.end` and
+with `ohmDateRange`, reading the year as written: these decimal dates use our numbering. (The OHM basemap's filter first moves
+a BCE year to OHM's astronomical number, where year 0 is 1 BCE.) It keeps features where `start_decdate <= range.end` and
 (`end_decdate` absent or `end_decdate >= range.start`). It then applies the group subset as
 `['in', ['get', 'entity_group'], ['literal', [...UPPERCASE]]]`. Scrubbing the timeline fetches no tiles. The sidebar
 list (`GET /api/v1/entities?exists_at=…`) and the ambient stories still refetch for the new year.

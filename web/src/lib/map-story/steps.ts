@@ -21,9 +21,10 @@ export function stepYear(doc: MapStoryDocument, index: number): number {
 }
 
 /**
- * Step `index`'s date as OHM writes dates (`YYYY`, `YYYY-MM`, `YYYY-MM-DD`;
- * BCE negative): its own `date`, else the document's `year`. The step's OHM
- * boundaries are drawn as they stood then.
+ * Step `index`'s date as a date string (`YYYY`, `YYYY-MM`, `YYYY-MM-DD`; BCE
+ * negative, in our numbering): its own `date`, else the document's `year`.
+ * The step's OHM boundaries are drawn as they stood then (the OHM filter
+ * converts the year to OHM's numbering).
  */
 export function stepOhmDate(doc: MapStoryDocument, index: number): string {
   const date = doc.steps[index]?.date;

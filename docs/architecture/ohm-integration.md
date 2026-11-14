@@ -71,10 +71,23 @@ on 31 December. We store whole years, so we derive the same values everywhere wi
 The rule exists three times, with parity tests: SQL `tiles.year_to_decdate`, PHP
 `App\Support\OhmDate`, TypeScript `web/src/lib/ohm-date.ts`.
 
+Before the common era the two sides number years differently. We use historical years, with no
+year 0. OHM uses ISO 8601 astronomical years, where year 0 is 1 BCE:
+
+| Year | Ours | OHM's |
+|---|---|---|
+| 1 BCE | `-1` | `0000` |
+| 44 BCE | `-44` | `-0043` |
+| 216 BCE | `-216` | `-0215` |
+
+So the filter on OHM layers (the basemap, and a map story's OHM outlines) first moves a BCE year
+one toward zero (`toOhmDate`, in the atlas and the admin). Our own tiles and the rule above use our
+numbering as is.
+
 ```mermaid
 flowchart LR
     T["Timeline year t"] --> R["Decimal range for t: start and end of the year"]
-    R --> F1["OHM layers: start_decdate before the end of t, end_decdate after its start; undated features hidden"]
+    R --> F1["OHM layers: the same test on OHM's number for t (a BCE year moves one toward zero); undated features hidden"]
     R --> F2["Our layers in tile mode: the same test on our start_decdate and end_decdate, plus the group filter"]
     R --> F3["REST mode: the API filters by year"]
 ```

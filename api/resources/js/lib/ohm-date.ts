@@ -1,16 +1,20 @@
 /**
  * OHM date utilities.
  *
- * Provides conversion from internal integer year values (positive = CE, negative = BCE)
- * to OHM-compatible date strings accepted by `map.filterByDate()`.
+ * Date strings are `YYYY`, `YYYY-MM` or `YYYY-MM-DD` (ISO 8601-extended),
+ * BCE years negative. Two numberings meet here:
  *
- * OHM date string format: `YYYY`, `YYYY-MM`, or `YYYY-MM-DD` (ISO 8601-extended).
- * Negative years are supported: -1 = 1 BCE, -753 = 753 BCE, etc.
- * There is no Year Zero in the proleptic Gregorian calendar.
+ * - Ours is historical: there is no year 0, and -1 is 1 BCE, -44 is 44 BCE.
+ *   Entity years, the timeline and our own tiles use it.
+ * - OpenHistoricalMap's is astronomical (ISO 8601): 0000 is 1 BCE and -0043
+ *   is 44 BCE. Its `start_date`, `end_date` and decimal dates use it.
+ *
+ * So a BCE date moves one year toward zero on its way to OHM (`toOhmDate`).
+ * The filters that read OHM layers do that themselves; callers pass ours.
  */
 
 /**
- * Converts an integer year to an OHM-compatible date string.
+ * Formats one of our years as a date string (no conversion: see toOhmDate).
  *
  * @param year - Positive integer for CE years, negative integer for BCE years.
  *               e.g. 753 → `'0753'`, -753 → `'-0753'`, 1453 → `'1453'`
@@ -22,6 +26,23 @@ export function yearToOhmDate(year: number): string {
 
     // BCE: prepend '-' then pad the absolute value to 4 digits
     return '-' + String(Math.abs(year)).padStart(4, '0');
+}
+
+/** OHM's (astronomical) year for one of ours: 1 BCE (-1) is 0, 44 BCE (-44) is -43. */
+export function toOhmYear(year: number): number {
+    return year < 0 ? year + 1 : year;
+}
+
+/**
+ * One of our date strings as OHM writes it: `-0044-03-15` (44 BCE) becomes
+ * `-0043-03-15`. CE dates, and anything that isn't a BCE date, are unchanged.
+ */
+export function toOhmDate(date: string): string {
+    const match = /^\s*-(\d+)((?:-\d\d){0,2})\s*$/.exec(date);
+
+    return match
+        ? yearToOhmDate(toOhmYear(-Number(match[1]))) + match[2]
+        : date;
 }
 
 const OHM_DATE_PATTERN =

@@ -1,5 +1,5 @@
 import type { FilterSpecification, Map as MapLibreMap } from 'maplibre-gl';
-import { normalizeOhmDate } from '@/lib/ohm-date';
+import { normalizeOhmDate, toOhmDate } from '@/lib/ohm-date';
 
 type DateRange = {
     startISODate: string;
@@ -159,6 +159,21 @@ function normalizeDateInput(
     }
 
     return null;
+}
+
+/**
+ * A filter input of ours (historical years) in OHM's numbering; see
+ * toOhmDate. A Date is a real instant already, so it passes through.
+ */
+function toOhmInput(input: OhmDateFilterInput): OhmDateFilterInput {
+    const convert = (value: Date | string | null | undefined) =>
+        typeof value === 'string' ? toOhmDate(value) : value;
+
+    if (input && typeof input === 'object' && !(input instanceof Date)) {
+        return { start: convert(input.start), end: convert(input.end) };
+    }
+
+    return convert(input) ?? null;
 }
 
 function dateRangeFromInput(input: OhmDateFilterInput): DateRange | null {
@@ -324,13 +339,17 @@ function buildExpressionDateFilter(
     return dateFilter as FilterSpecification;
 }
 
+/**
+ * Show the OHM basemap as it stood at `date`, a date of ours (historical
+ * years), converted to OHM's numbering here. `null` clears the filter.
+ */
 export function applyOhmLayerDateFilter(
     map: MapLibreMap,
     date: OhmDateFilterInput,
     options?: ApplyOptions,
 ): void {
     const includeUndated = options?.includeUndated ?? false;
-    const dateRange = dateRangeFromInput(date);
+    const dateRange = dateRangeFromInput(toOhmInput(date));
     const filters = getOriginalFilters(map);
 
     for (const layer of map.getStyle().layers ?? []) {

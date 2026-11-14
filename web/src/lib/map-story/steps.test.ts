@@ -391,6 +391,11 @@ describe('step entities and contingents', () => {
     const october = JSON.stringify(ohmOutlineFilter([-1], '1347-10'));
     expect(october).toContain('"1347-11-01"');
     expect(october).toContain('"1347-10-01"');
+
+    // 44 BCE is OHM's (astronomical) year -43.
+    const ides = JSON.stringify(ohmOutlineFilter([-1], '-0044'));
+    expect(ides).toContain('["<",["to-number",["get","start_decdate"]],-42]');
+    expect(ides).toContain('[">=",["to-number",["get","end_decdate"]],-43]');
   });
 
   it('keeps a contingent\'s link', () => {

@@ -1,5 +1,5 @@
 import type { FilterSpecification, Map as MapLibreMap } from 'maplibre-gl';
-import { normalizeOhmDate } from '@/lib/ohm-date';
+import { normalizeOhmDate, toOhmDate } from '@/lib/ohm-date';
 
 export type DateRange = {
     startISODate: string;
@@ -208,12 +208,27 @@ function dateRangeFromInput(input: OhmDateFilterInput): DateRange | null {
 }
 
 /**
- * The ISO and decimal-year bounds `applyOhmLayerDateFilter` filters OHM layers
- * by, for building matching filters on other layers. A year-only date spans
- * the whole year; `null` or an invalid date yields `null`.
+ * The ISO and decimal-year bounds of a date, read as written (no conversion),
+ * for filtering our own tiles: their decimal dates use our numbering. A
+ * year-only date spans the whole year; `null` or an invalid date yields `null`.
  */
 export function ohmDateRange(input: OhmDateFilterInput): DateRange | null {
     return dateRangeFromInput(input);
+}
+
+/**
+ * A filter input of ours (historical years) in OHM's numbering; see
+ * toOhmDate. A Date is a real instant already, so it passes through.
+ */
+function toOhmInput(input: OhmDateFilterInput): OhmDateFilterInput {
+    const convert = (value: Date | string | null | undefined) =>
+        typeof value === 'string' ? toOhmDate(value) : value;
+
+    if (input && typeof input === 'object' && !(input instanceof Date)) {
+        return { start: convert(input.start), end: convert(input.end) };
+    }
+
+    return convert(input) ?? null;
 }
 
 function isLegacyFilter(filter: unknown): boolean {
@@ -355,15 +370,15 @@ function buildExpressionDateFilter(
 
 /**
  * The date filter applyOhmLayerDateFilter gives the basemap's layers, for a
- * layer of our own on OHM tiles: features current at `date`, combined with
- * `base`. Null when the date can't be read.
+ * layer of our own on OHM tiles: features current at `date` (ours; converted
+ * to OHM's numbering), combined with `base`. Null when the date can't be read.
  */
 export function ohmDateFilter(
     date: OhmDateFilterInput,
     base: FilterSpecification | null,
     options?: ApplyOptions,
 ): FilterSpecification | null {
-    const dateRange = dateRangeFromInput(date);
+    const dateRange = dateRangeFromInput(toOhmInput(date));
 
     return dateRange
         ? buildExpressionDateFilter(
@@ -374,13 +389,17 @@ export function ohmDateFilter(
         : null;
 }
 
+/**
+ * Show the OHM basemap as it stood at `date`, a date of ours (historical
+ * years), converted to OHM's numbering here. `null` clears the filter.
+ */
 export function applyOhmLayerDateFilter(
     map: MapLibreMap,
     date: OhmDateFilterInput,
     options?: ApplyOptions,
 ): void {
     const includeUndated = options?.includeUndated ?? false;
-    const dateRange = dateRangeFromInput(date);
+    const dateRange = dateRangeFromInput(toOhmInput(date));
     const filters = getOriginalFilters(map);
 
     for (const layer of map.getStyle().layers ?? []) {
