@@ -195,9 +195,10 @@ Then `entity:backfill --entity-id=<id>` per entity.
 ## 9. Event types not on the map
 
 Events (battles, wars, treaties, …) often lack geometry. Located in priority order:
-1. `pipeline/locate_events.py` — own Wikidata `P625` (battles), else a *located
-   place-neighbour* via relationships (guarded against borrowing from
-   persons/concepts, whose own location is often a wrong-namesake guess).
+1. `pipeline/locate_events.py` — own Wikidata `P625`, for point-like events only
+   (battles, treaties, disasters: a war's P625 is a centroid). It never borrows a
+   related place's point, and fills a missing year from the event's own dates.
+   `pipeline/backfill_geo.py` places by the same rule, OHM first.
 2. `pipeline/hand_locate_events.py` — hand-assigned representative coordinates +
    years for the well-known abstract events (COVID→Wuhan, Holocaust→Poland, …).
 

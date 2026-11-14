@@ -257,9 +257,8 @@ run the Python tests.
 
 ## Known gaps
 
-- The agent's `resolve_ohm` step can still give an event its associated place or its chronicle's
-  centre as a point, and so can `pipeline.locate_events`. The point audits clean these up after
-  the fact.
+- The agent's `resolve_ohm` step can still accept an OHM feature matched by name and era rather
+  than by its `wikidata` tag. The point audits clean up a wrong one after the fact.
 - `python -m pipeline.agent.eval` resets the database by default (`migrate:fresh`). Never point it
   at data you want to keep.
 

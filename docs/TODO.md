@@ -81,9 +81,9 @@
 - [x] **Align the agent's relation types.** `validate.py` now accepts `allied_with`, `trades_with`,
   `caused` and `resulted_from`, all 74 types the prompt offers; `test_relation_types.py` keeps the two
   lists, and the app's enum, in step.
-- [ ] **Stop borrowed event points in the agent.** `resolve_ohm` emits place-of-association and
-  chronicle-centroid points, and `pipeline.locate_events` copies P276/P19 coordinates. Both contradict
-  the placement policy that `backfill_geo` and the point audits enforce.
+- [x] **Stop borrowed event points in the agent.** `resolve_ohm` and `pipeline.locate_events` now place
+  by `backfill_geo`'s rule: an own OHM feature, else the own P625 of a point-like type, never a
+  borrowed or averaged point. Left: the agent's OHM step still accepts name-and-era matches.
 - [x] **Decide the presence-period gate.** The per-relationship `derive_geometry_period` flag stays the
   only gate (as 11d7f65 chose); the unused type allowlist is gone. The flag is on by default for API writes
   and `pipeline:import` relationship hints, and off in the admin's add form.

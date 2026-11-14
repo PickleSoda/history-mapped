@@ -109,8 +109,10 @@ flowchart TD
 - **Explicit derivation:** an event or place with no point can be placed at the point of the place
   it is `located_at` (`geometry:derive-located-at`, a dry run unless `--apply`). The result is a
   derived period tied to that relationship.
-- **Known exception:** the extraction agent's place step and `pipeline.locate_events` can still
-  place an event at an associated place. The point audits catch these afterwards.
+- **The extraction agent and `pipeline.locate_events` follow the same rule:** an own OHM feature or,
+  for point-like types, the own P625; never an associated place or a chronicle's centre.
+- **Known exception:** the agent's OHM step can still accept a feature matched by name and era
+  rather than by its `wikidata` tag. The point audits catch a wrong one afterwards.
 
 ## OHM references
 

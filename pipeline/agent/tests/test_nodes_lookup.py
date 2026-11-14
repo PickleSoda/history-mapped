@@ -106,23 +106,47 @@ def test_resolve_ohm_resolves_place_types(mock_resolve):
 
 
 @patch("pipeline.agent.graph.nodes.resolve_ohm.resolve_polity")
-def test_resolve_ohm_event_always_gets_a_point(mock_resolve):
-    # Events (wars/battles) must land a point: OHM-less here, so the Wikidata
-    # coordinate fallback applies — and the event keeps its own name.
+def test_resolve_ohm_places_a_battle_at_its_own_p625_but_not_a_war(mock_resolve):
+    # OHM-less here. A battle's P625 is its site; a war's is a region centroid.
     mock_resolve.return_value = None
     state = make_base_state()
     state["candidate_entities"] = []
     state["enriched_entities"] = [
         EnrichedCandidate(
+            candidate=CandidateEntity(label="Battle of Sedan", entity_type="event_battle"),
+            wikidata_match={"qid": "Q152179", "coordinates": "Point(4.94 49.7)"},
+        ),
+        EnrichedCandidate(
             candidate=CandidateEntity(label="Franco-Prussian War", entity_type="event_war"),
             wikidata_match={"qid": "Q156311", "coordinates": "Point(2 48)"},
-        )
+        ),
     ]
-    new_state = resolve_ohm(state)
-    enriched = new_state["enriched_entities"][0]
-    assert enriched.geo_resolution is not None
-    assert enriched.geo_resolution["geometry"]["coordinates"] == [2.0, 48.0]
-    assert enriched.candidate.label == "Franco-Prussian War"  # event name preserved
+    battle, war = resolve_ohm(state)["enriched_entities"]
+    assert battle.geo_resolution["geometry"]["coordinates"] == [4.94, 49.7]
+    assert battle.candidate.label == "Battle of Sedan"  # event name preserved
+    assert war.geo_resolution is None
+
+
+@patch("pipeline.agent.graph.nodes.resolve_ohm.resolve_polity")
+def test_resolve_ohm_never_borrows_or_averages_a_point(mock_resolve):
+    # A person with only a place of association, next to a placed city: no
+    # birthplace point, no chronicle-centroid point. Left unplaced.
+    mock_resolve.return_value = None
+    state = make_base_state()
+    state["candidate_entities"] = []
+    state["enriched_entities"] = [
+        EnrichedCandidate(
+            candidate=CandidateEntity(label="Petra", entity_type="city"),
+            wikidata_match={"qid": "Q5788", "coordinates": "Point(35.44 30.33)"},
+        ),
+        EnrichedCandidate(
+            candidate=CandidateEntity(label="Aretas IV", entity_type="person"),
+            wikidata_match={"qid": "Q557209", "location_qid": "Q5788"},
+        ),
+    ]
+    city, person = resolve_ohm(state)["enriched_entities"]
+    assert city.geo_resolution is not None
+    assert person.geo_resolution is None
 
 
 @patch("pipeline.agent.graph.nodes.resolve_ohm.resolve_polity")
@@ -153,22 +177,26 @@ def test_resolve_ohm_polity_keeps_name_records_ohm_alias(mock_resolve):
 
 @patch("pipeline.agent.graph.nodes.resolve_ohm.resolve_polity")
 def test_resolve_ohm_falls_back_to_wikidata_point(mock_resolve):
-    # OHM has no feature (Persian Empire, Nabataean Kingdom) -> approximate point.
+    # OHM has no feature: a city takes its own P625; a polity's P625 (a
+    # centroid) places nothing.
     mock_resolve.return_value = None
     state = make_base_state()
     state["candidate_entities"] = []
     state["enriched_entities"] = [
         EnrichedCandidate(
+            candidate=CandidateEntity(label="Petra", entity_type="city"),
+            wikidata_match={"qid": "Q5788", "coordinates": "Point(35.44 30.33)"},
+        ),
+        EnrichedCandidate(
             candidate=CandidateEntity(label="Nabataean Kingdom", entity_type="political_entity"),
             wikidata_match={"qid": "Q11029653", "coordinates": "Point(35.44 30.33)"},
-        )
+        ),
     ]
-    new_state = resolve_ohm(state)
-    enriched = new_state["enriched_entities"][0]
-    assert enriched.geo_resolution is not None
-    assert enriched.geo_resolution["provenance"]["resolver"] == "wikidata_coords"
-    assert enriched.geo_resolution["geometry"]["coordinates"] == [35.44, 30.33]
-    assert enriched.candidate.label == "Nabataean Kingdom"  # fallback never renames
+    city, polity = resolve_ohm(state)["enriched_entities"]
+    assert city.geo_resolution["provenance"]["resolver"] == "wikidata_coords"
+    assert city.geo_resolution["geometry"]["coordinates"] == [35.44, 30.33]
+    assert city.candidate.label == "Petra"  # fallback never renames
+    assert polity.geo_resolution is None
 
 
 @patch("pipeline.agent.graph.nodes.resolve_ohm.resolve_polity")
