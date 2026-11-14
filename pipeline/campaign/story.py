@@ -1,7 +1,7 @@
 """Narrative ("storyteller") chronicles: entity lookup and a pre-import check.
 
 The overview chapters under `api/resources/chronicles/<slug>/chronicle.json`
-are written by the `story-author` agent and imported with
+are written by the `chapter-author` agent and imported with
 `php artisan chronicles:import --all api/resources/chronicles`. These helpers
 back two CLI commands:
 
