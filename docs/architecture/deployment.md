@@ -63,6 +63,7 @@ is set on the parent domain (`SESSION_DOMAIN`), the SPA host is listed in
 | `martin` | `ghcr.io/maplibre/martin:1.16.1` | Vector tiles, only with the `martin` profile |
 | `db` | built from `docker/db/` | PostgreSQL 16, PostGIS 3.5, pgvector 0.8.2 |
 | `redis` | `redis:7-alpine` | Cache, sessions and queue, with append-only persistence |
+| `backup` | `postgres:16-alpine` | `docker/backup.sh`: a `pg_dump -Fc` at start and daily, kept 14 days in `output/db-backups` |
 | `migrate` | api image, `setup` profile | One-off: `db:repair-sequences`, `migrate --force`, `collections:sync`, `config:cache` |
 | `web-dist` | `ghcr.io/…/history-mapped/web:<sha>`, `setup` profile | One-off: copies the bundle to `releases/<sha>` and switches the `current` symlink |
 
@@ -105,6 +106,7 @@ flowchart TB
 | Job | When | How |
 |---|---|---|
 | Database migrations, sequence repair, `collections:sync` | every deploy | the `migrate` one-off |
+| Database backup (`pg_dump -Fc`, 14 days kept) | daily, 03:00 UTC, and when the service starts | the `backup` service |
 | Proposal pruning (`ai:prune-proposals`) | daily | scheduler |
 | Image links (`entity:fetch-images --limit=2000`) | daily, 03:30 UTC | scheduler |
 | `map-stories:sync`, `entities:sync-descriptions`, `tags:sync`, `map-stories:relink` | when their source files change | by hand: `bash docker/compose-prod.sh exec app php artisan <command>` |
@@ -172,7 +174,7 @@ Names only; values live in `docker/.env.prod` on the server, and in GitHub secre
 
 | Gap | Effect | Mitigation today |
 |---|---|---|
-| No scheduled database backup | A host failure loses data since the last manual dump | The content loader dumps prod content before every full load |
+| Backups stay on the droplet | Losing the droplet loses its daily dumps too | Copy dumps off the box, or turn on DigitalOcean droplet backups |
 | Health gate checks only the app container | A broken Caddy, TLS, tiles or SPA release passes the deploy | Check the site after a deploy |
 | No maintenance mode | Migrations run while the old app still serves | Keep migrations backward compatible |
 | One server | No redundancy | Images are in GHCR and the setup is reproducible from the repo |

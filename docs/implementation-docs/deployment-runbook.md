@@ -119,10 +119,42 @@ The `deploy-droplet` job in `.github/workflows/ci.yml` SSHes into the droplet an
 
 **Security:** use a dedicated low-privilege deploy user and an SSH key scoped to that host; the private key lives only in GitHub Secrets.
 
+### 3c. Database backups
+
+The `backup` service (`docker/backup.sh`) takes a `pg_dump -Fc` of the whole database when it starts
+and then daily at `BACKUP_HOUR` (03:00 UTC). It writes `output/db-backups/history-mapped-<stamp>.dump`
+in the checkout and deletes dumps older than `BACKUP_KEEP_DAYS` (14). A dump of the current data is
+about 55 MB. Override `BACKUP_DIR`, `BACKUP_HOUR` and `BACKUP_KEEP_DAYS` in `docker/.env.prod`.
+
+| Task | Command (from `/opt/history-mapped`) |
+|---|---|
+| List the dumps | `ls -lh output/db-backups` |
+| Back up now | `bash docker/compose-prod.sh run --rm -e BACKUP_ONCE=1 backup` |
+| Check a dump reads | `bash docker/compose-prod.sh exec -T db pg_restore --list < output/db-backups/<file>.dump \| head` |
+| See the schedule ran | `bash docker/compose-prod.sh logs --tail 20 backup` |
+
+To restore, try the dump in a scratch database first, then replace the live one with the app stopped:
+
+```bash
+COMPOSE="bash docker/compose-prod.sh"
+$COMPOSE exec -T db createdb -U history-mapped restore_check
+$COMPOSE exec -T db pg_restore -U history-mapped -d restore_check --no-owner < output/db-backups/<file>.dump
+# looks right? then:
+$COMPOSE stop app queue scheduler
+$COMPOSE exec -T db pg_restore -U history-mapped -d history-mapped --clean --if-exists --no-owner < output/db-backups/<file>.dump
+$COMPOSE start app queue scheduler
+$COMPOSE exec -T db dropdb -U history-mapped restore_check
+```
+
+The dumps live on the droplet, so they do not survive losing it. Copy them off the box
+(`scp user@droplet:/opt/history-mapped/output/db-backups/*.dump .`) or turn on DigitalOcean's
+droplet backups.
+
 ## 4. Cost
 
 One Droplet, about $12–24 a month (2–4 GB), runs the app, queue, scheduler, Postgres and Redis. In
-exchange you own OS patching, backups, restarts and scaling; Caddy renews TLS by itself.
+exchange you own OS patching, off-box copies of the backups, restarts and scaling; Caddy renews TLS
+by itself.
 
 ---
 

@@ -59,8 +59,9 @@
 - [x] **Remove dead web code:** the unused `q` URL param (`useSearchQuery`), `useSearch`,
   `useHighlights`, `useTimelineDensity`, `useHistoricalPeriods` with the API calls, schema and gantt
   helpers only they used, and the stale comments in `TimelineScope.tsx` and `ChroniclePlayer.tsx`.
-- [ ] **Automate database backups** for the hosted site. Today the only dumps are the ones the
-  content loader takes before a full replace.
+- [x] **Automate database backups** for the hosted site. The prod stack's `backup` service takes a
+  daily `pg_dump -Fc`, kept 14 days in `output/db-backups` (runbook §3c). Copies off the droplet are
+  still manual.
 - [x] **Retire or fix the App Platform path.** Retired: `.do/app.yaml` and CI's `deploy` job are gone,
   and the runbook covers the droplet only.
 - [x] **Make the dev port overrides work from the documented place.** The template is now

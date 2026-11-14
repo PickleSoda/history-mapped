@@ -164,6 +164,29 @@ services:
       timeout: 5s
       retries: 5
 
+  # ── Database backups ─────────────────────────────────────────────────────────
+  # docker/backup.sh: a pg_dump -Fc into BACKUP_DIR (default output/db-backups in
+  # the checkout) at start and daily at BACKUP_HOUR UTC, kept BACKUP_KEEP_DAYS
+  # days. On demand: `bash docker/compose-prod.sh run --rm -e BACKUP_ONCE=1 backup`.
+  # These stay on the droplet: copy them off it (or enable droplet backups) too.
+  backup:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "/backup.sh"]
+    environment:
+      PGHOST: db
+      PGUSER: "${POSTGRES_USER:-history-mapped}"
+      PGPASSWORD: "${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in docker/.env.prod}"
+      PGDATABASE: "${POSTGRES_DB:-history-mapped}"
+      BACKUP_HOUR: "${BACKUP_HOUR:-3}"
+      BACKUP_KEEP_DAYS: "${BACKUP_KEEP_DAYS:-14}"
+    volumes:
+      - ./backup.sh:/backup.sh:ro
+      - "${BACKUP_DIR:-../output/db-backups}:/backups"
+    depends_on:
+      db:
+        condition: service_healthy
+
   # ── Redis (cache / queue / session) ─────────────────────────────────────────
   redis:
     image: redis:7-alpine
