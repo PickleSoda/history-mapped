@@ -103,16 +103,17 @@ def step_qids(s: Slice, store: SliceStore, client: Client) -> dict[str, Any]:
 def _build_part(s: Slice, store: SliceStore, n: int, raws: list[dict]) -> dict[str, Any]:
     records, dropped = build(raws, s)
     store.write_part(n, records)
-    return {"built": True, "fetched": len(raws), "records": len(records), "dropped": dict(dropped)}
+    meta = {"fetched": len(raws), "records": len(records), "dropped": dict(dropped), "built_at": time.time()}
+    store.write_json(store.meta_path(n), meta)
+    return meta
 
 
 def step_fetch(s: Slice, store: SliceStore, client: Client, max_parts: int | None = None) -> None:
-    state = store.state()
     queue = [q for q, _ in store.queue()]
     nparts = math.ceil(len(queue) / PART_SIZE)
     done_now = 0
     for n in range(nparts):
-        if state["parts"].get(str(n), {}).get("built"):
+        if store.meta_path(n).exists():
             continue
         if max_parts is not None and done_now >= max_parts:
             break
@@ -121,48 +122,48 @@ def step_fetch(s: Slice, store: SliceStore, client: Client, max_parts: int | Non
         for i in range(0, len(qids), BATCH):
             raws += fetch_batch(client, qids[i : i + BATCH], s.entity_type)
         store.write_raw(n, raws)
-        info = _build_part(s, store, n, raws)
-        state = store.state()
-        state["parts"][str(n)] = {**state["parts"].get(str(n), {}), **info}
-        store.save(state)
+        meta = _build_part(s, store, n, raws)
         done_now += 1
-        say(f"{s.id} part {n + 1}/{nparts}: fetched {info['fetched']}, kept {info['records']}, dropped {info['dropped']}")
+        say(f"{s.id} part {n + 1}/{nparts}: fetched {meta['fetched']}, kept {meta['records']}, dropped {meta['dropped']}")
+
+
+def import_part(s: Slice, store: SliceStore, n: int) -> dict[str, Any]:
+    compose = str(REPO / "docker" / "docker-compose.yml")
+    name = f"part-{n:04d}.jsonl"
+    dest = API_DROP / s.id / name
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(store.part_path(n), dest)
+    cmd = [
+        "docker", "compose", "-f", compose, "exec", "-T", "app", "php", "artisan", "pipeline:import",
+        f"storage/app/pipeline/bulk/{s.id}/{name}", "--sync", "--skip-images", f"--batch-id=bulk-{s.id}-{n:04d}",
+    ]
+    started = time.monotonic()
+    with locked("import"):
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=4 * 3600)
+    m = SUMMARY.search(proc.stdout)
+    result: dict[str, Any] = {"seconds": round(time.monotonic() - started), "exit": proc.returncode, "at": time.time()}
+    if m:
+        summary = json.loads(m.group(1))
+        summary["failed_names"] = summary.get("failed_names", [])[:20]
+        result["summary"] = summary
+    else:
+        result["error"] = (proc.stderr or proc.stdout)[-1500:]
+    store.write_json(store.import_path(n), result)
+    if m:
+        sm = result["summary"]
+        say(f"{s.id} {name}: imported {sm['imported']}, skipped {sm['skipped']}, failed {sm['failed']} in {result['seconds']}s")
+    else:
+        say(f"{s.id} {name}: import FAILED (exit {proc.returncode}); see {store.import_path(n)}")
+    return result
+
+
+def pending_imports(store: SliceStore) -> list[int]:
+    return [n for n in store.part_numbers() if not store.import_path(n).exists()]
 
 
 def step_import(s: Slice, store: SliceStore) -> None:
-    state = store.state()
-    compose = str(REPO / "docker" / "docker-compose.yml")
-    for key in sorted(state["parts"], key=int):
-        info = state["parts"][key]
-        if not info.get("built") or info.get("imported"):
-            continue
-        n = int(key)
-        name = f"part-{n:04d}.jsonl"
-        dest = API_DROP / s.id / name
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(store.part_path(n), dest)
-        cmd = [
-            "docker", "compose", "-f", compose, "exec", "-T", "app", "php", "artisan", "pipeline:import",
-            f"storage/app/pipeline/bulk/{s.id}/{name}", "--sync", "--skip-images", f"--batch-id=bulk-{s.id}-{n:04d}",
-        ]
-        started = time.monotonic()
-        with locked("import"):
-            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=4 * 3600)
-        m = SUMMARY.search(proc.stdout)
-        summary = json.loads(m.group(1)) if m else None
-        if summary is None:
-            say(f"{s.id} {name}: import produced no summary (exit {proc.returncode}): {proc.stderr[-500:]}")
-            info["import_error"] = (proc.stderr or proc.stdout)[-1000:]
-            state["parts"][key] = info
-            store.save(state)
-            raise click.ClickException(f"import of {name} failed")
-        summary["failed_names"] = summary.get("failed_names", [])[:20]
-        info.update(imported=True, import_summary=summary, import_seconds=round(time.monotonic() - started))
-        state = store.state()
-        state["parts"][key] = info
-        store.save(state)
-        say(f"{s.id} {name}: imported {summary['imported']}, skipped {summary['skipped']}, failed {summary['failed']} "
-            f"in {info['import_seconds']}s")
+    for n in pending_imports(store):
+        import_part(s, store, n)
 
 
 def _load(slice_id: str) -> tuple[Slice, SliceStore]:
@@ -226,15 +227,36 @@ def run(slice_id: str, max_parts: int | None, no_import: bool) -> None:
 @cli.command()
 @click.argument("slice_id")
 def rebuild(slice_id: str) -> None:
-    """Re-run the gates on fetched raw parts (after editing the spec); not-yet-imported parts only."""
+    """Re-run the gates on fetched raw parts (after editing the spec); parts not yet imported only."""
     s, store = _load(slice_id)
-    state = store.state()
-    for key, info in sorted(state["parts"].items(), key=lambda kv: int(kv[0])):
-        if info.get("imported") or not store.raw_path(int(key)).exists():
+    for n in store.part_numbers():
+        if store.import_path(n).exists() or not store.raw_path(n).exists():
             continue
-        state["parts"][key] = {**info, **_build_part(s, store, int(key), store.read_raw(int(key)))}
-        say(f"{s.id} part {int(key) + 1}: kept {state['parts'][key]['records']}")
-    store.save(state)
+        meta = _build_part(s, store, n, store.read_raw(n))
+        say(f"{s.id} part {n + 1}: kept {meta['records']}, dropped {meta['dropped']}")
+
+
+@cli.command()
+@click.option("--idle-exit", is_flag=True, help="Exit when nothing is left to import")
+@click.option("--poll", type=int, default=30)
+def importer(idle_exit: bool, poll: int) -> None:
+    """Import built parts of every slice, priority order, until STOP exists in the bulk root."""
+    from pipeline.bulk.store import ROOT
+
+    while not (ROOT / "STOP").exists():
+        did = False
+        for s in all_slices():
+            store = SliceStore(s.id)
+            for n in pending_imports(store):
+                if (ROOT / "STOP").exists():
+                    break
+                import_part(s, store, n)
+                did = True
+        if not did:
+            if idle_exit:
+                return
+            time.sleep(poll)
+    say("importer: STOP file found; exiting")
 
 
 @cli.command()
@@ -245,15 +267,19 @@ def status(slice_ids: tuple[str, ...], as_json: bool) -> None:
     ids = slice_ids or tuple(s.id for s in all_slices())
     rows = []
     for sid in ids:
-        state = SliceStore(sid).state()
-        parts = state.get("parts", {})
-        imp = Counter()
-        drop = Counter()
-        for p in parts.values():
-            for k, v in (p.get("import_summary") or {}).items():
+        store = SliceStore(sid)
+        state = store.state()
+        nums = store.part_numbers()
+        metas = [store.read_json(store.meta_path(n)) or {} for n in nums]
+        imports = [store.read_json(store.import_path(n)) for n in nums]
+        imp: Counter = Counter()
+        drop: Counter = Counter()
+        for r in imports:
+            for k, v in ((r or {}).get("summary") or {}).items():
                 if isinstance(v, int):
                     imp[k] += v
-            drop.update(p.get("dropped") or {})
+        for m in metas:
+            drop.update(m.get("dropped") or {})
         nparts = math.ceil(state.get("queued", 0) / PART_SIZE) if state.get("queued") else 0
         rows.append({
             "slice": sid,
@@ -261,8 +287,11 @@ def status(slice_ids: tuple[str, ...], as_json: bool) -> None:
             "failed_shards": len(state.get("shards_failed", [])),
             "listed": state.get("listed"),
             "queued": state.get("queued"),
-            "parts": f"{sum(1 for p in parts.values() if p.get('built'))}/{nparts}",
-            "kept": sum(p.get("records", 0) for p in parts.values()),
+            "built": len(nums),
+            "parts": nparts,
+            "imported_parts": sum(1 for r in imports if r and "summary" in r),
+            "import_errors": sum(1 for r in imports if r and "error" in r),
+            "kept": sum(m.get("records", 0) for m in metas),
             "imported": imp.get("imported", 0),
             "skipped": imp.get("skipped", 0),
             "failed": imp.get("failed", 0),
@@ -273,7 +302,8 @@ def status(slice_ids: tuple[str, ...], as_json: bool) -> None:
         return
     for r in rows:
         click.echo(
-            f"{r['slice']:40} listed {r['listed']} queued {r['queued']} parts {r['parts']} kept {r['kept']} "
+            f"{r['slice']:40} listed {r['listed']} queued {r['queued']} built {r['built']}/{r['parts']} "
+            f"imported-parts {r['imported_parts']} errors {r['import_errors']} kept {r['kept']} "
             f"imported {r['imported']} skipped {r['skipped']} failed {r['failed']} failed-shards {r['failed_shards']}"
         )
 

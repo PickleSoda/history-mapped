@@ -37,7 +37,7 @@ class SliceStore:
     def state(self) -> dict[str, Any]:
         if self.state_path.exists():
             return json.loads(self.state_path.read_text())
-        return {"shards_done": [], "shards_failed": [], "parts": {}}
+        return {"shards_done": [], "shards_failed": []}
 
     def save(self, state: dict[str, Any]) -> None:
         tmp = self.state_path.with_suffix(".tmp")
@@ -92,6 +92,26 @@ class SliceStore:
     def read_raw(self, n: int) -> list[dict]:
         with gzip.open(self.raw_path(n), "rt") as fh:
             return [json.loads(line) for line in fh if line.strip()]
+
+    # Per-part metadata lives in its own files, so the fetcher (meta) and
+    # the importer (import) never rewrite each other's state.
+    def meta_path(self, n: int) -> Path:
+        return self.dir / "parts" / f"part-{n:04d}.meta.json"
+
+    def import_path(self, n: int) -> Path:
+        return self.dir / "parts" / f"part-{n:04d}.import.json"
+
+    def read_json(self, path: Path) -> dict[str, Any] | None:
+        return json.loads(path.read_text()) if path.exists() else None
+
+    def write_json(self, path: Path, data: dict[str, Any]) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_suffix(".tmp")
+        tmp.write_text(json.dumps(data, indent=1, sort_keys=True))
+        tmp.replace(path)
+
+    def part_numbers(self) -> list[int]:
+        return sorted(int(p.name[5:9]) for p in (self.dir / "parts").glob("part-*.meta.json"))
 
     def write_part(self, n: int, records: list[dict]) -> Path:
         path = self.part_path(n)

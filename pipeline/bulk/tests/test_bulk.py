@@ -110,3 +110,21 @@ def test_build_maps_tags_and_never_borrows_a_point():
 def test_committed_slices_validate():
     for s in all_slices():
         assert s.id and s.entity_type
+
+
+def test_part_files_keep_fetch_and_import_state_apart(tmp_path, monkeypatch):
+    import pipeline.bulk.store as store_mod
+    from pipeline.bulk.__main__ import pending_imports
+
+    monkeypatch.setattr(store_mod, "ROOT", tmp_path)
+    st = store_mod.SliceStore("test-slice")
+    assert st.part_numbers() == [] and pending_imports(st) == []
+    for n in (0, 1):
+        st.write_part(n, [{"name": "x"}])
+        st.write_json(st.meta_path(n), {"records": 1})
+    st.write_json(st.import_path(0), {"summary": {"imported": 1}})
+    assert st.part_numbers() == [0, 1]
+    assert pending_imports(st) == [1]
+    st.add_listed([("Q2", 5), ("Q3", 1)], "all")
+    st.add_listed([("Q2", 7)], "other")
+    assert st.listed() == {"Q2": 7, "Q3": 1}
