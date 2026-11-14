@@ -179,10 +179,15 @@ def cli() -> None:
 @cli.command()
 def check() -> None:
     """Validate every slice spec."""
-    slices = all_slices()
+    errors: list[str] = []
+    slices = all_slices(errors=errors)
     for s in slices:
         click.echo(f"ok  {s.priority}  {s.id:40} {s.entity_type}")
-    click.echo(f"{len(slices)} slices")
+    for e in errors:
+        click.echo(f"BAD {e}")
+    click.echo(f"{len(slices)} slices, {len(errors)} invalid")
+    if errors:
+        raise SystemExit(1)
 
 
 @cli.command()
@@ -237,6 +242,24 @@ def rebuild(slice_id: str) -> None:
 
 
 @cli.command()
+@click.argument("slice_id")
+def reset(slice_id: str) -> None:
+    """Forget a slice's listing, parts and claims (only before any part is imported)."""
+    from pipeline.bulk.store import ROOT
+
+    store = SliceStore(slice_id)
+    if any(store.import_path(n).exists() for n in store.part_numbers()):
+        raise click.ClickException(f"{slice_id} has imported parts; reset refuses")
+    with locked("claims"):
+        path = ROOT / "claims.tsv"
+        if path.exists():
+            keep = [ln for ln in path.read_text().splitlines() if ln.split("\t")[1:2] != [slice_id]]
+            path.write_text("".join(f"{ln}\n" for ln in keep))
+    shutil.rmtree(store.dir, ignore_errors=True)
+    say(f"{slice_id}: reset")
+
+
+@cli.command()
 @click.option("--idle-exit", is_flag=True, help="Exit when nothing is left to import")
 @click.option("--poll", type=int, default=30)
 def importer(idle_exit: bool, poll: int) -> None:
@@ -245,7 +268,7 @@ def importer(idle_exit: bool, poll: int) -> None:
 
     while not (ROOT / "STOP").exists():
         did = False
-        for s in all_slices():
+        for s in all_slices(errors=[]):
             store = SliceStore(s.id)
             for n in pending_imports(store):
                 if (ROOT / "STOP").exists():

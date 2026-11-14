@@ -126,8 +126,16 @@ class Slice:
         return f"SELECT DISTINCT ?item ?hm_sl WHERE {{\n  {body}\n}}"
 
 
-def all_slices(directory: Path = SLICES_DIR) -> list[Slice]:
-    return sorted(
-        (Slice.load(p.stem, directory) for p in directory.glob("*.json")),
-        key=lambda s: (s.priority, s.id),
-    )
+def all_slices(directory: Path = SLICES_DIR, errors: list[str] | None = None) -> list[Slice]:
+    """Every valid slice, priority order. With `errors`, an invalid spec is
+    reported there and skipped (several slicers edit specs at once);
+    without it, the first invalid spec raises."""
+    out: list[Slice] = []
+    for path in sorted(directory.glob("*.json")):
+        try:
+            out.append(Slice.load(path.stem, directory))
+        except (ValueError, TypeError, KeyError) as exc:
+            if errors is None:
+                raise
+            errors.append(f"{path.name}: {exc}")
+    return sorted(out, key=lambda s: (s.priority, s.id))
