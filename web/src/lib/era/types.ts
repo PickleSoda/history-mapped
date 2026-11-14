@@ -19,7 +19,7 @@ export type TextureKind =
   | 'tiles'
   | 'mosaic';
 
-/** Repeating ornament bands (ornaments.ts draws them as SVG masks). */
+/** An era's ornament motif (ornaments.ts draws each as a pixel-art border tile). */
 export type OrnamentKind =
   | 'meander'
   | 'lotus'
@@ -73,10 +73,8 @@ export interface EraTheme {
   /** Heading font: the CSS family plus the loader of its @fontsource files. */
   font?: { family: string; load: () => Promise<unknown> };
   texture?: EraTexture;
-  /** The band under the top bar and above the timeline. */
+  /** The motif in the thin border down the side panels' inner edges. */
   ornament?: OrnamentKind;
-  /** A vertical band beside the side panels, such as a fluted column. */
-  pillar?: OrnamentKind;
   map: EraMapStyle;
 }
 

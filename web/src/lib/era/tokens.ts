@@ -57,7 +57,6 @@ export function eraTokens(theme: EraTheme, mode: 'light' | 'dark'): Tokens {
       '--era-accent': theme.accent,
       '--era-accent-2': accent2,
       '--era-ornament': mix(theme.accent, bg, 0.1),
-      '--era-stone': mix(bg, theme.ink, 0.32),
       '--era-tint': theme.accent,
     };
   }
@@ -100,7 +99,6 @@ export function eraTokens(theme: EraTheme, mode: 'light' | 'dark'): Tokens {
     '--era-accent': mix(theme.accent, WHITE, 0.25),
     '--era-accent-2': mix(accent2, WHITE, 0.25),
     '--era-ornament': mix(theme.accent, WHITE, 0.3),
-    '--era-stone': mix(bg, theme.paper, 0.4),
     '--era-tint': mix(theme.accent, BLACK, 0.2),
   };
 }
@@ -115,12 +113,11 @@ function block(selector: string, tokens: Tokens, extra: string[] = []): string {
  * dark ones under `html.dark[data-era-theme=…]` (both outrank the defaults
  * in styles.css), plus its heading font.
  */
-export function themeCss(theme: EraTheme, ornamentUrl?: string, pillarUrl?: string): string {
+export function themeCss(theme: EraTheme, borderUrl?: string): string {
   const sel = `html[data-era-theme="${theme.id}"]`;
   const extra = [
     theme.font ? `  --era-font-heading: ${theme.font.family};` : '',
-    ornamentUrl ? `  --era-ornament-image: url("${ornamentUrl}");` : '',
-    pillarUrl ? `  --era-pillar-image: url("${pillarUrl}");` : '',
+    borderUrl ? `  --era-border-image: url("${borderUrl}");` : '',
   ].filter(Boolean);
   return [
     block(sel, eraTokens(theme, 'light'), extra),

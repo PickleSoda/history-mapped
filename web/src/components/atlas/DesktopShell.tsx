@@ -7,7 +7,7 @@ import { LeftSidebar } from '@/components/atlas/LeftSidebar';
 import { StoryPlayer } from '@/components/atlas/StoryPlayer';
 import { TimelineScope } from '@/components/atlas/TimelineScope';
 import { TopBar } from '@/components/atlas/TopBar';
-import { EraPillar, EraRule } from '@/components/era/EraOrnaments';
+import { EraBorder } from '@/components/era/EraBorder';
 import { MapCanvas } from '@/components/map/MapCanvas';
 import { useChronicleNav, useMapInsetsObserver, useStoryNav } from '@/hooks';
 
@@ -53,18 +53,17 @@ export function DesktopShell() {
             {/* Sidebars float over the map */}
             <div ref={leftRef} className="absolute inset-y-0 left-0 z-10">
               <LeftPanel />
-              {/* The era's column (Rome's flutes…) stands beside each panel. */}
-              <EraPillar className="absolute inset-y-0 -right-[14px]" />
+              {/* The era's ornament runs down each panel's inner edge. */}
+              <EraBorder className="absolute inset-y-0 -right-[6px]" />
             </div>
             <div ref={rightRef} className="absolute inset-y-0 right-0 z-10">
               <DetailPanel />
-              <EraPillar className="absolute inset-y-0 -left-[14px]" />
+              <EraBorder flip className="absolute inset-y-0 -left-[6px]" />
             </div>
           </div>
 
           {/* Timeline spine */}
           <div className="era-surface relative flex-none border-t bg-card">
-            <EraRule className="absolute inset-x-0 -top-[11px] z-20" />
             <TimelineScope />
           </div>
         </BehindPage>

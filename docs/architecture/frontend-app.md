@@ -157,8 +157,9 @@ ambient stories.
 ### Era themes
 
 The atlas restyles itself for the time and place on the map: sand and lapis for Ancient Egypt,
-off-white marble with fluted columns for Rome, grey and red for the Cold War. Colours, the heading
-font, a texture, an ornament band and the map's borders, land and sea all follow the era. Readers
+off-white marble and a dentil cornice for Rome, grey and red for the Cold War. Colours, the heading
+font, a texture, an ornamented border down the side panels and the map's borders, land and sea all
+follow the era. Readers
 can turn it off in the Layers menu (stored per browser).
 
 ```mermaid
@@ -169,7 +170,7 @@ flowchart TB
     R -->|otherwise| GE["Global era for the year"]
     RE --> L["Load the theme chunk (first use only)"]
     GE --> L
-    L --> D["Document: tokens, font, texture, ornaments"]
+    L --> D["Document: tokens, font, texture, ornament"]
     L --> M["Map: border paint, land and sea washes, texture"]
 ```
 
@@ -177,12 +178,12 @@ flowchart TB
 |---|---|
 | **Manifest** (`lib/era/manifest.ts`) | The only part in the main bundle: each era's id, label, years, regions (lon/lat boxes) and priority. Nine global eras tile the whole timeline, from earthy Prehistory to the blue Global Age |
 | **Resolve** (`lib/era/resolve.ts`) | Zoomed in (the visible map at most 60° wide), the highest-priority regional era whose years and box hold the view's centre wins; else the global era for the year |
-| **Theme modules** (`lib/era/themes/*.ts`) | One lazily loaded chunk per theme (about 0.6 kB): paper, ink and accent colours, a heading font, a texture, an ornament, a pillar and the map styling |
+| **Theme modules** (`lib/era/themes/*.ts`) | One lazily loaded chunk per theme (about 0.6 kB): paper, ink and accent colours, a heading font, a texture, an ornament and the map styling |
 | **Tokens** (`lib/era/tokens.ts`) | Derives the full light and dark token set from those colours, pushing text until it meets WCAG contrast (tests check every theme in both modes) |
 | **Document** (`lib/era/apply.ts`, `hooks/useEraTheme.ts`) | Adds the theme's stylesheet under `html[data-era-theme=…]`, loads its @fontsource font, draws its texture. Colour tokens are registered with `@property`, so they ease between eras |
 | **Map** (`lib/era/map-style.ts`, `components/era/EraLayer.tsx`) | Recolours OHM's admin lines and adds a sea wash, a land wash and a land texture, after every basemap switch. Each call restores the basemap first, so eras never compound |
-| **UI pieces** (`components/era/`) | `EraRule` (an ornament band under the top bar and above the timeline), `EraPillar` (a column beside each panel), the `era-surface` texture on panels, a vignette, and an announcer that names a new era as the map enters it |
-| **Textures and ornaments** (`lib/era/textures.ts`, `ornaments.ts`) | Drawn in code (canvas noise, SVG masks): nothing to download, and only the active era's texture is drawn |
+| **UI pieces** (`components/era/`) | `EraBorder` (the era's ornament as a 6px solid border down each side panel's inner edge, hidden beside an empty side), the `era-surface` texture on panels, a vignette, and an announcer that names a new era as the map enters it |
+| **Textures and ornaments** (`lib/era/textures.ts`, `ornaments.ts`) | Drawn in code: canvas noise for textures, and pixel-art tiles for the ornaments (whole pixels, so the thin border stays crisp and solid). Nothing to download, and only the active era's texture is drawn |
 
 To add an era: write `lib/era/themes/<id>.ts`, add a manifest row (with regions and a priority for a
 regional era), and run `pnpm test`, which checks contrast, colours and coverage.
@@ -348,7 +349,7 @@ app/            router, providers, route components (site/, browse/, docs/, atla
 components/
   atlas/        shells, panels, players, EntityPage, ChroniclePage, page kit
   map/          MapCanvas, StoryOverlay, StoryAmbientLayer
-  era/          EraLayer (map styling, vignette, announcer), EraRule, EraPillar
+  era/          EraLayer (map styling, vignette, announcer), EraBorder
   graph/        RelationGraph (cytoscape, lazy)
   ui/           shadcn primitives
 hooks/          URL-state, server-cache and ephemeral hooks (the only way components reach state)

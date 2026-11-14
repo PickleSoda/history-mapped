@@ -11,7 +11,6 @@ const theme: EraTheme = {
   font: { family: "'Marcellus', 'Fraunces Variable', serif", load: () => import('@fontsource/marcellus/index.css') },
   texture: { kind: 'sand', color: '#b08646', ui: 0.29, map: 0.18 },
   ornament: 'lotus',
-  pillar: 'fluting',
   map: {
     border: '#b4762b',
     borderWidth: 1.4,

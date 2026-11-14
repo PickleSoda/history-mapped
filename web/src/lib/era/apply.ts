@@ -1,5 +1,5 @@
 import { mix } from '@/lib/era/color';
-import { ornamentUrl, pillarUrl } from '@/lib/era/ornaments';
+import { borderUrl } from '@/lib/era/ornaments';
 import { textureUrl } from '@/lib/era/textures';
 import { eraTokens, themeCss } from '@/lib/era/tokens';
 import type { EraTheme } from '@/lib/era/types';
@@ -23,11 +23,7 @@ function ensureStylesheet(theme: EraTheme): void {
   if (document.getElementById(STYLE_ID + theme.id)) return;
   const el = document.createElement('style');
   el.id = STYLE_ID + theme.id;
-  el.textContent = themeCss(
-    theme,
-    theme.ornament ? ornamentUrl(theme.ornament) : undefined,
-    theme.pillar ? pillarUrl(theme.pillar) : undefined,
-  );
+  el.textContent = themeCss(theme, theme.ornament ? borderUrl(theme.ornament) : undefined);
   document.head.appendChild(el);
 }
 
@@ -44,7 +40,6 @@ export function activateEraTheme(theme: EraTheme): void {
   active = theme.id;
   html.dataset.eraTheme = theme.id;
   html.toggleAttribute('data-era-ornament', Boolean(theme.ornament));
-  html.toggleAttribute('data-era-pillar', Boolean(theme.pillar));
   setThemeColor(theme);
 
   // Fonts download only when a heading first needs them (font-display: swap).
@@ -73,7 +68,6 @@ export function deactivateEraTheme(): void {
   active = null;
   delete html.dataset.eraTheme;
   html.removeAttribute('data-era-ornament');
-  html.removeAttribute('data-era-pillar');
   html.style.removeProperty('--era-texture');
   html.style.removeProperty('--era-texture-dark');
   applyTheme(useTheme.getState().theme);

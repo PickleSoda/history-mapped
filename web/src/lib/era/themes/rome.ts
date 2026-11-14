@@ -11,7 +11,6 @@ const theme: EraTheme = {
   font: { family: "'Cinzel Variable', 'Fraunces Variable', serif", load: () => import('@fontsource-variable/cinzel/index.css') },
   texture: { kind: 'marble', color: '#a39a8c', ui: 0.28, map: 0.2 },
   ornament: 'dentil',
-  pillar: 'fluting',
   map: {
     border: '#7b1e2b',
     borderWidth: 1.4,

@@ -233,41 +233,32 @@ html {
   background-image: var(--era-texture-dark, none);
 }
 
-/* Ornament bands, drawn in the era's accent through an SVG mask. */
-.era-rule,
-.era-pillar {
+/* The era's ornament as a thin border down a side panel's inner edge:
+   pixel art in the era's accent on the panel's own colour, solid, so the map
+   never shows through (tiles in lib/era/ornaments.ts, BORDER_WIDTH wide). */
+.era-border {
   display: none;
+  width: 6px;
+  background-color: var(--card);
 }
-.era-rule {
-  height: 10px;
-  background-color: var(--era-ornament);
-  -webkit-mask: var(--era-ornament-image) repeat-x left center / auto 100%;
-  mask: var(--era-ornament-image) repeat-x left center / auto 100%;
-}
-/* A pillar is a stone shaft, shaded like a cylinder, with the era's
-   ornament (flutes, for a classical column) cut into it. */
-.era-pillar {
-  width: 14px;
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--era-stone) 72%, black),
-    var(--era-stone) 35%,
-    color-mix(in srgb, var(--era-stone) 80%, white) 55%,
-    color-mix(in srgb, var(--era-stone) 72%, black)
-  );
-}
-.era-pillar::after {
+.era-border::after {
   content: '';
   position: absolute;
-  inset: 0 2px;
-  opacity: 0.55;
-  background-color: color-mix(in srgb, var(--era-stone) 50%, black);
-  -webkit-mask: var(--era-pillar-image) repeat center top / 3.4px 12px;
-  mask: var(--era-pillar-image) repeat center top / 3.4px 12px;
+  inset: 0;
+  background-color: var(--era-ornament);
+  -webkit-mask: var(--era-border-image) repeat-y left top / auto;
+  mask: var(--era-border-image) repeat-y left top / auto;
 }
-html[data-era-ornament] .era-rule,
-html[data-era-pillar] .era-pillar {
+/* On a panel's left edge, mirrored so the motif still backs onto the panel. */
+.era-border[data-flip]::after {
+  transform: scaleX(-1);
+}
+html[data-era-ornament] .era-border {
   display: block;
+}
+/* Nothing beside it (the detail panel is closed): no border. */
+html[data-era-ornament] .era-border:only-child {
+  display: none;
 }
 
 /* The era's tint at the edges of the map. */

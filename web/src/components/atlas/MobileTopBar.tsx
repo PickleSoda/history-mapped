@@ -14,7 +14,6 @@ import { Link } from 'react-router-dom';
 import { accountLinks } from '@/components/account/UserMenu';
 import { BASEMAP_IDS } from '@/components/atlas/LayersMenu';
 import { ThemeToggle } from '@/components/atlas/ThemeToggle';
-import { EraRule } from '@/components/era/EraOrnaments';
 import {
   useAuthActions,
   useBasemap,
@@ -45,7 +44,6 @@ export function MobileTopBar() {
 
   return (
     <header className="era-surface relative flex h-[52px] flex-none items-center gap-2 border-b bg-card px-3">
-      <EraRule className="absolute inset-x-0 -bottom-[11px] z-20" />
       <span className="grid size-8 flex-none place-items-center rounded-lg bg-primary text-primary-foreground">
         <Compass size={16} />
       </span>

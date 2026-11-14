@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { EraRule } from '@/components/era/EraOrnaments';
 import { useMapInstance, useReducedMotion, useStyleEpoch } from '@/hooks';
 import { applyEraToMap } from '@/lib/era/map-style';
 import { useEra } from '@/lib/era/store';
@@ -44,7 +43,7 @@ function EraAnnouncer() {
       className="era-announce pointer-events-none absolute left-1/2 top-4 z-[5] rounded-lg border bg-card/90 px-5 pb-2 pt-1.5 text-center shadow-sm backdrop-blur"
     >
       <div className="font-heading text-lg leading-tight">{label}</div>
-      <EraRule className="mx-auto mt-1 w-24" />
+      <div aria-hidden className="mx-auto mt-1 h-0.5 w-12 rounded-full bg-[var(--era-ornament)]" />
     </div>
   );
 }

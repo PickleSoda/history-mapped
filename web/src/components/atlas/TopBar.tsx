@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { UserMenu } from '@/components/account/UserMenu';
 import { LayersMenu } from '@/components/atlas/LayersMenu';
 import { ThemeToggle } from '@/components/atlas/ThemeToggle';
-import { EraRule } from '@/components/era/EraOrnaments';
 import { useCommandPalette, useView } from '@/hooks';
 import { cn } from '@/lib/utils';
 import type { ViewMode } from '@/types/atlas';
@@ -39,7 +38,6 @@ export function TopBar() {
   return (
     <header className="era-surface relative flex h-[54px] flex-none items-center gap-3.5 border-b bg-card px-4">
       {/* The era's ornament hangs under the bar like a cornice. */}
-      <EraRule className="absolute inset-x-0 -bottom-[11px] z-20" />
       {/* Brand: back to the site's landing page */}
       <Link to="/" className="flex items-center gap-2 rounded-md outline-none focus-visible:ring-2" title="History Mapped home">
         <span className="grid size-[30px] place-items-center rounded-lg bg-primary text-primary-foreground">

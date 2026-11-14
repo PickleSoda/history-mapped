@@ -11,7 +11,7 @@ import {
   PATTERNED_WIDTH,
   scaleWidth,
 } from '@/lib/era/map-style';
-import { ORNAMENT_KINDS, ornamentUrl, pillarUrl } from '@/lib/era/ornaments';
+import { BORDER_WIDTH, borderTile, borderUrl, ORNAMENT_KINDS } from '@/lib/era/ornaments';
 import { globalEra, resolveEra } from '@/lib/era/resolve';
 import { textureAlpha } from '@/lib/era/textures';
 import { eraTokens, MUTED_CONTRAST, TEXT_CONTRAST, themeCss } from '@/lib/era/tokens';
@@ -124,21 +124,24 @@ describe('era themes', () => {
 
   it('writes a light and a dark block, with the heading font', () => {
     const rome = themes.find((t) => t.id === 'rome')!;
-    const css = themeCss(rome, 'data:x', 'data:y');
+    const css = themeCss(rome, 'data:x');
     expect(css).toContain('html[data-era-theme="rome"] {');
     expect(css).toContain('html.dark[data-era-theme="rome"] {');
     expect(css).toContain("--era-font-heading: 'Cinzel Variable'");
-    expect(css).toContain('--era-ornament-image: url("data:x");');
-    expect(css).toContain('--era-pillar-image: url("data:y");');
+    expect(css).toContain('--era-border-image: url("data:x");');
   });
 });
 
 describe('ornaments', () => {
-  it.each(ORNAMENT_KINDS)('%s draws a horizontal and a vertical tile', (kind) => {
-    const h = decodeURIComponent(ornamentUrl(kind));
-    expect(h).toMatch(/^data:image\/svg\+xml,<svg [^>]*height="12"/);
-    const v = decodeURIComponent(pillarUrl(kind));
-    expect(v).toMatch(kind === 'fluting' ? /height="12"/ : /width="12"/);
+  it.each(ORNAMENT_KINDS)('%s is pixel art the width of the border', (kind) => {
+    const rows = borderTile(kind);
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) expect(row).toMatch(new RegExp(`^[#.]{${BORDER_WIDTH}}$`));
+    expect(rows.join('')).toContain('#');
+    const svg = decodeURIComponent(borderUrl(kind));
+    expect(svg).toContain(`width="${BORDER_WIDTH}" height="${rows.length}"`);
+    expect(svg).toContain('shape-rendering="crispEdges"');
+    expect(svg.match(/<rect /g)?.length).toBe(rows.join('|').match(/#+/g)?.length);
   });
 });
 
