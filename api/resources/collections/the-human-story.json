@@ -1,0 +1,22 @@
+{
+    "slug": "the-human-story",
+    "title": "The Human Story",
+    "subtitle": "From the first cities of Sumer to a connected world, in twelve chapters",
+    "description": "A guided tour of the human past, told as a story: how strangers learned to cooperate in cities, wrote down laws and gods, built empires, traded across oceans and finally joined into one global civilisation. Each chapter plays on the map step by step, and many of its battles open as step-by-step battle maps. Themes after Yuval Noah Harari's *Sapiens*; facts checked against Wikipedia.",
+    "cover_qid": "Q168518",
+    "sort_order": 5,
+    "items": [
+        { "kind": "chronicle", "ref": "the-human-story-01-the-first-cities", "note": "c. 4000–2000 BCE. Farming villages become cities, and Sumer invents writing to keep the accounts." },
+        { "kind": "chronicle", "ref": "the-human-story-02-kings-laws-and-gods", "note": "c. 2000–1150 BCE. Law codes, divine kings and a club of great kings, until the Bronze Age world collapses." },
+        { "kind": "chronicle", "ref": "the-human-story-03-iron-alphabets-and-empires", "note": "c. 1200–479 BCE. Iron, the alphabet and coined money; Assyria and Persia invent empire." },
+        { "kind": "chronicle", "ref": "the-human-story-04-philosophers-and-prophets", "note": "c. 800–200 BCE. From Greece to China, thinkers ask questions meant for all humankind." },
+        { "kind": "chronicle", "ref": "the-human-story-05-rome-han-and-the-silk-roads", "note": "264 BCE–300 CE. Two giant empires at the ends of Eurasia, linked by the Silk Roads." },
+        { "kind": "chronicle", "ref": "the-human-story-06-crosses-crescents-and-the-fall-of-rome", "note": "300–800. Universal faiths win over empires as the western Roman Empire falls." },
+        { "kind": "chronicle", "ref": "the-human-story-07-caliphs-khans-and-crusaders", "note": "800–1350. Scholars, crusaders and the Mongols join Eurasia into one network." },
+        { "kind": "chronicle", "ref": "the-human-story-08-ships-guns-and-new-worlds", "note": "1350–1650. Gunpowder, print and ocean voyages join the hemispheres." },
+        { "kind": "chronicle", "ref": "the-human-story-09-telescopes-companies-and-revolutions", "note": "1600–1815. Science, credit and empire feed each other; revolutions declare new rights." },
+        { "kind": "chronicle", "ref": "the-human-story-10-steam-steel-and-empire", "note": "1760–1914. Machines turn coal into motion and remake work, time and distance." },
+        { "kind": "chronicle", "ref": "the-human-story-11-the-world-at-war", "note": "1914–1945. Industrial power turned on itself in two total wars." },
+        { "kind": "chronicle", "ref": "the-human-story-12-from-the-cold-war-to-the-global-village", "note": "1945 to today. A nuclear peace, the end of empires and a networked world." }
+    ]
+}

@@ -1,0 +1,687 @@
+{
+  "title": "Telescopes, Companies and Revolutions",
+  "slug": "the-human-story-09-telescopes-companies-and-revolutions",
+  "source_type": "article",
+  "source_reference": "The Human Story, chapter 9: an overview written for History Mapped. Facts checked against English Wikipedia; themes after Yuval Noah Harari, Sapiens: A Brief History of Humankind (2011).",
+  "status": "draft",
+  "start_year": 1600,
+  "end_year": 1815,
+  "tags": [
+    "early-modern",
+    "europe",
+    "south-asia",
+    "atlantic",
+    "north-america",
+    "caribbean",
+    "science",
+    "revolution",
+    "colonialism",
+    "trade",
+    "slavery",
+    "rights",
+    "war"
+  ],
+  "metadata": {
+    "series": "the-human-story",
+    "chapter": 9,
+    "lens": "Science, credit and empire fed each other, and an Enlightenment that questioned kings produced new imagined orders of rights."
+  },
+  "entries": [
+    {
+      "sequence_order": 0,
+      "narrative_text": "In March 1602 the States General of the Netherlands folded a crowd of rival trading ventures into one Dutch East India Company and gave it a 21-year monopoly on Dutch trade in Asia. Four years earlier a fleet of eight ships under Jacob van Neck had come back from the Spice Islands with a 400 percent profit, and investors wanted that kind of money without the quarrels. Shares in the new company traded in Amsterdam, in a market that grew out of the company itself. England's East India Company had been chartered on the last day of 1600. Both lived on one odd idea: that a paper claim on cargoes still at sea was worth coin today.",
+      "start_year": 1602,
+      "source_evidence": "Wikipedia: Dutch East India Company; Euronext Amsterdam; Joint-stock company",
+      "secondary_entities": [
+        {
+          "entity_id": "2900b631-c1b8-4e17-b120-3facdf28e251",
+          "name": "VOC",
+          "role": "participant",
+          "wikidata_id": "Q159766"
+        },
+        {
+          "entity_id": "41b8765d-f1b7-45a3-9cdb-2d6c4c10333d",
+          "name": "Amsterdam Stock Exchange",
+          "role": "outcome",
+          "wikidata_id": "Q478720"
+        },
+        {
+          "entity_id": "65d8eaa4-5901-4faa-8f62-3b5914f4a8ea",
+          "name": "Maluku Islands",
+          "role": "location",
+          "wikidata_id": "Q3827"
+        },
+        {
+          "entity_id": "e835047d-cca3-4317-a7f7-4025ec187443",
+          "name": "Dutch Republic",
+          "role": "mentioned",
+          "wikidata_id": "Q170072"
+        },
+        {
+          "entity_id": "ef5ef966-58f8-488c-81b2-c544e4f87a3a",
+          "name": "East India Company",
+          "role": "mentioned",
+          "wikidata_id": "Q83164"
+        }
+      ]
+    },
+    {
+      "sequence_order": 1,
+      "narrative_text": "The telescope reached the Netherlands in 1608, when a Middelburg spectacle-maker named Hans Lippershey tried to patent one. Galileo heard of it in 1609 and built a better instrument. From late January into March 1610 he pointed it at Jupiter and drew the small points of light that shifted from night to night beside the planet. On 13 March he published what he had seen in a short Latin pamphlet, the Sidereus Nuncius. Kepler backed him in an open letter that April, though it was August before Kepler could confirm the sightings himself, because good telescopes were scarce. Harari argues that this readiness to say we do not know, and then to look, set the age apart.",
+      "start_year": 1609,
+      "end_year": 1610,
+      "source_evidence": "Wikipedia: Sidereus Nuncius; Galileo Galilei",
+      "secondary_entities": [
+        {
+          "entity_id": "f1596c0c-6f09-4553-88d2-94d6767e2e93",
+          "name": "Galileo Galilei",
+          "role": "participant",
+          "wikidata_id": "Q307"
+        },
+        {
+          "entity_id": "36d16be7-2c6e-4951-9fcd-2c02821dbea1",
+          "name": "Sidereus Nuncius",
+          "role": "outcome",
+          "wikidata_id": "Q1457297"
+        },
+        {
+          "entity_id": "7401bd2a-f9f6-420e-9ebd-11b301d25f43",
+          "name": "Johannes Kepler",
+          "role": "participant",
+          "wikidata_id": "Q8963"
+        }
+      ]
+    },
+    {
+      "sequence_order": 2,
+      "narrative_text": "By the 1630s the Dutch Republic had the highest income per head in the world, and some of that money went into tulip bulbs. The craze sped up from 1634 and collapsed in February 1637. At the peak, certain bulbs sold for more than ten times a skilled craftsman's yearly pay, and the Semper Augustus is recorded at 10,000 guilders. Historians warn that the surviving figures come from biased and speculative sources, and the crash did little harm to the republic's wealth. What outlasts the episode is the market behind it. Forward contracts, promises to hand over goods later, were ordinary in Dutch trade, and a price could rest on what people expected the next buyer to pay.",
+      "start_year": 1634,
+      "end_year": 1637,
+      "source_evidence": "Wikipedia: Tulip mania",
+      "secondary_entities": [
+        {
+          "entity_id": "e835047d-cca3-4317-a7f7-4025ec187443",
+          "name": "Dutch Republic",
+          "role": "location",
+          "wikidata_id": "Q170072"
+        },
+        {
+          "entity_id": "41b8765d-f1b7-45a3-9cdb-2d6c4c10333d",
+          "name": "Amsterdam Stock Exchange",
+          "role": "mentioned",
+          "wikidata_id": "Q478720"
+        }
+      ]
+    },
+    {
+      "sequence_order": 3,
+      "narrative_text": "Behind the profits of Atlantic trade stood a human cargo. Europeans had bought captives on the African coast since the fifteenth century, and shipments to the Americas began in the sixteenth. In the seventeenth century the Dutch, French and British brought plantation farming to Caribbean islands taken from Spain, and by the middle of that century slavery had hardened into a racial caste: African captives and their children were legally owned, since a child born to an enslaved mother was enslaved too. One historian's estimate puts about twelve million people into the Atlantic trade over three centuries, with about 1.5 million dying on the ships. Every claim about rights made later in this chapter has to be read against it.",
+      "start_year": 1650,
+      "end_year": 1800,
+      "source_evidence": "Wikipedia: Atlantic slave trade",
+      "secondary_entities": [
+        {
+          "entity_id": "4b64845f-05ef-46b8-a0f4-8f4541e12466",
+          "name": "Atlantic slave trade",
+          "role": "participant",
+          "wikidata_id": "Q10701282"
+        },
+        {
+          "entity_id": "e835047d-cca3-4317-a7f7-4025ec187443",
+          "name": "Dutch Republic",
+          "role": "mentioned",
+          "wikidata_id": "Q170072"
+        },
+        {
+          "entity_id": "b78831f7-5989-4ece-8a72-af25a72bb795",
+          "name": "Kingdom of France",
+          "role": "mentioned",
+          "wikidata_id": "Q70972"
+        }
+      ]
+    },
+    {
+      "sequence_order": 4,
+      "narrative_text": "On 28 November 1660 twelve natural philosophers met at Gresham College in London and resolved to found a college for promoting what they called physico-mathematical experimental learning. The idea had been circulating for years. Robert Boyle wrote of an invisible college, and the group looked to Francis Bacon's call to learn by experiment. King Charles II approved, a royal charter followed in 1662, and Lord Brouncker became the first president. In 1663 Robert Hooke was named curator of experiments, and early meetings opened with experiments he performed in front of the members. A new kind of institution had arrived: a club of the curious, backed by a crown, whose business was to test claims against the world.",
+      "start_year": 1660,
+      "end_year": 1663,
+      "source_evidence": "Wikipedia: Royal Society",
+      "secondary_entities": [
+        {
+          "entity_id": "46d4bdc8-03d5-469a-ba38-cd7728fdae8f",
+          "name": "Royal Society",
+          "role": "outcome",
+          "wikidata_id": "Q123885"
+        },
+        {
+          "entity_id": "0129cdd8-9ad7-47cf-8a8f-5357f45aa2b6",
+          "name": "Robert Hooke",
+          "role": "participant",
+          "wikidata_id": "Q46830"
+        },
+        {
+          "entity_id": "06f9d026-d692-4781-b6d6-875ad15d9775",
+          "name": "Robert Boyle",
+          "role": "participant",
+          "wikidata_id": "Q43393"
+        },
+        {
+          "entity_id": "af7f29d3-94aa-4b35-a010-ce2e28bbc1bf",
+          "name": "London",
+          "role": "location",
+          "wikidata_id": "Q84"
+        }
+      ]
+    },
+    {
+      "sequence_order": 5,
+      "narrative_text": "In the summer of 1683 an Ottoman army besieged Vienna. Grand Vizier Kara Mustafa Pasha had persuaded Sultan Mehmed IV to let the campaign go ahead, and the siege began on 14 July. A treaty that year bound Poland to relieve the city, and King John III Sobieski left Kraków on 15 August. The relief army fought at Kahlenberg mountain on 12 September. The Ottomans attacked at 4:00 am to disrupt the deployment, and at 4:00 pm a probing charge by 120 hussars showed their line could be broken, at heavy cost. Estimates of the armies vary widely. Some historians call it a turning point in a 300-year struggle between the Habsburgs and the Ottomans. The war ran to 1699 and most of Ottoman Hungary passed to the Habsburgs. The battle map lets you step through the day.",
+      "start_year": 1683,
+      "source_evidence": "Wikipedia: Battle of Vienna; John III Sobieski",
+      "secondary_entities": [
+        {
+          "entity_id": "3c98915c-7338-46b5-b5d2-1fe457af68d6",
+          "name": "Battle of Vienna",
+          "role": "participant",
+          "wikidata_id": "Q200855"
+        },
+        {
+          "entity_id": "2062c84e-2f03-4773-9d13-9417f7ba20ec",
+          "name": "John III Sobieski",
+          "role": "participant",
+          "wikidata_id": "Q53454"
+        },
+        {
+          "entity_id": "986f8b4a-4272-4324-a527-c82209771b2c",
+          "name": "Kara Mustafa Pasha",
+          "role": "participant",
+          "wikidata_id": "Q334140"
+        },
+        {
+          "entity_id": "1140b16e-b4cf-461c-be1a-49eab612e623",
+          "name": "Leopold I",
+          "role": "participant",
+          "wikidata_id": "Q150494"
+        },
+        {
+          "entity_id": "7a6701a9-2d83-402c-971e-48181d8f6698",
+          "name": "Ottoman Empire",
+          "role": "mentioned",
+          "wikidata_id": "Q12560"
+        },
+        {
+          "entity_id": "2bc27e4f-371f-454c-bc16-b25ca0d5f408",
+          "name": "Vienna",
+          "role": "location",
+          "wikidata_id": "Q1741"
+        }
+      ]
+    },
+    {
+      "sequence_order": 6,
+      "narrative_text": "Isaac Newton was born at Woolsthorpe in Lincolnshire on Christmas Day 1642 by the calendar then used in England, and went up to Trinity College, Cambridge, in 1661. In 1665 plague closed the university, and by then he had found the generalised binomial theorem and begun the mathematics that became calculus. In 1686 Samuel Pepys, as president of the Royal Society, authorised his book for printing, and the Principia appeared in 1687, in Latin, in three volumes. It is called the first great unification in physics, and its third book set out the Solar System with the Sun near its centre. After it, explaining the heavens and explaining a falling stone were one job. Newton later ran the Royal Mint and, from 1703, the Royal Society.",
+      "start_year": 1687,
+      "source_evidence": "Wikipedia: Isaac Newton; Philosophiae Naturalis Principia Mathematica",
+      "secondary_entities": [
+        {
+          "entity_id": "2699f54e-d973-482b-bed5-ccf510f59015",
+          "name": "Isaac Newton",
+          "role": "participant",
+          "wikidata_id": "Q935"
+        },
+        {
+          "entity_id": "8dad106d-e329-43c6-883d-22c50ad60341",
+          "name": "Philosophiae Naturalis Principia Mathematica",
+          "role": "outcome",
+          "wikidata_id": "Q205921"
+        },
+        {
+          "entity_id": "045e4269-c02b-4623-9e71-c437d9092021",
+          "name": "Trinity College",
+          "role": "location",
+          "wikidata_id": "Q332342"
+        },
+        {
+          "entity_id": "46d4bdc8-03d5-469a-ba38-cd7728fdae8f",
+          "name": "Royal Society",
+          "role": "mentioned",
+          "wikidata_id": "Q123885"
+        }
+      ]
+    },
+    {
+      "sequence_order": 7,
+      "narrative_text": "In 1704 the War of the Spanish Succession was in its fourth year, and John Churchill, Duke of Marlborough, did something unusual: he marched an army across Europe without telling anyone where it was going. He led it 400 kilometres from the Low Countries to the Danube in five weeks, making sure that local rulers would not block the road and that his men would find food, fodder and even new boots along the way. The Dutch States General released Danish troops once he promised to return if the French attacked. On 13 August the allies met the French at Blenheim, and the French commander Tallard ended up a prisoner in Nottingham until 1711. Queen Anne rewarded the duke with land at Woodstock and £240,000, and Blenheim Palace rose from it. The battle map follows the day.",
+      "start_year": 1704,
+      "source_evidence": "Wikipedia: Battle of Blenheim",
+      "secondary_entities": [
+        {
+          "entity_id": "38ccf04c-70e3-42e9-90bd-03811da43719",
+          "name": "Battle of Blenheim",
+          "role": "participant",
+          "wikidata_id": "Q154635"
+        },
+        {
+          "entity_id": "52873b06-54bd-45a3-b465-f3fcbba8f69b",
+          "name": "John Churchill",
+          "role": "participant",
+          "wikidata_id": "Q153803"
+        },
+        {
+          "entity_id": "3a1c4bc2-5913-4297-bc8e-3011da536ce8",
+          "name": "Danube",
+          "role": "location",
+          "wikidata_id": "Q1653"
+        },
+        {
+          "entity_id": "e835047d-cca3-4317-a7f7-4025ec187443",
+          "name": "Dutch Republic",
+          "role": "mentioned",
+          "wikidata_id": "Q170072"
+        },
+        {
+          "entity_id": "c980506b-a933-48ae-8e6c-9e41da4f92c1",
+          "name": "Holy Roman Empire",
+          "role": "mentioned",
+          "wikidata_id": "Q12548"
+        }
+      ]
+    },
+    {
+      "sequence_order": 8,
+      "narrative_text": "A Parisian bookseller, André Le Breton, wanted a French edition of Ephraim Chambers's English Cyclopaedia. The project grew in the hands of Denis Diderot and Jean le Rond d'Alembert into something bigger: an Encyclopédie of the sciences, arts and crafts, published from 1751 to 1772. It grew from the science of Galileo and Newton, and its secular tone and doubts about Biblical miracles angered the Church, which banned it in 1758. The French government followed in 1759, though that ban was not strictly enforced. D'Alembert soon left and Diderot carried on alone. The first edition cost 980 livres, too much for most of the middle class. The Enlightenment had put its question to print: by what right did the old orders rule?",
+      "start_year": 1751,
+      "end_year": 1772,
+      "source_evidence": "Wikipedia: Encyclopédie; Denis Diderot; Age of Enlightenment",
+      "secondary_entities": [
+        {
+          "entity_id": "73523edc-7416-4f21-a8d2-0b896c0612bd",
+          "name": "Encyclopédie",
+          "role": "outcome",
+          "wikidata_id": "Q447"
+        },
+        {
+          "entity_id": "d938f1a8-db10-4ace-9a2b-037e83ec5fe6",
+          "name": "Denis Diderot",
+          "role": "participant",
+          "wikidata_id": "Q448"
+        },
+        {
+          "entity_id": "b78831f7-5989-4ece-8a72-af25a72bb795",
+          "name": "Kingdom of France",
+          "role": "location",
+          "wikidata_id": "Q70972"
+        }
+      ]
+    },
+    {
+      "sequence_order": 9,
+      "narrative_text": "Robert Clive began as a clerk, or \"writer\", for the East India Company in 1744 and drifted into its private army. In June 1756 the young Nawab of Bengal, Siraj-ud-Daulah, took Calcutta from the British, and a year later Clive marched against him. On 23 June 1757 at Plassey, on the Hooghly River, around 3,000 men, mostly sepoys, faced an army with 300 guns. The Nawab's commander Mir Jafar had a secret agreement with the British, and the merchant Omichund threatened to reveal it unless his share rose to three million rupees. Siraj-ud-Daulah lost and was executed on 2 July. Clive installed Mir Jafar as Nawab, and when he left India for good in 1767 his fortune of £401,102 went home through the Dutch East India Company. A trading firm had become a ruler of Bengal.",
+      "start_year": 1757,
+      "source_evidence": "Wikipedia: Battle of Plassey; Robert Clive; Siraj-ud-Daulah",
+      "secondary_entities": [
+        {
+          "entity_id": "b40e5f46-63c4-46c7-90a9-6f1672429a57",
+          "name": "Battle of Plassey",
+          "role": "participant",
+          "wikidata_id": "Q203233"
+        },
+        {
+          "entity_id": "2ae778f9-9ae0-4710-b3c8-6941a2ec959b",
+          "name": "Robert Clive",
+          "role": "participant",
+          "wikidata_id": "Q162296"
+        },
+        {
+          "entity_id": "ff792451-b3d9-4cc2-92d2-77d8354998ad",
+          "name": "Siraj ud-Daulah",
+          "role": "participant",
+          "wikidata_id": "Q1998495"
+        },
+        {
+          "entity_id": "670502b7-823c-484b-91c9-8229ac4a7d5f",
+          "name": "Mir Jafar",
+          "role": "participant",
+          "wikidata_id": "Q3241725"
+        },
+        {
+          "entity_id": "ef5ef966-58f8-488c-81b2-c544e4f87a3a",
+          "name": "East India Company",
+          "role": "participant",
+          "wikidata_id": "Q83164"
+        },
+        {
+          "entity_id": "2900b631-c1b8-4e17-b120-3facdf28e251",
+          "name": "VOC",
+          "role": "mentioned",
+          "wikidata_id": "Q159766"
+        }
+      ]
+    },
+    {
+      "sequence_order": 10,
+      "narrative_text": "James Watt was an instrument maker at the University of Glasgow in 1763 when he was handed a model of a Newcomen engine to repair, and he noticed how inefficient it was. Newcomen's engine, introduced in 1712, had already replaced a team of 500 horses pumping out a mine. In 1765 Watt hit on the idea of a separate condenser. With Matthew Boulton as his partner, the improved engine went on sale in 1776, the first one going to the Carron ironworks near Falkirk, and in 1781 a sun-and-planet gear turned its pushing and pulling into rotation. Work had always been limited by muscle, wind and falling water. Now coal burning under a boiler could do the lifting.",
+      "start_year": 1763,
+      "end_year": 1781,
+      "source_evidence": "Wikipedia: Watt steam engine; James Watt; Newcomen atmospheric engine",
+      "secondary_entities": [
+        {
+          "entity_id": "b29835e3-10f4-45d8-9cf5-09d396e3cf68",
+          "name": "James Watt",
+          "role": "participant",
+          "wikidata_id": "Q9041"
+        },
+        {
+          "entity_id": "603fa776-28cd-48a7-881e-bd9406bd563e",
+          "name": "Steam engine with separate condenser",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "c480841f-b54f-4267-bec2-0a2f5af6f8ad",
+          "name": "Newcomen engine",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "c2c05558-ddd0-4de4-b907-5373d7b45788",
+          "name": "Matthew Boulton",
+          "role": "participant",
+          "wikidata_id": "Q469269"
+        },
+        {
+          "entity_id": "acd3684d-3c2d-41e8-81a8-f9b143bd5d74",
+          "name": "University of Glasgow",
+          "role": "location",
+          "wikidata_id": "Q192775"
+        },
+        {
+          "entity_id": "082c2c26-4048-4e74-92df-15fd0a0e3153",
+          "name": "Industrial Revolution",
+          "role": "mentioned",
+          "wikidata_id": "Q2269"
+        }
+      ]
+    },
+    {
+      "sequence_order": 11,
+      "narrative_text": "On 9 March 1776, the year the colonies declared independence, a Scottish moral philosopher named Adam Smith published The Wealth of Nations in two volumes. It set out to explain the principles by which commercial and industrial societies produce wealth, and it came out of the Scottish Enlightenment. Smith never used the word capitalism, yet the book became a founding text of economic liberalism and gave later policy its theory. Harari argues that a new creed was taking hold in this age: that profit should be put back into production and that growth is a good in itself. It was a belief, like any other, and it moved ships, loans and armies.",
+      "start_year": 1776,
+      "source_evidence": "Wikipedia: The Wealth of Nations; Joint-stock company",
+      "secondary_entities": [
+        {
+          "entity_id": "1a2b40fb-1163-46dd-8ae1-668402be34fe",
+          "name": "Adam Smith",
+          "role": "participant",
+          "wikidata_id": "Q9381"
+        },
+        {
+          "entity_id": "9945f0ca-fbaa-41bd-8d6f-bca4e4f27251",
+          "name": "The Wealth of Nations",
+          "role": "outcome",
+          "wikidata_id": "Q233562"
+        },
+        {
+          "entity_id": "15dc2661-c24d-4301-825e-13c2a58d701a",
+          "name": "Scotland",
+          "role": "location",
+          "wikidata_id": "Q22"
+        }
+      ]
+    },
+    {
+      "sequence_order": 12,
+      "narrative_text": "The colonies had been at war with Britain for more than a year, since the clashes at Lexington and Concord in April 1775, and relations had been sour since 1763. The orthodox British view was that Parliament's authority covered the whole empire, and London had sought revenue through measures such as the Stamp Act and the Townshend Acts. On 11 June Congress named a Committee of Five, and Thomas Jefferson wrote most of the Declaration between then and the 28th. On 4 July the Second Continental Congress adopted it unanimously in the Pennsylvania State House in Philadelphia, and public readings followed on 8 July in Trenton, Easton and Philadelphia. It was the founding paper of a state that did not yet exist in law. The war ran on until 1783.",
+      "start_year": 1776,
+      "source_evidence": "Wikipedia: United States Declaration of Independence; American Revolution",
+      "secondary_entities": [
+        {
+          "entity_id": "db086491-0628-4f15-aea9-df4c2e237b40",
+          "name": "United States Declaration of Independence",
+          "role": "outcome",
+          "wikidata_id": "Q127912"
+        },
+        {
+          "entity_id": "79ea1240-d7db-470b-b669-f5880a75b925",
+          "name": "Thomas Jefferson",
+          "role": "participant",
+          "wikidata_id": "Q11812"
+        },
+        {
+          "entity_id": "dd1bf7da-3e73-42dd-a8c4-7738ebe9a66e",
+          "name": "Philadelphia",
+          "role": "location",
+          "wikidata_id": "Q1345"
+        },
+        {
+          "entity_id": "01bafd09-b885-4d1d-a66c-a75706235e1e",
+          "name": "Thirteen Colonies",
+          "role": "participant",
+          "wikidata_id": "Q179997"
+        },
+        {
+          "entity_id": "46161f90-64d6-4087-b020-d3a70af0ad89",
+          "name": "American Revolutionary War",
+          "role": "mentioned",
+          "wikidata_id": "Q40949"
+        },
+        {
+          "entity_id": "2d5f6112-8531-4a3a-861c-5bba412f6384",
+          "name": "George Washington",
+          "role": "mentioned",
+          "wikidata_id": "Q23"
+        }
+      ]
+    },
+    {
+      "sequence_order": 13,
+      "narrative_text": "In May 1789 Louis XVI summoned the Estates General for the first time since 1614, because the crown was in financial crisis and the country restless. France had grown from 21 to 28 million people since 1715, and its middle class had tripled. It read newspapers and argued in coffee houses and Masonic lodges. On 26 August the National Constituent Assembly adopted the last article of the Declaration of the Rights of Man and of the Citizen, shaped by the Enlightenment and by the American example. Yet the 1791 constitution split citizens into active and passive ones. The monarchy fell in 1792, Louis was executed in January 1793, about 16,000 people were sentenced and executed under the Terror, and in 1799 the decade ended with Napoleon Bonaparte as First Consul.",
+      "start_year": 1789,
+      "end_year": 1799,
+      "source_evidence": "Wikipedia: French Revolution; Declaration of the Rights of Man and of the Citizen",
+      "secondary_entities": [
+        {
+          "entity_id": "46f4eebd-7050-4553-9a44-fe5f455c9e37",
+          "name": "French Revolution",
+          "role": "participant",
+          "wikidata_id": "Q6534"
+        },
+        {
+          "entity_id": "70721713-a929-4481-ab40-a59ea96df4a9",
+          "name": "Declaration of the Rights of Man and of the Citizen",
+          "role": "outcome",
+          "wikidata_id": "Q169759"
+        },
+        {
+          "entity_id": "d9574da0-0295-45be-a2d4-7a7d1362193a",
+          "name": "Estates General of 1789",
+          "role": "participant",
+          "wikidata_id": "Q1463941"
+        },
+        {
+          "entity_id": "ca360079-2f0e-4778-89fa-a46cc6bc494e",
+          "name": "Louis XVI",
+          "role": "participant",
+          "wikidata_id": "Q7732"
+        },
+        {
+          "entity_id": "4468902d-ef6e-4bf2-b741-98b91046d322",
+          "name": "Paris",
+          "role": "location",
+          "wikidata_id": "Q90"
+        },
+        {
+          "entity_id": "7538117a-f9a3-4f1b-a4d2-7954d7ef15a6",
+          "name": "Maximilien Robespierre",
+          "role": "mentioned",
+          "wikidata_id": "Q44197"
+        }
+      ]
+    },
+    {
+      "sequence_order": 14,
+      "narrative_text": "Saint-Domingue was France's most profitable colony, its sugar crop worth almost as much as everything the Thirteen Colonies shipped to Britain. In 1789 the livelihood of one million of France's 25 million people depended directly on its exports. All of it rested on slavery. Free men of colour led by Vincent Ogé pressed for rights in 1790, and on 21 August 1791 enslaved people rose in revolt. Toussaint Louverture, nearly fifty, began as a lieutenant to Georges Biassou and became the revolution's best-known general. In August 1793 a French commissioner proclaimed slavery abolished in the north. Louverture issued his own constitution in 1801, was arrested at a parley in 1802 and died in 1803. After the final battle at Vertières on 18 November 1803, the colony declared itself independent on 1 January 1804 as Haiti.",
+      "start_year": 1791,
+      "end_year": 1804,
+      "source_evidence": "Wikipedia: Haitian Revolution; Toussaint Louverture",
+      "secondary_entities": [
+        {
+          "entity_id": "1d67285a-aac6-4526-9e7e-851bc3d87d8b",
+          "name": "Haitian Revolution",
+          "role": "participant",
+          "wikidata_id": "Q689128"
+        },
+        {
+          "entity_id": "8642eb8f-3faf-4f1c-8286-22db9998f586",
+          "name": "Toussaint Louverture",
+          "role": "participant",
+          "wikidata_id": "Q205783"
+        },
+        {
+          "entity_id": "48dd66a4-1001-4f59-838d-3c247d725e9e",
+          "name": "Saint-Domingue",
+          "role": "location",
+          "wikidata_id": "Q861551"
+        },
+        {
+          "entity_id": "6d6a0624-15f7-4fc1-b179-cbe0bb332db0",
+          "name": "Haiti",
+          "role": "outcome",
+          "wikidata_id": "Q790"
+        }
+      ]
+    },
+    {
+      "sequence_order": 15,
+      "narrative_text": "The Dutch East India Company had paid dividends averaging about 18 percent of its capital for almost two hundred years. Between 1602 and 1796 it had sent nearly a million Europeans to Asia in 4,785 ships, and in 1619 it had made Batavia, on the site of Jayakarta, its capital in the East. Smuggling, corruption and rising administrative costs wore it down, and it was formally dissolved in 1799. It had ruled like a state and failed like a business. The corporation, a creation that could own ships, forts and a capital city and outlive every founder, had proved how much people would trust a shared fiction, and how long it could last.",
+      "start_year": 1799,
+      "source_evidence": "Wikipedia: Dutch East India Company",
+      "secondary_entities": [
+        {
+          "entity_id": "2900b631-c1b8-4e17-b120-3facdf28e251",
+          "name": "VOC",
+          "role": "participant",
+          "wikidata_id": "Q159766"
+        },
+        {
+          "entity_id": "3ce930ed-af02-488e-a757-492350ac6ed7",
+          "name": "Batavia",
+          "role": "location",
+          "wikidata_id": "Q1199713"
+        },
+        {
+          "entity_id": "169a32b4-8810-435b-9690-bf33827c6561",
+          "name": "Jakarta",
+          "role": "location",
+          "wikidata_id": "Q3630"
+        }
+      ]
+    },
+    {
+      "sequence_order": 16,
+      "narrative_text": "Napoleon ruled the continent's land, and in 1805 he needed the sea. His plan was for the French and Spanish fleets to slip past the British blockade and join forces in the Caribbean. Vice-Admiral Villeneuve sailed from Cádiz on 18 October, and on the 21st met Horatio Nelson off Cape Trafalgar. Nelson had 27 ships of the line and 17,000 men, the Franco-Spanish fleet 33 ships and nearly 30,000, among them giants like the 130-gun Santísima Trinidad. At 12:45 the Victory cut the enemy line and fired a raking broadside of double and triple shot. Nelson died that same day. The surviving ships stayed bottled up in Cádiz until 1808. The battle map follows the fleets hour by hour.",
+      "start_year": 1805,
+      "source_evidence": "Wikipedia: Battle of Trafalgar; Horatio Nelson, 1st Viscount Nelson",
+      "secondary_entities": [
+        {
+          "entity_id": "ee18c6b6-1bbd-4d07-97f6-99bcf8791195",
+          "name": "Battle of Trafalgar",
+          "role": "participant",
+          "wikidata_id": "Q171416"
+        },
+        {
+          "entity_id": "e8645040-4467-471c-9eae-cbcd1cdb3037",
+          "name": "Horatio Nelson",
+          "role": "participant",
+          "wikidata_id": "Q83235"
+        },
+        {
+          "entity_id": "23ed3b78-d34a-430b-a73f-66d7c3e3ab35",
+          "name": "Cádiz",
+          "role": "location",
+          "wikidata_id": "Q15682"
+        },
+        {
+          "entity_id": "4a0ccbf1-1da1-43d1-b388-a5c9fbcac0a4",
+          "name": "Napoleon",
+          "role": "mentioned",
+          "wikidata_id": "Q517"
+        }
+      ]
+    },
+    {
+      "sequence_order": 17,
+      "narrative_text": "Six weeks later, on 2 December 1805, Napoleon fought the land battle that military historians often call his tactical masterpiece. After wiping out an Austrian army in the Ulm campaign, his troops had taken Vienna in November, and the Grande Armée he had built had grown to 350,000 men. Near Austerlitz, in what is now the Czech Republic, he met Russian and Austrian forces, among them commanders formed in Suvorov's school such as Mikhail Kutuzov. A well-known story says he left a flank weak on purpose to lure the allies down from the Pratzen Heights, but the first telling comes decades later and is regarded as apocryphal. Austria paid an indemnity of 40 million francs, and in 1806 Francis dissolved the Holy Roman Empire.",
+      "start_year": 1805,
+      "source_evidence": "Wikipedia: Battle of Austerlitz",
+      "secondary_entities": [
+        {
+          "entity_id": "2426b811-2f9d-4e60-87fc-68a25666be62",
+          "name": "Battle of Austerlitz",
+          "role": "participant",
+          "wikidata_id": "Q134114"
+        },
+        {
+          "entity_id": "4a0ccbf1-1da1-43d1-b388-a5c9fbcac0a4",
+          "name": "Napoleon",
+          "role": "participant",
+          "wikidata_id": "Q517"
+        },
+        {
+          "entity_id": "80605941-2663-48ff-9106-397b040c2b40",
+          "name": "Mikhail Kutuzov",
+          "role": "participant",
+          "wikidata_id": "Q185801"
+        },
+        {
+          "entity_id": "6e0e8e8b-87c7-45d5-869e-23223f716ca5",
+          "name": "Francis II, Holy Roman Emperor",
+          "role": "participant",
+          "wikidata_id": "Q130834"
+        },
+        {
+          "entity_id": "c980506b-a933-48ae-8e6c-9e41da4f92c1",
+          "name": "Holy Roman Empire",
+          "role": "outcome",
+          "wikidata_id": "Q12548"
+        }
+      ]
+    },
+    {
+      "sequence_order": 18,
+      "narrative_text": "Napoleon came back. Louis XVIII had been restored after the first abdication, but Napoleon's return to power in March 1815 began the Hundred Days. On 13 March the powers meeting in Vienna declared him an outlaw, and a Seventh Coalition hurried into the field. On Sunday 18 June, near Waterloo, in what was then the United Kingdom of the Netherlands, his army of about 74,500 met Wellington's of about 74,300, with Blücher's Prussians on the way. About 50,000 Prussians reached the field during the afternoon and struck the French flank. Napoleon abdicated again four days later and was sent to Saint Helena, where he died in 1821. A war begun in 1792 was over. The battle map shows how the day was won, while Watt and Boulton's engines were already at work.",
+      "start_year": 1815,
+      "source_evidence": "Wikipedia: Battle of Waterloo; French Revolution",
+      "secondary_entities": [
+        {
+          "entity_id": "afbd149a-b6e1-451b-a110-c1b550e1d2da",
+          "name": "Battle of Waterloo",
+          "role": "participant",
+          "wikidata_id": "Q48314"
+        },
+        {
+          "entity_id": "4a0ccbf1-1da1-43d1-b388-a5c9fbcac0a4",
+          "name": "Napoleon",
+          "role": "participant",
+          "wikidata_id": "Q517"
+        },
+        {
+          "entity_id": "92614299-ed2a-4b9b-b761-7b927c92b494",
+          "name": "Arthur Wellesley, 1st Duke of Wellington",
+          "role": "participant",
+          "wikidata_id": "Q131691"
+        },
+        {
+          "entity_id": "130d5227-5dc8-478a-92b6-81821eb3cc90",
+          "name": "Saint Helena",
+          "role": "location",
+          "wikidata_id": "Q192184"
+        },
+        {
+          "entity_id": "d9ce5d9d-dda7-4a04-acaa-c2a16a1d5d2f",
+          "name": "Louis XVIII",
+          "role": "mentioned",
+          "wikidata_id": "Q7750"
+        }
+      ]
+    }
+  ]
+}

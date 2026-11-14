@@ -1,0 +1,716 @@
+{
+  "title": "Kings, Laws and Gods",
+  "slug": "the-human-story-02-kings-laws-and-gods",
+  "source_type": "article",
+  "source_reference": "The Human Story, chapter 2: an overview written for History Mapped. Facts checked against English Wikipedia; themes after Yuval Noah Harari, Sapiens: A Brief History of Humankind (2011).",
+  "status": "draft",
+  "start_year": -2000,
+  "end_year": -1150,
+  "tags": [
+    "bronze-age",
+    "mesopotamia",
+    "egypt",
+    "anatolia",
+    "levant",
+    "diplomacy-law",
+    "trade",
+    "war",
+    "mediterranean",
+    "greece",
+    "china",
+    "religion",
+    "empires-states",
+    "language-writing"
+  ],
+  "metadata": {
+    "series": "the-human-story",
+    "chapter": 2,
+    "lens": "Law codes, divine kings and written treaties were imagined orders that let rulers and strangers cooperate, until the connected Bronze Age system of palaces and trade collapsed."
+  },
+  "entries": [
+    {
+      "sequence_order": 0,
+      "narrative_text": "On a low hill in northern Crete, a town that had stood for thousands of years gained a palace around 1900 BCE. This was Knossos, and it became the centre of a growing Minoan world. Historians use the term palace economy for such a system: wealth flows into a central bureaucracy and is handed out again at the ruler's wish. By about 1875 to 1750 BCE the island's palace towns had also developed writing, in Cretan hieroglyphic and a script called Linear A. An earthquake, or a run of them, probably wrecked the first palace around 1700 BCE, and it was rebuilt larger. The same bargain was spreading across the Bronze Age world: surplus gathered in one place, a ruler to guard it, scribes to keep count.",
+      "start_year": -1900,
+      "end_year": -1700,
+      "source_evidence": "Wikipedia: Knossos; Minoan civilization; Late Bronze Age collapse",
+      "secondary_entities": [
+        {
+          "entity_id": "31971df9-f03c-4e27-9ca6-eb9aff905367",
+          "name": "Knossos palace",
+          "role": "participant"
+        },
+        {
+          "entity_id": "45676472-a5a6-406d-bcf3-2b8dc53b549c",
+          "wikidata_id": "Q173527",
+          "name": "Knossos",
+          "role": "location"
+        },
+        {
+          "entity_id": "108e4f72-2522-474d-9ff2-b6a736d24802",
+          "wikidata_id": "Q134178",
+          "name": "Minoan civilization",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "9b9f33b0-682c-4b43-8b07-c3ec66969cde",
+          "wikidata_id": "Q34374",
+          "name": "Crete",
+          "role": "location"
+        }
+      ]
+    },
+    {
+      "sequence_order": 1,
+      "narrative_text": "Far to the east, around 1792 BCE, a young Amorite named Hammurabi inherited the throne of Babylon from his father. His city was a small state that controlled little land beyond its own walls. Over the next thirty years he turned it into the master of the lower Mesopotamian plain. Around 1763 BCE he defeated Rim-Sin of Larsa and annexed his kingdom, and by 1761 BCE the old trading city of Mari had come under his control as well. Where Sumer had once been a patchwork of rival city-states, one king now sat above nearly all of them. A ruler of so many towns could not judge every quarrel in person, and that problem shaped his best-known work.",
+      "start_year": -1792,
+      "end_year": -1761,
+      "source_evidence": "Wikipedia: Hammurabi; Old Babylonian Empire",
+      "secondary_entities": [
+        {
+          "entity_id": "ce53419b-adfd-4927-a6ba-036a267ba560",
+          "wikidata_id": "Q36359",
+          "name": "Hammurabi",
+          "role": "participant"
+        },
+        {
+          "entity_id": "522e028d-250e-4350-bdc5-a6ea38afb2fc",
+          "wikidata_id": "Q5684",
+          "name": "Babylon",
+          "role": "location"
+        },
+        {
+          "entity_id": "6fe01b5d-d4e1-4e82-8c4b-8345842a6c4f",
+          "name": "Hammurabi defeats Rim-Sin I",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "2dc6fe38-5dbb-48bb-a7fb-176fbd69d24b",
+          "wikidata_id": "Q244746",
+          "name": "Larsa",
+          "role": "location"
+        },
+        {
+          "entity_id": "8e09d9fa-1607-45d9-92e7-16322d6f9f1d",
+          "name": "Destruction of Mari by Hammurabi",
+          "role": "mentioned"
+        }
+      ]
+    },
+    {
+      "sequence_order": 2,
+      "narrative_text": "Around 1753 BCE Hammurabi had a long text cut into a stone stele. Its prologue says the god Marduk asked him to establish truth and justice for the people. Then come 282 laws on a huge range of disputes, and an epilogue hoping that any wronged man will have the stele read aloud to him and learn his rights. It also says the strong should not oppress the weak, and it calls down the gods' anger on anyone who erases the words. Yuval Noah Harari offers this code as his example of an imagined order, a hierarchy that people obey because they share a belief that heaven approves of it. Whatever one makes of that, a king here asks strangers across many cities to obey one text, and to believe heaven stands behind it.",
+      "start_year": -1754,
+      "end_year": -1750,
+      "source_evidence": "Wikipedia: Code of Hammurabi; Hammurabi",
+      "secondary_entities": [
+        {
+          "entity_id": "26d31196-a293-4223-a45b-92ace906593f",
+          "wikidata_id": "Q93304",
+          "name": "Code of Hammurabi",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "ce53419b-adfd-4927-a6ba-036a267ba560",
+          "wikidata_id": "Q36359",
+          "name": "Hammurabi",
+          "role": "participant"
+        },
+        {
+          "entity_id": "bf97f9f6-91c0-4b0b-b3c4-2bc8e9c8f909",
+          "wikidata_id": "Q190123",
+          "name": "Marduk",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "522e028d-250e-4350-bdc5-a6ea38afb2fc",
+          "wikidata_id": "Q5684",
+          "name": "Babylon",
+          "role": "location"
+        }
+      ]
+    },
+    {
+      "sequence_order": 3,
+      "narrative_text": "While Babylon wrote its laws in stone, Egypt's Middle Kingdom was coming apart. After the last strong king of the Thirteenth Dynasty died, around 1725 BCE, the country split into several kingdoms. Settlers from the Levant, who had lived at Avaris in the Nile Delta for generations, came to rule there. Egyptians later called their kings Hyksos, rulers of foreign lands. They may have brought horse-drawn chariots, which the Egyptians learned to use while driving them out around 1550 BCE. Kamose of Thebes attacked them, and the Theban kings who followed founded the New Kingdom. The pharaohs who followed became far more aggressive about their borders and the lands beyond them.",
+      "start_year": -1650,
+      "end_year": -1550,
+      "source_evidence": "Wikipedia: Hyksos; Middle Kingdom of Egypt; Thutmose III; Battle of Kadesh",
+      "secondary_entities": [
+        {
+          "entity_id": "f6c8a592-2804-4f9c-84da-bbf4ec538983",
+          "wikidata_id": "Q192319",
+          "name": "Hyksos",
+          "role": "participant"
+        },
+        {
+          "entity_id": "7ccd0ab9-9d0d-4dea-b203-46a128a7208c",
+          "wikidata_id": "Q191324",
+          "name": "Middle Kingdom of Egypt",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "7abae8a6-063f-4420-8122-b2e2c2914548",
+          "wikidata_id": "Q309282",
+          "name": "Tell el-Daba",
+          "role": "location"
+        },
+        {
+          "entity_id": "9ddeb07b-1d9a-4623-8993-eeea99fe2f51",
+          "name": "Kamose's war against the Hyksos",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "87f1e78a-6bd1-4604-8256-dcbfdd85c371",
+          "name": "New Kingdom of Egypt",
+          "role": "outcome"
+        }
+      ]
+    },
+    {
+      "sequence_order": 4,
+      "narrative_text": "Around 1600 BCE, give or take a century, the volcano on the island of Thera, now Santorini, blew itself apart in one of the largest eruptions in recorded history. A layer of white ash 60 metres thick buried the ground on the island, and tsunamis, perhaps 35 to 150 metres high, are thought to have struck the northern coast of Crete 110 kilometres away. The date is argued over. Radiocarbon points to the late 17th century BCE, while the archaeology favours a time between 1550 and 1480 BCE. Minoan Crete was not finished off, though. In the generations that followed its builders raised ambitious new palaces, and its trade boomed.",
+      "start_year": -1600,
+      "source_evidence": "Wikipedia: Minoan eruption; Minoan civilization",
+      "secondary_entities": [
+        {
+          "entity_id": "d0b4ca3b-9675-4f7a-a119-942935fafcaa",
+          "wikidata_id": "Q1144693",
+          "name": "Minoan eruption",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "56efc056-dbb7-4b42-8b10-8e4699d7320d",
+          "name": "Thera",
+          "role": "location"
+        },
+        {
+          "entity_id": "9b9f33b0-682c-4b43-8b07-c3ec66969cde",
+          "wikidata_id": "Q34374",
+          "name": "Crete",
+          "role": "location"
+        },
+        {
+          "entity_id": "108e4f72-2522-474d-9ff2-b6a736d24802",
+          "wikidata_id": "Q134178",
+          "name": "Minoan civilization",
+          "role": "participant"
+        }
+      ]
+    },
+    {
+      "sequence_order": 5,
+      "narrative_text": "Around 1595 BCE a Hittite army appeared before the walls of Babylon, having marched about 2,000 kilometres from Anatolia under King Mursili I. The city was sacked, and Hammurabi's dynasty ended with it, though some astronomical calculations point to 1659 BCE instead. The Hittites did not take over Babylon. It passed to the Kassite dynasty, who ruled it for more than 400 years, and who kept much of Babylonian culture alive. The man and his dynasty were gone, yet Babylon's gods, scribes and learning carried on under foreign kings. That is the force of an imagined order: it depends on belief more than on any one king's spears.",
+      "start_year": -1595,
+      "source_evidence": "Wikipedia: Mursili I; Hammurabi; Old Babylonian Empire; Hittites",
+      "secondary_entities": [
+        {
+          "entity_id": "d8cc8415-aab5-4702-8b83-d353be71c5de",
+          "name": "Mursili I",
+          "role": "participant"
+        },
+        {
+          "entity_id": "6688be63-66b8-4d3c-a130-e25fdb03cc09",
+          "wikidata_id": "Q5406",
+          "name": "Hittites",
+          "role": "participant"
+        },
+        {
+          "entity_id": "522e028d-250e-4350-bdc5-a6ea38afb2fc",
+          "wikidata_id": "Q5684",
+          "name": "Babylon",
+          "role": "location"
+        },
+        {
+          "entity_id": "bd99dab8-dfe9-4ffd-b8a5-9b383ba566b9",
+          "wikidata_id": "Q16630263",
+          "name": "Kassite dynasty",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "4b9bfbbb-36f5-4f7f-b8a8-327462bba6e2",
+          "wikidata_id": "Q181007",
+          "name": "Hattusa",
+          "role": "mentioned"
+        }
+      ]
+    },
+    {
+      "sequence_order": 6,
+      "narrative_text": "Hatshepsut was the eldest daughter of a pharaoh and the wife of another. When the young Thutmose III came to the throne around 1479 BCE, she first ruled as his regent. By about 1472 BCE she had taken the full title of pharaoh and was sharing his count of regnal years, so that her reign was dated back to the year he took the throne. Around 1471 BCE she sent a trading expedition to Punt, a land on the Red Sea coast. She also put young Thutmose in charge of her armies, and he was ready to rule alone when she died around 1458 BCE. A woman holding a throne that custom reserved for men had to rely on its titles to justify her rule.",
+      "start_year": -1479,
+      "end_year": -1458,
+      "source_evidence": "Wikipedia: Hatshepsut; Thutmose III",
+      "secondary_entities": [
+        {
+          "entity_id": "289a2aa6-4d34-41af-8ac3-483e5606afb6",
+          "wikidata_id": "Q129234",
+          "name": "Hatshepsut",
+          "role": "participant"
+        },
+        {
+          "entity_id": "71ca5ae7-dca4-4ec6-ab34-a501a4e606d7",
+          "wikidata_id": "Q157899",
+          "name": "Thutmose III",
+          "role": "participant"
+        },
+        {
+          "entity_id": "a808d9db-c5fc-4c79-ac51-e14d2592b1d4",
+          "name": "Punt",
+          "role": "location"
+        },
+        {
+          "entity_id": "87f1e78a-6bd1-4604-8256-dcbfdd85c371",
+          "name": "New Kingdom of Egypt",
+          "role": "mentioned"
+        }
+      ]
+    },
+    {
+      "sequence_order": 7,
+      "narrative_text": "With Hatshepsut gone, Thutmose III ruled alone and rode out against a revolt of Canaanite rulers led by the king of Kadesh. The rebels gathered at Megiddo, a fortress that controlled the road between Egypt and Mesopotamia. At Yehem the generals begged him to take one of two safe routes. The third road was shorter but ran through a narrow ravine where the army could only pass single file. Thutmose took it, reasoning that his enemy would expect him not to. The Egyptians beat the Canaanites in the field, who fled into Megiddo and held out through a long siege. Megiddo is the first battle recorded in reasonably reliable detail, with the figures carved at Karnak; the Egyptian date is argued, with 1457 BCE the usual guess. Open its battle map to follow the ravine.",
+      "start_year": -1457,
+      "source_evidence": "Wikipedia: Battle of Megiddo (15th century BC); Thutmose III",
+      "secondary_entities": [
+        {
+          "entity_id": "130e767e-53f7-4bb7-a82b-5e88edcdd9a3",
+          "wikidata_id": "Q733364",
+          "name": "Battle of Megiddo",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "71ca5ae7-dca4-4ec6-ab34-a501a4e606d7",
+          "wikidata_id": "Q157899",
+          "name": "Thutmose III",
+          "role": "participant"
+        },
+        {
+          "entity_id": "fa206244-a9fc-40cb-8c16-5862fe209612",
+          "wikidata_id": "Q208379",
+          "name": "Megiddo",
+          "role": "location"
+        },
+        {
+          "entity_id": "76dc6183-4469-4581-b4d5-b29231b391a9",
+          "wikidata_id": "Q690035",
+          "name": "Kadesh",
+          "role": "participant"
+        },
+        {
+          "entity_id": "129d23ea-e0e7-4b75-98e4-38937d2bd82a",
+          "wikidata_id": "Q189392",
+          "name": "Karnak",
+          "role": "mentioned"
+        }
+      ]
+    },
+    {
+      "sequence_order": 8,
+      "narrative_text": "Crete's palaces did not last. A wave of disruption damaged many Minoan sites around 1450 BCE, and afterwards Knossos was run as a Mycenaean administrative centre. The new masters were Greek-speaking mainlanders from citadels such as Mycenae. They adapted the island's Linear A into Linear B, a script for writing Mycenaean Greek, and made it the language of the palace offices. The oldest known examples date to about 1450 BCE, and the script was deciphered only in 1952. Mycenae itself was at its height around 1350 BCE, when the citadel and lower town held perhaps 30,000 people. A fire is conventionally placed at Knossos around 1350 BCE, though the date of its final destruction is debated.",
+      "start_year": -1450,
+      "end_year": -1350,
+      "source_evidence": "Wikipedia: Knossos; Minoan civilization; Linear B; Mycenae",
+      "secondary_entities": [
+        {
+          "entity_id": "fee9db6d-3792-4f20-8de1-123699c9d04b",
+          "wikidata_id": "Q132564",
+          "name": "Mycenae",
+          "role": "participant"
+        },
+        {
+          "entity_id": "f78fd6da-485f-4ad9-bb09-eb6b27a1b98c",
+          "wikidata_id": "Q190102",
+          "name": "Linear B",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "a2e668fd-258b-474b-a3d7-77baca5fc85c",
+          "wikidata_id": "Q181264",
+          "name": "Mycenaean Greece",
+          "role": "participant"
+        },
+        {
+          "entity_id": "31971df9-f03c-4e27-9ca6-eb9aff905367",
+          "name": "Knossos palace",
+          "role": "location"
+        }
+      ]
+    },
+    {
+      "sequence_order": 9,
+      "narrative_text": "On the Syrian coast, the harbour kingdom of Ugarit traded with Egypt, Cyprus, the Aegean, the Hittites and the cities of Canaan. Its scribes pressed a wedge-shaped stylus into clay as Mesopotamians had always done. But they used only thirty signs, each standing for a consonant, instead of hundreds of syllables and word-signs. This alphabet appeared around 1400 or 1300 BCE and is the earliest evidence of an alphabet put to systematic, large-scale administrative use. Its abecedaries show the 'abc' letter order that later alphabets such as Greek and Latin still follow. Thirty signs were far fewer to learn than a syllabary, though the script itself would fade with Ugarit.",
+      "start_year": -1400,
+      "source_evidence": "Wikipedia: Ugarit; Ugaritic alphabet",
+      "secondary_entities": [
+        {
+          "entity_id": "5475f211-efb0-4f7e-805a-ab59dd691c5e",
+          "wikidata_id": "Q332652",
+          "name": "Ugaritic alphabet",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "7abf8944-ee86-493e-b10c-f902e987629c",
+          "wikidata_id": "Q191369",
+          "name": "Ugarit",
+          "role": "location"
+        },
+        {
+          "entity_id": "2668eeb5-139f-4dac-b9e2-9cd0707f3248",
+          "wikidata_id": "Q401",
+          "name": "Cuneiform",
+          "role": "mentioned"
+        }
+      ]
+    },
+    {
+      "sequence_order": 10,
+      "narrative_text": "In 1353 or 1351 BCE a king took Egypt's throne as Amenhotep IV, then renamed himself Akhenaten, which means effective for the Aten. The Aten was the sun disc, and he built a whole new capital for its worship, Akhetaten, today called Amarna. Its builders used small standard blocks of about 27 by 27 by 54 centimetres, lighter to carry and quicker to lay than the old huge ones. A pharaoh was a god-king, so a king who changed the gods changed the state itself. Akhenaten was all but lost to history until Amarna was rediscovered in the late 19th century.",
+      "start_year": -1351,
+      "end_year": -1334,
+      "source_evidence": "Wikipedia: Akhenaten",
+      "secondary_entities": [
+        {
+          "entity_id": "8d71a8ee-6bcd-4154-9fe3-9194fc1f5c76",
+          "wikidata_id": "Q81794",
+          "name": "Akhenaten",
+          "role": "participant"
+        },
+        {
+          "entity_id": "dfca01bc-e785-4173-a53d-06d0fb5713f5",
+          "wikidata_id": "Q5736",
+          "name": "Akhetaten",
+          "role": "location"
+        },
+        {
+          "entity_id": "705fedcb-73ab-4c72-89ac-50d8dea7d3cc",
+          "wikidata_id": "Q130227",
+          "name": "Aten",
+          "role": "mentioned"
+        }
+      ]
+    },
+    {
+      "sequence_order": 11,
+      "narrative_text": "In Akhenaten's capital, a Bureau of Correspondence of Pharaoh held clay tablets that were sold off after 1887: the Amarna letters. Of the 382 tablets and fragments, over 300 are diplomatic letters, and they are in Akkadian cuneiform, not Egyptian, because that was the common language of diplomacy. They come from Babylonia, Assyria, Mitanni, the Hittites, Alashiya and Egypt's vassals in Canaan. The great kings called one another brother. Tushratta of Mitanni complains that Akhenaten sent wooden statues plated with gold when his father had promised solid gold, and he insists that gold in Egypt is as plentiful as dust. Weddings sealed alliances. Tushratta's daughter Tadukhipa married first Amenhotep III and then Akhenaten.",
+      "start_year": -1350,
+      "source_evidence": "Wikipedia: Amarna letters; Akhenaten",
+      "secondary_entities": [
+        {
+          "entity_id": "8f4d994b-6c03-425c-8bc9-4fdea3fc0502",
+          "wikidata_id": "Q235502",
+          "name": "Amarna letters",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "8d71a8ee-6bcd-4154-9fe3-9194fc1f5c76",
+          "wikidata_id": "Q81794",
+          "name": "Akhenaten",
+          "role": "participant"
+        },
+        {
+          "entity_id": "8e1423eb-ba1e-4ec5-b8eb-928767551f94",
+          "wikidata_id": "Q317205",
+          "name": "Tushratta",
+          "role": "participant"
+        },
+        {
+          "entity_id": "307a677c-de6c-4cc6-b71b-d4c7b27b4f6d",
+          "wikidata_id": "Q42606",
+          "name": "Amenhotep III",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "b1b860f1-4525-4f16-a59b-6d9d975c9ddf",
+          "wikidata_id": "Q35518",
+          "name": "Akkadian language",
+          "role": "mentioned"
+        }
+      ]
+    },
+    {
+      "sequence_order": 12,
+      "narrative_text": "Off the south coast of Turkey, a ship loaded with goods went down around 1320 BCE. In 1982 a local sponge diver, Mehmed Cakir, spotted metal biscuits with ears on the seabed, which turned out to be copper ingots shaped like oxhides. Eleven summers of excavation, from 1984 to 1994, brought up ten tons of copper in 354 oxhide ingots, tin, at least 149 Canaanite jars, and about 175 glass ingots in cobalt blue, turquoise and lavender. In 2022 a third of the tin was traced to the Mushiston mine in Uzbekistan. Bronze needs both metals, and here tin crossed thousands of kilometres to meet copper. The kings who traded gifts as brothers depended on cargo like this, carried by ships that crossed borders.",
+      "start_year": -1320,
+      "source_evidence": "Wikipedia: Uluburun shipwreck; Bronze Age",
+      "secondary_entities": [
+        {
+          "entity_id": "1aa00b9a-314f-4b1f-8b1e-205bc6bef48d",
+          "wikidata_id": "Q573852",
+          "name": "Uluburun shipwreck",
+          "role": "participant"
+        },
+        {
+          "entity_id": "46678fe9-dcab-42c9-b197-519fc8c68aac",
+          "wikidata_id": "Q1737371",
+          "name": "Copper oxhide ingots",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "34d5ad40-f929-4a64-ba59-757f7ae36686",
+          "wikidata_id": "Q753",
+          "name": "Copper",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "4401ca22-4502-4495-945e-350f85a57540",
+          "wikidata_id": "Q1096",
+          "name": "Tin",
+          "role": "mentioned"
+        }
+      ]
+    },
+    {
+      "sequence_order": 13,
+      "narrative_text": "In May 1274 BCE Ramesses II marched out of Pi-Ramesses at the head of four divisions named for gods: Amun, Re, Set and Ptah. Near Kadesh two nomads told him the Hittite king was far away at Aleppo. They were Hittite spies, and Muwatalli II's army lay hidden behind the old city. The Hittite chariots crashed through the Re division and into the Egyptian camp, leaving Ramesses nearly alone with his bodyguard. He rallied, and the arrival of an Egyptian contingent from Amurru and the Ptah division turned the day. After six Hittite charges the survivors swam the Orontes, though the Hittites kept Kadesh. It is believed to be the largest chariot battle ever, with five to six thousand chariots, and its outcome is a stalemate. Open the battle map to follow the charges.",
+      "start_year": -1274,
+      "source_evidence": "Wikipedia: Battle of Kadesh; Ramesses II; Chariot",
+      "secondary_entities": [
+        {
+          "entity_id": "f978b06d-e7bc-4dbb-8a65-633924c41011",
+          "wikidata_id": "Q203729",
+          "name": "Battle of Kadesh",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "8f1c97f8-6501-424b-8829-bb4cfba30925",
+          "wikidata_id": "Q1523",
+          "name": "Ramesses II",
+          "role": "participant"
+        },
+        {
+          "entity_id": "ef8c174c-09f3-4122-a95d-965756ab26e0",
+          "wikidata_id": "Q311650",
+          "name": "Muwatalli II",
+          "role": "participant"
+        },
+        {
+          "entity_id": "76dc6183-4469-4581-b4d5-b29231b391a9",
+          "wikidata_id": "Q690035",
+          "name": "Kadesh",
+          "role": "location"
+        },
+        {
+          "entity_id": "447892a8-03de-415a-b3f8-a0e08ef6b981",
+          "wikidata_id": "Q937930",
+          "name": "Pi-Ramesses",
+          "role": "location"
+        }
+      ]
+    },
+    {
+      "sequence_order": 14,
+      "narrative_text": "Fifteen years after Kadesh, in the 21st year of Ramesses II's reign, around 1259 or 1258 BCE, the two empires made peace. The new Hittite king, Hattusili III, and the pharaoh each received a silver tablet from the other. The silver originals are lost, but the Egyptian version was carved in hieroglyphs on the walls of two temples at Thebes, and the Hittite version survives on clay tablets from the archives of Hattusa, found in 1906. It is among the oldest peace treaties that survive, and we have the text from both sides. It does not mention Kadesh at all. Two rival empires chose to trust each other's written word, and the pact held for about eighty years, until the Hittite empire fell.",
+      "start_year": -1258,
+      "source_evidence": "Wikipedia: Egyptian–Hittite peace treaty; Battle of Kadesh; Ramesses II",
+      "secondary_entities": [
+        {
+          "entity_id": "8f1c97f8-6501-424b-8829-bb4cfba30925",
+          "wikidata_id": "Q1523",
+          "name": "Ramesses II",
+          "role": "participant"
+        },
+        {
+          "entity_id": "42fafceb-4a53-46b7-ab06-7f0095a75490",
+          "wikidata_id": "Q297588",
+          "name": "Hattusili III",
+          "role": "participant"
+        },
+        {
+          "entity_id": "81d74ce6-371d-406d-8665-04bfb3c6ecf2",
+          "name": "Hattusa archive",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "63c41e41-bcb2-4e26-a624-01e64a8a935a",
+          "wikidata_id": "Q311581",
+          "name": "Ramesseum",
+          "role": "location"
+        },
+        {
+          "entity_id": "129d23ea-e0e7-4b75-98e4-38937d2bd82a",
+          "wikidata_id": "Q189392",
+          "name": "Karnak",
+          "role": "location"
+        }
+      ]
+    },
+    {
+      "sequence_order": 15,
+      "narrative_text": "On the far side of Asia, the Shang kings of the Yellow River valley asked their ancestors and gods about everything, and wrote down the questions. Diviners used ox shoulder blades and turtle undershells in a ritual called pyromancy, and carved the questions on them in the earliest known Chinese writing, oracle bone script. The practice belongs to the Late Shang, from about 1250 BCE, with the capital at Yin near Anyang. One of King Wu Ding's wives, Fu Hao, was both a general and a high priestess, and her tomb, found intact in 1976, held 468 bronzes, 130 of them weapons. The bones were forgotten until 1899, when villagers who had been grinding them up as dragon bones for medicine sold some to Wang Yirong, who recognised the writing.",
+      "start_year": -1250,
+      "end_year": -1150,
+      "source_evidence": "Wikipedia: Oracle bone; Shang dynasty; Fu Hao; Wu Ding; Yinxu",
+      "secondary_entities": [
+        {
+          "entity_id": "f52ed96e-a516-4aa0-96cb-16111d8872f6",
+          "wikidata_id": "Q283127",
+          "name": "Oracle bones",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "cb3c5e9b-cdae-40c3-9956-715c496ee9d4",
+          "wikidata_id": "Q128938",
+          "name": "Shang dynasty",
+          "role": "participant"
+        },
+        {
+          "entity_id": "81b2610e-d2a5-4c58-8bbf-1201f65558a6",
+          "wikidata_id": "Q369159",
+          "name": "Wu Ding",
+          "role": "participant"
+        },
+        {
+          "entity_id": "bab1e20c-9162-42d0-b205-fb8c70716c13",
+          "wikidata_id": "Q270018",
+          "name": "Fu Hao",
+          "role": "participant"
+        },
+        {
+          "entity_id": "0c58b37e-bf76-4874-a00a-7d6e72e58377",
+          "wikidata_id": "Q464904",
+          "name": "Yinxu",
+          "role": "location"
+        }
+      ]
+    },
+    {
+      "sequence_order": 16,
+      "narrative_text": "By 1200 BCE the Hittite Empire was already fragmenting under famine, plague and civil war. Hattusa, its capital, was ringed by massive walls first raised under Suppiluliuma I around 1344 to 1322 BCE, and it was destroyed along with the Hittite state around 1200 BCE, in the days of Suppiluliuma II, the last known Hittite king. The same years saw the palace economies of Mycenaean Greece and the Aegean break up into small village cultures. Palace economies depended on one another, and their web of trade tied them tight, so trouble in one place could spread. Scholars still argue about the causes, and about how widespread the destruction really was. In one critical review of a famous map of destroyed sites, about half of sixty supposed destructions turned out to be false.",
+      "start_year": -1200,
+      "source_evidence": "Wikipedia: Late Bronze Age collapse; Hattusa; Hittites",
+      "secondary_entities": [
+        {
+          "entity_id": "4b9bfbbb-36f5-4f7f-b8a8-327462bba6e2",
+          "wikidata_id": "Q181007",
+          "name": "Hattusa",
+          "role": "location"
+        },
+        {
+          "entity_id": "652b3f8a-a8ae-4d29-8e69-5fffc95fce68",
+          "name": "Hittite Empire",
+          "role": "participant"
+        },
+        {
+          "entity_id": "62612d73-3507-4143-829c-5d26bd655b9e",
+          "wikidata_id": "Q316078",
+          "name": "Suppiluliuma II",
+          "role": "participant"
+        },
+        {
+          "entity_id": "5bc5acbb-a076-4fab-b970-265a0657b17c",
+          "wikidata_id": "Q1059758",
+          "name": "Late Bronze Age collapse",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "a2e668fd-258b-474b-a3d7-77baca5fc85c",
+          "wikidata_id": "Q181264",
+          "name": "Mycenaean Greece",
+          "role": "mentioned"
+        }
+      ]
+    },
+    {
+      "sequence_order": 17,
+      "narrative_text": "Ugarit burned around 1185 BCE. Its last king, Ammurapi, had written to the king of Alashiya that the enemy's ships had come, that his cities were burned, and that his troops and chariots were far away in the Land of Hatti. The country, he said, was abandoned to itself. The Ugaritic alphabet did not outlast it and is thought to have fallen out of use around 1190 BCE. A kingdom that had grown rich on trade with Egypt, the Hittites and the Aegean was gone. Its letters, dug up from 1928 onward, record the moment when a connected world began to come apart.",
+      "start_year": -1185,
+      "source_evidence": "Wikipedia: Ugarit; Battle of the Delta; Ugaritic alphabet",
+      "secondary_entities": [
+        {
+          "entity_id": "7abf8944-ee86-493e-b10c-f902e987629c",
+          "wikidata_id": "Q191369",
+          "name": "Ugarit",
+          "role": "location"
+        },
+        {
+          "entity_id": "0b6644b5-d533-499a-a8f9-189c3cd7bf0a",
+          "wikidata_id": "Q11513",
+          "name": "Ammurapi",
+          "role": "participant"
+        },
+        {
+          "entity_id": "6166eb11-d8d2-4a00-97b3-7ed75f3c5ba6",
+          "wikidata_id": "Q51885901",
+          "name": "Destruction of Ugarit",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "b8d1f709-f766-4a6f-925e-c9c11d1bc11a",
+          "name": "Alasiya",
+          "role": "mentioned"
+        }
+      ]
+    },
+    {
+      "sequence_order": 18,
+      "narrative_text": "Around 1175 BCE the Egyptian pharaoh Ramesses III turned back a great invasion by sea at the eastern edge of the Nile Delta. The fight is carved on the walls of his mortuary temple at Medinet Habu. The reliefs show the invaders with women and children in ox carts, so many historians think they were migrants seeking a place to settle. The modern idea of the Sea Peoples dates to the 19th century. Some had been in Egyptian service before: the Sherden fought for Ramesses II at Kadesh. Since the 1990s, scholars have questioned how far one band of raiders explains the collapse.",
+      "start_year": -1175,
+      "source_evidence": "Wikipedia: Battle of the Delta; Sea Peoples; Battle of Kadesh; Medinet Habu",
+      "secondary_entities": [
+        {
+          "entity_id": "0320db6c-3e6b-47c5-b894-370ad11de3fd",
+          "wikidata_id": "Q1036947",
+          "name": "Battle of the Delta",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "20eb0d0c-03bc-43e8-95a0-ac74dd517390",
+          "wikidata_id": "Q1528",
+          "name": "Ramesses III",
+          "role": "participant"
+        },
+        {
+          "entity_id": "425a0fe5-d98e-4d38-8b14-3a5edec6480c",
+          "wikidata_id": "Q193850",
+          "name": "Sea Peoples",
+          "role": "participant"
+        },
+        {
+          "entity_id": "5bc5acbb-a076-4fab-b970-265a0657b17c",
+          "wikidata_id": "Q1059758",
+          "name": "Late Bronze Age collapse",
+          "role": "mentioned"
+        }
+      ]
+    },
+    {
+      "sequence_order": 19,
+      "narrative_text": "In 1158 BCE the Elamite king Shutruk-Nakhunte raided Babylon and carried off many of its stone monuments, and he had the old inscriptions on some of them rubbed out and his own carved in their place. The Kassite dynasty's long rule over Babylon ended soon after. Hammurabi's stele was also hauled off to Susa, about six centuries after it was carved, and it lay there until French archaeologists dug up its pieces in 1901. The imagined order outlived the great kings, but the world of palaces and chariots had gone. Out of the wreckage came smaller kingdoms, and ironworking spread slowly across the region. That is the next chapter.",
+      "start_year": -1158,
+      "end_year": -1150,
+      "source_evidence": "Wikipedia: Hammurabi; Code of Hammurabi; Old Babylonian Empire; Late Bronze Age collapse",
+      "secondary_entities": [
+        {
+          "entity_id": "9203b7b6-5f6a-4c86-ab20-2d264d516756",
+          "wikidata_id": "Q392729",
+          "name": "Shutruk-Nahhunte",
+          "role": "participant"
+        },
+        {
+          "entity_id": "26d31196-a293-4223-a45b-92ace906593f",
+          "wikidata_id": "Q93304",
+          "name": "Code of Hammurabi",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "1ca85b20-db0b-47fd-9a04-38aaa6f44c95",
+          "wikidata_id": "Q180773",
+          "name": "Susa",
+          "role": "location"
+        },
+        {
+          "entity_id": "522e028d-250e-4350-bdc5-a6ea38afb2fc",
+          "wikidata_id": "Q5684",
+          "name": "Babylon",
+          "role": "location"
+        },
+        {
+          "entity_id": "b0402a29-e8b4-4065-97e1-5d0f87fd7a8a",
+          "wikidata_id": "Q9252262",
+          "name": "Elamites",
+          "role": "participant"
+        }
+      ]
+    }
+  ]
+}

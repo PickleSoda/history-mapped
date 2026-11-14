@@ -1,0 +1,808 @@
+{
+  "title": "Caliphs, Khans and Crusaders",
+  "slug": "the-human-story-07-caliphs-khans-and-crusaders",
+  "source_type": "article",
+  "source_reference": "The Human Story, chapter 7: an overview written for History Mapped. Facts checked against English Wikipedia; themes after Yuval Noah Harari, Sapiens: A Brief History of Humankind (2011).",
+  "status": "draft",
+  "start_year": 800,
+  "end_year": 1350,
+  "tags": [
+    "medieval",
+    "middle-east",
+    "central-asia",
+    "china",
+    "europe",
+    "west-africa",
+    "trade",
+    "war",
+    "empires-states",
+    "science",
+    "disease",
+    "silk-roads",
+    "religion",
+    "diplomacy-law"
+  ],
+  "metadata": {
+    "series": "the-human-story",
+    "chapter": 7,
+    "lens": "Trade, faith and conquest knit Eurasia into one network, carrying paper, powder and ideas, and then plague."
+  },
+  "entries": [
+    {
+      "sequence_order": 0,
+      "narrative_text": "In the year 800 one of the great cities of the world was not in Europe at all. Baghdad had been laid out in 762 by the caliph al-Mansur, whose Abbasid dynasty had just pushed aside the Umayyads, and in time it would be one of only three cities, with Kaifeng and Hangzhou, credited with more than a million people between 1000 and 1200. Its rulers collected taxes, but they also collected books. A library gathered for Harun al-Rashid, or perhaps earlier for al-Mansur, since accounts differ, would grow into the House of Wisdom. This chapter follows what happens when a vast, mixed world is knitted together by trade, faith and conquest, and Baghdad is where the knitting starts with ideas.",
+      "start_year": 800,
+      "end_year": 830,
+      "source_evidence": "Wikipedia: Baghdad; House of Wisdom; Siege of Baghdad",
+      "secondary_entities": [
+        {
+          "entity_id": "8759387f-260f-44f4-a996-11e345bd9e6a",
+          "wikidata_id": "Q1530",
+          "name": "Baghdad",
+          "role": "location"
+        },
+        {
+          "entity_id": "4723bac0-b5d8-437a-8cb0-931c1a6b6042",
+          "wikidata_id": "Q12536",
+          "name": "Abbasid Caliphate",
+          "role": "participant"
+        },
+        {
+          "entity_id": "0035ed18-c79d-453f-b8a9-197dcec2c6f4",
+          "wikidata_id": "Q33018",
+          "name": "House of Wisdom",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "cd1f55c7-8139-46b5-8406-b5ec896947d1",
+          "wikidata_id": "Q131002",
+          "name": "Harun al-Rashid",
+          "role": "mentioned"
+        }
+      ]
+    },
+    {
+      "sequence_order": 1,
+      "narrative_text": "Under the caliph al-Ma'mun, money for scholarship rose sharply, and Baghdad filled with translators. Hunayn ibn Ishaq, a Christian physician, rendered 116 works into Arabic. Around 820 a mathematician named al-Khwarizmi became astronomer and head of the library at the House of Wisdom, and wrote a handbook on balancing equations, al-Jabr, the first systematic solution of linear and quadratic ones. Another of his books carried Indian numerals into the Arabic world. Centuries later its Latin version gave Europe the word algorithm, and al-Jabr gave it algebra. A caliph's court had turned curiosity into a public good, and the habit of counting in tens and zeros began its long walk west.",
+      "start_year": 813,
+      "end_year": 833,
+      "source_evidence": "Wikipedia: House of Wisdom; Al-Khwarizmi; Hunayn ibn Ishaq",
+      "secondary_entities": [
+        {
+          "entity_id": "4cd07e37-374c-41b0-a261-776240d0870f",
+          "wikidata_id": "Q9038",
+          "name": "Al-Khwarizmi",
+          "role": "participant"
+        },
+        {
+          "entity_id": "e0d659d4-9d92-43b1-9341-999cd0bab5ae",
+          "wikidata_id": "Q61056",
+          "name": "al-Ma'mun",
+          "role": "participant"
+        },
+        {
+          "entity_id": "0035ed18-c79d-453f-b8a9-197dcec2c6f4",
+          "wikidata_id": "Q33018",
+          "name": "House of Wisdom",
+          "role": "location"
+        },
+        {
+          "entity_id": "a93e37dc-9e8e-4786-aea9-8776298538b4",
+          "wikidata_id": "Q8369",
+          "name": "Al-Jabr",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "ae7f9610-cf95-4bae-a027-dcbfe44c35e0",
+          "wikidata_id": "Q29961325",
+          "name": "Hindu-Arabic numerals",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "66c5028c-b8a9-48c9-8a9a-b5e1afe99170",
+          "wikidata_id": "Q503130",
+          "name": "Hunayn ibn Ishaq",
+          "role": "mentioned"
+        }
+      ]
+    },
+    {
+      "sequence_order": 2,
+      "narrative_text": "While Baghdad counted, northern seafarers were rowing outward. The Viking Age, roughly 800 to 1050, saw Norse raiders, traders and settlers push across Europe and the North Atlantic. At the northern tip of Newfoundland, archaeologists found eight sod-and-timber buildings, hundreds of Norse objects and traces of iron working at L'Anse aux Meadows. Carbon dating puts it around the year 1000, and tree rings point to 1021. It is the one undisputed Norse site in the Americas outside Greenland, and thirteenth-century sagas may remember its founders, among them Leif Erikson. Helge and Anne Ingstad dug it out in the 1960s. The Norse had crossed an ocean, on a shore the Dorset people had occupied some three centuries before them.",
+      "start_year": 1000,
+      "end_year": 1021,
+      "source_evidence": "Wikipedia: Viking Age; Vikings; L'Anse aux Meadows",
+      "secondary_entities": [
+        {
+          "entity_id": "32a33675-a557-4bea-9b41-d653b33326ef",
+          "wikidata_id": "Q189113",
+          "name": "L'Anse aux Meadows",
+          "role": "location"
+        },
+        {
+          "entity_id": "2433d4a4-9a46-405a-8c7e-fb0b62d281f1",
+          "wikidata_id": "Q12567",
+          "name": "Vikings",
+          "role": "participant"
+        },
+        {
+          "entity_id": "46cb561d-b680-47ca-939a-258c61b386b2",
+          "wikidata_id": "Q42838",
+          "name": "Leif Erikson",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "c550e1d2-2ae7-4633-b2eb-9d4370bc32e9",
+          "wikidata_id": "Q1424005",
+          "name": "Saga of the Greenlanders",
+          "role": "mentioned"
+        }
+      ]
+    },
+    {
+      "sequence_order": 3,
+      "narrative_text": "In Chengdu, the capital of Sichuan, merchants had begun trading promissory notes in place of coin. When several of the merchant houses went bankrupt, the Song government took the business over, opening an office for it in 1023 and issuing the first standard official notes the next year. These notes, the jiaozi, are what numismatists call the first paper money. The state soon found the same temptation every treasury finds: print more. Inflation followed, and in 1105 the emperor swapped the jiaozi for a new note. Harari uses money as his prime example of a shared fiction, and paper worth something only because strangers agree it is makes his point plainly.",
+      "start_year": 1024,
+      "end_year": 1024,
+      "source_evidence": "Wikipedia: Jiaozi (currency); Song dynasty",
+      "secondary_entities": [
+        {
+          "entity_id": "6181c816-64a0-4d97-ae2a-0cf235c4ae92",
+          "wikidata_id": "Q953729",
+          "name": "Jiaozi",
+          "role": "participant"
+        },
+        {
+          "entity_id": "44e8934c-5346-453d-b4e9-fd72ae477e5e",
+          "wikidata_id": "Q30002",
+          "name": "Chengdu",
+          "role": "location"
+        },
+        {
+          "entity_id": "110d5050-c013-421f-a993-e7f121d75ce5",
+          "wikidata_id": "Q7462",
+          "name": "Song China",
+          "role": "participant"
+        }
+      ]
+    },
+    {
+      "sequence_order": 4,
+      "narrative_text": "In the early 1040s a Song court official, Zeng Gongliang, compiled a military manual, the Wujing Zongyao. Among its pages is the earliest known chemical formula for gunpowder, a mixture first stirred up by Daoist alchemists who were chasing medicines. Soldiers had used it in fire arrows since at least the tenth century, and a first recorded military use dates to 904. Yet there is little sign that it changed how Song wars were fought for a while, and the recipe mostly sat in print, waiting. Powder was a secret that spread slowly along the same roads as paper and silk.",
+      "start_year": 1040,
+      "end_year": 1044,
+      "source_evidence": "Wikipedia: Gunpowder; Wujing Zongyao",
+      "secondary_entities": [
+        {
+          "entity_id": "1feba448-c1c2-4251-9e54-62397f0c8245",
+          "wikidata_id": "Q44973",
+          "name": "Wujing Zongyao",
+          "role": "participant"
+        },
+        {
+          "entity_id": "41bcf9d5-7bb1-4cf7-83cb-3bc803954f57",
+          "wikidata_id": "Q12861",
+          "name": "Gunpowder",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "110d5050-c013-421f-a993-e7f121d75ce5",
+          "wikidata_id": "Q7462",
+          "name": "Song China",
+          "role": "location"
+        }
+      ]
+    },
+    {
+      "sequence_order": 5,
+      "narrative_text": "Song printers were mostly carving whole pages into wooden blocks. A commoner named Bi Sheng had a different idea. According to the polymath Shen Kuo, who recorded it in his Dream Pool Essays, Bi cut each Chinese character on its own small tile of fired clay, so the same tiles could be set into page after page and then taken apart. The scholar-official Shen is our only witness. The method spread only slowly: wooden and later metal type followed, and a Korean book printed with metal type survives from 1377. Around 1450 Gutenberg would set the technique going in Europe. In China, thousands of characters made carved blocks hard to beat.",
+      "start_year": 1041,
+      "end_year": 1048,
+      "source_evidence": "Wikipedia: Movable type; Bi Sheng; Song dynasty",
+      "secondary_entities": [
+        {
+          "entity_id": "2454d2a7-4fbc-4826-a773-fbdba619fc7e",
+          "wikidata_id": "Q200662",
+          "name": "Bi Sheng",
+          "role": "participant"
+        },
+        {
+          "entity_id": "d5da8572-d0ef-4531-bf0d-3cee81547555",
+          "wikidata_id": "Q426853",
+          "name": "Movable type",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "ea4a8b17-4b84-4a5e-8c60-c2850a6c5501",
+          "wikidata_id": "Q270085",
+          "name": "Shen Kuo",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "f3d57a19-2bf6-4419-b5e4-91c5d048870c",
+          "wikidata_id": "Q1069875",
+          "name": "Dream Pool Essays",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "1ae8e019-cd33-4fb1-98a0-851b27a23ed7",
+          "wikidata_id": "Q208471",
+          "name": "Kaifeng",
+          "role": "location"
+        }
+      ]
+    },
+    {
+      "sequence_order": 6,
+      "narrative_text": "On 26 August 1071, near Manzikert in eastern Anatolia, the Byzantine emperor Romanos IV Diogenes met the Seljuk sultan Alp Arslan. Romanos had spent three years campaigning against the Seljuks and Turkish raiders, with a frontier army weakened when Constantine IX disbanded the 50,000-strong Iberian Army around 1053. The Seljuks won. Romanos was taken prisoner, the only time a Byzantine emperor was captured by a Muslim commander. Historians no longer call the day a complete catastrophe, but it opened Anatolia to Turkish settlers: by 1080 the Seljuks had gained some 78,000 square kilometres. It took three decades of internal strife before Alexios I, who took the throne in 1081, steadied the empire, and he would soon need friends.",
+      "start_year": 1071,
+      "end_year": 1071,
+      "source_evidence": "Wikipedia: Battle of Manzikert; Romanos IV Diogenes; Alp Arslan",
+      "secondary_entities": [
+        {
+          "entity_id": "9f0fea57-8042-4b46-b3c4-e64894c76e86",
+          "wikidata_id": "Q200032",
+          "name": "Battle of Manzikert",
+          "role": "participant"
+        },
+        {
+          "entity_id": "a19d77f8-cc09-4677-84ad-e706019c0509",
+          "wikidata_id": "Q41834",
+          "name": "Romanos IV Diogenes",
+          "role": "participant"
+        },
+        {
+          "entity_id": "7bab6532-d51d-4b52-9f14-82ba6ff5b4df",
+          "wikidata_id": "Q200193",
+          "name": "Alp Arslan",
+          "role": "participant"
+        },
+        {
+          "entity_id": "3915b6ec-3021-49b5-9bb8-324ab71b0d64",
+          "wikidata_id": "Q12544",
+          "name": "Byzantine Empire",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "86711f3f-42fe-4f12-ae7a-dcaeec2a77dc",
+          "wikidata_id": "Q3708094",
+          "name": "Seljuk Empire",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "5769357c-5e3d-4bd1-bd54-8149debfc09d",
+          "wikidata_id": "Q51614",
+          "name": "Anatolia",
+          "role": "location"
+        }
+      ]
+    },
+    {
+      "sequence_order": 7,
+      "narrative_text": "Alexios sent ambassadors in 1095 to a church council at Piacenza, asking the Latin West for soldiers against the Turks. What came back was larger and stranger than a few mercenary companies. Western leaders, urged on by the Church, took the cross and marched east in the First Crusade, a religious war whose aim was to return the Holy Land to Christian rule. After ragged bands were wiped out in Anatolia in 1096, the great princes and their followers reached Constantinople. They took Nicaea in 1097 and Antioch in June 1098. A request for help had become an invasion with its own purposes, and the stories that bound these armies together were about faith, not about the emperor who asked.",
+      "start_year": 1095,
+      "end_year": 1098,
+      "source_evidence": "Wikipedia: First Crusade; Council of Piacenza; Siege of Antioch",
+      "secondary_entities": [
+        {
+          "entity_id": "f3eda5e7-9bd1-435b-a7a1-cf3edfa2211c",
+          "wikidata_id": "Q51649",
+          "name": "First Crusade",
+          "role": "participant"
+        },
+        {
+          "entity_id": "647bed9b-cb06-4147-941e-6439e51d39d9",
+          "wikidata_id": "Q1999788",
+          "name": "Council of Piacenza",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "75a35d57-4117-497d-8669-e53b88c1ad7a",
+          "wikidata_id": "Q41600",
+          "name": "Alexios I Komnenos",
+          "role": "participant"
+        },
+        {
+          "entity_id": "9c5e2d5a-dd42-4ad6-a845-bf57ab08236a",
+          "wikidata_id": "Q741098",
+          "name": "Siege of Antioch",
+          "role": "location"
+        },
+        {
+          "entity_id": "4d128085-8618-4481-9ef6-b54263404b3b",
+          "wikidata_id": "Q16869",
+          "name": "Constantinople",
+          "role": "location"
+        }
+      ]
+    },
+    {
+      "sequence_order": 8,
+      "narrative_text": "In June 1099 the crusaders reached Jerusalem, then ruled by the Fatimids. On 15 July they stormed the walls, and in the fighting a large share of the city's inhabitants were massacred. The conquerors founded the Kingdom of Jerusalem, and for almost two centuries some crusader presence would remain on the Levantine coast, until the last great stronghold, Acre, fell in 1291. The holy city was a prize for three faiths, and every side held a different story about who it belonged to. The kingdom would last as long as its rivals stayed divided.",
+      "start_year": 1099,
+      "end_year": 1099,
+      "source_evidence": "Wikipedia: First Crusade; Siege of Jerusalem (1099); Kingdom of Jerusalem",
+      "secondary_entities": [
+        {
+          "entity_id": "19af9fa1-7eea-420b-a384-3262ad3a5810",
+          "wikidata_id": "Q456993",
+          "name": "Siege of Jerusalem (1099)",
+          "role": "participant"
+        },
+        {
+          "entity_id": "99813013-0a22-4c15-b4ea-5968a5aa5ec3",
+          "wikidata_id": "Q1218",
+          "name": "Jerusalem",
+          "role": "location"
+        },
+        {
+          "entity_id": "43aa9f8f-5e8d-4ebd-8d7d-8b324e3b879f",
+          "wikidata_id": "Q55502",
+          "name": "Kingdom of Jerusalem",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "37a52557-ce13-4780-a704-194797306263",
+          "wikidata_id": "Q160307",
+          "name": "Fatimid Caliphate",
+          "role": "mentioned"
+        }
+      ]
+    },
+    {
+      "sequence_order": 9,
+      "narrative_text": "A young commander named Saladin was sent to Egypt in 1164 with his uncle Shirkuh, and after Shirkuh's death in 1169 the Fatimid caliph made him vizier. He used the post to dismantle his masters: when the last Fatimid caliph died in 1171 he abolished the Cairo-based caliphate and brought Egypt back under the Sunni Abbasids in Baghdad. Then he moved north, taking Damascus in 1174 and Aleppo by 1183. The Abbasid caliph proclaimed him sultan of Egypt and Syria. The lands around the crusader kingdom now answered largely to one man.",
+      "start_year": 1169,
+      "end_year": 1183,
+      "source_evidence": "Wikipedia: Saladin; Fatimid Caliphate",
+      "secondary_entities": [
+        {
+          "entity_id": "89e611ee-ff42-4282-b761-2c2995de4989",
+          "wikidata_id": "Q8581",
+          "name": "Saladin",
+          "role": "participant"
+        },
+        {
+          "entity_id": "c05b0131-7f74-4aaf-a660-54b4a0a84769",
+          "wikidata_id": "Q180114",
+          "name": "Ayyubid dynasty",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "37a52557-ce13-4780-a704-194797306263",
+          "wikidata_id": "Q160307",
+          "name": "Fatimid Caliphate",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "4723bac0-b5d8-437a-8cb0-931c1a6b6042",
+          "wikidata_id": "Q12536",
+          "name": "Abbasid Caliphate",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "fdf829a7-9810-479b-8aea-ef48afb06d62",
+          "wikidata_id": "Q85",
+          "name": "Cairo",
+          "role": "location"
+        }
+      ]
+    },
+    {
+      "sequence_order": 10,
+      "narrative_text": "On 4 July 1187 Saladin's army met the crusader levy of Guy of Lusignan near Hattin. The kingdom had been strained by quarrels at court. Raynald of Chatillon had raided a Muslim caravan in violation of a truce, and the Templars had lost many of their knights at Cresson that May. The Franks came under fire from mounted archers who had been resupplied overnight with 400 loads of arrows. Guy was captured and taken to Damascus, and about two hundred Templar and Hospitaller knights were executed on Saladin's orders; only around two hundred knights escaped. The crusader kingdom had lost its field army, and Jerusalem fell to Saladin later that year.",
+      "start_year": 1187,
+      "end_year": 1187,
+      "source_evidence": "Wikipedia: Battle of Hattin; Saladin; Guy of Lusignan",
+      "secondary_entities": [
+        {
+          "entity_id": "f1d73de7-0e38-4ca5-b517-17a13fc37f15",
+          "wikidata_id": "Q233568",
+          "name": "Battle of Hattin",
+          "role": "participant"
+        },
+        {
+          "entity_id": "89e611ee-ff42-4282-b761-2c2995de4989",
+          "wikidata_id": "Q8581",
+          "name": "Saladin",
+          "role": "participant"
+        },
+        {
+          "entity_id": "d7b4618c-ce3f-441e-86b0-7c1a19ef1adb",
+          "wikidata_id": "Q294192",
+          "name": "Guy of Lusignan",
+          "role": "participant"
+        },
+        {
+          "entity_id": "43aa9f8f-5e8d-4ebd-8d7d-8b324e3b879f",
+          "wikidata_id": "Q55502",
+          "name": "Kingdom of Jerusalem",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "152c784a-8868-4971-a665-6e5ba208723f",
+          "wikidata_id": "Q815161",
+          "name": "Capture of Jerusalem",
+          "role": "outcome"
+        }
+      ]
+    },
+    {
+      "sequence_order": 11,
+      "narrative_text": "The man who would shake all this was born with the name Temujin on the steppe, in a year historians cannot fix: 1155, 1162 and 1167 are all proposed. He was beaten around 1187, vanished for years, and came back in 1196 to start winning. After he beat his old patron Toghrul in 1203, he promoted men of low birth such as Jelme and Subutai, sons of blacksmiths, and at the great assembly of 1206 swelled his guard from 1,150 to 10,000 men and took the title Genghis Khan. The nomadic tribes of Mongolia now belonged to one story, and that story had a plan to expand.",
+      "start_year": 1206,
+      "end_year": 1206,
+      "source_evidence": "Wikipedia: Genghis Khan; Mongol Empire; Pax Mongolica",
+      "secondary_entities": [
+        {
+          "entity_id": "361e9511-b511-4470-9e26-5fc71de54b87",
+          "wikidata_id": "Q720",
+          "name": "Genghis Khan",
+          "role": "participant"
+        },
+        {
+          "entity_id": "fa91b376-e30c-4649-a6a9-0f75ed29236d",
+          "wikidata_id": "Q12557",
+          "name": "Mongol Empire",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "206e39ad-65cb-4ed7-9703-a83c19b57b2b",
+          "wikidata_id": "Q5066",
+          "name": "Jurchen Jin dynasty",
+          "role": "mentioned"
+        }
+      ]
+    },
+    {
+      "sequence_order": 12,
+      "narrative_text": "The Mongol armies then went further than any steppe power before them. They forced the Western Xia to terms in 1210 and took the Jin capital, Zhongdu, in 1215. In 1218 Jebe brought Qara Khitai into the empire, and by 1221 the Khwarazmian Empire had been beaten. Genghis died in 1227 while fighting Western Xia, but conquest outlived him. Batu and Subutai began the conquest of Rus in 1237, and in 1241 their armies entered Poland and Hungary. Russians and Arabs remember Genghis as a savage tyrant, though Western scholars have lately reassessed him. A sprawling land empire also meant the roads between East and West were, for a time, under a single authority.",
+      "start_year": 1209,
+      "end_year": 1241,
+      "source_evidence": "Wikipedia: Genghis Khan; Pax Mongolica; Mongol Empire",
+      "secondary_entities": [
+        {
+          "entity_id": "fa91b376-e30c-4649-a6a9-0f75ed29236d",
+          "wikidata_id": "Q12557",
+          "name": "Mongol Empire",
+          "role": "participant"
+        },
+        {
+          "entity_id": "72b8e4d5-c426-449d-bb24-3981219bb721",
+          "wikidata_id": "Q63134381",
+          "name": "Khwarazmian Empire",
+          "role": "participant"
+        },
+        {
+          "entity_id": "206e39ad-65cb-4ed7-9703-a83c19b57b2b",
+          "wikidata_id": "Q5066",
+          "name": "Jurchen Jin dynasty",
+          "role": "participant"
+        },
+        {
+          "entity_id": "f57459da-7a64-4b9f-9fa5-bf7cf69d634b",
+          "wikidata_id": "Q162217",
+          "name": "Subutai",
+          "role": "participant"
+        },
+        {
+          "entity_id": "1d7aacec-87e7-4222-957a-de5ca3170147",
+          "wikidata_id": "Q1346632",
+          "name": "Jebe",
+          "role": "participant"
+        },
+        {
+          "entity_id": "0c16d6af-d21f-495c-a5b3-de8c12d0c681",
+          "wikidata_id": "Q1108445",
+          "name": "Kievan Rus",
+          "role": "location"
+        }
+      ]
+    },
+    {
+      "sequence_order": 13,
+      "narrative_text": "On 15 June 1215 an English king sat in a meadow at Runnymede and put his seal on a charter. King John was in conflict with his barons, and Magna Carta was written to bind him. Historians remind us that the document was about the king's relations with his barons, not about the rights of ordinary subjects, and that it was reissued in 1216, 1225 and 1297, when Edward I confirmed it as statute law. Most of it has since been repealed, yet it became an icon. Here was another kind of imagined order: not a conqueror's command but a written promise that even a ruler must keep.",
+      "start_year": 1215,
+      "end_year": 1215,
+      "source_evidence": "Wikipedia: Magna Carta",
+      "secondary_entities": [
+        {
+          "entity_id": "3c8d701f-fe16-4239-b4c4-83e7d638c308",
+          "wikidata_id": "Q12519",
+          "name": "Magna Carta",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "a205090f-93d3-42c6-9178-ffea95c783d1",
+          "wikidata_id": "Q129308",
+          "name": "King John of England",
+          "role": "participant"
+        },
+        {
+          "entity_id": "e3dc51e0-97f4-42c4-91f3-9f929cc76652",
+          "wikidata_id": "Q9324032",
+          "name": "Runnymede",
+          "role": "location"
+        }
+      ]
+    },
+    {
+      "sequence_order": 14,
+      "narrative_text": "Hulagu, a grandson of Genghis, was sent west by his brother Möngke to secure Persia. His army, reported at over 138,000 men, overpowered the Assassin strongholds in 1256, and then he turned to Baghdad. The caliph al-Musta'sim, he judged, had failed to send help and had been arrogant in negotiations. On 17 January 1258 the Mongols routed a sortie by flooding their opponents' camp, and on 13 February they entered the city and spent a week in pillage and destruction. The House of Wisdom was destroyed that year, and the Abbasid caliphate, five centuries old, was finished. A city of books and scholars had met an empire that valued speed over memory.",
+      "start_year": 1258,
+      "end_year": 1258,
+      "source_evidence": "Wikipedia: Siege of Baghdad; House of Wisdom; Battle of Ain Jalut",
+      "secondary_entities": [
+        {
+          "entity_id": "5a76f440-5099-4abb-afeb-79c36ded9bd1",
+          "wikidata_id": "Q369560",
+          "name": "Siege of Baghdad (1258)",
+          "role": "participant"
+        },
+        {
+          "entity_id": "e5f7efcd-b716-43c4-a05e-b453da98b985",
+          "name": "Hulagu Khan",
+          "role": "participant"
+        },
+        {
+          "entity_id": "22978d27-bfdb-4575-994b-d1f0bed5ae7e",
+          "wikidata_id": "Q293454",
+          "name": "al-Musta'sim",
+          "role": "participant"
+        },
+        {
+          "entity_id": "8759387f-260f-44f4-a996-11e345bd9e6a",
+          "wikidata_id": "Q1530",
+          "name": "Baghdad",
+          "role": "location"
+        },
+        {
+          "entity_id": "0035ed18-c79d-453f-b8a9-197dcec2c6f4",
+          "wikidata_id": "Q33018",
+          "name": "House of Wisdom",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "4723bac0-b5d8-437a-8cb0-931c1a6b6042",
+          "wikidata_id": "Q12536",
+          "name": "Abbasid Caliphate",
+          "role": "outcome"
+        }
+      ]
+    },
+    {
+      "sequence_order": 15,
+      "narrative_text": "After Baghdad and Damascus, Hulagu sent envoys to Qutuz, the Mamluk ruler in Cairo, demanding his surrender. Qutuz gathered a large army and marched out on 26 July 1260. The Mamluks had ruled Egypt since 1250. On 3 September they met an Ilkhanate force, which included Georgian and Armenian troops from kingdoms that had submitted, at the spring of Ain Jalut in the Jezreel Valley. The Mamluks won. It is cited as the first time the Mongols were permanently stopped in their expansion, and Baibars and his successors went on to take the last crusader states by 1291. Egypt was spared.",
+      "start_year": 1260,
+      "end_year": 1260,
+      "source_evidence": "Wikipedia: Battle of Ain Jalut",
+      "secondary_entities": [
+        {
+          "entity_id": "182f1041-4cd1-4467-95df-87aa42fc681c",
+          "wikidata_id": "Q244356",
+          "name": "Battle of Ain Jalut",
+          "role": "participant"
+        },
+        {
+          "entity_id": "c99b58a7-cab4-440b-a17e-ebcc364cebec",
+          "wikidata_id": "Q336471",
+          "name": "Qutuz",
+          "role": "participant"
+        },
+        {
+          "entity_id": "20598833-6a48-4f55-a721-1d0526c49640",
+          "wikidata_id": "Q192960",
+          "name": "Baibars",
+          "role": "participant"
+        },
+        {
+          "entity_id": "79953c6d-5203-4db6-96e3-037f34f07700",
+          "wikidata_id": "Q282428",
+          "name": "Mamluk Sultanate",
+          "role": "participant"
+        },
+        {
+          "entity_id": "047561c3-dc2c-4fc4-9b2e-89d1ce065ac3",
+          "wikidata_id": "Q178084",
+          "name": "Ilkhanate",
+          "role": "participant"
+        }
+      ]
+    },
+    {
+      "sequence_order": 16,
+      "narrative_text": "By 1260 the empire had split into rival claims, and Kublai Khan, who had won a civil war against his brother by 1264, found his power limited to the east, centred on China. In 1271 he gave his realm the Chinese dynastic name Great Yuan. The Southern Song held out until the naval defeat at Yamen in 1279. Kublai thus became the first non-Han ruler of all of China proper. The great Mongol Empire, though, was fragmenting: by his death in 1294 it was four separate khanates. A single conquering family had created, then lost, a single government, but the roads it had opened stayed in use.",
+      "start_year": 1271,
+      "end_year": 1279,
+      "source_evidence": "Wikipedia: Kublai Khan; Mongol Empire; Song dynasty",
+      "secondary_entities": [
+        {
+          "entity_id": "95ceb0b0-7899-47f7-9885-acbde1e98119",
+          "wikidata_id": "Q7523",
+          "name": "Kublai Khan",
+          "role": "participant"
+        },
+        {
+          "entity_id": "9350cffb-500c-47f3-a0ed-82e22c85a895",
+          "wikidata_id": "Q7313",
+          "name": "Yuan dynasty",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "c9e6a579-1823-4c46-a30d-b8d2a0c5a163",
+          "wikidata_id": "Q1078359",
+          "name": "Battle of Yamen",
+          "role": "participant"
+        },
+        {
+          "entity_id": "110d5050-c013-421f-a993-e7f121d75ce5",
+          "wikidata_id": "Q7462",
+          "name": "Song China",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "fa91b376-e30c-4649-a6a9-0f75ed29236d",
+          "wikidata_id": "Q12557",
+          "name": "Mongol Empire",
+          "role": "mentioned"
+        }
+      ]
+    },
+    {
+      "sequence_order": 17,
+      "narrative_text": "Marco Polo was still in his teens when his father Niccolo, a Venetian merchant, took him east in 1271. They travelled the Silk Road for about twenty-four years. Returning home around 1295, Marco's book, The Travels, written around 1300, gave Europeans their first broad look at Persia, India and China under the Yuan. Around 1291 the Polos escorted the Mongol princess Kokochin to Persia, arriving about 1293. Readers argued about the book for centuries, and its nickname, Il Milione, may come from tales of Kublai's wealth. Historians call the stability of this age the Mongol Peace, a phrase they borrowed from Rome. For a few decades a Venetian could cross Eurasia.",
+      "start_year": 1271,
+      "end_year": 1295,
+      "source_evidence": "Wikipedia: Marco Polo; Pax Mongolica; Kublai Khan",
+      "secondary_entities": [
+        {
+          "entity_id": "bcc69573-cb71-4f8a-9b30-7698fdffa4d5",
+          "wikidata_id": "Q6101",
+          "name": "Marco Polo",
+          "role": "participant"
+        },
+        {
+          "entity_id": "c844344b-dfb8-46f9-8b33-941671bfd78e",
+          "wikidata_id": "Q654562",
+          "name": "The Travels of Marco Polo",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "ed21146c-ba46-4866-9a67-ca75dd8879f8",
+          "wikidata_id": "Q641",
+          "name": "Venice",
+          "role": "location"
+        },
+        {
+          "entity_id": "59791574-3b94-4c8d-ba9b-67986db2aefe",
+          "wikidata_id": "Q36288",
+          "name": "Silk Road",
+          "role": "location"
+        },
+        {
+          "entity_id": "95ceb0b0-7899-47f7-9885-acbde1e98119",
+          "wikidata_id": "Q7523",
+          "name": "Kublai Khan",
+          "role": "mentioned"
+        }
+      ]
+    },
+    {
+      "sequence_order": 18,
+      "narrative_text": "Far to the southwest, a different empire grew rich on gold. Mansa Musa, ninth ruler of Mali, whose realm reached its greatest extent in his reign, set out on the hajj in 1324 with an enormous retinue. His pilgrimage covered some 2,700 miles and brought him to the outskirts of Cairo in July 1324. Later sources claim his 80 camels each carried a huge load of gold dust, but modern historians treat those figures as literary exaggeration, not as a count. Musa said he had conquered 24 cities. Timbuktu was taken by the Mossi in 1330. The pilgrim king put West Africa on the map of the Mediterranean world, as one more link in the chain of trade.",
+      "start_year": 1324,
+      "end_year": 1325,
+      "source_evidence": "Wikipedia: Mansa Musa; Mali Empire",
+      "secondary_entities": [
+        {
+          "entity_id": "eb0c514e-5d33-4c1d-a9b5-0a087d36dda1",
+          "wikidata_id": "Q309333",
+          "name": "Mansa Musa",
+          "role": "participant"
+        },
+        {
+          "entity_id": "dd10f12d-7727-4e54-b2a8-4e60eb502034",
+          "wikidata_id": "Q184536",
+          "name": "Mali Empire",
+          "role": "participant"
+        },
+        {
+          "entity_id": "d645be0e-3e75-4f9e-b671-2f114cb033e8",
+          "wikidata_id": "Q5806",
+          "name": "Mecca",
+          "role": "location"
+        },
+        {
+          "entity_id": "fdf829a7-9810-479b-8aea-ef48afb06d62",
+          "wikidata_id": "Q85",
+          "name": "Cairo",
+          "role": "location"
+        },
+        {
+          "entity_id": "1de6401f-4077-4e54-aca7-42290a2b0e8c",
+          "wikidata_id": "Q9427",
+          "name": "Timbuktu",
+          "role": "mentioned"
+        }
+      ]
+    },
+    {
+      "sequence_order": 19,
+      "narrative_text": "The same chain carried something worse. Gravestones near Lake Issyk-Kul, in what is now Kyrgyzstan, record a spike in deaths from pestilence in 1338 and 1339, and plague DNA from the burials is a direct ancestor of the Black Death strain. In 1347, according to the account most often told, the Golden Horde army of Jani Beg was besieging Caffa, a Genoese port on the Black Sea, when the plague reportedly passed into the city and was carried to Europe. By then it was also at Constantinople. The pandemic ran in Europe from 1346 to 1353. The roads and ships that linked Eurasia had joined its diseases as well as its goods.",
+      "start_year": 1338,
+      "end_year": 1347,
+      "source_evidence": "Wikipedia: Black Death; Pax Mongolica",
+      "secondary_entities": [
+        {
+          "entity_id": "5e8adab5-4476-459a-a435-a7b9a6db57f4",
+          "wikidata_id": "Q42005",
+          "name": "Black Death",
+          "role": "participant"
+        },
+        {
+          "entity_id": "e619f8c4-abc4-4b97-a9ce-ad73d0f47468",
+          "wikidata_id": "Q4135566",
+          "name": "Caffa",
+          "role": "location"
+        },
+        {
+          "entity_id": "2d339c23-e56d-488d-9bd6-ff90eb6d6bd6",
+          "wikidata_id": "Q79965",
+          "name": "Golden Horde",
+          "role": "participant"
+        },
+        {
+          "entity_id": "1d00f123-7a1c-4b3f-998f-5590fe893529",
+          "wikidata_id": "Q1449",
+          "name": "Genoa",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "59791574-3b94-4c8d-ba9b-67986db2aefe",
+          "wikidata_id": "Q36288",
+          "name": "Silk Road",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "4d128085-8618-4481-9ef6-b54263404b3b",
+          "wikidata_id": "Q16869",
+          "name": "Constantinople",
+          "role": "mentioned"
+        }
+      ]
+    },
+    {
+      "sequence_order": 20,
+      "narrative_text": "By 1350 the Mongol world was coming apart. The Ilkhanate would disintegrate between 1335 and 1353, and the plague hit the very networks the Mongol peace had helped to build; Europe's population would not recover to its fourteenth-century level until the sixteenth century. Harari argues that empire, money and trade slowly turned humans into one connected species, and here you can see it in good ways and bad. Paper, print and powder had come from the East, and a battered Europe, with the Mongol peace over, would soon look to the sea.",
+      "start_year": 1350,
+      "end_year": 1350,
+      "source_evidence": "Wikipedia: Pax Mongolica; Black Death; Mongol Empire",
+      "secondary_entities": [
+        {
+          "entity_id": "fa91b376-e30c-4649-a6a9-0f75ed29236d",
+          "wikidata_id": "Q12557",
+          "name": "Mongol Empire",
+          "role": "participant"
+        },
+        {
+          "entity_id": "047561c3-dc2c-4fc4-9b2e-89d1ce065ac3",
+          "wikidata_id": "Q178084",
+          "name": "Ilkhanate",
+          "role": "participant"
+        },
+        {
+          "entity_id": "5e8adab5-4476-459a-a435-a7b9a6db57f4",
+          "wikidata_id": "Q42005",
+          "name": "Black Death",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "59791574-3b94-4c8d-ba9b-67986db2aefe",
+          "wikidata_id": "Q36288",
+          "name": "Silk Road",
+          "role": "mentioned"
+        }
+      ]
+    }
+  ]
+}

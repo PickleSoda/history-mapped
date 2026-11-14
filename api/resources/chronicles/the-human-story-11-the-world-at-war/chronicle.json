@@ -1,0 +1,756 @@
+{
+  "title": "The World at War",
+  "slug": "the-human-story-11-the-world-at-war",
+  "source_type": "article",
+  "source_reference": "The Human Story, chapter 11: an overview written for History Mapped. Facts checked against English Wikipedia; themes after Yuval Noah Harari, Sapiens: A Brief History of Humankind (2011).",
+  "status": "draft",
+  "start_year": 1914,
+  "end_year": 1945,
+  "tags": [
+    "modern",
+    "europe",
+    "global",
+    "east-asia",
+    "north-africa",
+    "war",
+    "revolution",
+    "disease",
+    "conflict",
+    "diplomacy-law"
+  ],
+  "metadata": {
+    "series": "the-human-story",
+    "chapter": 11,
+    "lens": "Industrial power turned on itself in two total wars while liberal, communist and fascist creeds competed to remake humanity; the war ended with a weapon that could end civilisation."
+  },
+  "entries": [
+    {
+      "sequence_order": 0,
+      "narrative_text": "Archduke Franz Ferdinand stood next in line to the Austro-Hungarian throne, and Emperor Franz Joseph had commanded him to inspect army manoeuvres in Bosnia, a province Austria-Hungary had annexed in 1908. On 28 June he and his wife Sophie drove through Sarajevo, and a Bosnian Serb student named Gavrilo Princip shot them both at close range. It was Vidovdan, the day Serbs remember the defeat at Kosovo in 1389. A month later Austria-Hungary declared war on Serbia, and the web of alliances that Europe's great powers had spent decades weaving began to pull them in one by one. An age that had built railways, steel mills and mass armies was about to learn what all that machinery could do when it was turned on itself.",
+      "start_year": 1914,
+      "end_year": 1914,
+      "source_evidence": "Wikipedia: Assassination of Archduke Franz Ferdinand; Sarajevo",
+      "secondary_entities": [
+        {
+          "entity_id": "b1913b3b-11b2-4e3b-abbf-edbb3d4ae2fe",
+          "name": "Archduke Franz Ferdinand of Austria",
+          "role": "participant",
+          "wikidata_id": "Q43063"
+        },
+        {
+          "entity_id": "3021ae7b-7531-46a8-a414-d2a6d124b60a",
+          "name": "Gavrilo Princip",
+          "role": "participant",
+          "wikidata_id": "Q80492"
+        },
+        {
+          "entity_id": "bb1e5a8a-5019-4efa-91ac-c5bdefefdd9f",
+          "name": "Sarajevo",
+          "role": "location",
+          "wikidata_id": "Q11194"
+        },
+        {
+          "entity_id": "d8e18980-a1c9-42ad-88fb-13d6a8bf7fcb",
+          "name": "Assassination of Archduke Franz Ferdinand",
+          "role": "outcome",
+          "wikidata_id": "Q192050"
+        },
+        {
+          "entity_id": "99974943-64d3-4846-81db-79ef78e88dc5",
+          "name": "Austria-Hungary",
+          "role": "mentioned",
+          "wikidata_id": "Q28513"
+        }
+      ]
+    },
+    {
+      "sequence_order": 1,
+      "narrative_text": "The German plan was an all-or-nothing gamble: sweep through Belgium into France and finish the war in weeks. By early September 1914 it had run out of road. Kluck's First Army had marched about 500 kilometres in a month and was far beyond the railheads that fed it. The French and British turned on the Germans east of Paris in the First Battle of the Marne, 5 to 12 September, and the Germans fell back. Legend says Paris taxi drivers saved the day by carrying soldiers to the front, though historians now call their military role slight. The real result was larger: the quick victory was gone, and neither side could win fast. The war would go to whoever could feed more men and more shells into the machine for longer.",
+      "start_year": 1914,
+      "end_year": 1914,
+      "source_evidence": "Wikipedia: First Battle of the Marne",
+      "secondary_entities": [
+        {
+          "entity_id": "3430bc85-7580-47ed-9ad9-998e31cf6784",
+          "name": "First Battle of the Marne",
+          "role": "participant",
+          "wikidata_id": "Q190712"
+        },
+        {
+          "entity_id": "4468902d-ef6e-4bf2-b741-98b91046d322",
+          "name": "Paris",
+          "role": "location",
+          "wikidata_id": "Q90"
+        },
+        {
+          "entity_id": "abcb27d1-bd91-40ce-b826-e3ae59731c29",
+          "name": "Western Front (World War I)",
+          "role": "mentioned",
+          "wikidata_id": "Q152989"
+        }
+      ]
+    },
+    {
+      "sequence_order": 2,
+      "narrative_text": "Within weeks of the Marne the armies began digging in. By late October 1914 the Western Front was a line of ditches from the North Sea to Switzerland, because quick-firing artillery, machine guns and high-explosive shells gave the defender a huge advantage over men advancing on foot. British doctrine called for three parallel lines, front, support and reserve, linked by communication trenches. On the Somme the Germans dug deep shelters, some twenty feet underground, with several exits and even plumbing. Between the lines lay no man's land. The stalemate lasted in the west until the German spring offensive of March 1918, and it drew whole societies in: factories, farms and families became part of the war effort.",
+      "start_year": 1914,
+      "end_year": 1918,
+      "source_evidence": "Wikipedia: Trench warfare; Western Front (World War I)",
+      "secondary_entities": [
+        {
+          "entity_id": "abcb27d1-bd91-40ce-b826-e3ae59731c29",
+          "name": "Western Front (World War I)",
+          "role": "location",
+          "wikidata_id": "Q152989"
+        },
+        {
+          "entity_id": "cc7332c7-5414-4a6c-a2aa-0d5a10b18f77",
+          "name": "World War I",
+          "role": "mentioned",
+          "wikidata_id": "Q361"
+        }
+      ]
+    },
+    {
+      "sequence_order": 3,
+      "narrative_text": "On 21 February 1916 German guns opened fire on the fortress zone of Verdun, aiming to seize the Meuse Heights that overlooked the city. The French had stripped Verdun's forts of batteries and ammunition the year before, convinced that forts could not stand against modern siege guns. The battle that followed lasted 302 days, one of the longest and costliest in history, and one modern count puts the casualties of both sides together at about 714,000. Verdun had been a fortress since the days of Vauban, and the old town of the Treaty of 843 now gave its name to a new kind of war, in which a few kilometres of ground were bought with an enormous quantity of steel and lives.",
+      "start_year": 1916,
+      "end_year": 1916,
+      "source_evidence": "Wikipedia: Battle of Verdun",
+      "secondary_entities": [
+        {
+          "entity_id": "af18eea5-5723-4033-9f01-96fb48478c37",
+          "name": "Battle of Verdun",
+          "role": "participant",
+          "wikidata_id": "Q130847"
+        },
+        {
+          "entity_id": "a4e9a886-43ab-44d4-955b-1b4c11c7a6fb",
+          "name": "Verdun",
+          "role": "location",
+          "wikidata_id": "Q154748"
+        },
+        {
+          "entity_id": "abcb27d1-bd91-40ce-b826-e3ae59731c29",
+          "name": "Western Front (World War I)",
+          "role": "mentioned",
+          "wikidata_id": "Q152989"
+        }
+      ]
+    },
+    {
+      "sequence_order": 4,
+      "narrative_text": "The Somme was meant to be a joint Franco-British blow, but Verdun swallowed so many French divisions that the British had to carry most of it. Their army was now largely made of volunteers, men of Kitchener's Army and the Territorial Force who had enlisted in 1914 and trained for two years, and on 1 July 1916 it went forward under Douglas Haig. The fighting lasted until 18 November. By the end the Allies had pushed about ten kilometres into German-held ground, their largest gain since the Marne. The price was heavy, and the battle came to stand for what industrial war meant: mass armies, a vast supply of shells, and slow progress measured in villages.",
+      "start_year": 1916,
+      "end_year": 1916,
+      "source_evidence": "Wikipedia: Battle of the Somme",
+      "secondary_entities": [
+        {
+          "entity_id": "5c777190-3a49-45f2-af2c-3b6e637a3a8f",
+          "name": "Battle of the Somme",
+          "role": "participant",
+          "wikidata_id": "Q132568"
+        },
+        {
+          "entity_id": "4e42829b-561d-4030-8a81-47561b4decfb",
+          "name": "Douglas Haig",
+          "role": "participant",
+          "wikidata_id": "Q5301561"
+        },
+        {
+          "entity_id": "abcb27d1-bd91-40ce-b826-e3ae59731c29",
+          "name": "Western Front (World War I)",
+          "role": "mentioned",
+          "wikidata_id": "Q152989"
+        }
+      ]
+    },
+    {
+      "sequence_order": 5,
+      "narrative_text": "Russia paid for the war more heavily than it could bear. By 1917 prices had risen to as much as four times their 1914 level, and the Tsar had taken personal command of an army he could not handle. In March 1917 (February by the old Russian calendar) a revolution that began in Petrograd ended with the abdication of Nicholas II. By autumn the Bolsheviks under Lenin held a majority in the soviets, and on 7 November (25 October Old Style) they seized power. In March 1918 they signed the Treaty of Brest-Litovsk and left the war, then fought a civil war that lasted until 1922. A party armed with a theory of history now ruled a country spread across a continent.",
+      "start_year": 1917,
+      "end_year": 1922,
+      "source_evidence": "Wikipedia: Russian Revolution; October Revolution; Russian Civil War",
+      "secondary_entities": [
+        {
+          "entity_id": "beaebe28-5c40-4844-9f73-f01a15b5c467",
+          "name": "October Revolution",
+          "role": "outcome",
+          "wikidata_id": "Q42976"
+        },
+        {
+          "entity_id": "33f21387-3b6c-4c57-bed3-488ad41c791d",
+          "name": "Vladimir Lenin",
+          "role": "participant",
+          "wikidata_id": "Q1394"
+        },
+        {
+          "entity_id": "5002ee5d-f7dd-4c72-981e-5eef84ee0eca",
+          "name": "Bolsheviks",
+          "role": "participant",
+          "wikidata_id": "Q83372"
+        },
+        {
+          "entity_id": "95421871-d199-45a5-8860-eba9f335d5d7",
+          "name": "Nicholas II",
+          "role": "participant",
+          "wikidata_id": "Q40787"
+        },
+        {
+          "entity_id": "1be3b551-a31f-4711-9e34-1592abd0fbe5",
+          "name": "Saint Petersburg",
+          "role": "location",
+          "wikidata_id": "Q656"
+        },
+        {
+          "entity_id": "9ffbe925-4e0b-41d1-8d1d-b9a38874e2f1",
+          "name": "Treaty of Brest-Litovsk",
+          "role": "outcome",
+          "wikidata_id": "Q122371"
+        }
+      ]
+    },
+    {
+      "sequence_order": 6,
+      "narrative_text": "While the armies fought, a virus travelled with them. The first probable cases were recorded in Kansas in March 1918, though later research argues those spring cases were too mild to be the source of the deadly wave, and the origin is still disputed. Early reports came from neutral Spain, which gave the pandemic a misleading name. The second wave, from late August 1918, probably reached Boston and Freetown on ships from Brest, and it killed with terrifying speed. Within two years about a third of humankind, roughly 500 million people, had been infected. Estimates of the dead run from 17 million to 50 million, perhaps more. Troopships and railways, built for war and trade, had made the world one disease pool.",
+      "start_year": 1918,
+      "end_year": 1920,
+      "source_evidence": "Wikipedia: Spanish flu",
+      "secondary_entities": [
+        {
+          "entity_id": "9812eb35-2983-4c4b-8108-3317d86854ca",
+          "name": "Influenza",
+          "role": "participant",
+          "wikidata_id": "Q2840"
+        },
+        {
+          "entity_id": "c15fda85-c97e-4d49-aba8-a1cb89a6e846",
+          "name": "Boston",
+          "role": "location",
+          "wikidata_id": "Q100"
+        },
+        {
+          "entity_id": "349c8534-1a12-4849-b6b6-1646a83e4f83",
+          "name": "Freetown",
+          "role": "location",
+          "wikidata_id": "Q3780"
+        },
+        {
+          "entity_id": "cc7332c7-5414-4a6c-a2aa-0d5a10b18f77",
+          "name": "World War I",
+          "role": "mentioned",
+          "wikidata_id": "Q361"
+        }
+      ]
+    },
+    {
+      "sequence_order": 7,
+      "narrative_text": "The armistice of 11 November 1918 stopped the shooting, but it took six months of argument at the Paris Peace Conference to write the peace. The Treaty of Versailles, signed on 28 June 1919, carried Article 231, the clause that came to be known as war guilt, and it set reparations. President Woodrow Wilson had promised a new order in his Fourteen Points, and its centrepiece was a League of Nations, whose Covenant was part of the treaty and took effect on 10 January 1920. The League met for the first time that month. It rested on nothing but the promises of states, and in the 1930s Japan, Germany and Italy would walk out of it.",
+      "start_year": 1919,
+      "end_year": 1920,
+      "source_evidence": "Wikipedia: Treaty of Versailles; League of Nations",
+      "secondary_entities": [
+        {
+          "entity_id": "dd17c4ed-85c5-43b6-bd6d-16057293d4ab",
+          "name": "Treaty of Versailles",
+          "role": "outcome",
+          "wikidata_id": "Q8736"
+        },
+        {
+          "entity_id": "508e649d-df75-4cae-bfef-8cadc6f3639f",
+          "name": "League of Nations",
+          "role": "outcome",
+          "wikidata_id": "Q38130"
+        },
+        {
+          "entity_id": "80b04cee-8a7a-43fb-b7cb-37ef2ba27da1",
+          "name": "Woodrow Wilson",
+          "role": "participant",
+          "wikidata_id": "Q105758745"
+        },
+        {
+          "entity_id": "e87d810c-c4a8-46f0-b4f7-1d7a0f8781fb",
+          "name": "Palace of Versailles",
+          "role": "location",
+          "wikidata_id": "Q2946"
+        }
+      ]
+    },
+    {
+      "sequence_order": 8,
+      "narrative_text": "In the autumn of 1929 share prices collapsed on Wall Street, and they kept sliding until July 1932. By 1933 a quarter of American workers had no job, a third of farmers had lost their land, and 9,000 of the country's 25,000 banks had gone under. Germany depended heavily on American loans, so the shock crossed the Atlantic, and German unemployment climbed to nearly 30 percent. Hoover's Smoot-Hawley tariff of 1930 made things worse, and from 1933 Franklin Roosevelt answered with relief and job programmes. The crisis shook the belief that markets would right themselves, and it left millions listening to politicians who promised more drastic cures.",
+      "start_year": 1929,
+      "end_year": 1939,
+      "source_evidence": "Wikipedia: Great Depression; Wall Street Crash of 1929",
+      "secondary_entities": [
+        {
+          "entity_id": "52b3e25a-208d-4632-89bd-2f7506048d8a",
+          "name": "Great Depression",
+          "role": "outcome",
+          "wikidata_id": "Q8698"
+        },
+        {
+          "entity_id": "e1370260-a85a-406a-a9b6-7707ce83be82",
+          "name": "Wall Street Crash of 1929",
+          "role": "participant",
+          "wikidata_id": "Q201684"
+        },
+        {
+          "entity_id": "99b1a0ba-71be-4075-9aca-1ecc41aed587",
+          "name": "Herbert Hoover",
+          "role": "participant",
+          "wikidata_id": "Q35236"
+        },
+        {
+          "entity_id": "74478bd2-2874-445f-9bd7-43bb013c196e",
+          "name": "Franklin D. Roosevelt",
+          "role": "participant",
+          "wikidata_id": "Q8007"
+        },
+        {
+          "entity_id": "e4d0946a-f35f-466e-b821-6eb177b585bc",
+          "name": "Weimar Republic",
+          "role": "location",
+          "wikidata_id": "Q41304"
+        }
+      ]
+    },
+    {
+      "sequence_order": 9,
+      "narrative_text": "Adolf Hitler had tried to seize power in Munich in 1923, served little more than a year in prison, and spent the following years attacking the Versailles settlement. The Depression gave him an audience. In November 1932 the Nazi Party became the largest in the Reichstag without a majority, and on 30 January 1933 conservative politicians persuaded President Hindenburg to make him chancellor. The Enabling Act of 23 March began turning the Weimar Republic into a dictatorship, and when Hindenburg died on 2 August 1934 Hitler took his office too. Harari argues that liberalism, communism and fascism competed as rival humanist creeds, each promising to remake humanity; by the mid-1930s each had a state to try it on.",
+      "start_year": 1933,
+      "end_year": 1934,
+      "source_evidence": "Wikipedia: Adolf Hitler; Weimar Republic; Nazi Party",
+      "secondary_entities": [
+        {
+          "entity_id": "6d853e6d-34f1-4bcc-8d25-da0460640336",
+          "name": "Adolf Hitler",
+          "role": "participant",
+          "wikidata_id": "Q352"
+        },
+        {
+          "entity_id": "2c18e09b-35e9-4195-b3da-0f326eb56064",
+          "name": "Nazi Party",
+          "role": "participant",
+          "wikidata_id": "Q7320"
+        },
+        {
+          "entity_id": "e4d0946a-f35f-466e-b821-6eb177b585bc",
+          "name": "Weimar Republic",
+          "role": "location",
+          "wikidata_id": "Q41304"
+        },
+        {
+          "entity_id": "2e71e4c8-9371-4a1a-a05b-3de9f940d03a",
+          "name": "Paul von Hindenburg",
+          "role": "participant",
+          "wikidata_id": "Q311721"
+        },
+        {
+          "entity_id": "b1a82de5-6320-4395-bbde-090fb02ec8fd",
+          "name": "Italian fascism",
+          "role": "mentioned",
+          "wikidata_id": "Q747081"
+        }
+      ]
+    },
+    {
+      "sequence_order": 10,
+      "narrative_text": "Hitler had once offered Poland a non-aggression pact, in 1934, and then set about taking back what Versailles had given it. On 23 August 1939 Germany and the Soviet Union signed the Molotov-Ribbentrop Pact. A week later, on 1 September, German forces crossed the Polish frontier, and Britain and France declared war on Germany. On 17 September the Red Army entered Poland from the east, and by 6 October the Polish state had been overrun and divided between its two invaders. The League of Nations, founded to prevent a war like this, would be formally dissolved only in 1946. A second world war had begun in Europe, with rival ideologies temporarily sharing the spoils.",
+      "start_year": 1939,
+      "end_year": 1939,
+      "source_evidence": "Wikipedia: Invasion of Poland; Molotov-Ribbentrop Pact",
+      "secondary_entities": [
+        {
+          "entity_id": "131b18d6-f962-4ab8-b6ee-e8be078d08bf",
+          "name": "Invasion of Poland",
+          "role": "participant",
+          "wikidata_id": "Q150812"
+        },
+        {
+          "entity_id": "2ac323cb-6af6-4fd0-a0d3-e1295cf4bb0c",
+          "name": "Poland",
+          "role": "location",
+          "wikidata_id": "Q36"
+        },
+        {
+          "entity_id": "42ab3734-3e7e-49ae-8ec3-2f8134b457eb",
+          "name": "Molotov–Ribbentrop Pact",
+          "role": "mentioned",
+          "wikidata_id": "Q130796"
+        },
+        {
+          "entity_id": "8baae991-c4a8-42d3-9b35-006e2a5582ba",
+          "name": "Soviet invasion of Poland",
+          "role": "participant",
+          "wikidata_id": "Q2305266"
+        },
+        {
+          "entity_id": "a5919e9e-48d6-407b-90da-4ea3a7061aee",
+          "name": "Warsaw",
+          "role": "location",
+          "wikidata_id": "Q270"
+        }
+      ]
+    },
+    {
+      "sequence_order": 11,
+      "narrative_text": "After the French surrender of 22 June 1940, Britain stood almost alone. Churchill gave a name to what he expected next, the Battle of Britain, and from 10 July the Luftwaffe attacked coastal convoys and ports. Hugh Dowding's Fighter Command had a simple duty, as the government accepted: not to win in the air but to avoid being knocked out. Its Spitfires and Hurricanes ran on 100-octane fuel that gave them extra speed, but it had fewer experienced pilots than the enemy. By 31 October, the date the British give for the end of the battle, the RAF had beaten the Luftwaffe. The bombing of cities went on as the Blitz, from 7 September 1940 to 11 May 1941.",
+      "start_year": 1940,
+      "end_year": 1940,
+      "source_evidence": "Wikipedia: Battle of Britain",
+      "secondary_entities": [
+        {
+          "entity_id": "b32f8251-e95c-4364-9960-959a664f3fe2",
+          "name": "Battle of Britain",
+          "role": "participant",
+          "wikidata_id": "Q154720"
+        },
+        {
+          "entity_id": "81ccd431-bde9-4b91-9d7b-08b3d4409e02",
+          "name": "Winston Churchill",
+          "role": "participant",
+          "wikidata_id": "Q8016"
+        },
+        {
+          "entity_id": "1e755bc5-bcc1-43dd-8dec-1ada2c38d407",
+          "name": "London Blitz",
+          "role": "outcome",
+          "wikidata_id": "Q6900329"
+        },
+        {
+          "entity_id": "af7f29d3-94aa-4b35-a010-ce2e28bbc1bf",
+          "name": "London",
+          "role": "location",
+          "wikidata_id": "Q84"
+        }
+      ]
+    },
+    {
+      "sequence_order": 12,
+      "narrative_text": "Early on Sunday 22 June 1941, Germany and its allies attacked the Soviet Union in Operation Barbarossa, the largest military offensive in history, with some ten million combatants in its opening phase. Stalin had received intelligence of the attack but, fearing a provocation, had not mobilised the Red Army. Army Group North overran the Baltic lands and, from 8 September, besieged Leningrad. Army Group Centre began its drive on Moscow on 2 October. By 5 December the offensive had ended, after more than eight million casualties, and a Red Army counteroffensive pushed the Germans back from the capital. Hitler's quick war had turned into a war of whole economies.",
+      "start_year": 1941,
+      "end_year": 1941,
+      "source_evidence": "Wikipedia: Operation Barbarossa; Siege of Leningrad",
+      "secondary_entities": [
+        {
+          "entity_id": "b68826c2-d36e-4b88-b73d-0e111e57dd1b",
+          "name": "Operation Barbarossa",
+          "role": "participant",
+          "wikidata_id": "Q83055"
+        },
+        {
+          "entity_id": "cc695213-e881-4b8d-8b4e-89c83a970923",
+          "name": "Soviet Union",
+          "role": "location",
+          "wikidata_id": "Q15180"
+        },
+        {
+          "entity_id": "9113b89c-3f18-45ce-8127-80b40f3ed4d9",
+          "name": "Joseph Stalin",
+          "role": "participant",
+          "wikidata_id": "Q855"
+        },
+        {
+          "entity_id": "0a90560c-ff4a-4730-add1-c0956581fdf3",
+          "name": "Siege of Leningrad",
+          "role": "mentioned",
+          "wikidata_id": "Q151860"
+        },
+        {
+          "entity_id": "0d75cff1-9407-4892-9c94-0fd9fa17547b",
+          "name": "Moscow",
+          "role": "location",
+          "wikidata_id": "Q649"
+        },
+        {
+          "entity_id": "2b3e78a0-ba1d-4395-b929-2965cada68db",
+          "name": "Moscow counteroffensive",
+          "role": "outcome"
+        }
+      ]
+    },
+    {
+      "sequence_order": 13,
+      "narrative_text": "Persecution of Jews had been law in Germany since 1933, and the pogrom of Kristallnacht in November 1938 and the ghettos set up after the invasion of Poland were steps towards worse. After the invasion of the Soviet Union in June 1941, German forces and local collaborators murdered between 1.5 and 2 million Jews in the occupied lands. On 20 January 1942 officials met at Wannsee, a Berlin suburb, to coordinate the plan known as the Final Solution. The killing was fiercest from March 1942 to November 1943, in camps such as Auschwitz. By 1945 about six million Jews, roughly two-thirds of Europe's Jewish population, had been murdered. A modern state had used its bureaucracy, railways and records to carry out a genocide.",
+      "start_year": 1941,
+      "end_year": 1945,
+      "source_evidence": "Wikipedia: The Holocaust; Wannsee Conference",
+      "secondary_entities": [
+        {
+          "entity_id": "1227b077-2102-4293-9ee2-17af01f2d684",
+          "name": "The Holocaust",
+          "role": "participant",
+          "wikidata_id": "Q2763"
+        },
+        {
+          "entity_id": "b074d8eb-9cdb-4811-a9d7-66db4b4a0450",
+          "name": "Wannsee Conference",
+          "role": "mentioned",
+          "wikidata_id": "Q152120"
+        },
+        {
+          "entity_id": "7bc12cb0-6764-4b51-8a03-0146ef16c534",
+          "name": "Auschwitz",
+          "role": "location",
+          "wikidata_id": "Q7341"
+        },
+        {
+          "entity_id": "a11348eb-68e7-4fae-8c45-482a5c15449c",
+          "name": "Kristallnacht",
+          "role": "mentioned",
+          "wikidata_id": "Q36756"
+        },
+        {
+          "entity_id": "520c212c-87f6-4d40-bc64-08590be1b446",
+          "name": "Nazi Germany",
+          "role": "participant",
+          "wikidata_id": "Q7318"
+        }
+      ]
+    },
+    {
+      "sequence_order": 14,
+      "narrative_text": "Japan had been at war in China since 1937, and in November 1941 Washington's Hull note demanded that it withdraw from China and Indochina. Admiral Isoroku Yamamoto planned a pre-emptive strike to keep the US Pacific Fleet from interfering with Japan's push into Southeast Asia, and a carrier force had already left port on 26 November. On 7 December 353 aircraft from six carriers struck the fleet at Pearl Harbor in two waves, and more than 180 American aircraft were destroyed. Roosevelt called it a date which would live in infamy. Germany declared war on the United States days later, and two wars, one in Europe and one in Asia, joined into one.",
+      "start_year": 1941,
+      "end_year": 1941,
+      "source_evidence": "Wikipedia: Attack on Pearl Harbor; Adolf Hitler",
+      "secondary_entities": [
+        {
+          "entity_id": "5a3ef384-ce96-4577-8370-a137058640b1",
+          "name": "Attack on Pearl Harbor",
+          "role": "participant",
+          "wikidata_id": "Q52418"
+        },
+        {
+          "entity_id": "4807dcd6-6831-4a36-8983-910a249a384c",
+          "name": "Pearl Harbor",
+          "role": "location",
+          "wikidata_id": "Q127091"
+        },
+        {
+          "entity_id": "d5231298-55ca-477f-a5cd-e234e6646768",
+          "name": "Isoroku Yamamoto",
+          "role": "participant",
+          "wikidata_id": "Q152325"
+        },
+        {
+          "entity_id": "c842e8db-5ec4-4f63-af2a-2d160dce8f3a",
+          "name": "Japan",
+          "role": "participant",
+          "wikidata_id": "Q17"
+        },
+        {
+          "entity_id": "74478bd2-2874-445f-9bd7-43bb013c196e",
+          "name": "Franklin D. Roosevelt",
+          "role": "mentioned",
+          "wikidata_id": "Q8007"
+        },
+        {
+          "entity_id": "fdec2603-9eaf-4887-b043-acfb5bf0e4b6",
+          "name": "Second Sino-Japanese War",
+          "role": "mentioned",
+          "wikidata_id": "Q170314"
+        }
+      ]
+    },
+    {
+      "sequence_order": 15,
+      "narrative_text": "Six months after Pearl Harbor, Yamamoto wanted to finish the job. The Doolittle Raid of April 1942, when American bombers took off from the carrier Hornet and bombed Tokyo, had made the Japanese navy fear for its homeland, and Japan wanted to push its defensive perimeter outward by attacking Midway Atoll. On 4 to 7 June the battle was fought, and Akagi, Kaga, Hiryu and Soryu were all lost, and the four carriers reported 2,181 casualties between them. The carrier fleet that had struck Pearl Harbor was gone. Open the battle map to follow the carriers hour by hour.",
+      "start_year": 1942,
+      "end_year": 1942,
+      "source_evidence": "Wikipedia: Battle of Midway",
+      "secondary_entities": [
+        {
+          "entity_id": "bdca1981-a98b-40b4-ab6e-e7ed26e673cb",
+          "name": "Battle of Midway",
+          "role": "participant",
+          "wikidata_id": "Q173034"
+        },
+        {
+          "entity_id": "d5231298-55ca-477f-a5cd-e234e6646768",
+          "name": "Isoroku Yamamoto",
+          "role": "participant",
+          "wikidata_id": "Q152325"
+        },
+        {
+          "entity_id": "37b78bf8-e984-4a06-ab90-451eeae279c8",
+          "name": "Tokyo",
+          "role": "location",
+          "wikidata_id": "Q1490"
+        },
+        {
+          "entity_id": "c842e8db-5ec4-4f63-af2a-2d160dce8f3a",
+          "name": "Japan",
+          "role": "participant",
+          "wikidata_id": "Q17"
+        }
+      ]
+    },
+    {
+      "sequence_order": 16,
+      "narrative_text": "In the summer of 1942 Hitler aimed his offensive at the south of the Soviet Union, and on 23 July he added Stalingrad to the objectives, a city of huge propaganda value because it bore Stalin's name. The Soviet 62nd Army under Vasily Chuikov fell back into the city until it was down to about 20,000 men, yet soldiers like Sergeant Pavlov's platoon held a fortified building known as Pavlov's House. On 19 November the Red Army launched Operation Uranus and surrounded the German Sixth Army. On 2 February 1943 it surrendered, the first of Hitler's field armies to do so. The initiative on the Eastern Front passed to the Soviet Union.",
+      "start_year": 1942,
+      "end_year": 1943,
+      "source_evidence": "Wikipedia: Battle of Stalingrad",
+      "secondary_entities": [
+        {
+          "entity_id": "0b9b9c2c-b521-4657-ba00-d838a58bd558",
+          "name": "Battle of Stalingrad",
+          "role": "participant",
+          "wikidata_id": "Q38789"
+        },
+        {
+          "entity_id": "9113b89c-3f18-45ce-8127-80b40f3ed4d9",
+          "name": "Joseph Stalin",
+          "role": "mentioned",
+          "wikidata_id": "Q855"
+        },
+        {
+          "entity_id": "cc695213-e881-4b8d-8b4e-89c83a970923",
+          "name": "Soviet Union",
+          "role": "participant",
+          "wikidata_id": "Q15180"
+        },
+        {
+          "entity_id": "520c212c-87f6-4d40-bc64-08590be1b446",
+          "name": "Nazi Germany",
+          "role": "participant",
+          "wikidata_id": "Q7318"
+        }
+      ]
+    },
+    {
+      "sequence_order": 17,
+      "narrative_text": "By October 1942 the desert war in Egypt had settled into a siege of minefields. Rommel's army had been halted at Alam el Halfa in August, and the Axis had laid some 500,000 mines in front of El Alamein. On 23 October Bernard Montgomery launched the Eighth Army, 195,000 men and 1,029 tanks, against 116,000 men and 547 tanks. It was a slogging fight, slow to start, that ran until 4 November. It ended the Axis threat to Egypt and the wider Middle East, and it was the western Allies' first large success against the Axis since late 1941. The battle map follows it from the first barrage to the end.",
+      "start_year": 1942,
+      "end_year": 1942,
+      "source_evidence": "Wikipedia: Second Battle of El Alamein",
+      "secondary_entities": [
+        {
+          "entity_id": "455d5f25-c2e8-413d-8996-4996c6a7a987",
+          "name": "Second Battle of El Alamein",
+          "role": "participant",
+          "wikidata_id": "Q153376"
+        },
+        {
+          "entity_id": "bdbf7ea3-15cd-48e8-93e7-59ba9add45a8",
+          "name": "Bernard Montgomery",
+          "role": "participant",
+          "wikidata_id": "Q152025"
+        },
+        {
+          "entity_id": "763ace33-126e-4fb3-b4c8-0f7f1fabe3f6",
+          "name": "Erwin Rommel",
+          "role": "participant",
+          "wikidata_id": "Q14060"
+        },
+        {
+          "entity_id": "54c1a22c-28e5-49aa-b2fb-712174db14d1",
+          "name": "El Alamein",
+          "role": "location",
+          "wikidata_id": "Q204439"
+        },
+        {
+          "entity_id": "9de131ab-5534-423b-aed0-127f4728d99b",
+          "name": "Egypt",
+          "role": "location",
+          "wikidata_id": "Q79"
+        }
+      ]
+    },
+    {
+      "sequence_order": 18,
+      "narrative_text": "Stalin had been pressing his allies for a second front since 1941. At the Tehran Conference in November 1943 Roosevelt and Churchill promised to open it in May 1944. Eisenhower and Montgomery saw the plan at the end of 1943: landings on the coast of Normandy, and deception was part of it: in Operation Taxable, aircraft dropped strips of foil to trick German radar into seeing a convoy near Le Havre. At about 06:30 on 6 June 1944 the landings began after an airborne assault. On Utah Beach the 4th Infantry Division landed 21,000 troops at a cost of 197 casualties. The Allies were back on the continent, and Germany now faced fronts on both sides.",
+      "start_year": 1944,
+      "end_year": 1944,
+      "source_evidence": "Wikipedia: Normandy landings",
+      "secondary_entities": [
+        {
+          "entity_id": "8391fb75-e0f4-435a-8b0f-077028589267",
+          "name": "Normandy landings",
+          "role": "participant",
+          "wikidata_id": "Q16470"
+        },
+        {
+          "entity_id": "18357602-a420-46d6-9c68-788596642cfd",
+          "name": "Dwight D. Eisenhower",
+          "role": "participant",
+          "wikidata_id": "Q9916"
+        },
+        {
+          "entity_id": "3dac5cc1-4f71-4243-b478-ca70cb8ed968",
+          "name": "Normandy",
+          "role": "location",
+          "wikidata_id": "Q18677875"
+        }
+      ]
+    },
+    {
+      "sequence_order": 19,
+      "narrative_text": "Nuclear fission was discovered in 1938, and fear among refugee scientists that Nazi Germany might build a bomb first led to the Einstein-Szilard letter of 1939. The Manhattan Project that followed employed nearly 130,000 people at its peak. The first test, Trinity, took place in New Mexico on 16 July 1945. On 26 July the Allies demanded Japan's unconditional surrender, and on 6 August a B-29 dropped the Little Boy bomb on Hiroshima. On 9 August the Fat Man bomb fell on Nagasaki. Estimates of the deaths in 1945 run from 90,000 to 166,000 in Hiroshima and from 60,000 to 80,000 in Nagasaki. Whether the bombs were needed to end the war is still debated, but they showed that one weapon could now destroy a city.",
+      "start_year": 1945,
+      "end_year": 1945,
+      "source_evidence": "Wikipedia: Atomic bombings of Hiroshima and Nagasaki; Manhattan Project",
+      "secondary_entities": [
+        {
+          "entity_id": "07526f8e-714f-42e6-a6e2-9d41e8d09d62",
+          "name": "Atomic bombing of Hiroshima",
+          "role": "participant",
+          "wikidata_id": "Q703203"
+        },
+        {
+          "entity_id": "73c7af92-3dfe-4dfd-984f-58f9e312f1b2",
+          "name": "Atomic bombing of Nagasaki",
+          "role": "participant",
+          "wikidata_id": "Q4382340"
+        },
+        {
+          "entity_id": "a32118b0-7a4c-4f92-ae9d-97874fd3677e",
+          "name": "Manhattan Project",
+          "role": "mentioned",
+          "wikidata_id": "Q127050"
+        },
+        {
+          "entity_id": "e1132a4b-7cfc-4471-b2b2-b273408b6f8f",
+          "name": "Harry S. Truman",
+          "role": "participant",
+          "wikidata_id": "Q11613"
+        },
+        {
+          "entity_id": "a90e9a3d-f8a1-490a-b54c-4e70c9b9e5dc",
+          "name": "Trinity test",
+          "role": "mentioned",
+          "wikidata_id": "Q207342"
+        }
+      ]
+    },
+    {
+      "sequence_order": 20,
+      "narrative_text": "With the war still on, delegates met in San Francisco from 25 April 1945 to write a charter for a new organisation. On 26 June the representatives of 50 countries signed the Charter of the United Nations, and it took effect on 24 October after the five permanent members of the Security Council, the United States, Britain, France, the Soviet Union and China, and a majority of the others had ratified it. It inherited several agencies from the League of Nations, which dissolved the next year. Harari argues that the new weapons and the new institutions together made great-power war a worse bet than ever. Two of the five permanent members already eyed each other as rivals, and the next chapter begins there.",
+      "start_year": 1945,
+      "end_year": 1945,
+      "source_evidence": "Wikipedia: United Nations; League of Nations",
+      "secondary_entities": [
+        {
+          "entity_id": "1335b2de-8194-4bf6-a4c7-612bf6fbcfc3",
+          "name": "United Nations",
+          "role": "participant",
+          "wikidata_id": "Q1065"
+        },
+        {
+          "entity_id": "3d94b057-838f-4715-a0be-0e18926b3274",
+          "name": "San Francisco",
+          "role": "location",
+          "wikidata_id": "Q62"
+        },
+        {
+          "entity_id": "508e649d-df75-4cae-bfef-8cadc6f3639f",
+          "name": "League of Nations",
+          "role": "mentioned",
+          "wikidata_id": "Q38130"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,258 @@
+{
+  "title": "Philosophers and Prophets",
+  "slug": "the-human-story-04-philosophers-and-prophets",
+  "source_type": "article",
+  "source_reference": "The Human Story, chapter 4: an overview written for History Mapped. Facts checked against English Wikipedia; themes after Yuval Noah Harari, Sapiens: A Brief History of Humankind (2011).",
+  "status": "draft",
+  "start_year": -800,
+  "end_year": -200,
+  "tags": ["classical", "greece", "south-asia", "china", "mediterranean", "ideas", "religion", "iran", "egypt", "empires-states", "war", "language-writing"],
+  "metadata": {"series": "the-human-story", "chapter": 4, "lens": "Ideas and faiths that spoke to all humankind, carried by conquest and edict, outgrew the single city."},
+  "entries": [
+    {
+      "sequence_order": 0,
+      "narrative_text": "Before there were philosophers there were singers. Around the eighth century BCE, by the usual reckoning, lived a poet named Homer, traditionally credited with the Iliad and the Odyssey, a war at Troy and a king's long road home. Nobody can say for certain who he was. What we can say is that the Greeks had only just learned to write again: the Linear B script of the Mycenaean palaces had vanished in the thirteenth century BCE, and around 800 BCE, conventionally, they borrowed the Phoenician letters. Those letters wrote only consonants, so the Greeks turned some of them into vowels, which is why the Greek alphabet is often called the first alphabet in the narrow sense. A small set of signs now sufficed to record a poem, a law or a quarrel, and that quiet change prepared the ground for everything that follows.",
+      "start_year": -800,
+      "end_year": -700,
+      "source_evidence": "Wikipedia: Homer; Greek alphabet",
+      "secondary_entities": [
+        {"entity_id": "79d436e8-afc6-4f38-a2de-0e4605703b4a", "wikidata_id": "Q6691", "name": "Homer", "role": "participant"},
+        {"entity_id": "5b1d6e73-91c0-47ff-a546-612d018ca59d", "wikidata_id": "Q8216", "name": "Greek alphabet", "role": "outcome"},
+        {"entity_id": "05e153dd-b5cc-47ed-bc71-ef1483b3583b", "wikidata_id": "Q8275", "name": "Iliad", "role": "mentioned"},
+        {"entity_id": "34a2ed20-d3a6-4308-80fd-19c175e7e33f", "wikidata_id": "Q35160", "name": "Odyssey", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 1,
+      "narrative_text": "On the plains of eastern India, in the sixth or fifth century BCE, two teachers lived in the same age and spoke to the same restless society. The Buddha, a wandering religious teacher, taught a path to awakening. Mahavira, whom Jain tradition says was born in 599 BCE into a ruling family of the Nāya clan in what is now Bihar, reformed a Jain community that historians think already existed before him. Both belonged to the wandering ascetic tradition of the sramanas, and the Jain texts were handed down orally by monks. The dates of both men are argued over: Buddhist traditions disagree by centuries about when the Buddha died. The earliest surviving written use of the title Buddha comes from the third century BCE, in the edicts of an emperor we shall meet shortly. These were not yet world religions; they were teachers' movements waiting for a carrier.",
+      "start_year": -600,
+      "end_year": -400,
+      "source_evidence": "Wikipedia: Gautama Buddha; Mahavira; Axial Age",
+      "secondary_entities": [
+        {"entity_id": "b59418f1-6923-4ceb-ae61-f20044b05dc3", "wikidata_id": "Q9441", "name": "Buddha", "role": "participant"},
+        {"entity_id": "23af7d95-76f8-4f2a-9ae0-8ea308ad801e", "wikidata_id": "Q9422", "name": "Mahavira", "role": "participant"},
+        {"entity_id": "58864716-9576-4328-b9c4-3f787b5bb62a", "wikidata_id": "Q748", "name": "Buddhism", "role": "outcome"},
+        {"entity_id": "5ced0d01-b9f8-4f0e-9d2f-e77c3ea3f27c", "wikidata_id": "Q9232", "name": "Jainism", "role": "outcome"}
+      ]
+    },
+    {
+      "sequence_order": 2,
+      "narrative_text": "In the small state of Lu, in what is now Shandong, a man named Kong Qiu was born around 551 BCE near modern Qufu. He grew up in the Spring and Autumn period, when powerful families overshadowed their own rulers. He held minor office, becoming governor of a town in 501 BCE, and left Lu in 497 BCE after his support for a failed plan to tear down the fortified walls of three great families. Years of exile followed, as he looked for a ruler who would listen. What he offered was not a new god but an old order recovered: the ritual and duty of the early Zhou kings. The Shiji, Sima Qian's history, says he spent his last years teaching some three thousand pupils at home. The world remembers him by the Latin name Confucius, which Jesuit missionaries coined in the late sixteenth century.",
+      "start_year": -551,
+      "end_year": -479,
+      "source_evidence": "Wikipedia: Confucius; Hundred Schools of Thought",
+      "secondary_entities": [
+        {"entity_id": "8458a8ee-4362-4f33-b87d-4cc75e07f3fc", "wikidata_id": "Q4604", "name": "Confucius", "role": "participant"},
+        {"entity_id": "a5677fe5-29ce-407d-b93e-49807e86e151", "wikidata_id": "Q210287", "name": "Qufu", "role": "location"},
+        {"entity_id": "656d55d9-555c-44df-81ef-f55cf4c572b2", "wikidata_id": "Q736936", "name": "Lu", "role": "location"},
+        {"entity_id": "262ad74a-de13-40b1-ab18-cd13c11a4e41", "wikidata_id": "Q9581", "name": "Confucianism", "role": "outcome"}
+      ]
+    },
+    {
+      "sequence_order": 3,
+      "narrative_text": "Far to the east of the Mediterranean, on the Iranian plateau, a poet-priest of the Spitama clan named Zoroaster composed hymns called the Gathas, the oldest core of the Avesta. When he lived is genuinely unknown: estimates run from 2000 BCE to about two centuries before Alexander, and one scholar places him as a contemporary of Cyrus the Great around 550 BCE. The religion built on his teaching was first recorded in the middle of the sixth century BCE. He turned away from many gods of the older Iranian religion and from the order in which princes and priests lorded over ordinary people, and he spoke against cruel animal sacrifice. The faith had a founder, a sacred text and a quarrel with the old order, and it would later be tied to the fortunes of Persian empires.",
+      "start_year": -550,
+      "end_year": -450,
+      "source_evidence": "Wikipedia: Zoroastrianism; Axial Age",
+      "secondary_entities": [
+        {"entity_id": "f6397e7a-dcfc-4285-9aeb-afad474fe7a4", "wikidata_id": "Q9601", "name": "Zoroastrianism", "role": "participant"},
+        {"entity_id": "31bcdf5e-fec3-4af1-932c-f29ebaf9f70a", "wikidata_id": "Q389688", "name": "Achaemenid Empire", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 4,
+      "narrative_text": "Chinese tradition remembers an archivist at the Zhou court, from the southern state of Chu, as an elder contemporary of Confucius and the author of a short, puzzling book called the Daodejing. Whether Laozi existed at all has been argued for a century. In the 1920s and 1930s many scholars moved him to the fourth or third century BCE; later opinion drifted back toward the traditional sixth century, and assessments still differ sharply. What the ground itself says is that manuscripts buried around 300 BCE contain about forty percent of the received text, so the book was already circulating by then. Set beside Confucius the pair make a useful contrast: one teacher gave advice about the proper ordering of society, while the book attributed to the other has been read by generations as an invitation to step back from it.",
+      "start_year": -550,
+      "end_year": -300,
+      "source_evidence": "Wikipedia: Laozi; Hundred Schools of Thought; Axial Age",
+      "secondary_entities": [
+        {"entity_id": "4708c545-065b-4592-b39a-0c5c86963b1d", "wikidata_id": "Q9333", "name": "Laozi", "role": "participant"},
+        {"entity_id": "21fccccf-3012-48f7-8a4c-4f73cbe42697", "wikidata_id": "Q134425", "name": "Daodejing", "role": "outcome"},
+        {"entity_id": "5abb3605-2d94-4669-81b5-7a1bf0fa0871", "wikidata_id": "Q504759", "name": "Chu", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 5,
+      "narrative_text": "In 510 BCE the Athenians overthrew their tyrant Hippias with the help of Spartan soldiers, and then promptly quarrelled over what should replace him. In 508 BCE an aristocrat named Cleisthenes redrew the city's map of loyalties: citizens were grouped by their home districts, the demes, into tribes, and each tribe sent fifty members to a reorganised council of five hundred. Law courts drew their jurors daily from the citizens, and a vote of at least six thousand could send a man into exile for ten years, a custom called ostracism that Cleisthenes may have introduced. The Spartan king Cleomenes tried and failed to stop him. The citizens even sent an embassy to the Persian satrap at Sardis in 507 BCE, looking for help against Sparta. It was democracy for one small city, but it gave Greek thinkers something to argue about.",
+      "start_year": -508,
+      "end_year": -507,
+      "source_evidence": "Wikipedia: Cleisthenes",
+      "secondary_entities": [
+        {"entity_id": "53902f9d-346b-4829-8579-1a8b1211cee0", "wikidata_id": "Q207634", "name": "Cleisthenes", "role": "participant"},
+        {"entity_id": "761193a7-02e5-4a00-9bc6-24900f2ccd06", "wikidata_id": "Q1524", "name": "Athens", "role": "location"},
+        {"entity_id": "adc89485-cd47-47bf-b620-127d5ba3aeb8", "wikidata_id": "Q5690", "name": "Sparta", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 6,
+      "narrative_text": "While Athens argued in its assembly, China was coming apart into rival kingdoms, and the collapse set off the greatest debate in its history. The Warring States period, from about 475 to 221 BCE, was an age of endless war and reform, and scholars call its thinkers the Hundred Schools of Thought. Confucians such as Mencius and Xunzi disagreed about human nature. Mozi, who lived around 470 to 391 BCE, founded Mohism. The Legalists, Shang Yang and later Han Fei among them, held that people are selfish and can be kept in order only by strict laws and firm enforcement from above. Which school a ruler chose mattered: after the age of war, the Han dynasty blended practical parts of Confucianism and Legalism into a form of government that lasted, in outline, until the late nineteenth century.",
+      "start_year": -500,
+      "end_year": -221,
+      "source_evidence": "Wikipedia: Hundred Schools of Thought; Warring States period",
+      "secondary_entities": [
+        {"entity_id": "19a6a284-268f-4315-b1e2-fa9b76ff5631", "wikidata_id": "Q864947", "name": "Hundred Schools of Thought", "role": "participant"},
+        {"entity_id": "aff69ce2-1e2c-45e6-b2d3-d0258b8d8c52", "wikidata_id": "Q185063", "name": "Warring States period", "role": "location"},
+        {"entity_id": "73dc61b7-77b1-4879-b91a-c7e1470bbf47", "wikidata_id": "Q188903", "name": "Mencius", "role": "mentioned"},
+        {"entity_id": "8ecba303-a940-49fe-bd60-7fd980473e0e", "wikidata_id": "Q272411", "name": "Mozi", "role": "mentioned"},
+        {"entity_id": "81fecb67-f6c6-4d0f-a66a-b6eb7cb67528", "wikidata_id": "Q238344", "name": "Legalism", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 7,
+      "narrative_text": "In 399 BCE the Athenians put a man of about seventy on trial. Socrates, the son of a stoneworker and a midwife, was accused of impiety, of worshipping the wrong gods, and of corrupting the young. The charges came after a hard stretch for the city: Sparta had destroyed the Athenian fleet at Aegospotami in 405 BCE and then besieged the city, and the Thirty Tyrants ruled until the democracy returned. An amnesty in 403 BCE was meant to stop old grievances from becoming civil war, yet scholars still ask how far politics shaped the case. Socrates, perhaps the first Western moral philosopher, went about questioning fellow citizens on how a person should live. Athens found him guilty, and he died after the trial. The city that invented democratic debate had silenced one of its sharpest debaters.",
+      "start_year": -399,
+      "end_year": -399,
+      "source_evidence": "Wikipedia: Socrates; Plato",
+      "secondary_entities": [
+        {"entity_id": "434d7280-949c-40c3-8802-1709fb248458", "wikidata_id": "Q913", "name": "Socrates", "role": "participant"},
+        {"entity_id": "6c508b7d-8d7c-4367-90f3-f980c277bfca", "wikidata_id": "Q3110066", "name": "Trial and execution of Socrates", "role": "outcome"},
+        {"entity_id": "761193a7-02e5-4a00-9bc6-24900f2ccd06", "wikidata_id": "Q1524", "name": "Athens", "role": "location"},
+        {"entity_id": "0ccd493a-51ea-41a4-ba7f-4ec85139230a", "wikidata_id": "Q33745", "name": "Peloponnesian War", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 8,
+      "narrative_text": "Plato was among the young men who had gathered around Socrates. Born into an aristocratic Athenian family that traced its descent through his mother Perictione to the lawgiver Solon, he had watched his own relatives Critias and Charmides join the Thirty Tyrants; both were killed in 403 BCE when the democrats returned. Around 396 BCE he left Athens for Megara to study with other followers of Socrates, and by about 394 BCE he was home again. His dialogues, many of them set in the last years of Socrates' life, are how the world still meets his teacher. He also founded the Academy, a school at Athens which a young man called Aristotle would join at about eighteen. The ideas had begun to outlive their makers, because pupils now carried them.",
+      "start_year": -396,
+      "end_year": -347,
+      "source_evidence": "Wikipedia: Plato; Aristotle",
+      "secondary_entities": [
+        {"entity_id": "7014acc2-113c-4e81-9d22-60b7d88517bd", "wikidata_id": "Q859", "name": "Plato", "role": "participant"},
+        {"entity_id": "b313c2e8-5ee8-4031-a3cb-a1e726c3cb0c", "wikidata_id": "Q193093", "name": "Platonic Academy", "role": "outcome"},
+        {"entity_id": "434d7280-949c-40c3-8802-1709fb248458", "wikidata_id": "Q913", "name": "Socrates", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 9,
+      "narrative_text": "Aristotle was born in 384 BCE at Stagira in northern Greece, joined Plato's Academy as a teenager and stayed nearly twenty years. In 343 or 342 BCE Philip II of Macedon invited him to Pella to tutor his thirteen-year-old son Alexander. Aristotle returned to Athens a year after Philip's assassination in 336 BCE, and the years from 335 to 323 BCE are when many of his surviving works are thought to have been written. His Prior Analytics is credited with the earliest systematic study of logic. In 322 BCE, accused of impiety, he withdrew to Chalcis, and he is said to have remarked that Athens should not sin twice against philosophy. The boy he had taught was by then already in history for other reasons: Alexander would carry Greek learning, and Greek armies, far beyond the Aegean.",
+      "start_year": -343,
+      "end_year": -322,
+      "source_evidence": "Wikipedia: Aristotle",
+      "secondary_entities": [
+        {"entity_id": "8fe93ea9-58a9-4aa6-8a86-00f25389d1e9", "wikidata_id": "Q868", "name": "Aristotle", "role": "participant"},
+        {"entity_id": "15b357eb-2564-47b9-b23c-c84f5e72ea38", "wikidata_id": "Q130650", "name": "Philip II", "role": "participant"},
+        {"entity_id": "44907924-6296-4c6f-8594-8b36e34b004b", "wikidata_id": "Q8409", "name": "Alexander the Great", "role": "participant"},
+        {"entity_id": "86023d6d-aec8-4431-94b4-6739bcf1de57", "wikidata_id": "Q213679", "name": "Pella", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 10,
+      "narrative_text": "On 5 November 333 BCE two armies met on a strip of coast in southern Anatolia, near the mouth of the Pinarus river. Alexander had crossed into Asia the year before and beaten the Persian satraps at the Granicus. Now King Darius III took command himself and marched behind the Macedonians, cutting off their supplies, and his troops captured Issus and, the sources say, mutilated the sick Alexander had left behind. Alexander turned back. The battlefield was a narrow plain, only about 2.6 kilometres from sea to mountains, so Darius could not use his advantage in numbers. The Persians were beaten and Darius fled, leaving his family and his treasury in Alexander's hands. Open the battle map to see how the narrow plain decided the day. A Greek-speaking army had just defeated the Great King in person.",
+      "start_year": -333,
+      "end_year": -333,
+      "source_evidence": "Wikipedia: Battle of Issus; Battle of Gaugamela",
+      "secondary_entities": [
+        {"entity_id": "b36fa862-2907-4b99-bb40-a55539a53703", "wikidata_id": "Q201526", "name": "Battle of Issus", "role": "participant"},
+        {"entity_id": "44907924-6296-4c6f-8594-8b36e34b004b", "wikidata_id": "Q8409", "name": "Alexander the Great", "role": "participant"},
+        {"entity_id": "18a58090-20eb-4631-a1ed-b291a7311550", "wikidata_id": "Q102865", "name": "Darius III", "role": "participant"},
+        {"entity_id": "31bcdf5e-fec3-4af1-932c-f29ebaf9f70a", "wikidata_id": "Q389688", "name": "Achaemenid Empire", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 11,
+      "narrative_text": "After Issus, Darius tried to bargain. Ancient historians disagree about whether he sent a letter or an embassy, but Diodorus says he offered all the land west of the Halys river, a treaty of friendship and a large ransom for his captured family. The war went on. Alexander besieged Tyre from January to July 332 BCE and won control of the Levant, then in 331 BCE marched from Egypt through Syria toward the Tigris. Darius had expected him to take the quicker southern road to Babylon. On the night of 20 to 21 September 331 BCE a near-total lunar eclipse darkened the sky, and calculations built on it date the battle to 1 October. At Gaugamela, the Camel's House, Alexander defeated Darius again. By 330 BCE the Achaemenid Empire was conquered, and Greek would become a language of power from Egypt to Central Asia. The battle has its own battle map.",
+      "start_year": -331,
+      "end_year": -331,
+      "source_evidence": "Wikipedia: Battle of Gaugamela; Hellenistic period",
+      "secondary_entities": [
+        {"entity_id": "85d7e2e0-85fd-4748-a7f7-c6ac152a64b4", "wikidata_id": "Q179670", "name": "Battle of Gaugamela", "role": "participant"},
+        {"entity_id": "44907924-6296-4c6f-8594-8b36e34b004b", "wikidata_id": "Q8409", "name": "Alexander the Great", "role": "participant"},
+        {"entity_id": "18a58090-20eb-4631-a1ed-b291a7311550", "wikidata_id": "Q102865", "name": "Darius III", "role": "participant"},
+        {"entity_id": "31bcdf5e-fec3-4af1-932c-f29ebaf9f70a", "wikidata_id": "Q389688", "name": "Achaemenid Empire", "role": "outcome"}
+      ]
+    },
+    {
+      "sequence_order": 12,
+      "narrative_text": "In 331 BCE Alexander founded a city on the Egyptian coast beside a fishing village called Rhakotis and gave it his own name. After his death a general named Ptolemy took Egypt, seized Alexander's body on its way home to Macedon and, in time, had it laid in a new tomb at Alexandria. Alexandria soon became a centre of scholarship. Its great library has a murky origin: a late source credits Ptolemy I, but modern scholars think it probably became a real institution under his son Ptolemy II, who reigned from 283 to 246 BCE. Others had kept libraries before, in Uruk and in the Assyrian king Ashurbanipal's Nineveh, but here the scholars of the Mouseion gathered texts from the Greek world. Eratosthenes, who became its chief librarian, was the first known person to calculate the circumference of the Earth, and he coined the word geography.",
+      "start_year": -331,
+      "end_year": -246,
+      "source_evidence": "Wikipedia: Alexandria; Library of Alexandria; Ptolemy I Soter; Eratosthenes",
+      "secondary_entities": [
+        {"entity_id": "2b2d6e9d-9263-476d-a8d2-1fd9db48b6ae", "wikidata_id": "Q87", "name": "Alexandria", "role": "location"},
+        {"entity_id": "96f27311-6ad0-4c5a-88da-6f9916d997ab", "wikidata_id": "Q435", "name": "Library of Alexandria", "role": "outcome"},
+        {"entity_id": "a3c3e055-a8d4-406e-bdc8-c2a0eaddf173", "wikidata_id": "Q168261", "name": "Ptolemy I Soter", "role": "participant"},
+        {"entity_id": "191818aa-3182-4ef3-b9fe-387124a7f1f1", "wikidata_id": "Q43182", "name": "Eratosthenes of Cyrene", "role": "participant"},
+        {"entity_id": "bc56de93-472e-4678-8627-d3def8aafb0b", "wikidata_id": "Q684645", "name": "Mouseion", "role": "mentioned"},
+        {"entity_id": "eb7ee15b-439c-4a5b-963f-f435c14e4f8b", "wikidata_id": "Q2320005", "name": "Ptolemaic Kingdom", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 13,
+      "narrative_text": "On 10 or 11 June 323 BCE Alexander died in Babylon, in the palace of Nebuchadnezzar II, at the age of thirty-two. Ancient writers gave two versions of his last illness and some mentioned poison, though the twelve days between the onset of illness and his death make a long-acting poison unlikely. His generals fought over the empire in the Wars of the Diadochi, which ran from 322 to 275 BCE. In the end there was no single successor but several Greek-ruled kingdoms: the Seleucids over much of West Asia, the Ptolemies in Egypt and, before long, a Greco-Bactrian kingdom in Central Asia. The Hellenistic period lasted until about 31 BCE. Harari counts empires among the great forces that stitched humanity together, and Greek culture now spread across lands that had never shared a language.",
+      "start_year": -323,
+      "end_year": -250,
+      "source_evidence": "Wikipedia: Alexander the Great; Hellenistic period; Ptolemy I Soter",
+      "secondary_entities": [
+        {"entity_id": "a6e55096-a324-4d93-8297-85ccabeaacaf", "wikidata_id": "Q2912306", "name": "Wars of the Diadochi", "role": "participant"},
+        {"entity_id": "522e028d-250e-4350-bdc5-a6ea38afb2fc", "wikidata_id": "Q5684", "name": "Babylon", "role": "location"},
+        {"entity_id": "0fad94fa-8a88-48d0-b188-f456664c5e5f", "wikidata_id": "Q93180", "name": "Seleucid Empire", "role": "outcome"},
+        {"entity_id": "eb7ee15b-439c-4a5b-963f-f435c14e4f8b", "wikidata_id": "Q2320005", "name": "Ptolemaic Kingdom", "role": "outcome"},
+        {"entity_id": "d728bcc7-5671-461c-8659-f750dcfa24d0", "wikidata_id": "Q488880", "name": "Greco-Bactrian Kingdom", "role": "outcome"}
+      ]
+    },
+    {
+      "sequence_order": 14,
+      "narrative_text": "Soon after Alexander died in Babylon the western edge of India was in turmoil, with fighting in the Punjab as his empire fell apart into the realms of his generals. Out of that unrest rose Chandragupta Maurya, who founded the Maurya Empire around 320 BCE and overthrew the Nanda Empire. The exact years are debated: his accession is usually put around 322 to 319 BCE, but a date between about 311 and 305 BCE is also argued. The empire stayed loosely knit and lasted until 185 BCE. It would reach its height under his grandson Ashoka, who around 268 BCE took the throne of Magadha, and who held the major cities and arteries of the subcontinent except the deep south. Greek kings in the west and Mauryan emperors in the east were now neighbours.",
+      "start_year": -320,
+      "end_year": -268,
+      "source_evidence": "Wikipedia: Maurya Empire; Ashoka",
+      "secondary_entities": [
+        {"entity_id": "7bfb4e01-319e-43d5-b6fe-a43b9003bcbe", "wikidata_id": "Q188541", "name": "Chandragupta Maurya", "role": "participant"},
+        {"entity_id": "7c2aed5c-d2cf-4340-8260-41a0664fce9a", "wikidata_id": "Q62943", "name": "Maurya Empire", "role": "outcome"},
+        {"entity_id": "1c9de653-a7ed-4c9a-afb5-87ef59f61ade", "wikidata_id": "Q8589", "name": "Ashoka", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 15,
+      "narrative_text": "In his eighth regnal year, around 260 BCE by the usual reckoning, Ashoka conquered the eastern coastal region of Kalinga after a brutal war. His own words survive on stone. Rock Edict 13 says that conquering a country brings slaughter, death and captivity, and calls this a matter of profound sorrow and regret. From then on, it continues, he devoted himself to the Law of Piety, the dhamma. How sudden the change was remains uncertain. Sri Lankan tradition holds that he was already a devoted Buddhist well before the war, and his own inscriptions suggest that his turn to the Buddhist community was gradual: a later edict says he had been a lay follower for over two and a half years but made little progress until he drew closer to the sangha. Either way, an emperor was putting a moral limit on conquest in public.",
+      "start_year": -260,
+      "end_year": -258,
+      "source_evidence": "Wikipedia: Ashoka; Edicts of Ashoka",
+      "secondary_entities": [
+        {"entity_id": "a679d82b-d03e-49fd-96df-d3627367d938", "wikidata_id": "Q714557", "name": "Kalinga War", "role": "participant"},
+        {"entity_id": "1c9de653-a7ed-4c9a-afb5-87ef59f61ade", "wikidata_id": "Q8589", "name": "Ashoka", "role": "participant"},
+        {"entity_id": "299a093f-f957-4276-8928-ff9dc1b20e49", "wikidata_id": "Q1150706", "name": "Kalinga", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 16,
+      "narrative_text": "Ashoka had his message cut into rock faces, cave walls and tall pillars across the empire: more than thirty inscriptions, mostly in the Brahmi script, with Kharoshthi in the northwest and a few in Greek and Aramaic. They name Greek kings of his day, among them Antiochus II, Ptolemy II and Antigonus II, so the Hellenistic world and the Mauryan one appear on the same stone. The edicts also hold the oldest surviving written records of the title Buddha. Then Ashoka was almost forgotten as a historical figure, until scholars in the 1830s decoded Brahmi, helped by bilingual Greek and Brahmi coins of the king Agathocles. Harari groups religions that claim to speak to all humankind with empires and money as history's great unifiers, and these pillars are an early case: one ruler addressing subjects of many peoples with one ethical programme.",
+      "start_year": -260,
+      "end_year": -232,
+      "source_evidence": "Wikipedia: Edicts of Ashoka; Gautama Buddha; Ashoka",
+      "secondary_entities": [
+        {"entity_id": "a81828f3-c74f-4977-90ca-f7a3480ee30a", "wikidata_id": "Q779933", "name": "Edicts of Ashoka", "role": "participant"},
+        {"entity_id": "1c9de653-a7ed-4c9a-afb5-87ef59f61ade", "wikidata_id": "Q8589", "name": "Ashoka", "role": "participant"},
+        {"entity_id": "58864716-9576-4328-b9c4-3f787b5bb62a", "wikidata_id": "Q748", "name": "Buddhism", "role": "mentioned"},
+        {"entity_id": "eb7ee15b-439c-4a5b-963f-f435c14e4f8b", "wikidata_id": "Q2320005", "name": "Ptolemaic Kingdom", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 17,
+      "narrative_text": "In China the long age of war ended in 221 BCE. Ying Zheng, born in 259 BCE and made king of Qin at thirteen, took full power in 235 BCE and from 230 BCE sent his armies against the rival states one by one. By 221 BCE all of them had fallen and the Warring States period was over. He chose a new title, Huangdi, emperor, and became known as Qin Shi Huang, the First Emperor. Qin had grown strong in the fourth century BCE through the reforms of Shang Yang, and the new empire standardised currency, weights, measures and the writing system. The thinkers of the previous centuries had asked how to live and how to rule; here, at last, was a state built on one of their answers, and it would be copied for two thousand years.",
+      "start_year": -221,
+      "end_year": -221,
+      "source_evidence": "Wikipedia: Qin Shi Huang; Qin dynasty; Hundred Schools of Thought",
+      "secondary_entities": [
+        {"entity_id": "0d28dcd9-d7e2-4355-97a0-c2bf140d43a2", "wikidata_id": "Q7192", "name": "Qin Shi Huang", "role": "participant"},
+        {"entity_id": "03d7c182-9f0a-4739-a0f1-62bfd475d6cd", "wikidata_id": "Q2986801", "name": "Qin's wars of unification", "role": "participant"},
+        {"entity_id": "10dcfd5d-6236-49b4-aa44-3f74936df1b9", "wikidata_id": "Q7183", "name": "Qin", "role": "outcome"},
+        {"entity_id": "2f4c5da2-5245-41ad-9611-4e08eac1bb16", "wikidata_id": "Q497341", "name": "Xianyang", "role": "location"},
+        {"entity_id": "ede46038-8494-4241-85cf-0651ea50aa92", "wikidata_id": "Q351345", "name": "Shang Yang", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 18,
+      "narrative_text": "Qin Shi Huang died in 210 BCE during his fifth tour of eastern China. Work on his tomb at Mount Li had begun in 246 BCE, when he was thirteen, and the Records of the Grand Historian says 700,000 conscripted workers eventually laboured on it. He was buried with clay soldiers, more than eight thousand of them in three pits, to guard him in the afterlife. His dynasty did not last, as its fourteen years make it the shortest of any major Chinese dynasty, and two advisers quarrelled over the heir, a revolt broke out and the empire fell in 206 BCE. Yet the Han dynasty that followed kept much of the Qin system. Across Eurasia, thinkers, prophets and conquerors had made ideas portable. The next chapter follows what happened when Rome and Han met them with armies and roads.",
+      "start_year": -210,
+      "end_year": -206,
+      "source_evidence": "Wikipedia: Qin Shi Huang; Qin dynasty; Terracotta Army",
+      "secondary_entities": [
+        {"entity_id": "2ce3eb83-deeb-4f09-882e-91d16d79911e", "wikidata_id": "Q47672", "name": "Terracotta Army", "role": "outcome"},
+        {"entity_id": "57ab8229-d91d-4545-b7bb-f3afb81a580f", "wikidata_id": "Q910180", "name": "Mausoleum of Qin Shi Huang", "role": "location"},
+        {"entity_id": "0d28dcd9-d7e2-4355-97a0-c2bf140d43a2", "wikidata_id": "Q7192", "name": "Qin Shi Huang", "role": "participant"},
+        {"entity_id": "10dcfd5d-6236-49b4-aa44-3f74936df1b9", "wikidata_id": "Q7183", "name": "Qin", "role": "mentioned"}
+      ]
+    }
+  ]
+}

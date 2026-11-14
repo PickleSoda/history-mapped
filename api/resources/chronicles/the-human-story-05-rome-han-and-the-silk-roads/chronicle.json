@@ -1,0 +1,665 @@
+{
+  "title": "Rome, Han and the Silk Roads",
+  "slug": "the-human-story-05-rome-han-and-the-silk-roads",
+  "source_type": "article",
+  "source_reference": "The Human Story, chapter 5: an overview written for History Mapped. Facts checked against English Wikipedia; themes after Yuval Noah Harari, Sapiens: A Brief History of Humankind (2011).",
+  "status": "draft",
+  "start_year": -264,
+  "end_year": 300,
+  "tags": [
+    "classical",
+    "italy",
+    "mediterranean",
+    "china",
+    "central-asia",
+    "silk-roads",
+    "empires-states",
+    "trade",
+    "war",
+    "south-asia",
+    "diplomacy-law"
+  ],
+  "metadata": {
+    "series": "the-human-story",
+    "chapter": 5,
+    "lens": "Two empires at the ends of Eurasia ruled by law, citizenship and bureaucracy were joined by trade resting on trust between strangers."
+  },
+  "entries": [
+    {
+      "sequence_order": 0,
+      "narrative_text": "By 264 BC Rome had gathered up the whole Italian peninsula, finishing the job after the Pyrrhic War, when the Greek cities of the south submitted. Across the water Carthage was the leading outside power on Sicily, and these two, the greatest states of the western Mediterranean, went to war. It lasted twenty-three years, fought mostly on Sicily and the seas around it, and ended in 241 BC with Carthage defeated. Remember how Rome behaved here, because it is the thread of this chapter: it fought on after losses, and it kept finding ways to turn the people it beat into subjects, allies and in the end fellow citizens. At the far end of Eurasia, a very different empire was about to take shape.",
+      "start_year": -264,
+      "end_year": -241,
+      "source_evidence": "Wikipedia: Second Punic War; Battle of Zama; Roman Republic",
+      "secondary_entities": [
+        {
+          "entity_id": "ba74ca53-a736-45fb-858b-ada86dfedd9c",
+          "name": "Roman Republic",
+          "role": "participant"
+        },
+        {
+          "entity_id": "e8b8c095-1a31-4dff-bb29-32d69b2a639e",
+          "wikidata_id": "Q2429397",
+          "name": "Carthage",
+          "role": "participant"
+        },
+        {
+          "entity_id": "71cefb06-6358-49fe-bc9a-ebd8b98f40f4",
+          "wikidata_id": "Q17167",
+          "name": "Rome",
+          "role": "location"
+        }
+      ]
+    },
+    {
+      "sequence_order": 1,
+      "narrative_text": "Hannibal ruled Carthaginian Iberia, and he chose to take the war to Rome's own doorstep. After he stormed the pro-Roman city of Saguntum in 219 BC, Rome declared war, and in 218 he marched an army out of Iberia, through Gaul and over the Alps into Italy. With Gallic allies he crushed the Romans at the Trebia in 218 and at Lake Trasimene in 217, and he then stayed in Italy for sixteen years. Rome's answer was not to make peace but to go on raising armies, and its next disaster would be the biggest of all.",
+      "start_year": -218,
+      "end_year": -201,
+      "source_evidence": "Wikipedia: Second Punic War; Battle of Zama; Battle of Cannae",
+      "secondary_entities": [
+        {
+          "entity_id": "abb24764-e9c7-4da2-880b-c20fcbe09f81",
+          "wikidata_id": "Q6271",
+          "name": "Second Punic War",
+          "role": "participant"
+        },
+        {
+          "entity_id": "6ebf8b10-6761-4082-adca-01f4573404f7",
+          "wikidata_id": "Q36456",
+          "name": "Hannibal",
+          "role": "participant"
+        },
+        {
+          "entity_id": "75d15373-d354-4aa9-8a65-2ebcbecbf43d",
+          "wikidata_id": "Q1337302",
+          "name": "Hannibal's crossing of the Alps",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "e8b8c095-1a31-4dff-bb29-32d69b2a639e",
+          "wikidata_id": "Q2429397",
+          "name": "Carthage",
+          "role": "participant"
+        }
+      ]
+    },
+    {
+      "sequence_order": 2,
+      "narrative_text": "Rome met Hannibal at Cannae with an army of unprecedented size: the Senate had called up eight legions, and with allied troops the Romans fielded around 86,000 men, according to the usual estimates. Hannibal had first seized the supply depot there, planting himself between the Romans and their food. The result is traditionally dated to 2 August 216 BC, and it was among the deadliest single days of fighting in history; a modern historian compares the slaughter to the British Army's first day on the Somme. What matters for our story is what came next. The survivors were formed into two legions and sent to Sicily, and Rome went on. Open the battle map to see how a smaller army closed around a larger one.",
+      "start_year": -216,
+      "end_year": -216,
+      "source_evidence": "Wikipedia: Battle of Cannae; Second Punic War; Battle of Zama",
+      "secondary_entities": [
+        {
+          "entity_id": "3f3e9778-4397-4135-8b0a-6b86544e20f6",
+          "wikidata_id": "Q179591",
+          "name": "Battle of Cannae",
+          "role": "participant"
+        },
+        {
+          "entity_id": "6ebf8b10-6761-4082-adca-01f4573404f7",
+          "wikidata_id": "Q36456",
+          "name": "Hannibal",
+          "role": "participant"
+        },
+        {
+          "entity_id": "abb24764-e9c7-4da2-880b-c20fcbe09f81",
+          "wikidata_id": "Q6271",
+          "name": "Second Punic War",
+          "role": "mentioned"
+        }
+      ]
+    },
+    {
+      "sequence_order": 3,
+      "narrative_text": "The Roman who finally beat Hannibal was a young man in a hurry. Scipio drove the Carthaginians out of Iberia, was elected consul in 205 BC at thirty-one although the minimum age was forty-two, and then carried the war to Africa. In 202 BC he met Hannibal at Zama, near Carthage itself, and Hannibal lost; Carthage asked for peace and accepted the treaty in spring 201, with Hannibal himself speaking in its favour. Rome was now the dominant power of the Mediterranean. In 146 BC, after one more war, it would raze Carthage. The battle map shows how Scipio arranged his lines to meet an army that had once swept over the Alps.",
+      "start_year": -202,
+      "end_year": -201,
+      "source_evidence": "Wikipedia: Battle of Zama; Second Punic War; Roman Republic",
+      "secondary_entities": [
+        {
+          "entity_id": "0803d51b-c7f9-4bcc-879b-da0fbda716b7",
+          "wikidata_id": "Q200056",
+          "name": "Battle of Zama",
+          "role": "participant"
+        },
+        {
+          "entity_id": "de9a8ceb-f7b1-4124-93b3-9ac168521881",
+          "wikidata_id": "Q2253",
+          "name": "Scipio Africanus",
+          "role": "participant"
+        },
+        {
+          "entity_id": "6ebf8b10-6761-4082-adca-01f4573404f7",
+          "wikidata_id": "Q36456",
+          "name": "Hannibal",
+          "role": "participant"
+        },
+        {
+          "entity_id": "e8b8c095-1a31-4dff-bb29-32d69b2a639e",
+          "wikidata_id": "Q2429397",
+          "name": "Carthage",
+          "role": "participant"
+        }
+      ]
+    },
+    {
+      "sequence_order": 4,
+      "narrative_text": "Far to the east, a rebel named Liu Bang took a different road to the same sort of power. The Qin empire, the first imperial dynasty of China, collapsed in rebellions after 209 BC; Liu Bang won the race to the capital, Xianyang, in 207, and then fought his rival Xiang Yu for supremacy. In 202 BC he destroyed Xiang Yu's army at Gaixia and made himself emperor of the new Han dynasty. Hard experience taught him modesty abroad: the Xiongnu defeated him in 200 BC, and he began a policy of marriage alliances with them to keep the peace. He died in 195 BC. His dynasty would rule, with one break, for about four centuries.",
+      "start_year": -202,
+      "end_year": -195,
+      "source_evidence": "Wikipedia: Emperor Gaozu of Han; Han dynasty; Qin dynasty",
+      "secondary_entities": [
+        {
+          "entity_id": "10adfe59-2a71-420b-a15b-90360a2ff519",
+          "wikidata_id": "Q7210",
+          "name": "Emperor Gaozu of Han",
+          "role": "participant"
+        },
+        {
+          "entity_id": "9c635120-ea2f-455f-bd7b-7014befde137",
+          "wikidata_id": "Q1349891",
+          "name": "Battle of Gaixia",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "caf65309-d855-4947-afcf-e891972750a1",
+          "wikidata_id": "Q182266",
+          "name": "Xiang Yu",
+          "role": "participant"
+        },
+        {
+          "entity_id": "0d64232f-a5e9-43d4-bfb1-c859e7455321",
+          "wikidata_id": "Q7209",
+          "name": "Han Dynasty",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "10dcfd5d-6236-49b4-aa44-3f74936df1b9",
+          "wikidata_id": "Q7183",
+          "name": "Qin",
+          "role": "mentioned"
+        }
+      ]
+    },
+    {
+      "sequence_order": 5,
+      "narrative_text": "Emperor Wu came to the throne at fifteen and ruled for over fifty years, turning a cautious state into an expansive one. Tired of paying off the Xiongnu, he began a series of campaigns against them in 133 BC, annexed Nanyue and Dian in the south, and pushed into the northern Korean Peninsula. To pay for it all the government minted a standard coinage in 119 BC, which stayed the norm in China until the Tang, and took over the salt and iron industries in 117. From his reign the court also officially sponsored Confucianism in education and politics. An empire needs coins and clerks as much as cavalry, and Han China was building both.",
+      "start_year": -141,
+      "end_year": -87,
+      "source_evidence": "Wikipedia: Emperor Wu of Han; Han dynasty",
+      "secondary_entities": [
+        {
+          "entity_id": "efd03d45-8e54-4ce1-9b1d-48cba6a13572",
+          "wikidata_id": "Q7225",
+          "name": "Emperor Wu of Han",
+          "role": "participant"
+        },
+        {
+          "entity_id": "d6344235-c4d6-4074-afed-96757d1c7e60",
+          "wikidata_id": "Q1072949",
+          "name": "Western Han",
+          "role": "participant"
+        },
+        {
+          "entity_id": "c8af1501-1a4f-4801-b174-707a3ef3fc7c",
+          "wikidata_id": "Q188836",
+          "name": "Xiongnu",
+          "role": "participant"
+        },
+        {
+          "entity_id": "18bca513-6626-4887-9ebf-04a4ed096cf4",
+          "wikidata_id": "Q6501000",
+          "name": "Chang'an",
+          "role": "location"
+        }
+      ]
+    },
+    {
+      "sequence_order": 6,
+      "narrative_text": "Emperor Wu wanted allies against the Xiongnu, so in 138 BC he sent an officer named Zhang Qian west, with a party of ninety-nine, to find the Yuezhi, a people who had been driven off by the Xiongnu. Zhang Qian came back in 125 BC with no alliance but with news that mattered more: sophisticated societies lived to the west, with which China could do business. Later missions, to the Wusun, opened trade that reached Persia. The Han push into Central Asia around 114 BC is where the network later called the Silk Road is taken to begin. The name is modern, coined in 1877; the traffic it describes was real, and slow, and passed from hand to hand.",
+      "start_year": -138,
+      "end_year": -114,
+      "source_evidence": "Wikipedia: Zhang Qian; Silk Road; Emperor Wu of Han; Kushan Empire",
+      "secondary_entities": [
+        {
+          "entity_id": "3f0fbacb-f5d5-4672-8aa5-a515fa923b20",
+          "wikidata_id": "Q197276",
+          "name": "Zhang Qian",
+          "role": "participant"
+        },
+        {
+          "entity_id": "efd03d45-8e54-4ce1-9b1d-48cba6a13572",
+          "wikidata_id": "Q7225",
+          "name": "Emperor Wu of Han",
+          "role": "participant"
+        },
+        {
+          "entity_id": "33a8cac6-5fdb-4669-a724-fbed8ddf90c5",
+          "wikidata_id": "Q467985",
+          "name": "Yuezhi",
+          "role": "participant"
+        },
+        {
+          "entity_id": "59791574-3b94-4c8d-ba9b-67986db2aefe",
+          "wikidata_id": "Q36288",
+          "name": "Silk Road",
+          "role": "outcome"
+        }
+      ]
+    },
+    {
+      "sequence_order": 7,
+      "narrative_text": "Marcus Crassus was immensely wealthy, and he wanted a war to match his wealth. He had put down Spartacus, and in 55 BC he left Rome for Syria despite protests and bad omens, then used his money to raise an army. In spring 53 BC he marched on Parthia, an Iranian empire, and met its horse archers near Carrhae, in modern Turkey. His army was destroyed and he did not come home. About ten thousand Roman prisoners were apparently marched to Merv, and one theory, which is only a theory, has them later serving as mercenaries on the Chinese frontier. The loss shifted the balance of power at Rome and showed that its legions had a limit in the east.",
+      "start_year": -53,
+      "end_year": -53,
+      "source_evidence": "Wikipedia: Battle of Carrhae; Parthian Empire; Marcus Licinius Crassus",
+      "secondary_entities": [
+        {
+          "entity_id": "70e13894-02ce-40eb-81b4-ac124468b25a",
+          "wikidata_id": "Q205887",
+          "name": "Battle of Carrhae",
+          "role": "participant"
+        },
+        {
+          "entity_id": "fbca9447-4373-490a-8e81-17ec94ae4729",
+          "wikidata_id": "Q175121",
+          "name": "Marcus Licinius Crassus",
+          "role": "participant"
+        },
+        {
+          "entity_id": "a23a678e-39bc-4cfa-9f55-040cb316db29",
+          "wikidata_id": "Q1986139",
+          "name": "Parthian Empire",
+          "role": "participant"
+        }
+      ]
+    },
+    {
+      "sequence_order": 8,
+      "narrative_text": "Julius Caesar spent the 50s BC conquering Gaul, and when the Senate turned against him he crossed the Rubicon in January 49 BC and marched on Rome. He won the civil war that followed against Pompey, and by 45 BC he held near-unchallenged power; early in 44 he was named dictator in perpetuity. A group of senators who feared he would make himself king, led by Brutus and Cassius, killed him on the Ides of March, 15 March 44 BC. They killed the man but not the problem. The Republic's machinery had been bent so far that it could not be bent back, and Caesar's heir, a young man named in his will, was already on his way.",
+      "start_year": -49,
+      "end_year": -44,
+      "source_evidence": "Wikipedia: Julius Caesar; Roman Republic; Augustus",
+      "secondary_entities": [
+        {
+          "entity_id": "52f1e39a-66e1-4ad0-910a-8dc5ec16d7e5",
+          "wikidata_id": "Q1048",
+          "name": "Julius Caesar",
+          "role": "participant"
+        },
+        {
+          "entity_id": "84b71dfc-ecc6-46ee-b904-b4f26c698acb",
+          "wikidata_id": "Q125414",
+          "name": "Pompey",
+          "role": "participant"
+        },
+        {
+          "entity_id": "ba74ca53-a736-45fb-858b-ada86dfedd9c",
+          "name": "Roman Republic",
+          "role": "outcome"
+        }
+      ]
+    },
+    {
+      "sequence_order": 9,
+      "narrative_text": "Octavian, Caesar's great-nephew and adopted heir, beat Mark Antony and Cleopatra at Actium in 31 BC, with Agrippa commanding at sea. In 27 BC the Senate gave him the title Augustus, 'the revered', and he became the first Roman emperor. He lived until AD 14 and died at seventy-five of natural causes, and the Senate declared him a god. The Republic that Rome had fought so many wars to protect had become something its citizens could live with: a single ruler who ended the civil wars and founded the empire that would hold the Mediterranean for centuries.",
+      "start_year": -31,
+      "end_year": 14,
+      "source_evidence": "Wikipedia: Augustus; Roman Republic; Pax Romana",
+      "secondary_entities": [
+        {
+          "entity_id": "1879b7ab-fd88-4c56-950d-828ea46a01ba",
+          "wikidata_id": "Q1405",
+          "name": "Augustus",
+          "role": "participant"
+        },
+        {
+          "entity_id": "1e7c8759-338a-4d77-b947-fd603415ca35",
+          "wikidata_id": "Q160387",
+          "name": "Battle of Actium",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "dd2c99a3-49bc-42de-8287-12b181eb54e2",
+          "wikidata_id": "Q635",
+          "name": "Cleopatra VII",
+          "role": "participant"
+        },
+        {
+          "entity_id": "e837cceb-e520-4726-9180-9ebaeef0f1ca",
+          "wikidata_id": "Q2277",
+          "name": "Roman Empire",
+          "role": "outcome"
+        }
+      ]
+    },
+    {
+      "sequence_order": 10,
+      "narrative_text": "With Egypt in Roman hands from 30 BC, the Red Sea became a Roman highway. Strabo records that by Augustus's time up to 120 ships a year sailed from Myos Hormos for India, and a Greek merchant's handbook of the 1st century AD, the Periplus of the Erythraean Sea, describes Muziris on India's Malabar coast as thick with ships and the home of pepper. A Tamil poem says the ships of the Yavanas came with gold and left with pepper. A papyrus of the 2nd century shows Alexandrian merchants arranging a cargo loan for a ship at Muziris. Harari argues that money works because strangers trust it. Here that trust stretched from Egypt to Kerala.",
+      "start_year": -30,
+      "end_year": 200,
+      "source_evidence": "Wikipedia: Muziris; Indo-Roman trade relations; Periplus of the Erythraean Sea",
+      "secondary_entities": [
+        {
+          "entity_id": "b87d5e37-973d-494d-baee-e883d58b8bf8",
+          "wikidata_id": "Q2974112",
+          "name": "Muziris",
+          "role": "location"
+        },
+        {
+          "entity_id": "65f8bcc7-5e8a-41d1-883f-9a4dc6b1ef25",
+          "wikidata_id": "Q664162",
+          "name": "Periplus of the Erythraean Sea",
+          "role": "participant"
+        },
+        {
+          "entity_id": "72d3329d-51e5-41b1-8dbf-9755ff9283b2",
+          "wikidata_id": "Q202311",
+          "name": "Roman Egypt",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "2b2d6e9d-9263-476d-a8d2-1fd9db48b6ae",
+          "wikidata_id": "Q87",
+          "name": "Alexandria",
+          "role": "location"
+        }
+      ]
+    },
+    {
+      "sequence_order": 11,
+      "narrative_text": "Under Augustus and his successors Rome settled into what it called peace. The Pax Romana is traditionally dated from 27 BC to AD 180, and historians stress that it was far from free of wars and revolts; it was calm compared with the Republic's constant fighting. In that calm Rome built. At its height 372 great roads linked 113 provinces, and 29 military highways ran out from the capital, among them the Via Appia begun in 312 BC. Aqueducts carried water to a city of about a million. Under Trajan, the empire reached its greatest extent in 117. Roads, water and law made a distant province feel as though it belonged to a single system.",
+      "start_year": -27,
+      "end_year": 180,
+      "source_evidence": "Wikipedia: Pax Romana; Roman roads; Roman aqueduct; Roman law",
+      "secondary_entities": [
+        {
+          "entity_id": "e837cceb-e520-4726-9180-9ebaeef0f1ca",
+          "wikidata_id": "Q2277",
+          "name": "Roman Empire",
+          "role": "participant"
+        },
+        {
+          "entity_id": "bafe069b-69ba-4688-b795-c0b1efc2dcb2",
+          "wikidata_id": "Q106359966",
+          "name": "Via Appia",
+          "role": "mentioned"
+        },
+        {
+          "entity_id": "21e7da66-19e9-4857-8f72-87a18d656dd3",
+          "wikidata_id": "Q1425",
+          "name": "Trajan",
+          "role": "participant"
+        }
+      ]
+    },
+    {
+      "sequence_order": 12,
+      "narrative_text": "Arminius knew Rome from the inside. He had served in its army, received Roman citizenship and the rank of equestrian, and then returned to Germania, where Varus, a governor sent by Augustus, was extending Roman control east of the Rhine. In September of AD 9, Arminius led an alliance of Germanic peoples against Varus's three legions on the march. The Romans were ambushed and destroyed, probably near Kalkriese. Rome then made no major advance into Germania for about a century and a half. Citizenship and a Roman education had given a man the skills to defeat the empire that gave them. Open the battle map to follow the ambush.",
+      "start_year": 9,
+      "end_year": 9,
+      "source_evidence": "Wikipedia: Battle of the Teutoburg Forest; Arminius; Publius Quinctilius Varus",
+      "secondary_entities": [
+        {
+          "entity_id": "6c8de858-c736-41fa-b298-35583f1b14f7",
+          "wikidata_id": "Q87779",
+          "name": "Battle of the Teutoburg Forest",
+          "role": "participant"
+        },
+        {
+          "entity_id": "bdc05be0-7ea8-41d9-bfa8-203645370aec",
+          "wikidata_id": "Q68880",
+          "name": "Arminius",
+          "role": "participant"
+        },
+        {
+          "entity_id": "4f801e8b-a231-40ce-90dc-3265d244de84",
+          "wikidata_id": "Q214765",
+          "name": "Publius Quinctilius Varus",
+          "role": "participant"
+        },
+        {
+          "entity_id": "1879b7ab-fd88-4c56-950d-828ea46a01ba",
+          "wikidata_id": "Q1405",
+          "name": "Augustus",
+          "role": "mentioned"
+        }
+      ]
+    },
+    {
+      "sequence_order": 13,
+      "narrative_text": "While Rome and Han China grew, a third power took shape between them. The Yuezhi, pushed west by the Xiongnu in the 2nd century BC, settled in Bactria, and one clan, the Kushans, led by Kujula Kadphises, welded them into a confederation. The Kushan Empire, which lasted from about 30 CE to about 375, covered parts of Central Asia and India. It was a mixed state, and it helped spread Buddhism into Central Asia and China. A traveller crossing the continent therefore passed through a chain of empires: Rome, Parthia, the Kushans, Han. No single power ruled the whole path, yet goods moved along it.",
+      "start_year": 30,
+      "end_year": 30,
+      "source_evidence": "Wikipedia: Kushan Empire; Silk Road",
+      "secondary_entities": [
+        {
+          "entity_id": "ecf5ab84-07f3-4aef-ad5e-8f04a644f0a9",
+          "name": "Kushan Empire",
+          "role": "participant"
+        },
+        {
+          "entity_id": "33a8cac6-5fdb-4669-a724-fbed8ddf90c5",
+          "wikidata_id": "Q467985",
+          "name": "Yuezhi",
+          "role": "participant"
+        },
+        {
+          "entity_id": "59791574-3b94-4c8d-ba9b-67986db2aefe",
+          "wikidata_id": "Q36288",
+          "name": "Silk Road",
+          "role": "location"
+        }
+      ]
+    },
+    {
+      "sequence_order": 14,
+      "narrative_text": "The Han Protector General Ban Chao sent his subordinate Gan Ying to find Da Qin, the Chinese name for the Roman Empire. The Hou Hanshu says that in 97 CE Gan Ying travelled as far as the 'Western Sea', which was either the Persian Gulf or the Black Sea, and then turned back. Rome and Han China were the largest empires of their day, and it seems they never met. Each knew of the other from rumour and from the goods that had passed through many hands on the way. The chain of middlemen was long enough that an envoy could set out for Rome and never see it.",
+      "start_year": 97,
+      "end_year": 97,
+      "source_evidence": "Wikipedia: Gan Ying; Ban Chao",
+      "secondary_entities": [
+        {
+          "entity_id": "18eeaf15-e467-4848-b16e-2df2f6fbd3ca",
+          "wikidata_id": "Q16075962",
+          "name": "Gan Ying",
+          "role": "participant"
+        },
+        {
+          "entity_id": "9f8552c8-5c6d-402e-aff9-7600eb045c87",
+          "wikidata_id": "Q366132",
+          "name": "Ban Chao",
+          "role": "participant"
+        },
+        {
+          "entity_id": "e837cceb-e520-4726-9180-9ebaeef0f1ca",
+          "wikidata_id": "Q2277",
+          "name": "Roman Empire",
+          "role": "mentioned"
+        }
+      ]
+    },
+    {
+      "sequence_order": 15,
+      "narrative_text": "The Han dynasty had been interrupted by Wang Mang's short-lived Xin from 9 to 23, and restored in 25 as the Eastern Han with its capital at Luoyang. At that court served Cai Lun, a eunuch official who oversaw the palace workshop that made instruments and weapons. In 105 he improved papermaking with tree bark, hemp waste, old rags and fishnets. Paper had existed since the 3rd century BC, so he improved a technique rather than inventing one. A state that ran on documents had every reason to care. Later he was put in charge of a scholars' new edition of the Five Classics.",
+      "start_year": 105,
+      "end_year": 105,
+      "source_evidence": "Wikipedia: Cai Lun; Han dynasty",
+      "secondary_entities": [
+        {
+          "entity_id": "1062ad01-2e34-4a31-b5f5-6ba5081bc8de",
+          "wikidata_id": "Q229235",
+          "name": "Cai Lun",
+          "role": "participant"
+        },
+        {
+          "entity_id": "45ddd872-470f-422c-8315-61ef2514ba98",
+          "wikidata_id": "Q1147037",
+          "name": "Eastern Han",
+          "role": "location"
+        },
+        {
+          "entity_id": "bb5d517e-a87a-440b-9e22-84b8f1662606",
+          "wikidata_id": "Q187136",
+          "name": "Luoyang",
+          "role": "location"
+        }
+      ]
+    },
+    {
+      "sequence_order": 16,
+      "narrative_text": "By 208 the Han dynasty was nearly four centuries old, by the usual reckoning, and hollow. The boy emperor Xian, on the throne since 189, held no real power; the warlord Cao Cao, who had reunified the north by beating Yuan Shao in 200, took the post of Chancellor and with it the government, and marched south in the autumn of 208. Liu Bei and Sun Quan, with the strategist Zhou Yu, joined forces against him and beat him in a naval battle on the Yangtze in the winter of 208 to 209. The victory secured the frontiers that would shape the Shu Han and Eastern Wu states. Scholars still argue about exactly where it was fought.",
+      "start_year": 208,
+      "end_year": 209,
+      "source_evidence": "Wikipedia: Battle of Red Cliffs; Han dynasty",
+      "secondary_entities": [
+        {
+          "entity_id": "4cace50a-2af7-4823-ac11-3a8209cf0102",
+          "wikidata_id": "Q830059",
+          "name": "Battle of Red Cliffs",
+          "role": "participant"
+        },
+        {
+          "entity_id": "68307e6a-c14e-4fd2-9716-a664a81a2c1a",
+          "wikidata_id": "Q204077",
+          "name": "Cao Cao",
+          "role": "participant"
+        },
+        {
+          "entity_id": "ed537e8b-1a12-465e-a147-d09f0d11e273",
+          "wikidata_id": "Q245315",
+          "name": "Liu Bei",
+          "role": "participant"
+        },
+        {
+          "entity_id": "89f625ea-af60-444b-8619-f3b406c9b246",
+          "wikidata_id": "Q313327",
+          "name": "Sun Quan",
+          "role": "participant"
+        },
+        {
+          "entity_id": "a4e01586-46ef-4f01-afc0-0ffb644ad767",
+          "wikidata_id": "Q198048",
+          "name": "Zhou Yu",
+          "role": "participant"
+        }
+      ]
+    },
+    {
+      "sequence_order": 17,
+      "narrative_text": "In 212 the Roman emperor Caracalla issued an edict that made all free men in the empire Roman citizens, and gave free women equivalent rights. Until then, full citizenship had mostly belonged to the inhabitants of Italy. The historian Cassius Dio says the main reason was to increase the number of people available to tax. Mary Beard says the era that followed was effectively a new state masquerading under an old name. Harari sees empires as melting pots that fold conquered peoples into one civilisation. Here that process reaches its legal end: a Roman could be born in Gaul, Syria or Africa.",
+      "start_year": 212,
+      "end_year": 212,
+      "source_evidence": "Wikipedia: Constitutio Antoniniana; Roman citizenship",
+      "secondary_entities": [
+        {
+          "entity_id": "1c7956e7-68ec-4dc4-8640-a21deda7f581",
+          "wikidata_id": "Q312584",
+          "name": "Constitutio Antoniniana",
+          "role": "outcome"
+        },
+        {
+          "entity_id": "2c5b2ab6-7f7e-496f-b8be-88955b630dfc",
+          "wikidata_id": "Q1446",
+          "name": "Caracalla",
+          "role": "participant"
+        },
+        {
+          "entity_id": "e837cceb-e520-4726-9180-9ebaeef0f1ca",
+          "wikidata_id": "Q2277",
+          "name": "Roman Empire",
+          "role": "participant"
+        }
+      ]
+    },
+    {
+      "sequence_order": 18,
+      "narrative_text": "In 220 the Han dynasty ended, after decades in which, from 92 onward, palace eunuchs and the families of empresses fought one another for control of the court while warlords held the provinces. Emperor Xian, the last Han ruler, had been a figurehead under Cao Cao. China then entered the Three Kingdoms period, which lasted until 280, with rival states claiming the right to rule. For four centuries one empire run by salaried officials had held a huge population together, and its fall left a gap that rival states set out to fill.",
+      "start_year": 220,
+      "end_year": 280,
+      "source_evidence": "Wikipedia: Han dynasty; Three Kingdoms; Emperor Xian of Han",
+      "secondary_entities": [
+        {
+          "entity_id": "45ddd872-470f-422c-8315-61ef2514ba98",
+          "wikidata_id": "Q1147037",
+          "name": "Eastern Han",
+          "role": "participant"
+        },
+        {
+          "entity_id": "f2a94b55-7a52-4a8f-8aa8-e86f556f64a7",
+          "wikidata_id": "Q7316",
+          "name": "Emperor Xian of Han",
+          "role": "participant"
+        },
+        {
+          "entity_id": "fd451cfc-ebe9-422a-8d8c-dd73072d0dbc",
+          "wikidata_id": "Q185043",
+          "name": "Three Kingdoms",
+          "role": "outcome"
+        }
+      ]
+    },
+    {
+      "sequence_order": 19,
+      "narrative_text": "The Roman peace gave way in 235, when soldiers murdered the emperor Severus Alexander. A series of short-lived emperors followed, the plague of Cyprian broke out in 251, and in 260 the Sasanians, the new Persian dynasty that had replaced the Parthians, captured Emperor Valerian in battle. That year Gaul, Britain and Hispania broke away as the Gallic Empire, and in 267 the eastern provinces formed the Palmyrene Empire. By 268, the Roman Empire had split into three competing states. The system of roads, taxes and citizenship that had held it together did not hold when it was attacked from several sides at once.",
+      "start_year": 235,
+      "end_year": 268,
+      "source_evidence": "Wikipedia: Crisis of the Third Century",
+      "secondary_entities": [
+        {
+          "entity_id": "127684bf-8c92-4cc6-9f7d-3f0c9e7d9da9",
+          "wikidata_id": "Q329838",
+          "name": "Crisis of the Third Century",
+          "role": "participant"
+        },
+        {
+          "entity_id": "e557adcd-b337-4acb-b443-2f8d28ac4f2f",
+          "wikidata_id": "Q46750",
+          "name": "Valerian",
+          "role": "participant"
+        },
+        {
+          "entity_id": "aa312fdf-54ad-4e01-8cc3-44d8c9b20604",
+          "wikidata_id": "Q83891",
+          "name": "Sasanian Empire",
+          "role": "participant"
+        },
+        {
+          "entity_id": "6335a6c4-dbd6-4a75-854a-6e2f408ddde2",
+          "wikidata_id": "Q877875",
+          "name": "Palmyrene Empire",
+          "role": "mentioned"
+        }
+      ]
+    },
+    {
+      "sequence_order": 20,
+      "narrative_text": "Rome began to recover, and the turning point was the reign of Aurelian, from 270 to 275. The crisis is said to have ended in 285 when Diocletian defeated his rival Carinus and then restructured the imperial government, economy and army. The empire that emerged was still Roman, but it had been reshaped by a half-century of emergency. At the other end of Eurasia, China had broken into three kingdoms. Both of the chapter's great empires had been remade from the ruins, and what happened to Rome next, as faiths from east and west moved into its world, is the story of the next chapter.",
+      "start_year": 270,
+      "end_year": 285,
+      "source_evidence": "Wikipedia: Crisis of the Third Century; Aurelian; Diocletian",
+      "secondary_entities": [
+        {
+          "entity_id": "0f66ea41-74aa-4f09-8907-539f455f461e",
+          "wikidata_id": "Q46780",
+          "name": "Aurelian",
+          "role": "participant"
+        },
+        {
+          "entity_id": "21737e9e-97d7-4b80-a46f-6554ceb58041",
+          "wikidata_id": "Q43107",
+          "name": "Diocletian",
+          "role": "participant"
+        },
+        {
+          "entity_id": "e837cceb-e520-4726-9180-9ebaeef0f1ca",
+          "wikidata_id": "Q2277",
+          "name": "Roman Empire",
+          "role": "outcome"
+        }
+      ]
+    }
+  ]
+}

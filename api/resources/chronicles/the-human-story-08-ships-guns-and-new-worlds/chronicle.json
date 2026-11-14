@@ -1,0 +1,278 @@
+{
+  "title": "Ships, Guns and New Worlds",
+  "slug": "the-human-story-08-ships-guns-and-new-worlds",
+  "source_type": "article",
+  "source_reference": "The Human Story, chapter 8: an overview written for History Mapped. Facts checked against English Wikipedia; themes after Yuval Noah Harari, Sapiens: A Brief History of Humankind (2011).",
+  "status": "draft",
+  "start_year": 1350,
+  "end_year": 1650,
+  "tags": ["early-modern", "europe", "mesoamerica", "south-america", "atlantic", "exploration", "colonialism", "war", "global", "empires-states", "science", "disease"],
+  "metadata": {"series": "the-human-story", "chapter": 8, "lens": "Gunpowder empires and ocean voyages joined the hemispheres, and a new admission of ignorance drove science and empire forward together."},
+  "entries": [
+    {
+      "sequence_order": 0,
+      "narrative_text": "In the autumn of 1405 a fleet gathered at Nanjing under an admiral called Zheng He, a Muslim born Ma He in Yunnan, captured as a boy and later given a new surname by the Yongle Emperor. The court ordered ships on a vast scale, with records pointing to at least 2,868 vessels between 1403 and 1419. The first expedition carried imperial letters and gifts of silk to the kings of the Western Ocean, and sailed by Java and Sumatra to Calicut on India's Malabar coast. Seven voyages followed in all, the last in 1433. Keep this fleet in mind: the age of ocean empires begins with a great navy that is not European.",
+      "start_year": 1405,
+      "end_year": 1433,
+      "source_evidence": "Wikipedia: Zheng He; Ming treasure voyages",
+      "secondary_entities": [
+        {"entity_id": "df5d6f21-07f9-46d8-9813-b354574d5caa", "wikidata_id": "Q7333", "name": "Zheng He", "role": "participant"},
+        {"entity_id": "a8d4ddba-0118-4ec4-a87e-7be465e375ae", "wikidata_id": "Q699127", "name": "Treasure voyages", "role": "mentioned"},
+        {"entity_id": "ec62ee50-0413-4664-a72d-f41647bb3539", "wikidata_id": "Q9965", "name": "Yongle Emperor", "role": "participant"},
+        {"entity_id": "a31f4ce0-2a09-4d37-9778-a3bc59999f2f", "wikidata_id": "Q16666", "name": "Nanjing", "role": "location"},
+        {"entity_id": "72efb7aa-0fcd-4358-815f-4db9f0a5a1bb", "wikidata_id": "Q28729", "name": "Calicut", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 1,
+      "narrative_text": "Ten years after the treasure fleet first sailed, Henry V of England was in trouble on the far side of Eurasia. He had landed in northern France on 13 August 1415 to reopen the Hundred Years' War, after talks over old ransom money and lost lands went nowhere. By October his army had marched 260 miles in two and a half weeks, was sick with dysentery and short of food, and faced a far larger French force of well-equipped men-at-arms. On 25 October, Saint Crispin's Day, Henry drew up about 1,500 men-at-arms and 7,000 longbowmen across a narrow stretch of ground near Azincourt. The English won, and held their advantage for fourteen years. Longbows carried the day at Agincourt, but a heavier weapon was already being cast in Ottoman foundries.",
+      "start_year": 1415,
+      "end_year": 1415,
+      "source_evidence": "Wikipedia: Battle of Agincourt; Dardanelles Gun",
+      "secondary_entities": [
+        {"entity_id": "dd14b82d-0bf2-4c93-b0e6-0e1400dd03ab", "wikidata_id": "Q188495", "name": "Battle of Agincourt", "role": "participant"},
+        {"entity_id": "40de81aa-2f58-4dea-963d-c6d4c984beb5", "name": "Henry V of England", "role": "participant"},
+        {"entity_id": "adfc84ca-90ce-4e34-b903-74f9e6e498e5", "wikidata_id": "Q12551", "name": "Hundred Years' War", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 2,
+      "narrative_text": "In that same year of 1415 the Portuguese took Ceuta, a Muslim port across the strait from Iberia, and a prince named Henry came away with questions. The 1415 conquest and the relief of the city in 1418 let him gather word about the lands to the south from Muslim prisoners. From 1418 Portugal began systematically exploring the Atlantic coast of Africa, which is why Henry is often credited as a main starter of the Age of Discovery. Cape Non and Cape Bojador were then the limit of the charted world for Europeans. In 1434 Gil Eanes, one of Henry's captains, became the first known European to pass Cape Bojador, and in 1488 Bartolomeu Dias rounded the southern tip of Africa and reached the Indian Ocean. Each voyage pushed the blank edge of the chart a little farther out.",
+      "start_year": 1418,
+      "end_year": 1488,
+      "source_evidence": "Wikipedia: Prince Henry the Navigator; Age of Discovery",
+      "secondary_entities": [
+        {"entity_id": "a8fc6ffe-ee1d-4134-968d-e42551aee83d", "wikidata_id": "Q45670", "name": "Kingdom of Portugal", "role": "participant"},
+        {"entity_id": "ce81dfcd-7e37-4182-a7de-2f976565d5ce", "wikidata_id": "Q2888296", "name": "Conquest of Ceuta", "role": "mentioned"},
+        {"entity_id": "f0bc7a15-ea0e-40c0-9118-4e527b55f36b", "wikidata_id": "Q5823", "name": "Ceuta", "role": "location"},
+        {"entity_id": "b6c93537-a325-4988-84fc-5c95c30c4a44", "wikidata_id": "Q130377", "name": "Bartolomeu Dias", "role": "participant"}
+      ]
+    },
+    {
+      "sequence_order": 3,
+      "narrative_text": "In Mainz, on the Rhine, a craftsman named Johannes Gutenberg was working out how to print with movable metal type. No one knows his birth year; scholars have guessed anywhere from 1393 to 1406. Preparations for his Latin Bible probably began soon after 1450. The earliest piece that can be firmly dated is a 31-line indulgence from 1454, and in March 1455 the future Pope Pius II saw pages of the Bible on show in Frankfurt. Between 160 and 185 copies were printed, each of 1,288 pages and needing about 290 master characters of type. Some sold for 30 florins, roughly three years of a clerk's wages. Books, and the ideas inside them, could now be made in batches.",
+      "start_year": 1450,
+      "end_year": 1455,
+      "source_evidence": "Wikipedia: Johannes Gutenberg; Gutenberg Bible",
+      "secondary_entities": [
+        {"entity_id": "c9717e58-95ae-4c35-b42d-5a48b86859a7", "wikidata_id": "Q8958", "name": "Johannes Gutenberg", "role": "participant"},
+        {"entity_id": "487ddcc2-0c64-4b1d-a932-9ccf3772907d", "wikidata_id": "Q144334", "name": "Printing press", "role": "outcome"},
+        {"entity_id": "e4ddf287-f432-4a8f-9f29-363adf19c129", "wikidata_id": "Q158075", "name": "Gutenberg Bible", "role": "outcome"},
+        {"entity_id": "9470397e-fb15-44ae-a309-a6016b137b5b", "wikidata_id": "Q1720", "name": "Mainz", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 4,
+      "narrative_text": "While presses were being set up on the Rhine, an old capital was coming under cannon fire. Constantinople had been a capital since 330, and its fifth-century Theodosian walls had turned back attackers for 800 years. By 1453 it was a shrunken city of walled villages divided by fields, with an empire that had dwindled to little more than the city, a few islands and the Peloponnese. The sultan Mehmed II, who had taken the throne at nineteen, built a fortress on the Bosphorus and gathered cannon-founders, among them men called Orban and Saruca. Their guns, some firing balls of around 500 kilograms, battered gaps in the walls. After a siege of 53 days the city fell on 29 May 1453, and many historians treat that as the effective end of the Roman Empire.",
+      "start_year": 1453,
+      "end_year": 1453,
+      "source_evidence": "Wikipedia: Fall of Constantinople; Dardanelles Gun; Gunpowder empires",
+      "secondary_entities": [
+        {"entity_id": "ab631280-92ce-49b1-bf20-82b1f06ce058", "wikidata_id": "Q160077", "name": "Fall of Constantinople", "role": "participant"},
+        {"entity_id": "664ffa96-f566-4f12-910d-c77b57b388c2", "wikidata_id": "Q34503", "name": "Mehmed II", "role": "participant"},
+        {"entity_id": "4d128085-8618-4481-9ef6-b54263404b3b", "wikidata_id": "Q16869", "name": "Constantinople", "role": "location"},
+        {"entity_id": "7a6701a9-2d83-402c-971e-48181d8f6698", "wikidata_id": "Q12560", "name": "Ottoman Empire", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 5,
+      "narrative_text": "Some later accounts link the Ottoman capture of Constantinople to Europe's push for sea routes to Asia. In 1492 the Catholic Monarchs, Isabella and Ferdinand, funded an Italian navigator's plan to sail west to the Indies. Christopher Columbus left Palos on 3 August 1492. After weeks out of sight of land his crew saw great flocks of birds on 7 October, and on 12 October they came ashore in the Bahamas. They sailed on to Cuba, and on Christmas Day the Santa Maria ran aground and had to be abandoned. Columbus believed he had reached the edge of Asia. He had in fact crossed into a continent that Europeans did not know existed, though Norse voyagers had reached North America some five centuries earlier.",
+      "start_year": 1492,
+      "end_year": 1493,
+      "source_evidence": "Wikipedia: Voyages of Christopher Columbus; Age of Discovery",
+      "secondary_entities": [
+        {"entity_id": "796e6cfd-5aab-4920-bc7e-d848d65e2491", "wikidata_id": "Q7322", "name": "Christopher Columbus", "role": "participant"},
+        {"entity_id": "3d4692de-1c12-4c0b-b9ce-7b2bd72e4af7", "wikidata_id": "Q3771259", "name": "First voyage of Christopher Columbus", "role": "mentioned"},
+        {"entity_id": "eb65437d-f7ba-43b3-ab56-e66fe4f8cdb7", "wikidata_id": "Q778", "name": "Bahamas", "role": "location"},
+        {"entity_id": "f5d8d42a-ab54-4827-94f7-a455d2590a65", "wikidata_id": "Q45859", "name": "Isabella I of Castile", "role": "participant"},
+        {"entity_id": "c50087f0-9035-462e-8c8c-6a00a21af576", "wikidata_id": "Q12860", "name": "Ferdinand II of Aragon", "role": "participant"}
+      ]
+    },
+    {
+      "sequence_order": 6,
+      "narrative_text": "What crossed the Atlantic after 1492 was far more than ships' crews. Plants, animals and diseases began moving between the Americas and the Old World in a traffic later named the Columbian exchange. Before 1500 potatoes were grown only in South America; they went on to feed Europe so well that they are credited with 12 to 25 percent of the population growth of Africa and Eurasia between 1700 and 1900. Spanish colonizers carried maize and sweet potatoes to Asia, where they also helped populations grow. The disease side of the exchange was brutally lopsided: illnesses of Old World origin cut the Indigenous population of the Americas by an estimated 80 to 95 percent over the following centuries, and nearly wiped out the peoples of the Caribbean.",
+      "start_year": 1492,
+      "source_evidence": "Wikipedia: Columbian exchange",
+      "secondary_entities": [
+        {"entity_id": "796e6cfd-5aab-4920-bc7e-d848d65e2491", "wikidata_id": "Q7322", "name": "Christopher Columbus", "role": "mentioned"},
+        {"entity_id": "9c05c2fe-8db6-4f27-8558-60d798cda6ce", "wikidata_id": "Q16587531", "name": "Potato", "role": "mentioned"},
+        {"entity_id": "ea6ce942-eb56-4e1e-8934-58ef5fb4c67b", "wikidata_id": "Q25618328", "name": "Maize", "role": "mentioned"},
+        {"entity_id": "de0f5b8f-a875-4c51-927a-ef1eecd91294", "wikidata_id": "Q37937", "name": "Sweet potato", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 7,
+      "narrative_text": "Columbus's return in 1493 set Spain and Portugal quarrelling over who owned the ocean. The Portuguese king warned the Catholic Monarchs that earlier treaties and a papal bull already gave him the lands south of the Canary Islands. In May 1493 Pope Alexander VI answered with a bull drawing a north-south line 100 leagues west of the Azores and Cape Verde islands. Portugal wanted it moved, and on 7 June 1494 the two crowns signed the Treaty of Tordesillas, placing the line 370 leagues, about 2,100 kilometres, west of the Cape Verde islands. Two kingdoms had split up lands outside Europe that neither had mapped. The line worked only because both sides, and the pope, agreed to believe in it.",
+      "start_year": 1494,
+      "end_year": 1494,
+      "source_evidence": "Wikipedia: Treaty of Tordesillas",
+      "secondary_entities": [
+        {"entity_id": "407375e6-40c8-4c27-97cf-05ab1b81d083", "wikidata_id": "Q180897", "name": "Treaty of Tordesillas", "role": "outcome"},
+        {"entity_id": "f0fcac90-afd3-4ffe-82b9-13e38308dec3", "wikidata_id": "Q217196", "name": "Crown of Castile", "role": "participant"},
+        {"entity_id": "a8fc6ffe-ee1d-4134-968d-e42551aee83d", "wikidata_id": "Q45670", "name": "Kingdom of Portugal", "role": "participant"}
+      ]
+    },
+    {
+      "sequence_order": 8,
+      "narrative_text": "Vasco da Gama's first voyage, from 1497 to 1499, made the link that Dias had missed: it joined Europe and Asia by sea around the southern tip of Africa. Da Gama was not the first Portuguese to round that Cape, but he was the one who carried on to India, landing at Kozhikode, called Calicut by Europeans, on 20 May 1498. It was the same Malabar port that Zheng He's fleet had visited nearly a century before. This time the visitors meant to stay. The voyage began a Portuguese naval and commercial presence in Kerala and across the Indian Ocean, a sea that was already busy with other people's trade.",
+      "start_year": 1497,
+      "end_year": 1499,
+      "source_evidence": "Wikipedia: Vasco da Gama; Age of Discovery",
+      "secondary_entities": [
+        {"entity_id": "d6a72f2e-0444-4027-9a8b-b7509daf082f", "wikidata_id": "Q7328", "name": "Vasco da Gama", "role": "participant"},
+        {"entity_id": "72efb7aa-0fcd-4358-815f-4db9f0a5a1bb", "wikidata_id": "Q28729", "name": "Calicut", "role": "location"},
+        {"entity_id": "e34d7ec3-6289-484b-a3f7-c0ddee8d82c0", "wikidata_id": "Q6021159", "name": "Indian Ocean trade", "role": "mentioned"},
+        {"entity_id": "a8fc6ffe-ee1d-4134-968d-e42551aee83d", "wikidata_id": "Q45670", "name": "Kingdom of Portugal", "role": "participant"}
+      ]
+    },
+    {
+      "sequence_order": 9,
+      "narrative_text": "In April 1507 a German mapmaker, Martin Waldseemuller, published a printed wall map of the world that did something earlier maps rarely dared: it admitted the world had changed. It drew in the lands across the Atlantic and put the name America on them, after Amerigo Vespucci, who had come to see these coasts as a mainland of their own. The map also seems to show a new ocean between those lands and Asia, six years before Balboa became the first European recorded to see the Pacific. Harari argues that this willingness to leave blank spaces and say 'we do not know' set early modern Europeans apart, and tied science to empire.",
+      "start_year": 1507,
+      "end_year": 1507,
+      "source_evidence": "Wikipedia: Waldseemuller map; Voyages of Christopher Columbus; Age of Discovery",
+      "secondary_entities": [
+        {"entity_id": "8a0167dc-8f7e-4f2d-8dea-0a6e1d0c3512", "wikidata_id": "Q47674", "name": "Amerigo Vespucci", "role": "participant"},
+        {"entity_id": "796e6cfd-5aab-4920-bc7e-d848d65e2491", "wikidata_id": "Q7322", "name": "Christopher Columbus", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 10,
+      "narrative_text": "In 1517 Martin Luther, a professor of moral theology at Wittenberg, wrote a list of propositions for a university debate on indulgences. Pope Leo X had granted a plenary indulgence in 1515 to help pay for St. Peter's Basilica in Rome, and the preacher Johann Tetzel was selling it in towns near Wittenberg, since sales were banned in Saxon cities. Luther was troubled when parishioners came home saying they no longer needed to repent. His Ninety-five Theses were meant for scholars. Yet several hundred copies of the Latin text were printed in Germany that year, and an academic quarrel became a movement. The press that Gutenberg had set running could carry one professor's argument well beyond his lecture hall.",
+      "start_year": 1517,
+      "end_year": 1517,
+      "source_evidence": "Wikipedia: Ninety-five Theses",
+      "secondary_entities": [
+        {"entity_id": "5d205e06-0f70-4615-86f7-2b892e08a4f0", "wikidata_id": "Q9554", "name": "Martin Luther", "role": "participant"},
+        {"entity_id": "a44b7d40-c2ef-4a76-833b-15abcecb4784", "wikidata_id": "Q157506", "name": "Ninety-Five Theses", "role": "outcome"},
+        {"entity_id": "46e7f2d7-0df2-4da6-b714-e708d3c71d2a", "wikidata_id": "Q6837", "name": "Wittenberg", "role": "location"},
+        {"entity_id": "b00fd8c2-1479-439a-b776-f5b8d52435aa", "wikidata_id": "Q12562", "name": "Protestant Reformation", "role": "outcome"}
+      ]
+    },
+    {
+      "sequence_order": 11,
+      "narrative_text": "King Charles I of Spain paid for a plan to reach the Spice Islands by sailing west, since Portugal controlled the eastern route under the Treaty of Tordesillas. Five ships and about 270 men left Spain on 20 September 1519 under Ferdinand Magellan, a Portuguese navigator. On 1 November 1520 the fleet entered the strait that now bears his name and emerged into an ocean he called Mar Pacifico. It took 98 days to cross. Magellan died in battle in the Philippines in April 1521, and Juan Sebastian Elcano led the survivors to the Moluccas that November and home on 6 September 1522. Only 18 men and one ship, the Victoria, completed the circle. Humanity had finally sailed around its own planet.",
+      "start_year": 1519,
+      "end_year": 1522,
+      "source_evidence": "Wikipedia: Magellan-Elcano circumnavigation; Age of Discovery",
+      "secondary_entities": [
+        {"entity_id": "0ed4d3f6-fbc7-4e27-abd6-1fa928fd2840", "name": "Magellan expedition", "role": "participant"},
+        {"entity_id": "3339f8cd-7900-4d03-b785-64ccfd42b931", "wikidata_id": "Q1496", "name": "Ferdinand Magellan", "role": "participant"},
+        {"entity_id": "bdc385a2-4002-40df-804c-bce83292e136", "wikidata_id": "Q32500", "name": "Charles I of Spain", "role": "participant"},
+        {"entity_id": "b706817c-e683-4b6d-9909-153508335abd", "wikidata_id": "Q2091449", "name": "Battle of Mactan", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 12,
+      "narrative_text": "Hernan Cortes landed on Mexico's east coast in April 1519 with 508 soldiers, 100 sailors and 14 small cannon. In November he walked into Tenochtitlan, the Aztec capital, and within a week had taken the ruler Moctezuma hostage. The Spanish were driven out on the night of 1 July 1520, losing over 860 soldiers, and fell back to Tlaxcala, whose warriors became their allies. Meanwhile smallpox broke out in the city in late October 1520, killing leaders and nobles, and Cuauhtemoc was set on the throne in February 1521. The final siege ended with the Aztec surrender on 13 August 1521. Spanish cannon and brigantines mattered, but so did thousands of Tlaxcalan allies and an Old World disease.",
+      "start_year": 1519,
+      "end_year": 1521,
+      "source_evidence": "Wikipedia: Fall of Tenochtitlan",
+      "secondary_entities": [
+        {"entity_id": "7e3c85ea-1850-4fae-9c0a-b17f5937c17c", "wikidata_id": "Q593267", "name": "Siege of Tenochtitlan", "role": "participant"},
+        {"entity_id": "a5feeab2-7b9b-4b1d-aecb-308a76e36322", "wikidata_id": "Q7326", "name": "Hernan Cortes", "role": "participant"},
+        {"entity_id": "0f16ca9c-868a-4c29-9ff1-d5d04267f32f", "wikidata_id": "Q297050", "name": "Cuauhtemoc", "role": "participant"},
+        {"entity_id": "c3b6776f-d070-4763-b9a3-4c4d5019cc06", "wikidata_id": "Q614072", "name": "Tlaxcala", "role": "participant"},
+        {"entity_id": "4a6bfe53-3f73-4a5a-9349-f8295d9adcd4", "wikidata_id": "Q13695", "name": "Tenochtitlan", "role": "location"},
+        {"entity_id": "1033f195-d374-4124-bbd4-f1aaa0d0c06f", "wikidata_id": "Q12214", "name": "Smallpox", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 13,
+      "narrative_text": "Babur was a prince of the Timurid line, a great-great-great-grandson of Timur, born in 1483 in the Fergana Valley. He took his throne at twelve, lost Samarkand and the lands around it more than once, and in 1504 seized Kabul. From there he looked to India. On 21 April 1526, at Panipat, he met Ibrahim Lodi, Sultan of Delhi, whose army of about 100,000 men and 1,000 elephants far outnumbered his own. Babur lashed some 700 carts together across his front, left gaps for his cavalry, and stationed matchlock-men and field guns behind them, the artillery directed by two Ottoman master-gunners. He won, and founded the Mughal Empire, which lasted over three centuries. He also wrote a memoir, the Baburnama, in Turkic.",
+      "start_year": 1526,
+      "end_year": 1526,
+      "source_evidence": "Wikipedia: Babur; First Battle of Panipat",
+      "secondary_entities": [
+        {"entity_id": "02ab01b8-b4a6-498a-bab5-93d9668d74e1", "wikidata_id": "Q797848", "name": "Babur", "role": "participant"},
+        {"entity_id": "d1f57f22-6514-4381-9841-f14c7a7b95d2", "wikidata_id": "Q605321", "name": "First Battle of Panipat", "role": "participant"},
+        {"entity_id": "8eada2b6-74d7-46f2-acd9-6eb5721b6aba", "wikidata_id": "Q381754", "name": "Ibrahim Lodi", "role": "participant"},
+        {"entity_id": "5c5f71b9-ffd9-4764-a3db-53e445c86d8b", "wikidata_id": "Q33296", "name": "Mughal Empire", "role": "outcome"},
+        {"entity_id": "67356b44-9f82-4d95-89ea-e694f30a685a", "wikidata_id": "Q229411", "name": "Delhi Sultanate", "role": "mentioned"},
+        {"entity_id": "08a375f0-caae-4cfc-8bc5-85d048d0d7d4", "wikidata_id": "Q1906014", "name": "Baburnama", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 14,
+      "narrative_text": "Suleiman had been Ottoman sultan since 1520, and the guns that cracked Constantinople's walls were now at the heart of his army. Belgrade fell to him in 1521 and Rhodes in 1522. On 29 August 1526, at Mohacs, artillery and janissary firepower broke the army of Hungary, and King Louis II died, possibly drowned as he fled. Hungary split into three zones. In 1529 Suleiman marched on Vienna, but the siege lasted just over two weeks, from 27 September to 15 October, and failed. It opened 150 years of tension between Habsburgs and Ottomans. Historians later grouped the Ottoman, Safavid and Mughal states as the gunpowder empires, ruled from Istanbul to Delhi.",
+      "start_year": 1526,
+      "end_year": 1529,
+      "source_evidence": "Wikipedia: Suleiman the Magnificent; Battle of Mohacs; Siege of Vienna (1529); Gunpowder empires",
+      "secondary_entities": [
+        {"entity_id": "262dc26d-d620-4fde-b324-a574052b4f3e", "wikidata_id": "Q8474", "name": "Suleiman the Magnificent", "role": "participant"},
+        {"entity_id": "58dae9ac-e9b1-458e-9dd1-18b214a2e43e", "wikidata_id": "Q171150", "name": "Kingdom of Hungary", "role": "participant"},
+        {"entity_id": "f9108ea9-f400-4f4f-8b25-e38c688c595d", "wikidata_id": "Q130263", "name": "Janissaries", "role": "participant"},
+        {"entity_id": "2bc27e4f-371f-454c-bc16-b25ca0d5f408", "wikidata_id": "Q1741", "name": "Vienna", "role": "location"},
+        {"entity_id": "7a6701a9-2d83-402c-971e-48181d8f6698", "wikidata_id": "Q12560", "name": "Ottoman Empire", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 15,
+      "narrative_text": "On 16 November 1532, at Cajamarca in the northern Andes, Francisco Pizarro and about 168 Spaniards ambushed and seized the Inca ruler Atahualpa. Atahualpa's warriors, veterans of his recent northern campaigns, outnumbered the Spanish more than 45 to 1, but Pizarro's plan leaned on guns and cavalry. Many scholars prefer to call it a massacre rather than a battle. For his release Atahualpa is said to have filled a room with gold to the highest point he could reach. Pizarro charged him with various crimes and had him garrotted in August 1533. In January 1535 Pizarro founded Lima. In barely a year, a state that stretched across much of western South America had lost its emperor to a few hundred strangers.",
+      "start_year": 1532,
+      "end_year": 1533,
+      "source_evidence": "Wikipedia: Francisco Pizarro; Battle of Cajamarca",
+      "secondary_entities": [
+        {"entity_id": "6de37b8f-4974-4ca6-903b-c9ffa3fc87a2", "wikidata_id": "Q1425362", "name": "Capture of Atahualpa at Cajamarca", "role": "participant"},
+        {"entity_id": "9ab349d7-ef7b-4752-87d8-e8d2e1e8027d", "wikidata_id": "Q44741", "name": "Francisco Pizarro", "role": "participant"},
+        {"entity_id": "1579743c-854c-4ac1-b58b-d87da938537d", "wikidata_id": "Q179577", "name": "Atahualpa", "role": "participant"},
+        {"entity_id": "927cc5f3-e546-4ff0-8678-16dab9e8b587", "wikidata_id": "Q205119", "name": "Cajamarca", "role": "location"},
+        {"entity_id": "3bf2499c-2fa6-46cf-99c9-64bc2e18efee", "wikidata_id": "Q28573", "name": "Tawantinsuyu", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 16,
+      "narrative_text": "Nicolaus Copernicus, a canon of the cathedral chapter of Warmia, spent years quietly rebuilding the heavens with the Sun at the centre. By 1514 a manuscript matching his early outline was in a physician's library, but he hesitated to publish. Under strong pressure from a young admirer, Rheticus, and from his friend Bishop Tiedemann Giese, he finally let the book go. De revolutionibus orbium coelestium was finally printed in Nuremberg in 1543, offering an alternative to Ptolemy's Earth-centred system, which had been accepted since ancient times. Copernicus used a mathematical device from the 13th-century Arab astronomer al-Urdi, a sign that the new science drew on many cultures. The book set off what is called the Copernican Revolution.",
+      "start_year": 1543,
+      "end_year": 1543,
+      "source_evidence": "Wikipedia: De revolutionibus orbium coelestium; Nicolaus Copernicus",
+      "secondary_entities": [
+        {"entity_id": "930f7bbd-58cf-4a54-b66b-c691280a58ce", "wikidata_id": "Q619", "name": "Nicolaus Copernicus", "role": "participant"},
+        {"entity_id": "00ecc6cb-8d93-4e10-9da2-108b5798eab2", "wikidata_id": "Q845981", "name": "De revolutionibus orbium coelestium", "role": "outcome"},
+        {"entity_id": "53d57589-cd58-4452-9007-7beb0186b155", "wikidata_id": "Q103983", "name": "Heliocentrism", "role": "mentioned"},
+        {"entity_id": "df2047f8-d3f1-403f-a3b2-45fcec49944d", "wikidata_id": "Q2090", "name": "Nuremberg", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 17,
+      "narrative_text": "In 1570 the Ottomans took Nicosia and other Venetian holdings on Cyprus, and early in 1571 they were besieging Famagusta. Pope Pius V arranged a Holy League, led by the navies of Spain and Venice, to rescue it. The contingents gathered at Messina that summer, and on 14 August the pope's blessed banner was handed to John of Austria at Naples. On 7 October 1571, in the Gulf of Patras, 206 Christian galleys and six Venetian galleasses, large galleys with sails and heavy guns, met 211 Ottoman galleys and 63 smaller galliots under Ali Pasha. More than 450 warships fought, the largest naval battle in Western history since antiquity. The Holy League captured 117 galleys and sank or destroyed some 83. The Ottomans rebuilt with 250 ships in six months, but could not replace their lost trained crews.",
+      "start_year": 1571,
+      "end_year": 1571,
+      "source_evidence": "Wikipedia: Battle of Lepanto",
+      "secondary_entities": [
+        {"entity_id": "50f3633e-8681-45a3-af6e-900272fde560", "wikidata_id": "Q165425", "name": "Battle of Lepanto", "role": "participant"},
+        {"entity_id": "e681e0c7-c331-479e-b069-d570ec9b1353", "wikidata_id": "Q702316", "name": "Holy League", "role": "participant"},
+        {"entity_id": "46deead9-2840-40c4-87d0-265bbf6b9ad9", "wikidata_id": "Q157107", "name": "John of Austria", "role": "participant"},
+        {"entity_id": "423a24ae-5e4b-4adb-a9df-5c63b3a4e195", "wikidata_id": "Q4948", "name": "Republic of Venice", "role": "participant"},
+        {"entity_id": "09b3a2cc-c43e-4a28-b158-1bb3c4519596", "wikidata_id": "Q131945", "name": "Pope Pius V", "role": "participant"},
+        {"entity_id": "7a6701a9-2d83-402c-971e-48181d8f6698", "wikidata_id": "Q12560", "name": "Ottoman Empire", "role": "participant"}
+      ]
+    },
+    {
+      "sequence_order": 18,
+      "narrative_text": "At the other end of Eurasia, Japan's long age of warring lords was ending. On 21 October 1600, in Mino Province, Tokugawa Ieyasu's Eastern Army met the Western Army of Ishida Mitsunari, whose rivalry had split the leading figures of the Toyotomi government. At dawn, in dense fog after rain, Tokugawa's advance guard stumbled into Ishida's army before either side could see the other. Ieyasu's own letter of that day puts the fight at two hours. Kobayakawa Hideaki's attack overwhelmed Otani Yoshitsugu, and the Shimazu troops broke out only after devastating losses, escaping with 200 soldiers. In 1603 Ieyasu was appointed shogun, and the Tokugawa shogunate he founded ruled Japan until 1868.",
+      "start_year": 1600,
+      "end_year": 1600,
+      "source_evidence": "Wikipedia: Battle of Sekigahara; Tokugawa shogunate",
+      "secondary_entities": [
+        {"entity_id": "3fcd7d6a-dec8-4c6d-a17f-d42a4a701268", "wikidata_id": "Q234188", "name": "Battle of Sekigahara", "role": "participant"},
+        {"entity_id": "0ecb508a-3764-4ff8-9eaf-9b774f8ea601", "wikidata_id": "Q171977", "name": "Tokugawa Ieyasu", "role": "participant"},
+        {"entity_id": "93363b64-cf6a-4871-9346-338cb06d87b9", "wikidata_id": "Q334107", "name": "Ishida Mitsunari", "role": "participant"},
+        {"entity_id": "ba33627c-fb18-47e0-aaf3-5e809dde0036", "wikidata_id": "Q864156", "name": "Mino Province", "role": "location"},
+        {"entity_id": "a76b88c4-d325-4a47-a5de-c9bc57e10c35", "wikidata_id": "Q205662", "name": "Tokugawa shogunate", "role": "outcome"}
+      ]
+    },
+    {
+      "sequence_order": 19,
+      "narrative_text": "On 20 March 1602 the States General of the Netherlands merged several trading firms into the Dutch East India Company, the VOC, and gave it a 21-year monopoly on trade in Asia. The Dutch Republic was at war with Spain, which had shared a crown with Portugal since 1580, and Portuguese-run syndicates were cutting Dutch merchants out of the spice trade. Between 1602 and 1796 the VOC sent nearly a million Europeans to Asia, on 4,785 ships; all the rest of Europe together sent 882,412 between 1500 and 1795. Its shares paid dividends averaging about 18 percent for almost two hundred years. Harari argues that credit and faith in growth fed science and empire. Next come telescopes, companies and revolutions.",
+      "start_year": 1602,
+      "end_year": 1602,
+      "source_evidence": "Wikipedia: Dutch East India Company",
+      "secondary_entities": [
+        {"entity_id": "2900b631-c1b8-4e17-b120-3facdf28e251", "wikidata_id": "Q159766", "name": "VOC", "role": "participant"},
+        {"entity_id": "941a4898-76dd-4814-9330-9cfd2c4f0af3", "wikidata_id": "Q727", "name": "Amsterdam", "role": "location"},
+        {"entity_id": "e835047d-cca3-4317-a7f7-4025ec187443", "wikidata_id": "Q170072", "name": "Dutch Republic", "role": "participant"}
+      ]
+    }
+  ]
+}

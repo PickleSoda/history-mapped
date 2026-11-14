@@ -1,0 +1,290 @@
+{
+  "title": "The First Cities",
+  "slug": "the-human-story-01-the-first-cities",
+  "source_type": "article",
+  "source_reference": "The Human Story, chapter 1: an overview written for History Mapped. Facts checked against English Wikipedia; themes after Yuval Noah Harari, Sapiens: A Brief History of Humankind (2011).",
+  "status": "draft",
+  "start_year": -4000,
+  "end_year": -2000,
+  "tags": ["bronze-age", "mesopotamia", "egypt", "south-asia", "early-settlement", "language-writing", "empires-states"],
+  "metadata": {"series": "the-human-story", "chapter": 1, "lens": "Farming surpluses grew villages into cities, and writing, kings and gods became the shared stories that let thousands of strangers cooperate."},
+  "entries": [
+    {
+      "sequence_order": 0,
+      "narrative_text": "Southern Mesopotamia in about 4000 BCE was a country of farming villages on the flat, silty plain between two rivers. Barley grew where canals carried water to it, and shrines stood at the middle of the settlements. At Eridu, archaeologists have dug through a stack of seventeen temples built one on top of another, a sign of how long people there kept returning to the same sacred ground. Around Uruk the villages began to gather into something bigger. Over the next eight hundred years, a cluster of small farming communities turned into a city with a full-time bureaucracy and ranks of rich and poor. This chapter follows that change and what came with it.",
+      "start_year": -4000,
+      "end_year": -3500,
+      "source_evidence": "Wikipedia: Uruk; Uruk period; Eridu; Ubaid period",
+      "secondary_entities": [
+        {"entity_id": "07a30c1a-ccdc-408c-b4ac-dd70f0c1f62f", "wikidata_id": "Q168518", "name": "Uruk", "role": "location"},
+        {"entity_id": "a9067470-7492-4c91-91cd-dc8828d88355", "name": "Early Uruk period", "role": "mentioned"},
+        {"entity_id": "bb58f33a-7b5f-4e6d-8aef-6ae3e10ff7b7", "wikidata_id": "Q210065", "name": "Eridu", "role": "location"},
+        {"entity_id": "6f7e083a-f156-4d59-aa55-40651958dd88", "name": "Eridu temple", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 1,
+      "narrative_text": "By the late Uruk period, the city had outgrown anything seen before. At its height, around 3100 BCE, Uruk may have held as many as 50,000 people, with tens of thousands more in the villages around it, which made it the largest urban area in the world. Its streets were full of people who would never know each other's names. Yuval Noah Harari argues that such crowds hold together because they share stories, about gods, kings and rules, that exist only in the minds of those who believe them. Whatever the cause, Uruk's influence travelled far: its pottery and its ways of organising work turn up in settlements well outside the southern plain.",
+      "start_year": -3500,
+      "end_year": -3100,
+      "source_evidence": "Wikipedia: Uruk; Uruk period",
+      "secondary_entities": [
+        {"entity_id": "07a30c1a-ccdc-408c-b4ac-dd70f0c1f62f", "wikidata_id": "Q168518", "name": "Uruk", "role": "location"},
+        {"entity_id": "ab6edf2d-6da0-43bf-a8ea-8715246e5cf3", "name": "Late Uruk period", "role": "mentioned"},
+        {"entity_id": "021ea1a1-5442-4e1d-8586-052759bc8ccb", "name": "Uruk expansion", "role": "outcome"},
+        {"entity_id": "fda028c9-ba6a-442b-9f39-a6a56c8b4992", "name": "Uruk colony at Tell Brak", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 2,
+      "narrative_text": "A city of that size had a problem that no village ever had: who owed what to whom? For thousands of years Near Eastern accountants had kept track with small clay tokens, each shape standing for a measure of grain or a kind of animal. In the Uruk V period, roughly 3500 to 3350 BCE, somebody pressed marks for numbers into a flat lump of clay instead. The earliest tablets carry numbers and nothing else, no names and no pictures. They are the first sign that Uruk's managers needed a memory larger than any single head, and a clay slab that could be stored and checked later gave them one.",
+      "start_year": -3500,
+      "end_year": -3350,
+      "source_evidence": "Wikipedia: Proto-cuneiform; Cuneiform; Uruk period",
+      "secondary_entities": [
+        {"entity_id": "0bb24b89-baaa-499c-b00a-376c79841b2b", "name": "Clay tablets", "role": "outcome"},
+        {"entity_id": "7f949c79-9ce5-48da-8c89-1aeea0d7de45", "wikidata_id": "Q114877817", "name": "Uruk V", "role": "mentioned"},
+        {"entity_id": "07a30c1a-ccdc-408c-b4ac-dd70f0c1f62f", "wikidata_id": "Q168518", "name": "Uruk", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 3,
+      "narrative_text": "Then the marks learned to name things. Around 3350 BCE, by one scholar's estimate, scribes at Uruk began adding signs for goods, animals and people to their number tablets, and proto-cuneiform was born. Roughly five thousand of these tablets survive, and they are nearly all administrative: lists of rations, workers, livestock and fields, the paperwork of a temple and palace economy. Nobody sat down to write a poem. Writing began as bookkeeping, a way for those who held the surplus to prove what they held. Dating is still argued over, since other scholars place the first signs closer to 3300 or in the thirty-fourth century BCE.",
+      "start_year": -3350,
+      "end_year": -3200,
+      "source_evidence": "Wikipedia: Proto-cuneiform; Uruk period",
+      "secondary_entities": [
+        {"entity_id": "2be40981-ea81-4f19-8750-dd5c5f7da11c", "wikidata_id": "Q1650699", "name": "Proto-cuneiform", "role": "outcome"},
+        {"entity_id": "52a9c567-2fc0-492e-8008-2b78b8ca0297", "wikidata_id": "Q114877809", "name": "Uruk IV", "role": "mentioned"},
+        {"entity_id": "07a30c1a-ccdc-408c-b4ac-dd70f0c1f62f", "wikidata_id": "Q168518", "name": "Uruk", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 4,
+      "narrative_text": "Far from the tablets, a metalworker was learning a new trick. Copper melts at a temperature a good pottery kiln can reach, and tin melts at a much lower one. Mix the two and you get bronze, harder than copper and better for blades, tools and fine casting. West Asia and the Near East were the first regions to enter the Bronze Age, beginning with Sumer in the mid-fourth millennium BCE. The new alloy had a catch: tin was rare. One ancient tin mine at Kestel in southern Turkey worked from about 3250 BCE, and archaeologists still disagree about where the earliest Near Eastern smiths found their tin. The metal that named the age had to be carried a long way.",
+      "start_year": -3300,
+      "end_year": -3000,
+      "source_evidence": "Wikipedia: Bronze Age; Bronze; Tin sources and trade during antiquity",
+      "secondary_entities": [
+        {"entity_id": "69eec65e-b009-49f0-b1a2-5af60645e413", "wikidata_id": "Q35355", "name": "Sumer", "role": "location"},
+        {"entity_id": "066b785f-410f-4025-bf8a-adb4db640d4d", "name": "Early Bronze Age Anatolia", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 5,
+      "narrative_text": "Egypt was inventing its own written signs at about the same time. At Abydos, small clay labels linked to a predynastic ruler called Scorpion, dug up in 1998, carry some of the earliest known proto-hieroglyphs, from the thirty-third century BCE. Like Uruk's tablets they were short and practical. Along the Nile, farming had been the base of Egyptian life since about 3600 BCE, and centralised rule was growing in towns such as Hierakonpolis. Whether Egypt borrowed the idea of writing from Mesopotamia or came to it alone is a debate that this evidence alone cannot settle.",
+      "start_year": -3300,
+      "end_year": -3100,
+      "source_evidence": "Wikipedia: Egyptian hieroglyphs; Early Dynastic Period (Egypt); Narmer Palette",
+      "secondary_entities": [
+        {"entity_id": "e98068e3-cbd2-40ac-9aa0-1e7c1f874da4", "wikidata_id": "Q132659", "name": "Egyptian hieroglyphs", "role": "outcome"},
+        {"entity_id": "55ce76d9-e782-4312-a245-033e7caba518", "wikidata_id": "Q192268", "name": "Abydos", "role": "location"},
+        {"entity_id": "0839c7e0-5b27-4cca-8a93-447e28a99e6e", "wikidata_id": "Q278988", "name": "Hierakonpolis", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 6,
+      "narrative_text": "A carved cosmetic palette from Hierakonpolis shows a king in a tall white crown on one face and in a red one on the other. This is the Narmer Palette, found in the temple of Horus in the 1897 to 1898 dig season. Because the white crown belonged to Upper Egypt and the red to Lower Egypt, many scholars read it as the moment Narmer joined the two lands, around 3100 BCE, give or take a century and a half. The reading is a theory, not a certainty. What is clear is that Egypt soon had a line of kings ruling one long river valley, the First Dynasty and the era that followed.",
+      "start_year": -3100,
+      "end_year": -3000,
+      "source_evidence": "Wikipedia: Narmer; Narmer Palette; Early Dynastic Period (Egypt)",
+      "secondary_entities": [
+        {"entity_id": "6da06acd-d1d7-41e8-b0e5-56381cb774b3", "wikidata_id": "Q189582", "name": "Narmer", "role": "participant"},
+        {"entity_id": "bcda33a9-008a-48d0-8b01-df8600d43160", "wikidata_id": "Q368138", "name": "Narmer Palette", "role": "mentioned"},
+        {"entity_id": "0839c7e0-5b27-4cca-8a93-447e28a99e6e", "wikidata_id": "Q278988", "name": "Hierakonpolis", "role": "location"},
+        {"entity_id": "240fb861-61a3-418f-a41e-54bde3cb6cb3", "wikidata_id": "Q187979", "name": "Early Dynastic Period of Egypt", "role": "outcome"}
+      ]
+    },
+    {
+      "sequence_order": 7,
+      "narrative_text": "In Mesopotamia the Uruk system did not hold together, and the south broke into rival city-states. Kish, Uruk, Ur and Lagash each had its own walls, god and ruler, and the era from about 2900 BCE is called the Early Dynastic Period. Much about its first centuries is murky. Later scribes tried to impose order on the muddle with the Sumerian King List, which opens with the line that kingship came down from heaven and settled at Kish. It lists kings who reigned for hundreds or thousands of years, so historians treat its early entries with caution. Even so, it shows how Sumerians wanted to see their past: kings were a gift of the gods.",
+      "start_year": -2900,
+      "end_year": -2350,
+      "source_evidence": "Wikipedia: Early Dynastic Period (Mesopotamia); Sumerian King List; Kish (Sumer)",
+      "secondary_entities": [
+        {"entity_id": "25a77d96-8393-4970-9bec-39b65766ebeb", "wikidata_id": "Q716742", "name": "Early Dynastic", "role": "mentioned"},
+        {"entity_id": "791266a9-0609-406f-ae0f-9b4513926943", "wikidata_id": "Q132272", "name": "Kish", "role": "location"},
+        {"entity_id": "5aef4a5b-8e36-4a49-8507-ee70c2acbf5f", "wikidata_id": "Q270860", "name": "Sumerian King List", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 8,
+      "narrative_text": "Around 2800 BCE the scribes made a breakthrough that turned bookkeeping into language. Some of their picture-signs began to be used for their sound, not their meaning, which let them write names and abstract ideas, and the first tablets using syllables are clearly in Sumerian. The sign list shrank from about 1,500 to about 600 as writing grew more phonetic. With the wedge-shaped strokes now called cuneiform, a scribe could record a sale, a verdict, a hymn or a letter. A script that began by counting barley was becoming the memory of a whole civilisation, and it would be used for more than three thousand years.",
+      "start_year": -2800,
+      "end_year": -2600,
+      "source_evidence": "Wikipedia: Cuneiform; Proto-cuneiform",
+      "secondary_entities": [
+        {"entity_id": "2668eeb5-139f-4dac-b9e2-9cd0707f3248", "wikidata_id": "Q401", "name": "Cuneiform", "role": "outcome"},
+        {"entity_id": "a3b427b9-28e2-4d00-9be1-1e766668ffa2", "wikidata_id": "Q36790", "name": "Sumerian", "role": "mentioned"},
+        {"entity_id": "5cea6243-fb3f-44d1-90e1-2d0ebc118ed4", "wikidata_id": "Q656043", "name": "Sumerians", "role": "participant"}
+      ]
+    },
+    {
+      "sequence_order": 9,
+      "narrative_text": "Writing needed heroes too, and Uruk had one. Gilgamesh was probably a real king of the city, ruling in the early part of the Early Dynastic Period, with one scholar placing him between 2800 and 2500 BCE. Nothing written in his own lifetime survives, and what we have is legend. Centuries later, during the Third Dynasty of Ur, Sumerian poems told of his deeds, and a Babylonian scribe gave the standard Akkadian Epic of Gilgamesh its form in the second millennium BCE. Whatever the man was really like, his city turned him into a story, and the story shows how a city could keep a ruler alive in memory and make its past into something shared.",
+      "start_year": -2800,
+      "end_year": -2500,
+      "source_evidence": "Wikipedia: Gilgamesh; Uruk",
+      "secondary_entities": [
+        {"entity_id": "c9618ffe-1b9d-482e-9be9-9ef3c0206a50", "wikidata_id": "Q159709", "name": "Gilgamesh", "role": "participant"},
+        {"entity_id": "90b98b76-19f5-4881-80b9-cc41539b92b2", "wikidata_id": "Q8272", "name": "Epic of Gilgamesh", "role": "outcome"},
+        {"entity_id": "07a30c1a-ccdc-408c-b4ac-dd70f0c1f62f", "wikidata_id": "Q168518", "name": "Uruk", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 10,
+      "narrative_text": "In Egypt, a king's tomb was becoming a monument. Djoser, a Third Dynasty king who ruled about 2670 to 2650 BCE, was buried at Saqqara beneath a pyramid that rose in six steps to some sixty metres, cased in white limestone. It is often called the first large building made wholly of cut stone. The man usually credited with its design is his chancellor Imhotep, though that rests on later tradition and a few statue inscriptions, not a signed blueprint. The step pyramid is a sign of how much labour and belief a ruler could command, and it set a pattern that Egypt's builders would soon refine.",
+      "start_year": -2670,
+      "end_year": -2650,
+      "source_evidence": "Wikipedia: Pyramid of Djoser; Imhotep; Early Dynastic Period (Egypt)",
+      "secondary_entities": [
+        {"entity_id": "5acf8a1c-9e64-4b31-970b-88c9724b485b", "wikidata_id": "Q174367", "name": "Djoser", "role": "participant"},
+        {"entity_id": "c32bff47-a91a-4202-887f-1fe2ec048131", "wikidata_id": "Q131171", "name": "Imhotep", "role": "participant"},
+        {"entity_id": "e13a2692-1b21-4763-b4bc-ea917d627d36", "wikidata_id": "Q1456099", "name": "Step Pyramid", "role": "outcome"},
+        {"entity_id": "a0023183-55f9-42a1-a13c-02eb335b6bef", "wikidata_id": "Q192134", "name": "Saqqara", "role": "location"},
+        {"entity_id": "5b4f4e90-5256-49da-8ee8-ab8863493ffd", "wikidata_id": "Q177819", "name": "Old Kingdom", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 11,
+      "narrative_text": "At Ur, Leonard Woolley's team dug into a cemetery in the 1920s and 1930s and found over two thousand graves. The richest, the earliest dating to about 2600 BCE, held precious metals and semi-precious stones from as far as Iran, Afghanistan and India. They also held musical instruments, including a bull-headed lyre, and the great Standard of Ur. Woolley called them royal tombs, but scholars debate who the dead really were. What the goods show without doubt is a society with a small elite that could afford long-distance trade and splendid funerals, while the farmers who fed the city appear nowhere among such treasures.",
+      "start_year": -2600,
+      "end_year": -2500,
+      "source_evidence": "Wikipedia: Royal Cemetery at Ur; Ur",
+      "secondary_entities": [
+        {"entity_id": "6d277d2d-d7e4-4499-915f-7b08cf5a145d", "wikidata_id": "Q1796355", "name": "Royal Cemetery at Ur", "role": "location"},
+        {"entity_id": "982b06e3-03ad-473f-8192-748a761873ed", "wikidata_id": "Q5699", "name": "Ur", "role": "location"},
+        {"entity_id": "d99f759e-cdf8-42a2-807e-e0630723292c", "wikidata_id": "Q356134", "name": "Leonard Woolley", "role": "participant"},
+        {"entity_id": "465289b1-589d-47c7-9eea-626a45a72c88", "wikidata_id": "Q845747", "name": "Mesannepada", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 12,
+      "narrative_text": "A thousand miles east, on the Indus and its tributaries, another urban world was taking shape. The Indus or Harappan civilisation reached maturity around 2600 BCE. Harappa, in the Punjab, held perhaps 23,500 people, and Mohenjo-daro in Sindh, built about 2500 BCE, at least 40,000. These were planned places of brick, and the people who lived there stamped seals and other objects with signs that nobody can yet read. The Indus cities show that a city could be big, orderly and busy without leaving any record we can interpret.",
+      "start_year": -2600,
+      "end_year": -2000,
+      "source_evidence": "Wikipedia: Indus Valley Civilisation; Harappa; Mohenjo-daro; Indus script",
+      "secondary_entities": [
+        {"entity_id": "41277aa7-0ea6-49ed-bc85-86ffec8747e6", "wikidata_id": "Q42534", "name": "Indus Valley Civilisation", "role": "participant"},
+        {"entity_id": "68f1dec7-9bdf-4496-bcef-d74c9c89bf95", "wikidata_id": "Q185562", "name": "Harappa", "role": "location"},
+        {"entity_id": "721a984f-0058-402b-b42b-c265cc4487b2", "wikidata_id": "Q5725", "name": "Mohenjo-daro", "role": "location"},
+        {"entity_id": "f23dd9fa-ace5-4043-a499-5e1c2d245636", "wikidata_id": "Q601388", "name": "Indus script", "role": "mentioned"},
+        {"entity_id": "7162ee98-6a93-4bb4-b308-1406a1dd01a4", "name": "Harappan weights", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 13,
+      "narrative_text": "On the Giza plateau, a Fourth Dynasty king named Khufu built the biggest tomb the world had seen. His Great Pyramid went up around 2580 to 2560 BCE and stood nearly 147 metres tall, the tallest human-made structure for more than 3,700 years. Greek visitors later heard that 100,000 men had built it. The tombs and workers' quarters suggest instead a standing workforce of about ten thousand, working in shifts. In 2013 a diary kept by an inspector named Merer turned up, recording boat trips carrying limestone to the site. It shows a pyramid built less by terror than by an organised state with rations, rosters and paperwork.",
+      "start_year": -2580,
+      "end_year": -2560,
+      "source_evidence": "Wikipedia: Great Pyramid of Giza; Giza pyramid complex",
+      "secondary_entities": [
+        {"entity_id": "432c7dc9-b292-49fa-b9a7-3f2060575c4a", "wikidata_id": "Q161904", "name": "Khufu", "role": "participant"},
+        {"entity_id": "3784824e-a1a6-42c2-a631-5c4354ce07fb", "wikidata_id": "Q81788", "name": "Giza", "role": "location"},
+        {"entity_id": "5b4f4e90-5256-49da-8ee8-ab8863493ffd", "wikidata_id": "Q177819", "name": "Old Kingdom", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 14,
+      "narrative_text": "Wealth made neighbours into rivals. Lagash and Umma, two Sumerian cities, quarrelled for generations over the Gu'edena, a fertile strip of farmland that lay between them. Around 2450 BCE Eannatum, ruler of Lagash, won a victory and had a stone monument carved to celebrate it. Found in fragments at Girsu in the 1880s and now in the Louvre, it is called the Stele of the Vultures. He also had a boundary channel dug and a strip of land left as a buffer. Border quarrels between cities were fought and recorded in the names of their gods.",
+      "start_year": -2500,
+      "end_year": -2450,
+      "source_evidence": "Wikipedia: Lagash; Stele of the Vultures; Eannatum",
+      "secondary_entities": [
+        {"entity_id": "978a6d1f-8091-4b46-8fad-0d396ab38bfb", "wikidata_id": "Q352544", "name": "Eannatum", "role": "participant"},
+        {"entity_id": "d1f79045-498c-4273-baea-89bae7fc46e9", "wikidata_id": "Q207330", "name": "Lagash", "role": "location"},
+        {"entity_id": "4aa4750d-dfb4-430c-a7c7-ffe795208c37", "wikidata_id": "Q740952", "name": "Umma", "role": "participant"},
+        {"entity_id": "a5c7239d-ad59-4614-8df3-0beb307c414d", "wikidata_id": "Q2407681", "name": "Umma-Lagash war", "role": "mentioned"},
+        {"entity_id": "fee6e676-e104-46a9-beca-79abf325a36f", "wikidata_id": "Q853946", "name": "Girsu", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 15,
+      "narrative_text": "One king of Lagash is remembered for taking on his own officials. Urukagina, who ruled around the middle of the twenty-fourth century BCE, issued reform texts aimed at corruption. One surviving example concerns funerals. Under the old rules an undertaker took seven jugs of beer, 420 loaves of bread and a bed from the family of the dead. Under the new rules, the undertaker's beer fell to four jugs and his barley was halved. Urukagina's reforms are among the oldest known attempts to limit what the powerful could take from ordinary people. He was the last ruler of Lagash's first dynasty.",
+      "start_year": -2380,
+      "end_year": -2368,
+      "source_evidence": "Wikipedia: Urukagina; Lagash",
+      "secondary_entities": [
+        {"entity_id": "b6d6426d-8ef0-482c-8b97-9f9715dcaf7b", "wikidata_id": "Q315698", "name": "Urukagina", "role": "participant"},
+        {"entity_id": "d1f79045-498c-4273-baea-89bae7fc46e9", "wikidata_id": "Q207330", "name": "Lagash", "role": "location"},
+        {"entity_id": "70295c58-dfd3-4c8d-a3f9-ed9f81e78011", "name": "First Dynasty of Lagash", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 16,
+      "narrative_text": "Around 2334 BCE a man called Sargon took the throne of Akkad and set about doing what no one had managed: ruling all of the Sumerian south at once. Later copies of his inscriptions say he defeated Lugal-zage-si of Umma, the last Sumerian king of the old order, and brought Lower Mesopotamia as far as the Gulf under his control. Sargon's inscriptions boast that he tore down the walls of Uruk and Ur and laid waste the land from Lagash to the sea. The Akkadian Empire is often called the first empire in history. It joined many peoples and languages under one ruler, and Sargon's legend, full of tales of a humble birth, outlived the empire by many centuries.",
+      "start_year": -2334,
+      "end_year": -2279,
+      "source_evidence": "Wikipedia: Sargon of Akkad; Akkadian Empire; Lugal-zage-si; Lagash",
+      "secondary_entities": [
+        {"entity_id": "c06258e7-90eb-4b12-8d5a-249cb50a24e3", "wikidata_id": "Q199461", "name": "Sargon of Akkad", "role": "participant"},
+        {"entity_id": "82040f95-60c5-42c5-aa45-589f6503813a", "wikidata_id": "Q4461035", "name": "Akkadian Empire", "role": "outcome"},
+        {"entity_id": "07a30c1a-ccdc-408c-b4ac-dd70f0c1f62f", "wikidata_id": "Q168518", "name": "Uruk", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 17,
+      "narrative_text": "Sargon's daughter Enheduanna lived at the point where a king's power met the gods' favour. She served as high priestess of the moon god Nanna at Ur, a post that tied the new empire to the old Sumerian temples. Her name was recovered in 1927, when Woolley found an alabaster disc at Ur bearing her title and her father's name. A hymn to the goddess Inanna, the Exaltation of Inanna, is traditionally attributed to her, though the attribution is debated. If it is hers, she is among the first writers known by name. The scribes who studied her poems for centuries after show that Akkad's rulers had learned the art of joining a new empire to an old religion.",
+      "start_year": -2300,
+      "end_year": -2250,
+      "source_evidence": "Wikipedia: Enheduanna; Sargon of Akkad; Ur",
+      "secondary_entities": [
+        {"entity_id": "9c7cf282-4081-4755-861a-7bdc2ee6ad22", "wikidata_id": "Q232505", "name": "Enheduanna", "role": "participant"},
+        {"entity_id": "6b466d57-77de-4a71-b8c7-9ba0b282b4f2", "wikidata_id": "Q217420", "name": "Nanna", "role": "mentioned"},
+        {"entity_id": "4db4531b-f39a-4baa-b224-baf428a5e0db", "wikidata_id": "Q105794259", "name": "Exaltation of Inanna", "role": "outcome"},
+        {"entity_id": "982b06e3-03ad-473f-8192-748a761873ed", "wikidata_id": "Q5699", "name": "Ur", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 18,
+      "narrative_text": "The empire did not last. By about 2154 BCE Akkad had fallen, and a leading explanation is drought. The 4.2-kiloyear event, a dry spell starting around 2200 BCE, shows up in records across North Africa, the Middle East and South Asia. In Mesopotamia it may have thinned the Tigris and Euphrates. Mountain people called the Gutians then came to dominate the plain. Egypt had its own trouble, as a series of very low Nile floods around 2150 BCE may have helped bring down the centralised government of the Old Kingdom. The drought is an argument, not a proven cause. Still, it shows how fragile an empire built on irrigated barley could be when the rains failed.",
+      "start_year": -2200,
+      "end_year": -2150,
+      "source_evidence": "Wikipedia: 4.2-kiloyear event; Akkadian Empire; Kish (Sumer); Third Dynasty of Ur",
+      "secondary_entities": [
+        {"entity_id": "82040f95-60c5-42c5-aa45-589f6503813a", "wikidata_id": "Q4461035", "name": "Akkadian Empire", "role": "outcome"},
+        {"entity_id": "6668ebb6-a8ce-4f63-91e9-2cf024f9852b", "wikidata_id": "Q549531", "name": "Gutians", "role": "participant"},
+        {"entity_id": "5b4f4e90-5256-49da-8ee8-ab8863493ffd", "wikidata_id": "Q177819", "name": "Old Kingdom", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 19,
+      "narrative_text": "Out of the wreckage rose a kingdom that put its faith in law and paperwork. After the Gutians were driven out, with Utu-hengal of Uruk credited with defeating their king, Ur-Nammu took power at Ur around 2112 BCE and founded the Third Dynasty of Ur. He had a law code composed in his name, now the oldest surviving one. Its best copies are later, Old Babylonian tablets found at Nippur and Ur, and its prologue credits Ur-Nammu himself. Bodily injuries were paid for in compensation, though murder and robbery still meant death. Justice here is the king's gift, and the gods' too, so the code is also a statement of how a ruler wants to be seen.",
+      "start_year": -2112,
+      "end_year": -2094,
+      "source_evidence": "Wikipedia: Ur-Nammu; Code of Ur-Nammu; Third Dynasty of Ur",
+      "secondary_entities": [
+        {"entity_id": "09997103-7f7e-4fe4-b011-649ee6907a63", "wikidata_id": "Q297417", "name": "Ur-Nammu", "role": "participant"},
+        {"entity_id": "e3141831-4e05-4797-bd71-814210a09ecf", "wikidata_id": "Q723587", "name": "Third Dynasty of Ur", "role": "outcome"},
+        {"entity_id": "0443304a-a8c7-4d2d-bc48-c2ae66f4adbc", "wikidata_id": "Q705693", "name": "Code of Ur-Nammu", "role": "outcome"},
+        {"entity_id": "307a807e-3657-4cc1-8163-0e056113c03e", "wikidata_id": "Q379880", "name": "Utu-hengal", "role": "mentioned"},
+        {"entity_id": "e298ace5-5c7a-4690-a0b6-9dedcf4a1ca0", "wikidata_id": "Q188395", "name": "Nippur", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 20,
+      "narrative_text": "Ur-Nammu's most visible gift to his city was a great stepped temple to Nanna, the moon god, which stood over thirty metres high. His son Shulgi finished it and ruled for forty-eight years, from about 2094 to 2046 BCE. Under him the state ran an advanced economic administration built on temple lands controlled by the crown, with every delivery of grain and every labourer's ration written on clay. Shulgi also named himself a god, according to one account, to win the allegiance of the cities. Kingship, bureaucracy and heaven were now bound together, and the clay archives of Ur show how far the whole arrangement depended on scribes.",
+      "start_year": -2094,
+      "end_year": -2046,
+      "source_evidence": "Wikipedia: Ziggurat of Ur; Shulgi; Third Dynasty of Ur",
+      "secondary_entities": [
+        {"entity_id": "67376164-a272-4d04-a779-934c2723102e", "wikidata_id": "Q315893", "name": "Shulgi", "role": "participant"},
+        {"entity_id": "11f90600-ab22-47a8-94ee-86dd6bcd7f42", "wikidata_id": "Q202927", "name": "Great Ziggurat of Ur", "role": "outcome"},
+        {"entity_id": "982b06e3-03ad-473f-8192-748a761873ed", "wikidata_id": "Q5699", "name": "Ur", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 21,
+      "narrative_text": "The last Ur III king, Ibbi-Sin, came to the throne around 2028 BCE with the kingdom already in trouble. Scholars suggest long-term drought, and studies of Persian Gulf sediments show very low flow in the Tigris and Euphrates around 2100 to 2000 BCE. Around 2004 BCE, by the usual reckoning, Elam and tribesmen from the Zagros marched on Ur, sacked it and took Ibbi-Sin away as a captive, and the dynasty was finished. A thousand years of the world's first cities had produced writing, laws, pyramids, empires and the bronze that armed them. What came next would be built on those foundations.",
+      "start_year": -2028,
+      "end_year": -2004,
+      "source_evidence": "Wikipedia: Ibbi-Sin; Third Dynasty of Ur; Kish (Sumer)",
+      "secondary_entities": [
+        {"entity_id": "dc8dd83a-b4bd-4591-9bb6-fb9ee0c43c6a", "wikidata_id": "Q352752", "name": "Ibbi-Sin", "role": "participant"},
+        {"entity_id": "982b06e3-03ad-473f-8192-748a761873ed", "wikidata_id": "Q5699", "name": "Ur", "role": "location"},
+        {"entity_id": "88ce933d-c143-4d4b-a9f7-8a4f3fe5e8cd", "wikidata_id": "Q128904", "name": "Elam", "role": "participant"},
+        {"entity_id": "e3141831-4e05-4797-bd71-814210a09ecf", "wikidata_id": "Q723587", "name": "Third Dynasty of Ur", "role": "outcome"}
+      ]
+    }
+  ]
+}

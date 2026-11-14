@@ -1,0 +1,281 @@
+{
+  "title": "Iron, Alphabets and Empires",
+  "slug": "the-human-story-03-iron-alphabets-and-empires",
+  "source_type": "article",
+  "source_reference": "The Human Story, chapter 3: an overview written for History Mapped. Facts checked against English Wikipedia; themes after Yuval Noah Harari, Sapiens: A Brief History of Humankind (2011).",
+  "status": "draft",
+  "start_year": -1200,
+  "end_year": -479,
+  "tags": ["iron-age", "middle-east", "iran", "levant", "mediterranean", "language-writing", "empires-states", "trade"],
+  "metadata": {"series": "the-human-story", "chapter": 3, "lens": "After the collapse, cheap iron and a small alphabet put tools, weapons and writing within reach of more people, while empires and coined money became ways to make strangers trust one another."},
+  "entries": [
+    {
+      "sequence_order": 0,
+      "narrative_text": "Around 1200 BCE the palaces of the Near East burned, and the bronze trade that fed them broke down. Bronze needs tin and copper, often hauled from far away. Iron ore lies almost everywhere, but it is harder to work: the smith has to hammer a spongy lump of metal rather than pour a melt. Smiths had been trying for centuries, and the first hints of iron-making in Anatolia are far older. In the lean years after the collapse the effort paid off. In the ancient Near East the shift to iron happened at the same time as the Late Bronze Age collapse, and within a few generations the knowledge crossed the Mediterranean and reached South Asia. A farmer could now afford a blade, and a village could afford a plough point.",
+      "start_year": -1200,
+      "end_year": -1000,
+      "source_evidence": "Wikipedia: Iron Age; Late Bronze Age collapse",
+      "secondary_entities": [
+        {"entity_id": "dbeae0ee-4fdd-4442-95e2-bfb22c861d66", "wikidata_id": "Q11764", "name": "Iron Age", "role": "outcome"},
+        {"entity_id": "6688be63-66b8-4d3c-a130-e25fdb03cc09", "wikidata_id": "Q5406", "name": "Hittites", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 1,
+      "narrative_text": "On the Lebanese coast, merchants in cities like Byblos and Tyre needed a way to keep accounts that a busy trader could learn in a few weeks. Their answer was a script with just 22 signs, each standing for one consonant. Every letter took its name from a word that began with its sound: the second was beit, the Semitic word for house. Scholars conventionally date the script from about 1050 BCE, though the oldest inscriptions we can securely date belong to the tenth century. A king of Byblos was buried in a stone coffin carved with one of the earliest long texts. Writing, once a craft of palace scribes, had a version almost anyone could learn.",
+      "start_year": -1050,
+      "end_year": -900,
+      "source_evidence": "Wikipedia: Phoenician alphabet; Phoenicia",
+      "secondary_entities": [
+        {"entity_id": "017b5bc1-cc33-4a4f-bb9b-d000b379ede3", "wikidata_id": "Q26752", "name": "Phoenician script", "role": "outcome"},
+        {"entity_id": "5e1cd67f-0310-4d02-8b30-cfc0e0abd2e6", "wikidata_id": "Q173532", "name": "Byblos", "role": "location"},
+        {"entity_id": "dc68d470-8f27-4b9c-b37a-a26b0b4e2ce1", "wikidata_id": "Q82070", "name": "Tyre", "role": "location"},
+        {"entity_id": "d228dbc9-4e06-4a9f-a4b4-d38ea2e66d7b", "wikidata_id": "Q41642", "name": "Phoenicia", "role": "participant"}
+      ]
+    },
+    {
+      "sequence_order": 2,
+      "narrative_text": "In 911 BCE a new Assyrian king, Adad-nirari II, took the throne and set about winning back what his predecessors had lost. His heirs turned a regional kingdom into something larger. Ashurnasirpal II moved the capital from old Assur to Kalhu, a more central site, and his armies reached the Mediterranean. Later kings pressed further, and Tiglath-Pileser III more than doubled the empire's size in the eighth century. The Assyrians did more than conquer: they ran the lands they took. Messages crossed the empire at a speed no Middle Eastern state would match until the nineteenth century, and the Aramaic language spread along with the tributes and troops. This was an experiment in ruling many peoples from one centre, with iron weapons behind it.",
+      "start_year": -911,
+      "end_year": -727,
+      "source_evidence": "Wikipedia: Neo-Assyrian Empire",
+      "secondary_entities": [
+        {"entity_id": "36f2da5a-9497-405b-b9aa-8e6a061bfbcb", "wikidata_id": "Q10914393", "name": "Neo-Assyrian Empire", "role": "participant"},
+        {"entity_id": "fe14e7a0-dba5-498f-8f70-ff03f60b6859", "wikidata_id": "Q41137", "name": "Assyria", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 3,
+      "narrative_text": "The Phoenician city of Tyre sent out ships as well as goods, and its sailors planted new towns along the Mediterranean. One of them, Carthage, on the coast of what is now Tunisia, would grow into the richest city of the western Mediterranean. Later storytellers gave it a founder, a Tyrian princess named Dido, and a tradition recorded by a Sicilian historian placed her arrival in 814 BCE. Archaeologists have so far found no settlement on the site before the last quarter of the eighth century, so the date is better treated as legend. Either way, the Phoenician habit of moving, trading and writing things down had taken root in the west.",
+      "start_year": -814,
+      "end_year": -650,
+      "source_evidence": "Wikipedia: Dido; Phoenicia; Carthage",
+      "secondary_entities": [
+        {"entity_id": "e8b8c095-1a31-4dff-bb29-32d69b2a639e", "wikidata_id": "Q2429397", "name": "Carthage", "role": "participant"},
+        {"entity_id": "dc68d470-8f27-4b9c-b37a-a26b0b4e2ce1", "wikidata_id": "Q82070", "name": "Tyre", "role": "location"},
+        {"entity_id": "b57df417-b73c-400b-bd55-f657954d517d", "wikidata_id": "Q1048468", "name": "Phoenicians", "role": "participant"}
+      ]
+    },
+    {
+      "sequence_order": 4,
+      "narrative_text": "Iron did not travel at one speed. In central Europe the Hallstatt culture, named for an Alpine lakeside village with a rich salt mine and a great cemetery, is conventionally said to enter the Iron Age with the arrival of iron-processing around 800 BCE. Northern Europe waited until about the fifth century. In central Nigeria, the Nok people made terracotta sculptures and may have worked out iron metallurgy on their own between about 750 and 550 BCE, though that remains debated. Wherever it appeared, the pattern was similar: a metal common in the ground gave ordinary households tougher tools and gave the people with weapons a stronger edge.",
+      "start_year": -800,
+      "end_year": -500,
+      "source_evidence": "Wikipedia: Iron Age; Hallstatt culture; Nok culture",
+      "secondary_entities": [
+        {"entity_id": "d7876416-31de-40e0-ba2c-db0fd2584b40", "wikidata_id": "Q202165", "name": "Hallstatt culture", "role": "participant"},
+        {"entity_id": "1334aba2-338c-4907-a417-85462a03623e", "wikidata_id": "Q927291", "name": "Nok culture", "role": "participant"},
+        {"entity_id": "dbeae0ee-4fdd-4442-95e2-bfb22c861d66", "wikidata_id": "Q11764", "name": "Iron Age", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 5,
+      "narrative_text": "From the ninth century BCE, other peoples began adapting the Phoenician letters to their own languages, among them the Greeks, the Italian peoples and several in Anatolia. The Greeks were on the move too. Beginning around the start of the eighth century, Euboean sailors founded Pithecusae in southern Italy, and over the next two and a half centuries colonists from about twenty Greek communities set up hundreds of trading ports from southern Italy to the Black Sea and Gaul. They carried a script with them. The Greek alphabet that resulted would later feed the Etruscan and Latin ones, so a small set of borrowed signs ended up shaping writing across much of Europe.",
+      "start_year": -800,
+      "end_year": -500,
+      "source_evidence": "Wikipedia: Phoenician alphabet; Greek colonisation",
+      "secondary_entities": [
+        {"entity_id": "5b1d6e73-91c0-47ff-a546-612d018ca59d", "wikidata_id": "Q8216", "name": "Greek alphabet", "role": "outcome"},
+        {"entity_id": "84030689-f043-4b35-9136-c3b65b94b659", "wikidata_id": "Q243456", "name": "Cumae", "role": "location"},
+        {"entity_id": "fe2d4eef-337a-473d-b3e5-ce1c829a4ca9", "wikidata_id": "Q2566850", "name": "Massalia", "role": "location"},
+        {"entity_id": "d5ab1182-6a7e-41c5-bb16-524a7e7387d4", "wikidata_id": "Q17161", "name": "Etruscans", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 6,
+      "narrative_text": "In China the Zhou kings had ruled since about 1046 BCE, and in 771 their capital fell and the court moved east. After that the Zhou house kept its prestige but lost its grip. In the Spring and Autumn period, which runs to about 481, power drifted to regional rulers who fought and allied among themselves. What held the idea of a single legitimate ruler together was the Mandate of Heaven, a doctrine that Heaven grants the right to rule to a virtuous king and takes it away from an unworthy one. Inscriptions mention the idea by the 600s BCE. It gave Chinese politics a moral test for authority, one that later dynasties would keep using.",
+      "start_year": -771,
+      "end_year": -481,
+      "source_evidence": "Wikipedia: Zhou dynasty; Mandate of Heaven",
+      "secondary_entities": [
+        {"entity_id": "0441b608-d6af-47fb-89ee-d9be6953f307", "wikidata_id": "Q307066", "name": "Eastern Zhou", "role": "participant"},
+        {"entity_id": "8b120f62-31f7-4043-bff8-d6ba45902f6f", "wikidata_id": "Q35216", "name": "Zhou", "role": "participant"}
+      ]
+    },
+    {
+      "sequence_order": 7,
+      "narrative_text": "Far up the Nile, the kings of Kush watched Egypt split into rival principalities and decided to step in. Piye, ruling from 744 BCE, founded what Egyptians count as the Twenty-fifth Dynasty and, over some three decades, brought the land under a Kushite crown. Taharqa was crowned at Memphis in 690 and ruled Upper and Lower Egypt. The Kushites held on for nearly a century, from 744 to 656, until Assyrian armies drove them south. Kush was not a poor cousin of Egypt but a kingdom confident enough to take over the older one, and the Assyrians found it a worthy opponent.",
+      "start_year": -744,
+      "end_year": -656,
+      "source_evidence": "Wikipedia: Twenty-fifth Dynasty of Egypt; Piye; Taharqa",
+      "secondary_entities": [
+        {"entity_id": "333955b2-d23f-4d41-a02e-d6104159cc65", "wikidata_id": "Q315695", "name": "Piye", "role": "participant"},
+        {"entity_id": "f637d30e-3261-4866-957c-6b2c57b70e5c", "wikidata_id": "Q137367476", "name": "Kushites", "role": "participant"},
+        {"entity_id": "6f000437-afb2-469d-ab49-1f467c9a1d88", "wikidata_id": "Q315714", "name": "Taharqa", "role": "participant"},
+        {"entity_id": "25c1a73f-d727-4543-8e78-9fe90e266e2b", "wikidata_id": "Q5715", "name": "Memphis", "role": "location"},
+        {"entity_id": "f7e225eb-9ba1-414f-b7a0-af5e661f97b4", "wikidata_id": "Q743282", "name": "Napata", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 8,
+      "narrative_text": "The northern kingdom of Israel, with its capital at Samaria, had appeared in Assyrian records by about 853 BCE, when Shalmaneser III listed Ahab the Israelite among his opponents. A century later the Assyrians returned in earnest. Sargon II described conquering Samaria in 722, and Israel was absorbed into the empire around 720. Its people were carried off or scattered, and the Assyrian court shaped what remained into a province. The tale of one small kingdom disappearing into a vast machine would be repeated across the Near East, and its remembered grief would shape how later writers thought about power and justice.",
+      "start_year": -722,
+      "end_year": -720,
+      "source_evidence": "Wikipedia: Kingdom of Israel (Samaria); Sargon II; Siege of Jerusalem (701 BC)",
+      "secondary_entities": [
+        {"entity_id": "27d5cabf-f25e-4808-894e-768dc98b8562", "wikidata_id": "Q230407", "name": "Kingdom of Israel", "role": "participant"},
+        {"entity_id": "92b89e9d-1cda-4395-8511-2bb7e0cbd494", "wikidata_id": "Q1757438", "name": "Samaria", "role": "location"},
+        {"entity_id": "c53ea95e-aa06-4fe7-9822-69d875c934e6", "wikidata_id": "Q208336", "name": "Sargon II", "role": "participant"}
+      ]
+    },
+    {
+      "sequence_order": 9,
+      "narrative_text": "The kingdom of Judah, a small hill state to the south, was the next to feel Assyria's weight. Around 701 BCE King Hezekiah rebelled, and Sennacherib marched against him. The Hebrew Bible says Hezekiah paid 300 talents of silver and 30 of gold, and stripped the Temple doors to do it. Workers dug a 533-metre tunnel to bring water from the Gihon spring into the city. Sennacherib's own prism, found at Nineveh in 1830, tells the campaign from the Assyrian side. The siege was abandoned and Jerusalem survived, so the city stayed a vassal rather than a ruin. Two accounts of one event, written by opposing sides, never quite agree, and historians still weigh them against each other.",
+      "start_year": -701,
+      "end_year": -701,
+      "source_evidence": "Wikipedia: Siege of Jerusalem (701 BC); Sennacherib; Kingdom of Judah",
+      "secondary_entities": [
+        {"entity_id": "d6a7e1ee-daf8-4c83-8b3d-6fe2edd49eb5", "wikidata_id": "Q244912", "name": "Hezekiah", "role": "participant"},
+        {"entity_id": "01efe338-8d5a-44fe-a0f7-c7c4cd2e1c23", "wikidata_id": "Q207140", "name": "Sennacherib", "role": "participant"},
+        {"entity_id": "99813013-0a22-4c15-b4ea-5968a5aa5ec3", "wikidata_id": "Q1218", "name": "Jerusalem", "role": "location"},
+        {"entity_id": "a3e93639-de54-4232-b0fd-49403cd8a796", "wikidata_id": "Q1620682", "name": "Siloam Tunnel", "role": "mentioned"},
+        {"entity_id": "d51530b9-62f3-4f0a-bf49-430de236377e", "wikidata_id": "Q578076", "name": "Sennacherib's Prism", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 10,
+      "narrative_text": "Ashurbanipal, who ruled Assyria from 669 BCE, was a king who could read. At Nineveh he gathered a library of more than 30,000 clay tablets and fragments in many languages and on many subjects: omens, letters, contracts, hymns and literary works. The library was a tool of rule, since a king who knew the omens and the archives of every land could claim to understand them. It was also a memory for the whole region. The empire itself did not last: a Babylonian rising and a Median invasion destroyed Nineveh in 612. The clay baked in the fire survived, and in the 1850s the tablets were dug up, giving us an archive that the Assyrians never meant for us.",
+      "start_year": -668,
+      "end_year": -612,
+      "source_evidence": "Wikipedia: Ashurbanipal; Library of Ashurbanipal; Neo-Assyrian Empire",
+      "secondary_entities": [
+        {"entity_id": "cbb2ba2f-0508-442d-845a-d46ffac3131e", "wikidata_id": "Q856544", "name": "Library of Ashurbanipal", "role": "outcome"},
+        {"entity_id": "2c7005de-c9c0-40b9-98a1-ba25db9653ca", "wikidata_id": "Q171191", "name": "Ashurbanipal", "role": "participant"},
+        {"entity_id": "754ac265-ebc7-4910-b1f9-1aab95346985", "wikidata_id": "Q5680", "name": "Nineveh", "role": "location"},
+        {"entity_id": "e5f3e714-a4ba-4ca2-9624-973336c47990", "wikidata_id": "Q612286", "name": "Fall of Nineveh", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 11,
+      "narrative_text": "In the kingdom of Lydia, in western Anatolia, someone had the idea of stamping small lumps of electrum, a natural blend of gold and silver, with a royal sign. Lydian coins are among the oldest known, dated to about the seventh century BCE, and Alyattes is credited with minting the first. A coin let a stranger accept payment without weighing metal or knowing the payer. Herodotus later called the Lydians the first people known to use coined gold and silver. The historian Yuval Noah Harari points to money as the great trust system that strangers share, and coined metal was one early step on that road. Its last king, Croesus, became a byword for wealth.",
+      "start_year": -610,
+      "end_year": -560,
+      "source_evidence": "Wikipedia: Lydia; History of coins; Croesus; Lydians",
+      "secondary_entities": [
+        {"entity_id": "d87ab017-1812-419e-be00-2daca2c1f399", "wikidata_id": "Q620765", "name": "Lydia", "role": "participant"},
+        {"entity_id": "b3935c37-673c-4f12-9300-238c00e9dcae", "wikidata_id": "Q232615", "name": "Sardis", "role": "location"},
+        {"entity_id": "a27009ee-6045-4870-b9ce-ef5fd8eaae36", "wikidata_id": "Q184462", "name": "Croesus", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 12,
+      "narrative_text": "In 605 BCE, at Carchemish on the Euphrates, Nebuchadnezzar inflicted a crushing defeat on an Egyptian army under Necho II. That day settled which power would inherit Assyria's place in the Near East. As king of the Neo-Babylonian Empire for forty-three years, he rebuilt Babylon on a grand scale; the Ishtar Gate is one of the monuments from his reign. In the 580s his armies went after rebellious vassal states in the Levant. Babylon, an old city, had been revived as an imperial capital, and the empire's craftsmen and scribes served it for a few decades.",
+      "start_year": -605,
+      "end_year": -562,
+      "source_evidence": "Wikipedia: Nebuchadnezzar II; Battle of Carchemish; Neo-Babylonian Empire",
+      "secondary_entities": [
+        {"entity_id": "9f27f14e-7d37-46ce-a7d4-a06726fdfe9e", "wikidata_id": "Q12591", "name": "Nebuchadnezzar II", "role": "participant"},
+        {"entity_id": "8eb45a7d-0594-425d-9d95-de9d08bbd78f", "wikidata_id": "Q633560", "name": "Battle of Carchemish", "role": "mentioned"},
+        {"entity_id": "522e028d-250e-4350-bdc5-a6ea38afb2fc", "wikidata_id": "Q5684", "name": "Babylon", "role": "location"},
+        {"entity_id": "b7529382-000b-40aa-9bb4-ab2331df7b53", "wikidata_id": "Q26082", "name": "Ishtar Gate", "role": "mentioned"},
+        {"entity_id": "9956c2aa-9034-436b-8507-d47a905c16fc", "wikidata_id": "Q624887", "name": "Neo-Babylonian Empire", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 13,
+      "narrative_text": "Babylon's armies reached Jerusalem in 597 BCE. After the city fell, Nebuchadnezzar took the king Jeconiah, his court and many others back to Babylonia, around 7,000 people in the first wave. When Judah rebelled again, Nebuchadnezzar besieged Jerusalem, destroyed the city and Solomon's Temple in 587 BCE, and exiled more people, with a further group in 582. Exiles in Babylon had to work out how to be a people without a homeland or a temple. The books that became the Hebrew Bible took shape partly in that long wait, and the exile left a deep mark on how Judeans remembered their past and thought about their god.",
+      "start_year": -597,
+      "end_year": -538,
+      "source_evidence": "Wikipedia: Babylonian captivity; Kingdom of Judah; Nebuchadnezzar II",
+      "secondary_entities": [
+        {"entity_id": "18b8220e-9cc7-4221-afd6-362ae8eb9f65", "wikidata_id": "Q175447", "name": "Babylonian captivity", "role": "outcome"},
+        {"entity_id": "99813013-0a22-4c15-b4ea-5968a5aa5ec3", "wikidata_id": "Q1218", "name": "Jerusalem", "role": "location"},
+        {"entity_id": "822ffab3-1211-479f-9634-f4fdb0cad65b", "wikidata_id": "Q223644", "name": "First Temple", "role": "mentioned"},
+        {"entity_id": "296fba8a-f21b-4337-9dca-eb8c82c32a8a", "wikidata_id": "Q732870", "name": "Hebrew Bible", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 14,
+      "narrative_text": "Cyrus came from Anshan in Persis, and he became king in 559 BCE as a vassal of the Medes. By 550 he had defeated the Median king and captured Ecbatana. Then he turned west. The conquest of Lydia lies somewhere between 550 and 539, and the best-supported date is 546, when Cyrus took the capital at Sardis. What happened to the king Croesus is unclear, since ancient writers say he was executed or that he entered Cyrus's service. In under fifteen years a Persian prince had absorbed Media and Lydia and put a new power on the map, the Achaemenid Empire.",
+      "start_year": -550,
+      "end_year": -546,
+      "source_evidence": "Wikipedia: Cyrus the Great; Croesus; Achaemenid Empire",
+      "secondary_entities": [
+        {"entity_id": "ccf9994f-5e16-4b46-88a0-5db27e500e58", "wikidata_id": "Q8423", "name": "Cyrus the Great", "role": "participant"},
+        {"entity_id": "6b9b3b6f-8939-459a-888e-4cd6c0b25230", "wikidata_id": "Q8735", "name": "Medes", "role": "participant"},
+        {"entity_id": "2f1af01c-e13e-460a-b01f-c453f7a73fd5", "wikidata_id": "Q3436155", "name": "Siege of Sardis", "role": "outcome"},
+        {"entity_id": "31bcdf5e-fec3-4af1-932c-f29ebaf9f70a", "wikidata_id": "Q389688", "name": "Achaemenid Empire", "role": "outcome"},
+        {"entity_id": "a27009ee-6045-4870-b9ce-ef5fd8eaae36", "wikidata_id": "Q184462", "name": "Croesus", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 15,
+      "narrative_text": "Cyrus took Babylon in 539 BCE, and the people of the city were told, in a text pressed into clay, that the god Marduk had chosen him. The Cyrus Cylinder, a baked-clay barrel written in Akkadian cuneiform, was buried in the city as a foundation deposit. It blames the last Babylonian king, Nabonidus, for neglecting the gods, and presents Cyrus as a restorer of temples and a peaceful liberator. A conqueror was speaking the language of the people he had conquered. The Hebrew Bible says the Persians allowed the exiled Judeans to go home, with building work on a Second Temple beginning around 537. Rassam found the Cylinder in 1879.",
+      "start_year": -539,
+      "end_year": -537,
+      "source_evidence": "Wikipedia: Cyrus Cylinder; Cyrus the Great; Babylonian captivity",
+      "secondary_entities": [
+        {"entity_id": "b6443402-74d4-4f96-a3d9-e1badb4d8178", "wikidata_id": "Q405008", "name": "Cyrus Cylinder", "role": "outcome"},
+        {"entity_id": "ccf9994f-5e16-4b46-88a0-5db27e500e58", "wikidata_id": "Q8423", "name": "Cyrus the Great", "role": "participant"},
+        {"entity_id": "980347b6-1c8c-41df-8a70-4c6270d82f24", "wikidata_id": "Q239414", "name": "Nabonidus", "role": "participant"},
+        {"entity_id": "522e028d-250e-4350-bdc5-a6ea38afb2fc", "wikidata_id": "Q5684", "name": "Babylon", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 16,
+      "narrative_text": "When Cambyses died in 522 BCE, rebels declared themselves king across the empire. Darius, a nobleman who had been the king's lance-bearer, killed a usurper called Gaumata with six companions in September. His own account claims nineteen battles in a single year and a clean victory in each. He had it carved on a cliff at Behistun in three languages: Old Persian, Elamite and Babylonian. A century of Assyrian and Babylonian kings had put their deeds on stone, but Darius made a point of telling the same story in three tongues to the people he ruled. Centuries later, scholars would use that inscription to decipher cuneiform.",
+      "start_year": -522,
+      "end_year": -521,
+      "source_evidence": "Wikipedia: Darius the Great; Behistun Inscription",
+      "secondary_entities": [
+        {"entity_id": "deb76848-ef7f-4542-9557-23320e4167ea", "wikidata_id": "Q44387", "name": "Darius I", "role": "participant"},
+        {"entity_id": "27d0097c-479f-4d1d-9b3a-19d8423e07dc", "wikidata_id": "Q180012", "name": "Behistun inscription", "role": "outcome"},
+        {"entity_id": "31bcdf5e-fec3-4af1-932c-f29ebaf9f70a", "wikidata_id": "Q389688", "name": "Achaemenid Empire", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 17,
+      "narrative_text": "Darius made the empire a system. The Achaemenids governed through satraps, viceroys of the king who had wide local autonomy, and a post road ran some 1,677 miles across Anatolia and Mesopotamia with 111 posting stations and relays of fresh horses. Herodotus praised the royal couriers as faster than anything on earth. Aramaic served as the language of administration across much of the territories, though historians debate whether it was ever formally declared official. Imperial coinage, including the daric, added money to the system. Harari treats empires as one of the great unifiers of humankind, and here you can see how: a Greek soldier, a Babylonian scribe and an Egyptian priest could all be subjects of one king, one road and one currency.",
+      "start_year": -522,
+      "end_year": -486,
+      "source_evidence": "Wikipedia: Royal Road; Satrap; Achaemenid Empire; Achaemenid coinage",
+      "secondary_entities": [
+        {"entity_id": "05d6d94f-2474-48de-ace2-b05b2f14417c", "wikidata_id": "Q220796", "name": "Royal Road", "role": "outcome"},
+        {"entity_id": "deb76848-ef7f-4542-9557-23320e4167ea", "wikidata_id": "Q44387", "name": "Darius I", "role": "participant"},
+        {"entity_id": "bce5e78b-b4fa-4184-ac74-38ce1963385b", "wikidata_id": "Q129072", "name": "Persepolis", "role": "location"},
+        {"entity_id": "b3935c37-673c-4f12-9300-238c00e9dcae", "wikidata_id": "Q232615", "name": "Sardis", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 18,
+      "narrative_text": "At the western edge of that empire lived Greeks who could not stand being ruled. The Ionian Revolt of 499 to 493 BCE ended in Persian victory, but Athens and Eretria had sent help to the rebels, and Darius sent a fleet to punish them. In 490 it landed on the plain of Marathon. The Athenians, under Miltiades, ran at the Persian line to cut short the time under arrow fire, and won a famous victory. By later tradition a runner carried the news to Athens. The Persians sailed home. For Athens it showed that a citizen army could defeat the king's. For Persia it was a setback and not a disaster, and Darius started planning a larger campaign.",
+      "start_year": -490,
+      "end_year": -490,
+      "source_evidence": "Wikipedia: Battle of Marathon; Ionian Revolt; Darius the Great",
+      "secondary_entities": [
+        {"entity_id": "b7c769c2-3a1a-44bd-9190-bcf95a92e409", "wikidata_id": "Q31900", "name": "Battle of Marathon", "role": "participant"},
+        {"entity_id": "03b49e9b-6ce2-4136-aea9-2cf2ff0477e0", "wikidata_id": "Q210350", "name": "Miltiades", "role": "participant"},
+        {"entity_id": "f4565675-d24b-456b-8363-8240465c5088", "wikidata_id": "Q212150", "name": "Marathon", "role": "location"},
+        {"entity_id": "18fef9d3-7c0c-4aa3-b5eb-ec926ee3b001", "wikidata_id": "Q844930", "name": "Athens", "role": "participant"},
+        {"entity_id": "73b5ef60-79f2-4446-ad68-982d1f508f90", "wikidata_id": "Q208261", "name": "Ionian Revolt", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 19,
+      "narrative_text": "Darius died in 486 BCE, and his son Xerxes inherited the Greek project. In 480 he marched a vast army south, and a Greek force of some 7,000, led by the Spartan king Leonidas, blocked the narrow pass at Thermopylae. For days they held. Then Leonidas learned the Persians were outflanking him, sent most of the army away, and stayed with about 300 Spartans and 700 Thespians to cover the retreat. Others may have stayed too. The pass was lost, but the delay and the courage became a story that Greeks told for centuries. Soon afterwards the Greek fleet beat the Persian navy at Salamis.",
+      "start_year": -480,
+      "end_year": -480,
+      "source_evidence": "Wikipedia: Battle of Thermopylae; Xerxes I; Battle of Salamis",
+      "secondary_entities": [
+        {"entity_id": "ce0cfe5b-bf11-4c8b-a790-f2c85af34c8a", "wikidata_id": "Q131969", "name": "Battle of Thermopylae (480 BCE)", "role": "participant"},
+        {"entity_id": "94c844f2-c15b-4c46-8dda-c8b8b86a7782", "wikidata_id": "Q44228", "name": "Leonidas I", "role": "participant"},
+        {"entity_id": "8de89fde-34f6-4030-ad25-f710c244654e", "wikidata_id": "Q129165", "name": "Xerxes I", "role": "participant"},
+        {"entity_id": "adc89485-cd47-47bf-b620-127d5ba3aeb8", "wikidata_id": "Q5690", "name": "Sparta", "role": "participant"},
+        {"entity_id": "20d105a1-35b9-4f76-af81-5058fb9328e6", "wikidata_id": "Q178850", "name": "Battle of Salamis", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 20,
+      "narrative_text": "In August 479 BCE, a Greek army led by Sparta defeated the Persian general Mardonius at Plataea, the last big land battle of the invasion. The empire was still enormous and would remain so for another century and a half, with its roads, coins, languages and provinces. But by this time something else was happening in the cities that had stopped it. Greeks in Athens and across the Aegean were asking questions about justice, nature and the gods, and so were prophets and teachers from Judea to India and China. The next chapter follows the thinkers and the faiths that grew up in the shadow of these empires.",
+      "start_year": -479,
+      "end_year": -479,
+      "source_evidence": "Wikipedia: Battle of Plataea; Achaemenid Empire; Greco-Persian Wars",
+      "secondary_entities": [
+        {"entity_id": "31247be5-1261-4087-a02c-055173b74fbb", "wikidata_id": "Q204636", "name": "Battle of Plataea", "role": "participant"},
+        {"entity_id": "31bcdf5e-fec3-4af1-932c-f29ebaf9f70a", "wikidata_id": "Q389688", "name": "Achaemenid Empire", "role": "participant"},
+        {"entity_id": "38adef01-47a1-46c7-8ed5-2fe1c5faad9f", "wikidata_id": "Q76026", "name": "Greco-Persian Wars", "role": "outcome"},
+        {"entity_id": "18fef9d3-7c0c-4aa3-b5eb-ec926ee3b001", "wikidata_id": "Q844930", "name": "Athens", "role": "location"}
+      ]
+    }
+  ]
+}

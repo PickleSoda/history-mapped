@@ -10,7 +10,7 @@ runs `collections:sync` on every deploy (see [content data transfer](../implemen
 
 ```mermaid
 flowchart TB
-    F[/"api/resources/collections/*.json (7 sets)"/] -->|"collections:sync (also on every deploy)"| T[(collections)]
+    F[/"api/resources/collections/*.json (8 sets)"/] -->|"collections:sync (also on every deploy)"| T[(collections)]
     T --> R["ResolveCollectionItemsAction: entity, chronicle, story and tag items"]
     R --> A["GET /api/v1/collections, /collections/{slug}"]
     A --> W["/ landing page, /browse, /browse/collections/slug"]

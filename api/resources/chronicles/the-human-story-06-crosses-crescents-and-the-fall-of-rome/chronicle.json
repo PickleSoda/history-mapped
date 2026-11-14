@@ -1,0 +1,716 @@
+{
+ "title": "Crosses, Crescents and the Fall of Rome",
+ "slug": "the-human-story-06-crosses-crescents-and-the-fall-of-rome",
+ "source_type": "article",
+ "source_reference": "The Human Story, chapter 6: an overview written for History Mapped. Facts checked against English Wikipedia; themes after Yuval Noah Harari, Sapiens: A Brief History of Humankind (2011).",
+ "status": "draft",
+ "start_year": 300,
+ "end_year": 800,
+ "tags": [
+  "medieval",
+  "mediterranean",
+  "middle-east",
+  "europe",
+  "religion",
+  "empires-states"
+ ],
+ "metadata": {
+  "series": "the-human-story",
+  "chapter": 6,
+  "lens": "Universal faiths conquered empires from within: Christianity, Islam and Buddhism became the shared stories that bound together vast realms."
+ },
+ "entries": [
+  {
+   "sequence_order": 0,
+   "narrative_text": "On 23 February 303 in Nicomedia, Emperor Diocletian ordered the city's new church torn down, its scriptures burned and its treasures seized. It was the opening of the Great Persecution, the most severe that Christians ever suffered in Roman history. A young officer named Constantine had returned to Nicomedia from the eastern front that spring and witnessed the start of it. Within a decade he would be the one deciding the empire's relationship with the faith. This chapter follows what came next: a persecuted sect became the creed of an empire, a second faith rose in Arabia and spread across three continents, and a third travelled east to China and Japan.",
+   "start_year": 303,
+   "source_evidence": "Wikipedia: Constantine the Great; Edict of Milan",
+   "secondary_entities": [
+    {
+     "entity_id": "e837cceb-e520-4726-9180-9ebaeef0f1ca",
+     "name": "Roman Empire",
+     "role": "location",
+     "wikidata_id": "Q2277"
+    },
+    {
+     "entity_id": "444f053b-33b6-4191-b19d-c007d4d4d594",
+     "name": "Christians",
+     "role": "participant",
+     "wikidata_id": "Q106039"
+    },
+    {
+     "entity_id": "7295dc08-a623-4ae6-92b6-a137f8a726ef",
+     "name": "Constantine the Great",
+     "role": "mentioned",
+     "wikidata_id": "Q8413"
+    }
+   ]
+  },
+  {
+   "sequence_order": 1,
+   "narrative_text": "Constantine reached Rome at the end of October 312, coming down the Via Flaminia with an army of around 40,000 men, to settle a quarrel with his brother-in-law Maxentius, who held the city. The battle on 28 October at the Milvian Bridge made Constantine master of the western empire. Later writers told of a heavenly sign promising him victory under the Christian God, but the coins tell a more cautious story. His mint was still stamping the sun god Sol on them years afterwards, and a Christian symbol shows up on a silver coin only around 317. The conversion, if that is the word, came slowly and by degrees.",
+   "start_year": 312,
+   "source_evidence": "Wikipedia: Battle of the Milvian Bridge; Constantine the Great",
+   "secondary_entities": [
+    {
+     "entity_id": "42138fa4-faa8-4eac-bdfe-e55e5873759c",
+     "name": "Battle of the Milvian Bridge",
+     "role": "outcome",
+     "wikidata_id": "Q339321"
+    },
+    {
+     "entity_id": "7295dc08-a623-4ae6-92b6-a137f8a726ef",
+     "name": "Constantine the Great",
+     "role": "participant",
+     "wikidata_id": "Q8413"
+    },
+    {
+     "entity_id": "18824f08-4c97-4783-bd9e-a98dd80548c4",
+     "name": "Maxentius",
+     "role": "participant",
+     "wikidata_id": "Q182070"
+    },
+    {
+     "entity_id": "ee6bb2d1-30c8-43dd-9449-67544851f0ce",
+     "name": "Rome",
+     "role": "location",
+     "wikidata_id": "Q220"
+    }
+   ]
+  },
+  {
+   "sequence_order": 2,
+   "narrative_text": "On 13 February 313, in Milan, Constantine and his eastern partner Licinius agreed to treat Christians kindly and to allow religious freedom more broadly. The Edict of Milan was not the first such measure, since Galerius had already called off the persecution in an edict posted at Nicomedia in 311, and it did not make Christianity the empire's official religion, however often it is said to have done so. What it did was to end the cycle in which each rival for the throne either courted or crushed the Christians to win support. A church that had met in private houses and hidden from officials could now own property, build openly and ask emperors for favours. It soon began to do all three.",
+   "start_year": 313,
+   "source_evidence": "Wikipedia: Edict of Milan",
+   "secondary_entities": [
+    {
+     "entity_id": "b0aa3525-87a0-4b35-8347-e0c21ceade03",
+     "name": "Edict of Milan",
+     "role": "outcome",
+     "wikidata_id": "Q180764"
+    },
+    {
+     "entity_id": "7295dc08-a623-4ae6-92b6-a137f8a726ef",
+     "name": "Constantine the Great",
+     "role": "participant",
+     "wikidata_id": "Q8413"
+    },
+    {
+     "entity_id": "444f053b-33b6-4191-b19d-c007d4d4d594",
+     "name": "Christians",
+     "role": "mentioned",
+     "wikidata_id": "Q106039"
+    },
+    {
+     "entity_id": "e837cceb-e520-4726-9180-9ebaeef0f1ca",
+     "name": "Roman Empire",
+     "role": "location",
+     "wikidata_id": "Q2277"
+    }
+   ]
+  },
+  {
+   "sequence_order": 3,
+   "narrative_text": "Once Constantine ruled alone in 324, he found his favoured church quarrelling with itself. A dispute over whether Christ shared the Father's divine essence, associated with Arius, had spread through the Greek east. In the summer of 325 the emperor summoned bishops to Nicaea, and at least 200 came, almost all from the eastern half of the empire. Reports of the head count vary from 250 to 318. The council condemned Arius and issued the statement of belief known as the Nicene Creed. The argument did not end there, because Arian ideas kept spreading for decades, but the church now had a creed, and an emperor had convened the council that wrote it.",
+   "start_year": 325,
+   "source_evidence": "Wikipedia: First Council of Nicaea; Nicene Creed; Constantine the Great",
+   "secondary_entities": [
+    {
+     "entity_id": "e69dc700-38b9-4f9d-bd0a-3b2cf437225e",
+     "name": "First Council of Nicaea",
+     "role": "outcome",
+     "wikidata_id": "Q133331"
+    },
+    {
+     "entity_id": "7295dc08-a623-4ae6-92b6-a137f8a726ef",
+     "name": "Constantine the Great",
+     "role": "participant",
+     "wikidata_id": "Q8413"
+    },
+    {
+     "entity_id": "6e267c67-8fd3-491a-af68-7cfff89de5ba",
+     "name": "Nicene Creed",
+     "role": "outcome",
+     "wikidata_id": "Q207937"
+    }
+   ]
+  },
+  {
+   "sequence_order": 4,
+   "narrative_text": "In 324, after defeating Licinius, Constantine founded a new city on the site of the old Greek town of Byzantium, at first calling it New Rome. In 330 it became the capital of the empire. The spot was a good one, on the strait between the Black Sea and the Mediterranean and between Europe and Asia. Rome had already lost its role as the administrative capital to Milan in 286, and now the empire's centre of gravity moved decisively east. Constantinople would remain a capital for more than a thousand years, and it would outlast the western half of the empire by nearly a millennium.",
+   "start_year": 330,
+   "source_evidence": "Wikipedia: Constantinople; Constantine the Great",
+   "secondary_entities": [
+    {
+     "entity_id": "4d128085-8618-4481-9ef6-b54263404b3b",
+     "name": "Constantinople",
+     "role": "location",
+     "wikidata_id": "Q16869"
+    },
+    {
+     "entity_id": "7295dc08-a623-4ae6-92b6-a137f8a726ef",
+     "name": "Constantine the Great",
+     "role": "participant",
+     "wikidata_id": "Q8413"
+    },
+    {
+     "entity_id": "e837cceb-e520-4726-9180-9ebaeef0f1ca",
+     "name": "Roman Empire",
+     "role": "mentioned",
+     "wikidata_id": "Q2277"
+    }
+   ]
+  },
+  {
+   "sequence_order": 5,
+   "narrative_text": "In 376 the Goths, pushed from their lands by the Huns, asked to be allowed across the Danube into the Eastern Roman Empire, and Emperor Valens admitted them. On 9 August 378 near Adrianople, in Thrace, he led an army against Fritigern's Goths and was killed. Historians once said that Gothic heavy cavalry had broken the Roman infantry and ushered in the age of the knight, but more recent scholars stress that it was mostly infantry against infantry and that the two armies were of similar size. No one doubts the shock of an emperor lost in the field. Within four years Rome was bargaining with armed Goths who stayed inside its borders. Open the battle map to see how the day unfolded.",
+   "start_year": 378,
+   "source_evidence": "Wikipedia: Battle of Adrianople; Theodosius I",
+   "secondary_entities": [
+    {
+     "entity_id": "6259460c-c82b-45bd-9bbb-2d6a1094e807",
+     "name": "Battle of Adrianople",
+     "role": "outcome",
+     "wikidata_id": "Q192473"
+    },
+    {
+     "entity_id": "2cb85633-610a-452a-8f6e-10ab5cc571ff",
+     "name": "Valens",
+     "role": "participant",
+     "wikidata_id": "Q172471"
+    },
+    {
+     "entity_id": "a8d07022-a7fa-441f-8766-0ca89f9392e6",
+     "name": "Fritigern",
+     "role": "participant",
+     "wikidata_id": "Q159712"
+    },
+    {
+     "entity_id": "94759282-6d3b-423c-821a-70f1c01c7141",
+     "name": "Goths",
+     "role": "participant",
+     "wikidata_id": "Q42193"
+    },
+    {
+     "entity_id": "7c3d62ab-eb16-46f3-941c-a4603e5585a0",
+     "name": "Huns",
+     "role": "mentioned",
+     "wikidata_id": "Q45813"
+    }
+   ]
+  },
+  {
+   "sequence_order": 6,
+   "narrative_text": "Theodosius took over the shattered east in 379 and in 382 made peace by letting the Goths settle south of the Danube as autonomous allies. His religious policy was firmer. On 27 February 380 he, Gratian and Valentinian II issued the Edict of Thessalonica, which made Nicene Christianity the state church, and a council at Constantinople the next year gave the creed its final form. Harari argues that universal religions, like empires and money, are ways of making strangers cooperate by sharing a story. In 380 Rome picked one story, and one orthodox version of it, for the whole empire.",
+   "start_year": 380,
+   "end_year": 381,
+   "source_evidence": "Wikipedia: Edict of Thessalonica; Theodosius I; First Council of Constantinople",
+   "secondary_entities": [
+    {
+     "entity_id": "c5bb15d6-2a0d-436b-b442-8c5b791ba2d0",
+     "name": "Edict of Thessalonica",
+     "role": "outcome",
+     "wikidata_id": "Q1257878"
+    },
+    {
+     "entity_id": "264503be-537c-4ea1-b796-8817a8f88bd8",
+     "name": "Theodosius I",
+     "role": "participant",
+     "wikidata_id": "Q46696"
+    },
+    {
+     "entity_id": "310e2e89-69e4-4214-b91b-31e5b620d737",
+     "name": "Nicene Christianity",
+     "role": "outcome",
+     "wikidata_id": "Q2965829"
+    },
+    {
+     "entity_id": "94759282-6d3b-423c-821a-70f1c01c7141",
+     "name": "Goths",
+     "role": "mentioned",
+     "wikidata_id": "Q42193"
+    }
+   ]
+  },
+  {
+   "sequence_order": 7,
+   "narrative_text": "By August 410 Rome was no longer the seat of government, since the emperor sat at Ravenna. The Visigoths under Alaric had besieged the old capital twice already, withdrawing in December 408 once they were paid a ransom. On 24 August 410 they came in, and for three days Rome was plundered. It was the first time in almost 800 years that the city had fallen to a foreign enemy, and contemporaries, friends and foes of the empire alike, were shaken. What struck them was less the loot than the fact. Alaric himself had marched in 394 at the head of Visigoths serving in a Roman army, and sixteen years later he led them through the city's gates.",
+   "start_year": 410,
+   "source_evidence": "Wikipedia: Sack of Rome (410)",
+   "secondary_entities": [
+    {
+     "entity_id": "75cf7129-4a65-4ff8-afef-5a468f37bb61",
+     "name": "Sack of Rome (410)",
+     "role": "outcome",
+     "wikidata_id": "Q1463845"
+    },
+    {
+     "entity_id": "900f1146-ec04-40c1-ad4a-1b67a8b59df9",
+     "name": "Alaric I",
+     "role": "participant",
+     "wikidata_id": "Q102371"
+    },
+    {
+     "entity_id": "ce6ea46b-0634-4794-b94c-4e8a4a6433cf",
+     "name": "Visigoths",
+     "role": "participant",
+     "wikidata_id": "Q23693"
+    },
+    {
+     "entity_id": "ee6bb2d1-30c8-43dd-9449-67544851f0ce",
+     "name": "Rome",
+     "role": "location",
+     "wikidata_id": "Q220"
+    },
+    {
+     "entity_id": "b33a0034-65e9-4d4c-a586-3233acfee6c6",
+     "name": "Ravenna",
+     "role": "mentioned",
+     "wikidata_id": "Q13364"
+    }
+   ]
+  },
+  {
+   "sequence_order": 8,
+   "narrative_text": "By the middle of the fifth century the Huns under Attila were the great fear of Europe. Attila had ruled since 434 and had raided the eastern empire in 441. In spring 451 he crossed the Rhine with a large host of allies and sacked Metz on 7 April. On 20 June, at the Catalaunian Plains in Gaul, he met a coalition led by the Roman general Aetius and the Visigothic king Theodoric I, Romans and Goths now fighting side by side. Attila was checked, died two years later, and his confederation gradually came apart. Rome had survived the Huns by leaning on the very peoples it once feared. The battle map shows how the coalition held.",
+   "start_year": 451,
+   "source_evidence": "Wikipedia: Battle of the Catalaunian Plains; Attila",
+   "secondary_entities": [
+    {
+     "entity_id": "73b78124-a001-4ceb-aab5-474e806a3606",
+     "name": "Battle of the Catalaunian Plains",
+     "role": "outcome",
+     "wikidata_id": "Q139808"
+    },
+    {
+     "entity_id": "90a33163-6279-4793-be9e-6db8bc34495e",
+     "name": "Attila",
+     "role": "participant",
+     "wikidata_id": "Q36724"
+    },
+    {
+     "entity_id": "7b1efab2-a0ef-4c23-a67b-d42c3ee79882",
+     "name": "Aetius",
+     "role": "participant",
+     "wikidata_id": "Q185476"
+    },
+    {
+     "entity_id": "7c3d62ab-eb16-46f3-941c-a4603e5585a0",
+     "name": "Huns",
+     "role": "participant",
+     "wikidata_id": "Q45813"
+    },
+    {
+     "entity_id": "90614e84-fede-49f7-9b97-8116cc37b83f",
+     "name": "Gaul",
+     "role": "location",
+     "wikidata_id": "Q38060"
+    }
+   ]
+  },
+  {
+   "sequence_order": 9,
+   "narrative_text": "The last western emperor was a boy. Romulus, nicknamed Augustulus, the little Augustus, had been put on the throne in 475 by his father Orestes. In 476 the foederati, barbarian soldiers serving the empire in Italy, demanded land to settle on, and Orestes refused. Their officer Odoacer led a revolt, and on 4 September 476 he deposed the boy and became ruler of Italy. Romulus may have lived on for years, perhaps on a pension, though the sources are thin. The emperor in Constantinople carried on, still calling himself Roman. Rome as an idea survived; Rome as a western state did not.",
+   "start_year": 476,
+   "source_evidence": "Wikipedia: Romulus Augustulus; Odoacer",
+   "secondary_entities": [
+    {
+     "entity_id": "5e7296a4-46d3-4cf6-9ad4-bbaeb97791b8",
+     "name": "Romulus Augustulus",
+     "role": "participant",
+     "wikidata_id": "Q130601"
+    },
+    {
+     "entity_id": "1d4716bf-7dc5-41dd-aa44-6cb0b6488caa",
+     "name": "Odoacer",
+     "role": "participant",
+     "wikidata_id": "Q103333"
+    },
+    {
+     "entity_id": "106739db-16a7-4ea9-b66d-3ce8bd0527da",
+     "name": "Western Roman Empire",
+     "role": "outcome",
+     "wikidata_id": "Q42834"
+    }
+   ]
+  },
+  {
+   "sequence_order": 10,
+   "narrative_text": "In January 532 the chariot races of Constantinople turned into a revolt. The city's racing factions, the Blues and the Greens, were usually rivals, but after the city prefect arrested members of both for murder and a botched execution on 10 January left two men alive, they united. Their cry was Nika, victory. Justinian, who had ruled since 527 and had originally favoured the Blues, nearly lost his throne over the following week. Having kept his crown, he set about proving that an emperor could build a city grander than any mob could burn.",
+   "start_year": 532,
+   "source_evidence": "Wikipedia: Nika riots; Justinian I",
+   "secondary_entities": [
+    {
+     "entity_id": "ff09f099-d111-4845-b85d-d96b278dd642",
+     "name": "Nika riots",
+     "role": "outcome",
+     "wikidata_id": "Q162665"
+    },
+    {
+     "entity_id": "d0f1cc3c-f423-42de-9328-0e9d67da7ce3",
+     "name": "Justinian I",
+     "role": "participant",
+     "wikidata_id": "Q41866"
+    },
+    {
+     "entity_id": "9c1ea4fd-68e7-4a75-b03d-02492e99e814",
+     "name": "Theodora (wife of Justinian I)",
+     "role": "mentioned",
+     "wikidata_id": "Q204843"
+    },
+    {
+     "entity_id": "4d128085-8618-4481-9ef6-b54263404b3b",
+     "name": "Constantinople",
+     "role": "location",
+     "wikidata_id": "Q16869"
+    }
+   ]
+  },
+  {
+   "sequence_order": 11,
+   "narrative_text": "Between 532 and 537 Justinian had a new church raised on a site that had already held two, the Hagia Sophia, designed by two geometers, Isidore of Miletus and Anthemius of Tralles. Its great dome rests on pendentives, curved triangles that carry the weight down to the piers. When it was finished in 537 it was the largest interior space in the world, and it remained the world's largest church for more than five hundred years. The same emperor issued the first draft of a codified Roman law in 529. Together they show an emperor who wanted one law, one faith and one capital for his Christian empire.",
+   "start_year": 532,
+   "end_year": 537,
+   "source_evidence": "Wikipedia: Hagia Sophia; Justinian I",
+   "secondary_entities": [
+    {
+     "entity_id": "9968a0d2-fa67-4ed5-80cb-2ca0d6a7ec40",
+     "name": "Hagia Sophia",
+     "role": "outcome",
+     "wikidata_id": "Q12506"
+    },
+    {
+     "entity_id": "d0f1cc3c-f423-42de-9328-0e9d67da7ce3",
+     "name": "Justinian I",
+     "role": "participant",
+     "wikidata_id": "Q41866"
+    },
+    {
+     "entity_id": "4d128085-8618-4481-9ef6-b54263404b3b",
+     "name": "Constantinople",
+     "role": "location",
+     "wikidata_id": "Q16869"
+    },
+    {
+     "entity_id": "3915b6ec-3021-49b5-9bb8-324ab71b0d64",
+     "name": "Byzantine Empire",
+     "role": "mentioned",
+     "wikidata_id": "Q12544"
+    }
+   ]
+  },
+  {
+   "sequence_order": 12,
+   "narrative_text": "The plague reached the port of Pelusium in Egypt in 541, spread around the Mediterranean until 544, and lingered in northern Europe and Arabia until 549. In Constantinople it killed about a fifth of the people. Justinian himself fell ill in 542 and recovered. Researchers confirmed in 2013 that the cause was Yersinia pestis, the same bacterium behind the Black Death. For survivors there was a bitter irony: labour shortages drove wages up, and papyri from Egypt show rises of up to 150 percent. Both the Byzantine and the Sasanian empires were left weakened, just as a new power was gathering in Arabia.",
+   "start_year": 541,
+   "end_year": 549,
+   "source_evidence": "Wikipedia: Plague of Justinian; Justinian I",
+   "secondary_entities": [
+    {
+     "entity_id": "67573609-eec8-4702-a330-79713f5464ea",
+     "name": "Plague of Justinian",
+     "role": "participant",
+     "wikidata_id": "Q821711"
+    },
+    {
+     "entity_id": "d0f1cc3c-f423-42de-9328-0e9d67da7ce3",
+     "name": "Justinian I",
+     "role": "mentioned",
+     "wikidata_id": "Q41866"
+    },
+    {
+     "entity_id": "4d128085-8618-4481-9ef6-b54263404b3b",
+     "name": "Constantinople",
+     "role": "location",
+     "wikidata_id": "Q16869"
+    },
+    {
+     "entity_id": "3915b6ec-3021-49b5-9bb8-324ab71b0d64",
+     "name": "Byzantine Empire",
+     "role": "mentioned",
+     "wikidata_id": "Q12544"
+    }
+   ]
+  },
+  {
+   "sequence_order": 13,
+   "narrative_text": "At the eastern end of Eurasia a different faith was taking root. Tradition says that in 593 Empress Suiko of Japan made her nephew, Prince Shotoku, her regent, and he is credited with leading a large national project to promote Buddhism. In 607, according to the records of Horyu-ji, he and the empress founded that temple beside his palace. Excavations in 1939 confirmed that the palace stood there, though the first temple burned in 670 and was rebuilt. Shotoku is described as semi-legendary, so some stories are later embroidery. But the pattern is clear: court and religion joined, as in Rome, and Buddhism became part of how a state in Yamato described itself.",
+   "start_year": 593,
+   "end_year": 607,
+   "source_evidence": "Wikipedia: Prince Shotoku; Horyu-ji",
+   "secondary_entities": [
+    {
+     "entity_id": "27108afc-4fb2-4f77-b528-0b39aa4b4215",
+     "name": "Yamato",
+     "role": "location",
+     "wikidata_id": "Q24060351"
+    },
+    {
+     "entity_id": "58864716-9576-4328-b9c4-3f787b5bb62a",
+     "name": "Buddhism",
+     "role": "mentioned",
+     "wikidata_id": "Q748"
+    }
+   ]
+  },
+  {
+   "sequence_order": 14,
+   "narrative_text": "Around 610, according to Muslim tradition, Muhammad of Mecca, then about forty, received the first of the revelations that became the Quran. From 613 he preached openly that God is One. Persecution grew, and in May 622 he slipped out of Mecca with Abu Bakr and travelled to Medina, an oasis whose two tribes, the Aws and Khazraj, had been feuding for nearly a century and had sent converts to meet him. This emigration, the Hijra, was later chosen as the first year of the Islamic calendar, and it corresponds to 16 July 622 in the Julian one. The earliest biographies were written a century or two later, so historians treat some details with caution.",
+   "start_year": 610,
+   "source_evidence": "Wikipedia: Muhammad; Hijrah",
+   "secondary_entities": [
+    {
+     "entity_id": "b0169cc1-d4be-401f-bb2f-3407c67044a0",
+     "name": "Muhammad ibn Abdullah",
+     "role": "participant",
+     "wikidata_id": "Q9458"
+    },
+    {
+     "entity_id": "a703ac02-2d13-481b-88ea-c82594243b16",
+     "name": "Hijra",
+     "role": "outcome",
+     "wikidata_id": "Q131482"
+    },
+    {
+     "entity_id": "d645be0e-3e75-4f9e-b671-2f114cb033e8",
+     "name": "Mecca",
+     "role": "location",
+     "wikidata_id": "Q5806"
+    },
+    {
+     "entity_id": "dcc86378-caca-495c-95f1-e2a34afb29be",
+     "name": "Medina",
+     "role": "location",
+     "wikidata_id": "Q35484"
+    }
+   ],
+   "end_year": 622
+  },
+  {
+   "sequence_order": 15,
+   "narrative_text": "In 629 (some sources say 627) a Chinese Buddhist monk named Xuanzang set out for India to bring back Buddhist texts. He returned in 645 after a journey across Central Asia and to the Indian subcontinent, carrying at least 657 works, and spent the rest of his life translating them. His travelogue, the Records of the Western Regions, is still a source for seventh-century India. The Tang dynasty he left, founded in 618, ruled some 50 million people by the censuses of its early centuries. Buddhism had reached China long before, but under the Tang its monasteries became rich and powerful, and a Chinese monk's pilgrimage became a national story.",
+   "start_year": 629,
+   "end_year": 645,
+   "source_evidence": "Wikipedia: Xuanzang; Tang dynasty; Buddhism in China",
+   "secondary_entities": [
+    {
+     "entity_id": "ceb07345-851c-4897-ac0d-e8e7208d333e",
+     "name": "Xuanzang",
+     "role": "participant",
+     "wikidata_id": "Q42063"
+    },
+    {
+     "entity_id": "7ddfaf8b-6264-4c66-a873-00548eb4dc7b",
+     "name": "Tang dynasty",
+     "role": "location",
+     "wikidata_id": "Q9683"
+    },
+    {
+     "entity_id": "58864716-9576-4328-b9c4-3f787b5bb62a",
+     "name": "Buddhism",
+     "role": "mentioned",
+     "wikidata_id": "Q748"
+    }
+   ]
+  },
+  {
+   "sequence_order": 16,
+   "narrative_text": "When Muhammad died in 632, his community held together, and within years Arab armies were pressing into lands that two empires had fought over for decades. Byzantium and Sasanian Persia had spent the early seventh century at war with each other, and plague had visited both. Emperor Heraclius had restored the True Cross to Jerusalem in 629, and in May 636 he sent a massive expedition to the Levant. Over six days in August, along the Yarmouk River, the Rashidun army defeated it. Jerusalem fell in 638 and Caesarea in 640. Most historians agree the two old empires were exhausted. The battle map shows how the fighting unfolded.",
+   "start_year": 636,
+   "source_evidence": "Wikipedia: Battle of the Yarmuk; Early Muslim conquests",
+   "secondary_entities": [
+    {
+     "entity_id": "9f546c59-42d1-4606-bdc5-ba28cc02a4e3",
+     "name": "Battle of the Yarmuk",
+     "role": "outcome",
+     "wikidata_id": "Q194226"
+    },
+    {
+     "entity_id": "afaee64f-2950-4c31-89e1-c9d9069ae5a6",
+     "name": "Rashidun Caliphate",
+     "role": "participant",
+     "wikidata_id": "Q12490507"
+    },
+    {
+     "entity_id": "3915b6ec-3021-49b5-9bb8-324ab71b0d64",
+     "name": "Byzantine Empire",
+     "role": "participant",
+     "wikidata_id": "Q12544"
+    },
+    {
+     "entity_id": "aa312fdf-54ad-4e01-8cc3-44d8c9b20604",
+     "name": "Sasanian Empire",
+     "role": "mentioned",
+     "wikidata_id": "Q83891"
+    }
+   ]
+  },
+  {
+   "sequence_order": 17,
+   "narrative_text": "Under the Umayyads, who ruled from 661 to 750, the caliphate turned into an empire. They built and they minted. The Dome of the Rock in Jerusalem was raised on Abd al-Malik's orders in 691 to 692, and in 693 the Byzantine gold coin used in Syria and Egypt gave way to the dinar, later stamped with Qur'anic words and no images. Harari names money, empires and universal religions as humanity's three great unifiers, and here all three were being joined. Over the century after Muhammad's death, Muslim rule spread across the Middle East and North Africa, into parts of Central and South Asia, and into southern Europe.",
+   "start_year": 661,
+   "end_year": 750,
+   "source_evidence": "Wikipedia: Umayyad Caliphate; Dome of the Rock; Early Muslim conquests",
+   "secondary_entities": [
+    {
+     "entity_id": "8bbeb213-5526-4ab0-b41c-7098124f5942",
+     "name": "Umayyad Caliphate",
+     "role": "participant",
+     "wikidata_id": "Q8575586"
+    },
+    {
+     "entity_id": "e071e930-4762-463b-bac0-cd9f0a3ea6f6",
+     "name": "Dome of the Rock",
+     "role": "outcome",
+     "wikidata_id": "Q172077"
+    },
+    {
+     "entity_id": "a595a760-2bd6-4b5a-ac61-d46c7b617a2a",
+     "name": "Islamic dinar",
+     "role": "outcome",
+     "wikidata_id": "Q11220294"
+    },
+    {
+     "entity_id": "abdea7bc-64cb-4f3d-8b52-c5f3045eff33",
+     "name": "Abd al-Malik ibn Marwan",
+     "role": "participant",
+     "wikidata_id": "Q36788"
+    },
+    {
+     "entity_id": "99813013-0a22-4c15-b4ea-5968a5aa5ec3",
+     "name": "Jerusalem",
+     "role": "location",
+     "wikidata_id": "Q1218"
+    }
+   ]
+  },
+  {
+   "sequence_order": 18,
+   "narrative_text": "The Umayyad advance into Europe began in 711, with the invasion of the Visigothic kingdom in Iberia. On 10 October 732 an army met the Franks under Charles Martel near Tours and Poitiers, the two names the battle goes by. The Mozarabic Chronicle of 754, the fullest contemporary Latin account, says the Franks killed the Muslim commander, Abd al-Rahman. Later writers made this the day Europe was saved, but little of that holds up: some casualty figures were copied from an earlier battle, and the raiders appear to have withdrawn burning and looting rather than being destroyed. Within seventy years a Frankish king would be crowned emperor. The battle map shows how the two armies met.",
+   "start_year": 732,
+   "source_evidence": "Wikipedia: Battle of Tours; Charles Martel",
+   "secondary_entities": [
+    {
+     "entity_id": "74d6cce2-d60b-47c7-a73b-2f18555978ae",
+     "name": "Battle of Tours",
+     "role": "outcome",
+     "wikidata_id": "Q173077"
+    },
+    {
+     "entity_id": "43796889-fceb-453c-bfde-fe8ad3a3983a",
+     "name": "Charles Martel",
+     "role": "participant",
+     "wikidata_id": "Q3301"
+    },
+    {
+     "entity_id": "771c1b97-2b83-4398-be23-a71688080cd1",
+     "name": "al-Andalus",
+     "role": "participant",
+     "wikidata_id": "Q123559"
+    },
+    {
+     "entity_id": "720e3a5c-a55c-449f-bc64-1f6571cfd035",
+     "name": "Franks",
+     "role": "participant",
+     "wikidata_id": "Q43482"
+    }
+   ]
+  },
+  {
+   "sequence_order": 19,
+   "narrative_text": "The caliphate's other frontier lay in Central Asia, where two great powers met on the Silk Road. In 750 the Abbasids overthrew the Umayyads, and in 751, on the Talas River, an Abbasid army with Tibetan allies fought the Tang army and its allies. The Abbasid side prevailed. Four years later the An Lushan rebellion began in China, and over the following years it brought devastation and weakened the Tang's central authority. A story says that Chinese prisoners taken at Talas carried papermaking to West Asia. Several findings dispute this account, but the tale lasts because the two great empires of the age really did meet there. The battle map shows the engagement.",
+   "start_year": 751,
+   "source_evidence": "Wikipedia: Battle of Talas; Abbasid Caliphate",
+   "secondary_entities": [
+    {
+     "entity_id": "a6da2715-a3dd-4b60-b45f-46c72c17995f",
+     "name": "Battle of Talas",
+     "role": "outcome",
+     "wikidata_id": "Q492415"
+    },
+    {
+     "entity_id": "4723bac0-b5d8-437a-8cb0-931c1a6b6042",
+     "name": "Abbasid Caliphate",
+     "role": "participant",
+     "wikidata_id": "Q12536"
+    },
+    {
+     "entity_id": "7ddfaf8b-6264-4c66-a873-00548eb4dc7b",
+     "name": "Tang dynasty",
+     "role": "participant",
+     "wikidata_id": "Q9683"
+    },
+    {
+     "entity_id": "f43ddf5a-414c-4812-b3e4-c72c184c09cd",
+     "name": "Gao Xianzhi",
+     "role": "participant",
+     "wikidata_id": "Q708541"
+    }
+   ]
+  },
+  {
+   "sequence_order": 20,
+   "narrative_text": "The Abbasids moved the heart of Islam east. On 30 July 762 the caliph al-Mansur commissioned a new capital on the Tigris, guided by the Iranian Barmakids: Baghdad. It stood where earlier empires had had their capitals, and it served the Abbasid caliphs for most of their rule, until 1258. Their height is traditionally linked to Harun al-Rashid, who reigned from 786 to 809. Later tradition remembers a House of Wisdom there, though historians disagree whether it was an academy or a smaller library. Whatever its form, scholars such as al-Jahiz and al-Kindi studied in the city, which became one of the great centres of learning of its age.",
+   "start_year": 762,
+   "source_evidence": "Wikipedia: Baghdad; Abbasid Caliphate; House of Wisdom",
+   "secondary_entities": [
+    {
+     "entity_id": "8759387f-260f-44f4-a996-11e345bd9e6a",
+     "name": "Baghdad",
+     "role": "location",
+     "wikidata_id": "Q1530"
+    },
+    {
+     "entity_id": "a3318779-e780-4582-a95a-0cf70aa1f70c",
+     "name": "al-Mansur",
+     "role": "participant",
+     "wikidata_id": "Q31066"
+    },
+    {
+     "entity_id": "cd1f55c7-8139-46b5-8406-b5ec896947d1",
+     "name": "Harun al-Rashid",
+     "role": "participant",
+     "wikidata_id": "Q131002"
+    },
+    {
+     "entity_id": "4723bac0-b5d8-437a-8cb0-931c1a6b6042",
+     "name": "Abbasid Caliphate",
+     "role": "mentioned",
+     "wikidata_id": "Q12536"
+    }
+   ]
+  },
+  {
+   "sequence_order": 21,
+   "narrative_text": "Far to the west, the old empire was being reinvented. Charlemagne had been king of the Franks since 768 and king of the Lombards since 774. In 800, in Rome, Pope Leo III crowned him emperor, the first emperor in the West in over 300 years. This brought him into conflict with Constantinople, which still claimed to be Rome. It also left a new Christian empire in Europe, yet in the 790s Charlemagne sent envoys to the Abbasid caliph Harun al-Rashid, since both took an interest in Iberian affairs. Crosses and crescents were now neighbours who sent each other embassies. The next chapter follows them into an age of crusaders, khans and caliphs.",
+   "start_year": 800,
+   "source_evidence": "Wikipedia: Charlemagne",
+   "secondary_entities": [
+    {
+     "entity_id": "4e744e29-584a-406b-8234-db8c9080eb53",
+     "name": "Charlemagne",
+     "role": "participant",
+     "wikidata_id": "Q3044"
+    },
+    {
+     "entity_id": "76d9d4d8-1e06-4d22-b222-b4872d0efbcd",
+     "name": "Pope Leo III",
+     "role": "participant",
+     "wikidata_id": "Q132086"
+    },
+    {
+     "entity_id": "d309359e-9c73-4bce-9b72-7d3e895a5bc5",
+     "name": "Coronation of Charlemagne as emperor",
+     "role": "outcome"
+    },
+    {
+     "entity_id": "a5f9490b-ea38-4a76-8b07-6bf651635ed9",
+     "name": "Carolingian Empire",
+     "role": "outcome",
+     "wikidata_id": "Q31929"
+    }
+   ]
+  }
+ ]
+}

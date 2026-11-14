@@ -1,0 +1,285 @@
+{
+  "title": "Steam, Steel and Empire",
+  "slug": "the-human-story-10-steam-steel-and-empire",
+  "source_type": "article",
+  "source_reference": "The Human Story, chapter 10: an overview written for History Mapped. Facts checked against English Wikipedia; themes after Yuval Noah Harari, Sapiens: A Brief History of Humankind (2011).",
+  "status": "draft",
+  "start_year": 1760,
+  "end_year": 1914,
+  "tags": ["modern", "europe", "global", "north-america", "east-asia", "africa", "science", "revolution", "colonialism", "trade", "slavery", "empires-states", "war"],
+  "metadata": {"series": "the-human-story", "chapter": 10, "lens": "The Industrial Revolution was a revolution in converting energy: it remade work, time and distance, and industrial powers used it to bind, and divide, the world."},
+  "entries": [
+    {
+      "sequence_order": 0,
+      "narrative_text": "In a Lancashire cottage around 1764, a weaver named James Hargreaves built a wooden frame that let one spinner draw many threads at once. Weavers had been starved of yarn since John Kay's flying shuttle doubled their speed, and the jenny fed them. Neighbours who feared for their livelihoods broke into his house and smashed his machines, and he fled to Nottingham in 1768. Then Richard Arkwright moved spinning out of cottages altogether. At Cromford in Derbyshire in 1771 he built the first water-powered cotton mill, ran it day and night in two twelve-hour shifts, and put up houses for the workers it drew in. Historians would later call this the Industrial Revolution.",
+      "start_year": 1764,
+      "end_year": 1772,
+      "source_evidence": "Wikipedia: Spinning jenny; Cromford Mill; Industrial Revolution",
+      "secondary_entities": [
+        {"entity_id": "1fd2d4e8-8165-4d2b-8efd-9790ae772f7e", "wikidata_id": "Q140696", "name": "James Hargreaves", "role": "participant"},
+        {"entity_id": "a64b1cc5-1413-4e26-a59d-27c5038a03d5", "wikidata_id": "Q294153", "name": "Richard Arkwright", "role": "participant"},
+        {"entity_id": "86a59933-5eee-4666-81f0-82436fe26e76", "wikidata_id": "Q2566525", "name": "Cromford Mill", "role": "location"},
+        {"entity_id": "082c2c26-4048-4e74-92df-15fd0a0e3153", "wikidata_id": "Q2269", "name": "Industrial Revolution", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 1,
+      "narrative_text": "In Glasgow in 1763 an instrument maker at the university, James Watt, was handed a small model of a Newcomen steam engine to repair, and he noticed how much of its heat was thrown away. In 1765 he conceived a fix: a separate chamber to condense the steam, so the cylinder could stay hot. Newcomen's engines, first built in 1712, had been pumping water out of mines, one of them doing the work of 500 horses. Watt's improved design went into production in 1776, and the first was sold to the Carron ironworks near Falkirk. Harari argues that this is the heart of the age: machines that convert the energy locked in coal into motion, wherever a person chooses to put them.",
+      "start_year": 1765,
+      "end_year": 1776,
+      "source_evidence": "Wikipedia: Watt steam engine",
+      "secondary_entities": [
+        {"entity_id": "b29835e3-10f4-45d8-9cf5-09d396e3cf68", "wikidata_id": "Q9041", "name": "James Watt", "role": "participant"},
+        {"entity_id": "c480841f-b54f-4267-bec2-0a2f5af6f8ad", "name": "Newcomen engine", "role": "mentioned"},
+        {"entity_id": "acd3684d-3c2d-41e8-81a8-f9b143bd5d74", "wikidata_id": "Q192775", "name": "University of Glasgow", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 2,
+      "narrative_text": "Britain was at once a leading slave-trading power and the home of a growing abolitionist movement. The Society for Effecting the Abolition of the Slave Trade was founded in 1787, and William Wilberforce wrote in his diary that year that his great purpose in life was to suppress the trade. In 1807 Parliament passed the Slave Trade Act, which outlawed the trade across the empire but not slavery itself. Enforcement fell to the Royal Navy's West Africa Squadron, which between 1808 and 1860 captured 1,600 slave ships and freed 150,000 Africans. An old moral argument, a law and a fleet had begun to redirect a commerce that the same empire had grown rich on.",
+      "start_year": 1807,
+      "end_year": 1860,
+      "source_evidence": "Wikipedia: Slavery Abolition Act 1833",
+      "secondary_entities": [
+        {"entity_id": "1e0e9ceb-a2c2-4180-a3a4-8c1b337b5d71", "wikidata_id": "Q770832", "name": "Slave Trade Act 1807", "role": "outcome"},
+        {"entity_id": "bcdba71f-16f8-4a1f-be76-08210e517ec5", "wikidata_id": "Q207672", "name": "William Wilberforce", "role": "participant"},
+        {"entity_id": "766a9040-45be-495d-8f05-21ef65f8b614", "wikidata_id": "Q17020194", "name": "West Africa Squadron", "role": "participant"},
+        {"entity_id": "8dbcbc30-5798-40a9-abbb-92f2ea5162be", "wikidata_id": "Q8680", "name": "British Empire", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 3,
+      "narrative_text": "From 1811, in the stocking-making towns around Nottingham, frames began to be smashed, and the threatening letters were signed in the name of Ned Ludd, an apprentice said to have wrecked two stocking frames in 1779. The Luddites were not simply against machines. They protested automated machinery over pay, child labour, working conditions and the quality of what was made, and the movement spread to the North West and Yorkshire before it faded by 1816. Their story is the other face of the new age. The factory brought a flood of output, but for many it also took away the trades, the rhythms and the bargaining power of people who had made cloth by hand.",
+      "start_year": 1811,
+      "end_year": 1816,
+      "source_evidence": "Wikipedia: Luddites",
+      "secondary_entities": [
+        {"entity_id": "a6c904b4-3ccf-46be-8345-f9fbe8f7a048", "wikidata_id": "Q1159675", "name": "Luddites", "role": "participant"},
+        {"entity_id": "082c2c26-4048-4e74-92df-15fd0a0e3153", "wikidata_id": "Q2269", "name": "Industrial Revolution", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 4,
+      "narrative_text": "On 6 October 1829, crowds gathered at Rainhill near Liverpool to watch locomotives compete for a prize of 500 pounds. The directors of the Liverpool and Manchester Railway had to choose between engines and cable haulage, and their engineer George Stephenson strongly argued for locomotives. The merchants behind the line had felt the canals were throttling the cotton trade, so the railway crossed the bog of Chat Moss and cut two miles through rock at Olive Mount. When it opened on 15 September 1830 it brought the first widely reported railway death: the MP William Huskisson was run over by the locomotive Rocket. Distance now had a timetable.",
+      "start_year": 1829,
+      "end_year": 1830,
+      "source_evidence": "Wikipedia: Liverpool and Manchester Railway; Rainhill trials; William Huskisson",
+      "secondary_entities": [
+        {"entity_id": "f3d7f27a-9bf0-46e2-b260-0adc9a8869f5", "wikidata_id": "Q1398696", "name": "Liverpool and Manchester Railway", "role": "outcome"},
+        {"entity_id": "c5579d59-11af-41c2-85dc-037a12820988", "wikidata_id": "Q133614", "name": "George Stephenson", "role": "participant"},
+        {"entity_id": "edf8b772-e44a-4462-8088-266095bb71ae", "wikidata_id": "Q2144114", "name": "Rainhill Trials", "role": "mentioned"},
+        {"entity_id": "af42f7f6-d3c1-44b8-817a-1f1fa9574c65", "wikidata_id": "Q777026", "name": "Rocket", "role": "mentioned"},
+        {"entity_id": "49710318-c27e-4528-84f6-fbb1bf17c603", "wikidata_id": "Q24826", "name": "Liverpool", "role": "location"},
+        {"entity_id": "3129d1e5-87d5-47e1-ae09-1d909c021105", "wikidata_id": "Q18125", "name": "Manchester", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 5,
+      "narrative_text": "At Christmas 1831 a large-scale revolt of the enslaved broke out in Jamaica, known as the Baptist War. The planters' militia and the British garrison put it down within ten days, but the loss of life and property led Parliament to hold two inquiries. The Reform Act of 1832 had swept away the rotten-borough seats that planter interests relied on, which cleared the way for a Commons majority willing to act. The Slavery Abolition Act of 1833 ended slavery across most of the British Empire by compensated emancipation, though it excluded places such as British India. An institution as old as the first cities was being ended by statute, yet on terms that paid for the loss of property.",
+      "start_year": 1831,
+      "end_year": 1833,
+      "source_evidence": "Wikipedia: Slavery Abolition Act 1833",
+      "secondary_entities": [
+        {"entity_id": "b679683f-f498-41f1-8f5f-00dd2b3f35d4", "wikidata_id": "Q4077534", "name": "Baptist War", "role": "participant"},
+        {"entity_id": "f4ff68ad-229a-4414-a68f-1b76152593f7", "wikidata_id": "Q487420", "name": "Slavery Abolition Act 1833", "role": "outcome"},
+        {"entity_id": "af1b0c7b-4a0b-4edf-b9de-becf7a61dcfb", "wikidata_id": "Q2526023", "name": "Colony of Jamaica", "role": "location"},
+        {"entity_id": "8dbcbc30-5798-40a9-abbb-92f2ea5162be", "wikidata_id": "Q8680", "name": "British Empire", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 6,
+      "narrative_text": "In 1839 the Daoguang Emperor sent the official Lin Zexu to Guangzhou to halt the opium trade completely. In March British dealers were forced to hand over 1,420 tonnes of opium, and on 3 June Lin had it destroyed in public on Humen Beach. For Britain, opium was the most profitable commodity trade of the century, and the Royal Navy sailed in June 1840. Britain occupied Hong Kong in January 1841, and the Treaty of Nanking of 29 August 1842 granted an indemnity, extraterritoriality for British subjects, five treaty ports and Hong Kong Island. Industrial power could now open a market on the far side of the world, and many historians date modern Chinese history from here.",
+      "start_year": 1839,
+      "end_year": 1842,
+      "source_evidence": "Wikipedia: First Opium War",
+      "secondary_entities": [
+        {"entity_id": "70e99e2a-98f7-442a-8f98-0d9df991486b", "wikidata_id": "Q191282", "name": "First Opium War", "role": "participant"},
+        {"entity_id": "4926b838-1382-4291-b0af-481697acb931", "wikidata_id": "Q184999", "name": "Lin Zexu", "role": "participant"},
+        {"entity_id": "faf95f25-1f1b-492e-8871-970b5d0c6dff", "wikidata_id": "Q238262", "name": "Treaty of Nanjing", "role": "outcome"},
+        {"entity_id": "6f5ac0c4-1815-4694-847e-08181821f54d", "wikidata_id": "Q16572", "name": "Guangzhou", "role": "location"},
+        {"entity_id": "d5ff3f37-06ab-4766-b3da-57e6f9e81577", "wikidata_id": "Q19483", "name": "Hong Kong Island", "role": "location"},
+        {"entity_id": "e06c397a-8faf-4f40-a527-23b9a81a10a8", "wikidata_id": "Q8733", "name": "Qing dynasty", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 7,
+      "narrative_text": "An economic crisis between 1845 and 1847, a food crisis combined with an industrial recession, left much of Europe hungry and angry, and governments that ignored demands for reform found their discontent piling up. The spark came in Sicily in January 1848, and after the revolution in France in February, uprisings spread across the continent, most prominently in France, Italy, the Austrian Empire and the German states. People called it the springtime of the peoples. The wave ended in October 1849. The ideas behind it, national states and written constitutions, did not end with it, as the unification of Germany would soon show.",
+      "start_year": 1848,
+      "end_year": 1849,
+      "source_evidence": "Wikipedia: Revolutions of 1848",
+      "secondary_entities": [
+        {"entity_id": "8a72ab95-3a02-49d3-97a1-9b450b92ff5d", "wikidata_id": "Q3588", "name": "Revolutions of 1848", "role": "participant"},
+        {"entity_id": "87d93b11-00ea-46e5-ace7-e6bb8b331f85", "wikidata_id": "Q4951156", "name": "Sicily", "role": "location"},
+        {"entity_id": "1c3befeb-626d-472d-924f-a41d4b3fcc53", "wikidata_id": "Q142", "name": "France", "role": "location"},
+        {"entity_id": "b3436059-3f8b-4e9f-b145-7aac47defb0c", "wikidata_id": "Q131964", "name": "Austrian Empire", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 8,
+      "narrative_text": "While Europe argued over constitutions, China was consumed by the largest conflict of the century. The Taiping Rebellion, from 1850 to 1864, pitted the Qing dynasty against the Taiping Heavenly Kingdom led by Hong Xiuquan. Estimates of the dead run from 20 to 30 million up to 73 to 100 million, which makes it one of the bloodiest wars in history. The Qing won not with their own imperial armies but with decentralised provincial forces, such as the Xiang Army raised by Zeng Guofan, who besieged Nanjing in 1862. Hong Xiuquan died there on 1 June 1864. The victory cost the dynasty dearly in money and stability, and left real power drifting toward its regional commanders.",
+      "start_year": 1850,
+      "end_year": 1864,
+      "source_evidence": "Wikipedia: Taiping Rebellion",
+      "secondary_entities": [
+        {"entity_id": "5ebce3f2-2b83-4062-839d-a652ed61423e", "wikidata_id": "Q192408", "name": "Taiping Rebellion", "role": "participant"},
+        {"entity_id": "9bc5a2b3-a5e8-42d7-a7d1-f58be2ff460b", "wikidata_id": "Q334732", "name": "Hong Xiuquan", "role": "participant"},
+        {"entity_id": "3dc8a394-2f9d-49e9-b4ba-c78bb96d0328", "wikidata_id": "Q189512", "name": "Zeng Guofan", "role": "participant"},
+        {"entity_id": "a31f4ce0-2a09-4d37-9778-a3bc59999f2f", "wikidata_id": "Q16666", "name": "Nanjing", "role": "location"},
+        {"entity_id": "e06c397a-8faf-4f40-a527-23b9a81a10a8", "wikidata_id": "Q8733", "name": "Qing dynasty", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 9,
+      "narrative_text": "From 1 May to 15 October 1851, Hyde Park in London held the Great Exhibition of the Works of Industry of All Nations. Its home was a vast glass house, 1,848 feet long, built from cast-iron frame parts and glass made almost entirely in Birmingham and Smethwick. Prince Albert had championed it, and its prime motive was to make clear to the world Britain's role as industrial leader. Visitors saw everything from Samuel Colt's revolvers to jewellery and the early medieval Tara Brooch. The surplus of 186,000 pounds founded the Victoria and Albert Museum, the Science Museum and the Natural History Museum. Harari sees in such spectacles the making of the modern consumer, a person taught to want what machines can produce.",
+      "start_year": 1851,
+      "end_year": 1851,
+      "source_evidence": "Wikipedia: Great Exhibition",
+      "secondary_entities": [
+        {"entity_id": "dec0fa93-e174-4bb9-b2c4-4698d4016b93", "wikidata_id": "Q273095", "name": "Great Exhibition", "role": "participant"},
+        {"entity_id": "a36f01a0-4d81-49d6-b211-701d6846a942", "wikidata_id": "Q202902", "name": "Crystal Palace", "role": "location"},
+        {"entity_id": "79ed5190-23bd-4de7-8748-ad3ec4030a52", "wikidata_id": "Q152245", "name": "Prince Albert", "role": "participant"},
+        {"entity_id": "99915ec0-b494-46e9-8d32-db94f7418df3", "wikidata_id": "Q123738", "name": "Hyde Park", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 10,
+      "narrative_text": "The idea began as a project to link two continents by wire. In 1854 the financier Cyrus West Field discussed a transatlantic cable with Gisborne, and the project went on to take Field across the ocean 56 times. The first cable ran from Valentia Island off Ireland to Newfoundland. Messages first passed on 16 August 1858, but the line speed was poor. A second cable followed in 1865 with better materials, and in July 1866 a third was laid, after which the 1865 cable was retrieved and spliced so that two were in service. Since 1866 the two sides of the Atlantic have never again been out of touch.",
+      "start_year": 1854,
+      "end_year": 1866,
+      "source_evidence": "Wikipedia: Transatlantic telegraph cable",
+      "secondary_entities": [
+        {"entity_id": "a7530554-ef6a-4095-88f6-351a650c60e5", "wikidata_id": "Q2395922", "name": "Transatlantic telegraph cable", "role": "outcome"},
+        {"entity_id": "fa71c742-c807-4509-b1a6-dbcff1ec485c", "wikidata_id": "Q48335", "name": "Newfoundland", "role": "location"},
+        {"entity_id": "69343323-a541-4e4e-bf59-743698b99b72", "wikidata_id": "Q27", "name": "Ireland", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 11,
+      "narrative_text": "Steel, a metal once made in small and costly batches, needed a way to be made by the ton. Henry Bessemer later said that his search began from a conversation with Napoleon III in 1854 about the steel needed for better artillery. He began work in January 1855, filed his first patent that October, and patented his process in 1856. The American William Kelly claimed to have found the method independently, and was awarded a priority patent in 1857, so the credit is disputed. By 1858 a partnership was making steel at Sheffield. Cheap steel would give the age its rails, ships and girders.",
+      "start_year": 1854,
+      "end_year": 1858,
+      "source_evidence": "Wikipedia: Bessemer process",
+      "secondary_entities": [
+        {"entity_id": "e08059e9-dc96-4b79-a164-16daaf61a089", "wikidata_id": "Q310201", "name": "Henry Bessemer", "role": "participant"},
+        {"entity_id": "2db75a54-b4ae-474b-98e2-79320fd242b8", "wikidata_id": "Q7721", "name": "Napoleon III", "role": "participant"}
+      ]
+    },
+    {
+      "sequence_order": 12,
+      "narrative_text": "On 24 November 1859, a book by a retiring English naturalist went on sale in London. On the Origin of Species drew on evidence Charles Darwin had gathered on the Beagle voyage, which he joined in December 1831, and on decades of later research and experiment. It arrived in a world where an earlier chronology had dated creation to 4004 BC, though geologists by the 1780s assumed a much older Earth, and where English science was closely tied to the Church of England. In the 1930s and 1940s Darwin's natural selection became central to modern evolutionary theory. It is now regarded as the unifying concept of the life sciences.",
+      "start_year": 1859,
+      "end_year": 1859,
+      "source_evidence": "Wikipedia: On the Origin of Species",
+      "secondary_entities": [
+        {"entity_id": "3f1411eb-855c-4b64-b7be-e51f4ad1e05b", "wikidata_id": "Q20124", "name": "On the Origin of Species", "role": "participant"},
+        {"entity_id": "2ebb5483-3568-45f4-a55a-92fd30dc2d77", "wikidata_id": "Q1035", "name": "Charles Darwin", "role": "participant"}
+      ]
+    },
+    {
+      "sequence_order": 13,
+      "narrative_text": "In 1858 the French diplomat Ferdinand de Lesseps formed the Compagnie de Suez for one purpose: to dig a canal between the Mediterranean and the Red Sea. Pharaohs and Persian kings had cut channels here before, but this one was for ships, and the work lasted from 1859 to 1869. It officially opened on 17 November 1869. The canal belonged to the Egyptian government, but the company that ran it was owned mostly by British and French shareholders, and it stayed that way until 1956. The voyage from Europe to Asia no longer needed to go round Africa, and the sea route east now ran through a country that European money partly controlled.",
+      "start_year": 1859,
+      "end_year": 1869,
+      "source_evidence": "Wikipedia: Suez Canal",
+      "secondary_entities": [
+        {"entity_id": "43291d20-7682-4658-81fe-e153815a47ec", "wikidata_id": "Q899", "name": "Suez Canal", "role": "outcome"},
+        {"entity_id": "74603c17-2f77-4df4-acd5-3c40abc5dc96", "wikidata_id": "Q209169", "name": "Ferdinand de Lesseps", "role": "participant"},
+        {"entity_id": "99eae961-5972-49b1-aaf0-97a9593a3724", "wikidata_id": "Q959814", "name": "Suez Canal Company", "role": "participant"},
+        {"entity_id": "9de131ab-5534-423b-aed0-127f4728d99b", "wikidata_id": "Q79", "name": "Egypt", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 14,
+      "narrative_text": "Germans shared a language and a legal tradition, but not a state. The Prussian customs union of 1818 had tied their economies together, and in 1862 Otto von Bismarck became minister president of Prussia. After Austria's defeat in 1866 he replaced the German Confederation with a North German Confederation that left Austria out. In 1870 he secured France's defeat with the help of the south German states, and on 18 January 1871 the German Empire was proclaimed under the Prussian crown. Historians still debate whether Bismarck had a master plan or simply meant to enlarge Prussia. Either way, a new industrial great power had appeared in the middle of Europe.",
+      "start_year": 1862,
+      "end_year": 1871,
+      "source_evidence": "Wikipedia: Unification of Germany; Otto von Bismarck",
+      "secondary_entities": [
+        {"entity_id": "baf72ab0-babc-4fd0-b6de-2fc8114e2607", "wikidata_id": "Q8442", "name": "Otto von Bismarck", "role": "participant"},
+        {"entity_id": "17f03897-b465-4968-83e3-95605bf90530", "wikidata_id": "Q38872", "name": "Prussia", "role": "participant"},
+        {"entity_id": "e893b06e-3c3a-45e4-a6c9-cc52104b6c34", "wikidata_id": "Q153650", "name": "Austro-Prussian War", "role": "mentioned"},
+        {"entity_id": "9d454441-227b-4dd2-a152-b7b7f56deabb", "wikidata_id": "Q46083", "name": "Franco-Prussian War", "role": "mentioned"},
+        {"entity_id": "669a97ad-c43e-4109-8ae5-19d0bed65534", "wikidata_id": "Q150981", "name": "North German Confederation", "role": "outcome"},
+        {"entity_id": "018ffab9-bbe6-426d-88ca-fcaaaa0fd0ed", "wikidata_id": "Q43287", "name": "German Empire", "role": "outcome"}
+      ]
+    },
+    {
+      "sequence_order": 15,
+      "narrative_text": "After his victory at Chancellorsville in May 1863, General Robert E. Lee led his Confederate army north through the Shenandoah Valley for a second invasion of the Union. On 1 July the two armies collided around the Pennsylvania town of Gettysburg. In three days the 26th North Carolina, the largest regiment in the army with 839 men, was reduced to about 152 standing. Later in the battle, 150 to 170 Confederate guns opened what was probably the largest artillery bombardment of the war. A recent count puts Confederate losses at 23,231. On 4 July, Lee's army began its retreat south to the Potomac. Open the battle map to follow how the three days unfolded.",
+      "start_year": 1863,
+      "end_year": 1863,
+      "source_evidence": "Wikipedia: Battle of Gettysburg",
+      "secondary_entities": [
+        {"entity_id": "99329574-c9c0-4b07-b55a-fa0142e54d4b", "wikidata_id": "Q33132", "name": "Battle of Gettysburg", "role": "participant"},
+        {"entity_id": "106f7374-276b-4d59-91b3-5380d8ca3249", "wikidata_id": "Q165557", "name": "Robert E. Lee", "role": "participant"},
+        {"entity_id": "6b9673a7-c757-44f3-8267-1a9041ba7cf1", "wikidata_id": "Q689847", "name": "Army of Northern Virginia", "role": "participant"},
+        {"entity_id": "fcde956e-dd30-4e80-b802-01ee8f4bf1ee", "wikidata_id": "Q1752901", "name": "Union Army", "role": "participant"},
+        {"entity_id": "adde2a29-fc2c-46b0-88fe-e1393082be42", "wikidata_id": "Q694550", "name": "Gettysburg", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 16,
+      "narrative_text": "On 19 November 1863, about 15,000 people gathered at Gettysburg to dedicate a cemetery for the Union soldiers, more than 3,000 of whom had died in the battle four and a half months earlier. Abraham Lincoln spoke for less than two minutes, in 271 words, beginning with the Declaration of Independence and its proposition that all men are created equal. Ten months before, on 1 January 1863, he had issued the Emancipation Proclamation, and in 1865 the Thirteenth Amendment, ratified in December, ended slavery in the whole country. The war that began over secession was being redefined as a fight over what the nation was for.",
+      "start_year": 1863,
+      "end_year": 1865,
+      "source_evidence": "Wikipedia: Gettysburg Address; Emancipation Proclamation",
+      "secondary_entities": [
+        {"entity_id": "cc8318da-3af2-4b9e-8d86-2fab443e0ed0", "wikidata_id": "Q91", "name": "Abraham Lincoln", "role": "participant"},
+        {"entity_id": "634e1409-0967-4690-a96b-1b9a4b58cf25", "wikidata_id": "Q214524", "name": "Gettysburg Address", "role": "outcome"},
+        {"entity_id": "138f711e-9ba4-4e17-9526-42c2c2e89337", "wikidata_id": "Q391358", "name": "Emancipation Proclamation", "role": "outcome"},
+        {"entity_id": "68b94557-4828-4ded-8b1e-173dd5a2b3ad", "wikidata_id": "Q8676", "name": "American Civil War", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 17,
+      "narrative_text": "For two centuries before 1854, Japan had followed a strict policy of isolation. Then the Perry Expedition forced a treaty, and in the following years foreign navies bombarded Kagoshima and fought in the Shimonoseki campaign, a lesson in foreign naval power. On 3 January 1868 Emperor Meiji declared that political power was restored to the Imperial House. A short civil war, the Boshin War, followed in 1868 and 1869 against Tokugawa loyalists. Under the slogan of enriching the country and strengthening the military, Japan imported foreign technology, though factories only produced much from the 1880s. A constitution came in 1889, and by 1895 Japan was a military power.",
+      "start_year": 1868,
+      "end_year": 1889,
+      "source_evidence": "Wikipedia: Meiji Restoration; Boshin War; Matthew C. Perry",
+      "secondary_entities": [
+        {"entity_id": "84ec2009-3eb6-46e2-804f-78851b461407", "wikidata_id": "Q8707", "name": "Meiji Restoration", "role": "participant"},
+        {"entity_id": "0eeb4b52-450b-412c-addc-d25b280b3d80", "name": "Emperor Meiji", "role": "participant"},
+        {"entity_id": "a76b88c4-d325-4a47-a5de-c9bc57e10c35", "wikidata_id": "Q205662", "name": "Tokugawa shogunate", "role": "mentioned"},
+        {"entity_id": "cbebf6d1-a86e-4494-a205-620c8fb8ea22", "wikidata_id": "Q309184", "name": "Boshin War", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 18,
+      "narrative_text": "Many people had made glowing filaments before Thomas Edison. In 1878 he began work on a lighting system meant to replace the gas lamp, and in London in 1881 the bulb of Joseph Swan was already in daily use. Edison's contribution was the system around the bulb. On 4 September 1882 the Pearl Street Station in Manhattan began generating electricity in a coal-burning plant with six dynamos, serving 82 customers and 400 lamps. Two years later it had 508 customers and over 10,000 lamps. Power could now be generated in one place and used in another, and the night was becoming a time for work and leisure like any other.",
+      "start_year": 1878,
+      "end_year": 1882,
+      "source_evidence": "Wikipedia: Thomas Edison; Pearl Street Station; Incandescent light bulb",
+      "secondary_entities": [
+        {"entity_id": "57c44f15-4ec2-4aa3-952d-a9f85d3d4a15", "wikidata_id": "Q8743", "name": "Thomas Edison", "role": "participant"},
+        {"entity_id": "af7f29d3-94aa-4b35-a010-ce2e28bbc1bf", "wikidata_id": "Q84", "name": "London", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 19,
+      "narrative_text": "In the 1870s Europeans controlled about a tenth of Africa, nearly all of it along the coasts. In 1884 and 1885 the colonial powers met in Berlin from 15 November to 26 February and signed a General Act regulating colonisation and trade in Africa. Leopold II of Belgium had backed Henry Morton Stanley's work in the Congo, and on 29 May 1885 he announced the Congo Free State, which became one of the great scandals of the early twentieth century. The conference itself set few borders: most of Africa's boundaries took shape over the next two decades. By 1914 only Ethiopia and Liberia stood outside European control.",
+      "start_year": 1884,
+      "end_year": 1914,
+      "source_evidence": "Wikipedia: Berlin Conference; Scramble for Africa; Congo Free State",
+      "secondary_entities": [
+        {"entity_id": "7bb6ad4e-c5f1-4b7d-81d9-8100286a9526", "wikidata_id": "Q13582", "name": "Berlin Conference", "role": "participant"},
+        {"entity_id": "dc1afec5-9053-4408-b196-25c40a67b747", "wikidata_id": "Q179848", "name": "Scramble for Africa", "role": "mentioned"},
+        {"entity_id": "02d52e57-3391-47b7-9a41-b4c7045396c4", "wikidata_id": "Q76048", "name": "Congo Free State", "role": "outcome"},
+        {"entity_id": "61693955-e8d8-437e-8208-9ded4c6b4c4a", "wikidata_id": "Q171421", "name": "Henry Morton Stanley", "role": "participant"},
+        {"entity_id": "a0818aae-c35d-4960-bf80-35846fcb6b7b", "wikidata_id": "Q15", "name": "Africa (continent)", "role": "location"},
+        {"entity_id": "530b402b-be23-4ad6-956d-fe8f5a35d5a7", "wikidata_id": "Q115", "name": "Ethiopia", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 20,
+      "narrative_text": "On 17 December 1903, on the dunes of Kill Devil Hills, four miles south of Kitty Hawk in North Carolina, Orville and Wilbur Wright made the first controlled, sustained flight of an engine-powered, heavier-than-air aircraft. They were sons of a travelling bishop, and from 1900 they had spent years testing gliders to learn to fly them. Their first patent, written that March, claimed not a flying machine but a system of aerodynamic control. By 1905 they had built the first truly practical aeroplane. The same industrial nations that had divided the world among themselves now held machines that ignored distance and borders. The next chapter shows what they did with them.",
+      "start_year": 1903,
+      "end_year": 1905,
+      "source_evidence": "Wikipedia: Wright brothers",
+      "secondary_entities": [
+        {"entity_id": "eb3a4c55-b917-4d36-8382-dd45d1d75ced", "wikidata_id": "Q494455", "name": "Orville Wright", "role": "participant"},
+        {"entity_id": "40bbb1c2-e511-44e3-8c35-74a0504b9e4e", "wikidata_id": "Q1396131", "name": "Wilbur Wright", "role": "participant"},
+        {"entity_id": "e01203f6-f4d3-4b30-9f28-33ef51f24c3a", "wikidata_id": "Q628311", "name": "Kitty Hawk", "role": "location"}
+      ]
+    }
+  ]
+}

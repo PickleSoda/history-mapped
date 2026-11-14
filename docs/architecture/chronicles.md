@@ -92,10 +92,28 @@ among its entities.
 | **Agent from a text** | An operator runs `python -m pipeline agent --input text.txt` | The same `chronicle.json` and import | `draft` |
 | **Admin** | An editor with `chronicles.write` | Create and edit pages, including entries and their entities | set by the editor |
 | **AI assistant** | `ChronicleCreatorAgent` ("Create with AI") or `ChronicleEditorAgent` on a chronicle page | A proposal that the editor applies part by part | `draft` |
+| **Storyteller chapters** (*The Human Story*) | A `chapter-author` agent writes 16–24 narrative scenes per chapter; a `chapter-reviewer` fact-checks them | Files in `api/resources/chronicles/<slug>/chronicle.json`, checked by `pipeline.campaign chronicle-check`, then `chronicles:import resources/chronicles --all` | `draft` |
 
 The campaign's editorial rules: every fact belongs to the chronicle's era, a fact from another era
 goes to "spillover" and is never re-dated, and every fact is grounded in a cached Wikipedia lookup.
 See [Data pipeline](data-pipeline.md#4-the-history-data-campaign).
+
+### The Human Story
+
+A twelve-chapter overview, from the first cities of Sumer to today, written to be read rather than
+looked up. Each step is a scene with people, a place and stakes, and each chapter carries one big
+idea. Yuval Noah Harari's *Sapiens* supplies the themes (shared myths, money, empires and universal
+religions as unifiers, the scientific and industrial revolutions), used only as an attributed lens:
+no quotations, and every fact comes from the cached Wikipedia articles. The chapters link the
+atlas's existing entities and their battles, many of which open as battle maps, and the collection
+`the-human-story` lists them in order.
+
+| Step | Tool |
+|---|---|
+| Find the entities a step can link | `pipeline.campaign entity-find "<name>" Q123 …` |
+| Check a chapter file (schema, 14–30 steps, plain prose, quotations, years, links) | `pipeline.campaign chronicle-check <file>` |
+| Write and review | `.claude/agents/chapter-author.md`, `chapter-reviewer.md` |
+| Load | `chronicles:import resources/chronicles --all` (add `--force` to replace edited entries) |
 
 ### Importing a chronicle file
 

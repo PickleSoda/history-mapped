@@ -1,0 +1,267 @@
+{
+  "title": "From the Cold War to the Global Village",
+  "slug": "the-human-story-12-from-the-cold-war-to-the-global-village",
+  "source_type": "article",
+  "source_reference": "The Human Story, chapter 12: an overview written for History Mapped. Facts checked against English Wikipedia; themes after Yuval Noah Harari, Sapiens: A Brief History of Humankind (2011).",
+  "status": "draft",
+  "start_year": 1945,
+  "end_year": 2020,
+  "tags": ["contemporary", "global", "europe", "east-asia", "africa", "south-asia", "southeast-asia", "diplomacy-law", "rights", "science", "revolution", "conflict", "colonialism"],
+  "metadata": {"series": "the-human-story", "chapter": 12, "lens": "Nuclear deterrence, trade and global institutions made great-power war rarer, empires dissolved into nations, and one connected global civilisation now faces problems only it can solve together."},
+  "entries": [
+    {
+      "sequence_order": 0,
+      "narrative_text": "The victors of the Second World War had hardly finished celebrating before they stopped trusting one another. The United States and the Soviet Union had fought on the same side, yet they quarrelled from the spring of 1945 over how the new United Nations and the postwar order should be run. By 1949 Soviet-backed governments held the lands the Red Army had occupied, and an Iron Curtain divided Europe and Germany in two. Washington answered with the Marshall Plan in 1948 and the NATO alliance in 1949. That same year Moscow tested its first nuclear weapon, four years after Hiroshima and Nagasaki. This is the puzzle of the chapter: two camps now held weapons that could end both, and every quarrel between them had to be fought with that in mind.",
+      "start_year": 1945,
+      "end_year": 1949,
+      "source_evidence": "Wikipedia: Cold War; Marshall Plan; NATO",
+      "secondary_entities": [
+        {"entity_id": "cde1b4c5-1fc1-4258-abf8-5ba0cc0bf10c", "wikidata_id": "Q8683", "name": "Cold War", "role": "participant"},
+        {"entity_id": "1335b2de-8194-4bf6-a4c7-612bf6fbcfc3", "wikidata_id": "Q1065", "name": "United Nations", "role": "mentioned"},
+        {"entity_id": "e05b9df0-43df-4ea6-93c0-8b71c80d8c3f", "wikidata_id": "Q4576", "name": "Marshall Plan", "role": "mentioned"},
+        {"entity_id": "34543669-1f1c-4b1d-858d-188b1c850eb7", "wikidata_id": "Q7184", "name": "NATO", "role": "mentioned"},
+        {"entity_id": "cc695213-e881-4b8d-8b4e-89c83a970923", "wikidata_id": "Q15180", "name": "Soviet Union", "role": "participant"}
+      ]
+    },
+    {
+      "sequence_order": 1,
+      "narrative_text": "At midnight between 14 and 15 August 1947, two countries came into legal existence where there had been one imperial possession. The Indian Independence Act ended the British Raj and split British India into the Union of India and the Dominion of Pakistan. The Indian National Congress, which had begun in 1885 asking the British for a seat at the table, now ran a government. Lines drawn on a map had to cut through provinces where neighbours of different faiths lived side by side, and the violence that followed killed people in numbers nobody agrees on: estimates of the dead still range from two hundred thousand to two million. Empire was ending across Asia, and what replaced it was the nation, an idea that had to be believed before it could be defended.",
+      "start_year": 1947,
+      "end_year": 1947,
+      "source_evidence": "Wikipedia: Partition of India",
+      "secondary_entities": [
+        {"entity_id": "8a4f574c-6cb0-4d3e-8e6d-d23a03b07312", "wikidata_id": "Q668", "name": "India", "role": "participant"},
+        {"entity_id": "850e5027-e44e-4021-810c-b27f535fb60b", "wikidata_id": "Q843", "name": "Pakistan", "role": "outcome"},
+        {"entity_id": "1b0d5f02-5597-4842-8a95-e03421dbb1b7", "wikidata_id": "Q10225", "name": "Indian National Congress", "role": "participant"},
+        {"entity_id": "92c76b9a-02be-423a-a1ef-6c21c7d101d2", "wikidata_id": "Q1047", "name": "Jawaharlal Nehru", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 2,
+      "narrative_text": "On 10 December 1948, in the Palais de Chaillot in Paris, the General Assembly of the United Nations accepted a text that opened with a bold premise: every human being is born free and equal. Eleanor Roosevelt, widowed in 1945 and a delegate to the Assembly, had chaired the drafting committee since early 1947. Her memoirs recall a debate with Dr Chang, a pluralist who argued that there is more than one kind of ultimate reality, a reminder that the authors came from many traditions and had to find words they could all sign. The Declaration was not a law and could not arrest anyone. Yet it gave later treaties a shared vocabulary, and it has since been translated into 577 versions. It was a written statement, agreed across many cultures, of what every person was owed.",
+      "start_year": 1948,
+      "end_year": 1948,
+      "source_evidence": "Wikipedia: Universal Declaration of Human Rights; Eleanor Roosevelt",
+      "secondary_entities": [
+        {"entity_id": "ea17e0ee-0e75-4f95-851f-a4ae1d46299a", "wikidata_id": "Q7813", "name": "Universal Declaration of Human Rights", "role": "outcome"},
+        {"entity_id": "6023182f-2d6d-4e88-9d32-f6ee40f39c21", "wikidata_id": "Q83396", "name": "Eleanor Roosevelt", "role": "participant"},
+        {"entity_id": "fe863ff9-5a69-4faa-ac54-85e3011f52cb", "wikidata_id": "Q685248", "name": "United Nations Commission on Human Rights", "role": "participant"},
+        {"entity_id": "4468902d-ef6e-4bf2-b741-98b91046d322", "wikidata_id": "Q90", "name": "Paris", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 3,
+      "narrative_text": "The Chinese Communist Party began in 1921 as a small circle of urban intellectuals inspired by the Russian revolution. Handed a major defeat in 1935, its survivors made the Long March to a new base in the northwest, and when Japan surrendered in 1945, China became a battlefield of the Cold War. The Party's People's Liberation Army won campaign after campaign and forced the Nationalists under Chiang Kai-shek to retreat to Taiwan. On 1 October 1949 the People's Republic of China was proclaimed, with Beijing as its capital. Its appeal had been built on hunger: between 1900 and the end of the Second World War China had suffered at least six major famines costing tens of millions of lives. The victory made China the largest socialist state by population and, after the split with Moscow in 1956, a third force in the Cold War.",
+      "start_year": 1949,
+      "end_year": 1949,
+      "source_evidence": "Wikipedia: Chinese Communist Revolution",
+      "secondary_entities": [
+        {"entity_id": "90f167d3-dbad-4b2f-84fa-49670b25b0a8", "wikidata_id": "Q148", "name": "People's Republic of China", "role": "outcome"},
+        {"entity_id": "4dfb18ae-9f9e-40ce-a324-b9380ecc24d0", "wikidata_id": "Q17427", "name": "Chinese Communist Party", "role": "participant"},
+        {"entity_id": "54fe3a6c-aa24-4281-9608-46cba1f20460", "wikidata_id": "Q5816", "name": "Mao Zedong", "role": "participant"},
+        {"entity_id": "76ca57d3-2a23-477c-9044-f77dd53411e1", "wikidata_id": "Q16574", "name": "Chiang Kai-shek", "role": "participant"},
+        {"entity_id": "3e12ede6-90ae-498a-9714-9759868a52ae", "wikidata_id": "Q956", "name": "Beijing", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 4,
+      "narrative_text": "Korea had been a Japanese colony for thirty-five years when the Soviet Union and the United States divided it into two occupation zones along the 38th parallel. On 25 June 1950 North Korea invaded the South, and within weeks United Nations forces were clinging to the Pusan Perimeter. General Douglas MacArthur proposed a gamble, an amphibious landing far behind the front. On 15 September some 75,000 troops and 261 ships went ashore at Inchon, first on the island of Wolmi-do, and Seoul was retaken two weeks later. China then entered the war, Seoul changed hands twice more, and fighting settled into attrition. The armistice of 27 July 1953 created a demilitarised zone that still divides the peninsula, because no peace treaty was ever signed. The two superpowers fought hard at the edges and stayed careful at the centre.",
+      "start_year": 1950,
+      "end_year": 1953,
+      "source_evidence": "Wikipedia: Korean War; Battle of Inchon",
+      "secondary_entities": [
+        {"entity_id": "d3811b0a-2b55-4e4e-b325-7b59e3781754", "wikidata_id": "Q483039", "name": "Battle of Inchon", "role": "participant"},
+        {"entity_id": "f86f9ead-153d-4133-9ebf-15e9d6040ec6", "wikidata_id": "Q8663", "name": "Korean War", "role": "mentioned"},
+        {"entity_id": "881ea875-3cf4-43ac-9284-e4e4cac72da5", "wikidata_id": "Q127417", "name": "Douglas MacArthur", "role": "participant"},
+        {"entity_id": "ea2676ad-eb46-4bac-a42b-a1557aff43de", "wikidata_id": "Q331990", "name": "Korean Demilitarized Zone", "role": "outcome"}
+      ]
+    },
+    {
+      "sequence_order": 5,
+      "narrative_text": "The French command in Indochina had a plan: plant a fortress in a remote valley, supply it by air, and tempt the Viet Minh into a fight they could not win. Điện Biên Phủ had an old airstrip built by the Japanese in the Second World War, and when operations began on 20 November 1953 the garrison was reinforced with artillery and even ten light tanks flown in piece by piece. The Viet Minh took the bait and then outgunned the bait. Their assault began on 13 March 1954 with an attack on the outpost Béatrice, and a fierce artillery bombardment followed. The garrison surrendered on 7 May, and the Geneva Conference opened the next day. The Accords signed ten weeks later ended France's Indochina war. Open the battle map to see how a base designed to be unbeatable became a trap, and why a colonial army's defeat by an Asian movement echoed far beyond Vietnam.",
+      "start_year": 1954,
+      "end_year": 1954,
+      "source_evidence": "Wikipedia: Battle of Dien Bien Phu; First Indochina War",
+      "secondary_entities": [
+        {"entity_id": "64221589-f031-47c9-a5d7-229737850fd7", "wikidata_id": "Q604897", "name": "Battle of Dien Bien Phu", "role": "participant"},
+        {"entity_id": "6158e9f7-1624-4150-b0d8-bdf266256800", "wikidata_id": "Q190949", "name": "Viet Minh", "role": "participant"},
+        {"entity_id": "1c3befeb-626d-472d-924f-a41d4b3fcc53", "wikidata_id": "Q142", "name": "France", "role": "participant"},
+        {"entity_id": "efa44d90-d71f-49e9-9624-d847c8d11f26", "wikidata_id": "Q482407", "name": "Geneva Accords", "role": "outcome"},
+        {"entity_id": "dac6634b-d85e-4f48-8adc-d0f4297279b6", "wikidata_id": "Q881", "name": "Vietnam", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 6,
+      "narrative_text": "On 4 October 1957 the Soviet Union put the first artificial satellite into orbit. Sergei Korolev, its chief rocket designer, had proposed the idea in December 1954. The grand original design, Object D, with hundreds of kilograms of instruments, proved too complex to finish on time, so the team built something simple: an 84-kilogram sphere with a radio transmitter. It was carried by a modified R-7 rocket, the same family that served as a long-range missile, and that is why the world listened with alarm as well as wonder. Its signals lasted twenty-two days until the batteries ran out, and on 4 January 1958 it burned up in the atmosphere after 1,440 orbits. A beeping sphere had made the same machinery that could deliver a warhead a means to leave the planet.",
+      "start_year": 1957,
+      "end_year": 1958,
+      "source_evidence": "Wikipedia: Sputnik 1",
+      "secondary_entities": [
+        {"entity_id": "5b72a8be-a4f7-4e78-88d3-54800b9cd151", "wikidata_id": "Q80811", "name": "Sputnik 1", "role": "participant"},
+        {"entity_id": "cc695213-e881-4b8d-8b4e-89c83a970923", "wikidata_id": "Q15180", "name": "Soviet Union", "role": "participant"}
+      ]
+    },
+    {
+      "sequence_order": 7,
+      "narrative_text": "In the Scramble for Africa between 1870 and 1914, European powers had claimed nearly the whole continent, and the Berlin Conference of 1885 confirmed the partition without asking anyone who lived there. Seventy-five years later the map flipped. On 1 January 1960 Cameroon became independent, and on 3 February the British prime minister Harold Macmillan spoke of a wind of change. Kwame Nkrumah, formerly prime minister of the Dominion of Ghana, was elected its president in April. Over that one year the number of independent countries in Africa rose from nine to twenty-six: fourteen from France, two from Britain, and one from Belgium. In the Congo, Patrice Lumumba went from a prison cell in 1959 to prime minister in June 1960. By 1977 fifty African countries had won independence.",
+      "start_year": 1960,
+      "end_year": 1960,
+      "source_evidence": "Wikipedia: Year of Africa; Decolonisation of Africa",
+      "secondary_entities": [
+        {"entity_id": "9e20e773-0ee1-463e-8ccb-3f3886407cbf", "wikidata_id": "Q117", "name": "Ghana", "role": "location"},
+        {"entity_id": "92e51c52-dbcf-4008-b821-0583e7a62345", "wikidata_id": "Q8620", "name": "Kwame Nkrumah", "role": "participant"},
+        {"entity_id": "b02c2f66-3f5d-4ac0-896f-0672779cfad2", "wikidata_id": "Q161672", "name": "Patrice Lumumba", "role": "participant"},
+        {"entity_id": "7bb6ad4e-c5f1-4b7d-81d9-8100286a9526", "wikidata_id": "Q13582", "name": "Berlin Conference", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 8,
+      "narrative_text": "In July 1962 Nikita Khrushchev and Fidel Castro agreed to put Soviet nuclear missiles in Cuba, to deter another American invasion after the failed Bay of Pigs landing the year before. The Americans had put Jupiter missiles in Italy and Turkey in 1961. When the weapons were discovered, the world held its breath for thirteen days, from 16 to 28 October. President John F. Kennedy had been told in early 1961 that a nuclear war would probably kill about a third of humanity. The way out was a quiet bargain: on 28 October Khrushchev announced the dismantling of the Cuban missiles, and the United States quietly agreed to remove its Jupiters from Turkey. Harari argues that the fear of such a war is why great powers fought each other far less after 1945 than in any earlier age. Cuba showed how close the bargain came to failing.",
+      "start_year": 1962,
+      "end_year": 1962,
+      "source_evidence": "Wikipedia: Cuban Missile Crisis",
+      "secondary_entities": [
+        {"entity_id": "c2e1bdd5-2301-4b70-885d-bb4ef44c79ce", "wikidata_id": "Q128160", "name": "Cuban Missile Crisis", "role": "participant"},
+        {"entity_id": "de75871e-ab8c-417d-9922-2e48f28c9e20", "wikidata_id": "Q9696", "name": "John F. Kennedy", "role": "participant"},
+        {"entity_id": "fcd12895-3b50-4c18-a28b-634c898653de", "wikidata_id": "Q35314", "name": "Nikita Khrushchev", "role": "participant"},
+        {"entity_id": "d7cb9365-cd7b-46ff-a6f0-95f9348cc638", "wikidata_id": "Q11256", "name": "Fidel Castro", "role": "participant"},
+        {"entity_id": "d3a8e1e9-5b7d-4af6-943f-cc978f9869b2", "wikidata_id": "Q241", "name": "Cuba", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 9,
+      "narrative_text": "Henry Wallace, the vice-president-elect of the United States, visited Mexico in 1940 and was appalled at how little corn its farmers harvested for so many hours of labour. An agricultural station followed in 1941, and its scientists bred wheat that gave far higher yields. Mexico was self-sufficient in wheat by 1956. In 1966 India began importing the dwarf wheat developed by the American agronomist Norman Borlaug, and rice yields there, around two tons per hectare in the 1960s, had risen to six by the mid-1990s. In 1968 an American official gave the whole effort a name, the Green Revolution, and Borlaug received the Nobel Peace Prize in 1970. The new seeds demanded far more fertiliser than the old, so this was a revolution made of chemistry as much as of grain. Hunger, which had shaped so many earlier chapters, retreated for millions.",
+      "start_year": 1966,
+      "end_year": 1970,
+      "source_evidence": "Wikipedia: Green Revolution",
+      "secondary_entities": [
+        {"entity_id": "8cba2d56-177d-4ff1-ab8e-888b47b734eb", "wikidata_id": "Q186050", "name": "Green Revolution", "role": "participant"},
+        {"entity_id": "eff67e6b-8e92-4683-bcfc-7f3028330cce", "wikidata_id": "Q154824", "name": "Norman Borlaug", "role": "participant"},
+        {"entity_id": "8a4f574c-6cb0-4d3e-8e6d-d23a03b07312", "wikidata_id": "Q668", "name": "India", "role": "location"},
+        {"entity_id": "e992487f-43ef-49a9-979a-52c5d7e5b2c3", "wikidata_id": "Q96", "name": "Mexico", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 10,
+      "narrative_text": "Smallpox had killed people since at least 1500 BCE, when its marks appeared on Egyptian mummies, and it was estimated to have killed up to 300 million people in the twentieth century alone. Edward Jenner had introduced the vaccine in 1796, but vaccination had never reached everyone. In 1967, when about fifteen million cases still occurred each year, the World Health Organization intensified its campaign. The last naturally occurring case was diagnosed in October 1977, and in 1980 the WHO certified that smallpox had been eradicated, the only human disease to have been wiped out by deliberate effort. Whatever the quarrels between governments, a global institution had pursued a single enemy to the end. That success shows what a species that coordinates can achieve.",
+      "start_year": 1967,
+      "end_year": 1980,
+      "source_evidence": "Wikipedia: Smallpox",
+      "secondary_entities": [
+        {"entity_id": "c3935147-e174-48e6-814a-77e17b6b0026", "wikidata_id": "Q7817", "name": "World Health Organization", "role": "participant"},
+        {"entity_id": "1033f195-d374-4124-bbd4-f1aaa0d0c06f", "wikidata_id": "Q12214", "name": "Smallpox", "role": "outcome"},
+        {"entity_id": "98deb1cc-46e7-4741-8f64-c33df76872e0", "wikidata_id": "Q1037810", "name": "Smallpox vaccine", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 11,
+      "narrative_text": "After Sputnik, the Soviets took the lead again on 12 April 1961 when Yuri Gagarin became the first person in space. Six weeks later President Kennedy told Congress that the United States should land a man on the Moon and return him safely before the decade was out. Kennedy proposed more than once that the effort be a joint one, and Khrushchev turned him down. On 20 July 1969 the lunar module Eagle came down at 20:17 UTC with 216 pounds of usable fuel left, after Neil Armstrong took semi-automatic control to avoid a boulder-strewn crater. Armstrong's walk on the Moon was broadcast live to an estimated 600 million viewers, around a fifth of humanity. The race that had begun with fear of a rival ended with a shared view from far away: one small, bright planet.",
+      "start_year": 1969,
+      "end_year": 1969,
+      "source_evidence": "Wikipedia: Apollo 11",
+      "secondary_entities": [
+        {"entity_id": "2b8e3e4a-07f1-4519-9fc0-4d1022a28aa7", "wikidata_id": "Q43653", "name": "Apollo 11", "role": "participant"},
+        {"entity_id": "55b2692b-fc3c-4f8b-b93f-4875c6c61c86", "wikidata_id": "Q1615", "name": "Neil Armstrong", "role": "participant"},
+        {"entity_id": "de75871e-ab8c-417d-9922-2e48f28c9e20", "wikidata_id": "Q9696", "name": "John F. Kennedy", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 12,
+      "narrative_text": "For years the Sino-Soviet split had left Beijing looking for allies against Moscow, and Washington wanted leverage over the Soviet Union. After secret missions by Henry Kissinger in 1971, Richard Nixon, a politician who had made his name as an anti-communist, flew to Beijing and in February 1972 became the first American president to visit mainland China while in office. Three months later, on 26 May 1972, the United States and the Soviet Union signed SALT I, a freeze on strategic weapons that grew out of negotiations begun in Helsinki in November 1969. The same year, then, brought both the opening to China and the first limits on the two arsenals. The rivals had not stopped being rivals, but they had begun, treaty by treaty, to manage the danger together.",
+      "start_year": 1972,
+      "end_year": 1972,
+      "source_evidence": "Wikipedia: 1972 visit by Richard Nixon to China; Strategic Arms Limitation Talks",
+      "secondary_entities": [
+        {"entity_id": "dd7e21aa-8dc3-4c60-81ff-01a70fad1814", "wikidata_id": "Q9588", "name": "Richard Nixon", "role": "participant"},
+        {"entity_id": "d5e7b9a6-6003-4f73-a428-c5308035d03e", "wikidata_id": "Q1184068", "name": "SALT I", "role": "outcome"},
+        {"entity_id": "3e12ede6-90ae-498a-9714-9759868a52ae", "wikidata_id": "Q956", "name": "Beijing", "role": "location"},
+        {"entity_id": "90f167d3-dbad-4b2f-84fa-49670b25b0a8", "wikidata_id": "Q148", "name": "People's Republic of China", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 13,
+      "narrative_text": "East Germany built the Berlin Wall from 13 August 1961 to seal off West Berlin. It ran for 155 kilometres, with 302 watchtowers by 1989, and hundreds died trying to cross the Iron Curtain. In 1989, Hungary removed its border fence in May and opened its frontier in August, and thousands of East Germans fled through Prague and Budapest to the West. On 9 November a Politburo press conference prematurely announced that East Germans could travel freely, and because most of them watched West German television, they heard the news almost at once. Crowds poured through, and soon people nicknamed wallpeckers were chipping off souvenirs. That June the crackdown at Tiananmen Square in Beijing had shown what a regime could still do. In Berlin it did not. German unification followed on 3 October 1990.",
+      "start_year": 1989,
+      "end_year": 1990,
+      "source_evidence": "Wikipedia: Fall of the Berlin Wall; Revolutions of 1989",
+      "secondary_entities": [
+        {"entity_id": "aed6d507-596f-4fea-bf18-62517ba1ccb1", "wikidata_id": "Q5086", "name": "Berlin Wall", "role": "participant"},
+        {"entity_id": "2f048bc1-7d32-4b33-9454-f5ab676869fe", "wikidata_id": "Q64", "name": "Berlin", "role": "location"},
+        {"entity_id": "bf6b3e4e-cef3-421a-aaf2-40ee80256662", "wikidata_id": "Q382861", "name": "Revolutions of 1989", "role": "mentioned"},
+        {"entity_id": "2e377409-3558-441c-8c65-73161645b608", "wikidata_id": "Q99717", "name": "1989 Tiananmen Square protests and massacre", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 14,
+      "narrative_text": "Apartheid was a system of institutionalised racial segregation that ruled South Africa from 1948 to 1994. The Population Registration Act of 1950 sorted every South African into a race, and between 1960 and 1983 some 3.5 million Black Africans were forced from their homes. Nelson Mandela, who had joined the African National Congress in 1943, was arrested in 1962 and sentenced to life imprisonment at the Rivonia Trial in 1964. International condemnation, unrest and the cost of sanctions and security pushed the government towards reform. F. W. de Klerk released Mandela in 1990 after twenty-seven years in prison, and the two negotiated an end to apartheid. In four days of voting from 26 April 1994, citizens of every race voted for the first time, and Mandela became president. An unjust order had been dismantled by changing what people agreed to believe.",
+      "start_year": 1990,
+      "end_year": 1994,
+      "source_evidence": "Wikipedia: Apartheid; Nelson Mandela; 1994 South African general election",
+      "secondary_entities": [
+        {"entity_id": "83d664b2-3543-424b-8583-ad35a1b6668f", "wikidata_id": "Q8023", "name": "Nelson Mandela", "role": "participant"},
+        {"entity_id": "fcd30361-7c78-43be-b497-1562f0a71e56", "wikidata_id": "Q11409", "name": "Apartheid", "role": "outcome"},
+        {"entity_id": "c7054292-f2ad-4ac7-ad69-8c3f3105bb94", "wikidata_id": "Q258", "name": "South Africa", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 15,
+      "narrative_text": "Mikhail Gorbachev became General Secretary of the Soviet Communist Party in March 1985, and his glasnost and perestroika reforms loosened a state that had seemed immovable. Estonia declared sovereignty in November 1988, and Lithuania was the first republic to declare independence, in March 1990. In August 1991 hardliners tried to overthrow Gorbachev and failed. On 8 December the leaders of Russia, Belarus and Ukraine signed the Belovezha Accords and declared that the Soviet Union no longer existed. On 25 December Gorbachev resigned and handed Boris Yeltsin the powers of the presidency, including the nuclear launch codes. The following day the Soviet Union was formally dissolved, ending the Cold War. A nuclear empire had come apart without the nuclear war that had been feared for forty years.",
+      "start_year": 1990,
+      "end_year": 1991,
+      "source_evidence": "Wikipedia: Dissolution of the Soviet Union",
+      "secondary_entities": [
+        {"entity_id": "b8346f98-174f-440b-b15a-31b9d002e5ed", "wikidata_id": "Q5167679", "name": "Dissolution of the Soviet Union", "role": "outcome"},
+        {"entity_id": "f3db5308-8ca2-4930-ab38-ac59636ed442", "wikidata_id": "Q30487", "name": "Mikhail Gorbachev", "role": "participant"},
+        {"entity_id": "7d23dcd2-6b78-47ed-ab63-84f5f2adbafe", "wikidata_id": "Q34453", "name": "Boris Yeltsin", "role": "participant"},
+        {"entity_id": "1c002564-fdf7-49ca-8939-e628dd78af2d", "wikidata_id": "Q76986", "name": "Belovezha Accords", "role": "mentioned"},
+        {"entity_id": "0d75cff1-9407-4892-9c94-0fd9fa17547b", "wikidata_id": "Q649", "name": "Moscow", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 16,
+      "narrative_text": "In March 1989 the English computer scientist Tim Berners-Lee, working at CERN, the particle-physics laboratory near Geneva, submitted a proposal for linking documents across computers by hyperlinks. By the end of 1990 he had a working system with a browser called WorldWideWeb, and on 20 December he published the first website, which described the project itself. The software was released to other research institutions in January 1991 and to the whole Internet that August. On 30 April 1993 CERN made the protocol and code available royalty-free, and anyone could use it without asking permission. The Web turned a network of computers into a place where strangers could read the same pages. A species that had spent millennia building writing, printing and telegraphs now had a memory that anyone could reach.",
+      "start_year": 1990,
+      "end_year": 1993,
+      "source_evidence": "Wikipedia: World Wide Web; Tim Berners-Lee",
+      "secondary_entities": [
+        {"entity_id": "3435f07a-62fe-4753-b73c-aecc64aed4c6", "wikidata_id": "Q466", "name": "World Wide Web", "role": "outcome"},
+        {"entity_id": "b5433fa4-9b14-4731-b3b7-623f5aca5c51", "wikidata_id": "Q80", "name": "Tim Berners-Lee", "role": "participant"},
+        {"entity_id": "ad0dea2c-2501-48df-9b16-e453ffa0ce6f", "wikidata_id": "Q42944", "name": "CERN", "role": "location"}
+      ]
+    },
+    {
+      "sequence_order": 17,
+      "narrative_text": "In 1977 Walter Gilbert, Frederick Sanger and Paul Berg invented ways to read the letters of DNA. A decade later the United States funded an effort to read all of them, and the Human Genome Project began officially in 1990 with a thirteen-year target: the sequence of the whole human genome. A rival project, run outside government by Celera Genomics, launched in 1998. On 14 April 2003 the public project was declared complete, covering about 92 percent of the genome. The code of our own bodies, long a mystery, was now an open text. For a species whose first cities invented writing to count grain, the final act of this chapter's record-keeping is a book about ourselves.",
+      "start_year": 1990,
+      "end_year": 2003,
+      "source_evidence": "Wikipedia: Human Genome Project",
+      "secondary_entities": [
+        {"entity_id": "4a143ac8-adae-459b-84b0-d58771d7b293", "wikidata_id": "Q192446", "name": "Human Genome Project", "role": "participant"}
+      ]
+    },
+    {
+      "sequence_order": 18,
+      "narrative_text": "The first treaty on climate change came from the 1992 Earth Summit. The Kyoto Protocol followed in 1997 but regulated only a limited set of countries, and the 2009 talks that were meant to replace it collapsed. In December 2015, 196 parties negotiating near Paris reached a different kind of deal in which developed and developing countries alike had to submit their own plans to cut emissions, with a goal of holding warming below 1.5 degrees Celsius. The agreement opened for signature on 22 April 2016 at the United Nations in New York and entered into force on 4 November 2016. Its promises did not stop emissions from rising in the years that followed. It was the first treaty to ask every nation to fix a problem that no nation had made alone.",
+      "start_year": 2015,
+      "end_year": 2016,
+      "source_evidence": "Wikipedia: Paris Agreement; Kyoto Protocol",
+      "secondary_entities": [
+        {"entity_id": "4468902d-ef6e-4bf2-b741-98b91046d322", "wikidata_id": "Q90", "name": "Paris", "role": "location"},
+        {"entity_id": "ec7292f8-0ada-40d3-9010-16468a11647d", "wikidata_id": "Q47359", "name": "Kyoto Protocol", "role": "mentioned"},
+        {"entity_id": "1335b2de-8194-4bf6-a4c7-612bf6fbcfc3", "wikidata_id": "Q1065", "name": "United Nations", "role": "mentioned"}
+      ]
+    },
+    {
+      "sequence_order": 19,
+      "narrative_text": "An outbreak that began in Wuhan in December 2019 spread to the rest of Asia and then worldwide in early 2020. The World Health Organization declared a public health emergency of international concern on 30 January and assessed the outbreak as a pandemic on 11 March. Schools and public places closed in many countries. Vaccines were developed rapidly and deployed from December 2020, thirty years after the first website and forty years after the end of smallpox. Harari argues that humans now live as one global civilisation, however much they quarrel inside it. The chapter's story ends at that fork. The same connections that carried a virus also carried knowledge, and what the species does with its shared tools is the part of the story still being written.",
+      "start_year": 2020,
+      "end_year": 2020,
+      "source_evidence": "Wikipedia: COVID-19 pandemic",
+      "secondary_entities": [
+        {"entity_id": "c3935147-e174-48e6-814a-77e17b6b0026", "wikidata_id": "Q7817", "name": "World Health Organization", "role": "participant"},
+        {"entity_id": "c8b6b082-511d-4841-b604-8f741f9b7866", "wikidata_id": "Q11746", "name": "Wuhan", "role": "location"},
+        {"entity_id": "1033f195-d374-4124-bbd4-f1aaa0d0c06f", "wikidata_id": "Q12214", "name": "Smallpox", "role": "mentioned"}
+      ]
+    }
+  ]
+}
