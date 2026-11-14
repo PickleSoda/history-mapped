@@ -17,19 +17,21 @@ ALLOWED_ENTITY_TYPES = set(ENTITY_RISK_POLICIES.keys()) | {
     "intellectual_movement", "religious_text", "legal_code", "religious_movement", "language", "technology",
 }
 
+# Every type extract_candidates' prompt offers (test_relation_types_match_the_prompt
+# keeps them in step) and all in the app's RelationshipType enum.
 ALLOWED_RELATION_TYPES = set(RELATION_RISK_POLICIES.keys()) | {
     "contains", "capital_of", "split_from", "merged_into",
-    "vassal_of", "suzerain_of",
+    "vassal_of", "suzerain_of", "allied_with",
     "resided_in", "commanded", "founded", "authored", "commissioned",
     "married_to", "parent_of", "child_of", "sibling_of",
     "mentor_of", "student_of", "assassinated_by", "member_of_dynasty", "patron_of",
     "defeated_at", "victorious_at", "stationed_at", "recruited_from", "commanded_by",
-    "connects", "produces", "extracts", "supplies", "controlled_by",
+    "trades_with", "connects", "produces", "extracts", "supplies", "controlled_by",
     "passes_through", "minted_by", "used_currency",
     "adheres_to", "official_religion_of", "persecuted_by",
     "influenced_by", "inspired", "schism_from", "translated_into",
     "located_at", "built_by", "destroyed_by", "restored_by",
-    "contributed_to", "enabled", "prevented", "weakened", "strengthened",
+    "caused", "resulted_from", "contributed_to", "enabled", "prevented", "weakened", "strengthened",
     "invented", "adopted", "taught_at", "spread_to", "required_by", "replaced_by",
     "signed_by", "violated_by", "guaranteed_by", "mediated_by", "enforced_by",
 }

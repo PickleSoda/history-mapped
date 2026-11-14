@@ -78,8 +78,9 @@
 - [x] **Exclude the `agent_*` tables from the content dump.** The four AI chat and proposal tables are
   now in the `--exclude-table-data` list in `content-data-transfer.md` (the dump scripts live in the
   gitignored `output/`).
-- [ ] **Align the agent's relation types.** `extract_candidates.py` offers `allied_with`, `trades_with`,
-  `caused` and `resulted_from`, but `validate.py`'s `ALLOWED_RELATION_TYPES` blocks them.
+- [x] **Align the agent's relation types.** `validate.py` now accepts `allied_with`, `trades_with`,
+  `caused` and `resulted_from`, all 74 types the prompt offers; `test_relation_types.py` keeps the two
+  lists, and the app's enum, in step.
 - [ ] **Stop borrowed event points in the agent.** `resolve_ohm` emits place-of-association and
   chronicle-centroid points, and `pipeline.locate_events` copies P276/P19 coordinates. Both contradict
   the placement policy that `backfill_geo` and the point audits enforce.

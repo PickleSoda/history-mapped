@@ -257,8 +257,6 @@ run the Python tests.
 
 ## Known gaps
 
-- The agent accepts 70 of the app's 74 relationship types. The four it rejects (`allied_with`,
-  `trades_with`, `caused`, `resulted_from`) are offered by its own extraction prompt.
 - The agent's `resolve_ohm` step can still give an event its associated place or its chronicle's
   centre as a point, and so can `pipeline.locate_events`. The point audits clean these up after
   the fact.
