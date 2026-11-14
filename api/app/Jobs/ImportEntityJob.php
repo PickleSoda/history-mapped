@@ -275,6 +275,13 @@ class ImportEntityJob implements ShouldQueue
                 ->orderBy('created_at')
                 ->orderBy('entity_id')
                 ->get();
+            if ($wikidataId) {
+                // A row holding another QID is another thing of the same name
+                // (two William Herberts of one century), never this record.
+                $candidates = $candidates
+                    ->filter(fn (Entity $c): bool => $c->wikidata_id === null || $c->wikidata_id === (string) $wikidataId)
+                    ->values();
+            }
 
             if (array_key_exists((string) $type, EntityReferenceResolver::NAMESAKE_TOLERANCE_YEARS)) {
                 // Date-checked type: namesakes are told apart by date, with the

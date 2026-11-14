@@ -221,6 +221,18 @@ class NamesakeGuardImportTest extends TestCase
         $this->assertSame(1, Entity::query()->where('wikidata_id', 'Q130650')->count());
     }
 
+    public function test_record_never_merges_by_name_into_a_row_with_another_qid(): void
+    {
+        $earl = $this->person('William Herbert', '1501', '1570', 'Q1356046');
+
+        // Same name, same type, overlapping years, but Wikidata says they differ.
+        $this->importEntity(['name' => 'William Herbert', 'wikidata_id' => 'Q8010374', 'temporal_start' => '1507', 'temporal_end' => '1593', 'summary' => 'Welsh poet and MP.']);
+
+        $this->assertSame(2, Entity::query()->where('name', 'William Herbert')->count());
+        $this->assertSame('William Herbert (1501..1570)', $earl->refresh()->summary);
+        $this->assertSame(1, Entity::query()->where('wikidata_id', 'Q8010374')->count());
+    }
+
     public function test_same_person_with_slightly_different_dates_merges(): void
     {
         $this->person('Philip II', '-382', '-336');
