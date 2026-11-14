@@ -184,9 +184,10 @@ flowchart TD
 | `geo_moderator` | `geometry.write`, `admin.access`, `contributions.create` |
 | `user` (every new account) | `contributions.create` |
 
-`reference.manage` and `users.manage` belong to no role, so only admins hold them. Changing an
-entity's `verification_status` in the admin, or through the AI assistant, also needs
-`entities.verify`.
+`reference.manage` and `users.manage` belong to no role, so only admins hold them. Setting an
+entity's `verification_status` also needs `entities.verify`, wherever it happens: the admin form,
+the AI assistant or `/api/v1` (`GuardsVerificationStatus`). On create, only the default
+`pipeline_draft` is allowed without it.
 
 ## Background work
 

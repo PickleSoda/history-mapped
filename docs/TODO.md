@@ -62,9 +62,9 @@
   predates the admin, tiles and AI routes.
 - [ ] **Make the dev port overrides work from the documented place.** Compose reads `docker/.env`, but
   the root `.env.example` suggests a root `.env`.
-- [ ] **API entity writes skip the `entities.verify` check.** `POST`/`PUT /api/v1/entities` accept
-  `verification_status` from anyone with `entities.write` (`Api\V1\Requests\UpdateEntityRequest::authorize()`
-  returns true). Only the admin form checks `entities.verify`.
+- [x] **API entity writes skip the `entities.verify` check.** Fixed: the admin form and
+  `POST`/`PUT /api/v1/entities` share `GuardsVerificationStatus`, so setting a status other than the
+  stored one (or, on create, other than `pipeline_draft`) needs `entities.verify`.
 - [ ] **Decide what chronicle `status` means in public.** `GET /api/v1/chronicles` and `/chronicles/{slug}`
   ignore status unless asked, so drafts and archived chronicles are listed and shown. The agent creates
   every chronicle as `draft`.

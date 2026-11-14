@@ -171,4 +171,101 @@ class RbacAuthorizationTest extends TestCase
             ])
         );
     }
+
+    public function test_creating_with_a_non_default_status_requires_verify_permission(): void
+    {
+        $hist = $this->userWithRole('history_moderator');
+
+        $this->actingAs($hist)
+            ->post(route('entities.store'), [
+                'verification_status' => VerificationStatus::HumanVerified->value,
+            ])
+            ->assertForbidden();
+
+        // The form's default status is not a change.
+        $this->assertGatePassed(
+            $this->actingAs($hist)->post(route('entities.store'), [
+                'verification_status' => VerificationStatus::PipelineDraft->value,
+            ])
+        );
+    }
+
+    // ── entities.verify gate (/api/v1 writes) ─────────────────────────────
+
+    public function test_api_update_changing_verification_status_requires_verify_permission(): void
+    {
+        $entity = Entity::factory()->create([
+            'verification_status' => VerificationStatus::PipelineDraft->value,
+        ]);
+        $hist = $this->userWithRole('history_moderator');
+
+        $this->actingAs($hist)
+            ->putJson(route('api.v1.entities.update', $entity->entity_id), [
+                'verification_status' => VerificationStatus::HumanVerified->value,
+            ])
+            ->assertForbidden();
+
+        $this->actingAs($hist)
+            ->putJson(route('api.v1.entities.update', $entity->entity_id), [
+                'summary' => 'An edit that leaves verification untouched.',
+            ])
+            ->assertOk();
+
+        // Sending the stored value back is not a change.
+        $this->actingAs($hist)
+            ->putJson(route('api.v1.entities.update', $entity->entity_id), [
+                'verification_status' => VerificationStatus::PipelineDraft->value,
+            ])
+            ->assertOk();
+
+        $this->assertSame(
+            VerificationStatus::PipelineDraft,
+            $entity->fresh()->verification_status,
+        );
+    }
+
+    public function test_api_update_of_a_missing_entity_is_not_found(): void
+    {
+        $this->actingAs($this->userWithRole('history_moderator'))
+            ->putJson(route('api.v1.entities.update', '00000000-0000-4000-8000-000000000000'), [
+                'verification_status' => VerificationStatus::HumanVerified->value,
+            ])
+            ->assertNotFound();
+    }
+
+    public function test_api_create_with_a_non_default_status_requires_verify_permission(): void
+    {
+        $hist = $this->userWithRole('history_moderator');
+
+        $this->actingAs($hist)
+            ->postJson(route('api.v1.entities.store'), [
+                'verification_status' => VerificationStatus::HumanVerified->value,
+            ])
+            ->assertForbidden();
+
+        $this->assertGatePassed(
+            $this->actingAs($hist)->postJson(route('api.v1.entities.store'), [
+                'verification_status' => VerificationStatus::PipelineDraft->value,
+            ])
+        );
+    }
+
+    public function test_api_status_change_is_allowed_with_verify_permission(): void
+    {
+        $entity = Entity::factory()->create([
+            'verification_status' => VerificationStatus::PipelineDraft->value,
+        ]);
+        $verifier = $this->userWithPermissions(['entities.write', 'entities.verify']);
+
+        $this->actingAs($verifier)
+            ->putJson(route('api.v1.entities.update', $entity->entity_id), [
+                'verification_status' => VerificationStatus::HumanVerified->value,
+            ])
+            ->assertOk();
+
+        $this->assertSame(
+            VerificationStatus::HumanVerified,
+            $entity->fresh()->verification_status,
+        );
+    }
 }

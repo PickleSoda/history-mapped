@@ -13,6 +13,7 @@ use App\Enums\IconClass;
 use App\Enums\LocationResolutionMethod;
 use App\Enums\VerificationStatus;
 use App\Http\Requests\Admin\Concerns\ValidatesEntityAttributes;
+use App\Http\Requests\Concerns\GuardsVerificationStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -23,11 +24,12 @@ use Illuminate\Validation\Rule;
  */
 class StoreEntityRequest extends FormRequest
 {
+    use GuardsVerificationStatus;
     use ValidatesEntityAttributes;
 
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        return $this->user() !== null && $this->mayChangeVerificationStatus();
     }
 
     /**

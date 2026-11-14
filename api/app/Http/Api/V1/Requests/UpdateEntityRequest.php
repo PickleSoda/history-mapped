@@ -12,6 +12,7 @@ use App\Enums\EntityType;
 use App\Enums\IconClass;
 use App\Enums\LocationResolutionMethod;
 use App\Enums\VerificationStatus;
+use App\Http\Requests\Concerns\GuardsVerificationStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -25,9 +26,12 @@ use Illuminate\Validation\Rule;
  */
 class UpdateEntityRequest extends FormRequest
 {
+    use GuardsVerificationStatus;
+
     public function authorize(): bool
     {
-        return true; // TODO: policy-based authorization
+        // The route requires entities.write; a status change also needs entities.verify.
+        return $this->mayChangeVerificationStatus();
     }
 
     /**
