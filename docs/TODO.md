@@ -52,7 +52,10 @@
   one is `tsc -b`: its `tsconfig.json` only lists project references, so `tsc --noEmit` checked nothing.
 - [x] **Check BCE alignment with OHM dates.** OHM numbers years astronomically (`0000` is 1 BCE), so
   `-0044` meant 45 BCE there. The atlas and admin filters on OHM layers now convert our BCE years
-  (`toOhmDate`); our own tiles keep our numbering.
+  (`toOhmDate`); our own tiles keep our numbering. Imports convert OHM's years back
+  (`OhmDate::yearFromDate`, the pipeline's `from_ohm_year`), and migration `2026_11_14_000001`
+  re-reads the OHM refs stored before. About half of OHM's BCE dates use the historical number
+  anyway (the Roman Empire from `-0027`), so those show a year early: an OHM data issue.
 - [ ] **Remove dead web code:** the unused `q` URL param, `useSearch`, `useHighlights`,
   `useTimelineDensity`, `useHistoricalPeriods`, and the stale comments in `TimelineScope.tsx` and
   `ChroniclePlayer.tsx`.

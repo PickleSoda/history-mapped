@@ -82,7 +82,12 @@ year 0. OHM uses ISO 8601 astronomical years, where year 0 is 1 BCE:
 
 So the filter on OHM layers (the basemap, and a map story's OHM outlines) first moves a BCE year
 one toward zero (`toOhmDate`, in the atlas and the admin). Our own tiles and the rule above use our
-numbering as is.
+numbering as is. Imports convert the other way: OHM's `-0043` is stored as `-44`
+(`OhmDate::yearFromDate`, and `from_ohm_year` in `pipeline/ohm_borders/date_parser.py`).
+
+OHM's own data is mixed. About half of its BCE dates follow the convention; the rest use the
+historical number (the Roman Empire starts at `-0027`), so they show a year early, here as under
+OHM's own rule. The fix belongs in OHM.
 
 ```mermaid
 flowchart LR

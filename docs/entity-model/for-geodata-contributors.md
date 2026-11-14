@@ -65,7 +65,9 @@ flowchart LR
   convert with one rule (a year runs from `year + 0.00137` to `year + 0.99863`), so both layers
   agree at the year boundary ([details](../architecture/ohm-integration.md#filtering-by-year)).
 - OHM numbers BCE years astronomically: its year 0 is 1 BCE, so 44 BCE is `-0043` there and
-  `-44` here. The map converts when it filters OHM layers.
+  `-44` here. The map converts when it filters OHM layers, and imports convert OHM's dates into
+  ours. About half of OHM's BCE dates use the historical number instead (the Roman Empire from
+  `-0027`); those show a year early. Correct them in OHM.
 - A territory that changed is a series of periods, each with its own geometry and years. Nothing
   stops periods from overlapping, so check before adding one.
 - Events stay on the map for ten years either side of their dates, so they do not flicker past

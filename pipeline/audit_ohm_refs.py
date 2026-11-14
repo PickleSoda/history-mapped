@@ -62,6 +62,7 @@ import psycopg
 from pipeline import backfill_geo as bg
 from pipeline.agent.tools.disambiguation import _name_tokens, names_compatible, names_equal
 from pipeline.audit.dates import wd_bounds
+from pipeline.ohm_borders.date_parser import from_ohm_year
 from pipeline.audit.wd import SPARQL, WikidataClient
 
 TAG = "ohm_ref_audit_20261101"
@@ -304,11 +305,12 @@ def tag_qids(tags: dict) -> list[str]:
 
 
 def ohm_year(value: Any) -> int | None:
-    """Year of an OHM date tag: '1871', '1871-01-18', '-0480', '~1200'; None otherwise."""
+    """Our year for an OHM date tag: '1871', '1871-01-18', '-0479' (480 BCE: OHM
+    numbers years astronomically), '~1200'; None otherwise."""
     m = _YEAR.match(str(value or ""))
     if not m:
         return None
-    return int(m.group(2)) * (-1 if m.group(1) == "-" else 1)
+    return from_ohm_year(int(m.group(2)) * (-1 if m.group(1) == "-" else 1))
 
 
 def year_gap(entity: dict, tags: dict) -> int | None:

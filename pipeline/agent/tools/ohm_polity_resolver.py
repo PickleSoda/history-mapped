@@ -22,6 +22,7 @@ _POINT_WKT_RE = re.compile(r"point\(\s*(-?[\d.]+)\s+(-?[\d.]+)\s*\)", re.IGNOREC
 
 from pipeline.agent.log_config import get_logger
 from pipeline.agent.tools.disambiguation import era_year, names_compatible, names_conflict
+from pipeline.ohm_borders.date_parser import from_ohm_year
 from pipeline.wikidata.resolver.ohm_client import search_by_name, _normalize_name
 
 logger = get_logger(__name__)
@@ -52,8 +53,13 @@ def _name_tokens(value: str | None) -> set[str]:
 
 
 def _candidate_era(candidate: dict[str, Any]) -> tuple[int | None, int | None]:
+    """The feature's [start, end] years in our numbering (OHM's 0000 is 1 BCE)."""
     tags = candidate.get("external_tags") or {}
-    return era_year(tags.get("start_date")), era_year(tags.get("end_date"))
+    start, end = era_year(tags.get("start_date")), era_year(tags.get("end_date"))
+    return (
+        None if start is None else from_ohm_year(start),
+        None if end is None else from_ohm_year(end),
+    )
 
 
 def _era_distance(target: int | None, start: int | None, end: int | None) -> int | None:

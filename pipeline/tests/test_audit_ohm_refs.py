@@ -59,6 +59,9 @@ def test_year_gap_reads_ohm_dates_and_ignores_inverted_ones() -> None:
     assert year_gap(entity(start_year=1977), {"start_date": "1338", "end_date": "1899"}) == 78
     assert year_gap(entity(start_year=1000), {"start_date": "1200"}) == 0  # open end
     assert year_gap(entity(entity_type="event_battle", start_year=1627), {"start_date": "1700"}) == 73
+    # OHM numbers years astronomically: its -0479 is 480 BCE, its 0000 is 1 BCE.
+    assert year_gap(entity(start_year=-480, end_year=-480), {"start_date": "-0479", "end_date": "-0479"}) == 0
+    assert year_gap(entity(start_year=-1, end_year=-1), {"start_date": "0000", "end_date": "0000"}) == 0
     assert year_gap(entity(start_year=-438, end_year=370), {"start_date": "0480", "end_date": "0107"}) is None
     assert year_gap(entity(), {"start_date": "1800"}) is None
 

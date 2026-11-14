@@ -27,7 +27,7 @@ class ImportOhmLinksTest extends TestCase
         'name' => 'Imperium Romanum',
         'name:en' => 'Roman Empire',
         'wikidata' => 'Q2277',
-        'start_date' => '-0027-01-16',
+        'start_date' => '-0026-01-16',
         'end_date' => '0476-09-04',
     ];
 
@@ -46,7 +46,7 @@ class ImportOhmLinksTest extends TestCase
         $ref->refresh();
         $this->assertSame(-27, $ref->temporal_start_year);
         $this->assertSame(476, $ref->temporal_end_year);
-        $this->assertSame('-0027-01-16', $ref->temporal_start);
+        $this->assertSame('-0026-01-16', $ref->temporal_start);
         $this->assertSame('0476-09-04', $ref->temporal_end);
         $this->assertEquals(self::TAGS, $ref->external_tags);
         $this->assertFalse($ref->is_active);
@@ -57,7 +57,7 @@ class ImportOhmLinksTest extends TestCase
         $ref = $this->ohmRef(Entity::factory()->create(), 'relation', '1880', [
             'temporal_start_year' => -27,
             'temporal_end_year' => 476,
-            'temporal_start' => '-0027-01-16',
+            'temporal_start' => '-0026-01-16',
             'temporal_end' => '0476-09-04',
             'external_tags' => [],
         ]);
@@ -83,7 +83,7 @@ class ImportOhmLinksTest extends TestCase
         $this->assertSame('0.9000', $ref->match_score);
         $this->assertSame(-27, $ref->temporal_start_year);
         $this->assertSame(476, $ref->temporal_end_year);
-        $this->assertSame('-0027-01-16', $ref->temporal_start);
+        $this->assertSame('-0026-01-16', $ref->temporal_start);
         $this->assertSame('0476-09-04', $ref->temporal_end);
         $this->assertEquals(self::TAGS, $ref->external_tags);
         $this->assertEquals([
@@ -186,8 +186,9 @@ class ImportOhmLinksTest extends TestCase
             ->assertExitCode(0);
 
         // The raw strings follow the replaced years, so the columns cannot disagree.
+        // OHM's -0026 is 27 BCE (it numbers years astronomically).
         $ref->refresh();
-        $this->assertSame([-27, 476, '-0027-01-16', '0476-09-04'], [$ref->temporal_start_year, $ref->temporal_end_year, $ref->temporal_start, $ref->temporal_end]);
+        $this->assertSame([-27, 476, '-0026-01-16', '0476-09-04'], [$ref->temporal_start_year, $ref->temporal_end_year, $ref->temporal_start, $ref->temporal_end]);
     }
 
     public function test_h_start_after_end_stores_no_years_but_keeps_the_raw_dates(): void
@@ -222,7 +223,7 @@ class ImportOhmLinksTest extends TestCase
             'is_active' => false,
             'temporal_start_year' => -27,
             'temporal_end_year' => 476,
-            'temporal_start' => '-0027-01-16',
+            'temporal_start' => '-0026-01-16',
             'temporal_end' => '0476-09-04',
             'external_tags' => self::TAGS,
         ]);
@@ -506,7 +507,7 @@ class ImportOhmLinksTest extends TestCase
             'name_en' => 'Roman Empire',
             'admin_level' => 2,
             'place' => null,
-            'start_date' => '-0027-01-16',
+            'start_date' => '-0026-01-16',
             'end_date' => '0476-09-04',
             'tags' => self::TAGS,
             ...$overrides,

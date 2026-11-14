@@ -39,7 +39,10 @@ class OhmDateTest extends TestCase
     public static function dates(): array
     {
         return [
-            'bce full date' => ['-0027-01-16', -27],
+            // OHM numbers years astronomically: 0000 is 1 BCE.
+            'bce full date' => ['-0026-01-16', -27],
+            'year zero is 1 BCE' => ['0000', -1],
+            'astronomical -1 is 2 BCE' => ['-0001', -2],
             'ce full date' => ['0476-09-04', 476],
             'year only' => ['1453', 1453],
             'first of January' => ['1800-01-01', 1800],

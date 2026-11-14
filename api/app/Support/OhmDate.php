@@ -13,6 +13,10 @@ namespace App\Support;
  * identify features by a signed OSM id: negative for a relation, positive for
  * a node or way. The SQL `tiles.year_to_decdate` and the SPA's
  * `lib/ohm-date.ts` implement the same decimal-date rule.
+ *
+ * OHM's date strings number years astronomically (ISO 8601: 0000 is 1 BCE,
+ * -0043 is 44 BCE); ours are historical, with no year 0. yearFromDate()
+ * converts.
  */
 final class OhmDate
 {
@@ -29,14 +33,19 @@ final class OhmDate
         };
     }
 
-    /** Signed year part of an OHM ISO-8601 date ('-0027-01-16' → -27). Null when absent or unparseable. */
+    /**
+     * Our year for an OHM ISO-8601 date: '-0026-01-16' (27 BCE) gives -27, '0000'
+     * (1 BCE) gives -1. Null when absent or unparseable.
+     */
     public static function yearFromDate(?string $date): ?int
     {
         if ($date === null || preg_match('/^\s*(-?\d{1,6})(?:-\d{2}(?:-\d{2})?)?\s*$/', $date, $m) !== 1) {
             return null;
         }
 
-        return (int) $m[1];
+        $year = (int) $m[1];
+
+        return $year <= 0 ? $year - 1 : $year;
     }
 
     /** @return array{0: ?int, 1: ?int} [start_year, end_year] (inclusive end; see spec D2) */

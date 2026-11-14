@@ -127,3 +127,9 @@ def test_build_wikidata_point_manifest():
     # Needs both a qid and a coordinate.
     assert r.build_wikidata_point_manifest(None, "Point(1 2)") is None
     assert r.build_wikidata_point_manifest("Q1", None) is None
+
+
+def test_candidate_era_reads_ohm_bce_years_in_our_numbering():
+    # OHM numbers years astronomically: its -0026 is 27 BCE, its 0000 is 1 BCE.
+    assert r._candidate_era({"external_tags": {"start_date": "-0026-01-16", "end_date": "0395"}}) == (-27, 395)
+    assert r._candidate_era({"external_tags": {"start_date": "0000"}}) == (-1, None)

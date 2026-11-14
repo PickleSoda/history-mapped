@@ -1,12 +1,22 @@
-from pipeline.ohm_borders.date_parser import parse_start_year, parse_end_year
+from pipeline.ohm_borders.date_parser import from_ohm_year, parse_end_year, parse_start_year
 
 
 def test_full_date_ce() -> None:
     assert parse_start_year("1908-10-05") == 1908
 
 
+# OHM numbers years astronomically: 0000 is 1 BCE, -0499 is 500 BCE.
 def test_full_date_bce() -> None:
-    assert parse_start_year("-0500-01-01") == -500
+    assert parse_start_year("-0499-01-01") == -500
+
+
+def test_year_zero_is_1_bce() -> None:
+    assert parse_start_year("0000") == -1
+    assert parse_end_year("-0001") == -2
+
+
+def test_from_ohm_year() -> None:
+    assert [from_ohm_year(y) for y in (-43, 0, 1, 1453)] == [-44, -1, 1, 1453]
 
 
 def test_year_only() -> None:
@@ -32,4 +42,4 @@ def test_empty_returns_none() -> None:
 
 
 def test_deeply_bce() -> None:
-    assert parse_start_year("-3000") == -3000
+    assert parse_start_year("-2999") == -3000
