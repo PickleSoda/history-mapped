@@ -1,0 +1,1680 @@
+{
+ "schema": 3,
+ "slug": "battle-of-hattin",
+ "kind": "battle",
+ "entity": {
+  "name": "Battle of Hattin",
+  "wikidata": "Q233568"
+ },
+ "title": "Battle of Hattin",
+ "date_label": "3-4 July 1187",
+ "year": 1187,
+ "intro": "In July 1187 Saladin, ruler of Egypt and Syria, led the largest army he had ever commanded across the\n            Jordan into the Kingdom of Jerusalem. The Frankish host, gathered at the springs of La Saphorie, was\n            drawn out by his assault on Tiberias and marched east across a waterless plateau in midsummer heat. On the\n            night of 3 July Saladin's cavalry closed round it near the village of Meskenah, and the next morning,\n            thirsty and surrounded, the Franks were broken at the double hill known as the Horns of Hattin, west of\n            Tiberias. King Guy was taken with most of his barons, and the way lay open to Jerusalem.",
+ "outcome": "Ayyubid victory: the Frankish field army was destroyed; Guy of Lusignan was captured and Raynald of Chatillon executed.",
+ "uncertainty": "The sources do not fix the camp, the road line or the exact positions of each division. Placements\n            of the night camp near Meskenah/Lubya, the Muslim wings, the Frankish divisions, Raymond's escape route and\n            Saladin's tent are reconstructed and marked conjectural. Strengths are rough: figures for Saladin's army\n            run from 20,000 to 40,000, and the Frankish infantry numbers are uncertain. Arrangements of the divisions\n            in the march differ between the Latin and Arabic chroniclers.",
+ "sources": [
+  {
+   "title": "Battle of Hattin - Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Battle_of_Hattin",
+   "kind": "web"
+  }
+ ],
+ "sides": [
+  {
+   "id": "a",
+   "name": "Crusader states",
+   "color": "#1d4ed8",
+   "polity": {
+    "name": "Kingdom of Jerusalem",
+    "wikidata": "Q55502"
+   },
+   "commanders": [
+    {
+     "name": "Guy of Lusignan",
+     "wikidata": "Q294192",
+     "role": "King of Jerusalem"
+    },
+    {
+     "name": "Raymond III of Tripoli",
+     "wikidata": "Q354389",
+     "role": "van commander"
+    },
+    {
+     "name": "Raynald of Chatillon",
+     "wikidata": "Q316831",
+     "role": "lord of Oultrejourdain"
+    },
+    {
+     "name": "Balian of Ibelin",
+     "wikidata": "Q374385",
+     "role": "rearguard"
+    }
+   ],
+   "strength": "18,000-20,000 incl. c. 1,200 knights",
+   "losses": "Most of the army killed or captured"
+  },
+  {
+   "id": "b",
+   "name": "Ayyubids",
+   "color": "#15803d",
+   "polity": {
+    "name": "Ayyubid dynasty",
+    "wikidata": "Q180114"
+   },
+   "commanders": [
+    {
+     "name": "Saladin",
+     "wikidata": "Q8581",
+     "role": "Sultan"
+    },
+    {
+     "name": "Gokbori",
+     "wikidata": "Q18639250",
+     "role": "left wing"
+    },
+    {
+     "name": "Al-Muzaffar Umar",
+     "wikidata": "Q4703002",
+     "role": "right wing"
+    }
+   ],
+   "strength": "20,000-40,000 incl. 12,000 regular cavalry",
+   "losses": "Light"
+  }
+ ],
+ "units": [
+  {
+   "id": "f-host",
+   "side": "a",
+   "kind": "army",
+   "label": "Frankish host",
+   "strength": "18,000-20,000"
+  },
+  {
+   "id": "f-garrison",
+   "side": "a",
+   "kind": "infantry",
+   "label": "Tiberias citadel"
+  },
+  {
+   "id": "f-van",
+   "side": "a",
+   "kind": "heavy_cavalry",
+   "label": "Van: Raymond"
+  },
+  {
+   "id": "f-centre",
+   "side": "a",
+   "kind": "heavy_cavalry",
+   "label": "Centre: Guy, True Cross"
+  },
+  {
+   "id": "f-rear",
+   "side": "a",
+   "kind": "heavy_cavalry",
+   "label": "Rear: Balian, Joscelin"
+  },
+  {
+   "id": "f-foot",
+   "side": "a",
+   "kind": "infantry",
+   "label": "Frankish infantry"
+  },
+  {
+   "id": "guy",
+   "side": "a",
+   "kind": "commander",
+   "label": "Guy of Lusignan"
+  },
+  {
+   "id": "m-main",
+   "side": "b",
+   "kind": "heavy_cavalry",
+   "label": "Saladin's centre"
+  },
+  {
+   "id": "m-siege",
+   "side": "b",
+   "kind": "siege_engine",
+   "label": "Tiberias assault"
+  },
+  {
+   "id": "m-archers",
+   "side": "b",
+   "kind": "horse_archers",
+   "label": "Horse archers"
+  },
+  {
+   "id": "m-right",
+   "side": "b",
+   "kind": "light_cavalry",
+   "label": "Right: Taki ad-Din"
+  },
+  {
+   "id": "m-left",
+   "side": "b",
+   "kind": "horse_archers",
+   "label": "Left: Gokbori"
+  },
+  {
+   "id": "m-camels",
+   "side": "b",
+   "kind": "camels",
+   "label": "Water camels"
+  },
+  {
+   "id": "saladin",
+   "side": "b",
+   "kind": "commander",
+   "label": "Saladin"
+  },
+  {
+   "id": "saladin-tent",
+   "side": "b",
+   "kind": "camp",
+   "label": "Saladin's tent"
+  }
+ ],
+ "terrain": [
+  {
+   "id": "road",
+   "kind": "road",
+   "label": "Acre-Tiberias road",
+   "line": [
+    [
+     35.27812,
+     32.74431
+    ],
+    [
+     35.33,
+     32.76
+    ],
+    [
+     35.37403,
+     32.77689
+    ],
+    [
+     35.403916,
+     32.788347
+    ],
+    [
+     35.424244,
+     32.791945
+    ],
+    [
+     35.443502,
+     32.795542
+    ],
+    [
+     35.45955,
+     32.79824
+    ],
+    [
+     35.50134,
+     32.80056
+    ],
+    [
+     35.53286,
+     32.79385
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "horns",
+   "kind": "hill",
+   "label": "Horns of Hattin",
+   "area": [
+    [
+     35.455057,
+     32.796621
+    ],
+    [
+     35.456875,
+     32.800578
+    ],
+    [
+     35.461155,
+     32.800758
+    ],
+    [
+     35.464043,
+     32.79878
+    ],
+    [
+     35.46276,
+     32.796172
+    ],
+    [
+     35.45848,
+     32.795722
+    ]
+   ]
+  },
+  {
+   "id": "plateau",
+   "kind": "field",
+   "label": "Dry plateau, Meskenah",
+   "area": [
+    [
+     35.408196,
+     32.782952
+    ],
+    [
+     35.410336,
+     32.803636
+    ],
+    [
+     35.436013,
+     32.806334
+    ],
+    [
+     35.438152,
+     32.78475
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "hittin",
+   "kind": "village",
+   "label": "Hittin",
+   "at": [
+    35.50134,
+    32.80056
+   ]
+  },
+  {
+   "id": "tiberias",
+   "kind": "town",
+   "label": "Tiberias",
+   "at": [
+    35.53286,
+    32.79385
+   ]
+  },
+  {
+   "id": "kafr-sabt",
+   "kind": "village",
+   "label": "Kafr Sabt",
+   "at": [
+    35.44079,
+    32.74358
+   ]
+  },
+  {
+   "id": "lubya",
+   "kind": "village",
+   "label": "Lubya",
+   "at": [
+    35.4202,
+    32.77285
+   ]
+  },
+  {
+   "id": "turan",
+   "kind": "site",
+   "label": "Springs of Turan",
+   "at": [
+    35.37403,
+    32.77689
+   ]
+  },
+  {
+   "id": "zippori",
+   "kind": "village",
+   "label": "La Saphorie",
+   "at": [
+    35.27812,
+    32.74431
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "id": "muster",
+   "title": "The Franks gather at La Saphorie",
+   "time": "Late June - 2 July 1187",
+   "narrative": "Saladin crossed the Jordan on 30 June with the largest army he had ever led, about 40,000 men of whom some 12,000 were regular cavalry, and camped at Kafr Sabt. The Frankish host, 18,000 to 20,000 strong with some 1,200 knights, waited at the well-watered castle of La Saphorie, a strong position with water close at hand. On 2 July Saladin stormed Tiberias, the town of Count Raymond, in the hope that its fall would draw the Franks out of their camp. Raymond's wife held on in the citadel.",
+   "positions": {
+    "f-host": {
+     "at": [
+      35.27812,
+      32.74431
+     ],
+     "facing": 90,
+     "width": 900,
+     "depth": 500,
+     "state": "ready",
+     "frame": false
+    },
+    "m-main": {
+     "at": [
+      35.44079,
+      32.74358
+     ],
+     "facing": 270,
+     "width": 1800,
+     "depth": 500
+    },
+    "m-siege": {
+     "at": [
+      35.529651,
+      32.79385
+     ],
+     "facing": 90,
+     "width": 500,
+     "depth": 250,
+     "state": "engaged"
+    },
+    "f-garrison": {
+     "at": [
+      35.535535,
+      32.795199
+     ],
+     "facing": 270,
+     "width": 150,
+     "depth": 100,
+     "state": "engaged"
+    }
+   },
+   "notes": [
+    {
+     "at": [
+      35.53286,
+      32.79385
+     ],
+     "text": "Tiberias stormed, citadel holds",
+     "kind": "event"
+    }
+   ],
+   "date": {
+    "year": 1187,
+    "month": 7,
+    "day": 2
+   }
+  },
+  {
+   "id": "council",
+   "title": "The night council",
+   "time": "Night of 2 July",
+   "narrative": "That night Raymond of Tripoli argued that a march across the dry hills to Tiberias was exactly what Saladin wanted, and that the camp at La Saphorie should be held while Tiberias, his own town, was given up if need be. Gerard de Ridefort and Raynald of Chatillon answered by calling him a coward. King Guy sided with them and ordered the army out at once against Saladin.",
+   "notes": [
+    {
+     "at": [
+      35.506114,
+      32.801944
+     ],
+     "text": "Council at La Saphorie, far west",
+     "kind": "label",
+     "conjectural": true
+    }
+   ],
+   "date": {
+    "year": 1187,
+    "month": 7,
+    "day": 2
+   }
+  },
+  {
+   "id": "march",
+   "title": "The march into the heat",
+   "time": "Morning, 3 July",
+   "narrative": "The Frankish army left La Saphorie and struggled east in the July heat, with Raymond's division in front and Balian's and Joscelin's men in the rear. Muslim mounted archers harassed it from the first mile. The Springs of Turan gave far too little water for such a host. Saladin, learning the Franks had left their water, broke off from Tiberias and brought his army out to meet them.",
+   "positions": {
+    "f-host": {
+     "state": "hidden"
+    },
+    "f-van": {
+     "at": [
+      35.37403,
+      32.77689
+     ],
+     "facing": 90,
+     "width": 500,
+     "depth": 400,
+     "state": "ready"
+    },
+    "f-centre": {
+     "at": [
+      35.364403,
+      32.775091
+     ],
+     "facing": 90,
+     "width": 500,
+     "depth": 500,
+     "state": "ready"
+    },
+    "f-rear": {
+     "at": [
+      35.353707,
+      32.773293
+     ],
+     "facing": 90,
+     "width": 500,
+     "depth": 450,
+     "state": "ready"
+    },
+    "f-foot": {
+     "at": [
+      35.362264,
+      32.771494
+     ],
+     "facing": 90,
+     "width": 450,
+     "depth": 700,
+     "state": "ready"
+    },
+    "m-main": {
+     "at": [
+      35.475598,
+      32.791045
+     ]
+    },
+    "m-archers": {
+     "at": [
+      35.438152,
+      32.808133
+     ],
+     "facing": 225,
+     "width": 900,
+     "depth": 180,
+     "state": "ready"
+    },
+    "m-siege": {
+     "state": "hidden"
+    }
+   },
+   "moves": [
+    {
+     "unit": "m-main",
+     "type": "advance",
+     "path": [
+      [
+       35.44079,
+       32.74358
+      ],
+      [
+       35.475598,
+       32.791045
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      35.37403,
+      32.77689
+     ],
+     "text": "Springs of Turan: too little water",
+     "kind": "label"
+    }
+   ],
+   "date": {
+    "year": 1187,
+    "month": 7,
+    "day": 3
+   }
+  },
+  {
+   "id": "turn",
+   "title": "Veering for Hattin",
+   "time": "Midday, 3 July",
+   "narrative": "At midday Raymond judged that the army could not reach Tiberias by nightfall, and he and Guy turned it left toward the springs at Kafr Hattin, about nine kilometres off, to drink there and go down to the lake next day. Saladin's men slid between the Franks and the water, and the column, hemmed in and tormented by thirst, had to halt on the dry plateau near Meskenah. Reaching the wells that day had become impossible.",
+   "positions": {
+    "f-van": {
+     "at": [
+      35.424244,
+      32.790146
+     ],
+     "facing": 75
+    },
+    "f-centre": {
+     "at": [
+      35.417825,
+      32.789247
+     ],
+     "facing": 75
+    },
+    "f-rear": {
+     "at": [
+      35.409266,
+      32.787448
+     ],
+     "facing": 75,
+     "state": "engaged"
+    },
+    "f-foot": {
+     "at": [
+      35.415685,
+      32.78475
+     ],
+     "facing": 75
+    },
+    "m-archers": {
+     "at": [
+      35.415685,
+      32.804535
+     ],
+     "facing": 200,
+     "width": 1200,
+     "state": "engaged"
+    },
+    "m-right": {
+     "at": [
+      35.439222,
+      32.81083
+     ],
+     "facing": 250,
+     "width": 1000,
+     "depth": 400,
+     "state": "ready",
+     "conjectural": true
+    },
+    "m-main": {
+     "at": [
+      35.448851,
+      32.794643
+     ],
+     "width": 1400,
+     "depth": 450
+    },
+    "m-left": {
+     "at": [
+      35.436013,
+      32.776656
+     ],
+     "facing": 300,
+     "width": 1000,
+     "depth": 400,
+     "state": "ready",
+     "conjectural": true
+    }
+   },
+   "moves": [
+    {
+     "unit": "f-van",
+     "type": "march",
+     "path": [
+      [
+       35.37403,
+       32.77689
+      ],
+      [
+       35.424244,
+       32.790146
+      ]
+     ]
+    },
+    {
+     "unit": "f-centre",
+     "type": "march",
+     "path": [
+      [
+       35.364403,
+       32.775091
+      ],
+      [
+       35.417825,
+       32.789247
+      ]
+     ]
+    },
+    {
+     "unit": "f-rear",
+     "type": "march",
+     "path": [
+      [
+       35.353707,
+       32.773293
+      ],
+      [
+       35.409266,
+       32.787448
+      ]
+     ]
+    },
+    {
+     "unit": "f-foot",
+     "type": "march",
+     "path": [
+      [
+       35.362264,
+       32.771494
+      ],
+      [
+       35.415685,
+       32.78475
+      ]
+     ]
+    },
+    {
+     "unit": "m-archers",
+     "type": "flank",
+     "path": [
+      [
+       35.438152,
+       32.808133
+      ],
+      [
+       35.415685,
+       32.804535
+      ]
+     ]
+    },
+    {
+     "unit": "m-main",
+     "type": "advance",
+     "path": [
+      [
+       35.475598,
+       32.791045
+      ],
+      [
+       35.448851,
+       32.794643
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      35.436013,
+      32.795542
+     ],
+     "text": "Muslims close the road to the water",
+     "kind": "event"
+    }
+   ],
+   "date": {
+    "year": 1187,
+    "month": 7,
+    "day": 3
+   }
+  },
+  {
+   "id": "night",
+   "title": "A night without water",
+   "time": "Night of 3-4 July",
+   "narrative": "The Franks pitched camp on the arid plateau, so closely ringed that, in one chronicler's phrase, a cat could not have slipped out. The Muslims prayed, sang and beat drums through the dark, and set fire to the dry grass so that smoke and heat added to the thirst. Their own camels brought skins of water up from the lake. Fresh arrows, 400 camel loads of them, reached Gokbori's archers.",
+   "positions": {
+    "f-van": {
+     "at": [
+      35.427454,
+      32.791945
+     ],
+     "facing": 90,
+     "depth": 350
+    },
+    "f-centre": {
+     "at": [
+      35.422104,
+      32.791045
+     ],
+     "facing": 90,
+     "depth": 400
+    },
+    "f-rear": {
+     "at": [
+      35.415685,
+      32.790146
+     ],
+     "facing": 90,
+     "depth": 400,
+     "state": "ready"
+    },
+    "f-foot": {
+     "at": [
+      35.421034,
+      32.786549
+     ],
+     "facing": 90,
+     "depth": 500
+    },
+    "m-main": {
+     "at": [
+      35.439222,
+      32.793743
+     ],
+     "width": 1300,
+     "depth": 350,
+     "state": "ready"
+    },
+    "m-right": {
+     "at": [
+      35.424244,
+      32.804535
+     ],
+     "facing": 225,
+     "width": 1100,
+     "depth": 350
+    },
+    "m-left": {
+     "at": [
+      35.427454,
+      32.782052
+     ],
+     "facing": 315,
+     "width": 1100,
+     "depth": 350
+    },
+    "m-archers": {
+     "at": [
+      35.413545,
+      32.799139
+     ],
+     "facing": 90,
+     "width": 700,
+     "depth": 250,
+     "state": "ready"
+    },
+    "m-camels": {
+     "at": [
+      35.486297,
+      32.794643
+     ],
+     "facing": 270,
+     "width": 250,
+     "depth": 200,
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "m-main",
+     "type": "march",
+     "path": [
+      [
+       35.448851,
+       32.794643
+      ],
+      [
+       35.439222,
+       32.793743
+      ]
+     ]
+    },
+    {
+     "unit": "m-right",
+     "type": "march",
+     "path": [
+      [
+       35.439222,
+       32.81083
+      ],
+      [
+       35.424244,
+       32.804535
+      ]
+     ]
+    },
+    {
+     "unit": "m-left",
+     "type": "march",
+     "path": [
+      [
+       35.436013,
+       32.776656
+      ],
+      [
+       35.427454,
+       32.782052
+      ]
+     ]
+    },
+    {
+     "unit": "m-archers",
+     "type": "flank",
+     "path": [
+      [
+       35.415685,
+       32.804535
+      ],
+      [
+       35.413545,
+       32.799139
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      35.431733,
+      32.801837
+     ],
+     "text": "Grass fired: smoke and heat",
+     "kind": "event"
+    },
+    {
+     "at": [
+      35.429593,
+      32.788347
+     ],
+     "text": "Camp on the dry plateau",
+     "kind": "label",
+     "conjectural": true
+    }
+   ],
+   "date": {
+    "year": 1187,
+    "month": 7,
+    "day": 3
+   },
+   "light": "night"
+  },
+  {
+   "id": "dawn",
+   "title": "Smoke and arrows",
+   "time": "Dawn, 4 July",
+   "narrative": "Morning showed the Franks blinded by smoke from the grass fires and under steady fire from Gokbori's horse archers on the left of Saladin's line. Gerard and Raynald urged Guy to form for battle and fight through. Raymond took the first division with Raymond of Antioch, Guy the centre with the True Cross, while Balian and Joscelin of Edessa brought up the rear.",
+   "positions": {
+    "f-van": {
+     "at": [
+      35.431733,
+      32.793743
+     ],
+     "width": 600,
+     "depth": 300
+    },
+    "f-centre": {
+     "at": [
+      35.426384,
+      32.792844
+     ],
+     "width": 600,
+     "depth": 350
+    },
+    "f-rear": {
+     "at": [
+      35.419965,
+      32.791945
+     ],
+     "width": 600,
+     "depth": 300,
+     "state": "engaged"
+    },
+    "f-foot": {
+     "at": [
+      35.426384,
+      32.788347
+     ]
+    },
+    "m-left": {
+     "at": [
+      35.428524,
+      32.78475
+     ],
+     "depth": 300,
+     "state": "engaged"
+    },
+    "m-right": {
+     "at": [
+      35.427454,
+      32.804086
+     ],
+     "width": 1000,
+     "depth": 300,
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "m-left",
+     "type": "attack",
+     "path": [
+      [
+       35.427454,
+       32.782052
+      ],
+      [
+       35.428524,
+       32.78475
+      ]
+     ]
+    },
+    {
+     "unit": "m-left",
+     "type": "fire",
+     "path": [
+      [
+       35.428524,
+       32.78475
+      ],
+      [
+       35.426384,
+       32.792844
+      ]
+     ],
+     "label": "arrows"
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      35.427454,
+      32.799139
+     ],
+     "text": "Smoke blows into Frankish faces",
+     "kind": "event",
+     "conjectural": true
+    }
+   ],
+   "date": {
+    "year": 1187,
+    "month": 7,
+    "day": 4
+   },
+   "light": "dawn"
+  },
+  {
+   "id": "advance",
+   "title": "Raymond's charge",
+   "time": "Morning, 4 July",
+   "narrative": "Thirsty and sapped, the Franks broke camp and headed again for the springs of Hattin, but Saladin's army blocked the road ahead and fell on the ragged column from behind as well. Count Raymond led two charges to break through to the lake and its water. The Muslim ranks parted before the second charge and let him through, and he reached the shore and rode on to Tyre.",
+   "positions": {
+    "f-van": {
+     "at": [
+      35.443502,
+      32.795542
+     ],
+     "width": 550,
+     "state": "engaged"
+    },
+    "f-centre": {
+     "at": [
+      35.434943,
+      32.794193
+     ],
+     "width": 550,
+     "state": "engaged"
+    },
+    "f-rear": {
+     "at": [
+      35.427454,
+      32.792844
+     ]
+    },
+    "f-foot": {
+     "at": [
+      35.434943,
+      32.789247
+     ],
+     "state": "engaged"
+    },
+    "m-main": {
+     "at": [
+      35.452061,
+      32.795992
+     ],
+     "width": 1200,
+     "state": "engaged"
+    },
+    "m-right": {
+     "at": [
+      35.436013,
+      32.804535
+     ],
+     "facing": 250,
+     "width": 900
+    },
+    "m-left": {
+     "at": [
+      35.436013,
+      32.783851
+     ],
+     "facing": 290,
+     "width": 900
+    },
+    "m-archers": {
+     "at": [
+      35.424244,
+      32.795542
+     ],
+     "width": 600,
+     "depth": 200,
+     "state": "engaged"
+    },
+    "guy": {
+     "with": "f-centre"
+    },
+    "saladin": {
+     "with": "m-main"
+    }
+   },
+   "moves": [
+    {
+     "unit": "f-van",
+     "type": "advance",
+     "path": [
+      [
+       35.431733,
+       32.793743
+      ],
+      [
+       35.443502,
+       32.795542
+      ]
+     ]
+    },
+    {
+     "unit": "f-centre",
+     "type": "advance",
+     "path": [
+      [
+       35.426384,
+       32.792844
+      ],
+      [
+       35.434943,
+       32.794193
+      ]
+     ]
+    },
+    {
+     "unit": "f-rear",
+     "type": "advance",
+     "path": [
+      [
+       35.419965,
+       32.791945
+      ],
+      [
+       35.427454,
+       32.792844
+      ]
+     ]
+    },
+    {
+     "unit": "f-foot",
+     "type": "advance",
+     "path": [
+      [
+       35.426384,
+       32.788347
+      ],
+      [
+       35.434943,
+       32.789247
+      ]
+     ]
+    },
+    {
+     "unit": "m-main",
+     "type": "advance",
+     "path": [
+      [
+       35.439222,
+       32.793743
+      ],
+      [
+       35.452061,
+       32.795992
+      ]
+     ]
+    },
+    {
+     "unit": "m-right",
+     "type": "attack",
+     "path": [
+      [
+       35.427454,
+       32.804086
+      ],
+      [
+       35.436013,
+       32.804535
+      ]
+     ]
+    },
+    {
+     "unit": "m-left",
+     "type": "attack",
+     "path": [
+      [
+       35.428524,
+       32.78475
+      ],
+      [
+       35.436013,
+       32.783851
+      ]
+     ]
+    },
+    {
+     "unit": "m-archers",
+     "type": "attack",
+     "path": [
+      [
+       35.413545,
+       32.799139
+      ],
+      [
+       35.424244,
+       32.795542
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      35.449921,
+      32.796441
+     ],
+     "text": "First clash on the road",
+     "kind": "clash"
+    }
+   ],
+   "date": {
+    "year": 1187,
+    "month": 7,
+    "day": 4
+   }
+  },
+  {
+   "id": "breakout",
+   "title": "Raymond escapes; the foot flee to the Horns",
+   "time": "Midday, 4 July",
+   "narrative": "After Raymond rode clear, Guy's position was hopeless. Most of the infantry had already broken and run up onto the Horns of Hattin, where they took no further part. Many men too weak with thirst to fight were killed on the spot or taken. Guy tried to pitch tents to block the Muslim horsemen, and the knights and mounted sergeants, though disordered, kept fighting around him.",
+   "positions": {
+    "f-van": {
+     "at": [
+      35.508764,
+      32.78565
+     ],
+     "width": 300,
+     "depth": 200,
+     "state": "ready",
+     "frame": false,
+     "conjectural": true
+    },
+    "f-foot": {
+     "at": [
+      35.458694,
+      32.79842
+     ],
+     "width": 380,
+     "depth": 250,
+     "state": "wavering"
+    },
+    "f-centre": {
+     "at": [
+      35.452596,
+      32.796891
+     ],
+     "width": 450,
+     "depth": 300
+    },
+    "f-rear": {
+     "at": [
+      35.443502,
+      32.794643
+     ],
+     "width": 500
+    },
+    "m-main": {
+     "at": [
+      35.45848,
+      32.796891
+     ],
+     "width": 1000,
+     "depth": 300
+    },
+    "m-right": {
+     "at": [
+      35.449921,
+      32.802737
+     ],
+     "width": 800,
+     "depth": 250
+    },
+    "m-left": {
+     "at": [
+      35.449921,
+      32.790146
+     ],
+     "width": 800,
+     "depth": 250
+    },
+    "m-archers": {
+     "at": [
+      35.434943,
+      32.794643
+     ],
+     "width": 500
+    }
+   },
+   "moves": [
+    {
+     "unit": "f-van",
+     "type": "charge",
+     "path": [
+      [
+       35.443502,
+       32.795542
+      ],
+      [
+       35.508764,
+       32.78565
+      ]
+     ]
+    },
+    {
+     "unit": "f-foot",
+     "type": "rout",
+     "path": [
+      [
+       35.434943,
+       32.789247
+      ],
+      [
+       35.458694,
+       32.79842
+      ]
+     ]
+    },
+    {
+     "unit": "f-centre",
+     "type": "advance",
+     "path": [
+      [
+       35.434943,
+       32.794193
+      ],
+      [
+       35.452596,
+       32.796891
+      ]
+     ]
+    },
+    {
+     "unit": "f-rear",
+     "type": "advance",
+     "path": [
+      [
+       35.427454,
+       32.792844
+      ],
+      [
+       35.443502,
+       32.794643
+      ]
+     ]
+    },
+    {
+     "unit": "m-main",
+     "type": "advance",
+     "path": [
+      [
+       35.452061,
+       32.795992
+      ],
+      [
+       35.45848,
+       32.796891
+      ]
+     ]
+    },
+    {
+     "unit": "m-right",
+     "type": "advance",
+     "path": [
+      [
+       35.436013,
+       32.804535
+      ],
+      [
+       35.449921,
+       32.802737
+      ]
+     ]
+    },
+    {
+     "unit": "m-left",
+     "type": "advance",
+     "path": [
+      [
+       35.436013,
+       32.783851
+      ],
+      [
+       35.449921,
+       32.790146
+      ]
+     ]
+    },
+    {
+     "unit": "m-archers",
+     "type": "pursuit",
+     "path": [
+      [
+       35.424244,
+       32.795542
+      ],
+      [
+       35.434943,
+       32.794643
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      35.503415,
+      32.790146
+     ],
+     "text": "Raymond reaches the lake, flees to Tyre",
+     "kind": "event",
+     "conjectural": true
+    }
+   ],
+   "date": {
+    "year": 1187,
+    "month": 7,
+    "day": 4
+   }
+  },
+  {
+   "id": "horns",
+   "title": "Last stand on the Horns",
+   "time": "Afternoon, 4 July",
+   "narrative": "Encircled on the slope of the Horns, Guy's knights charged three times at the Muslims about Saladin. Saladin's young son al-Afdal later recalled how each charge drove the Muslims back on his father, whose face went pale and who cried out to rally them, and how each time the Muslims turned and pushed the Franks up the hill again. Saladin said the Franks were not beaten until Guy's tent fell. Then it fell.",
+   "positions": {
+    "f-centre": {
+     "at": [
+      35.458694,
+      32.7977
+     ],
+     "width": 350,
+     "depth": 250
+    },
+    "f-rear": {
+     "at": [
+      35.456875,
+      32.799589
+     ],
+     "width": 350,
+     "depth": 250
+    },
+    "f-foot": {
+     "at": [
+      35.460834,
+      32.799409
+     ],
+     "width": 300,
+     "depth": 200,
+     "state": "routed"
+    },
+    "m-main": {
+     "at": [
+      35.453131,
+      32.797521
+     ],
+     "width": 700,
+     "depth": 250
+    },
+    "m-right": {
+     "at": [
+      35.45634,
+      32.803276
+     ],
+     "facing": 225,
+     "width": 600,
+     "depth": 200
+    },
+    "m-left": {
+     "at": [
+      35.456875,
+      32.792664
+     ],
+     "facing": 315,
+     "width": 600,
+     "depth": 200
+    },
+    "m-archers": {
+     "at": [
+      35.464364,
+      32.799049
+     ],
+     "facing": 270,
+     "width": 400,
+     "depth": 150
+    }
+   },
+   "moves": [
+    {
+     "unit": "f-centre",
+     "type": "advance",
+     "path": [
+      [
+       35.452596,
+       32.796891
+      ],
+      [
+       35.458694,
+       32.7977
+      ]
+     ]
+    },
+    {
+     "unit": "f-rear",
+     "type": "retreat",
+     "path": [
+      [
+       35.443502,
+       32.794643
+      ],
+      [
+       35.456875,
+       32.799589
+      ]
+     ]
+    },
+    {
+     "unit": "m-main",
+     "type": "attack",
+     "path": [
+      [
+       35.45848,
+       32.796891
+      ],
+      [
+       35.453131,
+       32.797521
+      ]
+     ]
+    },
+    {
+     "unit": "m-right",
+     "type": "advance",
+     "path": [
+      [
+       35.449921,
+       32.802737
+      ],
+      [
+       35.45634,
+       32.803276
+      ]
+     ]
+    },
+    {
+     "unit": "m-left",
+     "type": "advance",
+     "path": [
+      [
+       35.449921,
+       32.790146
+      ],
+      [
+       35.456875,
+       32.792664
+      ]
+     ]
+    },
+    {
+     "unit": "m-archers",
+     "type": "advance",
+     "path": [
+      [
+       35.434943,
+       32.794643
+      ],
+      [
+       35.464364,
+       32.799049
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      35.458908,
+      32.79797
+     ],
+     "text": "Guy's tent falls; Saladin gives thanks",
+     "kind": "death"
+    }
+   ],
+   "date": {
+    "year": 1187,
+    "month": 7,
+    "day": 4
+   }
+  },
+  {
+   "id": "surrender",
+   "title": "Guy and Raynald before Saladin",
+   "time": "Evening, 4 July",
+   "narrative": "Guy, his brother Amalric, Raynald of Chatillon, Gerard de Ridefort and many other barons were taken. Guy and Raynald were brought to Saladin's tent. Saladin offered Guy a cup of water, which among Muslims meant mercy, and Guy passed it on to Raynald; Saladin knocked it away, saying he had not offered it to that evil man, and accused Raynald of breaking the truce. Raynald was killed, by Saladin's own sword in some reports. Guy was told that kings do not kill kings.",
+   "positions": {
+    "f-centre": {
+     "state": "captured",
+     "by": "b"
+    },
+    "f-rear": {
+     "state": "captured",
+     "by": "b"
+    },
+    "f-foot": {
+     "state": "captured",
+     "by": "b"
+    },
+    "m-main": {
+     "at": [
+      35.45741,
+      32.797431
+     ],
+     "state": "ready",
+     "facing": 90
+    },
+    "m-right": {
+     "state": "ready"
+    },
+    "m-left": {
+     "state": "ready"
+    },
+    "m-archers": {
+     "state": "ready"
+    },
+    "saladin-tent": {
+     "at": [
+      35.469179,
+      32.800488
+     ],
+     "facing": 90,
+     "width": 150,
+     "depth": 100,
+     "state": "ready",
+     "conjectural": true
+    }
+   },
+   "notes": [
+    {
+     "at": [
+      35.469179,
+      32.801208
+     ],
+     "text": "Raynald executed by Saladin's order",
+     "kind": "death"
+    }
+   ],
+   "date": {
+    "year": 1187,
+    "month": 7,
+    "day": 4
+   },
+   "light": "dusk"
+  },
+  {
+   "id": "aftermath",
+   "title": "After the field",
+   "time": "5 July and later",
+   "narrative": "Saladin spared the captured barons but had all about 200 captured Templar and Hospitaller knights beheaded, sparing only the Templar Grand Master, and the captured turcopoles were executed as apostates. The other prisoners were sold as slaves. The True Cross was sent to Damascus and Guy was held there until 1188. With the field army destroyed, the cities of the Kingdom of Jerusalem lay open to Saladin.",
+   "positions": {
+    "f-centre": {
+     "state": "destroyed"
+    },
+    "f-rear": {
+     "state": "destroyed"
+    },
+    "m-main": {
+     "at": [
+      35.46276,
+      32.797341
+     ]
+    },
+    "m-archers": {
+     "at": [
+      35.467039,
+      32.800488
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "m-archers",
+     "type": "march",
+     "path": [
+      [
+       35.464364,
+       32.799049
+      ],
+      [
+       35.467039,
+       32.800488
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      35.46169,
+      32.800938
+     ],
+     "text": "About 200 knights beheaded",
+     "kind": "death"
+    },
+    {
+     "at": [
+      35.50134,
+      32.80056
+     ],
+     "text": "Springs of Hattin, now in Muslim hands",
+     "kind": "label"
+    }
+   ],
+   "date": {
+    "year": 1187,
+    "month": 7,
+    "day": 5
+   }
+  }
+ ]
+}

@@ -1,0 +1,1808 @@
+{
+ "schema": 3,
+ "slug": "battle-of-austerlitz",
+ "kind": "battle",
+ "entity": {
+  "name": "Battle of Austerlitz",
+  "wikidata": "Q134114"
+ },
+ "title": "Battle of Austerlitz",
+ "date_label": "2 December 1805",
+ "year": 1805,
+ "intro": "On 2 December 1805 Napoleon's army met the combined Russian and Austrian forces on a low plateau and its streams about ten kilometres south-east of Brno, in present-day Czechia. The French emperor had deliberately given up the commanding Pratzen Heights and weakened his right wing to tempt the Allies into a flank march. When the Allies sent most of their strength south toward the Goldbach villages, Soult's corps rose out of the fog, took the abandoned heights, and split the Allied army in two. Davout's marching corps held the south long enough, and Murat and Lannes held the north. By dusk the Allies had lost around a third of their men, and Austria soon left the Third Coalition.",
+ "outcome": "French victory; Austria leaves the war at the Treaty of Pressburg and the Holy Roman Empire is dissolved in 1806.",
+ "uncertainty": "Unit positions, march routes and timings are reconstructed from the general narrative of the battle, not from surveyed orders of battle, so they are marked conjectural. The OSM point for Santon is doubtful. Strengths and losses vary between sources. The mass drowning in the Satschan ponds is disputed, since drained ponds showed far fewer bodies than Napoleon claimed. The charge that Buxhoeveden was drunk comes from hostile accounts and is not verified.",
+ "sources": [
+  {
+   "title": "Battle of Austerlitz - Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Battle_of_Austerlitz",
+   "kind": "web"
+  }
+ ],
+ "sides": [
+  {
+   "id": "fr",
+   "name": "French Empire",
+   "color": "#1d4ed8",
+   "polity": {
+    "name": "First French Empire"
+   },
+   "commanders": [
+    {
+     "name": "Napoleon",
+     "wikidata": "Q517",
+     "role": "Emperor and commander"
+    },
+    {
+     "name": "Jean-de-Dieu Soult",
+     "wikidata": "Q296023",
+     "role": "IV Corps"
+    },
+    {
+     "name": "Louis-Nicolas Davout",
+     "wikidata": "Q158778",
+     "role": "III Corps"
+    },
+    {
+     "name": "Jean Lannes",
+     "wikidata": "Q273032",
+     "role": "V Corps"
+    },
+    {
+     "name": "Joachim Murat",
+     "wikidata": "Q151173",
+     "role": "Cavalry Reserve"
+    }
+   ],
+   "strength": "65,000-75,000",
+   "losses": "8,569-9,288 (about 1,300-1,500 dead)"
+  },
+  {
+   "id": "al",
+   "name": "Russo-Austrian Allies",
+   "color": "#b91c1c",
+   "polity": {
+    "name": "Russian Empire",
+    "wikidata": "Q34266"
+   },
+   "commanders": [
+    {
+     "name": "Alexander I of Russia",
+     "wikidata": "Q15193",
+     "role": "Tsar"
+    },
+    {
+     "name": "Mikhail Kutuzov",
+     "wikidata": "Q185801",
+     "role": "Allied commander-in-chief (nominal)"
+    },
+    {
+     "name": "Franz von Weyrother",
+     "wikidata": "Q689584",
+     "role": "Chief of staff, author of the plan"
+    },
+    {
+     "name": "Pyotr Bagration",
+     "wikidata": "Q239260",
+     "role": "Allied right"
+    },
+    {
+     "name": "Friedrich Wilhelm von Buxhoeveden",
+     "wikidata": "Q700437",
+     "role": "Allied left"
+    }
+   ],
+   "strength": "73,000-89,000",
+   "losses": "27,000-36,000, 186 guns, 45 standards"
+  }
+ ],
+ "units": [
+  {
+   "id": "fr-legrand",
+   "side": "fr",
+   "kind": "infantry",
+   "label": "Legrand's division",
+   "strength": "c. 5,000 at dawn"
+  },
+  {
+   "id": "fr-davout",
+   "side": "fr",
+   "kind": "infantry",
+   "label": "Davout's III Corps (arriving)",
+   "strength": "c. 7,500 more"
+  },
+  {
+   "id": "fr-st-hilaire",
+   "side": "fr",
+   "kind": "infantry",
+   "label": "St Hilaire (IV Corps)"
+  },
+  {
+   "id": "fr-vandamme",
+   "side": "fr",
+   "kind": "infantry",
+   "label": "Vandamme (IV Corps)"
+  },
+  {
+   "id": "fr-bernadotte",
+   "side": "fr",
+   "kind": "infantry",
+   "label": "Bernadotte's I Corps"
+  },
+  {
+   "id": "fr-murat",
+   "side": "fr",
+   "kind": "heavy_cavalry",
+   "label": "Murat's cavalry"
+  },
+  {
+   "id": "fr-lannes",
+   "side": "fr",
+   "kind": "infantry",
+   "label": "Lannes's V Corps"
+  },
+  {
+   "id": "fr-santon-guns",
+   "side": "fr",
+   "kind": "artillery",
+   "label": "Santon battery",
+   "strength": "18 guns"
+  },
+  {
+   "id": "fr-guard",
+   "side": "fr",
+   "kind": "heavy_cavalry",
+   "label": "Imperial Guard"
+  },
+  {
+   "id": "fr-napoleon",
+   "side": "fr",
+   "kind": "commander",
+   "label": "Napoleon"
+  },
+  {
+   "id": "al-col1",
+   "side": "al",
+   "kind": "infantry",
+   "label": "1st column (Dokhturov)"
+  },
+  {
+   "id": "al-col2",
+   "side": "al",
+   "kind": "infantry",
+   "label": "2nd column (Langeron)"
+  },
+  {
+   "id": "al-col3",
+   "side": "al",
+   "kind": "infantry",
+   "label": "3rd column (Przybyszewski)"
+  },
+  {
+   "id": "al-kienmayer",
+   "side": "al",
+   "kind": "light_cavalry",
+   "label": "Kienmayer's advance guard"
+  },
+  {
+   "id": "al-col4",
+   "side": "al",
+   "kind": "infantry",
+   "label": "4th column (Kolowrat)"
+  },
+  {
+   "id": "al-guard",
+   "side": "al",
+   "kind": "heavy_cavalry",
+   "label": "Russian Imperial Guard"
+  },
+  {
+   "id": "al-liechtenstein",
+   "side": "al",
+   "kind": "heavy_cavalry",
+   "label": "Liechtenstein's cavalry"
+  },
+  {
+   "id": "al-bagration",
+   "side": "al",
+   "kind": "infantry",
+   "label": "Bagration's right"
+  },
+  {
+   "id": "al-kutuzov",
+   "side": "al",
+   "kind": "commander",
+   "label": "Kutuzov"
+  }
+ ],
+ "terrain": [
+  {
+   "id": "goldbach",
+   "kind": "stream",
+   "label": "Goldbach (Říčka)",
+   "line": [
+    [
+     16.72042,
+     49.17495
+    ],
+    [
+     16.7376,
+     49.15134
+    ],
+    [
+     16.73611,
+     49.14711
+    ],
+    [
+     16.73019,
+     49.1441
+    ],
+    [
+     16.72897,
+     49.1171
+    ],
+    [
+     16.71683,
+     49.10276
+    ],
+    [
+     16.69393,
+     49.08718
+    ],
+    [
+     16.69286,
+     49.07161
+    ]
+   ]
+  },
+  {
+   "id": "bosenitz",
+   "kind": "stream",
+   "label": "Bosenitz (Roketnice)",
+   "line": [
+    [
+     16.75416,
+     49.19636
+    ],
+    [
+     16.7534,
+     49.19569
+    ],
+    [
+     16.7554,
+     49.19368
+    ],
+    [
+     16.75401,
+     49.18749
+    ],
+    [
+     16.75649,
+     49.18108
+    ],
+    [
+     16.75374,
+     49.17908
+    ],
+    [
+     16.75308,
+     49.17668
+    ],
+    [
+     16.7563,
+     49.16923
+    ],
+    [
+     16.75583,
+     49.16696
+    ],
+    [
+     16.75301,
+     49.16438
+    ],
+    [
+     16.75173,
+     49.16025
+    ],
+    [
+     16.74863,
+     49.15855
+    ],
+    [
+     16.74726,
+     49.15636
+    ],
+    [
+     16.74427,
+     49.15508
+    ],
+    [
+     16.73747,
+     49.15234
+    ]
+   ]
+  },
+  {
+   "id": "pratzen",
+   "kind": "hill",
+   "label": "Pratzen Heights",
+   "area": [
+    [
+     16.781744,
+     49.136154
+    ],
+    [
+     16.780994,
+     49.140111
+    ],
+    [
+     16.778797,
+     49.143798
+    ],
+    [
+     16.775302,
+     49.146965
+    ],
+    [
+     16.770747,
+     49.149394
+    ],
+    [
+     16.765443,
+     49.150922
+    ],
+    [
+     16.759751,
+     49.151442
+    ],
+    [
+     16.754059,
+     49.150922
+    ],
+    [
+     16.748755,
+     49.149394
+    ],
+    [
+     16.7442,
+     49.146965
+    ],
+    [
+     16.740705,
+     49.143798
+    ],
+    [
+     16.738508,
+     49.140111
+    ],
+    [
+     16.737758,
+     49.136154
+    ],
+    [
+     16.738508,
+     49.132197
+    ],
+    [
+     16.740705,
+     49.12851
+    ],
+    [
+     16.7442,
+     49.125343
+    ],
+    [
+     16.748755,
+     49.122914
+    ],
+    [
+     16.754059,
+     49.121386
+    ],
+    [
+     16.759751,
+     49.120866
+    ],
+    [
+     16.765443,
+     49.121386
+    ],
+    [
+     16.770747,
+     49.122914
+    ],
+    [
+     16.775302,
+     49.125343
+    ],
+    [
+     16.778797,
+     49.12851
+    ],
+    [
+     16.780994,
+     49.132197
+    ]
+   ]
+  },
+  {
+   "id": "zuran",
+   "kind": "hill",
+   "label": "Žuráň",
+   "area": [
+    [
+     16.745299,
+     49.17976
+    ],
+    [
+     16.745064,
+     49.180575
+    ],
+    [
+     16.744377,
+     49.181334
+    ],
+    [
+     16.743284,
+     49.181986
+    ],
+    [
+     16.741859,
+     49.182486
+    ],
+    [
+     16.7402,
+     49.1828
+    ],
+    [
+     16.73842,
+     49.182908
+    ],
+    [
+     16.73664,
+     49.1828
+    ],
+    [
+     16.734981,
+     49.182486
+    ],
+    [
+     16.733556,
+     49.181986
+    ],
+    [
+     16.732463,
+     49.181334
+    ],
+    [
+     16.731776,
+     49.180575
+    ],
+    [
+     16.731541,
+     49.17976
+    ],
+    [
+     16.731776,
+     49.178945
+    ],
+    [
+     16.732463,
+     49.178186
+    ],
+    [
+     16.733556,
+     49.177534
+    ],
+    [
+     16.734981,
+     49.177034
+    ],
+    [
+     16.73664,
+     49.17672
+    ],
+    [
+     16.73842,
+     49.176612
+    ],
+    [
+     16.7402,
+     49.17672
+    ],
+    [
+     16.741859,
+     49.177034
+    ],
+    [
+     16.743284,
+     49.177534
+    ],
+    [
+     16.744377,
+     49.178186
+    ],
+    [
+     16.745064,
+     49.178945
+    ]
+   ]
+  },
+  {
+   "id": "santon",
+   "kind": "hill",
+   "label": "Santon",
+   "area": [
+    [
+     16.768696,
+     49.18854
+    ],
+    [
+     16.768532,
+     49.189238
+    ],
+    [
+     16.768051,
+     49.189889
+    ],
+    [
+     16.767285,
+     49.190448
+    ],
+    [
+     16.766288,
+     49.190877
+    ],
+    [
+     16.765126,
+     49.191146
+    ],
+    [
+     16.76388,
+     49.191238
+    ],
+    [
+     16.762634,
+     49.191146
+    ],
+    [
+     16.761472,
+     49.190877
+    ],
+    [
+     16.760475,
+     49.190448
+    ],
+    [
+     16.759709,
+     49.189889
+    ],
+    [
+     16.759228,
+     49.189238
+    ],
+    [
+     16.759064,
+     49.18854
+    ],
+    [
+     16.759228,
+     49.187842
+    ],
+    [
+     16.759709,
+     49.187191
+    ],
+    [
+     16.760475,
+     49.186632
+    ],
+    [
+     16.761472,
+     49.186203
+    ],
+    [
+     16.762634,
+     49.185934
+    ],
+    [
+     16.76388,
+     49.185842
+    ],
+    [
+     16.765126,
+     49.185934
+    ],
+    [
+     16.766288,
+     49.186203
+    ],
+    [
+     16.767285,
+     49.186632
+    ],
+    [
+     16.768051,
+     49.187191
+    ],
+    [
+     16.768532,
+     49.187842
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "telnitz",
+   "kind": "village",
+   "label": "Telnitz",
+   "at": [
+    16.71779,
+    49.10192
+   ]
+  },
+  {
+   "id": "sokolnitz",
+   "kind": "village",
+   "label": "Sokolnitz",
+   "at": [
+    16.7211,
+    49.11365
+   ]
+  },
+  {
+   "id": "kobelnitz",
+   "kind": "village",
+   "label": "Kobelnitz",
+   "at": [
+    16.73182,
+    49.13803
+   ]
+  },
+  {
+   "id": "puntowitz",
+   "kind": "village",
+   "label": "Puntowitz",
+   "at": [
+    16.74229,
+    49.15216
+   ]
+  },
+  {
+   "id": "girzikowitz",
+   "kind": "village",
+   "label": "Girzikowitz",
+   "at": [
+    16.7585,
+    49.16713
+   ]
+  },
+  {
+   "id": "aujezd",
+   "kind": "village",
+   "label": "Augezd",
+   "at": [
+    16.75737,
+    49.10435
+   ]
+  },
+  {
+   "id": "krenowitz",
+   "kind": "village",
+   "label": "Krenowitz",
+   "at": [
+    16.82932,
+    49.14216
+   ]
+  },
+  {
+   "id": "olmutz-road",
+   "kind": "road",
+   "label": "Olmütz-Brünn road",
+   "conjectural": true,
+   "line": [
+    [
+     16.8175,
+     49.1734
+    ],
+    [
+     16.77,
+     49.176
+    ],
+    [
+     16.74,
+     49.179
+    ],
+    [
+     16.7131,
+     49.179
+    ]
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "id": "trap",
+   "title": "The bait on the Pratzen",
+   "time": "1 December, evening",
+   "narrative": "Napoleon has pulled his troops off the Pratzen Heights and let the Allies see a thin, nervous right wing near the Goldbach villages. Most of his army hides in the dead ground west of the Bosenitz, between Puntowitz and Girzikowitz, while Davout's corps hurries up from Vienna. The Allies, pressed by the Tsar's circle and following Weyrother's plan, camp on and east of the Pratzen, ready to swing south and roll up the French right.",
+   "positions": {
+    "fr-legrand": {
+     "at": [
+      16.7185,
+      49.1085
+     ],
+     "facing": 90,
+     "width": 1300,
+     "depth": 30,
+     "state": "ready",
+     "conjectural": true
+    },
+    "fr-st-hilaire": {
+     "at": [
+      16.742,
+      49.1585
+     ],
+     "facing": 90,
+     "width": 700,
+     "depth": 60,
+     "conjectural": true
+    },
+    "fr-vandamme": {
+     "at": [
+      16.753,
+      49.17
+     ],
+     "facing": 90,
+     "width": 700,
+     "depth": 60,
+     "conjectural": true
+    },
+    "fr-bernadotte": {
+     "at": [
+      16.73,
+      49.162
+     ],
+     "facing": 90,
+     "width": 600,
+     "depth": 70,
+     "conjectural": true
+    },
+    "fr-murat": {
+     "at": [
+      16.744,
+      49.179
+     ],
+     "facing": 90,
+     "width": 900,
+     "depth": 60,
+     "conjectural": true
+    },
+    "fr-lannes": {
+     "at": [
+      16.757,
+      49.185
+     ],
+     "facing": 90,
+     "width": 800,
+     "depth": 50,
+     "conjectural": true
+    },
+    "fr-santon-guns": {
+     "at": [
+      16.76388,
+      49.18854
+     ],
+     "facing": 90,
+     "width": 120,
+     "depth": 30,
+     "conjectural": true
+    },
+    "fr-guard": {
+     "at": [
+      16.728,
+      49.174
+     ],
+     "facing": 90,
+     "width": 500,
+     "depth": 60,
+     "conjectural": true
+    },
+    "fr-davout": {
+     "at": [
+      16.69,
+      49.06
+     ],
+     "facing": 45,
+     "width": 120,
+     "depth": 800,
+     "shape": "column",
+     "frame": false,
+     "conjectural": true
+    },
+    "fr-napoleon": {
+     "at": [
+      16.738,
+      49.1797
+     ],
+     "facing": 90
+    },
+    "al-col1": {
+     "at": [
+      16.78,
+      49.106
+     ],
+     "facing": 270,
+     "width": 150,
+     "depth": 700,
+     "shape": "column",
+     "conjectural": true
+    },
+    "al-col2": {
+     "at": [
+      16.775,
+      49.118
+     ],
+     "facing": 270,
+     "width": 150,
+     "depth": 700,
+     "shape": "column",
+     "conjectural": true
+    },
+    "al-col3": {
+     "at": [
+      16.775,
+      49.129
+     ],
+     "facing": 270,
+     "width": 150,
+     "depth": 700,
+     "shape": "column",
+     "conjectural": true
+    },
+    "al-kienmayer": {
+     "at": [
+      16.752,
+      49.1
+     ],
+     "facing": 270,
+     "width": 400,
+     "depth": 60,
+     "conjectural": true
+    },
+    "al-col4": {
+     "at": [
+      16.766,
+      49.134
+     ],
+     "facing": 270,
+     "width": 900,
+     "depth": 80,
+     "conjectural": true
+    },
+    "al-guard": {
+     "at": [
+      16.815,
+      49.14
+     ],
+     "facing": 270,
+     "width": 600,
+     "depth": 70,
+     "conjectural": true
+    },
+    "al-liechtenstein": {
+     "at": [
+      16.805,
+      49.165
+     ],
+     "facing": 270,
+     "width": 800,
+     "depth": 50,
+     "conjectural": true
+    },
+    "al-bagration": {
+     "at": [
+      16.8,
+      49.18
+     ],
+     "facing": 270,
+     "width": 900,
+     "depth": 50,
+     "conjectural": true
+    },
+    "al-kutuzov": {
+     "with": "al-col4"
+    }
+   }
+  },
+  {
+   "id": "telnitz",
+   "title": "Allied columns strike Telnitz",
+   "time": "c. 08:00",
+   "narrative": "The Allied left wing marches down the Pratzen's southern slopes and hits Telnitz, held by the 3rd Line. Austrian and Russian assaults throw the French out, but the first of Davout's men arrive from the south, retake the village, and are in turn driven off by hussar charges. French guns across the Goldbach hold the Allies in check. The attack comes slower and more tangled than Weyrother intended, since Liechtenstein's cavalry crossing the line delays a column.",
+   "positions": {
+    "al-col1": {
+     "at": [
+      16.7255,
+      49.102
+     ],
+     "width": 500,
+     "depth": 70,
+     "shape": "block",
+     "state": "engaged"
+    },
+    "al-kienmayer": {
+     "at": [
+      16.73,
+      49.099
+     ],
+     "state": "engaged"
+    },
+    "fr-legrand": {
+     "at": [
+      16.714,
+      49.106
+     ],
+     "width": 1200,
+     "state": "engaged"
+    },
+    "fr-davout": {
+     "at": [
+      16.708,
+      49.093
+     ],
+     "facing": 90,
+     "width": 500,
+     "depth": 60,
+     "shape": "block",
+     "frame": true
+    },
+    "al-col2": {
+     "at": [
+      16.742,
+      49.115
+     ]
+    },
+    "al-col3": {
+     "at": [
+      16.745,
+      49.124
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "al-col1",
+     "type": "attack",
+     "path": [
+      [
+       16.78,
+       49.106
+      ],
+      [
+       16.7255,
+       49.102
+      ]
+     ]
+    },
+    {
+     "unit": "al-kienmayer",
+     "type": "attack",
+     "path": [
+      [
+       16.752,
+       49.1
+      ],
+      [
+       16.73,
+       49.099
+      ]
+     ]
+    },
+    {
+     "unit": "fr-davout",
+     "type": "advance",
+     "path": [
+      [
+       16.69,
+       49.06
+      ],
+      [
+       16.708,
+       49.093
+      ]
+     ]
+    },
+    {
+     "unit": "al-col2",
+     "type": "advance",
+     "path": [
+      [
+       16.775,
+       49.118
+      ],
+      [
+       16.742,
+       49.115
+      ]
+     ]
+    },
+    {
+     "unit": "al-col3",
+     "type": "advance",
+     "path": [
+      [
+       16.775,
+       49.129
+      ],
+      [
+       16.745,
+       49.124
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      16.7178,
+      49.1019
+     ],
+     "text": "Telnitz changes hands",
+     "kind": "clash"
+    }
+   ]
+  },
+  {
+   "id": "sokolnitz",
+   "title": "Sokolnitz, the most contested village",
+   "time": "c. 08:30-10:00",
+   "narrative": "Langeron's column attacks Sokolnitz, defended by the 26th Light and Tirailleurs. Repeated assaults fail until Russian guns bombard the village and drive the garrison out. Przybyszewski's column goes for the castle, the French counterattack and take the place back, and it is lost again before Friant's division of Davout's corps retakes the village. Sokolnitz changes hands several times and soaks up the Allied left wing.",
+   "positions": {
+    "al-col2": {
+     "at": [
+      16.726,
+      49.1135
+     ],
+     "width": 500,
+     "depth": 70,
+     "shape": "block",
+     "state": "engaged"
+    },
+    "al-col3": {
+     "at": [
+      16.728,
+      49.12
+     ],
+     "width": 450,
+     "depth": 70,
+     "shape": "block",
+     "state": "engaged"
+    },
+    "fr-legrand": {
+     "at": [
+      16.715,
+      49.113
+     ],
+     "width": 900
+    },
+    "fr-davout": {
+     "at": [
+      16.714,
+      49.106
+     ],
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "al-col2",
+     "type": "attack",
+     "path": [
+      [
+       16.742,
+       49.115
+      ],
+      [
+       16.726,
+       49.1135
+      ]
+     ]
+    },
+    {
+     "unit": "al-col3",
+     "type": "attack",
+     "path": [
+      [
+       16.745,
+       49.124
+      ],
+      [
+       16.728,
+       49.12
+      ]
+     ]
+    },
+    {
+     "unit": "fr-davout",
+     "type": "advance",
+     "path": [
+      [
+       16.708,
+       49.093
+      ],
+      [
+       16.714,
+       49.106
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      16.7211,
+      49.11365
+     ],
+     "text": "Sokolnitz: village and castle",
+     "kind": "clash"
+    }
+   ]
+  },
+  {
+   "id": "heights-emptied",
+   "title": "The Tsar empties the heights",
+   "time": "c. 08:45",
+   "narrative": "Kutuzov's fourth column stands still on the Pratzen, since he sees that whoever holds the ridge holds the field. Alexander I orders it to leave and follow the other columns south. As the mist thins, Napoleon sees the gap, asks Soult how long his men need to climb, hears 'less than twenty minutes', and about a quarter of an hour later gives the order. He says that one sharp blow will end the war.",
+   "positions": {
+    "al-col4": {
+     "at": [
+      16.76,
+      49.129
+     ],
+     "facing": 225
+    },
+    "fr-st-hilaire": {
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "al-col4",
+     "type": "march",
+     "path": [
+      [
+       16.766,
+       49.134
+      ],
+      [
+       16.76,
+       49.129
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      16.7625,
+      49.12806
+     ],
+     "text": "Pratzen Heights half abandoned",
+     "kind": "event"
+    }
+   ]
+  },
+  {
+   "id": "soult-attack",
+   "title": "Soult goes up the Pratzen",
+   "time": "c. 09:00",
+   "narrative": "St Hilaire's division rises out of the fog on the western slope while the winter sun tears the mist apart. Russian and Austrian troops on top, who had thought the heights safe, are stunned at the sight of French columns. Fighting breaks out as the delayed head of Kutuzov's column is turned back into the line. To the north Vandamme's division strikes the Old Vineyards and breaks several battalions with skirmish fire and volleys.",
+   "positions": {
+    "fr-st-hilaire": {
+     "at": [
+      16.752,
+      49.133
+     ],
+     "facing": 100,
+     "state": "engaged"
+    },
+    "fr-vandamme": {
+     "at": [
+      16.761,
+      49.148
+     ],
+     "facing": 100,
+     "state": "engaged"
+    },
+    "al-col4": {
+     "at": [
+      16.764,
+      49.132
+     ],
+     "facing": 270,
+     "width": 700,
+     "state": "engaged"
+    },
+    "fr-bernadotte": {
+     "at": [
+      16.742,
+      49.156
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "fr-st-hilaire",
+     "type": "attack",
+     "path": [
+      [
+       16.742,
+       49.1585
+      ],
+      [
+       16.752,
+       49.133
+      ]
+     ]
+    },
+    {
+     "unit": "fr-vandamme",
+     "type": "attack",
+     "path": [
+      [
+       16.753,
+       49.17
+      ],
+      [
+       16.761,
+       49.148
+      ]
+     ]
+    },
+    {
+     "unit": "al-col4",
+     "type": "retreat",
+     "path": [
+      [
+       16.76,
+       49.129
+      ],
+      [
+       16.764,
+       49.132
+      ]
+     ]
+    },
+    {
+     "unit": "fr-bernadotte",
+     "type": "advance",
+     "path": [
+      [
+       16.73,
+       49.162
+      ],
+      [
+       16.742,
+       49.156
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      16.762,
+      49.148
+     ],
+     "text": "Staré Vinohrady (Old Vineyards)",
+     "kind": "clash"
+    }
+   ]
+  },
+  {
+   "id": "heights-fight",
+   "title": "The struggle for the summit",
+   "time": "c. 09:30-11:00",
+   "narrative": "Over an hour of fighting wrecks much of the Allied fourth column under Kutuzov's eye. Inexperienced Austrians from the second column join in and force St Hilaire's veterans down the slope. Desperate, they come on again and clear the heights with the bayonet. Napoleon moves his command post from Žuráň to St Anthony's Chapel on the Pratzen. Bernadotte's corps goes in on Vandamme's left.",
+   "positions": {
+    "fr-st-hilaire": {
+     "at": [
+      16.76,
+      49.13
+     ],
+     "facing": 90
+    },
+    "al-col4": {
+     "at": [
+      16.77,
+      49.133
+     ],
+     "width": 600,
+     "state": "wavering"
+    },
+    "fr-vandamme": {
+     "at": [
+      16.764,
+      49.144
+     ],
+     "facing": 90
+    },
+    "fr-napoleon": {
+     "at": [
+      16.7625,
+      49.1285
+     ],
+     "conjectural": true
+    }
+   },
+   "moves": [
+    {
+     "unit": "fr-st-hilaire",
+     "type": "attack",
+     "path": [
+      [
+       16.752,
+       49.133
+      ],
+      [
+       16.76,
+       49.13
+      ]
+     ]
+    },
+    {
+     "unit": "al-col4",
+     "type": "retreat",
+     "path": [
+      [
+       16.764,
+       49.132
+      ],
+      [
+       16.77,
+       49.133
+      ]
+     ]
+    },
+    {
+     "unit": "fr-vandamme",
+     "type": "advance",
+     "path": [
+      [
+       16.761,
+       49.148
+      ],
+      [
+       16.764,
+       49.144
+      ]
+     ]
+    },
+    {
+     "unit": "fr-napoleon",
+     "type": "march",
+     "path": [
+      [
+       16.738,
+       49.1797
+      ],
+      [
+       16.7625,
+       49.1285
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      16.7625,
+      49.1281
+     ],
+     "text": "Napoleon's post: St Anthony's Chapel",
+     "kind": "event"
+    }
+   ]
+  },
+  {
+   "id": "guard-clash",
+   "title": "The Russian Guard counterattacks",
+   "time": "c. 11:00-13:00",
+   "narrative": "With the centre in danger the Russian Imperial Guard under Grand Duke Constantine counterattacks near Vandamme's sector and defeats a battalion of the 4th Line, which loses the French army's only standard of the day. Napoleon sends in his own Guard cavalry, which crushes its Russian counterpart. Both sides feed in more horsemen until Drouet's division of Bernadotte's corps deploys on the flank and the Guard horse artillery tears into the Russians, who break and are chased.",
+   "positions": {
+    "al-guard": {
+     "at": [
+      16.776,
+      49.144
+     ],
+     "state": "engaged"
+    },
+    "fr-vandamme": {
+     "at": [
+      16.769,
+      49.145
+     ]
+    },
+    "fr-guard": {
+     "at": [
+      16.768,
+      49.138
+     ],
+     "state": "engaged"
+    },
+    "fr-bernadotte": {
+     "at": [
+      16.77,
+      49.153
+     ],
+     "state": "engaged"
+    },
+    "al-kutuzov": {
+     "state": "wounded"
+    }
+   },
+   "moves": [
+    {
+     "unit": "al-guard",
+     "type": "attack",
+     "path": [
+      [
+       16.815,
+       49.14
+      ],
+      [
+       16.776,
+       49.144
+      ]
+     ]
+    },
+    {
+     "unit": "fr-guard",
+     "type": "charge",
+     "path": [
+      [
+       16.728,
+       49.174
+      ],
+      [
+       16.768,
+       49.138
+      ]
+     ]
+    },
+    {
+     "unit": "fr-bernadotte",
+     "type": "advance",
+     "path": [
+      [
+       16.742,
+       49.156
+      ],
+      [
+       16.77,
+       49.153
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      16.772,
+      49.145
+     ],
+     "text": "4th Line loses a standard",
+     "kind": "clash"
+    }
+   ]
+  },
+  {
+   "id": "north",
+   "title": "Cavalry and Lannes in the north",
+   "time": "c. 11:00-14:00",
+   "narrative": "North of the Pratzen, Liechtenstein's Austrian cavalry finally arrives and presses Kellermann's light horse, which shelters behind Caffarelli's infantry. Murat then sends in the cuirassier divisions of d'Hautpoul and Nansouty, and a long melee ends in French favour. Lannes's corps goes against Bagration and drives him off the field. Murat, in charge of the sector, rejects a deep pursuit and Napoleon calls it off.",
+   "positions": {
+    "al-liechtenstein": {
+     "at": [
+      16.764,
+      49.17
+     ],
+     "state": "engaged"
+    },
+    "fr-murat": {
+     "at": [
+      16.758,
+      49.172
+     ],
+     "state": "engaged"
+    },
+    "fr-lannes": {
+     "at": [
+      16.772,
+      49.185
+     ],
+     "state": "engaged"
+    },
+    "al-bagration": {
+     "at": [
+      16.81,
+      49.18
+     ],
+     "state": "wavering"
+    }
+   },
+   "moves": [
+    {
+     "unit": "al-liechtenstein",
+     "type": "attack",
+     "path": [
+      [
+       16.805,
+       49.165
+      ],
+      [
+       16.764,
+       49.17
+      ]
+     ]
+    },
+    {
+     "unit": "fr-murat",
+     "type": "charge",
+     "path": [
+      [
+       16.744,
+       49.179
+      ],
+      [
+       16.758,
+       49.172
+      ]
+     ]
+    },
+    {
+     "unit": "fr-lannes",
+     "type": "attack",
+     "path": [
+      [
+       16.757,
+       49.185
+      ],
+      [
+       16.772,
+       49.185
+      ]
+     ]
+    },
+    {
+     "unit": "al-bagration",
+     "type": "retreat",
+     "path": [
+      [
+       16.8,
+       49.18
+      ],
+      [
+       16.81,
+       49.18
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "south-collapse",
+   "title": "The Allied left is taken from behind",
+   "time": "c. 14:00-16:00",
+   "narrative": "Napoleon turns south. St Hilaire's division, joined by part of Davout's corps, strikes Sokolnitz from two directions, and the cut-off commanders Kienmayer and Langeron pull out. The sources say Buxhoeveden fled drunk, though this charge comes from hostile accounts. Kienmayer covers the withdrawal with O'Reilly's light cavalry, which beats five of six French regiments before falling back. General panic spreads and the Allied army leaves the field in every direction.",
+   "positions": {
+    "fr-st-hilaire": {
+     "at": [
+      16.73,
+      49.118
+     ],
+     "facing": 225
+    },
+    "fr-legrand": {
+     "at": [
+      16.717,
+      49.11
+     ]
+    },
+    "al-col2": {
+     "at": [
+      16.733,
+      49.112
+     ],
+     "state": "routed"
+    },
+    "al-col3": {
+     "at": [
+      16.738,
+      49.116
+     ],
+     "state": "routed"
+    },
+    "al-col1": {
+     "at": [
+      16.739,
+      49.096
+     ],
+     "state": "wavering"
+    },
+    "al-kienmayer": {
+     "at": [
+      16.742,
+      49.096
+     ],
+     "facing": 90
+    },
+    "al-col4": {
+     "state": "routed",
+     "at": [
+      16.8,
+      49.133
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "fr-st-hilaire",
+     "type": "attack",
+     "path": [
+      [
+       16.76,
+       49.13
+      ],
+      [
+       16.73,
+       49.118
+      ]
+     ]
+    },
+    {
+     "unit": "al-col2",
+     "type": "rout",
+     "path": [
+      [
+       16.726,
+       49.1135
+      ],
+      [
+       16.733,
+       49.112
+      ]
+     ]
+    },
+    {
+     "unit": "al-col3",
+     "type": "rout",
+     "path": [
+      [
+       16.728,
+       49.12
+      ],
+      [
+       16.738,
+       49.116
+      ]
+     ]
+    },
+    {
+     "unit": "al-col1",
+     "type": "retreat",
+     "path": [
+      [
+       16.7255,
+       49.102
+      ],
+      [
+       16.739,
+       49.096
+      ]
+     ]
+    },
+    {
+     "unit": "al-kienmayer",
+     "type": "charge",
+     "path": [
+      [
+       16.73,
+       49.099
+      ],
+      [
+       16.742,
+       49.096
+      ]
+     ]
+    },
+    {
+     "unit": "al-col4",
+     "type": "rout",
+     "path": [
+      [
+       16.77,
+       49.133
+      ],
+      [
+       16.8,
+       49.133
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "satschan",
+   "title": "Retreat to the Satschan ponds",
+   "time": "late afternoon",
+   "narrative": "Part of the beaten Allied left retreats south over the frozen Satschan ponds. Napoleon's account says artillery on the Augezd heights smashed the ice and drowned thousands of men and dozens of guns. Local evidence later suggested that when the ponds were drained days afterwards, only a few corpses and about 150 horses were found, so the scale is disputed. Dokhturov keeps his men together and they rally near Neudorf by nightfall, after heavy losses.",
+   "positions": {
+    "al-col1": {
+     "at": [
+      16.722,
+      49.08
+     ],
+     "facing": 180,
+     "state": "routed"
+    },
+    "fr-davout": {
+     "at": [
+      16.73,
+      49.104
+     ],
+     "facing": 135,
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "al-col1",
+     "type": "retreat",
+     "path": [
+      [
+       16.739,
+       49.096
+      ],
+      [
+       16.722,
+       49.08
+      ]
+     ]
+    },
+    {
+     "unit": "fr-davout",
+     "type": "pursuit",
+     "path": [
+      [
+       16.714,
+       49.106
+      ],
+      [
+       16.73,
+       49.104
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      16.727,
+      49.092
+     ],
+     "text": "Ice and the ponds: scale of losses disputed",
+     "kind": "event",
+     "conjectural": true
+    }
+   ]
+  },
+  {
+   "id": "aftermath",
+   "title": "Three emperors, one winner",
+   "time": "2-26 December",
+   "narrative": "The Allies lose around 36,000 of 89,000 men and 186 guns, the French around 9,000 of 66,000. France and Austria agree a truce on 4 December and sign the Treaty of Pressburg 22 days later. Austria pays 40 million francs and gives up land. Russian forces withdraw home. The Holy Roman Empire is wound up the following year, Napoleon builds the Confederation of the Rhine, and Prussia, feeling slighted, goes to war with him in 1806."
+  }
+ ]
+}

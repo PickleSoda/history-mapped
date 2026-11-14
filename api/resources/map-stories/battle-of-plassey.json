@@ -1,0 +1,1995 @@
+{
+ "schema": 3,
+ "slug": "battle-of-plassey",
+ "kind": "battle",
+ "entity": {
+  "name": "Battle of Plassey",
+  "wikidata": "Q203233"
+ },
+ "title": "Battle of Plassey",
+ "date_label": "23 June 1757",
+ "year": 1757,
+ "intro": "On 23 June 1757 a small East India Company army under Robert Clive faced the vast host of Siraj ud-Daulah,\n        Nawab of Bengal, on a mango-grove plain beside the Bhagirathi, a branch of the Hooghly, near Palashi. Clive had about\n        3,100 men and eight guns; the Nawab fielded perhaps 50,000, with heavy artillery and a handful of French gunners\n        under St. Frais. The real contest had been settled in advance by a conspiracy: Mir Jafar, who held a wing of the\n        Nawab's army, and other powerful men at court had promised to hold back. After a day of cannonade, a rainstorm, the\n        death of the Nawab's most loyal general and a British advance in the afternoon, the camp fell. Mir Jafar was made\n        Nawab, and Bengal's revenue passed into Company hands.",
+ "outcome": "British victory: Siraj ud-Daulah fled and was killed, Mir Jafar became Nawab, and Bengal fell under Company control.",
+ "uncertainty": "The sources fix the grove, the entrenchment, the redoubt, the hill and the two tanks only by distance\n        from one another and the Bhagirathi has moved since 1757, so every position here is a reconstruction. The Nawab's\n        troop numbers and the split between Rai Durlabh, Yar Lutuf Khan and Mir Jafar are round estimates, and the exact\n        timings of the afternoon phases differ between accounts. Positions of detachments under Kilpatrick, Grant and Coote\n        are approximate.",
+ "sources": [
+  {
+   "title": "Battle of Plassey - Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Battle_of_Plassey",
+   "kind": "web"
+  }
+ ],
+ "sides": [
+  {
+   "id": "a",
+   "name": "East India Company",
+   "color": "#b91c1c",
+   "polity": {
+    "name": "East India Company",
+    "wikidata": "Q83164"
+   },
+   "commanders": [
+    {
+     "name": "Robert Clive",
+     "wikidata": "Q162296",
+     "role": "commander"
+    },
+    {
+     "name": "Eyre Coote",
+     "wikidata": "Q2613325",
+     "role": "major, 39th Foot"
+    }
+   ],
+   "strength": "c. 3,100",
+   "losses": "22-27 killed, 50 wounded"
+  },
+  {
+   "id": "b",
+   "name": "Nawab of Bengal",
+   "color": "#15803d",
+   "polity": {
+    "name": "Bengal Subah",
+    "wikidata": "Q4083684"
+   },
+   "commanders": [
+    {
+     "name": "Siraj ud-Daulah",
+     "wikidata": "Q1998495",
+     "role": "Nawab"
+    },
+    {
+     "name": "Mir Jafar",
+     "wikidata": "Q3241725",
+     "role": "left wing, secretly allied to Clive"
+    },
+    {
+     "name": "Mir Madan",
+     "wikidata": "Q28861765",
+     "role": "artillery chief, killed"
+    },
+    {
+     "name": "Diwan Mohanlal",
+     "wikidata": "Q5284739",
+     "role": "diwan"
+    },
+    {
+     "name": "St. Frais",
+     "wikidata": "Q16842433",
+     "role": "French artillery"
+    }
+   ],
+   "strength": "c. 50,000",
+   "losses": "c. 500 killed and wounded"
+  }
+ ],
+ "units": [
+  {
+   "id": "br-army",
+   "side": "a",
+   "kind": "army",
+   "label": "Clive's army",
+   "strength": "c. 3,100"
+  },
+  {
+   "id": "br-clive",
+   "side": "a",
+   "kind": "commander",
+   "label": "Clive"
+  },
+  {
+   "id": "br-euro",
+   "side": "a",
+   "kind": "infantry",
+   "label": "Europeans and topasses",
+   "strength": "c. 850",
+   "strength_n": 850
+  },
+  {
+   "id": "br-sepoy-l",
+   "side": "a",
+   "kind": "infantry",
+   "label": "Sepoys, left",
+   "strength": "c. 1,050",
+   "strength_n": 1050
+  },
+  {
+   "id": "br-sepoy-r",
+   "side": "a",
+   "kind": "infantry",
+   "label": "Sepoys, right",
+   "strength": "c. 1,050",
+   "strength_n": 1050
+  },
+  {
+   "id": "br-guns",
+   "side": "a",
+   "kind": "artillery",
+   "label": "Six-pounders"
+  },
+  {
+   "id": "br-kilns",
+   "side": "a",
+   "kind": "artillery",
+   "label": "Guns at the kilns"
+  },
+  {
+   "id": "br-kilpatrick",
+   "side": "a",
+   "kind": "infantry",
+   "label": "Kilpatrick's detachment"
+  },
+  {
+   "id": "br-grant",
+   "side": "a",
+   "kind": "infantry",
+   "label": "Grant's platoons"
+  },
+  {
+   "id": "br-coote",
+   "side": "a",
+   "kind": "infantry",
+   "label": "Coote's grenadiers"
+  },
+  {
+   "id": "na-french",
+   "side": "b",
+   "kind": "artillery",
+   "label": "St. Frais and French guns"
+  },
+  {
+   "id": "na-madan",
+   "side": "b",
+   "kind": "cavalry",
+   "label": "Mir Madan and Mohanlal",
+   "strength": "5,000 horse, 7,000 foot"
+  },
+  {
+   "id": "na-durlabh",
+   "side": "b",
+   "kind": "infantry",
+   "label": "Rai Durlabh, right"
+  },
+  {
+   "id": "na-lutuf",
+   "side": "b",
+   "kind": "infantry",
+   "label": "Yar Lutuf Khan, centre"
+  },
+  {
+   "id": "na-jafar",
+   "side": "b",
+   "kind": "infantry",
+   "label": "Mir Jafar, left"
+  },
+  {
+   "id": "na-siraj",
+   "side": "b",
+   "kind": "commander",
+   "label": "Siraj ud-Daulah"
+  }
+ ],
+ "terrain": [
+  {
+   "id": "river",
+   "kind": "river",
+   "label": "Bhagirathi",
+   "line": [
+    [
+     88.23348,
+     23.78919
+    ],
+    [
+     88.24511,
+     23.8192
+    ],
+    [
+     88.2053,
+     23.84477
+    ]
+   ]
+  },
+  {
+   "id": "river-s",
+   "kind": "river",
+   "label": "Bhagirathi",
+   "line": [
+    [
+     88.23381,
+     23.78564
+    ],
+    [
+     88.22099,
+     23.75566
+    ],
+    [
+     88.18958,
+     23.75975
+    ]
+   ]
+  },
+  {
+   "id": "grove",
+   "kind": "woods",
+   "label": "Laksha Bagh grove",
+   "area": [
+    [
+     88.245007,
+     23.784142
+    ],
+    [
+     88.245632,
+     23.784772
+    ],
+    [
+     88.24615,
+     23.785417
+    ],
+    [
+     88.246526,
+     23.786034
+    ],
+    [
+     88.246735,
+     23.786581
+    ],
+    [
+     88.246762,
+     23.78702
+    ],
+    [
+     88.246606,
+     23.787321
+    ],
+    [
+     88.246276,
+     23.787464
+    ],
+    [
+     88.245797,
+     23.787439
+    ],
+    [
+     88.245199,
+     23.787248
+    ],
+    [
+     88.244525,
+     23.786904
+    ],
+    [
+     88.243819,
+     23.78643
+    ],
+    [
+     88.243131,
+     23.785858
+    ],
+    [
+     88.242506,
+     23.785228
+    ],
+    [
+     88.241988,
+     23.784583
+    ],
+    [
+     88.241612,
+     23.783966
+    ],
+    [
+     88.241403,
+     23.783419
+    ],
+    [
+     88.241376,
+     23.78298
+    ],
+    [
+     88.241532,
+     23.782679
+    ],
+    [
+     88.241862,
+     23.782536
+    ],
+    [
+     88.242341,
+     23.782561
+    ],
+    [
+     88.242939,
+     23.782752
+    ],
+    [
+     88.243613,
+     23.783096
+    ],
+    [
+     88.244319,
+     23.78357
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "lodge",
+   "kind": "building",
+   "label": "Hunting lodge",
+   "at": [
+    88.237189,
+    23.789317
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "entrench",
+   "kind": "wall",
+   "label": "Nawab's entrenchment",
+   "line": [
+    [
+     88.234732,
+     23.79849
+    ],
+    [
+     88.236501,
+     23.79849
+    ],
+    [
+     88.248,
+     23.808832
+    ],
+    [
+     88.256845,
+     23.816926
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "redoubt",
+   "kind": "fortification",
+   "label": "Redoubt",
+   "area": [
+    [
+     88.236993,
+     23.79849
+    ],
+    [
+     88.236973,
+     23.79863
+    ],
+    [
+     88.236914,
+     23.79876
+    ],
+    [
+     88.23682,
+     23.798872
+    ],
+    [
+     88.236698,
+     23.798957
+    ],
+    [
+     88.236556,
+     23.799011
+    ],
+    [
+     88.236403,
+     23.79903
+    ],
+    [
+     88.23625,
+     23.799011
+    ],
+    [
+     88.236108,
+     23.798957
+    ],
+    [
+     88.235986,
+     23.798872
+    ],
+    [
+     88.235892,
+     23.79876
+    ],
+    [
+     88.235833,
+     23.79863
+    ],
+    [
+     88.235813,
+     23.79849
+    ],
+    [
+     88.235833,
+     23.79835
+    ],
+    [
+     88.235892,
+     23.79822
+    ],
+    [
+     88.235986,
+     23.798108
+    ],
+    [
+     88.236108,
+     23.798023
+    ],
+    [
+     88.23625,
+     23.797969
+    ],
+    [
+     88.236403,
+     23.79795
+    ],
+    [
+     88.236556,
+     23.797969
+    ],
+    [
+     88.236698,
+     23.798023
+    ],
+    [
+     88.23682,
+     23.798108
+    ],
+    [
+     88.236914,
+     23.79822
+    ],
+    [
+     88.236973,
+     23.79835
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "tank-l",
+   "kind": "field",
+   "label": "Larger tank",
+   "area": [
+    [
+     88.243676,
+     23.792015
+    ],
+    [
+     88.243656,
+     23.79212
+    ],
+    [
+     88.243597,
+     23.792217
+    ],
+    [
+     88.243503,
+     23.792301
+    ],
+    [
+     88.243381,
+     23.792365
+    ],
+    [
+     88.243239,
+     23.792406
+    ],
+    [
+     88.243086,
+     23.79242
+    ],
+    [
+     88.242933,
+     23.792406
+    ],
+    [
+     88.242791,
+     23.792365
+    ],
+    [
+     88.242669,
+     23.792301
+    ],
+    [
+     88.242575,
+     23.792217
+    ],
+    [
+     88.242516,
+     23.79212
+    ],
+    [
+     88.242496,
+     23.792015
+    ],
+    [
+     88.242516,
+     23.79191
+    ],
+    [
+     88.242575,
+     23.791813
+    ],
+    [
+     88.242669,
+     23.791729
+    ],
+    [
+     88.242791,
+     23.791665
+    ],
+    [
+     88.242933,
+     23.791624
+    ],
+    [
+     88.243086,
+     23.79161
+    ],
+    [
+     88.243239,
+     23.791624
+    ],
+    [
+     88.243381,
+     23.791665
+    ],
+    [
+     88.243503,
+     23.791729
+    ],
+    [
+     88.243597,
+     23.791813
+    ],
+    [
+     88.243656,
+     23.79191
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "tank-s",
+   "kind": "field",
+   "label": "Smaller tank",
+   "area": [
+    [
+     88.243577,
+     23.793633
+    ],
+    [
+     88.243561,
+     23.793726
+    ],
+    [
+     88.243512,
+     23.793813
+    ],
+    [
+     88.243433,
+     23.793887
+    ],
+    [
+     88.243332,
+     23.793945
+    ],
+    [
+     88.243213,
+     23.79398
+    ],
+    [
+     88.243086,
+     23.793993
+    ],
+    [
+     88.242959,
+     23.79398
+    ],
+    [
+     88.24284,
+     23.793945
+    ],
+    [
+     88.242739,
+     23.793887
+    ],
+    [
+     88.24266,
+     23.793813
+    ],
+    [
+     88.242611,
+     23.793726
+    ],
+    [
+     88.242595,
+     23.793633
+    ],
+    [
+     88.242611,
+     23.79354
+    ],
+    [
+     88.24266,
+     23.793453
+    ],
+    [
+     88.242739,
+     23.793379
+    ],
+    [
+     88.24284,
+     23.793321
+    ],
+    [
+     88.242959,
+     23.793286
+    ],
+    [
+     88.243086,
+     23.793273
+    ],
+    [
+     88.243213,
+     23.793286
+    ],
+    [
+     88.243332,
+     23.793321
+    ],
+    [
+     88.243433,
+     23.793379
+    ],
+    [
+     88.243512,
+     23.793453
+    ],
+    [
+     88.243561,
+     23.79354
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "hill",
+   "kind": "hill",
+   "label": "Wooded hill",
+   "area": [
+    [
+     88.239646,
+     23.79849
+    ],
+    [
+     88.23962,
+     23.798676
+    ],
+    [
+     88.239541,
+     23.79885
+    ],
+    [
+     88.239416,
+     23.798999
+    ],
+    [
+     88.239253,
+     23.799113
+    ],
+    [
+     88.239064,
+     23.799185
+    ],
+    [
+     88.23886,
+     23.799209
+    ],
+    [
+     88.238656,
+     23.799185
+    ],
+    [
+     88.238467,
+     23.799113
+    ],
+    [
+     88.238304,
+     23.798999
+    ],
+    [
+     88.238179,
+     23.79885
+    ],
+    [
+     88.2381,
+     23.798676
+    ],
+    [
+     88.238074,
+     23.79849
+    ],
+    [
+     88.2381,
+     23.798304
+    ],
+    [
+     88.238179,
+     23.79813
+    ],
+    [
+     88.238304,
+     23.797981
+    ],
+    [
+     88.238467,
+     23.797867
+    ],
+    [
+     88.238656,
+     23.797795
+    ],
+    [
+     88.23886,
+     23.797771
+    ],
+    [
+     88.239064,
+     23.797795
+    ],
+    [
+     88.239253,
+     23.797867
+    ],
+    [
+     88.239416,
+     23.797981
+    ],
+    [
+     88.239541,
+     23.79813
+    ],
+    [
+     88.23962,
+     23.798304
+    ]
+   ],
+   "conjectural": true
+  }
+ ],
+ "steps": [
+  {
+   "id": "grove",
+   "title": "Into the mango grove",
+   "time": "1:00, 23 June",
+   "narrative": "After crossing the Bhagirathi on 22 June, Clive's little army marched through the wet night and reached Plassey about one in the morning. It took the Laksha Bagh, a walled and ditched mango grove roughly 730 metres long, and Clive made his quarters in the hunting lodge on the river bank just north of it. A mile off, behind earthworks that ran from the river and then swung north-east, the Nawab's huge army had been camped for more than a day.",
+   "positions": {
+    "br-army": {
+     "at": [
+      88.244069,
+      23.78455
+     ],
+     "facing": 0,
+     "width": 360,
+     "depth": 90,
+     "state": "ready"
+    },
+    "br-clive": {
+     "at": [
+      88.237189,
+      23.789317
+     ],
+     "facing": 0
+    },
+    "na-durlabh": {
+     "at": [
+      88.246526,
+      23.802537
+     ],
+     "facing": 180,
+     "width": 500,
+     "depth": 100
+    },
+    "na-madan": {
+     "at": [
+      88.252914,
+      23.801188
+     ],
+     "facing": 180,
+     "width": 500,
+     "depth": 70
+    },
+    "na-lutuf": {
+     "at": [
+      88.259794,
+      23.802537
+     ],
+     "facing": 180,
+     "width": 450,
+     "depth": 100
+    },
+    "na-jafar": {
+     "at": [
+      88.26569,
+      23.803886
+     ],
+     "facing": 180,
+     "width": 450,
+     "depth": 100
+    },
+    "na-french": {
+     "at": [
+      88.243577,
+      23.800288
+     ],
+     "facing": 180,
+     "width": 110,
+     "depth": 40
+    },
+    "na-siraj": {
+     "at": [
+      88.248983,
+      23.804335
+     ],
+     "facing": 180
+    }
+   },
+   "moves": [
+    {
+     "side": "a",
+     "type": "march",
+     "path": [
+      [
+       88.233258,
+       23.767913
+      ],
+      [
+       88.238172,
+       23.776906
+      ],
+      [
+       88.244069,
+       23.783651
+      ]
+     ],
+     "label": "Clive's march"
+    }
+   ]
+  },
+  {
+   "id": "sortie",
+   "title": "The Nawab's army comes out",
+   "time": "Dawn",
+   "narrative": "At daybreak the Nawab's army left its camp and spread toward the grove. Sources count some 50,000 men and a very large park of heavy guns. Fifty French gunners under St. Frais took post at the larger tank with a few light pieces, within a mile of the British. Behind them stood the loyal general Mir Madan and the diwan Mohanlal with about 12,000 men. The rest formed a long arc: Rai Durlabh on the right, Yar Lutuf Khan in the centre and Mir Jafar, the secret ally of the British, on the left nearest Clive.",
+   "positions": {
+    "na-french": {
+     "at": [
+      88.243086,
+      23.792195
+     ],
+     "width": 120
+    },
+    "na-madan": {
+     "at": [
+      88.246526,
+      23.793993
+     ],
+     "facing": 190,
+     "width": 650,
+     "depth": 60
+    },
+    "na-durlabh": {
+     "at": [
+      88.240138,
+      23.797141
+     ],
+     "facing": 210,
+     "conjectural": true
+    },
+    "na-lutuf": {
+     "at": [
+      88.255371,
+      23.792195
+     ],
+     "facing": 240,
+     "width": 500,
+     "conjectural": true
+    },
+    "na-jafar": {
+     "at": [
+      88.258319,
+      23.786349
+     ],
+     "facing": 270,
+     "width": 500,
+     "conjectural": true
+    },
+    "na-siraj": {
+     "at": [
+      88.245543,
+      23.799839
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "na-french",
+     "type": "advance",
+     "path": [
+      [
+       88.243577,
+       23.800288
+      ],
+      [
+       88.243086,
+       23.792195
+      ]
+     ]
+    },
+    {
+     "unit": "na-madan",
+     "type": "advance",
+     "path": [
+      [
+       88.252914,
+       23.801188
+      ],
+      [
+       88.246526,
+       23.793993
+      ]
+     ]
+    },
+    {
+     "unit": "na-durlabh",
+     "type": "advance",
+     "path": [
+      [
+       88.246526,
+       23.802537
+      ],
+      [
+       88.240138,
+       23.797141
+      ]
+     ]
+    },
+    {
+     "unit": "na-lutuf",
+     "type": "advance",
+     "path": [
+      [
+       88.259794,
+       23.802537
+      ],
+      [
+       88.255371,
+       23.792195
+      ]
+     ]
+    },
+    {
+     "unit": "na-jafar",
+     "type": "advance",
+     "path": [
+      [
+       88.26569,
+       23.803886
+      ],
+      [
+       88.258319,
+       23.786349
+      ]
+     ]
+    },
+    {
+     "unit": "na-siraj",
+     "type": "advance",
+     "path": [
+      [
+       88.248983,
+       23.804335
+      ],
+      [
+       88.245543,
+       23.799839
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "line",
+   "title": "The British line and the first shots",
+   "time": "8:00",
+   "narrative": "Clive watched from the roof of the lodge and ordered his men out of the grove to face the larger tank. The Europeans and topasses stood in the centre in four divisions with three six-pounders on each side, and the sepoys held the two wings. Two six-pounders and two howitzers were set behind brick kilns north of the left. At eight the French guns fired the first shot, killing a grenadier, and the whole Nawab's artillery opened a heavy and steady fire.",
+   "positions": {
+    "br-army": {
+     "state": "hidden"
+    },
+    "br-sepoy-l": {
+     "at": [
+      88.241712,
+      23.787815
+     ],
+     "facing": 0,
+     "width": 320,
+     "depth": 14
+    },
+    "br-euro": {
+     "at": [
+      88.244561,
+      23.787815
+     ],
+     "facing": 0,
+     "width": 259,
+     "depth": 14,
+     "state": "engaged"
+    },
+    "br-sepoy-r": {
+     "at": [
+      88.247409,
+      23.787815
+     ],
+     "facing": 0,
+     "width": 320,
+     "depth": 14
+    },
+    "br-guns": {
+     "at": [
+      88.24456,
+      23.788103
+     ],
+     "facing": 0,
+     "width": 160,
+     "depth": 12
+    },
+    "br-kilns": {
+     "at": [
+      88.240334,
+      23.789676
+     ],
+     "facing": 0,
+     "width": 70,
+     "depth": 12,
+     "state": "engaged"
+    },
+    "br-clive": {
+     "with": "br-euro"
+    },
+    "na-french": {
+     "state": "engaged"
+    }
+   },
+   "notes": [
+    {
+     "at": [
+      88.243086,
+      23.791295
+     ],
+     "text": "First shot from the French guns",
+     "kind": "clash"
+    }
+   ]
+  },
+  {
+   "id": "withdraw",
+   "title": "Back behind the grove bank",
+   "time": "8:30",
+   "narrative": "Round shot from the Nawab's batteries mostly flew into his own cavalry and infantry, yet by half past eight the British had lost 10 Europeans and 20 sepoys. Clive pulled the main body back into the shelter of the grove, whose earth bank and ditch cut the casualty rate sharply. Only the advanced guns at the brick kilns stayed out to answer the French. For about three hours neither side changed position, and Clive's officers resolved to hold the grove until dark and attempt a night attack at midnight.",
+   "positions": {
+    "br-sepoy-l": {
+     "at": [
+      88.241907,
+      23.786079
+     ],
+     "width": 240,
+     "depth": 30,
+     "state": "ready"
+    },
+    "br-euro": {
+     "at": [
+      88.244069,
+      23.785719
+     ],
+     "width": 260,
+     "depth": 20,
+     "state": "ready"
+    },
+    "br-sepoy-r": {
+     "at": [
+      88.246722,
+      23.785719
+     ],
+     "width": 240,
+     "depth": 30,
+     "state": "ready"
+    },
+    "br-guns": {
+     "at": [
+      88.244069,
+      23.786799
+     ]
+    },
+    "br-clive": {
+     "at": [
+      88.237189,
+      23.789317
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "br-sepoy-l",
+     "type": "retreat",
+     "path": [
+      [
+       88.241712,
+       23.787815
+      ],
+      [
+       88.241907,
+       23.786079
+      ]
+     ]
+    },
+    {
+     "unit": "br-euro",
+     "type": "retreat",
+     "path": [
+      [
+       88.244561,
+       23.787815
+      ],
+      [
+       88.244069,
+       23.785719
+      ]
+     ]
+    },
+    {
+     "unit": "br-sepoy-r",
+     "type": "retreat",
+     "path": [
+      [
+       88.247409,
+       23.787815
+      ],
+      [
+       88.246722,
+       23.785719
+      ]
+     ]
+    },
+    {
+     "unit": "br-guns",
+     "type": "retreat",
+     "path": [
+      [
+       88.24456,
+       23.788103
+      ],
+      [
+       88.244069,
+       23.786799
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rain",
+   "title": "Rain and the death of Mir Madan",
+   "time": "c. 11:00-12:00",
+   "narrative": "A heavy rainstorm broke over the field. Clive's gunners covered their powder with tarpaulins, but the Nawab's army took no such care and its powder was soaked. Supposing the British guns were dead too, Mir Madan led his cavalry in a charge as the rain eased. Grapeshot stopped it and mortally wounded him. The loss shook Siraj ud-Daulah, who in panic sought Mir Jafar's help, and Mir Jafar quietly passed the news to Clive and urged him to press forward.",
+   "positions": {
+    "na-madan": {
+     "at": [
+      88.245543,
+      23.790396
+     ],
+     "state": "engaged"
+    },
+    "br-sepoy-l": {
+     "state": "engaged"
+    },
+    "br-guns": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "na-madan",
+     "type": "charge",
+     "path": [
+      [
+       88.246526,
+       23.793993
+      ],
+      [
+       88.245543,
+       23.790396
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      88.245052,
+      23.789676
+     ],
+     "text": "Mir Madan mortally wounded",
+     "kind": "death"
+    }
+   ]
+  },
+  {
+   "id": "siraj-leaves",
+   "title": "Siraj ud-Daulah leaves the field",
+   "time": "c. 12:00-14:00",
+   "narrative": "Rai Durlabh, the commander on the Nawab's right, advised Siraj to withdraw behind the entrenchment and to leave the fighting to his generals. The Nawab agreed. He ordered Mohanlal to pull back and then rode a camel toward Murshidabad with 2,000 horsemen. About two o'clock the army stopped its cannonade and began to turn north toward its camp, leaving St. Frais and his guns at the tank without support.",
+   "positions": {
+    "na-siraj": {
+     "at": [
+      88.245543,
+      23.807483
+     ],
+     "facing": 0
+    },
+    "na-madan": {
+     "at": [
+      88.246526,
+      23.795342
+     ],
+     "facing": 0,
+     "state": "wavering"
+    },
+    "na-durlabh": {
+     "at": [
+      88.24112,
+      23.798939
+     ],
+     "facing": 0
+    },
+    "na-lutuf": {
+     "at": [
+      88.253897,
+      23.795792
+     ],
+     "facing": 0
+    },
+    "br-sepoy-l": {
+     "state": "ready"
+    },
+    "br-guns": {
+     "state": "ready"
+    },
+    "br-kilns": {
+     "state": "ready"
+    },
+    "na-french": {
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "na-siraj",
+     "type": "retreat",
+     "path": [
+      [
+       88.245543,
+       23.799839
+      ],
+      [
+       88.245543,
+       23.807483
+      ]
+     ]
+    },
+    {
+     "unit": "na-madan",
+     "type": "retreat",
+     "path": [
+      [
+       88.245543,
+       23.790396
+      ],
+      [
+       88.246526,
+       23.795342
+      ]
+     ]
+    },
+    {
+     "unit": "na-durlabh",
+     "type": "retreat",
+     "path": [
+      [
+       88.240138,
+       23.797141
+      ],
+      [
+       88.24112,
+       23.798939
+      ]
+     ]
+    },
+    {
+     "unit": "na-lutuf",
+     "type": "retreat",
+     "path": [
+      [
+       88.255371,
+       23.792195
+      ],
+      [
+       88.253897,
+       23.795792
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "kilpatrick",
+   "title": "Kilpatrick moves on the French guns",
+   "time": "c. 14:00",
+   "narrative": "Major Kilpatrick, left in command while Clive rested in the lodge, saw the Nawab's troops going away and saw that St. Frais was now alone. Without orders he took two companies of the 39th Foot and two field pieces toward the tank. Clive heard of it, hurried up, scolded him, and then brought out the rest of the army from the grove. Mir Jafar's division, trailing behind the Nawab's retiring columns, began to angle toward the grove.",
+   "positions": {
+    "br-kilpatrick": {
+     "at": [
+      88.243872,
+      23.789047
+     ],
+     "facing": 0,
+     "width": 130,
+     "depth": 14
+    },
+    "br-euro": {
+     "at": [
+      88.244069,
+      23.787698
+     ]
+    },
+    "br-sepoy-l": {
+     "at": [
+      88.241317,
+      23.787518
+     ]
+    },
+    "br-sepoy-r": {
+     "at": [
+      88.246821,
+      23.787518
+     ]
+    },
+    "na-jafar": {
+     "at": [
+      88.256354,
+      23.791295
+     ],
+     "facing": 300
+    }
+   },
+   "moves": [
+    {
+     "unit": "br-kilpatrick",
+     "type": "advance",
+     "path": [
+      [
+       88.243872,
+       23.786349
+      ],
+      [
+       88.243872,
+       23.789047
+      ]
+     ]
+    },
+    {
+     "unit": "br-euro",
+     "type": "advance",
+     "path": [
+      [
+       88.244069,
+       23.785719
+      ],
+      [
+       88.244069,
+       23.787698
+      ]
+     ]
+    },
+    {
+     "unit": "br-sepoy-l",
+     "type": "advance",
+     "path": [
+      [
+       88.241907,
+       23.786079
+      ],
+      [
+       88.241317,
+       23.787518
+      ]
+     ]
+    },
+    {
+     "unit": "br-sepoy-r",
+     "type": "advance",
+     "path": [
+      [
+       88.246722,
+       23.785719
+      ],
+      [
+       88.246821,
+       23.787518
+      ]
+     ]
+    },
+    {
+     "unit": "na-jafar",
+     "type": "advance",
+     "path": [
+      [
+       88.258319,
+       23.786349
+      ],
+      [
+       88.256354,
+       23.791295
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "tank",
+   "title": "The larger tank falls",
+   "time": "c. 15:00",
+   "narrative": "Clive led the army forward and by about three o'clock the French artillery had been forced out of the larger tank and back to the redoubt of the entrenchment. Meanwhile the Nawab's left division, which had lagged behind, turned toward the grove. Clive took it for an attack on his baggage and sent Captain Grant with three platoons and a field piece under Johnstone to stop it. The gun's fire halted the division, which then stood apart from the rest of the Nawab's army.",
+   "positions": {
+    "br-kilpatrick": {
+     "at": [
+      88.243086,
+      23.791835
+     ],
+     "state": "engaged"
+    },
+    "na-french": {
+     "at": [
+      88.237189,
+      23.79804
+     ],
+     "width": 100
+    },
+    "br-euro": {
+     "at": [
+      88.243577,
+      23.790846
+     ]
+    },
+    "br-sepoy-l": {
+     "at": [
+      88.240629,
+      23.790576
+     ]
+    },
+    "br-sepoy-r": {
+     "at": [
+      88.246329,
+      23.790576
+     ]
+    },
+    "br-grant": {
+     "at": [
+      88.250948,
+      23.788148
+     ],
+     "facing": 90,
+     "width": 100,
+     "depth": 14,
+     "conjectural": true
+    },
+    "na-jafar": {
+     "at": [
+      88.25488,
+      23.789047
+     ],
+     "state": "ready"
+    },
+    "br-clive": {
+     "with": "br-euro"
+    }
+   },
+   "moves": [
+    {
+     "unit": "na-french",
+     "type": "retreat",
+     "path": [
+      [
+       88.243086,
+       23.792195
+      ],
+      [
+       88.237189,
+       23.79804
+      ]
+     ]
+    },
+    {
+     "unit": "br-euro",
+     "type": "advance",
+     "path": [
+      [
+       88.244069,
+       23.787698
+      ],
+      [
+       88.243577,
+       23.790846
+      ]
+     ]
+    },
+    {
+     "unit": "br-sepoy-l",
+     "type": "advance",
+     "path": [
+      [
+       88.241317,
+       23.787518
+      ],
+      [
+       88.240629,
+       23.790576
+      ]
+     ]
+    },
+    {
+     "unit": "br-sepoy-r",
+     "type": "advance",
+     "path": [
+      [
+       88.246821,
+       23.787518
+      ],
+      [
+       88.246329,
+       23.790576
+      ]
+     ]
+    },
+    {
+     "unit": "br-grant",
+     "type": "flank",
+     "path": [
+      [
+       88.245052,
+       23.789497
+      ],
+      [
+       88.250948,
+       23.788148
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cannonade",
+   "title": "Bombarding the entrenchment",
+   "time": "c. 15:00-16:00",
+   "narrative": "From the mound of the larger tank the British guns fired into the Nawab's camp, and troops and guns that tried to come out were thrown into confusion. Clive sent half his force and guns to the smaller tank and the rest to a rise about 200 yards to its left. Matchlockmen fired from holes, ditches and bushes on the hill east of the redoubt, St. Frais kept his guns in the redoubt and the Nawab's horse charged more than once. This phase cost the British most of their casualties. Clive finally understood that the lingering division was Mir Jafar's.",
+   "positions": {
+    "br-euro": {
+     "at": [
+      88.24112,
+      23.793993
+     ],
+     "state": "engaged"
+    },
+    "br-sepoy-l": {
+     "at": [
+      88.238172,
+      23.793813
+     ],
+     "state": "engaged"
+    },
+    "br-sepoy-r": {
+     "at": [
+      88.243774,
+      23.793813
+     ],
+     "state": "engaged"
+    },
+    "br-kilpatrick": {
+     "at": [
+      88.240138,
+      23.794443
+     ]
+    },
+    "na-durlabh": {
+     "at": [
+      88.247017,
+      23.798939
+     ],
+     "facing": 225,
+     "state": "engaged"
+    },
+    "na-lutuf": {
+     "at": [
+      88.253897,
+      23.79849
+     ],
+     "facing": 225,
+     "state": "ready"
+    },
+    "na-french": {
+     "at": [
+      88.236403,
+      23.79849
+     ],
+     "width": 90,
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "br-euro",
+     "type": "advance",
+     "path": [
+      [
+       88.243577,
+       23.790846
+      ],
+      [
+       88.24112,
+       23.793993
+      ]
+     ]
+    },
+    {
+     "unit": "br-sepoy-l",
+     "type": "advance",
+     "path": [
+      [
+       88.240629,
+       23.790576
+      ],
+      [
+       88.238172,
+       23.793813
+      ]
+     ]
+    },
+    {
+     "unit": "br-sepoy-r",
+     "type": "advance",
+     "path": [
+      [
+       88.246329,
+       23.790576
+      ],
+      [
+       88.243774,
+       23.793813
+      ]
+     ]
+    },
+    {
+     "unit": "na-lutuf",
+     "type": "advance",
+     "path": [
+      [
+       88.253897,
+       23.795792
+      ],
+      [
+       88.253897,
+       23.79849
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      88.23886,
+      23.79849
+     ],
+     "text": "Wooded hill (conjectural)",
+     "kind": "label"
+    }
+   ]
+  },
+  {
+   "id": "assault",
+   "title": "Three-pronged assault",
+   "time": "16:30",
+   "narrative": "Clive ordered two detachments to storm the redoubt and the hill east of it while the main force pressed in the centre. Major Coote with two grenadier companies of the 39th took the hill at half past four, when the defenders ran without firing. The redoubt fell after St. Frais withdrew. The army inside, with its general gone and its commander Mir Jafar standing aside, had no one to hold it together.",
+   "positions": {
+    "br-coote": {
+     "at": [
+      88.23886,
+      23.79804
+     ],
+     "facing": 0,
+     "width": 130,
+     "depth": 14,
+     "state": "engaged",
+     "conjectural": true
+    },
+    "br-euro": {
+     "at": [
+      88.242103,
+      23.797141
+     ],
+     "facing": 45
+    },
+    "br-sepoy-l": {
+     "at": [
+      88.237189,
+      23.797411
+     ]
+    },
+    "na-french": {
+     "at": [
+      88.237681,
+      23.802087
+     ],
+     "state": "routed"
+    },
+    "na-durlabh": {
+     "state": "wavering"
+    }
+   },
+   "moves": [
+    {
+     "unit": "br-coote",
+     "type": "charge",
+     "path": [
+      [
+       88.240138,
+       23.795342
+      ],
+      [
+       88.23886,
+       23.79804
+      ]
+     ]
+    },
+    {
+     "unit": "br-euro",
+     "type": "attack",
+     "path": [
+      [
+       88.24112,
+       23.793993
+      ],
+      [
+       88.242103,
+       23.797141
+      ]
+     ]
+    },
+    {
+     "unit": "br-sepoy-l",
+     "type": "attack",
+     "path": [
+      [
+       88.238172,
+       23.793813
+      ],
+      [
+       88.237189,
+       23.797411
+      ]
+     ]
+    },
+    {
+     "unit": "na-french",
+     "type": "retreat",
+     "path": [
+      [
+       88.236403,
+       23.79849
+      ],
+      [
+       88.237681,
+       23.802087
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rout",
+   "title": "The camp is taken",
+   "time": "17:00",
+   "narrative": "By five the British held the entrenchment and the camp the Nawab's army had abandoned as it scattered. Clive's losses came to 22 killed and 50 wounded by the usual accounting, against an estimated 500 on the other side. His troops marched on that evening and halted six miles beyond Daudpur. The next morning Mir Jafar met him there and was saluted as Nawab of Bengal, Bihar and Orissa.",
+   "positions": {
+    "br-euro": {
+     "at": [
+      88.245052,
+      23.801188
+     ],
+     "state": "ready"
+    },
+    "br-sepoy-l": {
+     "at": [
+      88.239155,
+      23.801188
+     ],
+     "facing": 45,
+     "state": "ready"
+    },
+    "br-sepoy-r": {
+     "at": [
+      88.247017,
+      23.798939
+     ],
+     "facing": 45,
+     "state": "ready"
+    },
+    "br-coote": {
+     "at": [
+      88.24112,
+      23.803886
+     ],
+     "state": "ready"
+    },
+    "na-durlabh": {
+     "state": "routed",
+     "at": [
+      88.256845,
+      23.810181
+     ],
+     "facing": 45
+    },
+    "na-lutuf": {
+     "state": "routed",
+     "at": [
+      88.262742,
+      23.808382
+     ],
+     "facing": 45
+    },
+    "na-madan": {
+     "state": "routed",
+     "at": [
+      88.25488,
+      23.81108
+     ],
+     "facing": 45
+    }
+   },
+   "moves": [
+    {
+     "unit": "br-euro",
+     "type": "advance",
+     "path": [
+      [
+       88.242103,
+       23.797141
+      ],
+      [
+       88.245052,
+       23.801188
+      ]
+     ]
+    },
+    {
+     "unit": "br-sepoy-l",
+     "type": "advance",
+     "path": [
+      [
+       88.237189,
+       23.797411
+      ],
+      [
+       88.239155,
+       23.801188
+      ]
+     ]
+    },
+    {
+     "unit": "br-sepoy-r",
+     "type": "advance",
+     "path": [
+      [
+       88.243774,
+       23.793813
+      ],
+      [
+       88.247017,
+       23.798939
+      ]
+     ]
+    },
+    {
+     "unit": "br-coote",
+     "type": "pursuit",
+     "path": [
+      [
+       88.23886,
+       23.79804
+      ],
+      [
+       88.24112,
+       23.803886
+      ]
+     ]
+    },
+    {
+     "unit": "na-durlabh",
+     "type": "rout",
+     "path": [
+      [
+       88.247017,
+       23.798939
+      ],
+      [
+       88.256845,
+       23.810181
+      ]
+     ]
+    },
+    {
+     "unit": "na-lutuf",
+     "type": "rout",
+     "path": [
+      [
+       88.253897,
+       23.79849
+      ],
+      [
+       88.262742,
+       23.808382
+      ]
+     ]
+    },
+    {
+     "unit": "na-madan",
+     "type": "rout",
+     "path": [
+      [
+       88.246526,
+       23.795342
+      ],
+      [
+       88.25488,
+       23.81108
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

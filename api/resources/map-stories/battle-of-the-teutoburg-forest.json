@@ -1,0 +1,1621 @@
+{
+ "schema": 3,
+ "slug": "battle-of-the-teutoburg-forest",
+ "kind": "battle",
+ "entity": {
+  "name": "Battle of the Teutoburg Forest",
+  "wikidata": "Q87779"
+ },
+ "title": "Battle of the Teutoburg Forest",
+ "date_label": "8-11 September 9 AD",
+ "year": 9,
+ "intro": "In September of 9 AD a Roman force under the governor Publius Quinctilius Varus was ambushed and\n        destroyed in the forests of north-western Germany by a coalition of Germanic tribes led by Arminius, a\n        Cherusci noble who had served Rome and held citizenship. Varus was leading three legions and their\n        auxiliaries from summer quarters near the Weser back toward the Rhine, by a route Arminius had\n        suggested. After a running fight through forest and rain, the survivors were caught on a narrow strip\n        at Kalkriese between the hill and the bog, before a wall that the Germans had built. The disaster\n        ended Roman ambitions east of the Rhine.",
+ "outcome": "A decisive Germanic victory: three Roman legions destroyed, and Rome gave up its plan to hold Germania up to the Elbe.",
+ "uncertainty": "The identification of Kalkriese as the main site is widely accepted, but not universally. The\n        route taken, the camp location, the timing of the night march and the order of events along the 15 to\n        20 km column are reconstructions, and the road line, wall course, bog outline and positions east of the pass\n        are conjectural. Strengths on both sides are estimates. The unit placements follow a mainstream reading\n        of Velleius Paterculus and Cassius Dio, both written later.",
+ "sources": [
+  {
+   "title": "Battle of the Teutoburg Forest - Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Battle_of_the_Teutoburg_Forest",
+   "kind": "web"
+  }
+ ],
+ "sides": [
+  {
+   "id": "roman",
+   "name": "Roman Empire",
+   "color": "#b91c1c",
+   "polity": {
+    "name": "Roman Empire",
+    "wikidata": "Q2277"
+   },
+   "commanders": [
+    {
+     "name": "Publius Quinctilius Varus",
+     "wikidata": "Q214765",
+     "role": "governor of Germania"
+    }
+   ],
+   "strength": "c. 17,000-20,000",
+   "losses": "15,000-20,000 killed"
+  },
+  {
+   "id": "german",
+   "name": "Germanic coalition",
+   "color": "#15803d",
+   "polity": {
+    "name": "Germanic peoples",
+    "wikidata": "Q22633"
+   },
+   "commanders": [
+    {
+     "name": "Arminius",
+     "wikidata": "Q68880",
+     "role": "Cherusci leader"
+    }
+   ],
+   "strength": "c. 18,000-30,000",
+   "losses": "unknown"
+  }
+ ],
+ "units": [
+  {
+   "id": "rom-leg",
+   "side": "roman",
+   "kind": "heavy_infantry",
+   "label": "XVII, XVIII, XIX legions",
+   "strength": "c. 15,000"
+  },
+  {
+   "id": "rom-aux",
+   "side": "roman",
+   "kind": "light_infantry",
+   "label": "Roman auxiliaries",
+   "strength": "c. 4,500"
+  },
+  {
+   "id": "rom-baggage",
+   "side": "roman",
+   "kind": "baggage",
+   "label": "Baggage train"
+  },
+  {
+   "id": "rom-cav",
+   "side": "roman",
+   "kind": "cavalry",
+   "label": "Cavalry under Vala"
+  },
+  {
+   "id": "varus",
+   "side": "roman",
+   "kind": "commander",
+   "label": "Varus"
+  },
+  {
+   "id": "camp",
+   "side": "roman",
+   "kind": "camp",
+   "label": "Roman camp"
+  },
+  {
+   "id": "ger-angri",
+   "side": "german",
+   "kind": "infantry",
+   "label": "Angrivarii at the wall",
+   "strength": "c. 5,000"
+  },
+  {
+   "id": "ger-bructeri",
+   "side": "german",
+   "kind": "infantry",
+   "label": "Bructeri",
+   "strength": "c. 8,000"
+  },
+  {
+   "id": "ger-cherusci",
+   "side": "german",
+   "kind": "infantry",
+   "label": "Cherusci",
+   "strength": "c. 8,000"
+  },
+  {
+   "id": "ger-cav",
+   "side": "german",
+   "kind": "cavalry",
+   "label": "Germanic horsemen"
+  },
+  {
+   "id": "arminius",
+   "side": "german",
+   "kind": "commander",
+   "label": "Arminius"
+  }
+ ],
+ "terrain": [
+  {
+   "id": "wiehen",
+   "kind": "ridge",
+   "label": "Kalkriese Hill and Wiehen Hills",
+   "line": [
+    [
+     8.27806,
+     52.33569
+    ],
+    [
+     8.25512,
+     52.34306
+    ],
+    [
+     8.23677,
+     52.35143
+    ],
+    [
+     8.22381,
+     52.3533
+    ],
+    [
+     8.20622,
+     52.3595
+    ],
+    [
+     8.19434,
+     52.36866
+    ],
+    [
+     8.17941,
+     52.3723
+    ],
+    [
+     8.16343,
+     52.37147
+    ],
+    [
+     8.15289,
+     52.37451
+    ],
+    [
+     8.15984,
+     52.38399
+    ],
+    [
+     8.15526,
+     52.39254
+    ],
+    [
+     8.13999,
+     52.40066
+    ],
+    [
+     8.1284,
+     52.4046
+    ],
+    [
+     8.11214,
+     52.40526
+    ],
+    [
+     8.09803,
+     52.40225
+    ],
+    [
+     8.0803,
+     52.39673
+    ],
+    [
+     8.07179,
+     52.39185
+    ]
+   ]
+  },
+  {
+   "id": "bog",
+   "kind": "marsh",
+   "label": "Great Bog",
+   "area": [
+    [
+     8.170065,
+     52.415594
+    ],
+    [
+     8.168457,
+     52.417456
+    ],
+    [
+     8.163744,
+     52.419191
+    ],
+    [
+     8.156245,
+     52.420681
+    ],
+    [
+     8.146473,
+     52.421825
+    ],
+    [
+     8.135094,
+     52.422543
+    ],
+    [
+     8.122882,
+     52.422789
+    ],
+    [
+     8.11067,
+     52.422543
+    ],
+    [
+     8.099291,
+     52.421825
+    ],
+    [
+     8.089519,
+     52.420681
+    ],
+    [
+     8.08202,
+     52.419191
+    ],
+    [
+     8.077307,
+     52.417456
+    ],
+    [
+     8.075699,
+     52.415594
+    ],
+    [
+     8.077307,
+     52.413732
+    ],
+    [
+     8.08202,
+     52.411997
+    ],
+    [
+     8.089519,
+     52.410507
+    ],
+    [
+     8.099291,
+     52.409363
+    ],
+    [
+     8.11067,
+     52.408645
+    ],
+    [
+     8.122882,
+     52.408399
+    ],
+    [
+     8.135094,
+     52.408645
+    ],
+    [
+     8.146473,
+     52.409363
+    ],
+    [
+     8.156245,
+     52.410507
+    ],
+    [
+     8.163744,
+     52.411997
+    ],
+    [
+     8.168457,
+     52.413732
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "forest",
+   "kind": "woods",
+   "label": "Forested hillside",
+   "area": [
+    [
+     8.203948,
+     52.395809
+    ],
+    [
+     8.202039,
+     52.397904
+    ],
+    [
+     8.196444,
+     52.399856
+    ],
+    [
+     8.187544,
+     52.401532
+    ],
+    [
+     8.175945,
+     52.402819
+    ],
+    [
+     8.162438,
+     52.403627
+    ],
+    [
+     8.147943,
+     52.403903
+    ],
+    [
+     8.133448,
+     52.403627
+    ],
+    [
+     8.119941,
+     52.402819
+    ],
+    [
+     8.108342,
+     52.401532
+    ],
+    [
+     8.099442,
+     52.399856
+    ],
+    [
+     8.093847,
+     52.397904
+    ],
+    [
+     8.091938,
+     52.395809
+    ],
+    [
+     8.093847,
+     52.393714
+    ],
+    [
+     8.099442,
+     52.391762
+    ],
+    [
+     8.108342,
+     52.390086
+    ],
+    [
+     8.119941,
+     52.388799
+    ],
+    [
+     8.133448,
+     52.387991
+    ],
+    [
+     8.147943,
+     52.387715
+    ],
+    [
+     8.162438,
+     52.387991
+    ],
+    [
+     8.175945,
+     52.388799
+    ],
+    [
+     8.187544,
+     52.390086
+    ],
+    [
+     8.196444,
+     52.391762
+    ],
+    [
+     8.202039,
+     52.393714
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "road",
+   "kind": "road",
+   "label": "Sandy road",
+   "line": [
+    [
+     8.214282,
+     52.4075
+    ],
+    [
+     8.170056,
+     52.4075
+    ],
+    [
+     8.14352,
+     52.4075
+    ],
+    [
+     8.12583,
+     52.4075
+    ],
+    [
+     8.10814,
+     52.4075
+    ],
+    [
+     8.093398,
+     52.4075
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "wall",
+   "kind": "wall",
+   "label": "Germanic turf wall",
+   "line": [
+    [
+     8.147943,
+     52.40696
+    ],
+    [
+     8.142046,
+     52.40714
+    ],
+    [
+     8.136149,
+     52.40687
+    ],
+    [
+     8.130253,
+     52.407095
+    ],
+    [
+     8.124356,
+     52.406826
+    ],
+    [
+     8.118459,
+     52.40705
+    ],
+    [
+     8.112562,
+     52.406781
+    ],
+    [
+     8.10814,
+     52.407005
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "kalkriese",
+   "kind": "village",
+   "label": "Kalkriese",
+   "at": [
+    8.096494,
+    52.405611
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "id": "muster",
+   "title": "Payday and a plan",
+   "time": "7 September",
+   "narrative": "On the morning of 7 September the army of Publius Quinctilius Varus mustered near its summer quarters west of the Weser, and the year's third pay was handed out. Word went round that plunder would be allowed on the coming expedition. Arminius, trusted by Varus, had urged a short cut through Angrivarian land to put down a revolt that he had himself invented. That evening he left the camp, saying he would gather his Cherusci and rejoin in a few days. He rode north to raise the Angrivarii and Bructeri. A few Cherusci stayed with the Romans as guides and spies.",
+   "positions": {
+    "rom-leg": {
+     "at": [
+      8.265879,
+      52.412896
+     ],
+     "facing": 270,
+     "width": 60,
+     "depth": 1800,
+     "shape": "column",
+     "state": "ready",
+     "strength_n": 15000
+    },
+    "rom-aux": {
+     "at": [
+      8.287992,
+      52.412896
+     ],
+     "facing": 270,
+     "width": 50,
+     "depth": 900,
+     "shape": "column",
+     "strength_n": 4500
+    },
+    "rom-baggage": {
+     "at": [
+      8.243766,
+      52.412896
+     ],
+     "facing": 270,
+     "width": 60,
+     "depth": 1300,
+     "shape": "column"
+    },
+    "varus": {
+     "at": [
+      8.279146,
+      52.413256
+     ],
+     "facing": 270
+    },
+    "arminius": {
+     "at": [
+      8.261456,
+      52.413795
+     ],
+     "facing": 270
+    },
+    "ger-angri": {
+     "at": [
+      8.112562,
+      52.405701
+     ],
+     "facing": 0,
+     "width": 900,
+     "depth": 100,
+     "strength_n": 5000,
+     "frame": false
+    },
+    "ger-bructeri": {
+     "at": [
+      8.147943,
+      52.438976
+     ],
+     "facing": 180,
+     "width": 500,
+     "depth": 80,
+     "strength_n": 8000,
+     "frame": false
+    },
+    "ger-cherusci": {
+     "at": [
+      8.170056,
+      52.436278
+     ],
+     "facing": 180,
+     "width": 500,
+     "depth": 80,
+     "strength_n": 8000,
+     "frame": false
+    }
+   },
+   "notes": [
+    {
+     "at": [
+      8.27325,
+      52.417393
+     ],
+     "text": "Muster and pay parade",
+     "kind": "label"
+    }
+   ]
+  },
+  {
+   "id": "arminius-leaves",
+   "title": "Arminius slips away",
+   "time": "Evening, 7 September",
+   "narrative": "With his Cherusci horsemen gone, the Roman column lost about a quarter of its strength and most of its scouting. Arminius rode north to rally the Angrivarii and Bructeri, who were already watching the road. Varus set off the next day into thick forest, with the paths narrow and the column losing its shape mile after mile. The treacherous guides kept the Germanic leaders informed of the order of march.",
+   "positions": {
+    "arminius": {
+     "at": [
+      8.243766,
+      52.436278
+     ],
+     "facing": 0
+    },
+    "ger-bructeri": {
+     "at": [
+      8.221653,
+      52.427285
+     ],
+     "frame": true
+    },
+    "ger-cherusci": {
+     "at": [
+      8.236395,
+      52.429084
+     ],
+     "frame": true
+    },
+    "rom-leg": {
+     "at": [
+      8.236395,
+      52.412896
+     ]
+    },
+    "rom-aux": {
+     "at": [
+      8.259982,
+      52.412896
+     ]
+    },
+    "rom-baggage": {
+     "at": [
+      8.205437,
+      52.412896
+     ]
+    },
+    "varus": {
+     "at": [
+      8.248188,
+      52.413256
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "arminius",
+     "type": "march",
+     "path": [
+      [
+       8.261456,
+       52.413795
+      ],
+      [
+       8.243766,
+       52.436278
+      ]
+     ]
+    },
+    {
+     "unit": "ger-bructeri",
+     "type": "march",
+     "path": [
+      [
+       8.147943,
+       52.438976
+      ],
+      [
+       8.221653,
+       52.427285
+      ]
+     ]
+    },
+    {
+     "unit": "ger-cherusci",
+     "type": "march",
+     "path": [
+      [
+       8.170056,
+       52.436278
+      ],
+      [
+       8.236395,
+       52.429084
+      ]
+     ]
+    },
+    {
+     "unit": "rom-leg",
+     "type": "march",
+     "path": [
+      [
+       8.265879,
+       52.412896
+      ],
+      [
+       8.236395,
+       52.412896
+      ]
+     ]
+    },
+    {
+     "unit": "rom-aux",
+     "type": "march",
+     "path": [
+      [
+       8.287992,
+       52.412896
+      ],
+      [
+       8.259982,
+       52.412896
+      ]
+     ]
+    },
+    {
+     "unit": "rom-baggage",
+     "type": "march",
+     "path": [
+      [
+       8.243766,
+       52.412896
+      ],
+      [
+       8.205437,
+       52.412896
+      ]
+     ]
+    },
+    {
+     "unit": "varus",
+     "type": "march",
+     "path": [
+      [
+       8.279146,
+       52.413256
+      ],
+      [
+       8.248188,
+       52.413256
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bructeri-raid",
+   "title": "The column is struck along its length",
+   "time": "Late morning, 8 September",
+   "narrative": "The Roman column now ran for 15 to 20 kilometres through forest and mud. Bructeri warriors fell on it in many places, throwing javelins and then pulling away. This raid was meant to tire the men and bruise the baggage rather than destroy the army. Losses were light, but wagons and the scouting horse suffered most. The Roman column could not form a line in the trees.",
+   "positions": {
+    "ger-bructeri": {
+     "at": [
+      8.202488,
+      52.416493
+     ],
+     "state": "engaged",
+     "width": 900
+    },
+    "ger-cherusci": {
+     "at": [
+      8.177427,
+      52.416493
+     ],
+     "state": "engaged",
+     "width": 700
+    },
+    "rom-leg": {
+     "at": [
+      8.211333,
+      52.412896
+     ],
+     "state": "engaged"
+    },
+    "rom-baggage": {
+     "at": [
+      8.173004,
+      52.412896
+     ],
+     "state": "engaged"
+    },
+    "rom-aux": {
+     "at": [
+      8.236395,
+      52.412896
+     ]
+    },
+    "varus": {
+     "at": [
+      8.223127,
+      52.413256
+     ]
+    },
+    "arminius": {
+     "at": [
+      8.221653,
+      52.423688
+     ],
+     "facing": 270
+    }
+   },
+   "moves": [
+    {
+     "unit": "ger-bructeri",
+     "type": "attack",
+     "path": [
+      [
+       8.221653,
+       52.427285
+      ],
+      [
+       8.202488,
+       52.416493
+      ]
+     ]
+    },
+    {
+     "unit": "ger-cherusci",
+     "type": "attack",
+     "path": [
+      [
+       8.236395,
+       52.429084
+      ],
+      [
+       8.177427,
+       52.416493
+      ]
+     ]
+    },
+    {
+     "unit": "rom-leg",
+     "type": "march",
+     "path": [
+      [
+       8.236395,
+       52.412896
+      ],
+      [
+       8.211333,
+       52.412896
+      ]
+     ]
+    },
+    {
+     "unit": "rom-baggage",
+     "type": "march",
+     "path": [
+      [
+       8.205437,
+       52.412896
+      ],
+      [
+       8.173004,
+       52.412896
+      ]
+     ]
+    },
+    {
+     "unit": "rom-aux",
+     "type": "march",
+     "path": [
+      [
+       8.259982,
+       52.412896
+      ],
+      [
+       8.236395,
+       52.412896
+      ]
+     ]
+    },
+    {
+     "unit": "varus",
+     "type": "march",
+     "path": [
+      [
+       8.248188,
+       52.413256
+      ],
+      [
+       8.223127,
+       52.413256
+      ]
+     ]
+    },
+    {
+     "unit": "arminius",
+     "type": "march",
+     "path": [
+      [
+       8.243766,
+       52.436278
+      ],
+      [
+       8.221653,
+       52.423688
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      8.202488,
+      52.42099
+     ],
+     "text": "Javelins from the tree line",
+     "kind": "clash"
+    }
+   ]
+  },
+  {
+   "id": "rain-camp",
+   "title": "Rain and a camp in the forest",
+   "time": "Afternoon, 8 September",
+   "narrative": "A cloudburst turned the forest tracks to mud, and Varus ordered a halt. His men dug a camp and the commanders held a council. The reports showed modest losses, and the damage to the baggage was plain. The Germans withdrew into the trees. The exact position of this camp is unknown and is shown here in a reconstructed place. The army had been drawn off the paths it knew and into the territory chosen by Arminius.",
+   "positions": {
+    "camp": {
+     "at": [
+      8.174478,
+      52.412896
+     ],
+     "shape": "circle",
+     "width": 400,
+     "depth": 300,
+     "conjectural": true
+    },
+    "rom-leg": {
+     "at": [
+      8.181849,
+      52.413795
+     ],
+     "width": 300,
+     "depth": 300,
+     "shape": "block",
+     "state": "ready",
+     "conjectural": true
+    },
+    "rom-aux": {
+     "at": [
+      8.196591,
+      52.413795
+     ],
+     "width": 250,
+     "depth": 150,
+     "shape": "block",
+     "conjectural": true
+    },
+    "rom-baggage": {
+     "at": [
+      8.167107,
+      52.413346
+     ],
+     "width": 250,
+     "depth": 200,
+     "shape": "block",
+     "state": "ready"
+    },
+    "ger-bructeri": {
+     "at": [
+      8.202488,
+      52.425486
+     ],
+     "state": "ready"
+    },
+    "ger-cherusci": {
+     "at": [
+      8.177427,
+      52.426386
+     ],
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "rom-leg",
+     "type": "march",
+     "path": [
+      [
+       8.211333,
+       52.412896
+      ],
+      [
+       8.181849,
+       52.413795
+      ]
+     ]
+    },
+    {
+     "unit": "rom-aux",
+     "type": "march",
+     "path": [
+      [
+       8.236395,
+       52.412896
+      ],
+      [
+       8.196591,
+       52.413795
+      ]
+     ]
+    },
+    {
+     "unit": "ger-bructeri",
+     "type": "retreat",
+     "path": [
+      [
+       8.202488,
+       52.416493
+      ],
+      [
+       8.202488,
+       52.425486
+      ]
+     ]
+    },
+    {
+     "unit": "ger-cherusci",
+     "type": "retreat",
+     "path": [
+      [
+       8.177427,
+       52.416493
+      ],
+      [
+       8.177427,
+       52.426386
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "night-march",
+   "title": "Night march toward the pass",
+   "time": "Night, 8-9 September",
+   "narrative": "With the camp compromised, the army moved out in the dark and headed west along the sandy strip under Kalkriese Hill. The Germans reached the pass ahead of it. They held a wall of turf and sand along the foot of the hill and the Angrivarii manned it in strength. The Romans could not see the wall until they were close and beyond the Great Bog on one side and the hill on the other, there was no room to turn.",
+   "positions": {
+    "rom-leg": {
+     "at": [
+      8.152366,
+      52.40768
+     ],
+     "width": 40,
+     "depth": 1400,
+     "shape": "column"
+    },
+    "rom-aux": {
+     "at": [
+      8.173004,
+      52.40768
+     ],
+     "width": 40,
+     "depth": 800,
+     "shape": "column"
+    },
+    "rom-baggage": {
+     "at": [
+      8.192169,
+      52.40768
+     ],
+     "width": 40,
+     "depth": 1000,
+     "shape": "column"
+    },
+    "varus": {
+     "at": [
+      8.147943,
+      52.40777
+     ]
+    },
+    "camp": {
+     "state": "hidden"
+    },
+    "ger-angri": {
+     "at": [
+      8.127304,
+      52.406511
+     ],
+     "width": 1600,
+     "depth": 90,
+     "frame": true
+    },
+    "ger-bructeri": {
+     "at": [
+      8.152366,
+      52.405252
+     ],
+     "facing": 0,
+     "width": 700,
+     "conjectural": true
+    },
+    "ger-cherusci": {
+     "at": [
+      8.111088,
+      52.405252
+     ],
+     "facing": 0,
+     "conjectural": true
+    },
+    "arminius": {
+     "at": [
+      8.130253,
+      52.404802
+     ],
+     "facing": 0,
+     "conjectural": true
+    }
+   },
+   "moves": [
+    {
+     "unit": "rom-leg",
+     "type": "march",
+     "path": [
+      [
+       8.181849,
+       52.413795
+      ],
+      [
+       8.152366,
+       52.40768
+      ]
+     ]
+    },
+    {
+     "unit": "rom-aux",
+     "type": "march",
+     "path": [
+      [
+       8.196591,
+       52.413795
+      ],
+      [
+       8.173004,
+       52.40768
+      ]
+     ]
+    },
+    {
+     "unit": "rom-baggage",
+     "type": "march",
+     "path": [
+      [
+       8.167107,
+       52.413346
+      ],
+      [
+       8.192169,
+       52.40768
+      ]
+     ]
+    },
+    {
+     "unit": "varus",
+     "type": "march",
+     "path": [
+      [
+       8.223127,
+       52.413256
+      ],
+      [
+       8.147943,
+       52.40777
+      ]
+     ]
+    },
+    {
+     "unit": "ger-angri",
+     "type": "march",
+     "path": [
+      [
+       8.112562,
+       52.405701
+      ],
+      [
+       8.127304,
+       52.406511
+      ]
+     ]
+    },
+    {
+     "unit": "ger-bructeri",
+     "type": "march",
+     "path": [
+      [
+       8.202488,
+       52.425486
+      ],
+      [
+       8.152366,
+       52.405252
+      ]
+     ]
+    },
+    {
+     "unit": "ger-cherusci",
+     "type": "march",
+     "path": [
+      [
+       8.177427,
+       52.426386
+      ],
+      [
+       8.111088,
+       52.405252
+      ]
+     ]
+    },
+    {
+     "unit": "arminius",
+     "type": "march",
+     "path": [
+      [
+       8.221653,
+       52.423688
+      ],
+      [
+       8.130253,
+       52.404802
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pass",
+   "title": "The gap at Kalkriese",
+   "time": "Dawn, 9 September",
+   "narrative": "The head of the column ran into a corridor barely 100 metres wide, between the wooded hill and the edge of the bog. A ditch crossed the road, and a zigzag wall of turf and packed sand ran along the hillside, hiding warriors who could throw down on the marching men. The column was stopped and bunched at the front while the rest of it, many kilometres behind, was still moving up. Arminius's plan was to catch it unable to deploy.",
+   "positions": {
+    "rom-leg": {
+     "at": [
+      8.140572,
+      52.40768
+     ],
+     "width": 60,
+     "depth": 1000,
+     "state": "engaged"
+    },
+    "ger-angri": {
+     "state": "engaged"
+    },
+    "varus": {
+     "at": [
+      8.133201,
+      52.40777
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "varus",
+     "type": "march",
+     "path": [
+      [
+       8.147943,
+       52.40777
+      ],
+      [
+       8.133201,
+       52.40777
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      8.127304,
+      52.408939
+     ],
+     "text": "Gap of about 100 m",
+     "kind": "label"
+    }
+   ]
+  },
+  {
+   "id": "assault",
+   "title": "The Roman attempt on the wall",
+   "time": "Morning, 9 September",
+   "narrative": "The legionaries tried to storm the wall, forming up as well as the narrow strip allowed. Finds in front of the line, and almost none behind it, show that they never broke through. Missiles fell on them from above. Germanic bands also struck the stalled column from the north and east, and the baggage train piled up behind. The fight turned into a slow butchery.",
+   "positions": {
+    "rom-leg": {
+     "at": [
+      8.128041,
+      52.40768
+     ],
+     "width": 90,
+     "depth": 500,
+     "shape": "block"
+    },
+    "rom-aux": {
+     "at": [
+      8.139098,
+      52.40768
+     ],
+     "width": 70,
+     "depth": 500,
+     "shape": "block",
+     "state": "engaged"
+    },
+    "rom-baggage": {
+     "at": [
+      8.15384,
+      52.40768
+     ],
+     "width": 60,
+     "depth": 800,
+     "state": "engaged"
+    },
+    "ger-bructeri": {
+     "at": [
+      8.152366,
+      52.408849
+     ],
+     "facing": 180,
+     "width": 900,
+     "state": "engaged"
+    },
+    "ger-cherusci": {
+     "at": [
+      8.111088,
+      52.408849
+     ],
+     "facing": 90,
+     "width": 500,
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "rom-leg",
+     "type": "attack",
+     "path": [
+      [
+       8.140572,
+       52.40768
+      ],
+      [
+       8.128041,
+       52.40768
+      ]
+     ]
+    },
+    {
+     "unit": "rom-aux",
+     "type": "march",
+     "path": [
+      [
+       8.173004,
+       52.40768
+      ],
+      [
+       8.139098,
+       52.40768
+      ]
+     ]
+    },
+    {
+     "unit": "rom-baggage",
+     "type": "march",
+     "path": [
+      [
+       8.192169,
+       52.40768
+      ],
+      [
+       8.15384,
+       52.40768
+      ]
+     ]
+    },
+    {
+     "unit": "ger-bructeri",
+     "type": "attack",
+     "path": [
+      [
+       8.152366,
+       52.405252
+      ],
+      [
+       8.152366,
+       52.408849
+      ]
+     ]
+    },
+    {
+     "unit": "ger-cherusci",
+     "type": "attack",
+     "path": [
+      [
+       8.111088,
+       52.405252
+      ],
+      [
+       8.111088,
+       52.408849
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      8.124356,
+      52.405252
+     ],
+     "text": "Ditch and turf wall",
+     "kind": "clash"
+    }
+   ]
+  },
+  {
+   "id": "vala",
+   "title": "Vala rides off",
+   "time": "Midday, 9 September",
+   "narrative": "Numonius Vala, the senior officer after Varus, took the cavalry and tried to escape, according to Velleius Paterculus. Germanic horsemen caught and killed him, so the flight achieved nothing, and the infantry were left without their mounted arm. Order began to dissolve.",
+   "positions": {
+    "rom-cav": {
+     "at": [
+      8.093398,
+      52.409299
+     ],
+     "facing": 270,
+     "width": 60,
+     "depth": 250,
+     "shape": "column",
+     "state": "destroyed"
+    },
+    "ger-cav": {
+     "at": [
+      8.091924,
+      52.410198
+     ],
+     "facing": 90,
+     "width": 80,
+     "depth": 200,
+     "conjectural": true,
+     "state": "engaged"
+    },
+    "rom-leg": {
+     "state": "wavering"
+    }
+   },
+   "moves": [
+    {
+     "unit": "rom-cav",
+     "type": "flank",
+     "path": [
+      [
+       8.155314,
+       52.40759
+      ],
+      [
+       8.093398,
+       52.409299
+      ]
+     ]
+    },
+    {
+     "unit": "ger-cav",
+     "type": "pursuit",
+     "path": [
+      [
+       8.078656,
+       52.411997
+      ],
+      [
+       8.091924,
+       52.410198
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      8.093398,
+      52.410648
+     ],
+     "text": "Vala caught and killed",
+     "kind": "death"
+    }
+   ]
+  },
+  {
+   "id": "collapse",
+   "title": "The Romans are overrun",
+   "time": "Afternoon, 9 September",
+   "narrative": "Warriors came over the wall and across the bog edge and cut down the broken Roman formations. Varus took his own life, as did other officers, among them Ceionius, who had first given himself up. Eggius died fighting at the head of his men. Roman dead are estimated at 15,000 to 20,000. Some captives were sacrificed, according to Tacitus.",
+   "positions": {
+    "ger-angri": {
+     "at": [
+      8.128041,
+      52.40723
+     ],
+     "width": 900,
+     "depth": 120
+    },
+    "ger-bructeri": {
+     "at": [
+      8.139098,
+      52.409299
+     ]
+    },
+    "ger-cherusci": {
+     "at": [
+      8.119933,
+      52.409299
+     ]
+    },
+    "rom-leg": {
+     "state": "destroyed"
+    },
+    "rom-aux": {
+     "state": "destroyed"
+    },
+    "rom-baggage": {
+     "state": "captured",
+     "by": "german"
+    },
+    "varus": {
+     "state": "killed"
+    }
+   },
+   "moves": [
+    {
+     "unit": "ger-angri",
+     "type": "charge",
+     "path": [
+      [
+       8.127304,
+       52.406511
+      ],
+      [
+       8.128041,
+       52.40723
+      ]
+     ]
+    },
+    {
+     "unit": "ger-bructeri",
+     "type": "charge",
+     "path": [
+      [
+       8.152366,
+       52.408849
+      ],
+      [
+       8.139098,
+       52.409299
+      ]
+     ]
+    },
+    {
+     "unit": "ger-cherusci",
+     "type": "charge",
+     "path": [
+      [
+       8.111088,
+       52.408849
+      ],
+      [
+       8.119933,
+       52.409299
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      8.132464,
+      52.408579
+     ],
+     "text": "Varus takes his own life",
+     "kind": "death"
+    }
+   ]
+  },
+  {
+   "id": "aftermath",
+   "title": "Three legions lost",
+   "time": "After 9 September",
+   "narrative": "Three legions, the XVII, XVIII and XIX, ceased to exist and their numbers were never reissued. Augustus is said to have called out for his legions to be given back. Arminius sent Varus's head to Maroboduus of the Marcomanni with an offer of alliance, but the king refused and sent it on to Rome for burial. Rome rebuilt its Rhine army under Tiberius and later struck back, though it did not re-establish a province east of the river.",
+   "positions": {
+    "ger-angri": {
+     "state": "ready"
+    },
+    "ger-bructeri": {
+     "state": "ready"
+    },
+    "ger-cherusci": {
+     "state": "ready"
+    },
+    "arminius": {
+     "at": [
+      8.127304,
+      52.405701
+     ]
+    }
+   },
+   "notes": [
+    {
+     "at": [
+      8.127304,
+      52.411097
+     ],
+     "text": "Scattered remains found 1987",
+     "kind": "event"
+    }
+   ]
+  }
+ ]
+}

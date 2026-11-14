@@ -1,0 +1,13 @@
+---
+wikidata: Q234188
+name: Battle of Sekigahara
+---
+The Battle of Sekigahara was fought on 21 October 1600 in a narrow mountain basin in what is now Gifu Prefecture, Japan. On one side stood the Eastern Army of Tokugawa Ieyasu, on the other a Western coalition led by Ishida Mitsunari, who claimed to act for the infant Toyotomi Hideyori. The Eastern side won, and the result is usually seen as the starting point of the Tokugawa shogunate, which ruled Japan for about two and a half centuries until 1868.
+
+The background was the vacuum left by the death of Toyotomi Hideyoshi. Factions at court hardened after the Imjin War, and the death of Maeda Toshiie removed a restraining voice. Ieyasu drew several of Hideyoshi's veteran generals, including Fukushima Masanori, to his side, and when he marched north against Uesugi Kagekatsu, Mitsunari and his allies raised an army under Mori Terumoto, who took Osaka Castle. Mitsunari first hoped to hold Gifu and Ogaki as choke points, but Gifu fell to the Easterners and the Shimazu were beaten at Sone Castle. With Osaka threatened, he chose to fight in the open at Sekigahara.
+
+On the night of 20 October the Western Army took the hills round the village, with Ishida in the north-west, Konishi, Shimazu and Ukita in the centre, Otani Yoshitsugu at the south-west end, and Kobayakawa Hideaki on Mount Matsuo above. Ieyasu approached along the Nakasendo from the east. Fog hid both sides until the Tokugawa vanguard blundered into the enemy at dawn. The fighting began when Ii Naomasa led his 3,600 crimson-clad troops against the Western centre and Fukushima Masanori engaged Ukita Hideie. Older accounts place the start at about 08:00, recent Japanese research nearer 10:00.
+
+The decisive factor was treachery. Kobayakawa came down from Matsuo and fell on Otani's flank, aided by Wakisaka Yasuharu and other lords who had secretly dealt with Todo Takatora. Otani killed himself, the Western right flank was rolled up, and Ukita's weak ranks of hired ronin broke. On Mount Nangu, the Mori under Kikkawa Hiroie stayed out of the fight, as Kikkawa had promised the Easterners the day before. Large forces on both sides never came: Tokugawa Hidetada's 38,000 were stuck at Ueda, and thousands of Westerners were tied down at Tanabe and Otsu.
+
+Casualty numbers differ hugely, from 8,000 to over 35,000 Western dead. Mitsunari was captured and executed, and the Mori were punished with a reduction of their domains despite their ambiguous conduct. Historians still debate when Kobayakawa switched sides, with the tale of Ieyasu firing guns at him widely doubted, and the exact positions of the armies are reconstructed rather than documented.

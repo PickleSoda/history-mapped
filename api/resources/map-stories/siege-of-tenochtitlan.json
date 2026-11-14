@@ -1,0 +1,1874 @@
+{
+ "schema": 3,
+ "slug": "siege-of-tenochtitlan",
+ "kind": "siege",
+ "entity": {
+  "name": "Siege of Tenochtitlan",
+  "wikidata": "Q593267"
+ },
+ "title": "Siege of Tenochtitlan",
+ "date_label": "26 May - 13 August 1521",
+ "year": 1520,
+ "intro": "In 1521 Hernan Cortes and his native allies besieged Tenochtitlan, the capital of the Mexica, an island\n            city in Lake Texcoco joined to the shore by three causeways. After the disaster of the Noche Triste, Cortes\n            rebuilt his force around Tlaxcala, won over lakeshore peoples, and had thirteen brigantines built to\n            contest the water. The siege opened in late May with three land divisions at Tacuba, Coyoacan and\n            Iztapalapa. It lasted roughly eighty days, through desperate fights on the causeways, a near disaster\n            on St John's day, famine and smallpox in the city, and a final push to Tlatelolco. It ended with the\n            capture of Cuauhtemoc on 13 August.",
+ "outcome": "Spanish and Tlaxcalan victory: Tenochtitlan fell, the Aztec Empire ended and New Spain began.",
+ "uncertainty": "Causeway routes, the island outline, the Chapultepec aqueduct and all intermediate positions of\n            the three divisions are reconstructed from the narrative sources and marked conjectural; the sources give no\n            exact days for most phases. Strengths are contested: allied totals range from 50,000 to 200,000, and\n            the death toll from 100,000 to 240,000. The sources are largely Spanish, with Cortes and Diaz at their head.",
+ "sources": [
+  {
+   "title": "Fall of Tenochtitlan - Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Fall_of_Tenochtitlan",
+   "kind": "web"
+  }
+ ],
+ "sides": [
+  {
+   "id": "sp",
+   "name": "Spanish and allies",
+   "color": "#b91c1c",
+   "polity": {
+    "name": "Spanish Empire",
+    "wikidata": "Q80702"
+   },
+   "commanders": [
+    {
+     "name": "Hernan Cortes",
+     "wikidata": "Q7326",
+     "role": "commander"
+    },
+    {
+     "name": "Pedro de Alvarado",
+     "wikidata": "Q210900",
+     "role": "Tacuba division"
+    },
+    {
+     "name": "Cristobal de Olid",
+     "wikidata": "Q550491",
+     "role": "Coyoacan division"
+    },
+    {
+     "name": "Gonzalo de Sandoval",
+     "wikidata": "Q1374269",
+     "role": "Iztapalapa division"
+    }
+   ],
+   "strength": "900-1,300 Spaniards, 86 horse, 13 brigantines, 50,000-200,000 allies",
+   "losses": "450-860 Spaniards, c. 20,000 allies"
+  },
+  {
+   "id": "mx",
+   "name": "Mexica",
+   "color": "#0f766e",
+   "polity": {
+    "name": "Aztec Empire",
+    "wikidata": "Q2608489"
+   },
+   "commanders": [
+    {
+     "name": "Cuauhtemoc",
+     "wikidata": "Q297050",
+     "role": "tlatoani"
+    }
+   ],
+   "strength": "c. 80,000 warriors, 400 canoes",
+   "losses": "100,000+ killed, 300 canoes sunk"
+  }
+ ],
+ "units": [
+  {
+   "id": "cortes-base",
+   "side": "sp",
+   "kind": "army",
+   "label": "Cortes at Texcoco"
+  },
+  {
+   "id": "brigs",
+   "side": "sp",
+   "kind": "fleet",
+   "label": "13 brigantines",
+   "strength": "13 vessels"
+  },
+  {
+   "id": "alv",
+   "side": "sp",
+   "kind": "infantry",
+   "label": "Alvarado's Spaniards",
+   "strength": "c. 200"
+  },
+  {
+   "id": "alv-al",
+   "side": "sp",
+   "kind": "light_infantry",
+   "label": "Tlaxcalan allies",
+   "strength": "c. 8,000"
+  },
+  {
+   "id": "olid",
+   "side": "sp",
+   "kind": "infantry",
+   "label": "Olid's Spaniards",
+   "strength": "c. 225"
+  },
+  {
+   "id": "olid-al",
+   "side": "sp",
+   "kind": "light_infantry",
+   "label": "Olid's allies",
+   "strength": "c. 8,000"
+  },
+  {
+   "id": "sand",
+   "side": "sp",
+   "kind": "infantry",
+   "label": "Sandoval's Spaniards",
+   "strength": "c. 190"
+  },
+  {
+   "id": "sand-al",
+   "side": "sp",
+   "kind": "light_infantry",
+   "label": "Chalca, Huejotzinca",
+   "strength": "c. 8,000"
+  },
+  {
+   "id": "mx-main",
+   "side": "mx",
+   "kind": "light_infantry",
+   "label": "Tenochtitlan garrison",
+   "strength": "c. 80,000"
+  },
+  {
+   "id": "mx-tlat",
+   "side": "mx",
+   "kind": "light_infantry",
+   "label": "Tlatelolco"
+  },
+  {
+   "id": "mx-canoes",
+   "side": "mx",
+   "kind": "fleet",
+   "label": "War canoes",
+   "strength": "400"
+  },
+  {
+   "id": "cuauh",
+   "side": "mx",
+   "kind": "commander",
+   "label": "Cuauhtemoc"
+  }
+ ],
+ "terrain": [
+  {
+   "id": "island",
+   "kind": "island",
+   "label": "Island city (outline)",
+   "area": [
+    [
+     -99.117124,
+     19.440456
+    ],
+    [
+     -99.117531,
+     19.444258
+    ],
+    [
+     -99.11873,
+     19.44787
+    ],
+    [
+     -99.120661,
+     19.45111
+    ],
+    [
+     -99.123229,
+     19.453815
+    ],
+    [
+     -99.126303,
+     19.455851
+    ],
+    [
+     -99.129729,
+     19.457115
+    ],
+    [
+     -99.133337,
+     19.457543
+    ],
+    [
+     -99.136945,
+     19.457115
+    ],
+    [
+     -99.140371,
+     19.455851
+    ],
+    [
+     -99.143445,
+     19.453815
+    ],
+    [
+     -99.146013,
+     19.45111
+    ],
+    [
+     -99.147944,
+     19.44787
+    ],
+    [
+     -99.149143,
+     19.444258
+    ],
+    [
+     -99.14955,
+     19.440456
+    ],
+    [
+     -99.149143,
+     19.436654
+    ],
+    [
+     -99.147944,
+     19.433042
+    ],
+    [
+     -99.146013,
+     19.429802
+    ],
+    [
+     -99.143445,
+     19.427097
+    ],
+    [
+     -99.140371,
+     19.425061
+    ],
+    [
+     -99.136945,
+     19.423797
+    ],
+    [
+     -99.133337,
+     19.423369
+    ],
+    [
+     -99.129729,
+     19.423797
+    ],
+    [
+     -99.126303,
+     19.425061
+    ],
+    [
+     -99.123229,
+     19.427097
+    ],
+    [
+     -99.120661,
+     19.429802
+    ],
+    [
+     -99.11873,
+     19.433042
+    ],
+    [
+     -99.117531,
+     19.436654
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "cw-tacuba",
+   "kind": "road",
+   "label": "Tacuba causeway",
+   "line": [
+    [
+     -99.143828,
+     19.437758
+    ],
+    [
+     -99.16004,
+     19.443154
+    ],
+    [
+     -99.177206,
+     19.451248
+    ],
+    [
+     -99.190748,
+     19.455385
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "cw-south",
+   "kind": "road",
+   "label": "Coyoacan causeway",
+   "line": [
+    [
+     -99.13143,
+     19.425167
+    ],
+    [
+     -99.133337,
+     19.40808
+    ],
+    [
+     -99.134291,
+     19.394591
+    ],
+    [
+     -99.147642,
+     19.372108
+    ],
+    [
+     -99.161947,
+     19.350524
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "cw-izta",
+   "kind": "road",
+   "label": "Iztapalapa causeway",
+   "line": [
+    [
+     -99.134291,
+     19.394591
+    ],
+    [
+     -99.117125,
+     19.376604
+    ],
+    [
+     -99.092521,
+     19.358977
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "cw-north",
+   "kind": "road",
+   "label": "Tepeyac causeway",
+   "line": [
+    [
+     -99.135245,
+     19.455744
+    ],
+    [
+     -99.125708,
+     19.471033
+    ],
+    [
+     -99.115695,
+     19.488749
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "aqueduct",
+   "kind": "road",
+   "label": "Chapultepec aqueduct",
+   "line": [
+    [
+     -99.17692,
+     19.420761
+    ],
+    [
+     -99.16004,
+     19.426966
+    ],
+    [
+     -99.143828,
+     19.432362
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "templo",
+   "kind": "site",
+   "label": "Templo Mayor",
+   "at": [
+    -99.13143,
+    19.43506
+   ]
+  },
+  {
+   "id": "tlat",
+   "kind": "site",
+   "label": "Tlatelolco market",
+   "at": [
+    -99.137057,
+    19.451338
+   ]
+  },
+  {
+   "id": "chap",
+   "kind": "site",
+   "label": "Chapultepec",
+   "at": [
+    -99.17692,
+    19.420761
+   ]
+  },
+  {
+   "id": "tacuba",
+   "kind": "town",
+   "label": "Tacuba",
+   "at": [
+    -99.190748,
+    19.455385
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "id": "preparations",
+   "title": "Cortes builds a fleet at Texcoco",
+   "time": "Dec 1520 - May 1521",
+   "narrative": "After the flight of the Noche Triste, Cortes regrouped in Tlaxcala and chose a plan of encirclement rather than assault. Martin Lopez had thirteen brigantines built in pieces and carried to Texcoco, where they were assembled and launched into the lake. Texcoco's rulers were replaced by Cortes's ally Ixtlilxochitl, and Chalco and other lakeshore towns came over. The Spaniards counted about 84 horsemen, some 194 crossbowmen and gunners and 650 foot, with Tlaxcalan and other allies in the tens of thousands.",
+   "positions": {
+    "cortes-base": {
+     "at": [
+      -99.066581,
+      19.44765
+     ],
+     "label": "Cortes at Texcoco",
+     "frame": false
+    },
+    "brigs": {
+     "at": [
+      -99.078025,
+      19.444953
+     ],
+     "label": "13 brigantines",
+     "frame": false,
+     "strength_n": 13
+    },
+    "mx-main": {
+     "at": [
+      -99.13143,
+      19.43506
+     ],
+     "facing": 0,
+     "width": 1000,
+     "depth": 700,
+     "label": "Tenochtitlan garrison",
+     "strength_n": 80000
+    },
+    "mx-tlat": {
+     "at": [
+      -99.137057,
+      19.451338
+     ],
+     "facing": 0,
+     "width": 500,
+     "depth": 400,
+     "label": "Tlatelolco"
+    },
+    "mx-canoes": {
+     "at": [
+      -99.114264,
+      19.437758
+     ],
+     "facing": 90,
+     "width": 900,
+     "depth": 200,
+     "label": "War canoes",
+     "strength_n": 400
+    }
+   },
+   "date": {
+    "year": 1520,
+    "month": 12,
+    "end": {
+     "year": 1521,
+     "month": 5
+    }
+   },
+   "light": "day"
+  },
+  {
+   "id": "camps",
+   "title": "Three causeway camps",
+   "time": "22 May 1521",
+   "narrative": "On 22 May Cortes divided his land forces into three. Alvarado took 30 horse, 18 shot, 150 foot and some 8,000 Tlaxcalans to Tacuba; Olid took 30 horse, 20 shot, 175 foot and 8,000 allies to Coyoacan; Sandoval took 24 horse, 14 shot, 150 foot and 8,000 men of Chalco and Huejotzingo to Iztapalapa. Cortes himself kept command of the brigantines. The island city, linked to the shore only by its causeways, was about to be shut in.",
+   "positions": {
+    "alv": {
+     "at": [
+      -99.18865,
+      19.454845
+     ],
+     "facing": 90,
+     "width": 90,
+     "depth": 40,
+     "label": "Alvarado (c. 200)",
+     "strength_n": 200
+    },
+    "alv-al": {
+     "at": [
+      -99.190557,
+      19.456014
+     ],
+     "facing": 90,
+     "width": 250,
+     "depth": 60,
+     "label": "Tlaxcalan allies",
+     "strength_n": 8000
+    },
+    "olid": {
+     "at": [
+      -99.161947,
+      19.351873
+     ],
+     "facing": 0,
+     "width": 100,
+     "depth": 40,
+     "label": "Olid (c. 225)",
+     "strength_n": 225
+    },
+    "olid-al": {
+     "at": [
+      -99.160993,
+      19.349175
+     ],
+     "facing": 0,
+     "width": 250,
+     "depth": 60,
+     "label": "Olid's allies",
+     "strength_n": 8000
+    },
+    "sand": {
+     "at": [
+      -99.092521,
+      19.360416
+     ],
+     "facing": 315,
+     "width": 90,
+     "depth": 40,
+     "label": "Sandoval (c. 190)",
+     "strength_n": 190
+    },
+    "sand-al": {
+     "at": [
+      -99.090899,
+      19.358618
+     ],
+     "facing": 315,
+     "width": 250,
+     "depth": 60,
+     "label": "Chalca, Huejotzinca",
+     "strength_n": 8000
+    }
+   },
+   "date": {
+    "year": 1521,
+    "month": 5,
+    "day": 22
+   },
+   "light": "day"
+  },
+  {
+   "id": "chapultepec",
+   "title": "The aqueduct is cut",
+   "time": "late May 1521",
+   "narrative": "Alvarado and Olid first marched to Chapultepec, where springs fed the city by aqueduct, and broke the supply. They then tried to push onto the Tlacopan causeway, but a hard counterattack from both causeway and lake threw them back. The first assault showed what the causeways meant: narrow, broken by gaps and bridges, with canoes free to strike either flank.",
+   "positions": {
+    "olid": {
+     "at": [
+      -99.173391,
+      19.418872
+     ],
+     "facing": 90,
+     "conjectural": true
+    },
+    "olid-al": {
+     "at": [
+      -99.175298,
+      19.417973
+     ],
+     "facing": 90,
+     "conjectural": true
+    },
+    "alv": {
+     "at": [
+      -99.175298,
+      19.451248
+     ],
+     "state": "engaged"
+    },
+    "alv-al": {
+     "at": [
+      -99.177683,
+      19.450798
+     ],
+     "state": "engaged"
+    },
+    "mx-canoes": {
+     "at": [
+      -99.164808,
+      19.44855
+     ],
+     "facing": 270,
+     "state": "engaged",
+     "width": 600
+    }
+   },
+   "moves": [
+    {
+     "unit": "olid",
+     "type": "march",
+     "path": [
+      [
+       -99.161947,
+       19.351873
+      ],
+      [
+       -99.173391,
+       19.418872
+      ]
+     ]
+    },
+    {
+     "unit": "olid-al",
+     "type": "march",
+     "path": [
+      [
+       -99.160993,
+       19.349175
+      ],
+      [
+       -99.175298,
+       19.417973
+      ]
+     ]
+    },
+    {
+     "unit": "alv",
+     "type": "advance",
+     "path": [
+      [
+       -99.18865,
+       19.454845
+      ],
+      [
+       -99.175298,
+       19.451248
+      ]
+     ]
+    },
+    {
+     "unit": "alv-al",
+     "type": "advance",
+     "path": [
+      [
+       -99.190557,
+       19.456014
+      ],
+      [
+       -99.177683,
+       19.450798
+      ]
+     ]
+    },
+    {
+     "unit": "mx-canoes",
+     "type": "attack",
+     "path": [
+      [
+       -99.114264,
+       19.437758
+      ],
+      [
+       -99.164808,
+       19.44855
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      -99.17692,
+      19.420761
+     ],
+     "text": "Springs cut off",
+     "kind": "event"
+    },
+    {
+     "at": [
+      -99.167669,
+      19.44765
+     ],
+     "text": "Tlacopan assault thrown back",
+     "kind": "clash"
+    }
+   ],
+   "date": {
+    "year": 1521,
+    "month": 5,
+    "day": 26
+   },
+   "light": "day"
+  },
+  {
+   "id": "lake",
+   "title": "The first battle on the lake",
+   "time": "late May 1521",
+   "narrative": "Cortes launched the brigantines against more than a thousand canoes. A favourable breeze rose and his sloops overturned and scattered the paddlers, breaking the Mexica command of the water. He then cut an opening in the causeway so the vessels could pass, and shared them out: four to Alvarado, six to Olid, two to Sandoval. With ships on one side of each causeway, canoes could no longer pincer the troops.",
+   "positions": {
+    "brigs": {
+     "at": [
+      -99.153364,
+      19.441355
+     ],
+     "facing": 270,
+     "frame": true,
+     "state": "engaged"
+    },
+    "mx-canoes": {
+     "at": [
+      -99.16004,
+      19.436859
+     ],
+     "state": "wavering"
+    },
+    "olid": {
+     "at": [
+      -99.134291,
+      19.390993
+     ],
+     "facing": 0,
+     "state": "ready"
+    },
+    "olid-al": {
+     "at": [
+      -99.134291,
+      19.388295
+     ],
+     "facing": 0,
+     "state": "ready"
+    },
+    "sand": {
+     "at": [
+      -99.137152,
+      19.390544
+     ],
+     "facing": 0,
+     "conjectural": true
+    },
+    "sand-al": {
+     "at": [
+      -99.136198,
+      19.387846
+     ],
+     "facing": 0,
+     "conjectural": true
+    },
+    "alv": {
+     "state": "ready"
+    },
+    "alv-al": {
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "brigs",
+     "type": "sail",
+     "path": [
+      [
+       -99.078025,
+       19.444953
+      ],
+      [
+       -99.153364,
+       19.441355
+      ]
+     ]
+    },
+    {
+     "unit": "mx-canoes",
+     "type": "retreat",
+     "path": [
+      [
+       -99.164808,
+       19.44855
+      ],
+      [
+       -99.16004,
+       19.436859
+      ]
+     ]
+    },
+    {
+     "unit": "olid",
+     "type": "march",
+     "path": [
+      [
+       -99.173391,
+       19.418872
+      ],
+      [
+       -99.134291,
+       19.390993
+      ]
+     ]
+    },
+    {
+     "unit": "olid-al",
+     "type": "march",
+     "path": [
+      [
+       -99.175298,
+       19.417973
+      ],
+      [
+       -99.134291,
+       19.388295
+      ]
+     ]
+    },
+    {
+     "unit": "sand",
+     "type": "march",
+     "path": [
+      [
+       -99.092521,
+       19.360416
+      ],
+      [
+       -99.137152,
+       19.390544
+      ]
+     ]
+    },
+    {
+     "unit": "sand-al",
+     "type": "march",
+     "path": [
+      [
+       -99.090899,
+       19.358618
+      ],
+      [
+       -99.136198,
+       19.387846
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      -99.153364,
+      19.444053
+     ],
+     "text": "Causeway breached for ships",
+     "kind": "event"
+    }
+   ],
+   "date": {
+    "year": 1521,
+    "month": 5,
+    "day": 28
+   },
+   "light": "day"
+  },
+  {
+   "id": "causeways",
+   "title": "Fighting along the causeways",
+   "time": "June 1521",
+   "narrative": "The Spaniards tried to attack by day and withdraw at night, but the Mexica reoccupied abandoned bridges at once. Cortes therefore ordered his troops to sleep on the causeway with horses saddled. The Mexica dug pits in the shallows and planted hidden stakes, and caught two launches in an ambush, killing their captains. Cortes answered with a counter-ambush and learned to break the stakes. Supplies by canoe dried up, and several lakeside towns made peace.",
+   "positions": {
+    "alv": {
+     "at": [
+      -99.161947,
+      19.444503
+     ],
+     "state": "engaged",
+     "width": 100,
+     "depth": 45
+    },
+    "alv-al": {
+     "at": [
+      -99.164808,
+      19.444953
+     ],
+     "state": "engaged"
+    },
+    "olid": {
+     "at": [
+      -99.134291,
+      19.402684
+     ],
+     "state": "engaged",
+     "depth": 45
+    },
+    "olid-al": {
+     "at": [
+      -99.134291,
+      19.399987
+     ],
+     "state": "engaged"
+    },
+    "sand": {
+     "at": [
+      -99.134291,
+      19.406731
+     ],
+     "state": "engaged"
+    },
+    "sand-al": {
+     "at": [
+      -99.134291,
+      19.404483
+     ],
+     "state": "engaged"
+    },
+    "brigs": {
+     "at": [
+      -99.150503,
+      19.424268
+     ],
+     "facing": 0,
+     "state": "ready"
+    },
+    "mx-canoes": {
+     "at": [
+      -99.142874,
+      19.419772
+     ],
+     "facing": 180,
+     "state": "ready",
+     "width": 400
+    }
+   },
+   "moves": [
+    {
+     "unit": "alv",
+     "type": "advance",
+     "path": [
+      [
+       -99.175298,
+       19.451248
+      ],
+      [
+       -99.161947,
+       19.444503
+      ]
+     ]
+    },
+    {
+     "unit": "alv-al",
+     "type": "advance",
+     "path": [
+      [
+       -99.177683,
+       19.450798
+      ],
+      [
+       -99.164808,
+       19.444953
+      ]
+     ]
+    },
+    {
+     "unit": "olid",
+     "type": "advance",
+     "path": [
+      [
+       -99.134291,
+       19.390993
+      ],
+      [
+       -99.134291,
+       19.402684
+      ]
+     ]
+    },
+    {
+     "unit": "olid-al",
+     "type": "advance",
+     "path": [
+      [
+       -99.134291,
+       19.388295
+      ],
+      [
+       -99.134291,
+       19.399987
+      ]
+     ]
+    },
+    {
+     "unit": "sand",
+     "type": "advance",
+     "path": [
+      [
+       -99.137152,
+       19.390544
+      ],
+      [
+       -99.134291,
+       19.406731
+      ]
+     ]
+    },
+    {
+     "unit": "sand-al",
+     "type": "advance",
+     "path": [
+      [
+       -99.136198,
+       19.387846
+      ],
+      [
+       -99.134291,
+       19.404483
+      ]
+     ]
+    },
+    {
+     "unit": "brigs",
+     "type": "blockade",
+     "path": [
+      [
+       -99.153364,
+       19.441355
+      ],
+      [
+       -99.150503,
+       19.424268
+      ]
+     ]
+    },
+    {
+     "unit": "mx-canoes",
+     "type": "sail",
+     "path": [
+      [
+       -99.16004,
+       19.436859
+      ],
+      [
+       -99.142874,
+       19.419772
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      -99.146689,
+      19.42157
+     ],
+     "text": "Stake ambush takes two launches",
+     "kind": "death"
+    }
+   ],
+   "date": {
+    "year": 1521,
+    "month": 6
+   },
+   "light": "day"
+  },
+  {
+   "id": "stjohn",
+   "title": "The day of St John",
+   "time": "24 June 1521",
+   "narrative": "On the feast of St John Cuauhtemoc struck all three camps together. At the Tacuba causeway Alvarado charged his horse across a gap; canoes filled it behind him, and he was wounded, with five men dragged to the temple. Cortes meanwhile drove for the market square, but left a canal unfilled; a Mexica counterattack wounded him, nearly took him, killed Olea and Guzman who covered him, and seized sixty-five Spaniards. Their sacrifice was watched from the camps.",
+   "positions": {
+    "mx-main": {
+     "at": [
+      -99.133337,
+      19.426067
+     ],
+     "width": 700,
+     "depth": 500,
+     "state": "engaged"
+    },
+    "olid": {
+     "at": [
+      -99.134291,
+      19.405832
+     ]
+    },
+    "olid-al": {
+     "at": [
+      -99.134291,
+      19.403134
+     ],
+     "state": "wavering"
+    }
+   },
+   "moves": [
+    {
+     "unit": "mx-main",
+     "type": "attack",
+     "path": [
+      [
+       -99.13143,
+       19.43506
+      ],
+      [
+       -99.133337,
+       19.426067
+      ]
+     ]
+    },
+    {
+     "unit": "olid",
+     "type": "retreat",
+     "path": [
+      [
+       -99.134291,
+       19.402684
+      ],
+      [
+       -99.134291,
+       19.405832
+      ]
+     ]
+    },
+    {
+     "unit": "olid-al",
+     "type": "retreat",
+     "path": [
+      [
+       -99.134291,
+       19.399987
+      ],
+      [
+       -99.134291,
+       19.403134
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      -99.161947,
+      19.444503
+     ],
+     "text": "Alvarado wounded at the gap",
+     "kind": "death"
+    },
+    {
+     "at": [
+      -99.134291,
+      19.412577
+     ],
+     "text": "Cortes wounded; 65 captured",
+     "kind": "capture"
+    }
+   ],
+   "date": {
+    "year": 1521,
+    "month": 6,
+    "day": 24
+   },
+   "light": "day"
+  },
+  {
+   "id": "attrition",
+   "title": "Allies depart, famine begins",
+   "time": "late June - July 1521",
+   "narrative": "After the defeat, many Spanish allies went home, leaving only a few hundred in the three camps. When the prophecy that the Spaniards would die in ten days failed, many returned. Cortes changed method: each district captured was razed and its rubble used to fill canals and gaps, letting foot and horse fight in formation instead of in the alleys. Water became brackish, food ran out, and smallpox and dysentery spread within the city.",
+   "positions": {
+    "alv": {
+     "at": [
+      -99.153364,
+      19.441355
+     ]
+    },
+    "alv-al": {
+     "at": [
+      -99.156225,
+      19.441805
+     ]
+    },
+    "olid": {
+     "at": [
+      -99.134291,
+      19.415275
+     ]
+    },
+    "olid-al": {
+     "at": [
+      -99.134291,
+      19.412577
+     ],
+     "state": "engaged"
+    },
+    "mx-main": {
+     "at": [
+      -99.132384,
+      19.432362
+     ],
+     "width": 800
+    },
+    "sand": {
+     "at": [
+      -99.133814,
+      19.417074
+     ]
+    },
+    "sand-al": {
+     "at": [
+      -99.133814,
+      19.414376
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "alv",
+     "type": "advance",
+     "path": [
+      [
+       -99.161947,
+       19.444503
+      ],
+      [
+       -99.153364,
+       19.441355
+      ]
+     ]
+    },
+    {
+     "unit": "alv-al",
+     "type": "advance",
+     "path": [
+      [
+       -99.164808,
+       19.444953
+      ],
+      [
+       -99.156225,
+       19.441805
+      ]
+     ]
+    },
+    {
+     "unit": "olid",
+     "type": "advance",
+     "path": [
+      [
+       -99.134291,
+       19.405832
+      ],
+      [
+       -99.134291,
+       19.415275
+      ]
+     ]
+    },
+    {
+     "unit": "olid-al",
+     "type": "advance",
+     "path": [
+      [
+       -99.134291,
+       19.403134
+      ],
+      [
+       -99.134291,
+       19.412577
+      ]
+     ]
+    },
+    {
+     "unit": "mx-main",
+     "type": "retreat",
+     "path": [
+      [
+       -99.133337,
+       19.426067
+      ],
+      [
+       -99.132384,
+       19.432362
+      ]
+     ]
+    },
+    {
+     "unit": "sand",
+     "type": "advance",
+     "path": [
+      [
+       -99.134291,
+       19.406731
+      ],
+      [
+       -99.133814,
+       19.417074
+      ]
+     ]
+    },
+    {
+     "unit": "sand-al",
+     "type": "advance",
+     "path": [
+      [
+       -99.134291,
+       19.404483
+      ],
+      [
+       -99.133814,
+       19.414376
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      -99.133337,
+      19.431463
+     ],
+     "text": "Famine and disease in the city",
+     "kind": "event"
+    }
+   ],
+   "date": {
+    "year": 1521,
+    "month": 7
+   },
+   "light": "day"
+  },
+  {
+   "id": "closing",
+   "title": "Into the city",
+   "time": "July 1521",
+   "narrative": "With the brigantines free on the lake and all three causeways held, the Spaniards advanced into the main quarters. Sandoval's division, moved up to the northern side, helped seal the last roads. Cortes also sent columns against tributaries trying to relieve the city. Cuauhtemoc retained the support of Tlatelolco, but no outside help reached him.",
+   "positions": {
+    "alv": {
+     "at": [
+      -99.145735,
+      19.439107
+     ]
+    },
+    "alv-al": {
+     "at": [
+      -99.148596,
+      19.439557
+     ]
+    },
+    "olid": {
+     "at": [
+      -99.134291,
+      19.424268
+     ]
+    },
+    "olid-al": {
+     "at": [
+      -99.134291,
+      19.42157
+     ]
+    },
+    "sand": {
+     "at": [
+      -99.126662,
+      19.466536
+     ],
+     "facing": 180
+    },
+    "sand-al": {
+     "at": [
+      -99.125231,
+      19.469234
+     ],
+     "facing": 180
+    },
+    "mx-main": {
+     "at": [
+      -99.132384,
+      19.435959
+     ],
+     "width": 700
+    },
+    "brigs": {
+     "at": [
+      -99.114264,
+      19.442255
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "alv",
+     "type": "advance",
+     "path": [
+      [
+       -99.153364,
+       19.441355
+      ],
+      [
+       -99.145735,
+       19.439107
+      ]
+     ]
+    },
+    {
+     "unit": "alv-al",
+     "type": "advance",
+     "path": [
+      [
+       -99.156225,
+       19.441805
+      ],
+      [
+       -99.148596,
+       19.439557
+      ]
+     ]
+    },
+    {
+     "unit": "olid",
+     "type": "advance",
+     "path": [
+      [
+       -99.134291,
+       19.415275
+      ],
+      [
+       -99.134291,
+       19.424268
+      ]
+     ]
+    },
+    {
+     "unit": "olid-al",
+     "type": "advance",
+     "path": [
+      [
+       -99.134291,
+       19.412577
+      ],
+      [
+       -99.134291,
+       19.42157
+      ]
+     ]
+    },
+    {
+     "unit": "sand",
+     "type": "march",
+     "path": [
+      [
+       -99.133814,
+       19.417074
+      ],
+      [
+       -99.126662,
+       19.466536
+      ]
+     ]
+    },
+    {
+     "unit": "sand-al",
+     "type": "march",
+     "path": [
+      [
+       -99.133814,
+       19.414376
+      ],
+      [
+       -99.125231,
+       19.469234
+      ]
+     ]
+    },
+    {
+     "unit": "brigs",
+     "type": "sail",
+     "path": [
+      [
+       -99.150503,
+       19.424268
+      ],
+      [
+       -99.114264,
+       19.442255
+      ]
+     ]
+    }
+   ],
+   "date": {
+    "year": 1521,
+    "month": 7,
+    "day": 20
+   },
+   "light": "day"
+  },
+  {
+   "id": "tlatelolco",
+   "title": "Advance on the Tlatelolco market",
+   "time": "early August 1521",
+   "narrative": "Cortes ordered all three camps toward the great market at Tlatelolco. Alvarado's men reached it first, and Gutierrez de Badajoz climbed the temple, set it alight and planted Spanish banners. Cortes and Sandoval joined them after four more days of fighting. Tlatelolco refused to switch sides, and the Mexica still performed their rites, including a sacrifice of seventy captives.",
+   "positions": {
+    "alv": {
+     "at": [
+      -99.140013,
+      19.44855
+     ],
+     "facing": 45
+    },
+    "alv-al": {
+     "at": [
+      -99.142874,
+      19.4481
+     ],
+     "facing": 45
+    },
+    "olid": {
+     "at": [
+      -99.134291,
+      19.433261
+     ]
+    },
+    "olid-al": {
+     "at": [
+      -99.134291,
+      19.430563
+     ]
+    },
+    "sand": {
+     "at": [
+      -99.13143,
+      19.456644
+     ]
+    },
+    "sand-al": {
+     "at": [
+      -99.13,
+      19.459342
+     ]
+    },
+    "mx-tlat": {
+     "state": "engaged"
+    },
+    "mx-main": {
+     "at": [
+      -99.134291,
+      19.442255
+     ],
+     "width": 500,
+     "depth": 400,
+     "state": "wavering"
+    }
+   },
+   "moves": [
+    {
+     "unit": "alv",
+     "type": "attack",
+     "path": [
+      [
+       -99.145735,
+       19.439107
+      ],
+      [
+       -99.140013,
+       19.44855
+      ]
+     ]
+    },
+    {
+     "unit": "alv-al",
+     "type": "attack",
+     "path": [
+      [
+       -99.148596,
+       19.439557
+      ],
+      [
+       -99.142874,
+       19.4481
+      ]
+     ]
+    },
+    {
+     "unit": "olid",
+     "type": "advance",
+     "path": [
+      [
+       -99.134291,
+       19.424268
+      ],
+      [
+       -99.134291,
+       19.433261
+      ]
+     ]
+    },
+    {
+     "unit": "olid-al",
+     "type": "advance",
+     "path": [
+      [
+       -99.134291,
+       19.42157
+      ],
+      [
+       -99.134291,
+       19.430563
+      ]
+     ]
+    },
+    {
+     "unit": "sand",
+     "type": "attack",
+     "path": [
+      [
+       -99.126662,
+       19.466536
+      ],
+      [
+       -99.13143,
+       19.456644
+      ]
+     ]
+    },
+    {
+     "unit": "sand-al",
+     "type": "attack",
+     "path": [
+      [
+       -99.125231,
+       19.469234
+      ],
+      [
+       -99.13,
+       19.459342
+      ]
+     ]
+    },
+    {
+     "unit": "mx-main",
+     "type": "retreat",
+     "path": [
+      [
+       -99.132384,
+       19.435959
+      ],
+      [
+       -99.134291,
+       19.442255
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      -99.137057,
+      19.451338
+     ],
+     "text": "Temple burned, banners raised",
+     "kind": "event"
+    }
+   ],
+   "date": {
+    "year": 1521,
+    "month": 8,
+    "day": 3
+   },
+   "light": "day"
+  },
+  {
+   "id": "laststand",
+   "title": "The last stand and the flight",
+   "time": "c. 12-13 August 1521",
+   "narrative": "Cuauhtemoc and the nobles judged resistance hopeless after several failed offers of peace. Cortes ordered Sandoval to attack the last pocket where the ruler had withdrawn. Hundreds of canoes crowded the lake in flight, and the brigantines closed in. Cuauhtemoc tried to escape with family and valuables in fifty canoes, but was taken by Sandoval's launches and brought to Cortes.",
+   "positions": {
+    "mx-main": {
+     "state": "routed",
+     "at": [
+      -99.132384,
+      19.437758
+     ]
+    },
+    "mx-tlat": {
+     "state": "routed"
+    },
+    "mx-canoes": {
+     "at": [
+      -99.119986,
+      19.453046
+     ],
+     "facing": 90,
+     "state": "routed",
+     "width": 700
+    },
+    "brigs": {
+     "at": [
+      -99.121893,
+      19.455744
+     ],
+     "state": "engaged"
+    },
+    "cuauh": {
+     "at": [
+      -99.121893,
+      19.453946
+     ],
+     "label": "Cuauhtemoc",
+     "frame": true
+    }
+   },
+   "moves": [
+    {
+     "unit": "mx-main",
+     "type": "retreat",
+     "path": [
+      [
+       -99.134291,
+       19.442255
+      ],
+      [
+       -99.132384,
+       19.437758
+      ]
+     ]
+    },
+    {
+     "unit": "mx-canoes",
+     "type": "rout",
+     "path": [
+      [
+       -99.142874,
+       19.419772
+      ],
+      [
+       -99.119986,
+       19.453046
+      ]
+     ]
+    },
+    {
+     "unit": "brigs",
+     "type": "attack",
+     "path": [
+      [
+       -99.114264,
+       19.442255
+      ],
+      [
+       -99.121893,
+       19.455744
+      ]
+     ]
+    },
+    {
+     "unit": "cuauh",
+     "type": "rout",
+     "path": [
+      [
+       -99.133337,
+       19.450348
+      ],
+      [
+       -99.121893,
+       19.453946
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      -99.121893,
+      19.453946
+     ],
+     "text": "Cuauhtemoc captured on the lake",
+     "kind": "capture"
+    }
+   ],
+   "date": {
+    "year": 1521,
+    "month": 8,
+    "day": 13
+   },
+   "light": "day"
+  },
+  {
+   "id": "surrender",
+   "title": "The surrender and its cost",
+   "time": "13 August 1521",
+   "narrative": "The city fell on 13 August. Cortes pressed for the gold lost on the Noche Triste, and little was found. Perhaps forty thousand inhabitants were dead or captive, and the survivors streamed out for three days. The Spanish allies, especially Tlaxcalans, killed and plundered even after the surrender, to the dismay of Cortes. Almost all the nobility were dead; the empire was gone, and New Spain rose on its ruins.",
+   "positions": {
+    "alv": {
+     "at": [
+      -99.138106,
+      19.446751
+     ],
+     "state": "ready",
+     "facing": 90
+    },
+    "sand": {
+     "at": [
+      -99.126662,
+      19.451248
+     ],
+     "state": "ready"
+    },
+    "olid": {
+     "at": [
+      -99.134291,
+      19.437758
+     ],
+     "state": "ready"
+    },
+    "mx-main": {
+     "state": "destroyed"
+    },
+    "mx-tlat": {
+     "state": "destroyed"
+    },
+    "cuauh": {
+     "state": "captured",
+     "by": "sp"
+    }
+   },
+   "moves": [
+    {
+     "unit": "sand",
+     "type": "advance",
+     "path": [
+      [
+       -99.13143,
+       19.456644
+      ],
+      [
+       -99.126662,
+       19.451248
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      -99.132384,
+      19.440456
+     ],
+     "text": "City destroyed; c. 40,000 dead or captive",
+     "kind": "event"
+    }
+   ],
+   "date": {
+    "year": 1521,
+    "month": 8,
+    "day": 13
+   },
+   "light": "dusk"
+  }
+ ]
+}

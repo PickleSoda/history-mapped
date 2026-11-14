@@ -1,0 +1,1587 @@
+{
+ "schema": 3,
+ "slug": "fall-of-constantinople",
+ "kind": "siege",
+ "entity": {
+  "name": "Fall of Constantinople",
+  "wikidata": "Q160077"
+ },
+ "title": "Fall of Constantinople",
+ "date_label": "6 April - 29 May 1453",
+ "year": 1453,
+ "intro": "In the spring of 1453 the twenty-one-year-old Sultan Mehmed II besieged Constantinople, the last real stronghold of the Byzantine Empire and a city that had stood behind its walls for a thousand years. The defenders, about eight thousand strong including Genoese, Venetian, Catalan and other volunteers under Emperor Constantine XI, faced an army that Western accounts number at around a hundred thousand, together with a large fleet and an unusual train of heavy guns. The land walls on the west held for seven weeks against bombardment, assaults and mining, and the Golden Horn was sealed by a chain until the Ottomans dragged ships over the hill of Galata. Before dawn on 29 May the last attack broke through, helped by the wounding of the Genoese captain Giustiniani, and the city fell.",
+ "outcome": "Ottoman victory: Constantinople taken, Constantine XI killed, the Byzantine Empire ended.",
+ "uncertainty": "Troop figures are contemporary estimates and vary widely, as do fleet sizes and gun counts. The land wall line is drawn through the gate positions from map data and is approximate in between. The chain's line, the overland track of the ships, the reserve positions and the miners' sectors are reconstructions. Constantine's death and the performance of the Orban gun are disputed in the sources.",
+ "sources": [
+  {
+   "title": "Fall of Constantinople - Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Fall_of_Constantinople",
+   "kind": "web"
+  }
+ ],
+ "sides": [
+  {
+   "id": "ottoman",
+   "name": "Ottoman Empire",
+   "color": "#b91c1c",
+   "polity": {
+    "name": "Ottoman Empire",
+    "wikidata": "Q12560"
+   },
+   "commanders": [
+    {
+     "name": "Mehmed II",
+     "wikidata": "Q34503",
+     "role": "Sultan"
+    },
+    {
+     "name": "Zagan Pasha",
+     "wikidata": "Q2353735",
+     "role": "Commander"
+    },
+    {
+     "name": "Suleiman Baltoghlu",
+     "wikidata": "Q376445",
+     "role": "Admiral"
+    },
+    {
+     "name": "Ulubatli Hasan",
+     "wikidata": "Q3622985",
+     "role": "Janissary"
+    }
+   ],
+   "strength": "c. 100,000 (reported); 5,000 Janissaries",
+   "losses": "Heavy; unknown"
+  },
+  {
+   "id": "byzantine",
+   "name": "Byzantine Empire and allies",
+   "color": "#1d4ed8",
+   "polity": {
+    "name": "Byzantine Empire",
+    "wikidata": "Q12544"
+   },
+   "commanders": [
+    {
+     "name": "Constantine XI",
+     "wikidata": "Q37142",
+     "role": "Emperor"
+    },
+    {
+     "name": "Giovanni Giustiniani",
+     "wikidata": "Q59879",
+     "role": "Genoese captain"
+    }
+   ],
+   "strength": "c. 8,000 men, 26 ships",
+   "losses": "Heavy; c. 4,000 civilians killed, c. 30,000 enslaved"
+  }
+ ],
+ "units": [
+  {
+   "id": "o-janissaries",
+   "side": "ottoman",
+   "kind": "heavy_infantry",
+   "label": "Janissaries",
+   "strength": "c. 5,000"
+  },
+  {
+   "id": "o-guns",
+   "side": "ottoman",
+   "kind": "artillery",
+   "label": "Guns",
+   "strength": "12-62 guns"
+  },
+  {
+   "id": "o-europeans",
+   "side": "ottoman",
+   "kind": "infantry",
+   "label": "Rumelians"
+  },
+  {
+   "id": "o-anatolians",
+   "side": "ottoman",
+   "kind": "infantry",
+   "label": "Anatolians"
+  },
+  {
+   "id": "o-irregulars",
+   "side": "ottoman",
+   "kind": "light_infantry",
+   "label": "Azaps",
+   "strength": "c. 20,000"
+  },
+  {
+   "id": "o-mehmed",
+   "side": "ottoman",
+   "kind": "commander",
+   "label": "Mehmed II"
+  },
+  {
+   "id": "o-zagan",
+   "side": "ottoman",
+   "kind": "infantry",
+   "label": "Zagan Pasha"
+  },
+  {
+   "id": "o-turkmen",
+   "side": "ottoman",
+   "kind": "light_infantry",
+   "label": "Anatolian Turkmen"
+  },
+  {
+   "id": "o-miners",
+   "side": "ottoman",
+   "kind": "light_infantry",
+   "label": "Serbian sappers"
+  },
+  {
+   "id": "o-fleet",
+   "side": "ottoman",
+   "kind": "fleet",
+   "label": "Ottoman fleet",
+   "strength": "c. 110 ships (modern est.)"
+  },
+  {
+   "id": "o-portage",
+   "side": "ottoman",
+   "kind": "fleet",
+   "label": "Ships hauled overland"
+  },
+  {
+   "id": "b-constantine",
+   "side": "byzantine",
+   "kind": "infantry",
+   "label": "Constantine XI"
+  },
+  {
+   "id": "b-giustiniani",
+   "side": "byzantine",
+   "kind": "heavy_infantry",
+   "label": "Giustiniani"
+  },
+  {
+   "id": "b-venetians",
+   "side": "byzantine",
+   "kind": "infantry",
+   "label": "Venetians"
+  },
+  {
+   "id": "b-south",
+   "side": "byzantine",
+   "kind": "infantry",
+   "label": "South wall"
+  },
+  {
+   "id": "b-reserve",
+   "side": "byzantine",
+   "kind": "infantry",
+   "label": "Reserve"
+  },
+  {
+   "id": "b-fleet",
+   "side": "byzantine",
+   "kind": "fleet",
+   "label": "Christian ships",
+   "strength": "26 ships"
+  },
+  {
+   "id": "b-chain",
+   "side": "byzantine",
+   "kind": "standard",
+   "label": "Chain (boom)"
+  },
+  {
+   "id": "b-relief",
+   "side": "byzantine",
+   "kind": "fleet",
+   "label": "Relief flotilla"
+  }
+ ],
+ "terrain": [
+  {
+   "id": "land-walls",
+   "kind": "wall",
+   "label": "Theodosian land walls",
+   "line": [
+    [
+     28.94412,
+     41.03859
+    ],
+    [
+     28.937,
+     41.036
+    ],
+    [
+     28.92949,
+     41.0334
+    ],
+    [
+     28.9282,
+     41.0207
+    ],
+    [
+     28.92689,
+     41.00541
+    ],
+    [
+     28.92243,
+     40.99322
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "chain",
+   "kind": "wall",
+   "label": "Chain across the Golden Horn",
+   "line": [
+    [
+     28.9868,
+     41.0155
+    ],
+    [
+     28.978,
+     41.021
+    ],
+    [
+     28.97279,
+     41.02529
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "portage",
+   "kind": "road",
+   "label": "Overland track (conj.)",
+   "line": [
+    [
+     29.00753,
+     41.04285
+    ],
+    [
+     28.99,
+     41.037
+    ],
+    [
+     28.977,
+     41.03
+    ],
+    [
+     28.96508,
+     41.03504
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "golden-horn",
+   "kind": "label",
+   "label": "Golden Horn",
+   "at": [
+    28.954,
+    41.042
+   ]
+  },
+  {
+   "id": "mesoteichion",
+   "kind": "label",
+   "label": "Mesoteichion (St Romanus Gate)",
+   "at": [
+    28.93118,
+    41.019351
+   ]
+  },
+  {
+   "id": "blachernae",
+   "kind": "town",
+   "label": "Blachernae",
+   "at": [
+    28.94412,
+    41.03859
+   ]
+  },
+  {
+   "id": "galata",
+   "kind": "town",
+   "label": "Galata (Pera)",
+   "at": [
+    28.97279,
+    41.02529
+   ]
+  },
+  {
+   "id": "hagia-sophia",
+   "kind": "building",
+   "label": "Hagia Sophia",
+   "at": [
+    28.98001,
+    41.0085
+   ]
+  },
+  {
+   "id": "golden-gate",
+   "kind": "pass",
+   "label": "Golden Gate",
+   "at": [
+    28.92243,
+    40.99322
+   ]
+  },
+  {
+   "id": "edirne",
+   "kind": "pass",
+   "label": "Charisian Gate",
+   "at": [
+    28.92949,
+    41.0334
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "id": "camps",
+   "title": "The Sultan's army reaches the walls",
+   "time": "2-5 April 1453",
+   "narrative": "Mehmed II brings an army that Western sources put in the tens of thousands up to the Theodosian land walls, the one side of the city not guarded by water. The camp is pitched on Monday 2 April. His red-and-gold tent stands near the Mesoteichion, the middle stretch where the little river Lycus passes under the wall, and the guns and the elite Janissaries are placed around it. European regulars under Karaca Pasha stretch along the northern wall, Anatolian regulars under Ishak Pasha hold the southern stretch, and irregular bashi-bazouks wait behind. Zagan Pasha takes troops north of the Golden Horn. In the sea, Baltoghlu's fleet gathers.",
+   "positions": {
+    "o-janissaries": {
+     "at": [
+      28.923194,
+      41.0207
+     ],
+     "facing": 90,
+     "width": 500,
+     "depth": 40,
+     "strength_n": 5000
+    },
+    "o-guns": {
+     "at": [
+      28.925458,
+      41.0207
+     ],
+     "facing": 90,
+     "width": 300,
+     "depth": 30
+    },
+    "o-europeans": {
+     "at": [
+      28.92367,
+      41.030593
+     ],
+     "facing": 90,
+     "width": 800,
+     "depth": 60
+    },
+    "o-anatolians": {
+     "at": [
+      28.92367,
+      41.010807
+     ],
+     "facing": 90,
+     "width": 1100,
+     "depth": 60
+    },
+    "o-irregulars": {
+     "at": [
+      28.918664,
+      41.0207
+     ],
+     "facing": 90,
+     "width": 1500,
+     "depth": 120
+    },
+    "o-mehmed": {
+     "at": [
+      28.920452,
+      41.0207
+     ],
+     "facing": 90,
+     "width": 30,
+     "depth": 30
+    },
+    "o-zagan": {
+     "at": [
+      28.9765,
+      41.039
+     ],
+     "facing": 200,
+     "width": 500,
+     "depth": 60,
+     "frame": false
+    },
+    "o-fleet": {
+     "at": [
+      29.0075,
+      41.0405
+     ],
+     "facing": 180,
+     "width": 300,
+     "depth": 100
+    }
+   },
+   "date": {
+    "year": 1453,
+    "month": 4,
+    "day": 2,
+    "end": {
+     "year": 1453,
+     "month": 4,
+     "day": 5
+    }
+   },
+   "light": "day",
+   "camera": {
+    "center": [
+     28.9282,
+     41.023848
+    ],
+    "zoom": 13.9
+   }
+  },
+  {
+   "id": "defenders",
+   "title": "The defenders take their posts",
+   "time": "5 April 1453",
+   "narrative": "With about eight thousand fighting men for roughly twenty kilometres of walls, the defenders can only man the outer land wall. Emperor Constantine XI and his Greeks hold the Mesoteichion, the section feared most. Giovanni Giustiniani and his Genoese stand north of him at the Charisian Gate and later join the emperor at the centre. The Venetians under Minotto hold the Blachernae palace corner, while Theophilos Palaiologos, Filippo Contarini and Demetrios Kantakouzenos watch the southern gates. Reserves are kept back in the Petra quarter, and Alviso Diedo commands the ships inside the Golden Horn behind the chain.",
+   "positions": {
+    "b-constantine": {
+     "at": [
+      28.928677,
+      41.0207
+     ],
+     "facing": 270,
+     "width": 450,
+     "depth": 30,
+     "strength_n": 1500
+    },
+    "b-giustiniani": {
+     "at": [
+      28.929392,
+      41.026096
+     ],
+     "facing": 270,
+     "width": 500,
+     "depth": 30,
+     "strength_n": 700
+    },
+    "b-venetians": {
+     "at": [
+      28.9431,
+      41.038237
+     ],
+     "facing": 330,
+     "width": 400,
+     "depth": 30
+    },
+    "b-south": {
+     "at": [
+      28.927485,
+      41.006311
+     ],
+     "facing": 270,
+     "width": 1700,
+     "depth": 20
+    },
+    "b-reserve": {
+     "at": [
+      28.94608,
+      41.023398
+     ],
+     "facing": 270,
+     "width": 300,
+     "depth": 40,
+     "conjectural": true
+    },
+    "b-fleet": {
+     "at": [
+      28.9665,
+      41.0285
+     ],
+     "facing": 60,
+     "width": 300,
+     "depth": 80
+    },
+    "b-chain": {
+     "at": [
+      28.979,
+      41.0215
+     ],
+     "facing": 60,
+     "width": 30,
+     "depth": 30
+    }
+   },
+   "date": {
+    "year": 1453,
+    "month": 4,
+    "day": 5
+   },
+   "light": "day",
+   "camera": {
+    "center": [
+     28.9282,
+     41.023848
+    ],
+    "zoom": 13.9
+   }
+  },
+  {
+   "id": "bombardment",
+   "title": "The great guns open fire",
+   "time": "6 April - mid April",
+   "narrative": "The bombardment begins. Orban's giant gun, hauled from Edirne by a team of oxen and hundreds of men, and other bombards batter the wall around the Mesoteichion. They fire slowly and imprecisely, and each night the defenders mend the damage with timber, earth and barrels. Mehmed also sends detachments to take outlying strongholds such as Therapia and Studius. Janissary rushes against the wall cost many lives, as the Venetian surgeon Barbaro recorded, because the Turks would not leave their dead behind.",
+   "positions": {
+    "o-janissaries": {
+     "at": [
+      28.92665,
+      41.0207
+     ],
+     "state": "engaged"
+    },
+    "b-constantine": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "o-guns",
+     "type": "fire",
+     "path": [
+      [
+       28.925458,
+       41.0207
+      ],
+      [
+       28.928677,
+       41.0207
+      ]
+     ],
+     "label": "bombardment"
+    },
+    {
+     "unit": "o-janissaries",
+     "type": "attack",
+     "path": [
+      [
+       28.923194,
+       41.0207
+      ],
+      [
+       28.92665,
+       41.0207
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      28.927485,
+      41.021779
+     ],
+     "text": "Wall battered, repaired each night",
+     "kind": "event"
+    }
+   ],
+   "date": {
+    "year": 1453,
+    "month": 4,
+    "day": 6,
+    "end": {
+     "year": 1453,
+     "month": 4,
+     "day": 18
+    }
+   },
+   "camera": {
+    "center": [
+     28.9282,
+     41.023848
+    ],
+    "zoom": 13.9
+   }
+  },
+  {
+   "id": "four-ships",
+   "title": "Four ships break the blockade",
+   "time": "20 April 1453",
+   "narrative": "Baltoghlu's fleet cannot force the chain across the mouth of the Golden Horn. On 20 April a small flotilla of Christian ships, running before a wind, fights its way through the Ottoman galleys and reaches the harbour. The success cheers the defenders and humiliates the Sultan; Baltoghlu, probably wounded in the eye, is stripped of his property and whipped. The relief also shows that Western help had not arrived in force.",
+   "positions": {
+    "o-janissaries": {
+     "state": "ready"
+    },
+    "b-constantine": {
+     "state": "ready"
+    },
+    "o-fleet": {
+     "at": [
+      28.999,
+      41.02
+     ],
+     "facing": 300,
+     "state": "engaged"
+    },
+    "b-relief": {
+     "at": [
+      28.974,
+      41.0195
+     ],
+     "facing": 40,
+     "width": 120,
+     "depth": 60,
+     "frame": false,
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "o-fleet",
+     "type": "advance",
+     "path": [
+      [
+       29.0075,
+       41.0405
+      ],
+      [
+       28.999,
+       41.02
+      ]
+     ]
+    },
+    {
+     "unit": "b-relief",
+     "type": "advance",
+     "path": [
+      [
+       28.97,
+       41.008
+      ],
+      [
+       28.979,
+       41.011
+      ],
+      [
+       28.981,
+       41.0165
+      ],
+      [
+       28.974,
+       41.0195
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      28.977,
+      41.0205
+     ],
+     "text": "Four ships reach the boom",
+     "kind": "event"
+    }
+   ],
+   "date": {
+    "year": 1453,
+    "month": 4,
+    "day": 20
+   },
+   "light": "day",
+   "camera": {
+    "center": [
+     28.985,
+     41.03
+    ],
+    "zoom": 14.0
+   }
+  },
+  {
+   "id": "portage",
+   "title": "The fleet crosses the hill of Galata",
+   "time": "22 April 1453",
+   "narrative": "Mehmed answers by building a track of greased logs over the hill behind Galata and hauling a part of his fleet overland from the Bosphorus shore to the upper Golden Horn, bypassing the chain. The sight of Ottoman ships floating inside the harbour demoralises the defenders and forces them to thin their land defences to guard the sea walls along the Horn. The exact route over the hill is not certain.",
+   "positions": {
+    "o-fleet": {
+     "state": "ready"
+    },
+    "o-portage": {
+     "at": [
+      28.9651,
+      41.035
+     ],
+     "facing": 250,
+     "width": 200,
+     "depth": 60,
+     "conjectural": true,
+     "state": "ready"
+    },
+    "b-fleet": {
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "o-portage",
+     "type": "march",
+     "path": [
+      [
+       29.0075,
+       41.0428
+      ],
+      [
+       28.99,
+       41.037
+      ],
+      [
+       28.977,
+       41.03
+      ],
+      [
+       28.9651,
+       41.035
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      28.99,
+      41.0385
+     ],
+     "text": "Greased-log track over Galata (conj.)",
+     "kind": "event",
+     "conjectural": true
+    },
+    {
+     "at": [
+      28.979,
+      41.0215
+     ],
+     "text": "Chain across the Horn",
+     "kind": "label"
+    }
+   ],
+   "date": {
+    "year": 1453,
+    "month": 4,
+    "day": 22
+   },
+   "light": "day",
+   "camera": {
+    "center": [
+     28.985,
+     41.03
+    ],
+    "zoom": 14.0
+   }
+  },
+  {
+   "id": "fireships",
+   "title": "The fireship attack fails",
+   "time": "28 April 1453",
+   "narrative": "On the night of 28 April the defenders try to burn the Ottoman ships now in the Golden Horn. The attempt fails, and many of the Italian crews are lost. Forty swimmers who reach the northern shore are impaled in view of the city; in reprisal the defenders execute 260 Ottoman prisoners on the walls. The failure leaves the defenders stretched, with part of their small force committed to the sea walls.",
+   "positions": {
+    "o-portage": {
+     "at": [
+      28.96,
+      41.0335
+     ],
+     "state": "engaged"
+    },
+    "b-fleet": {
+     "at": [
+      28.9615,
+      41.0328
+     ],
+     "facing": 300,
+     "state": "burning"
+    }
+   },
+   "moves": [
+    {
+     "unit": "o-portage",
+     "type": "advance",
+     "path": [
+      [
+       28.9651,
+       41.035
+      ],
+      [
+       28.96,
+       41.0335
+      ]
+     ]
+    },
+    {
+     "unit": "b-fleet",
+     "type": "attack",
+     "path": [
+      [
+       28.9665,
+       41.0285
+      ],
+      [
+       28.9615,
+       41.0328
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      28.9565,
+      41.0345
+     ],
+     "text": "Night attack beaten off",
+     "kind": "clash"
+    }
+   ],
+   "date": {
+    "year": 1453,
+    "month": 4,
+    "day": 28
+   },
+   "light": "night",
+   "camera": {
+    "center": [
+     28.985,
+     41.03
+    ],
+    "zoom": 14.0
+   }
+  },
+  {
+   "id": "mines",
+   "title": "Mines and countermines",
+   "time": "16-25 May 1453",
+   "narrative": "Mehmed turns to the earth. Serbian miners from Novo Brdo, under Zagan Pasha, dig tunnels toward the walls. The German engineer Johannes Grant, serving with the Genoese, runs countermines, and the defenders break into the Ottoman galleries, kill the miners and use Greek fire. Tunnels are cut off on 16, 21, 23 and 25 May. Two captured Turkish officers on 23 May reveal where the rest run, and those are destroyed.",
+   "positions": {
+    "o-portage": {
+     "state": "ready"
+    },
+    "o-miners": {
+     "at": [
+      28.928558,
+      41.024747
+     ],
+     "facing": 90,
+     "width": 200,
+     "depth": 40,
+     "conjectural": true,
+     "state": "engaged"
+    },
+    "b-giustiniani": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "o-miners",
+     "type": "advance",
+     "path": [
+      [
+       28.925816,
+       41.024747
+      ],
+      [
+       28.928558,
+       41.024747
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      28.928558,
+      41.025736
+     ],
+     "text": "Countermine; tunnels cut 16-25 May",
+     "kind": "clash"
+    }
+   ],
+   "date": {
+    "year": 1453,
+    "month": 5,
+    "day": 16,
+    "end": {
+     "year": 1453,
+     "month": 5,
+     "day": 25
+    }
+   },
+   "light": "day",
+   "camera": {
+    "center": [
+     28.9282,
+     41.023848
+    ],
+    "zoom": 13.9
+   }
+  },
+  {
+   "id": "council",
+   "title": "An offer refused, a council held",
+   "time": "21-27 May 1453",
+   "narrative": "On 21 May Mehmed offers to lift the siege if the city is handed over: the emperor would keep life and goods and rule the Peloponnese. Constantine will pay more tribute but will not give up the city. Halil Pasha urges the Sultan to withdraw, while Zagan Pasha demands an all-out assault, and Mehmed chooses the assault. On 27 May a Venetian scouting squadron reaches the city and reports that no relief fleet is coming. By then the guns have fired about 5,000 shots.",
+   "positions": {
+    "o-miners": {
+     "state": "hidden"
+    },
+    "o-turkmen": {
+     "at": [
+      28.931776,
+      41.044532
+     ],
+     "facing": 150,
+     "width": 400,
+     "depth": 40,
+     "frame": false,
+     "conjectural": true
+    }
+   },
+   "notes": [
+    {
+     "at": [
+      28.920571,
+      41.022049
+     ],
+     "text": "Council: Halil against, Zagan for",
+     "kind": "event"
+    }
+   ],
+   "date": {
+    "year": 1453,
+    "month": 5,
+    "day": 21,
+    "end": {
+     "year": 1453,
+     "month": 5,
+     "day": 27
+    }
+   },
+   "camera": {
+    "center": [
+     28.9282,
+     41.023848
+    ],
+    "zoom": 13.9
+   }
+  },
+  {
+   "id": "first-waves",
+   "title": "Midnight: the irregular waves",
+   "time": "00:00-c. 04:00, 29 May 1453",
+   "narrative": "After a day of prayer and rest, the attack begins shortly after midnight on Tuesday 29 May with torches, horns and drums. First come the Christian troops of the Ottoman realm, then the poorly equipped azaps, then Anatolian Turkmen, who press on the older Blachernae stretch in the north-west. Turkmen warriors briefly get into the city there but are driven out. The defenders, thin on the ground, hold every point.",
+   "positions": {
+    "b-constantine": {
+     "state": "engaged"
+    },
+    "b-venetians": {
+     "state": "engaged"
+    },
+    "o-irregulars": {
+     "at": [
+      28.92882,
+      41.026096
+     ],
+     "depth": 50,
+     "width": 600,
+     "state": "engaged"
+    },
+    "o-europeans": {
+     "at": [
+      28.927485,
+      41.031942
+     ],
+     "width": 600,
+     "depth": 50,
+     "state": "engaged"
+    },
+    "o-turkmen": {
+     "at": [
+      28.942844,
+      41.038572
+     ],
+     "state": "engaged"
+    },
+    "o-anatolians": {
+     "at": [
+      28.927485,
+      41.010807
+     ],
+     "state": "engaged"
+    },
+    "o-janissaries": {
+     "at": [
+      28.924624,
+      41.0207
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "o-irregulars",
+     "type": "attack",
+     "path": [
+      [
+       28.918664,
+       41.0207
+      ],
+      [
+       28.92882,
+       41.026096
+      ]
+     ]
+    },
+    {
+     "unit": "o-europeans",
+     "type": "attack",
+     "path": [
+      [
+       28.92367,
+       41.030593
+      ],
+      [
+       28.927485,
+       41.031942
+      ]
+     ]
+    },
+    {
+     "unit": "o-turkmen",
+     "type": "attack",
+     "path": [
+      [
+       28.931776,
+       41.044532
+      ],
+      [
+       28.942844,
+       41.038572
+      ]
+     ]
+    },
+    {
+     "unit": "o-anatolians",
+     "type": "advance",
+     "path": [
+      [
+       28.92367,
+       41.010807
+      ],
+      [
+       28.927485,
+       41.010807
+      ]
+     ]
+    },
+    {
+     "unit": "o-janissaries",
+     "type": "advance",
+     "path": [
+      [
+       28.92665,
+       41.0207
+      ],
+      [
+       28.924624,
+       41.0207
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      28.9431,
+      41.040035
+     ],
+     "text": "Turkmen briefly enter at Blachernae",
+     "kind": "clash"
+    }
+   ],
+   "date": {
+    "year": 1453,
+    "month": 5,
+    "day": 29
+   },
+   "light": "night",
+   "camera": {
+    "center": [
+     28.93416,
+     41.029693
+    ],
+    "zoom": 14.3
+   }
+  },
+  {
+   "id": "janissaries",
+   "title": "The Janissaries and Giustiniani's wound",
+   "time": "c. 04:00-05:00, 29 May",
+   "narrative": "The last wave is the Janissaries, fresh and disciplined, who storm the Mesoteichion and fight the Greeks and Genoese on the broken wall. Giustiniani, the commander of the Genoese on land, is badly wounded and carried from the ramparts. His men fall back toward the harbour, and panic spreads. Constantine and his Greeks keep fighting, but the line is now opening.",
+   "positions": {
+    "o-irregulars": {
+     "at": [
+      28.922836,
+      41.026546
+     ],
+     "state": "ready"
+    },
+    "o-europeans": {
+     "at": [
+      28.922836,
+      41.031942
+     ],
+     "state": "ready"
+    },
+    "o-turkmen": {
+     "at": [
+      28.93416,
+      41.043183
+     ],
+     "state": "ready"
+    },
+    "o-janissaries": {
+     "at": [
+      28.928105,
+      41.0207
+     ],
+     "depth": 50,
+     "state": "engaged"
+    },
+    "b-giustiniani": {
+     "at": [
+      28.938928,
+      41.030143
+     ],
+     "state": "wavering"
+    }
+   },
+   "moves": [
+    {
+     "unit": "o-irregulars",
+     "type": "retreat",
+     "path": [
+      [
+       28.92882,
+       41.026096
+      ],
+      [
+       28.922836,
+       41.026546
+      ]
+     ]
+    },
+    {
+     "unit": "o-europeans",
+     "type": "retreat",
+     "path": [
+      [
+       28.927485,
+       41.031942
+      ],
+      [
+       28.922836,
+       41.031942
+      ]
+     ]
+    },
+    {
+     "unit": "o-turkmen",
+     "type": "retreat",
+     "path": [
+      [
+       28.942844,
+       41.038572
+      ],
+      [
+       28.93416,
+       41.043183
+      ]
+     ]
+    },
+    {
+     "unit": "o-janissaries",
+     "type": "charge",
+     "path": [
+      [
+       28.924624,
+       41.0207
+      ],
+      [
+       28.928105,
+       41.0207
+      ]
+     ]
+    },
+    {
+     "unit": "b-giustiniani",
+     "type": "retreat",
+     "path": [
+      [
+       28.929392,
+       41.026096
+      ],
+      [
+       28.938928,
+       41.030143
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      28.93118,
+      41.025376
+     ],
+     "text": "Giustiniani wounded, carried off",
+     "kind": "death"
+    }
+   ],
+   "date": {
+    "year": 1453,
+    "month": 5,
+    "day": 29
+   },
+   "light": "dawn",
+   "camera": {
+    "center": [
+     28.93416,
+     41.029693
+    ],
+    "zoom": 14.3
+   }
+  },
+  {
+   "id": "breach",
+   "title": "The wall is lost",
+   "time": "c. 05:00-08:00, 29 May",
+   "narrative": "Janissaries led by Ulubatli Hasan pour over the wall and through the gaps, and the defence collapses at several points. Many Greeks run home to protect their families, the Venetians seek their ships, and a few Genoese flee to Galata. Constantine is last seen leading a final charge; sources differ and his fate is unknown. The Catalans on their stretch of wall are the last to fall. An Ottoman force reaches the Golden Horn walls from behind, and the Venetians break open a harbour gate to escape.",
+   "positions": {
+    "o-janissaries": {
+     "at": [
+      28.931776,
+      41.021599
+     ]
+    },
+    "o-irregulars": {
+     "at": [
+      28.930584,
+      41.026546
+     ],
+     "state": "engaged"
+    },
+    "o-europeans": {
+     "at": [
+      28.930584,
+      41.031942
+     ],
+     "state": "engaged"
+    },
+    "o-turkmen": {
+     "at": [
+      28.95,
+      41.0338
+     ],
+     "facing": 60,
+     "state": "engaged"
+    },
+    "b-constantine": {
+     "state": "destroyed"
+    },
+    "b-giustiniani": {
+     "at": [
+      28.954,
+      41.031
+     ],
+     "state": "routed",
+     "conjectural": true
+    },
+    "b-south": {
+     "state": "routed"
+    },
+    "b-venetians": {
+     "at": [
+      28.9565,
+      41.0335
+     ],
+     "facing": 60,
+     "state": "routed"
+    },
+    "b-fleet": {
+     "at": [
+      28.96,
+      41.031
+     ],
+     "facing": 45,
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "o-janissaries",
+     "type": "charge",
+     "path": [
+      [
+       28.928105,
+       41.0207
+      ],
+      [
+       28.931776,
+       41.021599
+      ]
+     ]
+    },
+    {
+     "unit": "o-irregulars",
+     "type": "advance",
+     "path": [
+      [
+       28.922836,
+       41.026546
+      ],
+      [
+       28.930584,
+       41.026546
+      ]
+     ]
+    },
+    {
+     "unit": "o-europeans",
+     "type": "advance",
+     "path": [
+      [
+       28.922836,
+       41.031942
+      ],
+      [
+       28.930584,
+       41.031942
+      ]
+     ]
+    },
+    {
+     "unit": "o-turkmen",
+     "type": "attack",
+     "path": [
+      [
+       28.93416,
+       41.043183
+      ],
+      [
+       28.95,
+       41.0338
+      ]
+     ]
+    },
+    {
+     "unit": "b-giustiniani",
+     "type": "retreat",
+     "path": [
+      [
+       28.938928,
+       41.030143
+      ],
+      [
+       28.954,
+       41.031
+      ]
+     ]
+    },
+    {
+     "unit": "b-venetians",
+     "type": "retreat",
+     "path": [
+      [
+       28.9431,
+       41.038237
+      ],
+      [
+       28.9565,
+       41.0335
+      ]
+     ]
+    },
+    {
+     "unit": "b-fleet",
+     "type": "sail",
+     "path": [
+      [
+       28.9615,
+       41.0328
+      ],
+      [
+       28.96,
+       41.031
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      28.928915,
+      41.02124
+     ],
+     "text": "Constantine XI last seen here (disputed)",
+     "kind": "death",
+     "conjectural": true
+    }
+   ],
+   "date": {
+    "year": 1453,
+    "month": 5,
+    "day": 29
+   },
+   "light": "day",
+   "camera": {
+    "center": [
+     28.93416,
+     41.029693
+    ],
+    "zoom": 14.3
+   }
+  },
+  {
+   "id": "sack",
+   "title": "The city is taken",
+   "time": "29 May 1453 (midday onward)",
+   "narrative": "The Ottoman army spreads along the Mese, the main avenue, past the great forums toward the Church of the Holy Apostles, while the navy takes control of the Golden Horn by midday. A few Venetian and Genoese ships escape with refugees. The crowds sheltering in Hagia Sophia are taken when the doors are broken, and the captives are sorted by value for the slave markets. Thousands die; sources count about 4,000 Greek civilians killed and some 30,000 enslaved. The Byzantine Empire is over.",
+   "positions": {
+    "o-janissaries": {
+     "at": [
+      28.98001,
+      41.0085
+     ],
+     "conjectural": true
+    },
+    "o-irregulars": {
+     "at": [
+      28.936544,
+      41.023398
+     ],
+     "conjectural": true
+    },
+    "o-mehmed": {
+     "at": [
+      28.98001,
+      41.0085
+     ],
+     "conjectural": true
+    },
+    "o-fleet": {
+     "at": [
+      28.956,
+      41.033
+     ],
+     "facing": 90
+    },
+    "b-fleet": {
+     "at": [
+      28.925,
+      41.06
+     ],
+     "facing": 0,
+     "frame": false
+    },
+    "b-reserve": {
+     "state": "routed"
+    }
+   },
+   "moves": [
+    {
+     "unit": "o-janissaries",
+     "type": "advance",
+     "path": [
+      [
+       28.931776,
+       41.021599
+      ],
+      [
+       28.98001,
+       41.0085
+      ]
+     ]
+    },
+    {
+     "unit": "o-irregulars",
+     "type": "advance",
+     "path": [
+      [
+       28.930584,
+       41.026546
+      ],
+      [
+       28.936544,
+       41.023398
+      ]
+     ]
+    },
+    {
+     "unit": "o-mehmed",
+     "type": "march",
+     "path": [
+      [
+       28.920452,
+       41.0207
+      ],
+      [
+       28.98001,
+       41.0085
+      ]
+     ]
+    },
+    {
+     "unit": "o-fleet",
+     "type": "advance",
+     "path": [
+      [
+       28.999,
+       41.02
+      ],
+      [
+       28.956,
+       41.033
+      ]
+     ]
+    },
+    {
+     "unit": "b-fleet",
+     "type": "sail",
+     "path": [
+      [
+       28.96,
+       41.031
+      ],
+      [
+       28.925,
+       41.06
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      28.98001,
+      41.0085
+     ],
+     "text": "Hagia Sophia: the congregation seized",
+     "kind": "capture"
+    }
+   ],
+   "date": {
+    "year": 1453,
+    "month": 5,
+    "day": 29
+   },
+   "light": "day"
+  }
+ ]
+}

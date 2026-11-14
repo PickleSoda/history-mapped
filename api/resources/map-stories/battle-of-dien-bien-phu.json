@@ -1,0 +1,1336 @@
+{
+ "schema": 3,
+ "slug": "battle-of-dien-bien-phu",
+ "kind": "siege",
+ "entity": {
+  "name": "Battle of Dien Bien Phu",
+  "wikidata": "Q604897"
+ },
+ "title": "Battle of Dien Bien Phu",
+ "date_label": "13 March - 7 May 1954",
+ "year": 1954,
+ "intro": "In November 1953 French commander Navarre parachuted troops into the remote Muong Thanh valley in\n            north-west Vietnam, planning a fortified base that would lure the Viet Minh into a pitched battle and\n            shield Laos. The garrison grew to roughly 10,800 men and was supplied only by air. General Vo Nguyen Giap\n            encircled it with about 50,000 troops and hauled artillery, including anti-aircraft guns and howitzers,\n            over the forested hills. After abandoning an early quick-strike plan, he opened the assault on 13 March\n            1954 and, step by step, took the outlying strongpoints, then closed in with trenches until the last\n            positions fell on 7 May. The surrender ended the French war in Indochina.",
+ "outcome": "Viet Minh victory: the French garrison surrendered, about 11,700 were captured, and the First Indochina War ended in French withdrawal.",
+ "uncertainty": "Exact strongpoint and headquarters positions, the artillery sites, and the paths of the Viet Minh divisions are reconstructed from the usual maps and marked conjectural. Casualty figures vary widely between Western, Asian and Vietnamese sources. The alleged confrontation of de Castries by Langlais on 24 March is disputed by some historians. Unit sizes are schematic and not drawn to strength.",
+ "sources": [
+  {
+   "title": "Battle of Dien Bien Phu - Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Battle_of_Dien_Bien_Phu",
+   "kind": "web"
+  }
+ ],
+ "sides": [
+  {
+   "id": "fr",
+   "name": "French Union",
+   "color": "#1d4ed8",
+   "polity": {
+    "name": "French Union",
+    "wikidata": "Q848478"
+   },
+   "commanders": [
+    {
+     "name": "Henri Navarre",
+     "wikidata": "Q1354290",
+     "role": "Commander in Indochina"
+    },
+    {
+     "name": "Christian de Castries",
+     "wikidata": "Q710667",
+     "role": "Garrison commander"
+    },
+    {
+     "name": "Pierre Langlais",
+     "wikidata": "Q3385771",
+     "role": "Paratroop commander"
+    }
+   ],
+   "strength": "c. 10,800 at start, c. 14,000 by 7 May",
+   "losses": "1,142-2,293 killed, 11,721 captured"
+  },
+  {
+   "id": "vm",
+   "name": "Viet Minh",
+   "color": "#b91c1c",
+   "polity": {
+    "name": "Viet Minh",
+    "wikidata": "Q190949"
+   },
+   "commanders": [
+    {
+     "name": "Vo Nguyen Giap",
+     "wikidata": "Q179910",
+     "role": "Commander"
+    }
+   ],
+   "strength": "c. 49,500 combat troops at start",
+   "losses": "Estimates from 8,000 dead to 23,000-25,000 casualties"
+  }
+ ],
+ "units": [
+  {
+   "id": "fr-hq",
+   "side": "fr",
+   "kind": "camp",
+   "label": "HQ and airstrip"
+  },
+  {
+   "id": "fr-beatrice",
+   "side": "fr",
+   "kind": "heavy_infantry",
+   "label": "Beatrice (Legion)"
+  },
+  {
+   "id": "fr-gabrielle",
+   "side": "fr",
+   "kind": "infantry",
+   "label": "Gabrielle (Algerians)"
+  },
+  {
+   "id": "fr-anne",
+   "side": "fr",
+   "kind": "light_infantry",
+   "label": "Anne-Marie (Tai)"
+  },
+  {
+   "id": "fr-east",
+   "side": "fr",
+   "kind": "infantry",
+   "label": "Dominique and Eliane"
+  },
+  {
+   "id": "fr-west",
+   "side": "fr",
+   "kind": "infantry",
+   "label": "Huguette and Claudine"
+  },
+  {
+   "id": "fr-isabelle",
+   "side": "fr",
+   "kind": "infantry",
+   "label": "Isabelle",
+   "strength": "1,809"
+  },
+  {
+   "id": "vm-312",
+   "side": "vm",
+   "kind": "infantry",
+   "label": "312th Division"
+  },
+  {
+   "id": "vm-308",
+   "side": "vm",
+   "kind": "infantry",
+   "label": "308th Division"
+  },
+  {
+   "id": "vm-316",
+   "side": "vm",
+   "kind": "infantry",
+   "label": "316th Division"
+  },
+  {
+   "id": "vm-guns",
+   "side": "vm",
+   "kind": "artillery",
+   "label": "Artillery in the hills"
+  }
+ ],
+ "terrain": [
+  {
+   "id": "nam-rom",
+   "kind": "river",
+   "label": "Nam Rom",
+   "line": [
+    [
+     103.01458,
+     21.4171
+    ],
+    [
+     103.01258,
+     21.41491
+    ],
+    [
+     103.01414,
+     21.41289
+    ],
+    [
+     103.01404,
+     21.40726
+    ],
+    [
+     103.01096,
+     21.40443
+    ],
+    [
+     103.01351,
+     21.39802
+    ],
+    [
+     103.01163,
+     21.38707
+    ],
+    [
+     103.01183,
+     21.38269
+    ],
+    [
+     103.01341,
+     21.38142
+    ],
+    [
+     103.01095,
+     21.37341
+    ],
+    [
+     103.00546,
+     21.36915
+    ],
+    [
+     103.00488,
+     21.36245
+    ],
+    [
+     103.00159,
+     21.36109
+    ],
+    [
+     103.00091,
+     21.35826
+    ],
+    [
+     103.00317,
+     21.35381
+    ],
+    [
+     102.99973,
+     21.35298
+    ],
+    [
+     103.0031,
+     21.34944
+    ],
+    [
+     103.00548,
+     21.34976
+    ],
+    [
+     103.00435,
+     21.34716
+    ],
+    [
+     103.00714,
+     21.34715
+    ],
+    [
+     103.00465,
+     21.34381
+    ],
+    [
+     103.00538,
+     21.33624
+    ]
+   ]
+  },
+  {
+   "id": "strip",
+   "kind": "road",
+   "label": "Airstrip",
+   "line": [
+    [
+     103.007671,
+     21.379208
+    ],
+    [
+     103.008154,
+     21.395396
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "muong-thanh",
+   "kind": "village",
+   "label": "Muong Thanh",
+   "at": [
+    103.01687,
+    21.38728
+   ]
+  },
+  {
+   "id": "him-lam",
+   "kind": "hill",
+   "label": "Him Lam hill",
+   "area": [
+    [
+     103.0323,
+     21.405288
+    ],
+    [
+     103.032185,
+     21.405986
+    ],
+    [
+     103.031847,
+     21.406637
+    ],
+    [
+     103.03131,
+     21.407196
+    ],
+    [
+     103.030609,
+     21.407625
+    ],
+    [
+     103.029794,
+     21.407894
+    ],
+    [
+     103.028919,
+     21.407986
+    ],
+    [
+     103.028044,
+     21.407894
+    ],
+    [
+     103.027229,
+     21.407625
+    ],
+    [
+     103.026528,
+     21.407196
+    ],
+    [
+     103.025991,
+     21.406637
+    ],
+    [
+     103.025653,
+     21.405986
+    ],
+    [
+     103.025538,
+     21.405288
+    ],
+    [
+     103.025653,
+     21.40459
+    ],
+    [
+     103.025991,
+     21.403939
+    ],
+    [
+     103.026528,
+     21.40338
+    ],
+    [
+     103.027229,
+     21.402951
+    ],
+    [
+     103.028044,
+     21.402682
+    ],
+    [
+     103.028919,
+     21.40259
+    ],
+    [
+     103.029794,
+     21.402682
+    ],
+    [
+     103.030609,
+     21.402951
+    ],
+    [
+     103.03131,
+     21.40338
+    ],
+    [
+     103.031847,
+     21.403939
+    ],
+    [
+     103.032185,
+     21.40459
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "doc-lap",
+   "kind": "hill",
+   "label": "Doc Lap hill",
+   "area": [
+    [
+     103.012018,
+     21.421476
+    ],
+    [
+     103.011903,
+     21.422174
+    ],
+    [
+     103.011565,
+     21.422825
+    ],
+    [
+     103.011028,
+     21.423384
+    ],
+    [
+     103.010328,
+     21.423813
+    ],
+    [
+     103.009512,
+     21.424082
+    ],
+    [
+     103.008637,
+     21.424174
+    ],
+    [
+     103.007762,
+     21.424082
+    ],
+    [
+     103.006946,
+     21.423813
+    ],
+    [
+     103.006246,
+     21.423384
+    ],
+    [
+     103.005709,
+     21.422825
+    ],
+    [
+     103.005371,
+     21.422174
+    ],
+    [
+     103.005256,
+     21.421476
+    ],
+    [
+     103.005371,
+     21.420778
+    ],
+    [
+     103.005709,
+     21.420127
+    ],
+    [
+     103.006246,
+     21.419568
+    ],
+    [
+     103.006946,
+     21.419139
+    ],
+    [
+     103.007762,
+     21.41887
+    ],
+    [
+     103.008637,
+     21.418778
+    ],
+    [
+     103.009512,
+     21.41887
+    ],
+    [
+     103.010328,
+     21.419139
+    ],
+    [
+     103.011028,
+     21.419568
+    ],
+    [
+     103.011565,
+     21.420127
+    ],
+    [
+     103.011903,
+     21.420778
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "eliane-hills",
+   "kind": "hill",
+   "label": "Eliane hills",
+   "area": [
+    [
+     103.021675,
+     21.383705
+    ],
+    [
+     103.021544,
+     21.384287
+    ],
+    [
+     103.021158,
+     21.384829
+    ],
+    [
+     103.020544,
+     21.385295
+    ],
+    [
+     103.019744,
+     21.385652
+    ],
+    [
+     103.018812,
+     21.385877
+    ],
+    [
+     103.017812,
+     21.385953
+    ],
+    [
+     103.016812,
+     21.385877
+    ],
+    [
+     103.01588,
+     21.385652
+    ],
+    [
+     103.01508,
+     21.385295
+    ],
+    [
+     103.014466,
+     21.384829
+    ],
+    [
+     103.01408,
+     21.384287
+    ],
+    [
+     103.013949,
+     21.383705
+    ],
+    [
+     103.01408,
+     21.383123
+    ],
+    [
+     103.014466,
+     21.382581
+    ],
+    [
+     103.01508,
+     21.382115
+    ],
+    [
+     103.01588,
+     21.381758
+    ],
+    [
+     103.016812,
+     21.381533
+    ],
+    [
+     103.017812,
+     21.381457
+    ],
+    [
+     103.018812,
+     21.381533
+    ],
+    [
+     103.019744,
+     21.381758
+    ],
+    [
+     103.020544,
+     21.382115
+    ],
+    [
+     103.021158,
+     21.382581
+    ],
+    [
+     103.021544,
+     21.383123
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "east-woods",
+   "kind": "woods",
+   "label": "Forested hills",
+   "area": [
+    [
+     103.054998,
+     21.397195
+    ],
+    [
+     103.054636,
+     21.402781
+    ],
+    [
+     103.053574,
+     21.407987
+    ],
+    [
+     103.051886,
+     21.412457
+    ],
+    [
+     103.049685,
+     21.415887
+    ],
+    [
+     103.047123,
+     21.418043
+    ],
+    [
+     103.044373,
+     21.418779
+    ],
+    [
+     103.041623,
+     21.418043
+    ],
+    [
+     103.039061,
+     21.415887
+    ],
+    [
+     103.03686,
+     21.412457
+    ],
+    [
+     103.035172,
+     21.407987
+    ],
+    [
+     103.03411,
+     21.402781
+    ],
+    [
+     103.033748,
+     21.397195
+    ],
+    [
+     103.03411,
+     21.391609
+    ],
+    [
+     103.035172,
+     21.386403
+    ],
+    [
+     103.03686,
+     21.381933
+    ],
+    [
+     103.039061,
+     21.378503
+    ],
+    [
+     103.041623,
+     21.376347
+    ],
+    [
+     103.044373,
+     21.375611
+    ],
+    [
+     103.047123,
+     21.376347
+    ],
+    [
+     103.049685,
+     21.378503
+    ],
+    [
+     103.051886,
+     21.381933
+    ],
+    [
+     103.053574,
+     21.386403
+    ],
+    [
+     103.054636,
+     21.391609
+    ]
+   ],
+   "conjectural": true
+  }
+ ],
+ "steps": [
+  {
+   "id": "fortress",
+   "title": "The hedgehog in the valley",
+   "time": "Dec 1953 - Mar 1954",
+   "narrative": "After the November 1953 parachute drop, de Castries' garrison turned the Muong Thanh valley into a ring of fortified hills named for women: Beatrice, Gabrielle and Anne-Marie on the north, Dominique and Eliane east of the Nam Rom, Huguette and Claudine west and south, and Isabelle six kilometres away at the reserve strip. The French relied on air supply and artillery to beat any assault. The Viet Minh, however, hauled guns by hand up the wooded hills and dug in around the valley.",
+   "positions": {
+    "fr-hq": {
+     "at": [
+      103.008154,
+      21.385503
+     ],
+     "facing": 0,
+     "width": 500,
+     "depth": 300,
+     "shape": "block",
+     "label": "HQ and airstrip (de Castries)"
+    },
+    "fr-beatrice": {
+     "at": [
+      103.028919,
+      21.405288
+     ],
+     "facing": 45,
+     "width": 300,
+     "depth": 250,
+     "label": "Beatrice (Legion)"
+    },
+    "fr-gabrielle": {
+     "at": [
+      103.008637,
+      21.421476
+     ],
+     "facing": 0,
+     "width": 300,
+     "depth": 250,
+     "label": "Gabrielle (Algerians)"
+    },
+    "fr-anne": {
+     "at": [
+      102.995115,
+      21.407087
+     ],
+     "facing": 315,
+     "width": 250,
+     "depth": 200,
+     "label": "Anne-Marie (Tai)"
+    },
+    "fr-east": {
+     "at": [
+      103.021193,
+      21.389101
+     ],
+     "facing": 90,
+     "width": 600,
+     "depth": 250,
+     "label": "Dominique and Eliane"
+    },
+    "fr-west": {
+     "at": [
+      102.999944,
+      21.387302
+     ],
+     "facing": 270,
+     "width": 500,
+     "depth": 250,
+     "label": "Huguette and Claudine"
+    },
+    "fr-isabelle": {
+     "at": [
+      103.004773,
+      21.339638
+     ],
+     "facing": 180,
+     "width": 500,
+     "depth": 300,
+     "label": "Isabelle",
+     "strength_n": 1800
+    },
+    "vm-312": {
+     "at": [
+      103.044373,
+      21.411584
+     ],
+     "facing": 225,
+     "width": 700,
+     "depth": 400,
+     "label": "312th Division",
+     "frame": false
+    },
+    "vm-308": {
+     "at": [
+      103.006705,
+      21.439463
+     ],
+     "facing": 180,
+     "width": 700,
+     "depth": 400,
+     "label": "308th Division",
+     "frame": false
+    },
+    "vm-316": {
+     "at": [
+      103.043407,
+      21.384604
+     ],
+     "facing": 270,
+     "width": 700,
+     "depth": 400,
+     "label": "316th Division",
+     "frame": false
+    },
+    "vm-guns": {
+     "at": [
+      103.046305,
+      21.398094
+     ],
+     "facing": 270,
+     "width": 500,
+     "depth": 300,
+     "label": "Artillery in the hills",
+     "frame": false
+    }
+   }
+  },
+  {
+   "id": "beatrice",
+   "title": "Beatrice falls",
+   "time": "13 March 1954",
+   "narrative": "On the evening of 13 March the Viet Minh guns opened up without warning. A shell struck the Beatrice command post and killed the Legion battalion commander and most of his staff, and Colonel Gaucher, who commanded the central sector, died a few minutes later. The 312th Division then sent in the 141st and 209th Regiments, and sappers cut the wire. By morning the Foreign Legion had lost the hill, and the French learned that their counter-battery fire could not find the enemy guns.",
+   "positions": {
+    "vm-312": {
+     "at": [
+      103.031817,
+      21.407087
+     ],
+     "state": "engaged",
+     "frame": true
+    },
+    "fr-beatrice": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "vm-312",
+     "type": "attack",
+     "path": [
+      [
+       103.044373,
+       21.411584
+      ],
+      [
+       103.031817,
+       21.407087
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      103.028919,
+      21.405288
+     ],
+     "text": "Gaucher and Pegot killed by shellfire",
+     "kind": "death"
+    }
+   ]
+  },
+  {
+   "id": "gabrielle",
+   "title": "Gabrielle and the guns",
+   "time": "14-15 March",
+   "narrative": "The next night the 308th Division attacked Gabrielle, held by an Algerian battalion. Artillery fell for hours before the infantry advanced at 20:00, and a shell wounded the battalion commander at 04:00. A relief thrust by an exhausted Vietnamese paratroop battalion was pinned by shellfire. The Algerians withdrew at 08:00 on 15 March. The airstrip had already been closed by the bombardment, so every ration and shell now had to come down by parachute.",
+   "positions": {
+    "vm-308": {
+     "at": [
+      103.007671,
+      21.428671
+     ],
+     "state": "engaged",
+     "frame": true
+    },
+    "fr-gabrielle": {
+     "state": "engaged"
+    },
+    "fr-beatrice": {
+     "state": "destroyed"
+    }
+   },
+   "moves": [
+    {
+     "unit": "vm-308",
+     "type": "attack",
+     "path": [
+      [
+       103.006705,
+       21.439463
+      ],
+      [
+       103.007671,
+       21.428671
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      103.008637,
+      21.421476
+     ],
+     "text": "Fell 08:00 on 15 March",
+     "kind": "clash"
+    }
+   ]
+  },
+  {
+   "id": "anne-marie",
+   "title": "Anne-Marie dissolves",
+   "time": "17 March",
+   "narrative": "Anne-Marie in the north-west was held by Tai auxiliaries. Giap had spent weeks leaflet-dropping them with the argument that this was not their war, and the loss of Beatrice and Gabrielle broke their morale. Under morning fog on 17 March most of them walked away, leaving the French and a few remaining Tai to pull back. The garrison was now confined to the central ring and to distant Isabelle.",
+   "positions": {
+    "fr-anne": {
+     "state": "routed",
+     "at": [
+      102.999944,
+      21.399893
+     ]
+    },
+    "fr-gabrielle": {
+     "state": "destroyed"
+    },
+    "vm-308": {
+     "at": [
+      103.003807,
+      21.41698
+     ],
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "fr-anne",
+     "type": "retreat",
+     "path": [
+      [
+       102.995115,
+       21.407087
+      ],
+      [
+       102.999944,
+       21.399893
+      ]
+     ]
+    },
+    {
+     "unit": "vm-308",
+     "type": "advance",
+     "path": [
+      [
+       103.007671,
+       21.428671
+      ],
+      [
+       103.003807,
+       21.41698
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lull",
+   "title": "Two weeks of quiet",
+   "time": "17-30 March",
+   "narrative": "The Viet Minh used the lull to tighten the ring and cut Isabelle off. Inside the camp the command cracked: de Castries withdrew to his bunker, and Colonel Langlais is often said to have taken effective control on 24 March, though that confrontation is disputed. Chief gunner Piroth, who had promised to out-shoot the enemy, died on 15 March. Supply flights were forced above 2,000 m, and a sortie on 28 March destroyed seventeen anti-aircraft machine guns near the strip.",
+   "positions": {
+    "vm-312": {
+     "at": [
+      103.033749,
+      21.398993
+     ],
+     "facing": 270,
+     "state": "ready"
+    },
+    "vm-316": {
+     "at": [
+      103.031817,
+      21.386403
+     ]
+    },
+    "fr-isabelle": {
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "vm-312",
+     "type": "advance",
+     "path": [
+      [
+       103.031817,
+       21.407087
+      ],
+      [
+       103.033749,
+       21.398993
+      ]
+     ]
+    },
+    {
+     "unit": "vm-316",
+     "type": "advance",
+     "path": [
+      [
+       103.043407,
+       21.384604
+      ],
+      [
+       103.031817,
+       21.386403
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      102.980627,
+      21.36302
+     ],
+     "text": "Isabelle cut off from the centre",
+     "kind": "label"
+    }
+   ]
+  },
+  {
+   "id": "eastern-assaults",
+   "title": "Dominique and Eliane",
+   "time": "30 March - 5 April",
+   "narrative": "On 30 March the Viet Minh went for the two hill groups east of the river. The 312th took Dominique 1 and 2 at dusk, while the 316th captured Eliane 1 and half of Eliane 2. French 105 mm howitzers fired at zero elevation into the attackers, and counterattacks led by Langlais and Bigeard won back part of the ground. For several nights Eliane 2 and 4 changed hands under tanks and bayonets. The French held, but there were few reinforcements and the losses could not be replaced.",
+   "positions": {
+    "vm-312": {
+     "at": [
+      103.028919,
+      21.396295
+     ],
+     "state": "engaged"
+    },
+    "vm-316": {
+     "at": [
+      103.023124,
+      21.386403
+     ],
+     "state": "engaged"
+    },
+    "fr-east": {
+     "state": "engaged",
+     "at": [
+      103.019261,
+      21.389101
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "vm-312",
+     "type": "attack",
+     "path": [
+      [
+       103.033749,
+       21.398993
+      ],
+      [
+       103.028919,
+       21.396295
+      ]
+     ]
+    },
+    {
+     "unit": "vm-316",
+     "type": "attack",
+     "path": [
+      [
+       103.031817,
+       21.386403
+      ],
+      [
+       103.023124,
+       21.386403
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      103.018295,
+      21.383705
+     ],
+     "text": "Bigeard: not giving up Eliane 4",
+     "kind": "clash"
+    }
+   ]
+  },
+  {
+   "id": "trench-war",
+   "title": "Trenches and starvation",
+   "time": "5-22 April",
+   "narrative": "After a Viet Minh regiment was caught in the open on 5 April, Giap gave up massed night charges and began digging. Trenches crept toward each strongpoint, cutting the French from their water and ammunition. On 10 April the French recaptured Eliane 1, and Huguette 6 was abandoned after a failed break-out on 18 April. Huguette 1 was overrun on 22 April, and with more than 90 percent of the airfield in Viet Minh hands the landing zone shrank to a few hundred metres, so parachute drops went astray.",
+   "positions": {
+    "vm-312": {
+     "at": [
+      103.026988,
+      21.395396
+     ],
+     "state": "ready"
+    },
+    "vm-308": {
+     "at": [
+      102.998012,
+      21.396295
+     ],
+     "state": "engaged"
+    },
+    "fr-west": {
+     "state": "wavering",
+     "at": [
+      103.002842,
+      21.387752
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "vm-308",
+     "type": "advance",
+     "path": [
+      [
+       103.003807,
+       21.41698
+      ],
+      [
+       102.998012,
+       21.396295
+      ]
+     ]
+    },
+    {
+     "unit": "fr-west",
+     "type": "retreat",
+     "path": [
+      [
+       102.999944,
+       21.387302
+      ],
+      [
+       103.002842,
+       21.387752
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      102.998012,
+      21.394497
+     ],
+     "text": "Huguette 1 falls on 22 April",
+     "kind": "capture"
+    }
+   ]
+  },
+  {
+   "id": "final",
+   "title": "The last offensive",
+   "time": "1-6 May",
+   "narrative": "On the night of 1 May the Viet Minh overran Eliane 1, Dominique 3 and Huguette 5 in a combined assault. Isabelle, short of water and ammunition since the end of April, was by then all but alone. On 6 May the first Katyusha rockets of the battle struck Eliane 2; the French answered with a time-on-target barrage, but a mine placed under the hill shattered the defenders. Within hours Eliane 2 was lost, and the central garrison had nowhere left to give ground.",
+   "positions": {
+    "vm-312": {
+     "at": [
+      103.021193,
+      21.392698
+     ],
+     "state": "engaged"
+    },
+    "vm-316": {
+     "at": [
+      103.017329,
+      21.385503
+     ]
+    },
+    "fr-east": {
+     "state": "destroyed"
+    },
+    "vm-308": {
+     "at": [
+      103.003807,
+      21.390899
+     ]
+    },
+    "fr-west": {
+     "state": "destroyed"
+    }
+   },
+   "moves": [
+    {
+     "unit": "vm-312",
+     "type": "attack",
+     "path": [
+      [
+       103.026988,
+       21.395396
+      ],
+      [
+       103.021193,
+       21.392698
+      ]
+     ]
+    },
+    {
+     "unit": "vm-316",
+     "type": "attack",
+     "path": [
+      [
+       103.023124,
+       21.386403
+      ],
+      [
+       103.017329,
+       21.385503
+      ]
+     ]
+    },
+    {
+     "unit": "vm-308",
+     "type": "attack",
+     "path": [
+      [
+       102.998012,
+       21.396295
+      ],
+      [
+       103.003807,
+       21.390899
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      103.017812,
+      21.383705
+     ],
+     "text": "Mine under Eliane 2, 6 May",
+     "kind": "death"
+    }
+   ]
+  },
+  {
+   "id": "surrender",
+   "title": "The fall of the camp",
+   "time": "7 May 1954",
+   "narrative": "Giap ordered an all-out attack on 7 May with more than 25,000 men. At 17:00 de Castries told Hanoi that the end was near and was ordered to fight on; soon afterward the radio went silent as the headquarters bunker was overrun. Roughly 18:20 saw only Lily, held by Moroccans, still resisting, and it surrendered that night. That night a break-out from the main camp failed, while at Isabelle about seventy of 1,700 men reached Laos. About 11,700 Frenchmen went into captivity.",
+   "positions": {
+    "vm-308": {
+     "at": [
+      103.002842,
+      21.389101
+     ]
+    },
+    "vm-312": {
+     "at": [
+      103.019261,
+      21.394497
+     ]
+    },
+    "vm-316": {
+     "at": [
+      103.015398,
+      21.378309
+     ]
+    },
+    "fr-hq": {
+     "state": "captured",
+     "by": "vm"
+    },
+    "fr-isabelle": {
+     "state": "destroyed"
+    }
+   },
+   "moves": [
+    {
+     "unit": "vm-308",
+     "type": "attack",
+     "path": [
+      [
+       103.003807,
+       21.390899
+      ],
+      [
+       103.002842,
+       21.389101
+      ]
+     ]
+    },
+    {
+     "unit": "vm-312",
+     "type": "attack",
+     "path": [
+      [
+       103.021193,
+       21.392698
+      ],
+      [
+       103.019261,
+       21.394497
+      ]
+     ]
+    },
+    {
+     "unit": "vm-316",
+     "type": "attack",
+     "path": [
+      [
+       103.017329,
+       21.385503
+      ],
+      [
+       103.015398,
+       21.378309
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      103.008154,
+      21.385503
+     ],
+     "text": "De Castries surrenders",
+     "kind": "capture"
+    },
+    {
+     "at": [
+      103.004773,
+      21.339638
+     ],
+     "text": "About 70 of 1,700 escape",
+     "kind": "event"
+    }
+   ]
+  }
+ ]
+}

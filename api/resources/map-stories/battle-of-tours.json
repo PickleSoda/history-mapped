@@ -1,0 +1,1094 @@
+{
+ "schema": 3,
+ "slug": "battle-of-tours",
+ "kind": "battle",
+ "entity": {
+  "name": "Battle of Tours",
+  "wikidata": "Q173077"
+ },
+ "title": "Battle of Tours",
+ "date_label": "10 October 732",
+ "year": 732,
+ "intro": "In October 732 a Frankish army under Charles Martel met an Umayyad army from al-Andalus somewhere between\n            Tours and Poitiers, in the heart of Gaul. The Umayyads, led by the governor Abd al-Rahman al-Ghafiqi, had crushed\n            Duke Odo of Aquitaine and then pushed north, perhaps drawn by the wealth of the abbey of Saint Martin at Tours.\n            Charles, called in by Odo, marched by stealth, took high ground among trees and made his veteran infantry stand\n            in a dense block. After a week of skirmishing the Umayyads charged uphill. The Franks held, Abd al-Rahman was\n            killed, and the invaders withdrew south. The exact site, the numbers and the true weight of the victory are all\n            debated.",
+ "outcome": "Frankish victory: Abd al-Rahman was killed and the Umayyad army withdrew south over the Pyrenees.",
+ "uncertainty": "The site is unknown; Moussais-la-Bataille is only the traditional guess and Wikidata places it near\n            Tours. All unit positions, the hill, the woods and the Clain and Vienne lines are conjectural reconstructions.\n            Army sizes (about 15,000-30,000 Franks, 20,000-30,000 Umayyads) are contested, and older claims of heavy Frankish\n            inferiority are disputed. The timing of Abd al-Rahman's death and the exact retreat are not recorded in detail.",
+ "sources": [
+  {
+   "title": "Battle of Tours - Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Battle_of_Tours",
+   "kind": "web"
+  }
+ ],
+ "sides": [
+  {
+   "id": "franks",
+   "name": "Franks and Aquitaine",
+   "color": "#1d4ed8",
+   "polity": {
+    "name": "Francia",
+    "wikidata": "Q146246"
+   },
+   "commanders": [
+    {
+     "name": "Charles Martel",
+     "wikidata": "Q3301",
+     "role": "Mayor of the Palace"
+    },
+    {
+     "name": "Odo the Great",
+     "wikidata": "Q269536",
+     "role": "Duke of Aquitaine"
+    }
+   ],
+   "strength": "c. 15,000-30,000",
+   "losses": "Unknown"
+  },
+  {
+   "id": "umayyad",
+   "name": "Umayyad army",
+   "color": "#15803d",
+   "polity": {
+    "name": "Umayyad Caliphate",
+    "wikidata": "Q8575586"
+   },
+   "commanders": [
+    {
+     "name": "Abd al-Rahman al-Ghafiqi",
+     "wikidata": "Q220228",
+     "role": "Governor of al-Andalus"
+    }
+   ],
+   "strength": "c. 20,000-30,000",
+   "losses": "Abd al-Rahman killed"
+  }
+ ],
+ "units": [
+  {
+   "id": "franks-allies",
+   "side": "franks",
+   "kind": "infantry",
+   "label": "Rhenish allies"
+  },
+  {
+   "id": "franks-main",
+   "side": "franks",
+   "kind": "heavy_infantry",
+   "label": "Austrasian infantry",
+   "strength": "veteran core"
+  },
+  {
+   "id": "franks-levies",
+   "side": "franks",
+   "kind": "light_infantry",
+   "label": "Frankish levies"
+  },
+  {
+   "id": "martel",
+   "side": "franks",
+   "kind": "commander",
+   "label": "Charles Martel"
+  },
+  {
+   "id": "umayyad-main",
+   "side": "umayyad",
+   "kind": "army",
+   "label": "Umayyad main body"
+  },
+  {
+   "id": "umayyad-raiders",
+   "side": "umayyad",
+   "kind": "light_cavalry",
+   "label": "Raiding parties"
+  },
+  {
+   "id": "umayyad-cav-1",
+   "side": "umayyad",
+   "kind": "heavy_cavalry",
+   "label": "Cavalry, first charge"
+  },
+  {
+   "id": "umayyad-cav-2",
+   "side": "umayyad",
+   "kind": "cavalry",
+   "label": "Cavalry, right"
+  },
+  {
+   "id": "umayyad-cav-3",
+   "side": "umayyad",
+   "kind": "light_cavalry",
+   "label": "Cavalry, left"
+  },
+  {
+   "id": "abd-al-rahman",
+   "side": "umayyad",
+   "kind": "commander",
+   "label": "Abd al-Rahman"
+  }
+ ],
+ "terrain": [
+  {
+   "id": "hill",
+   "kind": "hill",
+   "label": "Wooded high ground",
+   "area": [
+    [
+     0.50499,
+     46.742556
+    ],
+    [
+     0.504409,
+     46.744185
+    ],
+    [
+     0.502705,
+     46.745704
+    ],
+    [
+     0.499994,
+     46.747007
+    ],
+    [
+     0.49646,
+     46.748008
+    ],
+    [
+     0.492346,
+     46.748637
+    ],
+    [
+     0.48793,
+     46.748851
+    ],
+    [
+     0.483514,
+     46.748637
+    ],
+    [
+     0.4794,
+     46.748008
+    ],
+    [
+     0.475866,
+     46.747007
+    ],
+    [
+     0.473155,
+     46.745704
+    ],
+    [
+     0.471451,
+     46.744185
+    ],
+    [
+     0.47087,
+     46.742556
+    ],
+    [
+     0.471451,
+     46.740927
+    ],
+    [
+     0.473155,
+     46.739408
+    ],
+    [
+     0.475866,
+     46.738105
+    ],
+    [
+     0.4794,
+     46.737104
+    ],
+    [
+     0.483514,
+     46.736475
+    ],
+    [
+     0.48793,
+     46.736261
+    ],
+    [
+     0.492346,
+     46.736475
+    ],
+    [
+     0.49646,
+     46.737104
+    ],
+    [
+     0.499994,
+     46.738105
+    ],
+    [
+     0.502705,
+     46.739408
+    ],
+    [
+     0.504409,
+     46.740927
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "woods",
+   "kind": "woods",
+   "label": "Trees before the Franks",
+   "area": [
+    [
+     0.502365,
+     46.73707
+    ],
+    [
+     0.501828,
+     46.737722
+    ],
+    [
+     0.500255,
+     46.738329
+    ],
+    [
+     0.497752,
+     46.738851
+    ],
+    [
+     0.494491,
+     46.739251
+    ],
+    [
+     0.490694,
+     46.739502
+    ],
+    [
+     0.486618,
+     46.739588
+    ],
+    [
+     0.482542,
+     46.739502
+    ],
+    [
+     0.478745,
+     46.739251
+    ],
+    [
+     0.475484,
+     46.738851
+    ],
+    [
+     0.472981,
+     46.738329
+    ],
+    [
+     0.471408,
+     46.737722
+    ],
+    [
+     0.470871,
+     46.73707
+    ],
+    [
+     0.471408,
+     46.736418
+    ],
+    [
+     0.472981,
+     46.735811
+    ],
+    [
+     0.475484,
+     46.735289
+    ],
+    [
+     0.478745,
+     46.734889
+    ],
+    [
+     0.482542,
+     46.734638
+    ],
+    [
+     0.486618,
+     46.734552
+    ],
+    [
+     0.490694,
+     46.734638
+    ],
+    [
+     0.494491,
+     46.734889
+    ],
+    [
+     0.497752,
+     46.735289
+    ],
+    [
+     0.500255,
+     46.735811
+    ],
+    [
+     0.501828,
+     46.736418
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "clain",
+   "kind": "river",
+   "label": "Clain",
+   "line": [
+    [
+     0.453813,
+     46.705234
+    ],
+    [
+     0.46431,
+     46.720522
+    ],
+    [
+     0.47612,
+     46.731314
+    ],
+    [
+     0.491867,
+     46.7502
+    ],
+    [
+     0.519423,
+     46.766388
+    ],
+    [
+     0.548291,
+     46.775381
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "vienne",
+   "kind": "river",
+   "label": "Vienne",
+   "line": [
+    [
+     0.556165,
+     46.711529
+    ],
+    [
+     0.55354,
+     46.73671
+    ],
+    [
+     0.554852,
+     46.754696
+    ],
+    [
+     0.552228,
+     46.772683
+    ],
+    [
+     0.556165,
+     46.792468
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "moussais",
+   "kind": "village",
+   "label": "Moussais-la-Bataille",
+   "at": [
+    0.48793,
+    46.73671
+   ]
+  },
+  {
+   "id": "naintre",
+   "kind": "village",
+   "label": "Naintre",
+   "at": [
+    0.48237,
+    46.76389
+   ]
+  },
+  {
+   "id": "cenon",
+   "kind": "village",
+   "label": "Cenon-sur-Vienne",
+   "at": [
+    0.53575,
+    46.7743
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "id": "raid",
+   "title": "The raiders push toward the Loire",
+   "time": "Summer-autumn 732",
+   "narrative": "After beating Duke Odo on the Garonne, the Umayyad army of al-Andalus moved north through Aquitaine. Its fast cavalry had outrun the supply wagons and much of the host, and it split into raiding parties while the main body followed more slowly. The prize may have been the rich abbey of Saint Martin at Tours, the holiest shrine of the West. Abd al-Rahman waited for the harvest before moving, so that the army could eat off the land.",
+   "positions": {
+    "umayyad-main": {
+     "at": [
+      0.46431,
+      46.698939
+     ],
+     "facing": 20,
+     "width": 700,
+     "depth": 120
+    },
+    "umayyad-raiders": {
+     "at": [
+      0.438066,
+      46.70973
+     ],
+     "facing": 15,
+     "width": 600,
+     "depth": 90,
+     "frame": false
+    },
+    "abd-al-rahman": {
+     "with": "umayyad-main"
+    }
+   }
+  },
+  {
+   "id": "frankish-march",
+   "title": "Charles marches by stealth",
+   "time": "Autumn 732",
+   "narrative": "Odo, beaten and short of men, appealed to the Franks, and Charles Martel agreed only after Odo accepted Frankish overlordship. Charles gathered Austrasian Franks and auxiliaries from beyond the Rhine, including Thuringians, Alemanni and Bavarians, and marched south while avoiding the old Roman roads. His aim was to arrive unseen, so that he and not the enemy would choose the ground.",
+   "positions": {
+    "franks-main": {
+     "at": [
+      0.491867,
+      46.783475
+     ],
+     "facing": 180,
+     "width": 500,
+     "depth": 80
+    },
+    "franks-allies": {
+     "at": [
+      0.481369,
+      46.785273
+     ],
+     "facing": 180,
+     "width": 300,
+     "depth": 60,
+     "frame": false
+    },
+    "martel": {
+     "with": "franks-main"
+    }
+   },
+   "moves": [
+    {
+     "side": "franks",
+     "type": "march",
+     "path": [
+      [
+       0.491867,
+       46.817649
+      ],
+      [
+       0.491867,
+       46.783475
+      ]
+     ],
+     "label": "Charles avoids the roads"
+    }
+   ]
+  },
+  {
+   "id": "surprise",
+   "title": "The Umayyads find a wall in front of them",
+   "time": "Early October 732",
+   "narrative": "The invaders were caught off guard to find a large army sitting squarely across their road to Tours. Charles chose not to attack. He drew his men up on high ground with trees before them, in a deep, close formation that Arab sources describe as a great square, so that any cavalry charge would have to climb and thread through timber. The forest also hid how many Franks there really were.",
+   "positions": {
+    "franks-allies": {
+     "at": [
+      0.480582,
+      46.742106
+     ],
+     "width": 560,
+     "depth": 170,
+     "frame": true,
+     "conjectural": true
+    },
+    "franks-main": {
+     "at": [
+      0.489242,
+      46.742106
+     ],
+     "width": 760,
+     "depth": 170,
+     "frame": true,
+     "conjectural": true
+    },
+    "franks-levies": {
+     "at": [
+      0.496459,
+      46.742106
+     ],
+     "facing": 180,
+     "width": 300,
+     "depth": 120,
+     "frame": true,
+     "conjectural": true
+    },
+    "umayyad-main": {
+     "at": [
+      0.48793,
+      46.72322
+     ],
+     "facing": 0,
+     "width": 1200,
+     "depth": 150,
+     "frame": true,
+     "conjectural": true
+    },
+    "umayyad-raiders": {
+     "at": [
+      0.472184,
+      46.721422
+     ],
+     "facing": 0,
+     "width": 500,
+     "depth": 100,
+     "frame": true,
+     "conjectural": true
+    }
+   },
+   "moves": [
+    {
+     "unit": "franks-allies",
+     "type": "advance",
+     "path": [
+      [
+       0.481369,
+       46.785273
+      ],
+      [
+       0.480582,
+       46.742106
+      ]
+     ]
+    },
+    {
+     "unit": "franks-main",
+     "type": "advance",
+     "path": [
+      [
+       0.491867,
+       46.783475
+      ],
+      [
+       0.489242,
+       46.742106
+      ]
+     ]
+    },
+    {
+     "unit": "umayyad-main",
+     "type": "advance",
+     "path": [
+      [
+       0.46431,
+       46.698939
+      ],
+      [
+       0.48793,
+       46.72322
+      ]
+     ]
+    },
+    {
+     "unit": "umayyad-raiders",
+     "type": "advance",
+     "path": [
+      [
+       0.438066,
+       46.70973
+      ],
+      [
+       0.472184,
+       46.721422
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "waiting",
+   "title": "A week of skirmishing",
+   "time": "c. 3-9 October 732",
+   "narrative": "For about a week neither side wished to attack. The Umayyads waited for the rest of their strength to come up and hoped to draw the Franks down into open ground; they could not judge Frankish numbers. Charles, whose men were dressed for the northern cold and whose levies were foraging and harassing the enemy, was content to wait while winter drew nearer and the invaders' food ran short.",
+   "positions": {
+    "umayyad-raiders": {
+     "at": [
+      0.47612,
+      46.72412
+     ]
+    },
+    "franks-levies": {
+     "at": [
+      0.49974,
+      46.740757
+     ],
+     "facing": 160,
+     "width": 260,
+     "depth": 60,
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "umayyad-raiders",
+     "type": "march",
+     "path": [
+      [
+       0.472184,
+       46.721422
+      ],
+      [
+       0.47612,
+       46.72412
+      ]
+     ]
+    },
+    {
+     "unit": "franks-levies",
+     "type": "feint",
+     "path": [
+      [
+       0.496459,
+       46.742106
+      ],
+      [
+       0.49974,
+       46.740757
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      0.49974,
+      46.734911
+     ],
+     "text": "Skirmishes between the lines",
+     "kind": "label",
+     "conjectural": true
+    }
+   ]
+  },
+  {
+   "id": "first-charge",
+   "title": "Abd al-Rahman orders the charge",
+   "time": "Seventh day, 10 October 732",
+   "narrative": "Abd al-Rahman would not wait longer, with winter coming and Tours still unreached. On the seventh day he put his faith in his cavalry and sent it against the hill. The horsemen had to ride uphill and through the trees, which blunted the shock they were used to delivering. The Frankish infantry held its ground in a tight mass.",
+   "positions": {
+    "umayyad-cav-1": {
+     "at": [
+      0.484649,
+      46.733113
+     ],
+     "facing": 0,
+     "width": 700,
+     "depth": 100,
+     "state": "engaged",
+     "conjectural": true
+    },
+    "franks-main": {
+     "state": "engaged"
+    },
+    "franks-allies": {
+     "state": "engaged"
+    },
+    "umayyad-main": {
+     "at": [
+      0.48793,
+      46.726817
+     ],
+     "width": 1000
+    }
+   },
+   "moves": [
+    {
+     "unit": "umayyad-cav-1",
+     "type": "charge",
+     "path": [
+      [
+       0.484649,
+       46.728166
+      ],
+      [
+       0.484649,
+       46.733113
+      ]
+     ]
+    },
+    {
+     "unit": "umayyad-main",
+     "type": "advance",
+     "path": [
+      [
+       0.48793,
+       46.72322
+      ],
+      [
+       0.48793,
+       46.726817
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      0.486618,
+      46.739408
+     ],
+     "text": "Uphill through the trees",
+     "kind": "clash",
+     "conjectural": true
+    }
+   ]
+  },
+  {
+   "id": "repeated-charges",
+   "title": "Charge after charge",
+   "time": "Through the day",
+   "narrative": "The charges came again and again all day. Arab accounts say the horsemen broke into the Frankish square more than once, and western accounts agree the fight was hard. Yet the formation re-closed each time. Charles's veterans, many of them campaigning with him for years, did what contemporaries thought impossible: they stood against heavy cavalry on foot and did not break.",
+   "positions": {
+    "umayyad-cav-1": {
+     "at": [
+      0.483993,
+      46.735991
+     ]
+    },
+    "umayyad-cav-2": {
+     "at": [
+      0.492523,
+      46.732933
+     ],
+     "facing": 0,
+     "width": 700,
+     "depth": 100,
+     "state": "engaged",
+     "conjectural": true
+    },
+    "umayyad-cav-3": {
+     "at": [
+      0.478745,
+      46.732213
+     ],
+     "facing": 0,
+     "width": 500,
+     "depth": 90,
+     "state": "engaged",
+     "conjectural": true
+    },
+    "franks-levies": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "umayyad-cav-1",
+     "type": "charge",
+     "path": [
+      [
+       0.484649,
+       46.733113
+      ],
+      [
+       0.483993,
+       46.735991
+      ]
+     ]
+    },
+    {
+     "unit": "umayyad-cav-2",
+     "type": "charge",
+     "path": [
+      [
+       0.492523,
+       46.727717
+      ],
+      [
+       0.492523,
+       46.732933
+      ]
+     ]
+    },
+    {
+     "unit": "umayyad-cav-3",
+     "type": "charge",
+     "path": [
+      [
+       0.478745,
+       46.727717
+      ],
+      [
+       0.478745,
+       46.732213
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      0.48793,
+      46.738958
+     ],
+     "text": "Horsemen break in, Franks re-close",
+     "kind": "clash",
+     "conjectural": true
+    }
+   ]
+  },
+  {
+   "id": "al-ghafiqi-falls",
+   "title": "The Umayyad commander is killed",
+   "time": "10 October 732",
+   "narrative": "Abd al-Rahman al-Ghafiqi was killed in the fighting. Loss of the governor and commander unsettled an army that had already suffered losses and carried a great deal of plunder. The line of Umayyad cavalry stalled against the Frankish block. Where exactly and how he fell is not agreed; the mainstream account places it in the day's assaults on the hill.",
+   "positions": {
+    "abd-al-rahman": {
+     "at": [
+      0.485962,
+      46.734462
+     ],
+     "state": "killed",
+     "conjectural": true
+    },
+    "umayyad-cav-1": {
+     "state": "wavering"
+    },
+    "umayyad-cav-2": {
+     "state": "wavering"
+    },
+    "umayyad-cav-3": {
+     "state": "wavering"
+    }
+   },
+   "notes": [
+    {
+     "at": [
+      0.485962,
+      46.734462
+     ],
+     "text": "Abd al-Rahman killed",
+     "kind": "death",
+     "conjectural": true
+    }
+   ]
+  },
+  {
+   "id": "withdrawal",
+   "title": "The invaders withdraw",
+   "time": "After the battle",
+   "narrative": "With the commander dead and the Franks still standing on their hill, the Umayyad army gave up the attempt on Tours and retreated south, back over the Pyrenees. Charles did not follow far, and the Frankish army, which had no standing force to keep it in the field, returned north. The raid on the heartland of Francia had failed.",
+   "positions": {
+    "umayyad-main": {
+     "at": [
+      0.48793,
+      46.705234
+     ],
+     "facing": 180,
+     "state": "ready",
+     "frame": false
+    },
+    "umayyad-raiders": {
+     "at": [
+      0.47612,
+      46.706133
+     ],
+     "facing": 180,
+     "frame": false
+    },
+    "umayyad-cav-1": {
+     "at": [
+      0.483993,
+      46.715126
+     ],
+     "facing": 180,
+     "state": "routed"
+    },
+    "umayyad-cav-2": {
+     "at": [
+      0.492523,
+      46.716026
+     ],
+     "facing": 180,
+     "state": "routed"
+    },
+    "umayyad-cav-3": {
+     "at": [
+      0.478745,
+      46.714227
+     ],
+     "facing": 180,
+     "state": "routed"
+    },
+    "franks-main": {
+     "state": "ready"
+    },
+    "franks-allies": {
+     "state": "ready"
+    },
+    "franks-levies": {
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "umayyad-main",
+     "type": "retreat",
+     "path": [
+      [
+       0.48793,
+       46.726817
+      ],
+      [
+       0.48793,
+       46.705234
+      ]
+     ]
+    },
+    {
+     "unit": "umayyad-raiders",
+     "type": "retreat",
+     "path": [
+      [
+       0.47612,
+       46.72412
+      ],
+      [
+       0.47612,
+       46.706133
+      ]
+     ]
+    },
+    {
+     "unit": "umayyad-cav-1",
+     "type": "retreat",
+     "path": [
+      [
+       0.483993,
+       46.735991
+      ],
+      [
+       0.483993,
+       46.715126
+      ]
+     ]
+    },
+    {
+     "unit": "umayyad-cav-2",
+     "type": "retreat",
+     "path": [
+      [
+       0.492523,
+       46.732933
+      ],
+      [
+       0.492523,
+       46.716026
+      ]
+     ]
+    },
+    {
+     "unit": "umayyad-cav-3",
+     "type": "retreat",
+     "path": [
+      [
+       0.478745,
+       46.732213
+      ],
+      [
+       0.478745,
+       46.714227
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "aftermath",
+   "title": "After Tours",
+   "time": "735-739",
+   "narrative": "Charles kept pressing south. Odo died around 735 and his son Hunald took the duchy, bowing to Charles when a fresh Umayyad force entered Provence. In 735 a new governor, Uqba ibn al-Hajjaj, took Arles and Avignon and held part of Provence and Septimania for four years; Charles campaigned there in 736 and 739. Raids went on, but no large Umayyad army crossed the Pyrenees again, and Charles's prestige paved the way for the Carolingian dynasty.",
+   "positions": {
+    "franks-main": {
+     "at": [
+      0.491867,
+      46.752898
+     ]
+    },
+    "franks-allies": {
+     "at": [
+      0.482681,
+      46.752898
+     ],
+     "frame": false
+    },
+    "franks-levies": {
+     "at": [
+      0.498428,
+      46.751998
+     ],
+     "facing": 180,
+     "frame": false
+    }
+   },
+   "moves": [
+    {
+     "unit": "franks-main",
+     "type": "march",
+     "path": [
+      [
+       0.489242,
+       46.742106
+      ],
+      [
+       0.491867,
+       46.752898
+      ]
+     ]
+    },
+    {
+     "unit": "franks-allies",
+     "type": "march",
+     "path": [
+      [
+       0.480582,
+       46.742106
+      ],
+      [
+       0.482681,
+       46.752898
+      ]
+     ]
+    },
+    {
+     "unit": "franks-levies",
+     "type": "march",
+     "path": [
+      [
+       0.49974,
+       46.740757
+      ],
+      [
+       0.498428,
+       46.751998
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

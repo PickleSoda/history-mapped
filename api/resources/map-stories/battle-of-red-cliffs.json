@@ -1,0 +1,834 @@
+{
+ "schema": 3,
+ "slug": "battle-of-red-cliffs",
+ "kind": "battle",
+ "entity": {
+  "name": "Battle of Red Cliffs",
+  "wikidata": "Q830059"
+ },
+ "title": "Battle of Red Cliffs",
+ "date_label": "Winter 208 AD",
+ "year": 208,
+ "intro": "In the winter of 208 AD, the warlord Cao Cao, master of northern China and the last Han court, marched south down the Yangtze to crush the remaining rivals. He faced an alliance of Sun Quan's forces from the lower Yangtze, Liu Bei, and Liu Qi. After a small clash at Red Cliffs, the two armies faced each other across the river. Cao Cao's fleet of captured ships, chained together to calm seasick northern soldiers, was set on fire by a feigned surrender led by Huang Gai. The fire and a quick assault broke the northern army, which fled through mud and disease. The exact place of the battle is still debated.",
+ "outcome": "Allied victory. Cao Cao failed to cross the Yangtze, and Liu Bei gained much of Jingzhou.",
+ "uncertainty": "The battle site is disputed among Chibi, Jiayu, Wuhan and Huangzhou; Chibi is used here by convention. All unit positions, river-side placements and routes are reconstructed. Strength figures are claims: 800,000 by Cao Cao, 220,000-240,000 by Zhou Yu's estimate. Casualties are unknown for the allies.",
+ "sources": [
+  {
+   "title": "Battle of Red Cliffs - Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Battle_of_Red_Cliffs",
+   "kind": "web"
+  }
+ ],
+ "sides": [
+  {
+   "id": "a",
+   "name": "Sun-Liu alliance",
+   "color": "#b91c1c",
+   "polity": {
+    "name": "Sun Quan"
+   },
+   "commanders": [
+    {
+     "name": "Zhou Yu",
+     "wikidata": "Q198048",
+     "role": "Commander"
+    },
+    {
+     "name": "Liu Bei",
+     "wikidata": "Q245315",
+     "role": "Allied warlord"
+    },
+    {
+     "name": "Zhuge Liang",
+     "wikidata": "Q198211",
+     "role": "Envoy and strategist"
+    },
+    {
+     "name": "Cheng Pu",
+     "wikidata": "Q740441",
+     "role": "General"
+    }
+   ],
+   "strength": "c. 50,000",
+   "losses": "Unknown"
+  },
+  {
+   "id": "b",
+   "name": "Cao Cao's army",
+   "color": "#1d4ed8",
+   "polity": {
+    "name": "Cao Cao"
+   },
+   "commanders": [
+    {
+     "name": "Cao Cao",
+     "wikidata": "Q204077",
+     "role": "Warlord"
+    }
+   ],
+   "strength": "220,000-240,000 (Zhou Yu's estimate)",
+   "losses": "Heavy"
+  }
+ ],
+ "units": [
+  {
+   "id": "a-fleet",
+   "side": "a",
+   "kind": "warship",
+   "label": "Allied fleet"
+  },
+  {
+   "id": "a-fire",
+   "side": "a",
+   "kind": "warship",
+   "label": "Huang Gai's fire ships"
+  },
+  {
+   "id": "a-army",
+   "side": "a",
+   "kind": "light_infantry",
+   "label": "Zhou Yu's land force"
+  },
+  {
+   "id": "a-liu",
+   "side": "a",
+   "kind": "infantry",
+   "label": "Liu Bei's troops"
+  },
+  {
+   "id": "a-zhou",
+   "side": "a",
+   "kind": "commander",
+   "label": "Zhou Yu"
+  },
+  {
+   "id": "b-army",
+   "side": "b",
+   "kind": "infantry",
+   "label": "Cao Cao's northern army",
+   "strength": "disputed"
+  },
+  {
+   "id": "b-cao",
+   "side": "b",
+   "kind": "commander",
+   "label": "Cao Cao"
+  },
+  {
+   "id": "b-fleet",
+   "side": "b",
+   "kind": "warship",
+   "label": "Chained fleet"
+  },
+  {
+   "id": "b-van",
+   "side": "b",
+   "kind": "infantry",
+   "label": "Vanguard"
+  }
+ ],
+ "terrain": [
+  {
+   "id": "yangtze",
+   "kind": "river",
+   "label": "Yangtze",
+   "line": [
+    [
+     113.48055,
+     29.81045
+    ],
+    [
+     113.49396,
+     29.81741
+    ],
+    [
+     113.5168,
+     29.82753
+    ],
+    [
+     113.55319,
+     29.84555
+    ],
+    [
+     113.58134,
+     29.86133
+    ],
+    [
+     113.60357,
+     29.8744
+    ],
+    [
+     113.61091,
+     29.88099
+    ],
+    [
+     113.62859,
+     29.90242
+    ],
+    [
+     113.63992,
+     29.91462
+    ],
+    [
+     113.65356,
+     29.92861
+    ],
+    [
+     113.66712,
+     29.93976
+    ],
+    [
+     113.67528,
+     29.9456
+    ],
+    [
+     113.68172,
+     29.94783
+    ],
+    [
+     113.68682,
+     29.94813
+    ],
+    [
+     113.69176,
+     29.94728
+    ],
+    [
+     113.69554,
+     29.94568
+    ],
+    [
+     113.70009,
+     29.94259
+    ],
+    [
+     113.7109,
+     29.93061
+    ],
+    [
+     113.71373,
+     29.92838
+    ],
+    [
+     113.71957,
+     29.92561
+    ],
+    [
+     113.72437,
+     29.92416
+    ],
+    [
+     113.72987,
+     29.92308
+    ],
+    [
+     113.73356,
+     29.9228
+    ],
+    [
+     113.75073,
+     29.92221
+    ],
+    [
+     113.76353,
+     29.9223
+    ]
+   ]
+  },
+  {
+   "id": "wulin",
+   "kind": "town",
+   "label": "Wulin",
+   "at": [
+    113.59841,
+    29.91271
+   ]
+  },
+  {
+   "id": "chibi",
+   "kind": "town",
+   "label": "Chibi (Red Cliffs)",
+   "at": [
+    113.62682,
+    29.87402
+   ]
+  },
+  {
+   "id": "huarong",
+   "kind": "road",
+   "label": "Huarong road",
+   "conjectural": true,
+   "line": [
+    [
+     113.580149,
+     29.896503
+    ],
+    [
+     113.559406,
+     29.892006
+    ],
+    [
+     113.528292,
+     29.901
+    ]
+   ]
+  },
+  {
+   "id": "marsh",
+   "kind": "marsh",
+   "label": "Marsh",
+   "conjectural": true,
+   "area": [
+    [
+     113.543849,
+     29.883013
+    ],
+    [
+     113.569778,
+     29.881215
+    ],
+    [
+     113.569778,
+     29.901
+    ],
+    [
+     113.543849,
+     29.902798
+    ]
+   ]
+  },
+  {
+   "id": "south-hills",
+   "kind": "hill",
+   "label": "South bank hills",
+   "conjectural": true,
+   "area": [
+    [
+     113.614374,
+     29.866825
+    ],
+    [
+     113.639266,
+     29.866825
+    ],
+    [
+     113.639266,
+     29.879416
+    ],
+    [
+     113.614374,
+     29.879416
+    ]
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "id": "approach",
+   "title": "Cao Cao reaches the Yangtze",
+   "time": "Autumn-winter 208",
+   "narrative": "After taking Jingzhou without a fight, Cao Cao's northern army came down the river towards Jiangling and on to the Yangtze, sick and tired from forced marches. Sun Quan and Liu Bei had agreed to stand together. Their fleet and Zhou Yu's troops waited downstream on the south bank, while Cao Cao gathered his fleet of captured Jingzhou ships and his foot and horse near Wulin. The exact stretch of river is argued over, so every position here is a reconstruction.",
+   "positions": {
+    "b-army": {
+     "at": [
+      113.594669,
+      29.914489
+     ],
+     "facing": 130,
+     "width": 1500,
+     "depth": 300,
+     "conjectural": true
+    },
+    "b-cao": {
+     "at": [
+      113.59052,
+      29.918087
+     ],
+     "conjectural": true
+    },
+    "b-fleet": {
+     "at": [
+      113.604263,
+      29.878897
+     ],
+     "facing": 130,
+     "width": 1400,
+     "depth": 160,
+     "conjectural": true
+    },
+    "a-fleet": {
+     "at": [
+      113.57488,
+      29.854127
+     ],
+     "facing": 40,
+     "width": 900,
+     "depth": 150,
+     "conjectural": true
+    },
+    "a-army": {
+     "at": [
+      113.590006,
+      29.835488
+     ],
+     "facing": 310,
+     "width": 900,
+     "depth": 200,
+     "conjectural": true
+    },
+    "a-liu": {
+     "at": [
+      113.586107,
+      29.82307
+     ],
+     "facing": 310,
+     "width": 500,
+     "depth": 150,
+     "conjectural": true
+    },
+    "a-zhou": {
+     "with": "a-fleet"
+    }
+   }
+  },
+  {
+   "id": "skirmish",
+   "title": "The first clash at Red Cliffs",
+   "time": "Early winter 208",
+   "narrative": "The allied fleet sailed upstream from Xiakou or Fankou and met Cao Cao's vanguard at Red Cliffs. The northern troops, sick and demoralised, could not win the small fight. Cao Cao fell back to Wulin on the north bank, and the allies drew back to the south, leaving the river between the two armies.",
+   "positions": {
+    "b-van": {
+     "at": [
+      113.606169,
+      29.869657
+     ],
+     "facing": 130,
+     "width": 500,
+     "depth": 120,
+     "conjectural": true,
+     "state": "engaged"
+    },
+    "a-fleet": {
+     "at": [
+      113.597951,
+      29.867961
+     ],
+     "facing": 130,
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "a-fleet",
+     "type": "attack",
+     "path": [
+      [
+       113.57488,
+       29.854127
+      ],
+      [
+       113.597951,
+       29.867961
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      113.603785,
+      29.871392
+     ],
+     "text": "Vanguard skirmish",
+     "kind": "clash"
+    }
+   ]
+  },
+  {
+   "id": "retreat",
+   "title": "Both sides pull back",
+   "time": "Early winter 208",
+   "narrative": "Cao Cao's vanguard withdrew across the river to join the main army at Wulin. The allies returned to their south-bank anchorage. Cao Cao's northerners, mostly horsemen and foot, practised on the water for only a few days. To steady his seasick men he had his ships chained stem to stern, possibly for that reason.",
+   "positions": {
+    "b-van": {
+     "at": [
+      113.591868,
+      29.880063
+     ],
+     "state": "ready"
+    },
+    "a-fleet": {
+     "at": [
+      113.57488,
+      29.854127
+     ],
+     "state": "ready"
+    },
+    "b-fleet": {
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "b-van",
+     "type": "retreat",
+     "path": [
+      [
+       113.606169,
+       29.869657
+      ],
+      [
+       113.591868,
+       29.880063
+      ]
+     ]
+    },
+    {
+     "unit": "a-fleet",
+     "type": "retreat",
+     "path": [
+      [
+       113.597951,
+       29.867961
+      ],
+      [
+       113.57488,
+       29.854127
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ruse",
+   "title": "Huang Gai's letter",
+   "time": "A night in winter 208",
+   "narrative": "The allied commander Huang Gai wrote to Cao Cao pretending to defect. He loaded several large warships with bundles of kindling, dry reeds and fatty oil. Cao Cao's chained fleet lay at the north bank, a tempting mass of timber. The allied squadron set out as if to surrender, with the south-east wind behind it.",
+   "positions": {
+    "a-fire": {
+     "at": [
+      113.602196,
+      29.872548
+     ],
+     "facing": 310,
+     "width": 300,
+     "depth": 60,
+     "conjectural": true
+    }
+   },
+   "moves": [
+    {
+     "unit": "a-fire",
+     "type": "advance",
+     "path": [
+      [
+       113.595431,
+       29.865957
+      ],
+      [
+       113.602196,
+       29.872548
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "fire",
+   "title": "The fire ships strike",
+   "time": "Night, winter 208",
+   "narrative": "At mid-river the crews lit their ships and escaped in small boats. Driven by the south-east wind, the burning hulls ran into Cao Cao's chained fleet and set it alight. The fire spread to the camps on the bank, and many men and horses burned or drowned.",
+   "positions": {
+    "a-fire": {
+     "at": [
+      113.604263,
+      29.878897
+     ],
+     "state": "engaged"
+    },
+    "b-fleet": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "a-fire",
+     "type": "ram",
+     "path": [
+      [
+       113.602196,
+       29.872548
+      ],
+      [
+       113.604263,
+       29.878897
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      113.605058,
+      29.878319
+     ],
+     "text": "Fleet ablaze",
+     "kind": "event"
+    }
+   ]
+  },
+  {
+   "id": "assault",
+   "title": "The allied assault",
+   "time": "Dawn",
+   "narrative": "Zhou Yu led a lightly armed force across behind the fire. Cao Cao's army, thrown into confusion by the blaze, was beaten on the north bank. Seeing the situation was hopeless, Cao Cao ordered a general retreat and had some remaining ships destroyed before he left.",
+   "positions": {
+    "a-army": {
+     "at": [
+      113.594251,
+      29.878328
+     ],
+     "state": "engaged"
+    },
+    "b-army": {
+     "at": [
+      113.594669,
+      29.912691
+     ],
+     "state": "wavering"
+    },
+    "b-fleet": {
+     "state": "destroyed"
+    },
+    "a-fleet": {
+     "at": [
+      113.597951,
+      29.867961
+     ],
+     "facing": 310
+    }
+   },
+   "moves": [
+    {
+     "unit": "a-army",
+     "type": "attack",
+     "path": [
+      [
+       113.590006,
+       29.835488
+      ],
+      [
+       113.594251,
+       29.878328
+      ]
+     ]
+    },
+    {
+     "unit": "a-fleet",
+     "type": "advance",
+     "path": [
+      [
+       113.57488,
+       29.854127
+      ],
+      [
+       113.597951,
+       29.867961
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rout",
+   "title": "Cao Cao's retreat begins",
+   "time": "Days after the fire",
+   "narrative": "Cao Cao's army withdrew along the Huarong road towards Jiangling. Heavy rain turned the marshes north of Dongting Lake into mud. Sick soldiers carried bundles of grass to fill the track so the horsemen could pass, and many drowned or were trampled. The allies, led by Zhou Yu and Liu Bei, chased by land and water.",
+   "positions": {
+    "b-army": {
+     "at": [
+      113.559406,
+      29.892006
+     ],
+     "facing": 250,
+     "state": "routed"
+    },
+    "b-cao": {
+     "at": [
+      113.554221,
+      29.892006
+     ]
+    },
+    "a-army": {
+     "at": [
+      113.580149,
+      29.902798
+     ],
+     "facing": 250
+    },
+    "a-liu": {
+     "at": [
+      113.585335,
+      29.890208
+     ],
+     "facing": 250
+    }
+   },
+   "moves": [
+    {
+     "unit": "b-army",
+     "type": "rout",
+     "path": [
+      [
+       113.594669,
+       29.912691
+      ],
+      [
+       113.559406,
+       29.892006
+      ]
+     ]
+    },
+    {
+     "unit": "b-cao",
+     "type": "retreat",
+     "path": [
+      [
+       113.59052,
+       29.918087
+      ],
+      [
+       113.554221,
+       29.892006
+      ]
+     ]
+    },
+    {
+     "unit": "a-army",
+     "type": "pursuit",
+     "path": [
+      [
+       113.594251,
+       29.878328
+      ],
+      [
+       113.580149,
+       29.902798
+      ]
+     ]
+    },
+    {
+     "unit": "a-liu",
+     "type": "pursuit",
+     "path": [
+      [
+       113.586107,
+       29.82307
+      ],
+      [
+       113.585335,
+       29.890208
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      113.556295,
+      29.88751
+     ],
+     "text": "Muddy Huarong road",
+     "kind": "event"
+    }
+   ]
+  },
+  {
+   "id": "escape",
+   "title": "Cao Cao escapes",
+   "time": "Winter 208-209",
+   "narrative": "Hunger and disease finished much of what the chase left. Cao Cao got through Huarong Pass and then retreated north to Ye. He left Cao Ren and Xu Huang at Jiangling, Yue Jin at Xiangyang and Man Chong at Dangyang. Cao Cao later blamed sickness rather than Zhou Yu for the loss.",
+   "positions": {
+    "b-cao": {
+     "at": [
+      113.528292,
+      29.901
+     ]
+    },
+    "b-army": {
+     "at": [
+      113.533478,
+      29.896503
+     ],
+     "state": "wavering"
+    },
+    "a-army": {
+     "at": [
+      113.569778,
+      29.899201
+     ],
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "b-cao",
+     "type": "retreat",
+     "path": [
+      [
+       113.554221,
+       29.892006
+      ],
+      [
+       113.528292,
+       29.901
+      ]
+     ]
+    },
+    {
+     "unit": "b-army",
+     "type": "retreat",
+     "path": [
+      [
+       113.559406,
+       29.892006
+      ],
+      [
+       113.533478,
+       29.896503
+      ]
+     ]
+    },
+    {
+     "unit": "a-army",
+     "type": "march",
+     "path": [
+      [
+       113.580149,
+       29.902798
+      ],
+      [
+       113.569778,
+       29.899201
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "aftermath",
+   "title": "A divided Jingzhou",
+   "time": "209-210",
+   "narrative": "Zhou Yu took Jiangling by the end of 209, and Cao Cao's border shrank by some 160 km towards Xiangyang. Liu Qi died within months, and Liu Bei claimed Jingzhou, taking four commanderies south of the Yangtze. Zhou Yu died in 210. The victory fixed the split between north and south and made possible the later Three Kingdoms.",
+   "positions": {
+    "a-liu": {
+     "at": [
+      113.58326,
+      29.883013
+     ],
+     "state": "ready"
+    }
+   }
+  }
+ ]
+}

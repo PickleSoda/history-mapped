@@ -1,0 +1,15 @@
+---
+wikidata: Q33132
+name: Battle of Gettysburg
+---
+The Battle of Gettysburg was fought from 1 to 3 July 1863 in and around the Pennsylvania town of that name. It was the largest battle of the American Civil War. The Union Army of the Potomac, under George G. Meade, defeated Robert E. Lee's Confederate Army of Northern Virginia. Estimates give the Union some 93,500 to 104,000 men and the Confederates 65,000 to 75,000. Union casualties were about 23,000 and Confederate losses between 23,000 and 28,000. It ended Lee's invasion of the North.
+
+Lee had crossed into Pennsylvania in June to take the war out of Virginia and to hurt Northern morale. Neither side planned to fight at Gettysburg. Roads from many directions meet in the town, and the armies converged on it. Stuart's cavalry was away on a raid, so Lee lacked his usual eyes.
+
+On 1 July two brigades of Heth's division met John Buford's dismounted cavalry west of the town. Buford's men, armed with breech-loading carbines, held the ridges until the I Corps arrived under Reynolds, who was killed. The Iron Brigade captured Archer in Herbst Woods. In the afternoon Heth and Pender pressed from the west while Ewell's divisions under Rodes and Early struck from the north. Barlow's exposed XI Corps division collapsed, and the Union troops fell back through the town to Cemetery Hill. Hancock chose the ground as the place to fight. Ewell judged a further attack impracticable that evening, a decision often called a lost chance.
+
+On 2 July the Union line formed a fishhook from Culp's Hill through Cemetery Hill and down Cemetery Ridge toward Little Round Top. Lee ordered Longstreet to roll up the Union left. Sickles advanced his III Corps to the Peach Orchard and Emmitsburg Road, creating a salient. Hood's division hit Devil's Den and Little Round Top, where Vincent's brigade and the 20th Maine under Chamberlain held. McLaws broke the III Corps in the Wheatfield and Peach Orchard, but Meade's reinforcements, some 20,000 men, sealed the line. In the evening Ewell's late attacks on Culp's Hill and East Cemetery Hill failed to take the heights.
+
+On 3 July fighting for Culp's Hill resumed at dawn and ended around 11 am with the Union line intact. Lee then ordered an assault on the centre of Cemetery Ridge. After a bombardment by 150 to 170 guns, between 10,500 and 12,500 men, led by Pickett's division, crossed about three-quarters of a mile of open ground. The attack reached the Angle in the stone wall, the farthest point of its advance, but was thrown back. Nearly half of the attackers did not return, and Pickett's division lost about two thirds of its men. Cavalry fights northeast of town and south of Big Round Top were fought the same afternoon.
+
+Lee began his retreat on 4 July. Meade was criticised for not pursuing harder, and historians still argue about whether Gettysburg was a truly decisive victory, how far Lee's orders were followed on 2 July, and whether Longstreet or Ewell was to blame for delays. The battlefield later became the site of Lincoln's Gettysburg Address and is now preserved.

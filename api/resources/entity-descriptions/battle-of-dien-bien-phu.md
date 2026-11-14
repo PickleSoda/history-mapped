@@ -1,0 +1,13 @@
+---
+wikidata: Q604897
+name: Battle of Dien Bien Phu
+---
+The Battle of Dien Bien Phu was fought from 13 March to 7 May 1954 in a remote valley in north-west Vietnam, between the French Union forces and the Viet Minh led by Vo Nguyen Giap. It ended in a Viet Minh victory. About 11,700 French soldiers were taken prisoner, and the defeat pushed France toward the negotiating table and out of Indochina.
+
+The background was a stalemate in the First Indochina War. General Henri Navarre wanted to protect Laos and draw the Viet Minh into a set-piece fight where French air power and artillery would win. He chose the Muong Thanh valley, where a Japanese-built airstrip lay, and on 20 November 1953 Operation Castor dropped about 9,000 men into it. Under Colonel de Castries the garrison built a ring of strongpoints, named for women: Beatrice, Gabrielle and Anne-Marie in the north, Dominique and Eliane east of the Nam Rom river, Huguette and Claudine to the west and south, and Isabelle six kilometres away. Several senior French officers had warned that this was a new Na San under worse conditions, but Navarre went ahead.
+
+Giap, meanwhile, moved up to roughly 50,000 men and hauled howitzers and anti-aircraft guns by hand into the wooded hills. After cancelling a quick-strike plan in January, he chose a slower method. The attack opened on 13 March with a bombardment that killed the Beatrice commander and Colonel Gaucher. Beatrice fell that night, Gabrielle on 15 March, and the Tai garrison of Anne-Marie dissolved on 17 March. The airstrip was shut and the French depended on parachute drops under heavy fire. After a lull, the Viet Minh attacked the eastern hills on 30 March in fighting that lasted into early April, but heavy losses in open ground led Giap to switch to trenches and sapping. By late April Huguette 1 had fallen and the dropping zone had shrunk to a sliver.
+
+The final stage came on the night of 1 May, when three more strongpoints were overrun. On 6 May rockets and a mine broke Eliane 2, and on 7 May more than 25,000 Viet Minh attacked the remaining garrison. The headquarters was overrun in the evening, the last position surrendered that night, and a break-out from Isabelle got only about 70 of 1,700 men toward Laos. French deaths are put at several thousand; Viet Minh casualty estimates range from 8,000 dead to 23,000-25,000 casualties.
+
+The defeat helped bring about the Geneva talks and the division of Vietnam. Debates remain over Navarre's decision, over the intelligence failure about Viet Minh artillery, and over de Castries' command, including whether Langlais took control in March, which some historians doubt.

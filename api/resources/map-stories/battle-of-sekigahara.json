@@ -1,0 +1,1071 @@
+{
+ "schema": 3,
+ "slug": "battle-of-sekigahara",
+ "kind": "battle",
+ "entity": {
+  "name": "Battle of Sekigahara",
+  "wikidata": "Q234188"
+ },
+ "title": "Battle of Sekigahara",
+ "date_label": "21 October 1600",
+ "year": 1600,
+ "intro": "On 21 October 1600, in a narrow basin in what is now Gifu Prefecture, two coalitions fought for control of Japan after the death of Toyotomi Hideyoshi. Tokugawa Ieyasu led the Eastern Army, while Ishida Mitsunari led a Western coalition ostensibly loyal to Hideyoshi's infant son Hideyori. The Western side had planned to hold Gifu and Ogaki, but those plans collapsed and Ishida chose to fight at Sekigahara instead. Fog, secret deals and the last-minute defection of Kobayakawa Hideaki and others decided the day. Many troops on both sides, including Tokugawa Hidetada's 38,000 held at Ueda, never reached the field.",
+ "outcome": "Eastern Army victory; Tokugawa Ieyasu became master of Japan and founded the shogunate that ruled until 1868.",
+ "uncertainty": "Start time (08:00 traditional versus about 10:00 in recent research), the timing of Kobayakawa's defection, and the story of Ieyasu firing on Mount Matsuo are all disputed. All block positions are reconstructed from the mainstream layout, marked conjectural, and the sources do not give exact frontages. Casualty figures vary enormously between chronicles.",
+ "sources": [
+  {
+   "title": "Battle of Sekigahara — Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Battle_of_Sekigahara",
+   "kind": "web"
+  }
+ ],
+ "sides": [
+  {
+   "id": "w",
+   "name": "Western Army",
+   "color": "#1d4ed8",
+   "commanders": [
+    {
+     "name": "Ishida Mitsunari",
+     "wikidata": "Q334107",
+     "role": "Coalition leader"
+    },
+    {
+     "name": "Ukita Hideie",
+     "wikidata": "Q1329792"
+    },
+    {
+     "name": "Otani Yoshitsugu",
+     "wikidata": "Q386265"
+    },
+    {
+     "name": "Shimazu Yoshihiro",
+     "wikidata": "Q1156288"
+    }
+   ],
+   "strength": "81,890 at the battle (per the infobox)",
+   "losses": "8,000 to 35,270 killed, by source"
+  },
+  {
+   "id": "e",
+   "name": "Eastern Army",
+   "color": "#b91c1c",
+   "commanders": [
+    {
+     "name": "Tokugawa Ieyasu",
+     "wikidata": "Q171977",
+     "role": "Overall commander"
+    },
+    {
+     "name": "Ii Naomasa",
+     "wikidata": "Q1334437",
+     "role": "Field commander"
+    },
+    {
+     "name": "Fukushima Masanori",
+     "wikidata": "Q1194995"
+    }
+   ],
+   "strength": "88,888 at the battle (per the infobox)",
+   "losses": "4,000 to 10,000 killed, by source"
+  }
+ ],
+ "units": [
+  {
+   "id": "w-ishida",
+   "side": "w",
+   "kind": "infantry",
+   "label": "Ishida Mitsunari"
+  },
+  {
+   "id": "w-shimazu",
+   "side": "w",
+   "kind": "infantry",
+   "label": "Shimazu"
+  },
+  {
+   "id": "w-konishi",
+   "side": "w",
+   "kind": "infantry",
+   "label": "Konishi"
+  },
+  {
+   "id": "w-ukita",
+   "side": "w",
+   "kind": "infantry",
+   "label": "Ukita Hideie"
+  },
+  {
+   "id": "w-otani",
+   "side": "w",
+   "kind": "infantry",
+   "label": "Otani Yoshitsugu"
+  },
+  {
+   "id": "w-kobayakawa",
+   "side": "w",
+   "kind": "infantry",
+   "label": "Kobayakawa Hideaki"
+  },
+  {
+   "id": "w-wakisaka",
+   "side": "w",
+   "kind": "infantry",
+   "label": "Wakisaka and defectors"
+  },
+  {
+   "id": "w-mori",
+   "side": "w",
+   "kind": "infantry",
+   "label": "Mori, Kikkawa (held back)"
+  },
+  {
+   "id": "e-fukushima",
+   "side": "e",
+   "kind": "infantry",
+   "label": "Fukushima Masanori"
+  },
+  {
+   "id": "e-ii",
+   "side": "e",
+   "kind": "infantry",
+   "label": "Ii Naomasa",
+   "strength": "3,600",
+   "strength_n": 3600
+  },
+  {
+   "id": "e-kuroda",
+   "side": "e",
+   "kind": "infantry",
+   "label": "Kuroda, Hosokawa"
+  },
+  {
+   "id": "e-todo",
+   "side": "e",
+   "kind": "infantry",
+   "label": "Todo, Kyogoku"
+  },
+  {
+   "id": "e-honda",
+   "side": "e",
+   "kind": "infantry",
+   "label": "Honda Tadakatsu"
+  },
+  {
+   "id": "e-ieyasu",
+   "side": "e",
+   "kind": "commander",
+   "label": "Tokugawa Ieyasu"
+  }
+ ],
+ "terrain": [
+  {
+   "id": "matsuo",
+   "kind": "hill",
+   "label": "Mount Matsuo",
+   "area": [
+    [
+     136.460773,
+     35.346671
+    ],
+    [
+     136.460528,
+     35.347835
+    ],
+    [
+     136.459812,
+     35.348919
+    ],
+    [
+     136.458674,
+     35.349851
+    ],
+    [
+     136.457189,
+     35.350565
+    ],
+    [
+     136.455461,
+     35.351014
+    ],
+    [
+     136.453606,
+     35.351168
+    ],
+    [
+     136.451751,
+     35.351014
+    ],
+    [
+     136.450023,
+     35.350565
+    ],
+    [
+     136.448538,
+     35.349851
+    ],
+    [
+     136.4474,
+     35.348919
+    ],
+    [
+     136.446684,
+     35.347835
+    ],
+    [
+     136.446439,
+     35.346671
+    ],
+    [
+     136.446684,
+     35.345507
+    ],
+    [
+     136.4474,
+     35.344423
+    ],
+    [
+     136.448538,
+     35.343491
+    ],
+    [
+     136.450023,
+     35.342777
+    ],
+    [
+     136.451751,
+     35.342328
+    ],
+    [
+     136.453606,
+     35.342174
+    ],
+    [
+     136.455461,
+     35.342328
+    ],
+    [
+     136.457189,
+     35.342777
+    ],
+    [
+     136.458674,
+     35.343491
+    ],
+    [
+     136.459812,
+     35.344423
+    ],
+    [
+     136.460528,
+     35.345507
+    ]
+   ]
+  },
+  {
+   "id": "nangu",
+   "kind": "hill",
+   "label": "Mount Nangu",
+   "area": [
+    [
+     136.518634,
+     35.346833
+    ],
+    [
+     136.518334,
+     35.34823
+    ],
+    [
+     136.517453,
+     35.349531
+    ],
+    [
+     136.516051,
+     35.350648
+    ],
+    [
+     136.514224,
+     35.351506
+    ],
+    [
+     136.512097,
+     35.352045
+    ],
+    [
+     136.509814,
+     35.352229
+    ],
+    [
+     136.507531,
+     35.352045
+    ],
+    [
+     136.505404,
+     35.351506
+    ],
+    [
+     136.503577,
+     35.350648
+    ],
+    [
+     136.502175,
+     35.349531
+    ],
+    [
+     136.501294,
+     35.34823
+    ],
+    [
+     136.500994,
+     35.346833
+    ],
+    [
+     136.501294,
+     35.345436
+    ],
+    [
+     136.502175,
+     35.344135
+    ],
+    [
+     136.503577,
+     35.343018
+    ],
+    [
+     136.505404,
+     35.34216
+    ],
+    [
+     136.507531,
+     35.341621
+    ],
+    [
+     136.509814,
+     35.341437
+    ],
+    [
+     136.512097,
+     35.341621
+    ],
+    [
+     136.514224,
+     35.34216
+    ],
+    [
+     136.516051,
+     35.343018
+    ],
+    [
+     136.517453,
+     35.344135
+    ],
+    [
+     136.518334,
+     35.345436
+    ]
+   ]
+  },
+  {
+   "id": "sasao",
+   "kind": "hill",
+   "label": "Sasao hill",
+   "area": [
+    [
+     136.454798,
+     35.37499
+    ],
+    [
+     136.45461,
+     35.376037
+    ],
+    [
+     136.454059,
+     35.377013
+    ],
+    [
+     136.453183,
+     35.377852
+    ],
+    [
+     136.45204,
+     35.378495
+    ],
+    [
+     136.45071,
+     35.378899
+    ],
+    [
+     136.449283,
+     35.379037
+    ],
+    [
+     136.447856,
+     35.378899
+    ],
+    [
+     136.446526,
+     35.378495
+    ],
+    [
+     136.445383,
+     35.377852
+    ],
+    [
+     136.444507,
+     35.377013
+    ],
+    [
+     136.443956,
+     35.376037
+    ],
+    [
+     136.443768,
+     35.37499
+    ],
+    [
+     136.443956,
+     35.373943
+    ],
+    [
+     136.444507,
+     35.372967
+    ],
+    [
+     136.445383,
+     35.372128
+    ],
+    [
+     136.446526,
+     35.371485
+    ],
+    [
+     136.447856,
+     35.371081
+    ],
+    [
+     136.449283,
+     35.370943
+    ],
+    [
+     136.45071,
+     35.371081
+    ],
+    [
+     136.45204,
+     35.371485
+    ],
+    [
+     136.453183,
+     35.372128
+    ],
+    [
+     136.454059,
+     35.372967
+    ],
+    [
+     136.45461,
+     35.373943
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "fujikawa",
+   "kind": "hill",
+   "label": "Fujikawa plateau",
+   "area": [
+    [
+     136.451488,
+     35.356105
+    ],
+    [
+     136.451263,
+     35.357036
+    ],
+    [
+     136.450602,
+     35.357904
+    ],
+    [
+     136.44955,
+     35.358649
+    ],
+    [
+     136.44818,
+     35.35922
+    ],
+    [
+     136.446584,
+     35.35958
+    ],
+    [
+     136.444872,
+     35.359702
+    ],
+    [
+     136.44316,
+     35.35958
+    ],
+    [
+     136.441564,
+     35.35922
+    ],
+    [
+     136.440194,
+     35.358649
+    ],
+    [
+     136.439142,
+     35.357904
+    ],
+    [
+     136.438481,
+     35.357036
+    ],
+    [
+     136.438256,
+     35.356105
+    ],
+    [
+     136.438481,
+     35.355174
+    ],
+    [
+     136.439142,
+     35.354306
+    ],
+    [
+     136.440194,
+     35.353561
+    ],
+    [
+     136.441564,
+     35.35299
+    ],
+    [
+     136.44316,
+     35.35263
+    ],
+    [
+     136.444872,
+     35.352508
+    ],
+    [
+     136.446584,
+     35.35263
+    ],
+    [
+     136.44818,
+     35.35299
+    ],
+    [
+     136.44955,
+     35.353561
+    ],
+    [
+     136.450602,
+     35.354306
+    ],
+    [
+     136.451263,
+     35.355174
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "nakasendo",
+   "kind": "road",
+   "label": "Nakasendo",
+   "line": [
+    [
+     136.512141,
+     35.363749
+    ],
+    [
+     136.490085,
+     35.363119
+    ],
+    [
+     136.46803,
+     35.3624
+    ],
+    [
+     136.451488,
+     35.363299
+    ],
+    [
+     136.429433,
+     35.365098
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "sekigahara",
+   "kind": "village",
+   "label": "Sekigahara",
+   "at": [
+    136.46803,
+    35.3624
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "id": "west-deploy",
+   "title": "The Western Army takes the hills",
+   "time": "Night of 20 to 21 October",
+   "narrative": "After losing Gifu Castle and failing to hold Ogaki as a choke point, Ishida Mitsunari marched his coalition west to the basin of Sekigahara. He wanted to fight with the surrounding hills at his back. Ishida stood on the north-west slope, Konishi and Shimazu and Ukita lined the centre, and Otani Yoshitsugu held the south-west end of the line. Kobayakawa Hideaki sat above them all on Mount Matsuo, with the Mori contingent of Kikkawa Hiroie far to the south-east on Mount Nangu. On paper the Western Army was strong. In practice Kobayakawa had been in contact with Kuroda Nagamasa, and Kikkawa had secretly promised that the Mori would not fight.",
+   "positions": {
+    "w-ishida": {
+     "at": [
+      136.449283,
+      35.373642
+     ],
+     "facing": 90,
+     "width": 450,
+     "depth": 60,
+     "state": "ready",
+     "conjectural": true
+    },
+    "w-shimazu": {
+     "at": [
+      136.453143,
+      35.368246
+     ],
+     "facing": 90,
+     "width": 350,
+     "depth": 50,
+     "conjectural": true
+    },
+    "w-konishi": {
+     "at": [
+      136.454245,
+      35.364648
+     ],
+     "facing": 90,
+     "width": 350,
+     "depth": 50,
+     "conjectural": true
+    },
+    "w-ukita": {
+     "at": [
+      136.457002,
+      35.360152
+     ],
+     "facing": 90,
+     "width": 600,
+     "depth": 60,
+     "conjectural": true
+    },
+    "w-otani": {
+     "at": [
+      136.447077,
+      35.355655
+     ],
+     "facing": 90,
+     "width": 300,
+     "depth": 50,
+     "conjectural": true
+    },
+    "w-kobayakawa": {
+     "at": [
+      136.453606,
+      35.347112
+     ],
+     "facing": 90,
+     "width": 500,
+     "depth": 70,
+     "conjectural": true
+    },
+    "w-wakisaka": {
+     "at": [
+      136.448731,
+      35.352058
+     ],
+     "facing": 90,
+     "width": 400,
+     "depth": 40,
+     "conjectural": true
+    },
+    "w-mori": {
+     "at": [
+      136.50773,
+      35.34891
+     ],
+     "facing": 270,
+     "width": 500,
+     "depth": 60,
+     "conjectural": true
+    }
+   }
+  },
+  {
+   "id": "east-deploy",
+   "title": "The Eastern Army arrives in fog",
+   "time": "Night to dawn, 21 October",
+   "narrative": "Tokugawa Ieyasu came along the Nakasendo from Ogaki and drew up to the east of the Western line. Fukushima Masanori faced Ukita Hideie, the Ii and Matsudaira troops and Honda Tadakatsu stood nearer the road, and Todo Takatora, Kyogoku Takatomo and others took the south side opposite Otani. Heavy fog from the earlier rain hid both armies, and the Tokugawa vanguard stumbled into Ishida's men before either side saw the other. Both recoiled, but each now knew exactly where the enemy stood. Ieyasu himself stayed behind his lines.",
+   "positions": {
+    "e-fukushima": {
+     "at": [
+      136.466927,
+      35.359702
+     ],
+     "facing": 270,
+     "width": 600,
+     "depth": 60,
+     "state": "ready"
+    },
+    "e-ii": {
+     "at": [
+      136.469133,
+      35.363749
+     ],
+     "facing": 270,
+     "width": 400,
+     "depth": 50
+    },
+    "e-kuroda": {
+     "at": [
+      136.465273,
+      35.368695
+     ],
+     "facing": 270,
+     "width": 500,
+     "depth": 50,
+     "conjectural": true
+    },
+    "e-todo": {
+     "at": [
+      136.461413,
+      35.354306
+     ],
+     "facing": 270,
+     "width": 450,
+     "depth": 50,
+     "conjectural": true
+    },
+    "e-honda": {
+     "at": [
+      136.474647,
+      35.36285
+     ],
+     "facing": 270,
+     "width": 300,
+     "depth": 50,
+     "conjectural": true
+    },
+    "e-ieyasu": {
+     "at": [
+      136.493394,
+      35.3624
+     ],
+     "facing": 270,
+     "conjectural": true
+    }
+   }
+  },
+  {
+   "id": "ii-opens",
+   "title": "Ii Naomasa begins the fight",
+   "time": "Morning, c. 08:00 or 10:00",
+   "narrative": "The Ii no Akazonae, the 3,600 crimson-armoured men of Ii Naomasa, opened the battle by striking at the Western centre, led forward by a small party of spearmen. Fukushima Masanori followed and engaged Ukita Hideie's troops. Older accounts date the start to about 08:00, while recent Japanese research prefers nearer 10:00. Naomasa had been named supreme field commander, and he was the first to meet the enemy.",
+   "positions": {
+    "e-ii": {
+     "at": [
+      136.459759,
+      35.364648
+     ],
+     "state": "engaged"
+    },
+    "w-shimazu": {
+     "state": "engaged"
+    },
+    "w-konishi": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "e-ii",
+     "type": "attack",
+     "path": [
+      [
+       136.469133,
+       35.363749
+      ],
+      [
+       136.459759,
+       35.364648
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "fukushima-ukita",
+   "title": "Deadlock in the centre",
+   "time": "Morning",
+   "narrative": "Fukushima Masanori's regulars pressed into Ukita Hideie's front while gunfire and arrows filled the air. Ota Gyuichi wrote that friend and foe pushed against each other. Ukita outnumbered Fukushima, but he had been forced to fill his ranks with ronin after senior vassals defected to the Tokugawa, so his army was weaker than its numbers. Spanish accounts add that guns from the Dutch ship De Liefde may have been used as field pieces by the Eastern side.",
+   "positions": {
+    "e-fukushima": {
+     "at": [
+      136.461413,
+      35.360152
+     ],
+     "state": "engaged"
+    },
+    "w-ukita": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "e-fukushima",
+     "type": "attack",
+     "path": [
+      [
+       136.466927,
+       35.359702
+      ],
+      [
+       136.461413,
+       35.360152
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      136.459208,
+      35.360152
+     ],
+     "text": "Ukita holds, but strained",
+     "kind": "clash"
+    }
+   ]
+  },
+  {
+   "id": "otani-front",
+   "title": "Otani on the southern flank",
+   "time": "Late morning",
+   "narrative": "On the south-west, Otani Yoshitsugu's small force faced Todo Takatora and Kyogoku Takatomo. Otani had placed his men facing Kobayakawa's hill, showing he suspected betrayal. He held for a time, with Hiratsuka Tamehiro and the Oda brothers leading a vanguard of 360 on the Fujikawa plateau.",
+   "positions": {
+    "e-todo": {
+     "at": [
+      136.451488,
+      35.355205
+     ],
+     "state": "engaged"
+    },
+    "w-otani": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "e-todo",
+     "type": "attack",
+     "path": [
+      [
+       136.461413,
+       35.354306
+      ],
+      [
+       136.451488,
+       35.355205
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "kobayakawa",
+   "title": "Kobayakawa Hideaki changes sides",
+   "time": "Around noon (disputed)",
+   "narrative": "Kobayakawa Hideaki's roughly 15,000 men came down from Mount Matsuo and hit Otani Yoshitsugu from behind. The old story says Ieyasu fired guns at Matsuo to force his hand. Modern historians doubt this, citing the distance and the lack of contemporary evidence, and some argue that Kobayakawa had already agreed to defect before the battle began.",
+   "positions": {
+    "w-kobayakawa": {
+     "at": [
+      136.449834,
+      35.350439
+     ],
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "w-kobayakawa",
+     "type": "attack",
+     "path": [
+      [
+       136.453606,
+       35.347112
+      ],
+      [
+       136.449834,
+       35.350439
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "otani-falls",
+   "title": "Otani's wing is destroyed",
+   "time": "Early afternoon",
+   "narrative": "Pressed by Kobayakawa, Wakisaka Yasuharu and other pre-arranged defectors, together with Todo and Kyogoku, the Otani force gave way. Hiratsuka Tamehiro was killed and Otani Yoshitsugu took his own life. The Western right flank now stood open.",
+   "positions": {
+    "w-wakisaka": {
+     "at": [
+      136.447629,
+      35.353856
+     ],
+     "state": "engaged"
+    },
+    "w-otani": {
+     "state": "destroyed"
+    },
+    "w-konishi": {
+     "state": "wavering"
+    }
+   },
+   "moves": [
+    {
+     "unit": "w-wakisaka",
+     "type": "attack",
+     "path": [
+      [
+       136.448731,
+       35.352058
+      ],
+      [
+       136.447629,
+       35.353856
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "mori-held",
+   "title": "The Mori hold back",
+   "time": "Afternoon",
+   "narrative": "On Mount Nangu the Mori troops under Kikkawa Hiroie never came down. Kikkawa pretended to be eating a meal and blocked Mori Hidemoto, who wanted to relieve Mitsunari, and also stopped Chosokabe Morichika from marching. Mori Terumoto himself stayed in Osaka Castle. About two thirds of the Western army never did any real fighting.",
+   "positions": {
+    "w-mori": {
+     "state": "ready"
+    }
+   }
+  },
+  {
+   "id": "collapse",
+   "title": "The Western line collapses",
+   "time": "Mid-afternoon",
+   "narrative": "With Otani gone, Fukushima and Kobayakawa rolled up the Western flank. Ukita's troops, fighting the better-trained men of Fukushima, broke at last, and Ishida Mitsunari, seeing the position was hopeless, began to pull his men back. Honda Tadakatsu and Oda Nagamasu had meanwhile intercepted Toda's flanking attack. The Western Army dissolved into flight.",
+   "positions": {
+    "w-ukita": {
+     "at": [
+      136.452591,
+      35.360152
+     ],
+     "state": "routed"
+    },
+    "w-ishida": {
+     "at": [
+      136.441563,
+      35.37589
+     ],
+     "state": "routed"
+    },
+    "e-fukushima": {
+     "at": [
+      136.457002,
+      35.360152
+     ]
+    },
+    "w-shimazu": {
+     "state": "wavering"
+    }
+   },
+   "moves": [
+    {
+     "unit": "w-ukita",
+     "type": "rout",
+     "path": [
+      [
+       136.457002,
+       35.360152
+      ],
+      [
+       136.452591,
+       35.360152
+      ]
+     ]
+    },
+    {
+     "unit": "w-ishida",
+     "type": "retreat",
+     "path": [
+      [
+       136.449283,
+       35.373642
+      ],
+      [
+       136.441563,
+       35.37589
+      ]
+     ]
+    },
+    {
+     "unit": "e-fukushima",
+     "type": "pursuit",
+     "path": [
+      [
+       136.461413,
+       35.360152
+      ],
+      [
+       136.457002,
+       35.360152
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "aftermath",
+   "title": "Tokugawa victory",
+   "time": "Evening, 21 October",
+   "narrative": "By evening the Western Army had been broken. Estimates of the dead vary hugely by source, from 8,000 to over 35,000 heads collected. Ishida Mitsunari was captured soon after and executed. The Mori lost lands for their ambiguous conduct. Tokugawa Ieyasu was now master of Japan in practice, and the Tokugawa shogunate would rule for two and a half centuries.",
+   "positions": {
+    "e-ieyasu": {
+     "at": [
+      136.459208,
+      35.363299
+     ],
+     "width": 100,
+     "depth": 100
+    }
+   },
+   "moves": [
+    {
+     "unit": "e-ieyasu",
+     "type": "advance",
+     "path": [
+      [
+       136.493394,
+       35.3624
+      ],
+      [
+       136.459208,
+       35.363299
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

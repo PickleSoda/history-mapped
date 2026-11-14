@@ -1,0 +1,1194 @@
+{
+ "schema": 3,
+ "slug": "battle-of-issus",
+ "kind": "battle",
+ "entity": {
+  "name": "Battle of Issus",
+  "wikidata": "Q201526"
+ },
+ "title": "Battle of Issus",
+ "date_label": "5 November 333 BC",
+ "year": -333,
+ "intro": "\n        In November 333 BC Alexander of Macedon and the Persian Great King Darius III met on a coastal strip beside\n        the Gulf of Issus, in what is now southern Turkey. Darius had marched round the Amanus mountains by a\n        northern route and cut Alexander's lines of supply, and Alexander turned his army back to fight. The\n        plain between the sea and the hills was barely 2.6 km wide, so the larger Persian army could not use its\n        weight of numbers. Alexander led the right wing in a strike at the Persian centre while Parmenion held the\n        left. Darius fled, his army collapsed, and his family fell into Macedonian hands. It was the first\n        Persian defeat in a battle where the king himself was present.",
+ "outcome": "Macedonian victory: Darius fled, the Persian camp and royal family were taken, and southern Asia Minor and the road to Phoenicia lay open.",
+ "uncertainty": "The site of the Pinarus is disputed: older scholars chose the Deli Cay, but Hammond and Devine argue for the Payas. We follow the Payas. Persian numbers are very uncertain, from about 25,000 (Delbruck) to 600,000 (Arrian). The line-up inside each wing, the hill detachment, the exact timing and direction of Alexander's turn on the mercenaries, and all later positions are reconstructed from Arrian and Curtius and are marked conjectural.",
+ "sources": [
+  {
+   "title": "Battle of Issus - Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Battle_of_Issus",
+   "kind": "web"
+  }
+ ],
+ "sides": [
+  {
+   "id": "a",
+   "name": "Macedon and the League of Corinth",
+   "color": "#1d4ed8",
+   "polity": {
+    "name": "Macedon",
+    "wikidata": "Q83958"
+   },
+   "commanders": [
+    {
+     "name": "Alexander the Great",
+     "wikidata": "Q8409",
+     "role": "king, right wing"
+    },
+    {
+     "name": "Parmenion",
+     "wikidata": "Q296233",
+     "role": "left wing"
+    },
+    {
+     "name": "Craterus",
+     "wikidata": "Q297390",
+     "role": "left infantry"
+    }
+   ],
+   "strength": "c. 37,000",
+   "losses": "c. 150 killed, 4,500 wounded"
+  },
+  {
+   "id": "p",
+   "name": "Achaemenid Empire",
+   "color": "#b91c1c",
+   "polity": {
+    "name": "Achaemenid Empire",
+    "wikidata": "Q389688"
+   },
+   "commanders": [
+    {
+     "name": "Darius III",
+     "wikidata": "Q102865",
+     "role": "Great King"
+    }
+   ],
+   "strength": "modern estimates 108,000-158,000",
+   "losses": "c. 20,000-40,000"
+  }
+ ],
+ "units": [
+  {
+   "id": "a-thess",
+   "side": "a",
+   "kind": "cavalry",
+   "label": "Thessalian and Greek horse",
+   "strength": "c. 2,400"
+  },
+  {
+   "id": "a-phalanx",
+   "side": "a",
+   "kind": "pikemen",
+   "label": "Phalanx (Craterus)",
+   "strength": "c. 9,000"
+  },
+  {
+   "id": "a-hypaspists",
+   "side": "a",
+   "kind": "heavy_infantry",
+   "label": "Hypaspists",
+   "strength": "c. 3,000"
+  },
+  {
+   "id": "a-companions",
+   "side": "a",
+   "kind": "heavy_cavalry",
+   "label": "Companion cavalry",
+   "strength": "c. 1,800"
+  },
+  {
+   "id": "a-agrianians",
+   "side": "a",
+   "kind": "light_infantry",
+   "label": "Agrianians and archers",
+   "strength": "c. 1,000"
+  },
+  {
+   "id": "a-column",
+   "side": "a",
+   "kind": "army",
+   "label": "Macedonian army marching"
+  },
+  {
+   "id": "a-alexander",
+   "side": "a",
+   "kind": "commander",
+   "label": "Alexander"
+  },
+  {
+   "id": "a-parmenion",
+   "side": "a",
+   "kind": "commander",
+   "label": "Parmenion"
+  },
+  {
+   "id": "p-cav",
+   "side": "p",
+   "kind": "heavy_cavalry",
+   "label": "Persian heavy cavalry"
+  },
+  {
+   "id": "p-greeks",
+   "side": "p",
+   "kind": "heavy_infantry",
+   "label": "Greek mercenaries",
+   "strength": "c. 10,000"
+  },
+  {
+   "id": "p-guard",
+   "side": "p",
+   "kind": "heavy_infantry",
+   "label": "Royal guard"
+  },
+  {
+   "id": "p-cardaces",
+   "side": "p",
+   "kind": "infantry",
+   "label": "Cardaces and levies"
+  },
+  {
+   "id": "p-hill",
+   "side": "p",
+   "kind": "light_infantry",
+   "label": "Hill detachment"
+  },
+  {
+   "id": "p-darius",
+   "side": "p",
+   "kind": "commander",
+   "label": "Darius III"
+  }
+ ],
+ "terrain": [
+  {
+   "id": "payas",
+   "kind": "river",
+   "label": "Pinarus (Payas)",
+   "line": [
+    [
+     36.21499,
+     36.75417
+    ],
+    [
+     36.21419,
+     36.75527
+    ],
+    [
+     36.21321,
+     36.75558
+    ],
+    [
+     36.21178,
+     36.75552
+    ],
+    [
+     36.21099,
+     36.75395
+    ],
+    [
+     36.20884,
+     36.7528
+    ],
+    [
+     36.20688,
+     36.75342
+    ],
+    [
+     36.20543,
+     36.7535
+    ],
+    [
+     36.20359,
+     36.75261
+    ],
+    [
+     36.20212,
+     36.75147
+    ],
+    [
+     36.20014,
+     36.75128
+    ],
+    [
+     36.19777,
+     36.75176
+    ],
+    [
+     36.19634,
+     36.75268
+    ],
+    [
+     36.19357,
+     36.75282
+    ],
+    [
+     36.19178,
+     36.75422
+    ]
+   ]
+  },
+  {
+   "id": "bank",
+   "kind": "wall",
+   "label": "Fortified north bank",
+   "conjectural": true,
+   "line": [
+    [
+     36.190153,
+     36.753309
+    ],
+    [
+     36.199133,
+     36.753309
+    ],
+    [
+     36.208112,
+     36.753309
+    ],
+    [
+     36.214847,
+     36.753669
+    ]
+   ]
+  },
+  {
+   "id": "foothills",
+   "kind": "hill",
+   "label": "Amanus foothills",
+   "conjectural": true,
+   "area": [
+    [
+     36.224949,
+     36.754299
+    ],
+    [
+     36.224777,
+     36.755928
+    ],
+    [
+     36.224272,
+     36.757447
+    ],
+    [
+     36.22347,
+     36.75875
+    ],
+    [
+     36.222424,
+     36.759751
+    ],
+    [
+     36.221205,
+     36.76038
+    ],
+    [
+     36.219898,
+     36.760594
+    ],
+    [
+     36.218591,
+     36.76038
+    ],
+    [
+     36.217372,
+     36.759751
+    ],
+    [
+     36.216326,
+     36.75875
+    ],
+    [
+     36.215524,
+     36.757447
+    ],
+    [
+     36.215019,
+     36.755928
+    ],
+    [
+     36.214847,
+     36.754299
+    ],
+    [
+     36.215019,
+     36.75267
+    ],
+    [
+     36.215524,
+     36.751151
+    ],
+    [
+     36.216326,
+     36.749848
+    ],
+    [
+     36.217372,
+     36.748847
+    ],
+    [
+     36.218591,
+     36.748218
+    ],
+    [
+     36.219898,
+     36.748004
+    ],
+    [
+     36.221205,
+     36.748218
+    ],
+    [
+     36.222424,
+     36.748847
+    ],
+    [
+     36.22347,
+     36.749848
+    ],
+    [
+     36.224272,
+     36.751151
+    ],
+    [
+     36.224777,
+     36.75267
+    ]
+   ]
+  },
+  {
+   "id": "ridge",
+   "kind": "ridge",
+   "label": "Mountain edge",
+   "conjectural": true,
+   "line": [
+    [
+     36.21653,
+     36.744406
+    ],
+    [
+     36.218775,
+     36.749802
+    ],
+    [
+     36.219336,
+     36.756097
+    ],
+    [
+     36.218214,
+     36.761493
+    ]
+   ]
+  },
+  {
+   "id": "road",
+   "kind": "road",
+   "label": "Coast road north to Issus",
+   "conjectural": true,
+   "line": [
+    [
+     36.195204,
+     36.73901
+    ],
+    [
+     36.195204,
+     36.748003
+    ],
+    [
+     36.195765,
+     36.756997
+    ],
+    [
+     36.196888,
+     36.76599
+    ]
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "id": "approach",
+   "title": "Darius cuts the road, Alexander turns back",
+   "time": "Early November, 333 BC",
+   "narrative": "Darius brought his army north around the Amanus range and took Issus, which put it astride Alexander's supply line while the Macedonians were still south of the Pass of Jonah. On learning this, Alexander marched back up the coast in column. Darius, advancing south, got no further than the Pinarus before his scouts saw the Macedonians coming, and he drew up on the north bank of the narrow coastal plain, where his numbers counted for little.",
+   "positions": {
+    "p-cav": {
+     "at": [
+      36.195316,
+      36.755468
+     ],
+     "facing": 180,
+     "width": 700,
+     "depth": 90,
+     "shape": "block"
+    },
+    "p-greeks": {
+     "at": [
+      36.201827,
+      36.755468
+     ],
+     "facing": 180,
+     "width": 620,
+     "depth": 45,
+     "strength_n": 10000
+    },
+    "p-guard": {
+     "at": [
+      36.201827,
+      36.757176
+     ],
+     "facing": 180,
+     "width": 520,
+     "depth": 45,
+     "conjectural": true
+    },
+    "p-cardaces": {
+     "at": [
+      36.210806,
+      36.755468
+     ],
+     "facing": 180,
+     "width": 800,
+     "depth": 50,
+     "conjectural": true
+    },
+    "p-darius": {
+     "with": "p-guard"
+    },
+    "a-column": {
+     "at": [
+      36.199694,
+      36.737661
+     ],
+     "facing": 0,
+     "width": 150,
+     "depth": 1100,
+     "shape": "column",
+     "conjectural": true
+    }
+   },
+   "notes": [
+    {
+     "at": [
+      36.199133,
+      36.754748
+     ],
+     "text": "Persians hold the north bank",
+     "kind": "label"
+    }
+   ]
+  },
+  {
+   "id": "deploy",
+   "title": "Alexander forms line",
+   "time": "Midday",
+   "narrative": "As the plain narrowed, Alexander fed his column into line one body after another. The Macedonian phalanx and the hypaspists took the centre and right, the Companion cavalry stood with him on the right wing near the foothills, and Parmenion took the left by the sea with the Thessalian and allied horse and orders to hold the shore. Craterus commanded the infantry of the left wing. Seeing Persian infantry reaching into the hills, Alexander angled his Agrianians and archers to guard his right.",
+   "positions": {
+    "a-column": {
+     "state": "hidden"
+    },
+    "a-thess": {
+     "at": [
+      36.192847,
+      36.751781
+     ],
+     "facing": 0,
+     "width": 360,
+     "depth": 50,
+     "strength_n": 2400
+    },
+    "a-phalanx": {
+     "at": [
+      36.198684,
+      36.75187
+     ],
+     "facing": 0,
+     "width": 760,
+     "depth": 36,
+     "strength_n": 9000
+    },
+    "a-hypaspists": {
+     "at": [
+      36.205867,
+      36.75187
+     ],
+     "facing": 0,
+     "width": 420,
+     "depth": 30,
+     "strength_n": 3000
+    },
+    "a-companions": {
+     "at": [
+      36.210357,
+      36.751691
+     ],
+     "facing": 0,
+     "width": 320,
+     "depth": 60,
+     "strength_n": 1800
+    },
+    "a-agrianians": {
+     "at": [
+      36.215183,
+      36.75268
+     ],
+     "facing": 30,
+     "width": 300,
+     "depth": 30,
+     "strength_n": 1000,
+     "conjectural": true
+    },
+    "a-alexander": {
+     "with": "a-companions"
+    },
+    "a-parmenion": {
+     "with": "a-thess"
+    },
+    "p-hill": {
+     "at": [
+      36.217428,
+      36.755917
+     ],
+     "facing": 225,
+     "width": 200,
+     "depth": 40,
+     "conjectural": true
+    }
+   }
+  },
+  {
+   "id": "persian-cav",
+   "title": "Persian horse crosses against the left",
+   "time": "Early afternoon",
+   "narrative": "Darius's heavy cavalry on the sea flank splashed over the stream and charged Parmenion's wing. The Thessalians were heavily outnumbered, and they met the weight of Persian horse by charging and falling back, again and again, to buy time rather than to win. Parmenion's task was only to survive until the right wing had done its work, the same plan Alexander would use two years later at Gaugamela.",
+   "positions": {
+    "p-cav": {
+     "at": [
+      36.194194,
+      36.75232
+     ],
+     "state": "engaged"
+    },
+    "a-thess": {
+     "at": [
+      36.193521,
+      36.751151
+     ],
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "p-cav",
+     "type": "charge",
+     "path": [
+      [
+       36.195316,
+       36.755468
+      ],
+      [
+       36.194194,
+       36.75232
+      ]
+     ]
+    },
+    {
+     "unit": "a-thess",
+     "type": "retreat",
+     "path": [
+      [
+       36.192847,
+       36.751781
+      ],
+      [
+       36.193521,
+       36.751151
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      36.193521,
+      36.75196
+     ],
+     "text": "Thessalians fight a delaying action",
+     "kind": "clash"
+    }
+   ]
+  },
+  {
+   "id": "advance",
+   "title": "The Macedonian right goes forward",
+   "time": "Afternoon",
+   "narrative": "On the right Alexander advanced at a walk until the Persian missiles reached his ranks, then ordered his men to run the last stretch to the water. Hypaspists and Companions went into the stream together, with the Agrianians pressing the skirmishers in the foothills. The centre phalanx, held back by uneven ground and a steep bank, was meanwhile advancing more slowly and opening gaps in the line.",
+   "positions": {
+    "a-companions": {
+     "at": [
+      36.210357,
+      36.75241
+     ]
+    },
+    "a-hypaspists": {
+     "at": [
+      36.205867,
+      36.75241
+     ]
+    },
+    "a-agrianians": {
+     "at": [
+      36.215183,
+      36.753849
+     ],
+     "state": "engaged"
+    },
+    "p-hill": {
+     "state": "engaged"
+    },
+    "a-phalanx": {
+     "at": [
+      36.198235,
+      36.75205
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "a-companions",
+     "type": "advance",
+     "path": [
+      [
+       36.210357,
+       36.751691
+      ],
+      [
+       36.210357,
+       36.75241
+      ]
+     ]
+    },
+    {
+     "unit": "a-hypaspists",
+     "type": "advance",
+     "path": [
+      [
+       36.205867,
+       36.75187
+      ],
+      [
+       36.205867,
+       36.75241
+      ]
+     ]
+    },
+    {
+     "unit": "a-agrianians",
+     "type": "advance",
+     "path": [
+      [
+       36.215183,
+       36.75268
+      ],
+      [
+       36.215183,
+       36.753849
+      ]
+     ]
+    },
+    {
+     "unit": "a-phalanx",
+     "type": "advance",
+     "path": [
+      [
+       36.198684,
+       36.75187
+      ],
+      [
+       36.198235,
+       36.75205
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cardaces",
+   "title": "The hypaspists break the Persian left",
+   "time": "Late afternoon",
+   "narrative": "Hypaspists and Companions struck the Persian infantry of the left, which stood on a fortified bank and was partly bent back toward the hills. The attack drove a hole through the Cardaces, and the Agrianians beat the skirmishers off the right flank so the cavalry could not be taken from the side. At about this moment Alexander was able to leave the infantry fight and turn his own men toward the Persian centre.",
+   "positions": {
+    "a-hypaspists": {
+     "at": [
+      36.205867,
+      36.753759
+     ],
+     "state": "engaged"
+    },
+    "p-cardaces": {
+     "at": [
+      36.211255,
+      36.754658
+     ],
+     "state": "wavering"
+    },
+    "a-companions": {
+     "at": [
+      36.210357,
+      36.753669
+     ],
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "a-hypaspists",
+     "type": "attack",
+     "path": [
+      [
+       36.205867,
+       36.75241
+      ],
+      [
+       36.205867,
+       36.753759
+      ]
+     ]
+    },
+    {
+     "unit": "p-cardaces",
+     "type": "back_water",
+     "path": [
+      [
+       36.210806,
+       36.755468
+      ],
+      [
+       36.211255,
+       36.754658
+      ]
+     ]
+    },
+    {
+     "unit": "a-companions",
+     "type": "attack",
+     "path": [
+      [
+       36.210357,
+       36.75241
+      ],
+      [
+       36.210357,
+       36.753669
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      36.208112,
+      36.754299
+     ],
+     "text": "A gap opens in the Persian left",
+     "kind": "clash"
+    }
+   ]
+  },
+  {
+   "id": "centre",
+   "title": "The phalanx is thrown back",
+   "time": "Afternoon",
+   "narrative": "While Alexander was winning on the right, the centre ran into trouble. The phalanx, with its right side pulled ahead, had to climb out of the stream against the Greek mercenaries in Darius's pay, who counter-charged into its gaps. Arrian says that 120 Macedonians of rank fell here. The phalanx was driven back across the river, and for a while the whole centre of the Macedonian army was in danger of coming apart, with the Persian cavalry still pressing on its left.",
+   "positions": {
+    "a-phalanx": {
+     "at": [
+      36.198235,
+      36.75214
+     ],
+     "state": "wavering"
+    },
+    "p-greeks": {
+     "at": [
+      36.200255,
+      36.75286
+     ],
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "a-phalanx",
+     "type": "retreat",
+     "path": [
+      [
+       36.198235,
+       36.75205
+      ],
+      [
+       36.198235,
+       36.75214
+      ]
+     ]
+    },
+    {
+     "unit": "p-greeks",
+     "type": "attack",
+     "path": [
+      [
+       36.201827,
+       36.755468
+      ],
+      [
+       36.200255,
+       36.75286
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      36.199133,
+      36.7525
+     ],
+     "text": "120 Macedonian officers fall",
+     "kind": "death"
+    }
+   ]
+  },
+  {
+   "id": "charge",
+   "title": "Alexander charges at Darius",
+   "time": "Late afternoon",
+   "narrative": "Seeing Darius's royal cavalry guard and chariot only a short way beyond, Alexander mounted and led the Companions at the Persian centre. The Great King's guard stood and fought briefly, and in the melee the royal party began to give way. The accounts disagree on how hard Alexander himself was pressed, but all make the strike at the centre of the Persian line the turning point of the day.",
+   "positions": {
+    "a-companions": {
+     "at": [
+      36.207439,
+      36.756277
+     ],
+     "conjectural": true
+    },
+    "p-guard": {
+     "state": "engaged"
+    },
+    "p-cardaces": {
+     "at": [
+      36.213724,
+      36.755198
+     ],
+     "state": "routed"
+    }
+   },
+   "moves": [
+    {
+     "unit": "a-companions",
+     "type": "charge",
+     "path": [
+      [
+       36.210357,
+       36.753669
+      ],
+      [
+       36.207439,
+       36.756277
+      ]
+     ]
+    },
+    {
+     "unit": "p-cardaces",
+     "type": "rout",
+     "path": [
+      [
+       36.211255,
+       36.754658
+      ],
+      [
+       36.213724,
+       36.755198
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      36.204184,
+      36.756817
+     ],
+     "text": "Alexander drives at the royal guard",
+     "kind": "clash",
+     "conjectural": true
+    }
+   ]
+  },
+  {
+   "id": "flight",
+   "title": "Darius flees",
+   "time": "Late afternoon",
+   "narrative": "Darius, the royal chariot and his household troops turned and fled when the Macedonian horse reached them. Alexander now saw that his own centre was struggling, so he did not follow the king at once. He turned some of his force left and struck the Greek mercenaries on their exposed flank and rear, while the phalanx, steadied by this relief, came forward again.",
+   "positions": {
+    "p-guard": {
+     "state": "routed",
+     "at": [
+      36.201827,
+      36.762842
+     ]
+    },
+    "p-darius": {
+     "at": [
+      36.201827,
+      36.764191
+     ]
+    },
+    "a-companions": {
+     "at": [
+      36.203622,
+      36.755558
+     ],
+     "facing": 270
+    },
+    "a-phalanx": {
+     "at": [
+      36.198235,
+      36.7525
+     ],
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "p-guard",
+     "type": "rout",
+     "path": [
+      [
+       36.201827,
+       36.757176
+      ],
+      [
+       36.201827,
+       36.762842
+      ]
+     ]
+    },
+    {
+     "unit": "a-companions",
+     "type": "flank",
+     "path": [
+      [
+       36.207439,
+       36.756277
+      ],
+      [
+       36.203622,
+       36.755558
+      ]
+     ]
+    },
+    {
+     "unit": "a-phalanx",
+     "type": "advance",
+     "path": [
+      [
+       36.198235,
+       36.75214
+      ],
+      [
+       36.198235,
+       36.7525
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "mercenaries",
+   "title": "The Greek mercenaries are cut off",
+   "time": "Dusk",
+   "narrative": "Hit from front and flank at once, the mercenary phalanx broke and gave ground. Without their paymaster and with their allies gone, they began to leave the field. Many fell back through the foothills in good order, and survivors later escaped to the south or east to serve elsewhere. The Persian cavalry on the coast, seeing the centre gone, turned for the north, though some had pressed Parmenion hard until the end.",
+   "positions": {
+    "p-greeks": {
+     "state": "routed",
+     "at": [
+      36.199133,
+      36.756817
+     ]
+    },
+    "p-cav": {
+     "state": "routed",
+     "at": [
+      36.192398,
+      36.758795
+     ]
+    },
+    "a-thess": {
+     "state": "ready"
+    },
+    "p-hill": {
+     "state": "routed"
+    }
+   },
+   "moves": [
+    {
+     "unit": "p-greeks",
+     "type": "rout",
+     "path": [
+      [
+       36.200255,
+       36.75286
+      ],
+      [
+       36.199133,
+       36.756817
+      ]
+     ]
+    },
+    {
+     "unit": "p-cav",
+     "type": "rout",
+     "path": [
+      [
+       36.194194,
+       36.75232
+      ],
+      [
+       36.192398,
+       36.758795
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pursuit",
+   "title": "Rout and pursuit",
+   "time": "Nightfall",
+   "narrative": "The whole Persian army broke. Fleeing men crowded the narrow roads, and the Greek horse rode them down until the light failed. Ptolemy was reported to say that Alexander and his companions, chasing Darius, crossed a ravine on the heaped bodies of the dead. The pursuit did not catch the king, who got away on a horse after abandoning his chariot, mantle and bow.",
+   "positions": {
+    "a-companions": {
+     "at": [
+      36.201378,
+      36.764191
+     ],
+     "facing": 0,
+     "state": "ready"
+    },
+    "a-thess": {
+     "at": [
+      36.194643,
+      36.758795
+     ]
+    },
+    "p-cardaces": {
+     "at": [
+      36.214847,
+      36.762393
+     ]
+    },
+    "p-greeks": {
+     "at": [
+      36.199133,
+      36.760594
+     ]
+    },
+    "p-cav": {
+     "at": [
+      36.192398,
+      36.763292
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "a-companions",
+     "type": "pursuit",
+     "path": [
+      [
+       36.203622,
+       36.755558
+      ],
+      [
+       36.201378,
+       36.764191
+      ]
+     ]
+    },
+    {
+     "unit": "a-thess",
+     "type": "pursuit",
+     "path": [
+      [
+       36.193521,
+       36.751151
+      ],
+      [
+       36.194643,
+       36.758795
+      ]
+     ]
+    },
+    {
+     "unit": "p-cardaces",
+     "type": "rout",
+     "path": [
+      [
+       36.213724,
+       36.755198
+      ],
+      [
+       36.214847,
+       36.762393
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "aftermath",
+   "title": "Persian camp captured",
+   "time": "Night",
+   "narrative": "Alexander took the royal camp that night. Darius's mother Sisygambis, his wife Stateira and his daughters were captured and treated with respect, though the Persian treasure and tent went to the victors. It was the first time a Persian army had been defeated with the king present. Alexander turned south toward Phoenicia and Egypt to deny the Persian fleet its bases, and Darius took the long road home to raise a new army.",
+   "positions": {
+    "p-darius": {
+     "at": [
+      36.201827,
+      36.769587
+     ]
+    },
+    "a-companions": {
+     "at": [
+      36.201378,
+      36.759695
+     ],
+     "facing": 180
+    }
+   },
+   "moves": [
+    {
+     "unit": "p-darius",
+     "type": "rout",
+     "path": [
+      [
+       36.201827,
+       36.764191
+      ],
+      [
+       36.201827,
+       36.769587
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      36.2025,
+      36.760594
+     ],
+     "text": "Royal camp and family captured",
+     "kind": "capture"
+    }
+   ]
+  }
+ ]
+}

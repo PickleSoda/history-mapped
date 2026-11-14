@@ -1,0 +1,1552 @@
+{
+ "schema": 3,
+ "slug": "battle-of-thermopylae",
+ "kind": "battle",
+ "entity": {
+  "name": "Battle of Thermopylae",
+  "wikidata": "Q131969"
+ },
+ "title": "Battle of Thermopylae",
+ "date_label": "August or September 480 BC",
+ "year": -480,
+ "intro": "In the summer of 480 BC Xerxes I of Persia led a vast army into Greece to punish Athens and Sparta and to add the mainland to his empire. The one land route south from Thessaly ran through Thermopylae, the Hot Gates, a coastal strip where the cliffs of Mt Kallidromos came close to the Malian Gulf. A small Greek force under the Spartan king Leonidas I blocked it for three days against Persian armies many times its size. The first two days were frontal fights that the defenders won. On the third a local man led a Persian column over the mountains, forcing Leonidas to send most of his army away and make a last stand with the Spartans, Thespians and Thebans. This map replays the fight step by step.",
+ "outcome": "Persian victory: the pass was forced and the way into central Greece opened.",
+ "uncertainty": "Ancient sources give wildly inflated numbers, and modern estimates of Xerxes' army run from 40,000 to 300,000. Exact dates vary: 21-23 July, 20 August or 8-10 September. The unit sizes follow the standard modern count of about 7,000 Greeks. The position of the Phocian wall, the unit placements, the Persian camp, Hydarnes' route over the mountain and the order of the final retreat are reconstructed and marked conjectural. The shoreline has moved several kilometres; the base map shows the modern coast.",
+ "sources": [
+  {
+   "title": "Battle of Thermopylae - Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Battle_of_Thermopylae",
+   "kind": "web"
+  }
+ ],
+ "sides": [
+  {
+   "id": "a",
+   "name": "Allied Greek city-states",
+   "color": "#1d4ed8",
+   "polity": {
+    "name": "Sparta",
+    "wikidata": "Q5690"
+   },
+   "commanders": [
+    {
+     "name": "Leonidas I",
+     "wikidata": "Q44228",
+     "role": "King of Sparta"
+    },
+    {
+     "name": "Demophilus of Thespiae",
+     "wikidata": "Q928788",
+     "role": "Thespian general"
+    }
+   ],
+   "strength": "c. 7,000",
+   "losses": "up to c. 2,000 (Herodotus says 4,000)"
+  },
+  {
+   "id": "b",
+   "name": "Achaemenid Empire",
+   "color": "#b91c1c",
+   "polity": {
+    "name": "Achaemenid Empire",
+    "wikidata": "Q389688"
+   },
+   "commanders": [
+    {
+     "name": "Xerxes I",
+     "wikidata": "Q129165",
+     "role": "Great King"
+    },
+    {
+     "name": "Hydarnes",
+     "wikidata": "Q19568922",
+     "role": "commander of the flank column"
+    }
+   ],
+   "strength": "40,000 to 300,000 (modern estimates)",
+   "losses": "c. 20,000 (Herodotus)"
+  }
+ ],
+ "units": [
+  {
+   "id": "g-line",
+   "side": "a",
+   "kind": "heavy_infantry",
+   "label": "Greek allies",
+   "strength": "c. 3,000"
+  },
+  {
+   "id": "g-spartans",
+   "side": "a",
+   "kind": "heavy_infantry",
+   "label": "300 Spartans",
+   "strength": "300"
+  },
+  {
+   "id": "g-thespians",
+   "side": "a",
+   "kind": "heavy_infantry",
+   "label": "Thespians",
+   "strength": "700"
+  },
+  {
+   "id": "g-thebans",
+   "side": "a",
+   "kind": "heavy_infantry",
+   "label": "Thebans",
+   "strength": "400"
+  },
+  {
+   "id": "g-phocians",
+   "side": "a",
+   "kind": "light_infantry",
+   "label": "Phocians on the path",
+   "strength": "1,000"
+  },
+  {
+   "id": "g-leonidas",
+   "side": "a",
+   "kind": "commander",
+   "label": "Leonidas"
+  },
+  {
+   "id": "p-camp",
+   "side": "b",
+   "kind": "camp",
+   "label": "Persian camp"
+  },
+  {
+   "id": "p-xerxes",
+   "side": "b",
+   "kind": "commander",
+   "label": "Xerxes"
+  },
+  {
+   "id": "p-archers",
+   "side": "b",
+   "kind": "archers",
+   "label": "5,000 archers",
+   "strength": "5,000"
+  },
+  {
+   "id": "p-medes",
+   "side": "b",
+   "kind": "infantry",
+   "label": "Medes and Cissians",
+   "strength": "10,000"
+  },
+  {
+   "id": "p-immortals",
+   "side": "b",
+   "kind": "infantry",
+   "label": "Immortals",
+   "strength": "10,000"
+  },
+  {
+   "id": "p-hydarnes",
+   "side": "b",
+   "kind": "infantry",
+   "label": "Hydarnes' column",
+   "strength": "up to 20,000"
+  },
+  {
+   "id": "p-ephialtes",
+   "side": "b",
+   "kind": "commander",
+   "label": "Ephialtes"
+  },
+  {
+   "id": "p-light",
+   "side": "b",
+   "kind": "light_infantry",
+   "label": "Light infantry and horse",
+   "strength": "10,000"
+  }
+ ],
+ "terrain": [
+  {
+   "id": "road",
+   "kind": "road",
+   "label": "Coastal road through the pass",
+   "line": [
+    [
+     22.511765,
+     38.79577
+    ],
+    [
+     22.525611,
+     38.795815
+    ],
+    [
+     22.531381,
+     38.79577
+    ],
+    [
+     22.53715,
+     38.795725
+    ],
+    [
+     22.554458,
+     38.79577
+    ],
+    [
+     22.567151,
+     38.79541
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "wall",
+   "kind": "wall",
+   "label": "Phocian wall",
+   "line": [
+    [
+     22.531381,
+     38.79514
+    ],
+    [
+     22.531381,
+     38.796175
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "cliffs",
+   "kind": "ridge",
+   "label": "Mt Kallidromos cliffs",
+   "line": [
+    [
+     22.511765,
+     38.794961
+    ],
+    [
+     22.525611,
+     38.795096
+    ],
+    [
+     22.53715,
+     38.795006
+    ],
+    [
+     22.554458,
+     38.795051
+    ],
+    [
+     22.567151,
+     38.794781
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "marsh",
+   "kind": "marsh",
+   "label": "Hot spring marsh",
+   "area": [
+    [
+     22.532073,
+     38.79595
+    ],
+    [
+     22.532002,
+     38.796031
+    ],
+    [
+     22.531795,
+     38.796107
+    ],
+    [
+     22.531465,
+     38.796173
+    ],
+    [
+     22.531034,
+     38.796223
+    ],
+    [
+     22.530534,
+     38.796254
+    ],
+    [
+     22.529996,
+     38.796265
+    ],
+    [
+     22.529458,
+     38.796254
+    ],
+    [
+     22.528958,
+     38.796223
+    ],
+    [
+     22.528527,
+     38.796173
+    ],
+    [
+     22.528197,
+     38.796107
+    ],
+    [
+     22.52799,
+     38.796031
+    ],
+    [
+     22.527919,
+     38.79595
+    ],
+    [
+     22.52799,
+     38.795869
+    ],
+    [
+     22.528197,
+     38.795793
+    ],
+    [
+     22.528527,
+     38.795727
+    ],
+    [
+     22.528958,
+     38.795677
+    ],
+    [
+     22.529458,
+     38.795646
+    ],
+    [
+     22.529996,
+     38.795635
+    ],
+    [
+     22.530534,
+     38.795646
+    ],
+    [
+     22.531034,
+     38.795677
+    ],
+    [
+     22.531465,
+     38.795727
+    ],
+    [
+     22.531795,
+     38.795793
+    ],
+    [
+     22.532002,
+     38.795869
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "kolonos",
+   "kind": "hill",
+   "label": "Kolonos Hill",
+   "area": [
+    [
+     22.538765,
+     38.79577
+    ],
+    [
+     22.53871,
+     38.795898
+    ],
+    [
+     22.538549,
+     38.796017
+    ],
+    [
+     22.538292,
+     38.79612
+    ],
+    [
+     22.537958,
+     38.796198
+    ],
+    [
+     22.537568,
+     38.796248
+    ],
+    [
+     22.53715,
+     38.796265
+    ],
+    [
+     22.536732,
+     38.796248
+    ],
+    [
+     22.536342,
+     38.796198
+    ],
+    [
+     22.536008,
+     38.79612
+    ],
+    [
+     22.535751,
+     38.796017
+    ],
+    [
+     22.53559,
+     38.795898
+    ],
+    [
+     22.535535,
+     38.79577
+    ],
+    [
+     22.53559,
+     38.795642
+    ],
+    [
+     22.535751,
+     38.795523
+    ],
+    [
+     22.536008,
+     38.79542
+    ],
+    [
+     22.536342,
+     38.795342
+    ],
+    [
+     22.536732,
+     38.795292
+    ],
+    [
+     22.53715,
+     38.795275
+    ],
+    [
+     22.537568,
+     38.795292
+    ],
+    [
+     22.537958,
+     38.795342
+    ],
+    [
+     22.538292,
+     38.79542
+    ],
+    [
+     22.538549,
+     38.795523
+    ],
+    [
+     22.53871,
+     38.795642
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "path",
+   "kind": "road",
+   "label": "Anopaea mountain path",
+   "line": [
+    [
+     22.444839,
+     38.781381
+    ],
+    [
+     22.477148,
+     38.772388
+    ],
+    [
+     22.508303,
+     38.773287
+    ],
+    [
+     22.542919,
+     38.778683
+    ],
+    [
+     22.55792,
+     38.787676
+    ],
+    [
+     22.564843,
+     38.793971
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "asopos",
+   "kind": "river",
+   "label": "Asopos gorge",
+   "line": [
+    [
+     22.495,
+     38.81241
+    ],
+    [
+     22.49008,
+     38.81381
+    ],
+    [
+     22.47315,
+     38.80642
+    ],
+    [
+     22.43459,
+     38.78498
+    ],
+    [
+     22.43591,
+     38.77535
+    ],
+    [
+     22.4259,
+     38.77007
+    ],
+    [
+     22.42078,
+     38.77013
+    ]
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "id": "deployment",
+   "title": "The Greeks close the Hot Gates",
+   "time": "Day 0 to 4",
+   "narrative": "Xerxes brought his host down from Thessaly and halted before the narrow coastal pass of Thermopylae. King Leonidas of Sparta had marched north with his 300 Spartans and a mixed force of allied Greeks, perhaps 7,000 men in all by the modern standard count. He posted them at the middle gate, where the Phocians had once built a wall, and where the cliffs of Mt Kallidromos on one side and the Malian Gulf on the other left a passage of roughly 100 metres. The Persians camped in the plain to the west and for four days did nothing, waiting for the Greeks to give way.",
+   "positions": {
+    "g-line": {
+     "at": [
+      22.532534,
+      38.795725
+     ],
+     "facing": 270,
+     "width": 100,
+     "depth": 30,
+     "strength_n": 3000,
+     "label": "Greek allies"
+    },
+    "g-spartans": {
+     "at": [
+      22.531842,
+      38.795518
+     ],
+     "facing": 270,
+     "width": 36,
+     "depth": 14,
+     "strength_n": 300,
+     "label": "300 Spartans"
+    },
+    "g-thespians": {
+     "at": [
+      22.531842,
+      38.79577
+     ],
+     "facing": 270,
+     "width": 28,
+     "depth": 18,
+     "strength_n": 700,
+     "label": "Thespians",
+     "conjectural": true
+    },
+    "g-thebans": {
+     "at": [
+      22.531842,
+      38.795968
+     ],
+     "facing": 270,
+     "width": 20,
+     "depth": 14,
+     "strength_n": 400,
+     "label": "Thebans",
+     "conjectural": true
+    },
+    "g-phocians": {
+     "at": [
+      22.496764,
+      38.772388
+     ],
+     "facing": 270,
+     "width": 200,
+     "depth": 30,
+     "strength_n": 1000,
+     "label": "Phocians on the path",
+     "conjectural": true,
+     "frame": false
+    },
+    "g-leonidas": {
+     "with": "g-spartans"
+    },
+    "p-camp": {
+     "at": [
+      22.493302,
+      38.796669
+     ],
+     "facing": 90,
+     "label": "Persian camp",
+     "frame": false
+    },
+    "p-xerxes": {
+     "at": [
+      22.502533,
+      38.79631
+     ],
+     "facing": 90,
+     "label": "Xerxes",
+     "frame": false
+    },
+    "p-archers": {
+     "at": [
+      22.507149,
+      38.79568
+     ],
+     "facing": 90,
+     "width": 100,
+     "depth": 40,
+     "strength_n": 5000,
+     "label": "5,000 archers",
+     "frame": false
+    }
+   }
+  },
+  {
+   "id": "archers",
+   "title": "Day one: the arrow barrage",
+   "time": "Day 5, morning",
+   "narrative": "On the fifth day Xerxes finally ordered an attack. He opened with 5,000 archers, who shot from beyond the reach of the Greek spears. The volleys did little harm: bronze helmets and big wooden shields caught most of the arrows, and the defenders stood behind their wall where the pass was narrowest, so few of them were exposed at any time. The Persians had to send in men on foot.",
+   "positions": {
+    "p-archers": {
+     "at": [
+      22.526188,
+      38.795725
+     ],
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "p-archers",
+     "type": "advance",
+     "path": [
+      [
+       22.507149,
+       38.79568
+      ],
+      [
+       22.526188,
+       38.795725
+      ]
+     ]
+    },
+    {
+     "unit": "p-archers",
+     "type": "fire",
+     "path": [
+      [
+       22.526188,
+       38.795725
+      ],
+      [
+       22.532534,
+       38.795725
+      ]
+     ],
+     "label": "arrows"
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      22.529073,
+      38.7964
+     ],
+     "text": "Arrows glance off shields",
+     "kind": "event"
+    }
+   ]
+  },
+  {
+   "id": "medes",
+   "title": "Day one: Medes and Cissians",
+   "time": "Day 5, midday",
+   "narrative": "Xerxes sent 10,000 Medes and Cissians to take the defenders alive. They attacked in waves against the Greek front. Their shields were lighter and their spears and swords shorter than those of the hoplites, and in the narrow ground they could not use their numbers. Herodotus says the Greeks fought by city contingents and rotated men to rest, and that Xerxes leapt up three times from his throne as his troops were cut down. Ctesias claims the first wave was slaughtered for the loss of two or three Spartans.",
+   "positions": {
+    "p-archers": {
+     "at": [
+      22.517534,
+      38.795725
+     ],
+     "state": "ready"
+    },
+    "p-medes": {
+     "at": [
+      22.529765,
+      38.795725
+     ],
+     "facing": 90,
+     "width": 100,
+     "depth": 60,
+     "strength_n": 10000,
+     "label": "10,000 Medes, Cissians",
+     "state": "engaged"
+    },
+    "g-line": {
+     "state": "engaged"
+    },
+    "g-spartans": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "p-archers",
+     "type": "retreat",
+     "path": [
+      [
+       22.526188,
+       38.795725
+      ],
+      [
+       22.517534,
+       38.795725
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      22.530688,
+      38.79631
+     ],
+     "text": "Waves break on the wall",
+     "kind": "clash"
+    }
+   ]
+  },
+  {
+   "id": "immortals",
+   "title": "Day one: the Immortals",
+   "time": "Day 5, afternoon",
+   "narrative": "The same day the king committed his best troops, the 10,000 Immortals. They fared no better than the Medes. The Greeks are said to have used a trick, turning as if in flight and then wheeling on the pursuers once they had broken their own order. Whatever the details, the Persians could not make the weight of their numbers count in a space only one hundred metres wide, and withdrew at dusk.",
+   "positions": {
+    "p-medes": {
+     "at": [
+      22.515226,
+      38.795725
+     ],
+     "state": "routed"
+    },
+    "p-immortals": {
+     "at": [
+      22.530227,
+      38.795725
+     ],
+     "facing": 90,
+     "width": 100,
+     "depth": 60,
+     "strength_n": 10000,
+     "label": "Immortals",
+     "state": "engaged"
+    },
+    "g-spartans": {
+     "at": [
+      22.531554,
+      38.795518
+     ],
+     "conjectural": true
+    }
+   },
+   "moves": [
+    {
+     "unit": "p-medes",
+     "type": "retreat",
+     "path": [
+      [
+       22.529765,
+       38.795725
+      ],
+      [
+       22.515226,
+       38.795725
+      ]
+     ]
+    },
+    {
+     "unit": "g-spartans",
+     "type": "feint",
+     "path": [
+      [
+       22.531842,
+       38.795518
+      ],
+      [
+       22.531554,
+       38.795518
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      22.53115,
+      38.79631
+     ],
+     "text": "Feigned Spartan retreat",
+     "kind": "event"
+    }
+   ]
+  },
+  {
+   "id": "day2",
+   "title": "Day two: assaults again fail",
+   "time": "Day 6",
+   "narrative": "On the second day Xerxes sent the infantry in again, believing the few Greeks must be worn down by their wounds. They held as before. Late in the day the king called off the attack and went back to his camp in perplexity. The pass was blocked and a frontal fight was costing him heavily, while his fleet was far away. Nothing in the sources suggests the Greeks yielded any ground.",
+   "positions": {
+    "p-immortals": {
+     "at": [
+      22.519842,
+      38.795725
+     ],
+     "state": "ready"
+    },
+    "p-medes": {
+     "at": [
+      22.529073,
+      38.795725
+     ],
+     "state": "engaged"
+    },
+    "g-spartans": {
+     "at": [
+      22.531842,
+      38.795518
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "p-immortals",
+     "type": "retreat",
+     "path": [
+      [
+       22.530227,
+       38.795725
+      ],
+      [
+       22.519842,
+       38.795725
+      ]
+     ]
+    },
+    {
+     "unit": "p-medes",
+     "type": "attack",
+     "path": [
+      [
+       22.515226,
+       38.795725
+      ],
+      [
+       22.529073,
+       38.795725
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      22.527919,
+      38.79631
+     ],
+     "text": "Same result as day one",
+     "kind": "label"
+    }
+   ]
+  },
+  {
+   "id": "ephialtes",
+   "title": "Ephialtes shows the mountain path",
+   "time": "Evening of day 6",
+   "narrative": "A local man from Trachis, Ephialtes, came to Xerxes and offered for a reward to guide troops over the mountain track that bypassed the pass. It climbed from the Asopos gorge, ran along the ridge of Mt Anopaea and came down toward Alpenus in Locris, behind the Greek position. Herodotus sends Hydarnes with the Immortals at nightfall, while Diodorus gives him 20,000 men. The route drawn here is reconstructed from the account, not surveyed.",
+   "positions": {
+    "p-medes": {
+     "at": [
+      22.515226,
+      38.795725
+     ],
+     "state": "ready"
+    },
+    "p-hydarnes": {
+     "at": [
+      22.477148,
+      38.772388
+     ],
+     "facing": 90,
+     "width": 300,
+     "depth": 40,
+     "strength_n": 20000,
+     "label": "Hydarnes' flanking column",
+     "conjectural": true,
+     "frame": false
+    },
+    "g-line": {
+     "state": "ready"
+    },
+    "g-spartans": {
+     "state": "ready"
+    },
+    "p-ephialtes": {
+     "at": [
+      22.477148,
+      38.773287
+     ],
+     "facing": 90,
+     "label": "Ephialtes (guide)",
+     "conjectural": true,
+     "frame": false
+    }
+   },
+   "moves": [
+    {
+     "unit": "p-medes",
+     "type": "retreat",
+     "path": [
+      [
+       22.529073,
+       38.795725
+      ],
+      [
+       22.515226,
+       38.795725
+      ]
+     ]
+    },
+    {
+     "unit": "p-hydarnes",
+     "type": "march",
+     "path": [
+      [
+       22.444839,
+       38.781381
+      ],
+      [
+       22.477148,
+       38.772388
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "phocians",
+   "title": "Dawn: the Phocians are bypassed",
+   "time": "Dawn, day 7",
+   "narrative": "As day broke the Phocians who guarded the track heard the oak leaves rustle and saw armed men coming through the trees. They scrambled to their weapons and withdrew to a nearby height, thinking they were the target. Hydarnes, who had feared they were Spartans, merely loosed a volley and carried on downhill. A runner took word of it to Leonidas, who called a council of war at first light.",
+   "positions": {
+    "p-hydarnes": {
+     "at": [
+      22.496764,
+      38.773287
+     ]
+    },
+    "p-ephialtes": {
+     "at": [
+      22.496764,
+      38.774186
+     ]
+    },
+    "g-phocians": {
+     "at": [
+      22.500226,
+      38.76879
+     ],
+     "state": "wavering"
+    }
+   },
+   "moves": [
+    {
+     "unit": "p-hydarnes",
+     "type": "march",
+     "path": [
+      [
+       22.477148,
+       38.772388
+      ],
+      [
+       22.496764,
+       38.773287
+      ]
+     ]
+    },
+    {
+     "unit": "p-ephialtes",
+     "type": "march",
+     "path": [
+      [
+       22.477148,
+       38.773287
+      ],
+      [
+       22.496764,
+       38.774186
+      ]
+     ]
+    },
+    {
+     "unit": "g-phocians",
+     "type": "retreat",
+     "path": [
+      [
+       22.496764,
+       38.772388
+      ],
+      [
+       22.500226,
+       38.76879
+      ]
+     ]
+    },
+    {
+     "unit": "p-hydarnes",
+     "type": "fire",
+     "path": [
+      [
+       22.496764,
+       38.773287
+      ],
+      [
+       22.500226,
+       38.76879
+      ]
+     ],
+     "label": "volley"
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      22.497918,
+      38.76969
+     ],
+     "text": "Phocians fall back",
+     "kind": "event",
+     "conjectural": true
+    }
+   ]
+  },
+  {
+   "id": "council",
+   "title": "Leonidas dismisses most of the army",
+   "time": "Dawn, day 7",
+   "narrative": "Warned that he was surrounded, Leonidas held a council. Some wished to retreat; he himself would not leave, and told the allies that they were free to go. Most did, or were ordered away. Retreating over the open ground beyond the pass would have exposed them to cavalry, so the rearguard gave the rest a chance to get clear. Herodotus is unsure whether they left on orders or of their own accord. The 300 Spartans stayed, with 700 Thespians under Demophilus and about 400 Thebans.",
+   "positions": {
+    "p-ephialtes": {
+     "state": "hidden"
+    },
+    "g-phocians": {
+     "state": "hidden"
+    },
+    "g-line": {
+     "at": [
+      22.540612,
+      38.795725
+     ],
+     "facing": 90,
+     "width": 80,
+     "label": "Allies leave (c. 3,000)"
+    }
+   },
+   "moves": [
+    {
+     "unit": "g-line",
+     "type": "retreat",
+     "path": [
+      [
+       22.532534,
+       38.795725
+      ],
+      [
+       22.540612,
+       38.795725
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      22.532188,
+      38.7964
+     ],
+     "text": "300 Spartans, Thespians, Thebans stay",
+     "kind": "label"
+    }
+   ]
+  },
+  {
+   "id": "sally",
+   "title": "The Greeks sally out",
+   "time": "Morning, day 7",
+   "narrative": "Xerxes poured libations at sunrise and waited until the Immortals could be expected to have come down the mountain, then ordered his front to advance. Knowing that they were about to be caught from behind, the Greeks left their wall and went out into the wider part of the pass to kill as many of the enemy as they could. They fought with spears until the shafts broke and then with their short swords. Two brothers of Xerxes, Abrocomes and Hyperanthes, fell. Leonidas was killed by arrows, and the Greeks won the fight over his body.",
+   "positions": {
+    "p-light": {
+     "at": [
+      22.529073,
+      38.795725
+     ],
+     "facing": 90,
+     "width": 110,
+     "depth": 60,
+     "strength_n": 10000,
+     "label": "10,000 light inf. and horse",
+     "frame": true,
+     "state": "engaged"
+    },
+    "g-spartans": {
+     "at": [
+      22.529996,
+      38.795518
+     ],
+     "state": "engaged"
+    },
+    "g-thespians": {
+     "at": [
+      22.529996,
+      38.79577
+     ],
+     "state": "engaged"
+    },
+    "g-thebans": {
+     "at": [
+      22.529996,
+      38.795968
+     ],
+     "state": "engaged"
+    },
+    "p-hydarnes": {
+     "at": [
+      22.55792,
+      38.787676
+     ],
+     "facing": 270,
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "p-light",
+     "type": "attack",
+     "path": [
+      [
+       22.524457,
+       38.795725
+      ],
+      [
+       22.529073,
+       38.795725
+      ]
+     ]
+    },
+    {
+     "unit": "g-spartans",
+     "type": "attack",
+     "path": [
+      [
+       22.531842,
+       38.795518
+      ],
+      [
+       22.529996,
+       38.795518
+      ]
+     ]
+    },
+    {
+     "unit": "g-thespians",
+     "type": "attack",
+     "path": [
+      [
+       22.531842,
+       38.79577
+      ],
+      [
+       22.529996,
+       38.79577
+      ]
+     ]
+    },
+    {
+     "unit": "g-thebans",
+     "type": "attack",
+     "path": [
+      [
+       22.531842,
+       38.795968
+      ],
+      [
+       22.529996,
+       38.795968
+      ]
+     ]
+    },
+    {
+     "unit": "p-hydarnes",
+     "type": "march",
+     "path": [
+      [
+       22.496764,
+       38.773287
+      ],
+      [
+       22.55792,
+       38.787676
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      22.529765,
+      38.79631
+     ],
+     "text": "Leonidas killed; body held",
+     "kind": "death"
+    }
+   ]
+  },
+  {
+   "id": "hill",
+   "title": "Withdrawal to Kolonos Hill",
+   "time": "Midday, day 7",
+   "narrative": "Hydarnes' column came out of the hills onto the road behind the defenders and the Immortals pressed in from the front. The Greeks drew back through the wall onto a mound. The Thebans broke away, held up their hands and surrendered, though some were killed first, and Xerxes later had the survivors branded. Marinatos' 1939 excavation found masses of Persian arrowheads on Kolonos Hill, which is why the final stand is now placed there and not on a lower rise by the wall.",
+   "positions": {
+    "p-hydarnes": {
+     "at": [
+      22.542342,
+      38.79568
+     ],
+     "width": 100,
+     "depth": 150,
+     "state": "engaged",
+     "frame": true
+    },
+    "p-immortals": {
+     "at": [
+      22.531958,
+      38.795725
+     ],
+     "state": "engaged"
+    },
+    "p-light": {
+     "at": [
+      22.52965,
+      38.795725
+     ]
+    },
+    "g-spartans": {
+     "at": [
+      22.536458,
+      38.79559
+     ],
+     "width": 30,
+     "depth": 20
+    },
+    "g-thespians": {
+     "at": [
+      22.537496,
+      38.795905
+     ],
+     "facing": 90,
+     "width": 30,
+     "depth": 15
+    },
+    "g-thebans": {
+     "at": [
+      22.534611,
+      38.79604
+     ],
+     "state": "captured",
+     "by": "b",
+     "facing": 90,
+     "width": 30,
+     "depth": 10
+    }
+   },
+   "moves": [
+    {
+     "unit": "p-hydarnes",
+     "type": "attack",
+     "path": [
+      [
+       22.55792,
+       38.787676
+      ],
+      [
+       22.542342,
+       38.79568
+      ]
+     ]
+    },
+    {
+     "unit": "p-immortals",
+     "type": "attack",
+     "path": [
+      [
+       22.519842,
+       38.795725
+      ],
+      [
+       22.531958,
+       38.795725
+      ]
+     ]
+    },
+    {
+     "unit": "g-spartans",
+     "type": "retreat",
+     "path": [
+      [
+       22.529996,
+       38.795518
+      ],
+      [
+       22.536458,
+       38.79559
+      ]
+     ]
+    },
+    {
+     "unit": "g-thespians",
+     "type": "retreat",
+     "path": [
+      [
+       22.529996,
+       38.79577
+      ],
+      [
+       22.537496,
+       38.795905
+      ]
+     ]
+    },
+    {
+     "unit": "g-thebans",
+     "type": "retreat",
+     "path": [
+      [
+       22.529996,
+       38.795968
+      ],
+      [
+       22.534611,
+       38.79604
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      22.534611,
+      38.79631
+     ],
+     "text": "Thebans surrender",
+     "kind": "capture"
+    }
+   ]
+  },
+  {
+   "id": "last-stand",
+   "title": "The last stand",
+   "time": "Afternoon, day 7",
+   "narrative": "Surrounded on the hill, the survivors fought with what they had left. In Herodotus' words, those with swords used them and the rest struggled with hands and teeth. Xerxes ordered part of the wall pulled down and had the hill encircled, and his archers shot until no Greek was left standing. The Persian losses are given by Herodotus as up to 20,000; modern scholars regard that and the Greek figure of 4,000 dead as too high.",
+   "positions": {
+    "g-spartans": {
+     "at": [
+      22.537035,
+      38.79559
+     ],
+     "state": "destroyed"
+    },
+    "g-thespians": {
+     "at": [
+      22.537323,
+      38.795905
+     ],
+     "state": "destroyed"
+    },
+    "p-immortals": {
+     "at": [
+      22.534842,
+      38.795725
+     ]
+    },
+    "p-hydarnes": {
+     "at": [
+      22.539689,
+      38.795725
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "p-immortals",
+     "type": "attack",
+     "path": [
+      [
+       22.531958,
+       38.795725
+      ],
+      [
+       22.534842,
+       38.795725
+      ]
+     ]
+    },
+    {
+     "unit": "p-hydarnes",
+     "type": "attack",
+     "path": [
+      [
+       22.542342,
+       38.79568
+      ],
+      [
+       22.539689,
+       38.795725
+      ]
+     ]
+    },
+    {
+     "unit": "p-immortals",
+     "type": "fire",
+     "path": [
+      [
+       22.534842,
+       38.795725
+      ],
+      [
+       22.537035,
+       38.79559
+      ]
+     ],
+     "label": "arrows"
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      22.53715,
+      38.796489
+     ],
+     "text": "Kolonos Hill: arrowheads found 1939",
+     "kind": "event"
+    }
+   ]
+  },
+  {
+   "id": "aftermath",
+   "title": "The pass is open",
+   "time": "Evening, day 7",
+   "narrative": "The way to Phocis, Boeotia and Attica now lay open to the Persian army. The defenders had delayed it for several days, and the Greek fleet at Artemisium withdrew after hearing the news. The 300 Spartans and the Thespians were wiped out, while some 3,000 men of the other contingents had got away to fight again. Xerxes advanced south; the Greeks would answer at Salamis and Plataea.",
+   "positions": {
+    "p-immortals": {
+     "at": [
+      22.542919,
+      38.795725
+     ],
+     "state": "ready"
+    },
+    "p-hydarnes": {
+     "at": [
+      22.547535,
+      38.795725
+     ],
+     "state": "ready",
+     "facing": 90
+    },
+    "p-light": {
+     "at": [
+      22.540612,
+      38.795725
+     ],
+     "state": "ready"
+    },
+    "g-line": {
+     "state": "hidden"
+    }
+   },
+   "moves": [
+    {
+     "unit": "p-immortals",
+     "type": "march",
+     "path": [
+      [
+       22.534842,
+       38.795725
+      ],
+      [
+       22.542919,
+       38.795725
+      ]
+     ]
+    },
+    {
+     "unit": "p-hydarnes",
+     "type": "march",
+     "path": [
+      [
+       22.539689,
+       38.795725
+      ],
+      [
+       22.547535,
+       38.795725
+      ]
+     ]
+    },
+    {
+     "unit": "p-light",
+     "type": "march",
+     "path": [
+      [
+       22.52965,
+       38.795725
+      ],
+      [
+       22.540612,
+       38.795725
+      ]
+     ]
+    },
+    {
+     "side": "b",
+     "type": "march",
+     "path": [
+      [
+       22.542919,
+       38.79577
+      ],
+      [
+       22.567151,
+       38.79541
+      ]
+     ],
+     "label": "Road to Phocis and Boeotia"
+    }
+   ]
+  }
+ ]
+}

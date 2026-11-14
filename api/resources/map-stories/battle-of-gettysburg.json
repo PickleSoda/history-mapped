@@ -1,0 +1,2269 @@
+{
+ "schema": 3,
+ "slug": "battle-of-gettysburg",
+ "kind": "battle",
+ "entity": {
+  "name": "Battle of Gettysburg",
+  "wikidata": "Q33132"
+ },
+ "title": "Battle of Gettysburg",
+ "date_label": "1-3 July 1863",
+ "year": 1863,
+ "intro": "For three days in the summer of 1863 the Army of the Potomac under George Meade and Robert E. Lee's Army of\n        Northern Virginia fought around a small Pennsylvania road junction, in the largest battle of the American Civil\n        War. Lee had carried the war north to take pressure off Virginia and to hurt Northern morale. His cavalry, under\n        Stuart, was away on a raid, and Lee stumbled into a fight he had not chosen. On 1 July Union cavalry and I Corps\n        fought a delaying action west and north of the town until they were driven back to Cemetery Hill. On 2 July Lee\n        attacked both ends of the Union fishhook. On 3 July he sent about 12,000 men across open fields at the centre. They\n        were beaten back with enormous loss, and Lee retreated to Virginia.",
+ "outcome": "Union victory: Pickett's Charge failed and Lee's army retreated to Virginia on 4 July.",
+ "uncertainty": "Coordinates for the ridges, hills and farms come from OpenStreetMap. Brigade-level positions,\n        unit widths, the northern course of Rock Creek and the Chambersburg Pike are reconstructions (marked conjectural\n        where drawn). Strength and loss figures are ranges from the sources. The timing of Ewell's attacks on 2 July and\n        the claim that Lee ordered only a diversion there are disputed, as is how decisive a victory this was.",
+ "sources": [
+  {
+   "title": "Battle of Gettysburg - Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Battle_of_Gettysburg",
+   "kind": "web"
+  }
+ ],
+ "sides": [
+  {
+   "id": "us",
+   "name": "Union Army of the Potomac",
+   "color": "#1d4ed8",
+   "polity": {
+    "name": "Union (American Civil War)",
+    "wikidata": "Q214102"
+   },
+   "commanders": [
+    {
+     "name": "George G. Meade",
+     "wikidata": "Q297121",
+     "role": "army commander"
+    }
+   ],
+   "strength": "93,500-104,256 soldiers; 360 guns",
+   "losses": "23,049"
+  },
+  {
+   "id": "cs",
+   "name": "Confederate Army of Northern Virginia",
+   "color": "#b91c1c",
+   "polity": {
+    "name": "Confederate States of America",
+    "wikidata": "Q81931"
+   },
+   "commanders": [
+    {
+     "name": "Robert E. Lee",
+     "wikidata": "Q165557",
+     "role": "army commander"
+    }
+   ],
+   "strength": "65,000-75,000 men; 270 guns",
+   "losses": "23,000-28,000"
+  }
+ ],
+ "units": [
+  {
+   "id": "us-buford",
+   "side": "us",
+   "kind": "light_cavalry",
+   "label": "Buford's cavalry"
+  },
+  {
+   "id": "us-cav-horses",
+   "side": "us",
+   "kind": "baggage",
+   "label": "Horse-holders"
+  },
+  {
+   "id": "us-i-corps",
+   "side": "us",
+   "kind": "infantry",
+   "label": "I Corps (Reynolds)"
+  },
+  {
+   "id": "us-xi-corps",
+   "side": "us",
+   "kind": "infantry",
+   "label": "XI Corps (Howard)"
+  },
+  {
+   "id": "us-hancock",
+   "side": "us",
+   "kind": "commander",
+   "label": "Hancock"
+  },
+  {
+   "id": "us-xii-corps",
+   "side": "us",
+   "kind": "infantry",
+   "label": "XII Corps"
+  },
+  {
+   "id": "us-ii-corps",
+   "side": "us",
+   "kind": "infantry",
+   "label": "II Corps"
+  },
+  {
+   "id": "us-iii-corps",
+   "side": "us",
+   "kind": "infantry",
+   "label": "III Corps (Sickles)"
+  },
+  {
+   "id": "us-v-corps",
+   "side": "us",
+   "kind": "infantry",
+   "label": "V Corps"
+  },
+  {
+   "id": "us-vincent",
+   "side": "us",
+   "kind": "infantry",
+   "label": "Vincent's brigade"
+  },
+  {
+   "id": "us-greene",
+   "side": "us",
+   "kind": "infantry",
+   "label": "Greene's brigade"
+  },
+  {
+   "id": "us-artillery",
+   "side": "us",
+   "kind": "artillery",
+   "label": "Union artillery"
+  },
+  {
+   "id": "us-gregg",
+   "side": "us",
+   "kind": "cavalry",
+   "label": "Gregg and Custer"
+  },
+  {
+   "id": "us-kilpatrick",
+   "side": "us",
+   "kind": "cavalry",
+   "label": "Farnsworth's brigade"
+  },
+  {
+   "id": "us-meade",
+   "side": "us",
+   "kind": "commander",
+   "label": "Meade"
+  },
+  {
+   "id": "cs-heth",
+   "side": "cs",
+   "kind": "infantry",
+   "label": "Heth's division"
+  },
+  {
+   "id": "cs-pender",
+   "side": "cs",
+   "kind": "infantry",
+   "label": "Pender's division"
+  },
+  {
+   "id": "cs-rodes",
+   "side": "cs",
+   "kind": "infantry",
+   "label": "Rodes's division"
+  },
+  {
+   "id": "cs-early",
+   "side": "cs",
+   "kind": "infantry",
+   "label": "Early's division"
+  },
+  {
+   "id": "cs-johnson",
+   "side": "cs",
+   "kind": "infantry",
+   "label": "Johnson's division"
+  },
+  {
+   "id": "cs-hood",
+   "side": "cs",
+   "kind": "infantry",
+   "label": "Hood's division"
+  },
+  {
+   "id": "cs-mclaws",
+   "side": "cs",
+   "kind": "infantry",
+   "label": "McLaws's division"
+  },
+  {
+   "id": "cs-anderson",
+   "side": "cs",
+   "kind": "infantry",
+   "label": "Anderson's division"
+  },
+  {
+   "id": "cs-pickett",
+   "side": "cs",
+   "kind": "infantry",
+   "label": "Pickett's division"
+  },
+  {
+   "id": "cs-pettigrew",
+   "side": "cs",
+   "kind": "infantry",
+   "label": "Pettigrew's command"
+  },
+  {
+   "id": "cs-artillery",
+   "side": "cs",
+   "kind": "artillery",
+   "label": "Confederate guns"
+  },
+  {
+   "id": "cs-stuart",
+   "side": "cs",
+   "kind": "cavalry",
+   "label": "Stuart's cavalry"
+  },
+  {
+   "id": "cs-lee",
+   "side": "cs",
+   "kind": "commander",
+   "label": "Lee"
+  }
+ ],
+ "terrain": [
+  {
+   "id": "cemetery-hill",
+   "kind": "hill",
+   "label": "Cemetery Hill",
+   "area": [
+    [
+     -77.225987,
+     39.8218
+    ],
+    [
+     -77.226107,
+     39.822382
+    ],
+    [
+     -77.226458,
+     39.822924
+    ],
+    [
+     -77.227016,
+     39.82339
+    ],
+    [
+     -77.227744,
+     39.823747
+    ],
+    [
+     -77.228591,
+     39.823972
+    ],
+    [
+     -77.2295,
+     39.824048
+    ],
+    [
+     -77.230409,
+     39.823972
+    ],
+    [
+     -77.231256,
+     39.823747
+    ],
+    [
+     -77.231984,
+     39.82339
+    ],
+    [
+     -77.232542,
+     39.822924
+    ],
+    [
+     -77.232893,
+     39.822382
+    ],
+    [
+     -77.233013,
+     39.8218
+    ],
+    [
+     -77.232893,
+     39.821218
+    ],
+    [
+     -77.232542,
+     39.820676
+    ],
+    [
+     -77.231984,
+     39.82021
+    ],
+    [
+     -77.231256,
+     39.819853
+    ],
+    [
+     -77.230409,
+     39.819628
+    ],
+    [
+     -77.2295,
+     39.819552
+    ],
+    [
+     -77.228591,
+     39.819628
+    ],
+    [
+     -77.227744,
+     39.819853
+    ],
+    [
+     -77.227016,
+     39.82021
+    ],
+    [
+     -77.226458,
+     39.820676
+    ],
+    [
+     -77.226107,
+     39.821218
+    ]
+   ]
+  },
+  {
+   "id": "culps-hill",
+   "kind": "hill",
+   "label": "Culp's Hill",
+   "area": [
+    [
+     -77.220387,
+     39.8259
+    ],
+    [
+     -77.220507,
+     39.826598
+    ],
+    [
+     -77.220858,
+     39.827249
+    ],
+    [
+     -77.221416,
+     39.827808
+    ],
+    [
+     -77.222144,
+     39.828237
+    ],
+    [
+     -77.222991,
+     39.828506
+    ],
+    [
+     -77.2239,
+     39.828598
+    ],
+    [
+     -77.224809,
+     39.828506
+    ],
+    [
+     -77.225656,
+     39.828237
+    ],
+    [
+     -77.226384,
+     39.827808
+    ],
+    [
+     -77.226942,
+     39.827249
+    ],
+    [
+     -77.227293,
+     39.826598
+    ],
+    [
+     -77.227413,
+     39.8259
+    ],
+    [
+     -77.227293,
+     39.825202
+    ],
+    [
+     -77.226942,
+     39.824551
+    ],
+    [
+     -77.226384,
+     39.823992
+    ],
+    [
+     -77.225656,
+     39.823563
+    ],
+    [
+     -77.224809,
+     39.823294
+    ],
+    [
+     -77.2239,
+     39.823202
+    ],
+    [
+     -77.222991,
+     39.823294
+    ],
+    [
+     -77.222144,
+     39.823563
+    ],
+    [
+     -77.221416,
+     39.823992
+    ],
+    [
+     -77.220858,
+     39.824551
+    ],
+    [
+     -77.220507,
+     39.825202
+    ]
+   ]
+  },
+  {
+   "id": "cemetery-ridge",
+   "kind": "ridge",
+   "label": "Cemetery Ridge",
+   "line": [
+    [
+     -77.2364,
+     39.819695
+    ],
+    [
+     -77.2364,
+     39.8134
+    ],
+    [
+     -77.23453,
+     39.795147
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "seminary-ridge",
+   "kind": "ridge",
+   "label": "Seminary Ridge",
+   "line": [
+    [
+     -77.255885,
+     39.81959
+    ],
+    [
+     -77.2553,
+     39.813295
+    ],
+    [
+     -77.2553,
+     39.807
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "mcpherson-ridge",
+   "kind": "ridge",
+   "label": "McPherson Ridge",
+   "line": [
+    [
+     -77.2497,
+     39.834997
+    ],
+    [
+     -77.2497,
+     39.8305
+    ],
+    [
+     -77.248997,
+     39.826003
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "round-top",
+   "kind": "hill",
+   "label": "Little Round Top",
+   "area": [
+    [
+     -77.233359,
+     39.7911
+    ],
+    [
+     -77.233439,
+     39.791682
+    ],
+    [
+     -77.233673,
+     39.792224
+    ],
+    [
+     -77.234045,
+     39.79269
+    ],
+    [
+     -77.23453,
+     39.793047
+    ],
+    [
+     -77.235094,
+     39.793272
+    ],
+    [
+     -77.2357,
+     39.793348
+    ],
+    [
+     -77.236306,
+     39.793272
+    ],
+    [
+     -77.23687,
+     39.793047
+    ],
+    [
+     -77.237355,
+     39.79269
+    ],
+    [
+     -77.237727,
+     39.792224
+    ],
+    [
+     -77.237961,
+     39.791682
+    ],
+    [
+     -77.238041,
+     39.7911
+    ],
+    [
+     -77.237961,
+     39.790518
+    ],
+    [
+     -77.237727,
+     39.789976
+    ],
+    [
+     -77.237355,
+     39.78951
+    ],
+    [
+     -77.23687,
+     39.789153
+    ],
+    [
+     -77.236306,
+     39.788928
+    ],
+    [
+     -77.2357,
+     39.788852
+    ],
+    [
+     -77.235094,
+     39.788928
+    ],
+    [
+     -77.23453,
+     39.789153
+    ],
+    [
+     -77.234045,
+     39.78951
+    ],
+    [
+     -77.233673,
+     39.789976
+    ],
+    [
+     -77.233439,
+     39.790518
+    ]
+   ]
+  },
+  {
+   "id": "big-round-top",
+   "kind": "hill",
+   "label": "Big Round Top",
+   "area": [
+    [
+     -77.236474,
+     39.78675
+    ],
+    [
+     -77.236574,
+     39.787332
+    ],
+    [
+     -77.236866,
+     39.787874
+    ],
+    [
+     -77.237331,
+     39.78834
+    ],
+    [
+     -77.237937,
+     39.788697
+    ],
+    [
+     -77.238643,
+     39.788922
+    ],
+    [
+     -77.2394,
+     39.788998
+    ],
+    [
+     -77.240157,
+     39.788922
+    ],
+    [
+     -77.240863,
+     39.788697
+    ],
+    [
+     -77.241469,
+     39.78834
+    ],
+    [
+     -77.241934,
+     39.787874
+    ],
+    [
+     -77.242226,
+     39.787332
+    ],
+    [
+     -77.242326,
+     39.78675
+    ],
+    [
+     -77.242226,
+     39.786168
+    ],
+    [
+     -77.241934,
+     39.785626
+    ],
+    [
+     -77.241469,
+     39.78516
+    ],
+    [
+     -77.240863,
+     39.784803
+    ],
+    [
+     -77.240157,
+     39.784578
+    ],
+    [
+     -77.2394,
+     39.784502
+    ],
+    [
+     -77.238643,
+     39.784578
+    ],
+    [
+     -77.237937,
+     39.784803
+    ],
+    [
+     -77.237331,
+     39.78516
+    ],
+    [
+     -77.236866,
+     39.785626
+    ],
+    [
+     -77.236574,
+     39.786168
+    ]
+   ]
+  },
+  {
+   "id": "peach",
+   "kind": "farm",
+   "label": "Peach Orchard",
+   "at": [
+    -77.2496,
+    39.801
+   ]
+  },
+  {
+   "id": "wheatfield",
+   "kind": "field",
+   "label": "Wheatfield",
+   "area": [
+    [
+     -77.242159,
+     39.7994
+    ],
+    [
+     -77.242239,
+     39.799866
+    ],
+    [
+     -77.242473,
+     39.800299
+    ],
+    [
+     -77.242845,
+     39.800672
+    ],
+    [
+     -77.243329,
+     39.800958
+    ],
+    [
+     -77.243894,
+     39.801137
+    ],
+    [
+     -77.2445,
+     39.801199
+    ],
+    [
+     -77.245106,
+     39.801137
+    ],
+    [
+     -77.245671,
+     39.800958
+    ],
+    [
+     -77.246155,
+     39.800672
+    ],
+    [
+     -77.246527,
+     39.800299
+    ],
+    [
+     -77.246761,
+     39.799866
+    ],
+    [
+     -77.246841,
+     39.7994
+    ],
+    [
+     -77.246761,
+     39.798934
+    ],
+    [
+     -77.246527,
+     39.798501
+    ],
+    [
+     -77.246155,
+     39.798128
+    ],
+    [
+     -77.245671,
+     39.797842
+    ],
+    [
+     -77.245106,
+     39.797663
+    ],
+    [
+     -77.2445,
+     39.797601
+    ],
+    [
+     -77.243894,
+     39.797663
+    ],
+    [
+     -77.243329,
+     39.797842
+    ],
+    [
+     -77.242845,
+     39.798128
+    ],
+    [
+     -77.242473,
+     39.798501
+    ],
+    [
+     -77.242239,
+     39.798934
+    ]
+   ]
+  },
+  {
+   "id": "devils-den",
+   "kind": "site",
+   "label": "Devil's Den",
+   "at": [
+    -77.2426,
+    39.7914
+   ]
+  },
+  {
+   "id": "town",
+   "kind": "town",
+   "label": "Gettysburg",
+   "at": [
+    -77.231,
+    39.8309
+   ]
+  },
+  {
+   "id": "rock-creek",
+   "kind": "stream",
+   "label": "Rock Creek",
+   "line": [
+    [
+     -77.214,
+     39.84
+    ],
+    [
+     -77.215,
+     39.832
+    ],
+    [
+     -77.216,
+     39.825
+    ],
+    [
+     -77.2144,
+     39.81748
+    ],
+    [
+     -77.21365,
+     39.8088
+    ],
+    [
+     -77.2079,
+     39.79946
+    ],
+    [
+     -77.20929,
+     39.79355
+    ]
+   ]
+  },
+  {
+   "id": "emmitsburg-road",
+   "kind": "road",
+   "label": "Emmitsburg Road",
+   "line": [
+    [
+     -77.25006,
+     39.80168
+    ],
+    [
+     -77.24654,
+     39.80617
+    ],
+    [
+     -77.24001,
+     39.81166
+    ],
+    [
+     -77.233,
+     39.8205
+    ]
+   ]
+  },
+  {
+   "id": "pike",
+   "kind": "road",
+   "label": "Chambersburg Pike",
+   "line": [
+    [
+     -77.275,
+     39.8385
+    ],
+    [
+     -77.2632,
+     39.835
+    ],
+    [
+     -77.2497,
+     39.8315
+    ],
+    [
+     -77.24,
+     39.832
+    ],
+    [
+     -77.231,
+     39.8309
+    ]
+   ],
+   "conjectural": true
+  }
+ ],
+ "steps": [
+  {
+   "id": "first-shots",
+   "title": "Buford holds the western ridges",
+   "time": "Wed 1 July, c. 7:30",
+   "narrative": "Lee's army was scattered across Pennsylvania, and neither commander meant to fight at Gettysburg. On the morning of 1 July two brigades of Heth's division came east along the Chambersburg Pike. Just west of the town they met the vedettes of John Buford's cavalry. Buford had chosen to delay on Herr, McPherson and Seminary Ridges. His dismounted troopers fired breech-loading carbines from fences and trees. They bought the hours the Union infantry needed to reach the stronger hills south of town.",
+   "positions": {
+    "cs-heth": {
+     "at": [
+      -77.27374,
+      39.83516
+     ],
+     "facing": 90,
+     "width": 700,
+     "depth": 40,
+     "state": "ready"
+    },
+    "us-buford": {
+     "at": [
+      -77.261443,
+      39.83534
+     ],
+     "facing": 270,
+     "width": 900,
+     "depth": 25,
+     "state": "ready"
+    },
+    "us-cav-horses": {
+     "at": [
+      -77.243845,
+      39.828252
+     ],
+     "facing": 270,
+     "width": 200,
+     "depth": 40,
+     "frame": false
+    }
+   },
+   "notes": [
+    {
+     "at": [
+      -77.266713,
+      39.836779
+     ],
+     "text": "First shots, c. 7:30 am",
+     "kind": "clash"
+    }
+   ],
+   "date": {
+    "year": 1863,
+    "month": 7,
+    "day": 1
+   },
+   "light": "day"
+  },
+  {
+   "id": "mcpherson",
+   "title": "Reynolds and the Iron Brigade",
+   "time": "Wed 1 July, 10:20 am - 12:30",
+   "narrative": "By 10:20 Heth's men had driven the troopers back to McPherson Ridge, just as the head of Reynolds's I Corps arrived. North of the pike Davis's brigade broke into Cutler's line but was thrown back near the unfinished railroad cut. South of it the Iron Brigade captured Archer and hundreds of his men in Herbst Woods. Reynolds was shot dead near the woods, and Doubleday took over. The fight in this sector then paused until about 2:30.",
+   "positions": {
+    "us-i-corps": {
+     "at": [
+      -77.247943,
+      39.829421
+     ],
+     "facing": 270,
+     "width": 1500,
+     "depth": 40,
+     "state": "engaged",
+     "conjectural": true
+    },
+    "cs-heth": {
+     "at": [
+      -77.253799,
+      39.82996
+     ],
+     "state": "engaged",
+     "width": 1100
+    },
+    "us-buford": {
+     "at": [
+      -77.241502,
+      39.826453
+     ],
+     "facing": 250,
+     "width": 500
+    }
+   },
+   "moves": [
+    {
+     "unit": "cs-heth",
+     "type": "attack",
+     "path": [
+      [
+       -77.27374,
+       39.83516
+      ],
+      [
+       -77.253799,
+       39.82996
+      ]
+     ]
+    },
+    {
+     "unit": "us-buford",
+     "type": "retreat",
+     "path": [
+      [
+       -77.261443,
+       39.83534
+      ],
+      [
+       -77.241502,
+       39.826453
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      -77.248763,
+      39.828252
+     ],
+     "text": "Reynolds killed",
+     "kind": "death"
+    },
+    {
+     "at": [
+      -77.248295,
+      39.83068
+     ],
+     "text": "Railroad cut: Davis repelled",
+     "kind": "clash"
+    }
+   ],
+   "date": {
+    "year": 1863,
+    "month": 7,
+    "day": 1
+   }
+  },
+  {
+   "id": "north-collapse",
+   "title": "Ewell hits from the north",
+   "time": "Wed 1 July, 2:00 - 4:00 pm",
+   "narrative": "Heth, now with Pettigrew and Brockenbrough, renewed the attack at 2:30. The 26th North Carolina, the army's largest regiment at 839 men, left the day with about 212. Pender's division then drove the I Corps through the seminary grounds. Meanwhile two of Ewell's divisions, Rodes and Early, arrived from the north. Barlow had advanced the XI Corps to a knoll that stuck out of the line. Early overran him and the Union right folded up.",
+   "positions": {
+    "cs-heth": {
+     "at": [
+      -77.251457,
+      39.829781
+     ]
+    },
+    "cs-pender": {
+     "at": [
+      -77.249466,
+      39.829151
+     ],
+     "facing": 90,
+     "width": 900,
+     "depth": 40,
+     "frame": true,
+     "state": "engaged"
+    },
+    "us-i-corps": {
+     "at": [
+      -77.24361,
+      39.827802
+     ],
+     "facing": 250,
+     "width": 1100,
+     "state": "wavering"
+    },
+    "cs-rodes": {
+     "at": [
+      -77.245529,
+      39.846303
+     ],
+     "facing": 180,
+     "width": 900,
+     "depth": 40,
+     "state": "engaged",
+     "conjectural": true
+    },
+    "cs-early": {
+     "at": [
+      -77.223388,
+      39.842142
+     ],
+     "facing": 225,
+     "width": 900,
+     "depth": 40,
+     "state": "engaged",
+     "conjectural": true
+    },
+    "us-xi-corps": {
+     "at": [
+      -77.228072,
+      39.838994
+     ],
+     "facing": 0,
+     "width": 1200,
+     "depth": 40,
+     "state": "routed",
+     "conjectural": true
+    }
+   },
+   "moves": [
+    {
+     "unit": "cs-heth",
+     "type": "attack",
+     "path": [
+      [
+       -77.253799,
+       39.82996
+      ],
+      [
+       -77.251457,
+       39.829781
+      ]
+     ]
+    },
+    {
+     "unit": "cs-pender",
+     "type": "attack",
+     "path": [
+      [
+       -77.262029,
+       39.834981
+      ],
+      [
+       -77.249466,
+       39.829151
+      ]
+     ]
+    },
+    {
+     "unit": "us-i-corps",
+     "type": "retreat",
+     "path": [
+      [
+       -77.247943,
+       39.829421
+      ],
+      [
+       -77.24361,
+       39.827802
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      -77.225145,
+      39.840343
+     ],
+     "text": "Barlow's Knoll overrun",
+     "kind": "clash"
+    }
+   ],
+   "date": {
+    "year": 1863,
+    "month": 7,
+    "day": 1
+   }
+  },
+  {
+   "id": "cemetery-hill",
+   "title": "Hancock chooses the ground",
+   "time": "Wed 1 July, evening",
+   "narrative": "Howard pulled the broken I and XI Corps back through the streets to Cemetery Hill, where von Steinwehr's division was waiting. Meade sent Hancock forward to take command. Hancock judged it the strongest natural position he had ever seen and declared it the battlefield. Lee sent Ewell an order to take the hill \"if practicable\". Ewell decided it was not, and historians regard that as a lost chance.",
+   "positions": {
+    "us-i-corps": {
+     "at": [
+      -77.233013,
+      39.820451
+     ],
+     "facing": 300,
+     "width": 500,
+     "state": "ready"
+    },
+    "us-xi-corps": {
+     "at": [
+      -77.228329,
+      39.822879
+     ],
+     "width": 500,
+     "state": "ready"
+    },
+    "cs-early": {
+     "at": [
+      -77.228072,
+      39.833148
+     ],
+     "facing": 180,
+     "width": 700,
+     "state": "ready"
+    },
+    "cs-rodes": {
+     "at": [
+      -77.235099,
+      39.834048
+     ],
+     "facing": 135,
+     "width": 600,
+     "state": "ready"
+    },
+    "cs-heth": {
+     "at": [
+      -77.2553,
+      39.82049
+     ],
+     "width": 500,
+     "state": "ready"
+    },
+    "cs-pender": {
+     "at": [
+      -77.2553,
+      39.815094
+     ],
+     "width": 500,
+     "state": "ready"
+    },
+    "us-hancock": {
+     "at": [
+      -77.230203,
+      39.82216
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "us-i-corps",
+     "type": "retreat",
+     "path": [
+      [
+       -77.24361,
+       39.827802
+      ],
+      [
+       -77.233013,
+       39.820451
+      ]
+     ]
+    },
+    {
+     "unit": "us-xi-corps",
+     "type": "retreat",
+     "path": [
+      [
+       -77.228072,
+       39.838994
+      ],
+      [
+       -77.228329,
+       39.822879
+      ]
+     ]
+    },
+    {
+     "unit": "cs-early",
+     "type": "advance",
+     "path": [
+      [
+       -77.223388,
+       39.842142
+      ],
+      [
+       -77.228072,
+       39.833148
+      ]
+     ]
+    },
+    {
+     "unit": "cs-rodes",
+     "type": "advance",
+     "path": [
+      [
+       -77.245529,
+       39.846303
+      ],
+      [
+       -77.235099,
+       39.834048
+      ]
+     ]
+    },
+    {
+     "unit": "cs-heth",
+     "type": "advance",
+     "path": [
+      [
+       -77.251457,
+       39.829781
+      ],
+      [
+       -77.2553,
+       39.82049
+      ]
+     ]
+    },
+    {
+     "unit": "cs-pender",
+     "type": "advance",
+     "path": [
+      [
+       -77.249466,
+       39.829151
+      ],
+      [
+       -77.2553,
+       39.815094
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      -77.2295,
+      39.824498
+     ],
+     "text": "Ewell declines to attack",
+     "kind": "event"
+    }
+   ],
+   "date": {
+    "year": 1863,
+    "month": 7,
+    "day": 1
+   }
+  },
+  {
+   "id": "fishhook",
+   "title": "The fishhook and the long Confederate arc",
+   "time": "Thu 2 July, morning",
+   "narrative": "Through the night and morning most of the remaining infantry arrived. The Union line took the shape of a fishhook. It ran from Culp's Hill to Cemetery Hill and then south along Cemetery Ridge toward Little Round Top. The XII Corps held Culp's Hill and the II Corps the northern ridge. Because the Union army held interior lines, Meade could shift troops. Lee's line was nearly five miles long, running along Seminary Ridge and curving through the town. Lee ordered Longstreet to attack the Union left, up the Emmitsburg Road.",
+   "positions": {
+    "us-buford": {
+     "state": "hidden"
+    },
+    "us-cav-horses": {
+     "state": "hidden"
+    },
+    "cs-rodes": {
+     "state": "hidden"
+    },
+    "us-hancock": {
+     "state": "hidden"
+    },
+    "cs-heth": {
+     "state": "hidden"
+    },
+    "cs-pender": {
+     "state": "hidden"
+    },
+    "us-xii-corps": {
+     "at": [
+      -77.224837,
+      39.82608
+     ],
+     "facing": 60,
+     "width": 600,
+     "depth": 40,
+     "state": "ready"
+    },
+    "us-xi-corps": {
+     "at": [
+      -77.228329,
+      39.82198
+     ]
+    },
+    "us-i-corps": {
+     "at": [
+      -77.232427,
+      39.820901
+     ],
+     "facing": 270,
+     "width": 400
+    },
+    "us-ii-corps": {
+     "at": [
+      -77.235229,
+      39.816997
+     ],
+     "facing": 270,
+     "width": 1100,
+     "depth": 40,
+     "state": "ready"
+    },
+    "cs-johnson": {
+     "at": [
+      -77.213361,
+      39.829048
+     ],
+     "facing": 270,
+     "width": 700,
+     "state": "ready",
+     "conjectural": true,
+     "frame": true
+    },
+    "cs-hood": {
+     "at": [
+      -77.258812,
+      39.800705
+     ],
+     "facing": 90,
+     "width": 900,
+     "depth": 40,
+     "state": "ready",
+     "conjectural": true
+    },
+    "cs-mclaws": {
+     "at": [
+      -77.258227,
+      39.804752
+     ],
+     "facing": 90,
+     "width": 900,
+     "depth": 40,
+     "state": "ready",
+     "conjectural": true
+    },
+    "cs-anderson": {
+     "at": [
+      -77.257641,
+      39.811047
+     ],
+     "facing": 90,
+     "width": 900,
+     "depth": 40,
+     "state": "ready",
+     "conjectural": true
+    },
+    "us-meade": {
+     "at": [
+      -77.228204,
+      39.817897
+     ]
+    },
+    "cs-lee": {
+     "at": [
+      -77.260568,
+      39.813295
+     ]
+    }
+   },
+   "date": {
+    "year": 1863,
+    "month": 7,
+    "day": 2
+   },
+   "light": "day"
+  },
+  {
+   "id": "sickles-salient",
+   "title": "Sickles advances to the Peach Orchard",
+   "time": "Thu 2 July, c. 3:00 - 4:00 pm",
+   "narrative": "Dissatisfied with his low ground at the south end of Cemetery Ridge, Sickles moved the III Corps half a mile west, to the slightly higher Emmitsburg Road. His new line ran from Devil's Den to the Peach Orchard and then along the road. It formed a salient that could be hit from two sides and was too long for his small corps. The Confederate guns opened about 3:00. Meade rode out and saw the problem, but it was too late to withdraw.",
+   "positions": {
+    "us-iii-corps": {
+     "at": [
+      -77.248429,
+      39.804417
+     ],
+     "facing": 250,
+     "width": 2100,
+     "depth": 40,
+     "state": "ready",
+     "conjectural": true
+    },
+    "cs-mclaws": {
+     "at": [
+      -77.257794,
+      39.80055
+     ]
+    },
+    "cs-hood": {
+     "at": [
+      -77.253134,
+      39.789152
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "cs-mclaws",
+     "type": "advance",
+     "path": [
+      [
+       -77.258227,
+       39.804752
+      ],
+      [
+       -77.257794,
+       39.80055
+      ]
+     ]
+    },
+    {
+     "unit": "cs-hood",
+     "type": "advance",
+     "path": [
+      [
+       -77.258812,
+       39.800705
+      ],
+      [
+       -77.253134,
+       39.789152
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      -77.2496,
+      39.801
+     ],
+     "text": "Peach Orchard salient",
+     "kind": "label"
+    }
+   ],
+   "date": {
+    "year": 1863,
+    "month": 7,
+    "day": 2
+   }
+  },
+  {
+   "id": "round-tops",
+   "title": "Hood strikes Devil's Den and Little Round Top",
+   "time": "Thu 2 July, c. 4:00 - 6:00 pm",
+   "narrative": "Hood's division, after a long march, attacked just after 4:00. It drifted east and lost touch with the Emmitsburg Road, so the blow fell on Devil's Den and Little Round Top. Warren saw how vital the hill was. He sent Vincent's brigade, a battery and the 140th New York to it a few minutes before Law's brigade arrived. Vincent's four small regiments beat off repeated assaults. At the far left the 20th Maine under Chamberlain made a bayonet charge downhill that became one of the war's best-known episodes.",
+   "positions": {
+    "cs-hood": {
+     "at": [
+      -77.243185,
+      39.790051
+     ],
+     "facing": 70,
+     "width": 600,
+     "state": "engaged"
+    },
+    "us-vincent": {
+     "at": [
+      -77.236051,
+      39.79092
+     ],
+     "facing": 250,
+     "width": 300,
+     "depth": 30,
+     "state": "engaged",
+     "frame": true
+    },
+    "us-v-corps": {
+     "at": [
+      -77.232774,
+      39.794697
+     ],
+     "facing": 270,
+     "width": 500,
+     "state": "ready",
+     "frame": true
+    },
+    "us-iii-corps": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "cs-hood",
+     "type": "attack",
+     "path": [
+      [
+       -77.253134,
+       39.789152
+      ],
+      [
+       -77.243185,
+       39.790051
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      -77.2357,
+      39.7911
+     ],
+     "text": "20th Maine bayonet charge",
+     "kind": "clash"
+    }
+   ],
+   "date": {
+    "year": 1863,
+    "month": 7,
+    "day": 2
+   }
+  },
+  {
+   "id": "wheatfield-peach",
+   "title": "The Wheatfield and the Peach Orchard",
+   "time": "Thu 2 July, c. 5:00 - 7:00 pm",
+   "narrative": "McLaws attacked about 5:00 and overwhelmed the III Corps in the Wheatfield and the Peach Orchard. His men pushed down into Plum Run valley before the Pennsylvania Reserves of the V Corps stopped them. Meade fed in some 20,000 reinforcements: the V Corps, Caldwell's II Corps division, most of the XII Corps and part of the VI Corps. The III Corps was nearly destroyed, and Sickles lost a leg. At about 6:00 Anderson's division reached Cemetery Ridge, where Hancock threw in the 1st Minnesota to buy time.",
+   "positions": {
+    "cs-mclaws": {
+     "at": [
+      -77.243329,
+      39.801199
+     ],
+     "facing": 60,
+     "state": "engaged"
+    },
+    "us-iii-corps": {
+     "at": [
+      -77.239233,
+      39.803447
+     ],
+     "width": 1200,
+     "state": "routed"
+    },
+    "us-v-corps": {
+     "at": [
+      -77.238062,
+      39.79895
+     ],
+     "facing": 250,
+     "width": 700,
+     "state": "engaged"
+    },
+    "cs-anderson": {
+     "at": [
+      -77.240498,
+      39.812051
+     ],
+     "facing": 70,
+     "state": "engaged"
+    },
+    "us-ii-corps": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "cs-mclaws",
+     "type": "attack",
+     "path": [
+      [
+       -77.257794,
+       39.80055
+      ],
+      [
+       -77.243329,
+       39.801199
+      ]
+     ]
+    },
+    {
+     "unit": "us-iii-corps",
+     "type": "retreat",
+     "path": [
+      [
+       -77.248429,
+       39.804417
+      ],
+      [
+       -77.239233,
+       39.803447
+      ]
+     ]
+    },
+    {
+     "unit": "us-v-corps",
+     "type": "attack",
+     "path": [
+      [
+       -77.232774,
+       39.794697
+      ],
+      [
+       -77.238062,
+       39.79895
+      ]
+     ]
+    },
+    {
+     "unit": "cs-anderson",
+     "type": "attack",
+     "path": [
+      [
+       -77.257641,
+       39.811047
+      ],
+      [
+       -77.240498,
+       39.812051
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      -77.2445,
+      39.7994
+     ],
+     "text": "Wheatfield: Caldwell's division breaks",
+     "kind": "clash"
+    },
+    {
+     "at": [
+      -77.237337,
+      39.811601
+     ],
+     "text": "1st Minnesota charge",
+     "kind": "event"
+    }
+   ],
+   "date": {
+    "year": 1863,
+    "month": 7,
+    "day": 2
+   }
+  },
+  {
+   "id": "culp-east-cem",
+   "title": "Evening attacks on the Union right",
+   "time": "Thu 2 July, c. 6:00 - 10:00 pm",
+   "narrative": "Ewell had understood his orders to mean a cannonade, and only around 6:00 did he order his divisions forward. Johnson had to cross Rock Creek, and only three of his four brigades attacked Culp's Hill. The XII Corps had gone south, so Greene's New Yorkers held the new works alone until I and XI Corps reinforcements came. Johnson's men took a few lower earthworks. On East Cemetery Hill, Hays and Avery's brigades reached the guns and the crest. Without support on their right they withdrew.",
+   "positions": {
+    "cs-johnson": {
+     "at": [
+      -77.219802,
+      39.826979
+     ],
+     "facing": 250,
+     "width": 500,
+     "depth": 40,
+     "state": "engaged"
+    },
+    "us-greene": {
+     "at": [
+      -77.224251,
+      39.82599
+     ],
+     "facing": 70,
+     "width": 350,
+     "depth": 30,
+     "state": "engaged",
+     "frame": true
+    },
+    "us-xii-corps": {
+     "at": [
+      -77.237571,
+      39.808004
+     ],
+     "facing": 270,
+     "width": 500
+    },
+    "cs-early": {
+     "at": [
+      -77.226573,
+      39.82243
+     ],
+     "facing": 225,
+     "width": 450,
+     "state": "engaged"
+    },
+    "us-xi-corps": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "cs-johnson",
+     "type": "attack",
+     "path": [
+      [
+       -77.213361,
+       39.829048
+      ],
+      [
+       -77.219802,
+       39.826979
+      ]
+     ]
+    },
+    {
+     "unit": "us-xii-corps",
+     "type": "retreat",
+     "path": [
+      [
+       -77.224837,
+       39.82608
+      ],
+      [
+       -77.237571,
+       39.808004
+      ]
+     ]
+    },
+    {
+     "unit": "cs-early",
+     "type": "attack",
+     "path": [
+      [
+       -77.228072,
+       39.833148
+      ],
+      [
+       -77.226573,
+       39.82243
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      -77.227627,
+      39.82216
+     ],
+     "text": "Hays and Avery reach the crest",
+     "kind": "clash"
+    }
+   ],
+   "date": {
+    "year": 1863,
+    "month": 7,
+    "day": 2
+   },
+   "light": "dusk"
+  },
+  {
+   "id": "culp-dawn",
+   "title": "The second fight for Culp's Hill",
+   "time": "Fri 3 July, dawn - 11:00 am",
+   "narrative": "Lee meant to repeat the plan of the previous day, with Longstreet on the left and Ewell on Culp's Hill. The Union XII Corps struck first, opening an artillery bombardment at dawn to win back its lost works. Johnson's men attacked again, and the fight lasted about seven hours. Harry Pfanz judged that the Union line ended the morning intact and held more strongly than before. Lee had to change his plan and look to the centre.",
+   "positions": {
+    "us-xii-corps": {
+     "at": [
+      -77.224603,
+      39.824551
+     ],
+     "facing": 70,
+     "width": 700,
+     "state": "engaged"
+    },
+    "cs-johnson": {
+     "at": [
+      -77.220621,
+      39.82536
+     ],
+     "width": 550,
+     "state": "wavering"
+    },
+    "us-hancock": {
+     "at": [
+      -77.235229,
+      39.814119
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "us-xii-corps",
+     "type": "attack",
+     "path": [
+      [
+       -77.237571,
+       39.808004
+      ],
+      [
+       -77.224603,
+       39.824551
+      ]
+     ]
+    },
+    {
+     "unit": "cs-johnson",
+     "type": "retreat",
+     "path": [
+      [
+       -77.219802,
+       39.826979
+      ],
+      [
+       -77.220621,
+       39.82536
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      -77.2239,
+      39.8259
+     ],
+     "text": "Culp's Hill held",
+     "kind": "event"
+    }
+   ],
+   "date": {
+    "year": 1863,
+    "month": 7,
+    "day": 3
+   },
+   "light": "dawn"
+  },
+  {
+   "id": "bombardment",
+   "title": "The great cannonade",
+   "time": "Fri 3 July, c. 1:00 - 3:00 pm",
+   "narrative": "Lee now planned an attack on the Union II Corps on Cemetery Ridge. Pickett's division and six brigades from Hill's corps would make it under Longstreet. Longstreet argued that it would fail, but obeyed. Around 1:00 pm between 150 and 170 Confederate guns opened what was probably the largest bombardment of the war. Hunt saved the Union ammunition, then about 15 minutes later about 80 Union guns replied. The Confederates were short of shells, and the Union line was little hurt.",
+   "positions": {
+    "cs-hood": {
+     "state": "hidden"
+    },
+    "cs-mclaws": {
+     "state": "hidden"
+    },
+    "cs-anderson": {
+     "state": "hidden"
+    },
+    "us-iii-corps": {
+     "state": "hidden"
+    },
+    "us-v-corps": {
+     "state": "hidden"
+    },
+    "us-vincent": {
+     "state": "hidden"
+    },
+    "cs-early": {
+     "state": "hidden"
+    },
+    "us-xi-corps": {
+     "state": "hidden"
+    },
+    "us-i-corps": {
+     "state": "hidden"
+    },
+    "us-xii-corps": {
+     "state": "hidden"
+    },
+    "us-greene": {
+     "state": "hidden"
+    },
+    "cs-johnson": {
+     "state": "hidden"
+    },
+    "cs-pickett": {
+     "at": [
+      -77.25162,
+      39.81358
+     ],
+     "facing": 90,
+     "width": 800,
+     "depth": 60,
+     "state": "ready",
+     "frame": true,
+     "strength_n": 5800
+    },
+    "cs-pettigrew": {
+     "at": [
+      -77.25162,
+      39.822393
+     ],
+     "facing": 90,
+     "width": 800,
+     "depth": 60,
+     "state": "ready",
+     "frame": true
+    },
+    "cs-artillery": {
+     "at": [
+      -77.256303,
+      39.815199
+     ],
+     "facing": 90,
+     "width": 2200,
+     "depth": 30,
+     "state": "engaged"
+    },
+    "us-artillery": {
+     "at": [
+      -77.237337,
+      39.81367
+     ],
+     "facing": 270,
+     "width": 1300,
+     "depth": 25,
+     "state": "engaged"
+    },
+    "us-ii-corps": {
+     "at": [
+      -77.236166,
+      39.816098
+     ],
+     "width": 1000,
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "cs-artillery",
+     "type": "fire",
+     "path": [
+      [
+       -77.256303,
+       39.815199
+      ],
+      [
+       -77.235229,
+       39.816997
+      ]
+     ],
+     "label": "150-170 guns"
+    }
+   ],
+   "date": {
+    "year": 1863,
+    "month": 7,
+    "day": 3
+   },
+   "light": "day"
+  },
+  {
+   "id": "pickett-charge",
+   "title": "Pickett's Charge",
+   "time": "Fri 3 July, c. 3:00 - 4:00 pm",
+   "narrative": "When the guns went quiet, between 10,500 and 12,500 Confederates stepped out of the trees and crossed three-quarters of a mile of open ground toward Cemetery Ridge. Union guns on Cemetery Hill and Little Round Top raked their flank, and musket and canister fire came from Hancock's line. At a bend in a low stone wall known as the Angle the Union line broke, and Armistead's brigade got in to the guns. Reinforcements sealed the breach. Nearly half of the attackers did not come back, and Pickett's division lost about two thirds of its men.",
+   "positions": {
+    "cs-pickett": {
+     "at": [
+      -77.238156,
+      39.81322
+     ],
+     "facing": 75,
+     "width": 700,
+     "depth": 50,
+     "state": "engaged"
+    },
+    "cs-pettigrew": {
+     "at": [
+      -77.239327,
+      39.821944
+     ],
+     "facing": 80,
+     "width": 700,
+     "depth": 50,
+     "state": "wavering"
+    },
+    "us-ii-corps": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "cs-pickett",
+     "type": "charge",
+     "path": [
+      [
+       -77.25162,
+       39.81358
+      ],
+      [
+       -77.238156,
+       39.81322
+      ]
+     ]
+    },
+    {
+     "unit": "cs-pettigrew",
+     "type": "charge",
+     "path": [
+      [
+       -77.25162,
+       39.822393
+      ],
+      [
+       -77.239327,
+       39.821944
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      -77.2364,
+      39.8134
+     ],
+     "text": "Angle: high-water mark",
+     "kind": "clash"
+    },
+    {
+     "at": [
+      -77.231131,
+      39.810432
+     ],
+     "text": "Armistead mortally wounded",
+     "kind": "death"
+    }
+   ],
+   "date": {
+    "year": 1863,
+    "month": 7,
+    "day": 3
+   },
+   "light": "day"
+  },
+  {
+   "id": "cavalry-and-retreat",
+   "title": "Cavalry fights and the end of the battle",
+   "time": "Fri 3 July, afternoon - evening",
+   "narrative": "Two cavalry fights ran alongside the infantry assault. About three miles northeast of the town Stuart tried to get behind the Union line, but Gregg and Custer stopped him in a sabre melee. South of Big Round Top, after Pickett failed, Kilpatrick sent Farnsworth's brigade against entrenched infantry over rough ground. Farnsworth was killed in the fourth of five failed charges. Lee withdrew to Seminary Ridge, and on 4 July he began his retreat toward the Potomac.",
+   "positions": {
+    "cs-pickett": {
+     "at": [
+      -77.246937,
+      39.81322
+     ],
+     "facing": 270,
+     "width": 500,
+     "state": "routed"
+    },
+    "cs-pettigrew": {
+     "at": [
+      -77.246937,
+      39.821944
+     ],
+     "facing": 270,
+     "width": 600,
+     "state": "routed"
+    },
+    "cs-stuart": {
+     "at": [
+      -77.179472,
+      39.835397
+     ],
+     "facing": 270,
+     "width": 400,
+     "state": "engaged",
+     "frame": true
+    },
+    "us-gregg": {
+     "at": [
+      -77.185328,
+      39.834497
+     ],
+     "facing": 90,
+     "width": 400,
+     "state": "engaged",
+     "frame": true
+    },
+    "us-kilpatrick": {
+     "at": [
+      -77.237456,
+      39.779409
+     ],
+     "facing": 280,
+     "width": 400,
+     "state": "engaged",
+     "frame": true
+    }
+   },
+   "moves": [
+    {
+     "unit": "cs-pickett",
+     "type": "retreat",
+     "path": [
+      [
+       -77.238156,
+       39.81322
+      ],
+      [
+       -77.246937,
+       39.81322
+      ]
+     ]
+    },
+    {
+     "unit": "cs-pettigrew",
+     "type": "retreat",
+     "path": [
+      [
+       -77.239327,
+       39.821944
+      ],
+      [
+       -77.246937,
+       39.821944
+      ]
+     ]
+    },
+    {
+     "unit": "us-kilpatrick",
+     "type": "charge",
+     "path": [
+      [
+       -77.227507,
+       39.781207
+      ],
+      [
+       -77.237456,
+       39.779409
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      -77.1824,
+      39.834947
+     ],
+     "text": "East Cavalry Field",
+     "kind": "clash"
+    },
+    {
+     "at": [
+      -77.241552,
+      39.783006
+     ],
+     "text": "Farnsworth killed",
+     "kind": "death"
+    }
+   ],
+   "date": {
+    "year": 1863,
+    "month": 7,
+    "day": 3,
+    "end": {
+     "year": 1863,
+     "month": 7,
+     "day": 4
+    }
+   },
+   "light": "dusk"
+  }
+ ]
+}

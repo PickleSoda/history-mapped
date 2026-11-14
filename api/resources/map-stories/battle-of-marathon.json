@@ -1,0 +1,1534 @@
+{
+ "schema": 3,
+ "slug": "battle-of-marathon",
+ "kind": "battle",
+ "entity": {
+  "name": "Battle of Marathon",
+  "wikidata": "Q31900"
+ },
+ "title": "Battle of Marathon",
+ "date_label": "12 September 490 BC",
+ "year": -490,
+ "intro": "In the summer of 490 BC a Persian expedition under Datis and Artaphernes, sent by Darius I to punish\n        Athens and Eretria for helping the Ionian revolt, landed at the bay of Marathon on the Attic coast. Hippias,\n        the exiled Athenian tyrant, was with it. About 10,000 Athenians and Plataeans marched out, took a position on\n        the spur of Agrieliki above the plain and waited for the Spartans, who were held back by a festival. After about\n        five days of stalemate the Athenians attacked. They thinned their centre to match the longer Persian line,\n        crossed the Persian bowshot at a run, broke both Persian wings, and then turned in to destroy the centre. It\n        was the first great Greek victory over the Persians.",
+ "outcome": "Athenian and Plataean victory: Persian expedition repulsed, Athens saved from attack by sea.",
+ "uncertainty": "Herodotus gives 6,400 Persian and 192 Athenian dead but no army sizes; the 10,000 Greeks and the\n        c. 25,000 Persian infantry with about 1,000 horse are the figures usually accepted. The exact date (12\n        September or a month earlier), why the Athenians attacked before the Spartans came, and whether the Persian\n        cavalry were absent are debated. Positions are reconstructed: the line, the Persian camp, the marsh into which\n        the Persians fled, the flank movements and the placement of the wings are conjectural.",
+ "sources": [
+  {
+   "title": "Battle of Marathon — Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Battle_of_Marathon",
+   "kind": "web"
+  }
+ ],
+ "sides": [
+  {
+   "id": "a",
+   "name": "Athens and Plataea",
+   "color": "#1d4ed8",
+   "polity": {
+    "name": "Classical Athens",
+    "wikidata": "Q844930"
+   },
+   "commanders": [
+    {
+     "name": "Miltiades",
+     "wikidata": "Q210350",
+     "role": "strategos"
+    },
+    {
+     "name": "Callimachus",
+     "wikidata": "Q364492",
+     "role": "polemarch, killed"
+    },
+    {
+     "name": "Aristides",
+     "wikidata": "Q294942",
+     "role": "Antiochis tribe"
+    },
+    {
+     "name": "Themistocles",
+     "wikidata": "Q179552",
+     "role": "Leontis tribe"
+    }
+   ],
+   "strength": "c. 10,000–11,000",
+   "losses": "192 Athenians (Herodotus)"
+  },
+  {
+   "id": "b",
+   "name": "Persians",
+   "color": "#b91c1c",
+   "polity": {
+    "name": "Achaemenid Empire",
+    "wikidata": "Q389688"
+   },
+   "commanders": [
+    {
+     "name": "Datis",
+     "wikidata": "Q41328"
+    },
+    {
+     "name": "Artaphernes",
+     "wikidata": "Q2428648"
+    },
+    {
+     "name": "Hippias",
+     "wikidata": "Q313467",
+     "role": "exiled Athenian tyrant"
+    }
+   ],
+   "strength": "c. 25,000 infantry, c. 1,000 cavalry (modern estimates)",
+   "losses": "6,400 (Herodotus); 7 ships"
+  }
+ ],
+ "units": [
+  {
+   "id": "plataeans",
+   "side": "a",
+   "kind": "heavy_infantry",
+   "label": "Plataeans",
+   "strength": "c. 1,000"
+  },
+  {
+   "id": "ath-left",
+   "side": "a",
+   "kind": "heavy_infantry",
+   "label": "Athenian left wing tribes"
+  },
+  {
+   "id": "ath-centre",
+   "side": "a",
+   "kind": "heavy_infantry",
+   "label": "Leontis and Antiochis (4 ranks)"
+  },
+  {
+   "id": "ath-right",
+   "side": "a",
+   "kind": "heavy_infantry",
+   "label": "Athenian right wing tribes"
+  },
+  {
+   "id": "ath-army",
+   "side": "a",
+   "kind": "army",
+   "label": "Athenian army"
+  },
+  {
+   "id": "plat-camp",
+   "side": "a",
+   "kind": "group",
+   "label": "Plataean contingent",
+   "strength": "1,000"
+  },
+  {
+   "id": "pers-wing-s",
+   "side": "b",
+   "kind": "infantry",
+   "label": "Persian levies (south)"
+  },
+  {
+   "id": "pers-centre",
+   "side": "b",
+   "kind": "infantry",
+   "label": "Persians and Sakae"
+  },
+  {
+   "id": "pers-wing-n",
+   "side": "b",
+   "kind": "infantry",
+   "label": "Persian levies (north)"
+  },
+  {
+   "id": "pers-cav",
+   "side": "b",
+   "kind": "cavalry",
+   "label": "Persian cavalry",
+   "strength": "c. 1,000"
+  },
+  {
+   "id": "pers-fleet",
+   "side": "b",
+   "kind": "fleet",
+   "label": "Persian fleet",
+   "strength": "600 triremes"
+  },
+  {
+   "id": "pers-camp",
+   "side": "b",
+   "kind": "camp",
+   "label": "Persian camp"
+  }
+ ],
+ "terrain": [
+  {
+   "id": "agrieliki",
+   "kind": "hill",
+   "label": "Mount Agrieliki",
+   "area": [
+    [
+     23.955928,
+     38.102212
+    ],
+    [
+     23.956432,
+     38.103328
+    ],
+    [
+     23.956429,
+     38.104581
+    ],
+    [
+     23.95592,
+     38.105888
+    ],
+    [
+     23.954939,
+     38.107159
+    ],
+    [
+     23.953553,
+     38.108307
+    ],
+    [
+     23.951857,
+     38.109254
+    ],
+    [
+     23.949967,
+     38.109936
+    ],
+    [
+     23.94801,
+     38.110306
+    ],
+    [
+     23.946121,
+     38.110339
+    ],
+    [
+     23.944428,
+     38.110033
+    ],
+    [
+     23.943047,
+     38.109408
+    ],
+    [
+     23.942072,
+     38.108508
+    ],
+    [
+     23.941568,
+     38.107392
+    ],
+    [
+     23.941571,
+     38.106139
+    ],
+    [
+     23.94208,
+     38.104832
+    ],
+    [
+     23.943061,
+     38.103561
+    ],
+    [
+     23.944447,
+     38.102413
+    ],
+    [
+     23.946143,
+     38.101466
+    ],
+    [
+     23.948033,
+     38.100784
+    ],
+    [
+     23.94999,
+     38.100414
+    ],
+    [
+     23.951879,
+     38.100381
+    ],
+    [
+     23.953572,
+     38.100687
+    ],
+    [
+     23.954953,
+     38.101312
+    ]
+   ]
+  },
+  {
+   "id": "tumulus",
+   "kind": "site",
+   "label": "Tumulus (Soros)",
+   "at": [
+    23.949,
+    38.12323
+   ]
+  },
+  {
+   "id": "brexiza",
+   "kind": "village",
+   "label": "Brexiza",
+   "at": [
+    23.97994,
+    38.10228
+   ]
+  },
+  {
+   "id": "schinias",
+   "kind": "village",
+   "label": "Schinias",
+   "at": [
+    24.03074,
+    38.14447
+   ]
+  },
+  {
+   "id": "marsh",
+   "kind": "marsh",
+   "label": "Great Marsh",
+   "area": [
+    [
+     24.008644,
+     38.132686
+    ],
+    [
+     24.008807,
+     38.133754
+    ],
+    [
+     24.008373,
+     38.134917
+    ],
+    [
+     24.007371,
+     38.136096
+    ],
+    [
+     24.005871,
+     38.13721
+    ],
+    [
+     24.003973,
+     38.138183
+    ],
+    [
+     24.001809,
+     38.13895
+    ],
+    [
+     23.999524,
+     38.139457
+    ],
+    [
+     23.997275,
+     38.139671
+    ],
+    [
+     23.995216,
+     38.139576
+    ],
+    [
+     23.993485,
+     38.139179
+    ],
+    [
+     23.992202,
+     38.138508
+    ],
+    [
+     23.991454,
+     38.137608
+    ],
+    [
+     23.991291,
+     38.13654
+    ],
+    [
+     23.991725,
+     38.135377
+    ],
+    [
+     23.992727,
+     38.134198
+    ],
+    [
+     23.994227,
+     38.133084
+    ],
+    [
+     23.996125,
+     38.132111
+    ],
+    [
+     23.998289,
+     38.131344
+    ],
+    [
+     24.000574,
+     38.130837
+    ],
+    [
+     24.002823,
+     38.130623
+    ],
+    [
+     24.004882,
+     38.130718
+    ],
+    [
+     24.006613,
+     38.131115
+    ],
+    [
+     24.007896,
+     38.131786
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "road",
+   "kind": "road",
+   "label": "Road to Athens",
+   "line": [
+    [
+     23.951568,
+     38.114906
+    ],
+    [
+     23.949,
+     38.10536
+    ],
+    [
+     23.921846,
+     38.099618
+    ],
+    [
+     23.905841,
+     38.078034
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "grove",
+   "kind": "woods",
+   "label": "Grove or stakes on the flank",
+   "area": [
+    [
+     23.946424,
+     38.131094
+    ],
+    [
+     23.946327,
+     38.131443
+    ],
+    [
+     23.946041,
+     38.131768
+    ],
+    [
+     23.945587,
+     38.132048
+    ],
+    [
+     23.944995,
+     38.132262
+    ],
+    [
+     23.944306,
+     38.132397
+    ],
+    [
+     23.943566,
+     38.132443
+    ],
+    [
+     23.942826,
+     38.132397
+    ],
+    [
+     23.942137,
+     38.132262
+    ],
+    [
+     23.941545,
+     38.132048
+    ],
+    [
+     23.941091,
+     38.131768
+    ],
+    [
+     23.940805,
+     38.131443
+    ],
+    [
+     23.940708,
+     38.131094
+    ],
+    [
+     23.940805,
+     38.130745
+    ],
+    [
+     23.941091,
+     38.13042
+    ],
+    [
+     23.941545,
+     38.13014
+    ],
+    [
+     23.942137,
+     38.129926
+    ],
+    [
+     23.942826,
+     38.129791
+    ],
+    [
+     23.943566,
+     38.129745
+    ],
+    [
+     23.944306,
+     38.129791
+    ],
+    [
+     23.944995,
+     38.129926
+    ],
+    [
+     23.945587,
+     38.13014
+    ],
+    [
+     23.946041,
+     38.13042
+    ],
+    [
+     23.946327,
+     38.130745
+    ]
+   ],
+   "conjectural": true
+  }
+ ],
+ "steps": [
+  {
+   "id": "landing",
+   "title": "The Persians land at Marathon",
+   "time": "Early September 490 BC",
+   "narrative": "Datis and Artaphernes bring the fleet down the Attic coast on the advice of the exiled tyrant Hippias and beach it on the bay of Marathon, about 27 kilometres from Athens. The plain is a good place to land: open ground for horses, a long shore for the ships. Under Miltiades the Athenian army marches out fast and takes the high ground at the plain's south-western edge, on a spur of Mount Agrieliki, blocking the exits toward Athens.",
+   "positions": {
+    "pers-fleet": {
+     "at": [
+      24.01148,
+      38.118959
+     ],
+     "facing": 90,
+     "state": "ready",
+     "label": "Persian fleet"
+    },
+    "pers-cav": {
+     "at": [
+      24.001192,
+      38.115362
+     ],
+     "facing": 270,
+     "width": 300,
+     "depth": 40,
+     "state": "ready",
+     "label": "Persian cavalry",
+     "conjectural": true,
+     "strength_n": 1000
+    },
+    "pers-camp": {
+     "at": [
+      24.000049,
+      38.119859
+     ],
+     "label": "Persian camp",
+     "conjectural": true
+    },
+    "ath-army": {
+     "at": [
+      23.949,
+      38.10536
+     ],
+     "facing": 45,
+     "label": "Athenian army (camp)",
+     "conjectural": true
+    }
+   },
+   "moves": [
+    {
+     "side": "a",
+     "type": "march",
+     "path": [
+      [
+       23.8601,
+       38.0421
+      ],
+      [
+       23.9058,
+       38.078
+      ],
+      [
+       23.949,
+       38.1054
+      ]
+     ],
+     "label": "from Athens"
+    }
+   ]
+  },
+  {
+   "id": "stalemate",
+   "title": "Five days of stalemate",
+   "time": "c. 7–11 September",
+   "narrative": "The runner Pheidippides has gone to Sparta, but the Spartans cannot march before the full moon because of a religious festival. Athens must hold on. A full muster of 1,000 Plataean hoplites arrives, which steadies Athenian nerves. Ten generals share command, with the war archon Callimachus in overall charge. For about five days the armies sit facing each other across the plain: the Athenians gain by waiting for the Spartans, the Persians hesitate to attack hoplites head on.",
+   "positions": {
+    "plat-camp": {
+     "at": [
+      23.952429,
+      38.107608
+     ],
+     "label": "Plataeans arrive",
+     "strength_n": 1000,
+     "conjectural": true
+    }
+   },
+   "moves": [
+    {
+     "unit": "plat-camp",
+     "type": "march",
+     "path": [
+      [
+       23.928705,
+       38.128396
+      ],
+      [
+       23.952429,
+       38.107608
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      23.949,
+      38.10536
+     ],
+     "text": "Athenian camp on the Agrieliki spur",
+     "kind": "label"
+    }
+   ]
+  },
+  {
+   "id": "deploy",
+   "title": "The armies form their lines",
+   "time": "Morning of the battle",
+   "narrative": "Roughly a mile and a half apart, the two armies deploy. Miltiades thins the centre of the Athenian line, the Leontis and Antiochis tribes under Themistocles and Aristides drawn up four ranks deep, the other tribes eight, so that the Athenians match the length of the Persian line and cannot be outflanked. The Plataeans hold the left. The Persians put their own troops and the Sakae in the centre and weaker levies on the wings.",
+   "positions": {
+    "ath-army": {
+     "state": "hidden"
+    },
+    "plat-camp": {
+     "state": "hidden"
+    },
+    "pers-camp": {
+     "state": "hidden"
+    },
+    "pers-cav": {
+     "state": "hidden"
+    },
+    "plataeans": {
+     "at": [
+      23.956027,
+      38.129174
+     ],
+     "facing": 90,
+     "width": 127,
+     "depth": 20,
+     "state": "ready"
+    },
+    "ath-left": {
+     "at": [
+      23.956027,
+      38.126659
+     ],
+     "facing": 90,
+     "width": 432,
+     "depth": 20,
+     "state": "ready"
+    },
+    "ath-centre": {
+     "at": [
+      23.956027,
+      38.122657
+     ],
+     "facing": 90,
+     "width": 458,
+     "depth": 20,
+     "state": "ready"
+    },
+    "ath-right": {
+     "at": [
+      23.956027,
+      38.118427
+     ],
+     "facing": 90,
+     "width": 483,
+     "depth": 20,
+     "state": "ready"
+    },
+    "pers-wing-s": {
+     "at": [
+      23.973518,
+      38.11719
+     ],
+     "facing": 270,
+     "width": 608,
+     "depth": 40,
+     "state": "ready"
+    },
+    "pers-centre": {
+     "at": [
+      23.973518,
+      38.123
+     ],
+     "facing": 270,
+     "width": 684,
+     "depth": 40,
+     "state": "ready"
+    },
+    "pers-wing-n": {
+     "at": [
+      23.973518,
+      38.12881
+     ],
+     "facing": 270,
+     "width": 608,
+     "depth": 40,
+     "state": "ready"
+    }
+   }
+  },
+  {
+   "id": "advance",
+   "title": "The Athenians run at the arrows",
+   "time": "Morning",
+   "narrative": "At the signal the Athenians advance. They march until they reach the zone of the Persian arrows, roughly 200 metres out, and then break into a run, the first Greek army to charge a missile-armed enemy this way. Their armour carries most of them through the volleys. The Persians, who had never seen Greeks attack at the run without horse or archers, took it for madness.",
+   "positions": {
+    "plataeans": {
+     "at": [
+      23.969402,
+      38.129174
+     ]
+    },
+    "ath-left": {
+     "at": [
+      23.969402,
+      38.126659
+     ]
+    },
+    "ath-centre": {
+     "at": [
+      23.969402,
+      38.122657
+     ]
+    },
+    "ath-right": {
+     "at": [
+      23.969402,
+      38.118427
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "plataeans",
+     "type": "advance",
+     "path": [
+      [
+       23.956027,
+       38.129174
+      ],
+      [
+       23.969402,
+       38.129174
+      ]
+     ]
+    },
+    {
+     "unit": "ath-left",
+     "type": "advance",
+     "path": [
+      [
+       23.956027,
+       38.126659
+      ],
+      [
+       23.969402,
+       38.126659
+      ]
+     ]
+    },
+    {
+     "unit": "ath-centre",
+     "type": "advance",
+     "path": [
+      [
+       23.956027,
+       38.122657
+      ],
+      [
+       23.969402,
+       38.122657
+      ]
+     ]
+    },
+    {
+     "unit": "ath-right",
+     "type": "advance",
+     "path": [
+      [
+       23.956027,
+       38.118427
+      ],
+      [
+       23.969402,
+       38.118427
+      ]
+     ]
+    },
+    {
+     "unit": "pers-centre",
+     "type": "fire",
+     "path": [
+      [
+       23.973518,
+       38.123
+      ],
+      [
+       23.969402,
+       38.122657
+      ]
+     ],
+     "label": "arrows"
+    }
+   ]
+  },
+  {
+   "id": "contact",
+   "title": "The lines meet",
+   "time": "Mid-morning",
+   "narrative": "The phalanx crashes into the Persian line along its whole length. Hoplites with long spears and heavy shields have the advantage in a close melee, and the Persian infantry, lightly armoured and armed with short spears, cannot match them. The fight lasts a long time. The thin Athenian centre faces the best troops the Persians have.",
+   "positions": {
+    "plataeans": {
+     "at": [
+      23.9729,
+      38.129174
+     ],
+     "state": "engaged"
+    },
+    "ath-left": {
+     "at": [
+      23.9729,
+      38.126659
+     ],
+     "state": "engaged"
+    },
+    "ath-centre": {
+     "at": [
+      23.9729,
+      38.122657
+     ],
+     "state": "engaged"
+    },
+    "ath-right": {
+     "at": [
+      23.9729,
+      38.118427
+     ],
+     "state": "engaged"
+    },
+    "pers-wing-s": {
+     "state": "engaged"
+    },
+    "pers-centre": {
+     "state": "engaged"
+    },
+    "pers-wing-n": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "plataeans",
+     "type": "attack",
+     "path": [
+      [
+       23.969402,
+       38.129174
+      ],
+      [
+       23.9729,
+       38.129174
+      ]
+     ]
+    },
+    {
+     "unit": "ath-left",
+     "type": "attack",
+     "path": [
+      [
+       23.969402,
+       38.126659
+      ],
+      [
+       23.9729,
+       38.126659
+      ]
+     ]
+    },
+    {
+     "unit": "ath-centre",
+     "type": "attack",
+     "path": [
+      [
+       23.969402,
+       38.122657
+      ],
+      [
+       23.9729,
+       38.122657
+      ]
+     ]
+    },
+    {
+     "unit": "ath-right",
+     "type": "attack",
+     "path": [
+      [
+       23.969402,
+       38.118427
+      ],
+      [
+       23.9729,
+       38.118427
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "centre-back",
+   "title": "The Athenian centre gives way",
+   "time": "Midday",
+   "narrative": "In the middle the Persians and Sakae prevail. The four-deep Athenian centre is forced back and the Persian troops pursue it inland, toward the Athenian camp and the road to Athens. On both wings, meanwhile, the Athenians and Plataeans are winning, and the levies facing them begin to waver.",
+   "positions": {
+    "ath-centre": {
+     "at": [
+      23.964143,
+      38.123
+     ],
+     "state": "wavering"
+    },
+    "pers-centre": {
+     "at": [
+      23.968945,
+      38.123
+     ]
+    },
+    "pers-wing-n": {
+     "state": "wavering"
+    },
+    "pers-wing-s": {
+     "state": "wavering"
+    }
+   },
+   "moves": [
+    {
+     "unit": "ath-centre",
+     "type": "retreat",
+     "path": [
+      [
+       23.9729,
+       38.122657
+      ],
+      [
+       23.964143,
+       38.123
+      ]
+     ]
+    },
+    {
+     "unit": "pers-centre",
+     "type": "advance",
+     "path": [
+      [
+       23.973518,
+       38.123
+      ],
+      [
+       23.968945,
+       38.123
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "wings-win",
+   "title": "The Persian wings break",
+   "time": "Early afternoon",
+   "narrative": "The wings break first. The Athenian right and the Plataeans on the left shatter the levies in front of them and, instead of chasing the fugitives toward the sea, stop. They let the wings run and turn inward to help the hard-pressed centre. This disciplined decision turns a local success into a double envelopment.",
+   "positions": {
+    "pers-wing-n": {
+     "at": [
+      23.98472,
+      38.134691
+     ],
+     "state": "routed",
+     "facing": 90
+    },
+    "pers-wing-s": {
+     "at": [
+      23.980148,
+      38.113107
+     ],
+     "state": "routed",
+     "facing": 90
+    },
+    "plataeans": {
+     "at": [
+      23.970431,
+      38.130015
+     ],
+     "facing": 215,
+     "width": 150
+    },
+    "ath-left": {
+     "at": [
+      23.968487,
+      38.127137
+     ],
+     "facing": 215,
+     "width": 420
+    },
+    "ath-right": {
+     "at": [
+      23.968487,
+      38.118683
+     ],
+     "facing": 325,
+     "width": 470
+    }
+   },
+   "moves": [
+    {
+     "unit": "pers-wing-n",
+     "type": "rout",
+     "path": [
+      [
+       23.973518,
+       38.12881
+      ],
+      [
+       23.98472,
+       38.134691
+      ]
+     ]
+    },
+    {
+     "unit": "pers-wing-s",
+     "type": "rout",
+     "path": [
+      [
+       23.973518,
+       38.11719
+      ],
+      [
+       23.980148,
+       38.113107
+      ]
+     ]
+    },
+    {
+     "unit": "plataeans",
+     "type": "flank",
+     "path": [
+      [
+       23.9729,
+       38.129174
+      ],
+      [
+       23.970431,
+       38.130015
+      ]
+     ]
+    },
+    {
+     "unit": "ath-left",
+     "type": "flank",
+     "path": [
+      [
+       23.9729,
+       38.126659
+      ],
+      [
+       23.968487,
+       38.127137
+      ]
+     ]
+    },
+    {
+     "unit": "ath-right",
+     "type": "flank",
+     "path": [
+      [
+       23.9729,
+       38.118427
+      ],
+      [
+       23.968487,
+       38.118683
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "envelop",
+   "title": "The Persian centre is enclosed",
+   "time": "Afternoon",
+   "narrative": "With both wings closing like jaws, the Persian centre, which had advanced inland, is attacked from either flank while the Athenian centre, rallied, still holds its front. Caught away from its ships and its supports, it is now in a pocket. Some modern writers suspect that the Persians turned back once they saw their wings fail.",
+   "positions": {
+    "ath-left": {
+     "at": [
+      23.964372,
+      38.125698
+     ],
+     "facing": 190
+    },
+    "ath-right": {
+     "at": [
+      23.964372,
+      38.120302
+     ],
+     "facing": 350
+    },
+    "plataeans": {
+     "at": [
+      23.965286,
+      38.128036
+     ],
+     "facing": 195
+    },
+    "ath-centre": {
+     "at": [
+      23.961743,
+      38.123
+     ],
+     "state": "engaged"
+    },
+    "pers-centre": {
+     "at": [
+      23.966887,
+      38.123
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "ath-left",
+     "type": "flank",
+     "path": [
+      [
+       23.968487,
+       38.127137
+      ],
+      [
+       23.964372,
+       38.125698
+      ]
+     ]
+    },
+    {
+     "unit": "ath-right",
+     "type": "flank",
+     "path": [
+      [
+       23.968487,
+       38.118683
+      ],
+      [
+       23.964372,
+       38.120302
+      ]
+     ]
+    },
+    {
+     "unit": "plataeans",
+     "type": "flank",
+     "path": [
+      [
+       23.970431,
+       38.130015
+      ],
+      [
+       23.965286,
+       38.128036
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      23.966887,
+      38.126777
+     ],
+     "text": "Wings turn inward",
+     "kind": "event"
+    }
+   ]
+  },
+  {
+   "id": "pursuit",
+   "title": "Rout toward the ships and the marsh",
+   "time": "Late afternoon",
+   "narrative": "The Persian centre breaks and runs for the shore with the Athenians behind it. Some fugitives, ignorant of the ground, run into the marsh and drown in unknown numbers. The Greeks chase the survivors to the beach, call for fire and seize seven ships; the rest of the fleet pushes off. Cynaegirus, brother of the playwright Aeschylus, has his hand cut off as he grasps a ship's stern and dies.",
+   "positions": {
+    "pers-centre": {
+     "at": [
+      23.98815,
+      38.120302
+     ],
+     "state": "routed",
+     "facing": 90
+    },
+    "pers-wing-n": {
+     "at": [
+      23.995009,
+      38.133792
+     ],
+     "facing": 45,
+     "conjectural": true
+    },
+    "pers-wing-s": {
+     "at": [
+      23.98472,
+      38.114906
+     ]
+    },
+    "ath-left": {
+     "at": [
+      23.985863,
+      38.127497
+     ],
+     "facing": 100
+    },
+    "ath-right": {
+     "at": [
+      23.98472,
+      38.116705
+     ],
+     "facing": 80
+    },
+    "plataeans": {
+     "at": [
+      23.991579,
+      38.131993
+     ],
+     "facing": 60
+    },
+    "ath-centre": {
+     "at": [
+      23.977861,
+      38.123
+     ],
+     "state": "ready"
+    },
+    "pers-fleet": {
+     "at": [
+      24.012623,
+      38.118959
+     ],
+     "facing": 130
+    }
+   },
+   "moves": [
+    {
+     "unit": "pers-centre",
+     "type": "rout",
+     "path": [
+      [
+       23.966887,
+       38.123
+      ],
+      [
+       23.98815,
+       38.120302
+      ]
+     ]
+    },
+    {
+     "unit": "pers-wing-n",
+     "type": "rout",
+     "path": [
+      [
+       23.98472,
+       38.134691
+      ],
+      [
+       23.995009,
+       38.133792
+      ]
+     ]
+    },
+    {
+     "unit": "pers-wing-s",
+     "type": "rout",
+     "path": [
+      [
+       23.980148,
+       38.113107
+      ],
+      [
+       23.98472,
+       38.114906
+      ]
+     ]
+    },
+    {
+     "unit": "ath-left",
+     "type": "pursuit",
+     "path": [
+      [
+       23.964372,
+       38.125698
+      ],
+      [
+       23.985863,
+       38.127497
+      ]
+     ]
+    },
+    {
+     "unit": "ath-right",
+     "type": "pursuit",
+     "path": [
+      [
+       23.964372,
+       38.120302
+      ],
+      [
+       23.98472,
+       38.116705
+      ]
+     ]
+    },
+    {
+     "unit": "plataeans",
+     "type": "pursuit",
+     "path": [
+      [
+       23.965286,
+       38.128036
+      ],
+      [
+       23.991579,
+       38.131993
+      ]
+     ]
+    },
+    {
+     "unit": "ath-centre",
+     "type": "advance",
+     "path": [
+      [
+       23.961743,
+       38.123
+      ],
+      [
+       23.977861,
+       38.123
+      ]
+     ]
+    },
+    {
+     "unit": "pers-fleet",
+     "type": "sail",
+     "path": [
+      [
+       24.01148,
+       38.118959
+      ],
+      [
+       24.012623,
+       38.118959
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      24.006907,
+      38.114463
+     ],
+     "text": "Seven ships taken",
+     "kind": "capture"
+    },
+    {
+     "at": [
+      24.000049,
+      38.135597
+     ],
+     "text": "Fugitives drown in the marsh",
+     "kind": "death",
+     "conjectural": true
+    }
+   ]
+  },
+  {
+   "id": "aftermath",
+   "title": "Dead counted, Athens defended",
+   "time": "Evening and next days",
+   "narrative": "Herodotus counts 6,400 Persian dead against 192 Athenians; among the Athenian dead are Callimachus and the general Stesilaus. The fleet sails around Cape Sounion to strike Athens directly, whether after the battle or, as some think, as its cause. The army marches home as fast as it can, leaving the two centre tribes under Aristides to guard the field, and arrives first. The Persians turn back toward Asia. The next day the Spartans reach Marathon.",
+   "positions": {
+    "pers-fleet": {
+     "at": [
+      24.022911,
+      38.094678
+     ],
+     "facing": 200
+    },
+    "ath-left": {
+     "at": [
+      23.945852,
+      38.114007
+     ],
+     "facing": 225,
+     "state": "ready"
+    },
+    "ath-right": {
+     "at": [
+      23.938993,
+      38.10951
+     ],
+     "facing": 225,
+     "state": "ready"
+    },
+    "plataeans": {
+     "at": [
+      23.952711,
+      38.116705
+     ],
+     "facing": 225,
+     "state": "ready"
+    },
+    "ath-centre": {
+     "at": [
+      23.96643,
+      38.123
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "pers-fleet",
+     "type": "sail",
+     "path": [
+      [
+       24.012623,
+       38.118959
+      ],
+      [
+       24.022911,
+       38.094678
+      ]
+     ]
+    },
+    {
+     "unit": "ath-left",
+     "type": "march",
+     "path": [
+      [
+       23.985863,
+       38.127497
+      ],
+      [
+       23.945852,
+       38.114007
+      ]
+     ]
+    },
+    {
+     "unit": "ath-right",
+     "type": "march",
+     "path": [
+      [
+       23.98472,
+       38.116705
+      ],
+      [
+       23.938993,
+       38.10951
+      ]
+     ]
+    },
+    {
+     "unit": "plataeans",
+     "type": "march",
+     "path": [
+      [
+       23.991579,
+       38.131993
+      ],
+      [
+       23.952711,
+       38.116705
+      ]
+     ]
+    },
+    {
+     "unit": "ath-centre",
+     "type": "retreat",
+     "path": [
+      [
+       23.977861,
+       38.123
+      ],
+      [
+       23.96643,
+       38.123
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      23.949,
+      38.12323
+     ],
+     "text": "Athenian dead buried in a tumulus",
+     "kind": "label"
+    }
+   ]
+  }
+ ]
+}

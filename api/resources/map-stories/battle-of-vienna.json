@@ -1,0 +1,1638 @@
+{
+ "schema": 3,
+ "slug": "battle-of-vienna",
+ "kind": "battle",
+ "entity": {
+  "name": "Battle of Vienna",
+  "wikidata": "Q200855"
+ },
+ "title": "Battle of Vienna",
+ "date_label": "12 September 1683",
+ "year": 1683,
+ "intro": "In the summer of 1683 the Ottoman army of Grand Vizier Kara Mustafa Pasha besieged Vienna, the Habsburg\n        capital, after the emperor and his court had fled. The siege began on 14 July and by September the walls were\n        undermined and the garrison under Count Starhemberg was close to collapse. A relief army of Poles under King\n        John III Sobieski, Imperial troops under Charles of Lorraine and German contingents from Saxony, Bavaria and\n        elsewhere came over the Vienna Woods. On 12 September the Ottomans attacked first at dawn, the Imperial left\n        took the villages by the Danube, Polish infantry took Gersthof, and at about six in the evening some 18,000\n        horsemen, led by Sobieski's Winged Hussars, charged down the hills and broke the Ottoman army.",
+ "outcome": "Decisive victory for the Christian coalition: the siege of Vienna is lifted and the Ottoman army flees.",
+ "uncertainty": "Times in the sources are approximate and sometimes disagree. Exact unit positions, frontages and\n        the orientation of the lines are reconstructed from the villages named in the accounts (conjectural), as are the\n        city walls, the Ottoman camp and the bridge on Brigittenau. The sizes of both armies are disputed: the\n        relief force is given as 70,000 to 80,000 and the Ottoman field force as 28,400 to 50,000. Historians also\n        doubt how far the Crimean Tatars took part in the final battle.",
+ "sources": [
+  {
+   "title": "Battle of Vienna - Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Battle_of_Vienna",
+   "kind": "web"
+  }
+ ],
+ "sides": [
+  {
+   "id": "allies",
+   "name": "Christian coalition",
+   "color": "#1d4ed8",
+   "polity": {
+    "name": "Habsburg monarchy",
+    "wikidata": "Q153136"
+   },
+   "commanders": [
+    {
+     "name": "John III Sobieski",
+     "wikidata": "Q53454",
+     "role": "King of Poland, relief army"
+    },
+    {
+     "name": "Charles V, Duke of Lorraine",
+     "wikidata": "Q156949",
+     "role": "Imperial army"
+    },
+    {
+     "name": "Ernst Rüdiger von Starhemberg",
+     "wikidata": "Q551615",
+     "role": "Vienna garrison"
+    }
+   ],
+   "strength": "70,000-80,000 relief force; 16,000 in the city",
+   "losses": "c. 4,500 in the battle"
+  },
+  {
+   "id": "ottomans",
+   "name": "Ottoman army",
+   "color": "#b91c1c",
+   "polity": {
+    "name": "Ottoman Empire",
+    "wikidata": "Q12560"
+   },
+   "commanders": [
+    {
+     "name": "Kara Mustafa Pasha",
+     "wikidata": "Q334140",
+     "role": "Grand Vizier"
+    },
+    {
+     "name": "Murad Giray",
+     "wikidata": "Q2977282",
+     "role": "Khan of Crimea"
+    },
+    {
+     "name": "Șerban Cantacuzino",
+     "wikidata": "Q127436",
+     "role": "Prince of Wallachia"
+    }
+   ],
+   "strength": "28,400-50,000 in the field, c. 60 guns",
+   "losses": "8,000-20,000 in the battle"
+  }
+ ],
+ "units": [
+  {
+   "id": "imp-left",
+   "side": "allies",
+   "kind": "infantry",
+   "label": "Imperial army (left)"
+  },
+  {
+   "id": "sax-bav",
+   "side": "allies",
+   "kind": "infantry",
+   "label": "Saxons and Bavarians"
+  },
+  {
+   "id": "pol-inf",
+   "side": "allies",
+   "kind": "infantry",
+   "label": "Polish infantry"
+  },
+  {
+   "id": "pol-hussars",
+   "side": "allies",
+   "kind": "heavy_cavalry",
+   "label": "Winged Hussars",
+   "strength": "c. 3,000"
+  },
+  {
+   "id": "pol-cav",
+   "side": "allies",
+   "kind": "cavalry",
+   "label": "Polish cavalry"
+  },
+  {
+   "id": "imp-cav",
+   "side": "allies",
+   "kind": "cavalry",
+   "label": "Imperial cavalry"
+  },
+  {
+   "id": "pol-probe",
+   "side": "allies",
+   "kind": "heavy_cavalry",
+   "label": "Probing hussars",
+   "strength": "120"
+  },
+  {
+   "id": "garrison",
+   "side": "allies",
+   "kind": "infantry",
+   "label": "Vienna garrison"
+  },
+  {
+   "id": "sobieski",
+   "side": "allies",
+   "kind": "commander",
+   "label": "Sobieski"
+  },
+  {
+   "id": "charles",
+   "side": "allies",
+   "kind": "commander",
+   "label": "Charles of Lorraine"
+  },
+  {
+   "id": "ot-right",
+   "side": "ottomans",
+   "kind": "infantry",
+   "label": "Ottoman right at Nussdorf"
+  },
+  {
+   "id": "ot-centre",
+   "side": "ottomans",
+   "kind": "infantry",
+   "label": "Janissaries, Türkenschanze"
+  },
+  {
+   "id": "ot-left",
+   "side": "ottomans",
+   "kind": "light_cavalry",
+   "label": "Sipahis and Tatars"
+  },
+  {
+   "id": "wallachians",
+   "side": "ottomans",
+   "kind": "infantry",
+   "label": "Wallachians at the bridge"
+  },
+  {
+   "id": "ot-assault",
+   "side": "ottomans",
+   "kind": "infantry",
+   "label": "Sappers at the walls"
+  },
+  {
+   "id": "ot-camp",
+   "side": "ottomans",
+   "kind": "camp",
+   "label": "Ottoman camp"
+  },
+  {
+   "id": "kara",
+   "side": "ottomans",
+   "kind": "commander",
+   "label": "Kara Mustafa"
+  }
+ ],
+ "terrain": [
+  {
+   "id": "wien",
+   "kind": "river",
+   "label": "Wien river",
+   "line": [
+    [
+     16.30448,
+     48.18779
+    ],
+    [
+     16.31297,
+     48.18751
+    ],
+    [
+     16.32654,
+     48.18406
+    ],
+    [
+     16.33131,
+     48.18391
+    ],
+    [
+     16.33426,
+     48.18471
+    ],
+    [
+     16.33879,
+     48.18832
+    ],
+    [
+     16.35202,
+     48.19014
+    ],
+    [
+     16.355,
+     48.19581
+    ],
+    [
+     16.36711,
+     48.20061
+    ],
+    [
+     16.37352,
+     48.19984
+    ],
+    [
+     16.37635,
+     48.20054
+    ],
+    [
+     16.38129,
+     48.20504
+    ],
+    [
+     16.38478,
+     48.2122
+    ]
+   ]
+  },
+  {
+   "id": "ridge",
+   "kind": "ridge",
+   "label": "Kahlenberg ridge",
+   "line": [
+    [
+     16.275,
+     48.26
+    ],
+    [
+     16.305,
+     48.27
+    ],
+    [
+     16.3331,
+     48.2763
+    ],
+    [
+     16.3452,
+     48.2782
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "woods",
+   "kind": "woods",
+   "label": "Vienna Woods",
+   "area": [
+    [
+     16.314911,
+     48.264278
+    ],
+    [
+     16.314082,
+     48.267304
+    ],
+    [
+     16.311653,
+     48.270124
+    ],
+    [
+     16.307789,
+     48.272545
+    ],
+    [
+     16.302753,
+     48.274403
+    ],
+    [
+     16.296888,
+     48.275571
+    ],
+    [
+     16.290594,
+     48.275969
+    ],
+    [
+     16.2843,
+     48.275571
+    ],
+    [
+     16.278435,
+     48.274403
+    ],
+    [
+     16.273399,
+     48.272545
+    ],
+    [
+     16.269535,
+     48.270124
+    ],
+    [
+     16.267106,
+     48.267304
+    ],
+    [
+     16.266277,
+     48.264278
+    ],
+    [
+     16.267106,
+     48.261252
+    ],
+    [
+     16.269535,
+     48.258432
+    ],
+    [
+     16.273399,
+     48.256011
+    ],
+    [
+     16.278435,
+     48.254153
+    ],
+    [
+     16.2843,
+     48.252985
+    ],
+    [
+     16.290594,
+     48.252587
+    ],
+    [
+     16.296888,
+     48.252985
+    ],
+    [
+     16.302753,
+     48.254153
+    ],
+    [
+     16.307789,
+     48.256011
+    ],
+    [
+     16.311653,
+     48.258432
+    ],
+    [
+     16.314082,
+     48.261252
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "walls",
+   "kind": "fortification",
+   "label": "Vienna walls",
+   "area": [
+    [
+     16.385245,
+     48.2086
+    ],
+    [
+     16.384831,
+     48.210229
+    ],
+    [
+     16.383618,
+     48.211748
+    ],
+    [
+     16.381688,
+     48.213051
+    ],
+    [
+     16.379173,
+     48.214052
+    ],
+    [
+     16.376243,
+     48.214681
+    ],
+    [
+     16.3731,
+     48.214895
+    ],
+    [
+     16.369957,
+     48.214681
+    ],
+    [
+     16.367027,
+     48.214052
+    ],
+    [
+     16.364512,
+     48.213051
+    ],
+    [
+     16.362582,
+     48.211748
+    ],
+    [
+     16.361369,
+     48.210229
+    ],
+    [
+     16.360955,
+     48.2086
+    ],
+    [
+     16.361369,
+     48.206971
+    ],
+    [
+     16.362582,
+     48.205452
+    ],
+    [
+     16.364512,
+     48.204149
+    ],
+    [
+     16.367027,
+     48.203148
+    ],
+    [
+     16.369957,
+     48.202519
+    ],
+    [
+     16.3731,
+     48.202305
+    ],
+    [
+     16.376243,
+     48.202519
+    ],
+    [
+     16.379173,
+     48.203148
+    ],
+    [
+     16.381688,
+     48.204149
+    ],
+    [
+     16.383618,
+     48.205452
+    ],
+    [
+     16.384831,
+     48.206971
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "schanze",
+   "kind": "fortification",
+   "label": "Türkenschanze",
+   "area": [
+    [
+     16.337175,
+     48.2355
+    ],
+    [
+     16.33706,
+     48.235966
+    ],
+    [
+     16.336723,
+     48.236399
+    ],
+    [
+     16.336187,
+     48.236772
+    ],
+    [
+     16.335488,
+     48.237058
+    ],
+    [
+     16.334674,
+     48.237237
+    ],
+    [
+     16.3338,
+     48.237299
+    ],
+    [
+     16.332926,
+     48.237237
+    ],
+    [
+     16.332112,
+     48.237058
+    ],
+    [
+     16.331413,
+     48.236772
+    ],
+    [
+     16.330877,
+     48.236399
+    ],
+    [
+     16.33054,
+     48.235966
+    ],
+    [
+     16.330425,
+     48.2355
+    ],
+    [
+     16.33054,
+     48.235034
+    ],
+    [
+     16.330877,
+     48.234601
+    ],
+    [
+     16.331413,
+     48.234228
+    ],
+    [
+     16.332112,
+     48.233942
+    ],
+    [
+     16.332926,
+     48.233763
+    ],
+    [
+     16.3338,
+     48.233701
+    ],
+    [
+     16.334674,
+     48.233763
+    ],
+    [
+     16.335488,
+     48.233942
+    ],
+    [
+     16.336187,
+     48.234228
+    ],
+    [
+     16.336723,
+     48.234601
+    ],
+    [
+     16.33706,
+     48.235034
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "nussdorf",
+   "kind": "village",
+   "label": "Nussdorf",
+   "at": [
+    16.36455,
+    48.25905
+   ]
+  },
+  {
+   "id": "heiligenstadt",
+   "kind": "village",
+   "label": "Heiligenstadt",
+   "at": [
+    16.36554,
+    48.24805
+   ]
+  },
+  {
+   "id": "gersthof",
+   "kind": "village",
+   "label": "Gersthof",
+   "at": [
+    16.32374,
+    48.23414
+   ]
+  },
+  {
+   "id": "oberdobling",
+   "kind": "village",
+   "label": "Oberdöbling",
+   "at": [
+    16.34402,
+    48.24405
+   ]
+  },
+  {
+   "id": "unterdobling",
+   "kind": "village",
+   "label": "Unterdöbling",
+   "at": [
+    16.34862,
+    48.24779
+   ]
+  },
+  {
+   "id": "bridge",
+   "kind": "bridge",
+   "label": "Brigittenau bridge",
+   "at": [
+    16.37814,
+    48.24382
+   ],
+   "conjectural": true
+  }
+ ],
+ "steps": [
+  {
+   "id": "siege",
+   "title": "Two months under siege",
+   "time": "14 July – 11 September",
+   "narrative": "Since 14 July the Ottoman army of Grand Vizier Kara Mustafa has sat before Vienna, where Count Starhemberg commands a garrison and militia. Ottoman sappers have dug toward the north-western bastions and laid ten mines under them; the Ottoman camp lies south-west of the city, and janissaries hold the fortified post at the Türkenschanze and the villages Nussdorf and Heiligenstadt to the north. The city is close to falling.",
+   "positions": {
+    "garrison": {
+     "at": [
+      16.37228,
+      48.20897
+     ],
+     "facing": 315,
+     "width": 500,
+     "depth": 60,
+     "state": "engaged"
+    },
+    "ot-assault": {
+     "at": [
+      16.367555,
+      48.213916
+     ],
+     "facing": 135,
+     "width": 450,
+     "depth": 50,
+     "state": "engaged"
+    },
+    "ot-camp": {
+     "at": [
+      16.3311,
+      48.211218
+     ],
+     "width": 500,
+     "depth": 300
+    },
+    "kara": {
+     "at": [
+      16.337175,
+      48.231903
+     ]
+    },
+    "ot-centre": {
+     "at": [
+      16.335825,
+      48.236579
+     ],
+     "facing": 335,
+     "width": 600,
+     "depth": 60
+    },
+    "ot-right": {
+     "at": [
+      16.368905,
+      48.255735
+     ],
+     "facing": 335,
+     "width": 800,
+     "depth": 50
+    },
+    "ot-left": {
+     "at": [
+      16.316248,
+      48.234601
+     ],
+     "facing": 335,
+     "width": 700,
+     "depth": 60
+    },
+    "wallachians": {
+     "at": [
+      16.378086,
+      48.243594
+     ],
+     "facing": 335,
+     "width": 300,
+     "depth": 40
+    }
+   },
+   "notes": [
+    {
+     "at": [
+      16.366205,
+      48.217514
+     ],
+     "text": "Ten mines laid under the bastions",
+     "kind": "event"
+    }
+   ],
+   "date": {
+    "year": 1683,
+    "month": 7,
+    "day": 14,
+    "end": {
+     "year": 1683,
+     "month": 9,
+     "day": 11
+    }
+   }
+  },
+  {
+   "id": "bonfires",
+   "title": "Bonfires on the Kahlenberg",
+   "time": "11 September evening",
+   "narrative": "The relief army arrives over the Vienna Woods after crossing the Danube upstream. Poles under King John III Sobieski, Imperial troops under Charles of Lorraine, and Saxon, Bavarian and other German contingents gather on the Kahlenberg slopes and light bonfires to tell the city help is near. Jerzy Kulczycki, a Polish-born Turkish speaker, had slipped through the Ottoman lines with word of the plan. The Crimean Tatars under the khan, charged with guarding the rear, had refused to contest the crossing.",
+   "positions": {
+    "imp-left": {
+     "at": [
+      16.364854,
+      48.265178
+     ],
+     "facing": 155,
+     "width": 900,
+     "depth": 50
+    },
+    "sax-bav": {
+     "at": [
+      16.343251,
+      48.266976
+     ],
+     "facing": 155,
+     "width": 800,
+     "depth": 50
+    },
+    "pol-inf": {
+     "at": [
+      16.321648,
+      48.264278
+     ],
+     "facing": 155,
+     "width": 900,
+     "depth": 50
+    },
+    "pol-hussars": {
+     "at": [
+      16.302746,
+      48.265178
+     ],
+     "facing": 155,
+     "width": 450,
+     "depth": 40
+    },
+    "pol-cav": {
+     "at": [
+      16.310847,
+      48.269674
+     ],
+     "facing": 155,
+     "width": 600,
+     "depth": 40
+    },
+    "imp-cav": {
+     "at": [
+      16.352703,
+      48.271023
+     ],
+     "facing": 155,
+     "width": 500,
+     "depth": 40
+    },
+    "sobieski": {
+     "with": "pol-hussars"
+    },
+    "charles": {
+     "at": [
+      16.360804,
+      48.266976
+     ]
+    }
+   },
+   "notes": [
+    {
+     "at": [
+      16.3338,
+      48.275969
+     ],
+     "text": "Kahlenberg",
+     "kind": "label"
+    }
+   ],
+   "date": {
+    "year": 1683,
+    "month": 9,
+    "day": 11
+   }
+  },
+  {
+   "id": "attack",
+   "title": "The Ottomans strike first",
+   "time": "12 September, 04:00",
+   "narrative": "Before the allied columns have fully formed, Kara Mustafa tries to disrupt them by attacking at four in the morning. His right, holding the Danube-side villages, pushes up the slope against the Imperial left. The German troops are the first to answer, and the fighting there is hard and goes back and forth.",
+   "positions": {
+    "ot-right": {
+     "at": [
+      16.365529,
+      48.260681
+     ],
+     "state": "engaged"
+    },
+    "imp-left": {
+     "at": [
+      16.365215,
+      48.261129
+     ],
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "ot-right",
+     "type": "attack",
+     "path": [
+      [
+       16.368905,
+       48.255735
+      ],
+      [
+       16.365529,
+       48.260681
+      ]
+     ]
+    }
+   ],
+   "date": {
+    "year": 1683,
+    "month": 9,
+    "day": 12
+   },
+   "light": "dawn"
+  },
+  {
+   "id": "nussdorf",
+   "title": "The Imperial left takes the villages",
+   "time": "Morning to midday",
+   "narrative": "Charles of Lorraine commits the Imperial army on the left and the centre. After several Ottoman counter-attacks the fortified villages of Nussdorf and Heiligenstadt fall to him, and by noon the Ottoman right is badly mauled and the Imperials are close to a breakthrough along the Danube.",
+   "positions": {
+    "ot-right": {
+     "at": [
+      16.36958,
+      48.24899
+     ],
+     "state": "wavering"
+    },
+    "imp-left": {
+     "at": [
+      16.369123,
+      48.249642
+     ]
+    },
+    "sax-bav": {
+     "at": [
+      16.344602,
+      48.259782
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "ot-right",
+     "type": "retreat",
+     "path": [
+      [
+       16.365529,
+       48.260681
+      ],
+      [
+       16.36958,
+       48.24899
+      ]
+     ]
+    },
+    {
+     "unit": "imp-left",
+     "type": "attack",
+     "path": [
+      [
+       16.365215,
+       48.261129
+      ],
+      [
+       16.369123,
+       48.249642
+      ]
+     ]
+    },
+    {
+     "unit": "sax-bav",
+     "type": "advance",
+     "path": [
+      [
+       16.343251,
+       48.266976
+      ],
+      [
+       16.344602,
+       48.259782
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      16.372955,
+      48.253486
+     ],
+     "text": "Nussdorf and Heiligenstadt taken",
+     "kind": "capture"
+    }
+   ]
+  },
+  {
+   "id": "walls",
+   "title": "The last assault on the walls fails",
+   "time": "Midday",
+   "narrative": "Kara Mustafa throws counter-attacks at the Imperials but holds back his best janissaries and sipahis for a final push on the city. His sappers' great charge under the Löbelbastei is found and the ten mines are disarmed by the defenders. On the Danube flank the Wallachians of Șerban Cantacuzino, who secretly favour the allies, abandon the bridge on Brigittenau island that covered the Ottoman left.",
+   "positions": {
+    "wallachians": {
+     "at": [
+      16.383757,
+      48.238198
+     ],
+     "state": "wavering"
+    },
+    "ot-assault": {
+     "at": [
+      16.366205,
+      48.214816
+     ],
+     "state": "wavering"
+    },
+    "garrison": {
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "wallachians",
+     "type": "retreat",
+     "path": [
+      [
+       16.378086,
+       48.243594
+      ],
+      [
+       16.383757,
+       48.238198
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      16.364179,
+      48.217514
+     ],
+     "text": "Mines found and disarmed",
+     "kind": "event"
+    }
+   ]
+  },
+  {
+   "id": "poles",
+   "title": "The Polish infantry advance",
+   "time": "Early afternoon to 16:00",
+   "narrative": "On the other side of the field Polish infantry move down from the woods against the Ottoman right flank, which is distracted by the siege works. By four o'clock they hold the village of Gersthof, which becomes the jumping-off point for the cavalry. The Polish horse, under cover of the woods and the infantry, form up behind them.",
+   "positions": {
+    "ot-left": {
+     "at": [
+      16.316923,
+      48.231003
+     ],
+     "state": "engaged"
+    },
+    "pol-inf": {
+     "at": [
+      16.316581,
+      48.231492
+     ],
+     "state": "engaged"
+    },
+    "pol-hussars": {
+     "at": [
+      16.308146,
+      48.244493
+     ]
+    },
+    "pol-cav": {
+     "at": [
+      16.314222,
+      48.246292
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "ot-left",
+     "type": "retreat",
+     "path": [
+      [
+       16.316248,
+       48.234601
+      ],
+      [
+       16.316923,
+       48.231003
+      ]
+     ]
+    },
+    {
+     "unit": "pol-inf",
+     "type": "attack",
+     "path": [
+      [
+       16.321648,
+       48.264278
+      ],
+      [
+       16.316581,
+       48.231492
+      ]
+     ]
+    },
+    {
+     "unit": "pol-hussars",
+     "type": "march",
+     "path": [
+      [
+       16.302746,
+       48.265178
+      ],
+      [
+       16.308146,
+       48.244493
+      ]
+     ]
+    },
+    {
+     "unit": "pol-cav",
+     "type": "march",
+     "path": [
+      [
+       16.310847,
+       48.269674
+      ],
+      [
+       16.314222,
+       48.246292
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      16.321648,
+      48.234151
+     ],
+     "text": "Gersthof taken by the Poles",
+     "kind": "capture"
+    }
+   ],
+   "light": "day"
+  },
+  {
+   "id": "doblings",
+   "title": "The Türkenschanze is threatened",
+   "time": "15:30–17:00",
+   "narrative": "The Germans resume their advance at 15:30, meeting stiff resistance, but by five they have taken Unterdöbling and Oberdöbling. The Ottoman strongpoint on the Türkenschanze is now threatened from the west by Poles, from the north-west by Saxons and Bavarians, and from the north by Austrians. At about four a detachment of 120 hussars makes a probing charge: it shows the Ottoman line is brittle but takes heavy losses. Kara Mustafa leaves the post and rides back to the main camp.",
+   "positions": {
+    "imp-left": {
+     "at": [
+      16.349327,
+      48.242695
+     ],
+     "facing": 230.52474728354733,
+     "width": 700
+    },
+    "sax-bav": {
+     "at": [
+      16.335483,
+      48.237068
+     ],
+     "state": "engaged"
+    },
+    "ot-centre": {
+     "state": "engaged"
+    },
+    "pol-probe": {
+     "at": [
+      16.329074,
+      48.236849
+     ],
+     "facing": 155,
+     "width": 120,
+     "depth": 20,
+     "state": "wavering"
+    },
+    "kara": {
+     "at": [
+      16.3311,
+      48.213017
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "imp-left",
+     "type": "advance",
+     "path": [
+      [
+       16.369123,
+       48.249642
+      ],
+      [
+       16.349327,
+       48.242695
+      ]
+     ]
+    },
+    {
+     "unit": "sax-bav",
+     "type": "attack",
+     "path": [
+      [
+       16.344602,
+       48.259782
+      ],
+      [
+       16.335483,
+       48.237068
+      ]
+     ]
+    },
+    {
+     "unit": "pol-probe",
+     "type": "charge",
+     "path": [
+      [
+       16.321648,
+       48.241346
+      ],
+      [
+       16.329074,
+       48.236849
+      ]
+     ]
+    },
+    {
+     "unit": "kara",
+     "type": "retreat",
+     "path": [
+      [
+       16.337175,
+       48.231903
+      ],
+      [
+       16.3311,
+       48.213017
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      16.347302,
+      48.246742
+     ],
+     "text": "Döbling villages taken",
+     "kind": "capture"
+    }
+   ]
+  },
+  {
+   "id": "charge-form",
+   "title": "The cavalry forms on the slope",
+   "time": "c. 17:00–18:00",
+   "narrative": "Sobieski and Charles of Lorraine each decide, without consulting the other, to press on. The Polish king draws his cavalry into four contingents: three Polish and one Imperial. Some 3,000 Winged Hussars, the heavy lancers, are under his own command. Allied Lipka Tatars wear straw in their helmets so that they are not mistaken for the Tatars on the Ottoman side.",
+   "positions": {
+    "pol-hussars": {
+     "at": [
+      16.314222,
+      48.243594
+     ],
+     "facing": 150,
+     "width": 500,
+     "strength_n": 3000,
+     "state": "ready"
+    },
+    "pol-cav": {
+     "at": [
+      16.306796,
+      48.244493
+     ],
+     "facing": 150
+    },
+    "imp-cav": {
+     "at": [
+      16.325699,
+      48.24854
+     ],
+     "facing": 150
+    },
+    "pol-probe": {
+     "state": "hidden"
+    }
+   },
+   "moves": [
+    {
+     "unit": "imp-cav",
+     "type": "march",
+     "path": [
+      [
+       16.352703,
+       48.271023
+      ],
+      [
+       16.325699,
+       48.24854
+      ]
+     ]
+    }
+   ],
+   "light": "dusk"
+  },
+  {
+   "id": "charge",
+   "title": "The great cavalry charge",
+   "time": "c. 18:00",
+   "narrative": "About 18,000 horsemen sweep down the hills, the largest cavalry charge on record. The tired and disheartened Ottoman line, shaken by the failed mine assault and the loss of the Türkenschanze, breaks almost at once. Cantacuzino's Wallachians also join the retreat, and the cavalry heads for Kara Mustafa's camp.",
+   "positions": {
+    "pol-hussars": {
+     "at": [
+      16.324349,
+      48.231903
+     ],
+     "state": "engaged"
+    },
+    "pol-cav": {
+     "at": [
+      16.316248,
+      48.232802
+     ],
+     "state": "engaged"
+    },
+    "imp-cav": {
+     "at": [
+      16.33515,
+      48.239097
+     ],
+     "state": "engaged"
+    },
+    "ot-left": {
+     "at": [
+      16.320298,
+      48.223809
+     ],
+     "state": "routed"
+    },
+    "ot-centre": {
+     "at": [
+      16.337851,
+      48.223809
+     ],
+     "state": "routed"
+    },
+    "pol-inf": {
+     "at": [
+      16.320298,
+      48.233252
+     ],
+     "state": "ready"
+    },
+    "sax-bav": {
+     "at": [
+      16.340551,
+      48.244493
+     ],
+     "state": "ready"
+    },
+    "imp-left": {
+     "at": [
+      16.347302,
+      48.240896
+     ],
+     "state": "ready"
+    },
+    "ot-right": {
+     "at": [
+      16.360804,
+      48.239097
+     ],
+     "state": "routed"
+    }
+   },
+   "moves": [
+    {
+     "unit": "pol-hussars",
+     "type": "charge",
+     "path": [
+      [
+       16.314222,
+       48.243594
+      ],
+      [
+       16.324349,
+       48.231903
+      ]
+     ]
+    },
+    {
+     "unit": "pol-cav",
+     "type": "charge",
+     "path": [
+      [
+       16.306796,
+       48.244493
+      ],
+      [
+       16.316248,
+       48.232802
+      ]
+     ]
+    },
+    {
+     "unit": "imp-cav",
+     "type": "charge",
+     "path": [
+      [
+       16.325699,
+       48.24854
+      ],
+      [
+       16.33515,
+       48.239097
+      ]
+     ]
+    },
+    {
+     "unit": "ot-left",
+     "type": "rout",
+     "path": [
+      [
+       16.316923,
+       48.231003
+      ],
+      [
+       16.320298,
+       48.223809
+      ]
+     ]
+    },
+    {
+     "unit": "ot-centre",
+     "type": "rout",
+     "path": [
+      [
+       16.335825,
+       48.236579
+      ],
+      [
+       16.337851,
+       48.223809
+      ]
+     ]
+    },
+    {
+     "unit": "pol-inf",
+     "type": "advance",
+     "path": [
+      [
+       16.316581,
+       48.231492
+      ],
+      [
+       16.320298,
+       48.233252
+      ]
+     ]
+    },
+    {
+     "unit": "sax-bav",
+     "type": "advance",
+     "path": [
+      [
+       16.335483,
+       48.237068
+      ],
+      [
+       16.340551,
+       48.244493
+      ]
+     ]
+    },
+    {
+     "unit": "imp-left",
+     "type": "advance",
+     "path": [
+      [
+       16.349327,
+       48.242695
+      ],
+      [
+       16.347302,
+       48.240896
+      ]
+     ]
+    },
+    {
+     "unit": "ot-right",
+     "type": "retreat",
+     "path": [
+      [
+       16.36958,
+       48.24899
+      ],
+      [
+       16.360804,
+       48.239097
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "camp",
+   "title": "The camp falls and the garrison sallies",
+   "time": "Evening",
+   "narrative": "The horsemen ride straight on to the Ottoman camp and the vizier's headquarters while the remaining Viennese garrison sallies from the walls to join in. Less than three hours after the charge began, the battle is over and the siege lifted. Ottoman troops flee southward and eastward, leaving the camp, baggage and guns.",
+   "positions": {
+    "pol-hussars": {
+     "at": [
+      16.330425,
+      48.214816
+     ],
+     "state": "ready"
+    },
+    "imp-cav": {
+     "at": [
+      16.343251,
+      48.217514
+     ],
+     "state": "ready"
+    },
+    "pol-cav": {
+     "at": [
+      16.321648,
+      48.217514
+     ],
+     "state": "ready"
+    },
+    "ot-camp": {
+     "state": "captured",
+     "by": "allies"
+    },
+    "kara": {
+     "at": [
+      16.345952,
+      48.201326
+     ]
+    },
+    "ot-assault": {
+     "at": [
+      16.359454,
+      48.203124
+     ],
+     "state": "routed"
+    },
+    "garrison": {
+     "at": [
+      16.366205,
+      48.217514
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "pol-hussars",
+     "type": "pursuit",
+     "path": [
+      [
+       16.324349,
+       48.231903
+      ],
+      [
+       16.330425,
+       48.214816
+      ]
+     ]
+    },
+    {
+     "unit": "imp-cav",
+     "type": "pursuit",
+     "path": [
+      [
+       16.33515,
+       48.239097
+      ],
+      [
+       16.343251,
+       48.217514
+      ]
+     ]
+    },
+    {
+     "unit": "pol-cav",
+     "type": "pursuit",
+     "path": [
+      [
+       16.316248,
+       48.232802
+      ],
+      [
+       16.321648,
+       48.217514
+      ]
+     ]
+    },
+    {
+     "unit": "kara",
+     "type": "retreat",
+     "path": [
+      [
+       16.3311,
+       48.213017
+      ],
+      [
+       16.345952,
+       48.201326
+      ]
+     ]
+    },
+    {
+     "unit": "ot-assault",
+     "type": "rout",
+     "path": [
+      [
+       16.366205,
+       48.214816
+      ],
+      [
+       16.359454,
+       48.203124
+      ]
+     ]
+    },
+    {
+     "unit": "garrison",
+     "type": "attack",
+     "path": [
+      [
+       16.37228,
+       48.20897
+      ],
+      [
+       16.366205,
+       48.217514
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      16.3311,
+      48.210319
+     ],
+     "text": "Ottoman camp and baggage taken",
+     "kind": "capture"
+    }
+   ],
+   "light": "dusk"
+  },
+  {
+   "id": "aftermath",
+   "title": "Vienna is saved",
+   "time": "13 September onward",
+   "narrative": "The Ottoman army, its commander and most of its guns beaten, retreats toward Hungary. Sobieski sums up the day with a line adapted from Caesar: we came, we saw, God conquered. The Viennese cheer the deliverers, and the Habsburg alliance with Poland, Venice and the pope presses the war into Hungary, a long conflict that ends in Ottoman losses of Hungarian lands. Kara Mustafa is executed on his sultan's orders at the end of the year.",
+   "positions": {
+    "sobieski": {
+     "at": [
+      16.337851,
+      48.213916
+     ]
+    }
+   },
+   "notes": [
+    {
+     "at": [
+      16.337851,
+      48.215715
+     ],
+     "text": "Sobieski enters the camp",
+     "kind": "event"
+    }
+   ],
+   "light": "day"
+  }
+ ]
+}

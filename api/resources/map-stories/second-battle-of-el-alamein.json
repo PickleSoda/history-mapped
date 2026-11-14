@@ -1,0 +1,1415 @@
+{
+ "schema": 3,
+ "slug": "second-battle-of-el-alamein",
+ "kind": "battle",
+ "entity": {
+  "name": "Second Battle of El Alamein",
+  "wikidata": "Q153376"
+ },
+ "title": "Second Battle of El Alamein",
+ "date_label": "23 October - 4 November 1942",
+ "year": 1942,
+ "intro": "In October 1942 the Eighth Army under Bernard Montgomery attacked the German-Italian Panzer Army\n        of Erwin Rommel at El Alamein, the Egyptian railway halt where the two armies had halted after the\n        failed Axis advance. Rommel was away ill for the opening, and the army was laid out behind roughly half a\n        million mines in two belts and on boxes called devil's gardens. Montgomery planned a twelve-day battle in\n        three stages: the break-in, the dogfight and the final breaking of the enemy. It lasted thirteen days and\n        ended with the Axis front torn open and the army in headlong retreat.",
+ "outcome": "Allied victory: the Axis army was broken and driven back from Egypt and Libya to the Tunisian border.",
+ "uncertainty": "Boundaries of minefields, the Kidney feature, Miteirya Ridge, Point 29, Tel el Aqqaqir and the\n        Rahman track are not in the geodata. They are conjectural placements from the mainstream reconstruction,\n        and the unit positions near them are reconstructed too. The southern sector is shown only schematically.\n        Axis casualty totals vary widely between sources.",
+ "sources": [
+  {
+   "title": "Second Battle of El Alamein - Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Second_Battle_of_El_Alamein",
+   "kind": "web"
+  }
+ ],
+ "sides": [
+  {
+   "id": "a",
+   "name": "Eighth Army (Allies)",
+   "color": "#2563eb",
+   "polity": {
+    "name": "United Kingdom",
+    "wikidata": "Q145"
+   },
+   "commanders": [
+    {
+     "name": "Bernard Montgomery",
+     "wikidata": "Q152025",
+     "role": "Eighth Army"
+    },
+    {
+     "name": "Harold Alexander",
+     "wikidata": "Q39168",
+     "role": "Commander-in-chief Middle East"
+    }
+   ],
+   "strength": "195,000; 1,029 tanks",
+   "losses": "13,560 casualties"
+  },
+  {
+   "id": "b",
+   "name": "Panzer Army Africa (Axis)",
+   "color": "#b91c1c",
+   "commanders": [
+    {
+     "name": "Erwin Rommel",
+     "wikidata": "Q14060",
+     "role": "Panzer Army"
+    },
+    {
+     "name": "Curio Barbasetti di Prun",
+     "wikidata": "Q3699615",
+     "role": "Italian chief of staff"
+    }
+   ],
+   "strength": "116,000; 547 tanks",
+   "losses": "41,800-73,000 casualties"
+  }
+ ],
+ "units": [
+  {
+   "id": "a-sa",
+   "side": "a",
+   "kind": "infantry",
+   "label": "1st South African Div."
+  },
+  {
+   "id": "a-nz",
+   "side": "a",
+   "kind": "infantry",
+   "label": "2nd New Zealand Div."
+  },
+  {
+   "id": "a-hld",
+   "side": "a",
+   "kind": "infantry",
+   "label": "51st Highland Div."
+  },
+  {
+   "id": "a-aus",
+   "side": "a",
+   "kind": "infantry",
+   "label": "9th Australian Div."
+  },
+  {
+   "id": "a-x10",
+   "side": "a",
+   "kind": "heavy_cavalry",
+   "label": "10th Armoured Div."
+  },
+  {
+   "id": "a-x1",
+   "side": "a",
+   "kind": "heavy_cavalry",
+   "label": "1st Armoured Div."
+  },
+  {
+   "id": "a-x7",
+   "side": "a",
+   "kind": "heavy_cavalry",
+   "label": "7th Armoured Div."
+  },
+  {
+   "id": "a-xiii",
+   "side": "a",
+   "kind": "heavy_cavalry",
+   "label": "XIII Corps (south)"
+  },
+  {
+   "id": "a-9armd",
+   "side": "a",
+   "kind": "heavy_cavalry",
+   "label": "9th Armoured Brigade",
+   "strength": "132 tanks"
+  },
+  {
+   "id": "a-monty",
+   "side": "a",
+   "kind": "commander",
+   "label": "Montgomery"
+  },
+  {
+   "id": "b-outposts",
+   "side": "b",
+   "kind": "infantry",
+   "label": "Axis forward infantry"
+  },
+  {
+   "id": "b-15pz",
+   "side": "b",
+   "kind": "heavy_cavalry",
+   "label": "15th Panzer Div.",
+   "strength": "125 tanks"
+  },
+  {
+   "id": "b-littorio",
+   "side": "b",
+   "kind": "heavy_cavalry",
+   "label": "Littorio Armoured Div."
+  },
+  {
+   "id": "b-164",
+   "side": "b",
+   "kind": "infantry",
+   "label": "164th Light Div."
+  },
+  {
+   "id": "b-south",
+   "side": "b",
+   "kind": "heavy_cavalry",
+   "label": "21st Panzer + Ariete"
+  },
+  {
+   "id": "b-90light",
+   "side": "b",
+   "kind": "infantry",
+   "label": "90th Light Div."
+  },
+  {
+   "id": "b-guns",
+   "side": "b",
+   "kind": "artillery",
+   "label": "Aqqaqir gun line"
+  },
+  {
+   "id": "b-rommel-hq",
+   "side": "b",
+   "kind": "commander",
+   "label": "Rommel"
+  }
+ ],
+ "terrain": [
+  {
+   "id": "belt-1",
+   "kind": "fortification",
+   "label": "First mine belt",
+   "area": [
+    [
+     28.827777,
+     30.784477
+    ],
+    [
+     28.84244,
+     30.784477
+    ],
+    [
+     28.84244,
+     30.857322
+    ],
+    [
+     28.827777,
+     30.857322
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "belt-2",
+   "kind": "fortification",
+   "label": "Second mine belt",
+   "area": [
+    [
+     28.779598,
+     30.784477
+    ],
+    [
+     28.795308,
+     30.784477
+    ],
+    [
+     28.795308,
+     30.857322
+    ],
+    [
+     28.779598,
+     30.857322
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "miteirya",
+   "kind": "ridge",
+   "label": "Miteirya Ridge",
+   "line": [
+    [
+     28.84244,
+     30.790773
+    ],
+    [
+     28.851866,
+     30.801564
+    ],
+    [
+     28.859197,
+     30.811457
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "kidney",
+   "kind": "hill",
+   "label": "Kidney feature",
+   "area": [
+    [
+     28.811019,
+     30.824947
+    ],
+    [
+     28.81835,
+     30.829444
+    ],
+    [
+     28.825681,
+     30.824947
+    ],
+    [
+     28.81835,
+     30.82045
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "eisa",
+   "kind": "hill",
+   "label": "Tel el Eisa",
+   "area": [
+    [
+     28.860243,
+     30.854624
+    ],
+    [
+     28.865481,
+     30.858221
+    ],
+    [
+     28.870719,
+     30.854624
+    ],
+    [
+     28.865481,
+     30.851027
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "aqqaqir",
+   "kind": "hill",
+   "label": "Tel el Aqqaqir",
+   "area": [
+    [
+     28.781694,
+     30.814155
+    ],
+    [
+     28.78693,
+     30.817752
+    ],
+    [
+     28.792166,
+     30.814155
+    ],
+    [
+     28.78693,
+     30.810558
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "rahman",
+   "kind": "road",
+   "label": "Rahman track",
+   "line": [
+    [
+     28.773314,
+     30.788974
+    ],
+    [
+     28.773314,
+     30.859121
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "coast-road",
+   "kind": "road",
+   "label": "Coast road and railway",
+   "line": [
+    [
+     28.718851,
+     30.863618
+    ],
+    [
+     28.823587,
+     30.862718
+    ],
+    [
+     28.907376,
+     30.86092
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "alamein",
+   "kind": "village",
+   "label": "El Alamein",
+   "at": [
+    28.94927,
+    30.83394
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "id": "defences",
+   "title": "Rommel's mine belts",
+   "time": "Before 23 Oct 1942",
+   "narrative": "Panzerarmee Afrika sat behind two belts of mines about five kilometres apart, joined into boxes the British called devil's gardens. Forward outposts, with German and Italian infantry alternated, were thinly held and the real defence lay behind. Rommel, short of fuel, split his tanks into a northern group around the Kidney feature and a southern group, and kept the 90th Light Division back. The Eighth Army massed east of the line with four infantry divisions in the north.",
+   "positions": {
+    "b-outposts": {
+     "at": [
+      28.834061,
+      30.824947
+     ],
+     "facing": 90,
+     "width": 7000,
+     "depth": 60,
+     "shape": "line",
+     "state": "ready"
+    },
+    "b-15pz": {
+     "at": [
+      28.816256,
+      30.822249
+     ],
+     "facing": 90,
+     "width": 1200,
+     "depth": 60,
+     "conjectural": true
+    },
+    "b-littorio": {
+     "at": [
+      28.816256,
+      30.839336
+     ],
+     "facing": 90,
+     "width": 1100,
+     "depth": 60,
+     "conjectural": true
+    },
+    "b-164": {
+     "at": [
+      28.855008,
+      30.856423
+     ],
+     "facing": 90,
+     "width": 1200,
+     "depth": 50,
+     "conjectural": true
+    },
+    "b-south": {
+     "at": [
+      28.836155,
+      30.770988
+     ],
+     "facing": 90,
+     "width": 2200,
+     "depth": 60,
+     "conjectural": true
+    },
+    "b-90light": {
+     "at": [
+      28.734562,
+      30.84743
+     ],
+     "facing": 90,
+     "width": 1000,
+     "depth": 50,
+     "frame": false,
+     "conjectural": true
+    },
+    "b-rommel-hq": {
+     "at": [
+      28.760746,
+      30.838437
+     ],
+     "conjectural": true
+    },
+    "a-sa": {
+     "at": [
+      28.87297,
+      30.80134
+     ],
+     "facing": 270,
+     "width": 1750,
+     "depth": 30,
+     "state": "ready"
+    },
+    "a-nz": {
+     "at": [
+      28.87297,
+      30.817078
+     ],
+     "facing": 270,
+     "width": 1750,
+     "depth": 30,
+     "state": "ready"
+    },
+    "a-hld": {
+     "at": [
+      28.87297,
+      30.832816
+     ],
+     "facing": 270,
+     "width": 1750,
+     "depth": 30,
+     "state": "ready"
+    },
+    "a-aus": {
+     "at": [
+      28.87297,
+      30.848554
+     ],
+     "facing": 270,
+     "width": 1750,
+     "depth": 30,
+     "state": "ready"
+    },
+    "a-x10": {
+     "at": [
+      28.898997,
+      30.812356
+     ],
+     "facing": 270,
+     "width": 1500,
+     "depth": 60
+    },
+    "a-x1": {
+     "at": [
+      28.898997,
+      30.83394
+     ],
+     "facing": 270,
+     "width": 1500,
+     "depth": 60
+    },
+    "a-xiii": {
+     "at": [
+      28.886429,
+      30.770988
+     ],
+     "facing": 270,
+     "width": 2200,
+     "depth": 60
+    },
+    "a-9armd": {
+     "at": [
+      28.912612,
+      30.823148
+     ],
+     "facing": 270,
+     "width": 800,
+     "depth": 50,
+     "conjectural": true
+    },
+    "a-monty": {
+     "at": [
+      28.923086,
+      30.824947
+     ],
+     "conjectural": true
+    },
+    "a-x7": {
+     "at": [
+      28.891665,
+      30.787175
+     ],
+     "facing": 270,
+     "width": 1500,
+     "depth": 60,
+     "conjectural": true
+    },
+    "b-guns": {
+     "at": [
+      28.78693,
+      30.82045
+     ],
+     "facing": 90,
+     "width": 2200,
+     "depth": 40,
+     "state": "hidden",
+     "conjectural": true
+    }
+   },
+   "light": "day"
+  },
+  {
+   "id": "lightfoot",
+   "title": "Operation Lightfoot: the break-in",
+   "time": "Night, 23-24 Oct",
+   "narrative": "At 21:40 on 23 October about nine hundred guns opened up, and XXX Corps infantry walked west on a front of some twenty-six kilometres toward the Oxalic Line. Montgomery wanted two corridors cut through the mines in the north so that X Corps tanks could pass through. The infantry got into the outpost zone, but clearing lanes in the dark took far longer than planned, and in the south the diversion by XIII Corps made little headway.",
+   "positions": {
+    "a-sa": {
+     "at": [
+      28.84244,
+      30.799766
+     ],
+     "state": "engaged"
+    },
+    "a-nz": {
+     "at": [
+      28.84244,
+      30.814155
+     ],
+     "state": "engaged"
+    },
+    "a-hld": {
+     "at": [
+      28.84244,
+      30.831242
+     ],
+     "state": "engaged"
+    },
+    "a-aus": {
+     "at": [
+      28.84244,
+      30.849228
+     ],
+     "state": "engaged"
+    },
+    "b-outposts": {
+     "state": "engaged"
+    },
+    "a-xiii": {
+     "at": [
+      28.855008,
+      30.770988
+     ],
+     "state": "engaged"
+    },
+    "b-south": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "a-sa",
+     "type": "advance",
+     "path": [
+      [
+       28.87297,
+       30.80134
+      ],
+      [
+       28.84244,
+       30.799766
+      ]
+     ]
+    },
+    {
+     "unit": "a-nz",
+     "type": "advance",
+     "path": [
+      [
+       28.87297,
+       30.817078
+      ],
+      [
+       28.84244,
+       30.814155
+      ]
+     ]
+    },
+    {
+     "unit": "a-hld",
+     "type": "advance",
+     "path": [
+      [
+       28.87297,
+       30.832816
+      ],
+      [
+       28.84244,
+       30.831242
+      ]
+     ]
+    },
+    {
+     "unit": "a-aus",
+     "type": "advance",
+     "path": [
+      [
+       28.87297,
+       30.848554
+      ],
+      [
+       28.84244,
+       30.849228
+      ]
+     ]
+    },
+    {
+     "unit": "a-xiii",
+     "type": "advance",
+     "path": [
+      [
+       28.886429,
+       30.770988
+      ],
+      [
+       28.855008,
+       30.770988
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      28.849771,
+      30.784477
+     ],
+     "text": "Southern diversion stalls in mines",
+     "kind": "event",
+     "conjectural": true
+    }
+   ],
+   "light": "night"
+  },
+  {
+   "id": "stuck",
+   "title": "The armour is held at the minefields",
+   "time": "24 Oct",
+   "narrative": "Dawn showed the Axis line bent but unbroken. General Stumme, driving forward to see for himself, died of a heart attack, and von Thoma took temporary command. Allied armour stayed bottled up at the Oxalic Line while engineers lifted mines. At dusk the 15th Panzer and Littorio divisions came out of the Kidney depression, and the first big tank action of the battle began. Over a hundred tanks were involved and about half were lost by nightfall, without changing the line.",
+   "positions": {
+    "a-x1": {
+     "at": [
+      28.845582,
+      30.831242
+     ],
+     "state": "engaged"
+    },
+    "a-x10": {
+     "at": [
+      28.850818,
+      30.813256
+     ]
+    },
+    "b-15pz": {
+     "at": [
+      28.827777,
+      30.825846
+     ],
+     "state": "engaged"
+    },
+    "b-littorio": {
+     "at": [
+      28.827777,
+      30.840235
+     ],
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "a-x1",
+     "type": "advance",
+     "path": [
+      [
+       28.898997,
+       30.83394
+      ],
+      [
+       28.845582,
+       30.831242
+      ]
+     ]
+    },
+    {
+     "unit": "a-x10",
+     "type": "advance",
+     "path": [
+      [
+       28.898997,
+       30.812356
+      ],
+      [
+       28.850818,
+       30.813256
+      ]
+     ]
+    },
+    {
+     "unit": "b-15pz",
+     "type": "attack",
+     "path": [
+      [
+       28.816256,
+       30.822249
+      ],
+      [
+       28.827777,
+       30.825846
+      ]
+     ]
+    },
+    {
+     "unit": "b-littorio",
+     "type": "attack",
+     "path": [
+      [
+       28.816256,
+       30.839336
+      ],
+      [
+       28.827777,
+       30.840235
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      28.834061,
+      30.833041
+     ],
+     "text": "First big tank clash near the Kidney",
+     "kind": "clash",
+     "conjectural": true
+    }
+   ],
+   "light": "dusk"
+  },
+  {
+   "id": "northern-thrust",
+   "title": "Montgomery turns north",
+   "time": "25 Oct",
+   "narrative": "Montgomery judged a southward push from Miteirya Ridge too costly and shifted his weight to the north. At midnight the 26th Australian Brigade, with Valentine tanks, took Point 29 and 240 prisoners, trying to cut off the German 164th Light Division and the Italian infantry in the coastal salient. Rommel, back from sick leave that evening, found the 15th Panzer Division down to 31 tanks and fuel for about three days.",
+   "positions": {
+    "a-aus": {
+     "at": [
+      28.848724,
+      30.849228
+     ],
+     "width": 1500,
+     "conjectural": true
+    },
+    "b-164": {
+     "state": "engaged"
+    },
+    "b-rommel-hq": {
+     "at": [
+      28.765982,
+      30.83394
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "a-aus",
+     "type": "attack",
+     "path": [
+      [
+       28.84244,
+       30.849228
+      ],
+      [
+       28.848724,
+       30.849228
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      28.846629,
+      30.844732
+     ],
+     "text": "Point 29 taken, 240 prisoners",
+     "kind": "capture",
+     "conjectural": true
+    }
+   ],
+   "light": "night"
+  },
+  {
+   "id": "rommel-shifts",
+   "title": "Rommel pulls his armour north",
+   "time": "26-28 Oct",
+   "narrative": "Convinced the main blow would fall in the north, Rommel ordered counter-attacks on Point 29 and Hill 28, and moved the 21st Panzer Division, part of the Ariete and half the southern artillery up to join the 15th Panzer and Littorio. With so little petrol, the move could not be reversed. On 28 October the two panzer divisions struck X Corps, but artillery and air attack broke up the assembly. It was Rommel's last attempt to seize the initiative.",
+   "positions": {
+    "b-south": {
+     "at": [
+      28.820445,
+      30.804262
+     ],
+     "width": 1800
+    },
+    "b-90light": {
+     "at": [
+      28.831966,
+      30.854624
+     ],
+     "frame": true
+    },
+    "b-15pz": {
+     "at": [
+      28.839297,
+      30.842933
+     ]
+    },
+    "a-x1": {
+     "at": [
+      28.851866,
+      30.831242
+     ]
+    },
+    "a-nz": {
+     "at": [
+      28.860245,
+      30.814155
+     ],
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "b-south",
+     "type": "march",
+     "path": [
+      [
+       28.836155,
+       30.770988
+      ],
+      [
+       28.820445,
+       30.804262
+      ]
+     ]
+    },
+    {
+     "unit": "b-90light",
+     "type": "march",
+     "path": [
+      [
+       28.734562,
+       30.84743
+      ],
+      [
+       28.831966,
+       30.854624
+      ]
+     ]
+    },
+    {
+     "unit": "b-15pz",
+     "type": "attack",
+     "path": [
+      [
+       28.827777,
+       30.825846
+      ],
+      [
+       28.839297,
+       30.842933
+      ]
+     ]
+    },
+    {
+     "unit": "a-nz",
+     "type": "retreat",
+     "path": [
+      [
+       28.84244,
+       30.814155
+      ],
+      [
+       28.860245,
+       30.814155
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      28.81835,
+      30.817752
+     ],
+     "text": "Tank strength drains; fuel short",
+     "kind": "event",
+     "conjectural": true
+    }
+   ],
+   "light": "day"
+  },
+  {
+   "id": "crumbling",
+   "title": "The Australians press the coastal salient",
+   "time": "28 Oct - 1 Nov",
+   "narrative": "Further Australian attacks aimed at the paved coast road, around Thompson's Post south of the railway. The third attempt, on the night of 30 October, put the 9th Australian Division astride road and railway and left the Axis salient exposed, though a 21st Panzer battle group made four attacks on Thompson's Post on 31 October, all repulsed. Sergeant Kibby won a posthumous Victoria Cross. Tankers bound for Rommel were sunk, and he began planning a retreat to Fuka.",
+   "positions": {
+    "a-aus": {
+     "at": [
+      28.856055,
+      30.856423
+     ],
+     "facing": 0,
+     "width": 1600
+    },
+    "b-90light": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "a-aus",
+     "type": "attack",
+     "path": [
+      [
+       28.848724,
+       30.849228
+      ],
+      [
+       28.856055,
+       30.856423
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      28.85815,
+      30.86092
+     ],
+     "text": "Axis attacks on Thompson's Post fail",
+     "kind": "clash",
+     "conjectural": true
+    }
+   ],
+   "light": "night"
+  },
+  {
+   "id": "supercharge",
+   "title": "Operation Supercharge opens",
+   "time": "01:05, 2 Nov",
+   "narrative": "After a seven-hour air bombardment, 360 guns fired 15,000 shells and two infantry brigades, the 151st and 152nd with tank regiments, advanced about 4,000 yards toward Tel el Aqqaqir on the Rahman track. Maori and lorried infantry guarded the flanks, and New Zealand engineers cleared five lanes through the mines. Only one Bersaglieri battalion still held the front line by 04:45.",
+   "positions": {
+    "a-9armd": {
+     "at": [
+      28.823587,
+      30.82045
+     ]
+    },
+    "a-nz": {
+     "at": [
+      28.808924,
+      30.82045
+     ],
+     "width": 2500,
+     "state": "engaged",
+     "conjectural": true
+    },
+    "b-outposts": {
+     "at": [
+      28.796356,
+      30.824947
+     ],
+     "width": 3500,
+     "state": "wavering",
+     "conjectural": true
+    },
+    "b-guns": {
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "a-9armd",
+     "type": "march",
+     "path": [
+      [
+       28.912612,
+       30.823148
+      ],
+      [
+       28.823587,
+       30.82045
+      ]
+     ]
+    },
+    {
+     "unit": "a-nz",
+     "type": "attack",
+     "path": [
+      [
+       28.860245,
+       30.814155
+      ],
+      [
+       28.808924,
+       30.82045
+      ]
+     ]
+    },
+    {
+     "unit": "b-outposts",
+     "type": "retreat",
+     "path": [
+      [
+       28.834061,
+       30.824947
+      ],
+      [
+       28.796356,
+       30.824947
+      ]
+     ]
+    }
+   ],
+   "light": "night"
+  },
+  {
+   "id": "ninth-armoured",
+   "title": "The 9th Armoured Brigade charges the guns",
+   "time": "06:15, 2 Nov",
+   "narrative": "At 06:15, half an hour before dawn, the brigade set off behind a creeping barrage with 94 of its 132 tanks still running. German and Italian anti-tank guns, among them 24 of the 88 mm flak guns, fired at tanks outlined by the rising sun. About 35 guns were destroyed in thirty minutes, but only 24 tanks were left running and 230 of 400 men were killed, wounded or captured. The gap for 1st Armoured was not yet open.",
+   "positions": {
+    "a-9armd": {
+     "at": [
+      28.789024,
+      30.82045
+     ],
+     "width": 1500,
+     "state": "wavering"
+    },
+    "b-guns": {
+     "state": "engaged"
+    },
+    "a-x1": {
+     "at": [
+      28.80264,
+      30.832141
+     ],
+     "conjectural": true
+    },
+    "b-15pz": {
+     "at": [
+      28.80264,
+      30.823148
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "a-9armd",
+     "type": "charge",
+     "path": [
+      [
+       28.823587,
+       30.82045
+      ],
+      [
+       28.789024,
+       30.82045
+      ]
+     ]
+    },
+    {
+     "unit": "a-x1",
+     "type": "advance",
+     "path": [
+      [
+       28.851866,
+       30.831242
+      ],
+      [
+       28.80264,
+       30.832141
+      ]
+     ]
+    },
+    {
+     "unit": "b-15pz",
+     "type": "attack",
+     "path": [
+      [
+       28.839297,
+       30.842933
+      ],
+      [
+       28.80264,
+       30.823148
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      28.789024,
+      30.814155
+     ],
+     "text": "Sacrificed on the gun line",
+     "kind": "death",
+     "conjectural": true
+    }
+   ],
+   "light": "dawn"
+  },
+  {
+   "id": "breakout",
+   "title": "The Axis front collapses",
+   "time": "4 Nov",
+   "narrative": "On 4 November 1st and 7th Armoured Divisions swung north and the New Zealanders headed west along desert tracks. The Ariete fought to the end against British tanks that had come round its open flank, while the Littorio and Trieste were also destroyed, and the unmotorised Italian infantry were left behind. By early afternoon Rommel judged his front broken, with a hole 19 kilometres wide, and radioed Hitler for leave to fall back on Fuka.",
+   "positions": {
+    "a-x7": {
+     "at": [
+      28.797403,
+      30.788974
+     ],
+     "width": 1800,
+     "state": "engaged"
+    },
+    "a-x1": {
+     "at": [
+      28.765982,
+      30.831242
+     ]
+    },
+    "a-nz": {
+     "at": [
+      28.755509,
+      30.817752
+     ],
+     "state": "ready"
+    },
+    "b-south": {
+     "at": [
+      28.776456,
+      30.792571
+     ],
+     "state": "destroyed"
+    },
+    "b-littorio": {
+     "at": [
+      28.792166,
+      30.840235
+     ],
+     "state": "destroyed"
+    },
+    "b-outposts": {
+     "state": "captured",
+     "by": "a"
+    }
+   },
+   "moves": [
+    {
+     "unit": "a-x7",
+     "type": "flank",
+     "path": [
+      [
+       28.891665,
+       30.787175
+      ],
+      [
+       28.797403,
+       30.788974
+      ]
+     ]
+    },
+    {
+     "unit": "a-x1",
+     "type": "advance",
+     "path": [
+      [
+       28.80264,
+       30.832141
+      ],
+      [
+       28.765982,
+       30.831242
+      ]
+     ]
+    },
+    {
+     "unit": "a-nz",
+     "type": "advance",
+     "path": [
+      [
+       28.808924,
+       30.82045
+      ],
+      [
+       28.755509,
+       30.817752
+      ]
+     ]
+    },
+    {
+     "unit": "b-south",
+     "type": "rout",
+     "path": [
+      [
+       28.820445,
+       30.804262
+      ],
+      [
+       28.776456,
+       30.792571
+      ]
+     ]
+    },
+    {
+     "unit": "b-littorio",
+     "type": "rout",
+     "path": [
+      [
+       28.827777,
+       30.840235
+      ],
+      [
+       28.792166,
+       30.840235
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      28.778551,
+      30.795269
+     ],
+     "text": "Ariete encircled",
+     "kind": "death",
+     "conjectural": true
+    }
+   ],
+   "light": "day"
+  },
+  {
+   "id": "retreat",
+   "title": "The retreat to Fuka",
+   "time": "4-11 Nov",
+   "narrative": "What remained of the German-Italian Panzer Army, with few trucks and no petrol to spare, pulled west toward Fuka and on beyond, to the borders of Tunisia. Axis losses were disputed, running from over 40,000 to some 73,000, with about 30,000 prisoners counted by 11 November. The Eighth Army lost 13,560 men. Operation Torch landed in French North Africa on 8 November.",
+   "positions": {
+    "b-15pz": {
+     "at": [
+      28.708378,
+      30.840235
+     ],
+     "facing": 270,
+     "state": "wavering",
+     "frame": false
+    },
+    "b-90light": {
+     "at": [
+      28.703141,
+      30.854624
+     ],
+     "facing": 270,
+     "state": "wavering",
+     "frame": false
+    },
+    "a-x1": {
+     "at": [
+      28.745035,
+      30.83394
+     ]
+    },
+    "a-nz": {
+     "at": [
+      28.739798,
+      30.817752
+     ]
+    },
+    "b-rommel-hq": {
+     "at": [
+      28.697904,
+      30.841135
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "b-15pz",
+     "type": "retreat",
+     "path": [
+      [
+       28.80264,
+       30.823148
+      ],
+      [
+       28.708378,
+       30.840235
+      ]
+     ]
+    },
+    {
+     "unit": "b-90light",
+     "type": "retreat",
+     "path": [
+      [
+       28.831966,
+       30.854624
+      ],
+      [
+       28.703141,
+       30.854624
+      ]
+     ]
+    },
+    {
+     "unit": "a-x1",
+     "type": "pursuit",
+     "path": [
+      [
+       28.765982,
+       30.831242
+      ],
+      [
+       28.745035,
+       30.83394
+      ]
+     ]
+    },
+    {
+     "unit": "a-nz",
+     "type": "pursuit",
+     "path": [
+      [
+       28.755509,
+       30.817752
+      ],
+      [
+       28.739798,
+       30.817752
+      ]
+     ]
+    },
+    {
+     "unit": "b-rommel-hq",
+     "type": "retreat",
+     "path": [
+      [
+       28.765982,
+       30.83394
+      ],
+      [
+       28.697904,
+       30.841135
+      ]
+     ]
+    }
+   ],
+   "light": "day"
+  }
+ ]
+}

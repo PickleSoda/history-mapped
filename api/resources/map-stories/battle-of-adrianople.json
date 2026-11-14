@@ -1,0 +1,1031 @@
+{
+ "schema": 3,
+ "slug": "battle-of-adrianople",
+ "kind": "battle",
+ "entity": {
+  "name": "Battle of Adrianople",
+  "wikidata": "Q192473"
+ },
+ "title": "Battle of Adrianople",
+ "date_label": "9 August 378",
+ "year": 378,
+ "intro": "In August 378 the eastern emperor Valens led his field army out of Adrianople to destroy a Gothic host that had been in revolt in Thrace for two years. The Goths had crossed the Danube in 376 as refugees from the Huns and had been mistreated by Roman officials. Valens ignored warnings to wait for his western colleague Gratian and rejected Fritigern's last offer of peace. After a hot eight-mile march his tired army reached the Gothic wagon circle on a hill, was drawn into the fight by a premature attack and was enveloped when the Gothic cavalry returned from foraging. Valens died, and about two thirds of his army went with him.",
+ "outcome": "Decisive Gothic and Alan victory; Valens killed and the eastern field army destroyed.",
+ "uncertainty": "The battlefield is unplaced: three modern theses exist, so all positions are conjectural and use the Muratcali site only as an anchor. Strengths are estimates (12,000-15,000 each) and the Roman line and cavalry placements, the route of the Gothic cavalry and Valens's death are reconstructed or disputed.",
+ "sources": [
+  {
+   "title": "Battle of Adrianople - Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Battle_of_Adrianople",
+   "kind": "web"
+  }
+ ],
+ "sides": [
+  {
+   "id": "r",
+   "name": "Eastern Roman Empire",
+   "color": "#b91c1c",
+   "polity": {
+    "name": "Eastern Roman Empire",
+    "wikidata": "Q12544"
+   },
+   "commanders": [
+    {
+     "name": "Valens",
+     "wikidata": "Q172471",
+     "role": "emperor, killed"
+    }
+   ],
+   "strength": "c. 15,000 (Heather)",
+   "losses": "10,000-20,000"
+  },
+  {
+   "id": "g",
+   "name": "Goths and Alans",
+   "color": "#1d4ed8",
+   "polity": {
+    "name": "Goths",
+    "wikidata": "Q42193"
+   },
+   "commanders": [
+    {
+     "name": "Fritigern",
+     "wikidata": "Q159712",
+     "role": "Thervingi leader"
+    }
+   ],
+   "strength": "12,000-15,000",
+   "losses": "Unknown"
+  }
+ ],
+ "units": [
+  {
+   "id": "r-camp",
+   "side": "r",
+   "kind": "camp",
+   "label": "Roman camp, Adrianople"
+  },
+  {
+   "id": "r-column",
+   "side": "r",
+   "kind": "army",
+   "label": "Roman army on the march",
+   "strength": "c. 15,000"
+  },
+  {
+   "id": "r-left",
+   "side": "r",
+   "kind": "heavy_infantry",
+   "label": "Roman left wing"
+  },
+  {
+   "id": "r-centre",
+   "side": "r",
+   "kind": "heavy_infantry",
+   "label": "Roman centre"
+  },
+  {
+   "id": "r-right",
+   "side": "r",
+   "kind": "heavy_infantry",
+   "label": "Roman right wing"
+  },
+  {
+   "id": "r-cav-left",
+   "side": "r",
+   "kind": "cavalry",
+   "label": "Roman cavalry, left"
+  },
+  {
+   "id": "r-cav-right",
+   "side": "r",
+   "kind": "cavalry",
+   "label": "Roman cavalry, right"
+  },
+  {
+   "id": "r-scholae",
+   "side": "r",
+   "kind": "light_infantry",
+   "label": "Scholae (Bacurius)"
+  },
+  {
+   "id": "r-valens",
+   "side": "r",
+   "kind": "commander",
+   "label": "Valens"
+  },
+  {
+   "id": "g-wagons",
+   "side": "g",
+   "kind": "camp",
+   "label": "Gothic wagon circle"
+  },
+  {
+   "id": "g-foot",
+   "side": "g",
+   "kind": "infantry",
+   "label": "Gothic infantry"
+  },
+  {
+   "id": "g-cav",
+   "side": "g",
+   "kind": "cavalry",
+   "label": "Gothic cavalry and Alans"
+  }
+ ],
+ "terrain": [
+  {
+   "id": "tunca",
+   "kind": "river",
+   "label": "Tunca",
+   "line": [
+    [
+     26.54481,
+     41.78509
+    ],
+    [
+     26.54144,
+     41.78655
+    ],
+    [
+     26.53895,
+     41.78593
+    ],
+    [
+     26.53838,
+     41.78407
+    ],
+    [
+     26.53882,
+     41.78206
+    ],
+    [
+     26.53537,
+     41.77943
+    ],
+    [
+     26.53677,
+     41.77836
+    ],
+    [
+     26.53961,
+     41.78025
+    ],
+    [
+     26.541,
+     41.77754
+    ],
+    [
+     26.53925,
+     41.77455
+    ],
+    [
+     26.53592,
+     41.77506
+    ],
+    [
+     26.53329,
+     41.77569
+    ],
+    [
+     26.53494,
+     41.77163
+    ],
+    [
+     26.53055,
+     41.76893
+    ],
+    [
+     26.52872,
+     41.7666
+    ]
+   ]
+  },
+  {
+   "id": "hill",
+   "kind": "hill",
+   "label": "Gothic hill",
+   "area": [
+    [
+     26.627178,
+     41.805939
+    ],
+    [
+     26.626808,
+     41.807103
+    ],
+    [
+     26.625724,
+     41.808187
+    ],
+    [
+     26.623998,
+     41.809119
+    ],
+    [
+     26.621749,
+     41.809833
+    ],
+    [
+     26.61913,
+     41.810282
+    ],
+    [
+     26.61632,
+     41.810436
+    ],
+    [
+     26.61351,
+     41.810282
+    ],
+    [
+     26.610891,
+     41.809833
+    ],
+    [
+     26.608642,
+     41.809119
+    ],
+    [
+     26.606916,
+     41.808187
+    ],
+    [
+     26.605832,
+     41.807103
+    ],
+    [
+     26.605462,
+     41.805939
+    ],
+    [
+     26.605832,
+     41.804775
+    ],
+    [
+     26.606916,
+     41.803691
+    ],
+    [
+     26.608642,
+     41.802759
+    ],
+    [
+     26.610891,
+     41.802045
+    ],
+    [
+     26.61351,
+     41.801596
+    ],
+    [
+     26.61632,
+     41.801442
+    ],
+    [
+     26.61913,
+     41.801596
+    ],
+    [
+     26.621749,
+     41.802045
+    ],
+    [
+     26.623998,
+     41.802759
+    ],
+    [
+     26.625724,
+     41.803691
+    ],
+    [
+     26.626808,
+     41.804775
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "muratcali",
+   "kind": "village",
+   "label": "Muratcali",
+   "at": [
+    26.61632,
+    41.80459
+   ]
+  },
+  {
+   "id": "adrianople",
+   "kind": "town",
+   "label": "Adrianople",
+   "at": [
+    26.55872,
+    41.67593
+   ]
+  },
+  {
+   "id": "road",
+   "kind": "road",
+   "label": "Road from Adrianople",
+   "line": [
+    [
+     26.55872,
+     41.67593
+    ],
+    [
+     26.576507,
+     41.723651
+    ],
+    [
+     26.598223,
+     41.774013
+    ],
+    [
+     26.612701,
+     41.792
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "fields",
+   "kind": "field",
+   "label": "Burnt fields",
+   "area": [
+    [
+     26.624764,
+     41.796496
+    ],
+    [
+     26.624394,
+     41.797311
+    ],
+    [
+     26.623309,
+     41.79807
+    ],
+    [
+     26.621584,
+     41.798722
+    ],
+    [
+     26.619335,
+     41.799222
+    ],
+    [
+     26.616717,
+     41.799536
+    ],
+    [
+     26.613907,
+     41.799644
+    ],
+    [
+     26.611097,
+     41.799536
+    ],
+    [
+     26.608479,
+     41.799222
+    ],
+    [
+     26.60623,
+     41.798722
+    ],
+    [
+     26.604505,
+     41.79807
+    ],
+    [
+     26.60342,
+     41.797311
+    ],
+    [
+     26.60305,
+     41.796496
+    ],
+    [
+     26.60342,
+     41.795681
+    ],
+    [
+     26.604505,
+     41.794922
+    ],
+    [
+     26.60623,
+     41.79427
+    ],
+    [
+     26.608479,
+     41.79377
+    ],
+    [
+     26.611097,
+     41.793456
+    ],
+    [
+     26.613907,
+     41.793348
+    ],
+    [
+     26.616717,
+     41.793456
+    ],
+    [
+     26.619335,
+     41.79377
+    ],
+    [
+     26.621584,
+     41.79427
+    ],
+    [
+     26.623309,
+     41.794922
+    ],
+    [
+     26.624394,
+     41.795681
+    ]
+   ],
+   "conjectural": true
+  }
+ ],
+ "steps": [
+  {
+   "id": "camps",
+   "title": "Two camps north of Adrianople",
+   "time": "6-8 August 378",
+   "narrative": "Valens has gathered his field army at Adrianople and fortified a camp with ditch and rampart, leaving the treasury and officials inside. Scouts report a Gothic force of about ten thousand twenty-five kilometres to the north. Richomeres arrives with a letter from Gratian asking him to wait for the western reinforcements, and the officers agree, but Valens wants a victory of his own. On 8 August Fritigern offers peace in exchange for land, and Valens refuses.",
+   "positions": {
+    "r-camp": {
+     "at": [
+      26.553584,
+      41.67239
+     ],
+     "label": "Roman camp, Adrianople",
+     "state": "ready"
+    },
+    "g-wagons": {
+     "at": [
+      26.61632,
+      41.80459
+     ],
+     "shape": "circle",
+     "width": 420,
+     "depth": 420,
+     "facing": 180,
+     "label": "Gothic wagon circle",
+     "conjectural": true
+    },
+    "g-foot": {
+     "at": [
+      26.61632,
+      41.802252
+     ],
+     "facing": 180,
+     "width": 900,
+     "depth": 60,
+     "label": "Gothic infantry",
+     "strength_n": 9000,
+     "conjectural": true
+    }
+   },
+   "entities": [
+    {
+     "name": "Valens",
+     "wikidata": "Q172471",
+     "role": "Eastern emperor"
+    },
+    {
+     "name": "Fritigern",
+     "wikidata": "Q159712",
+     "role": "Thervingi leader"
+    }
+   ]
+  },
+  {
+   "id": "march",
+   "title": "The march in the heat",
+   "time": "Morning to noon, 9 August",
+   "narrative": "Valens leaves Adrianople at dawn and marches about eight Roman miles over rough ground, arriving around noon. His men are tired and thirsty after the August heat. The Gothic camp sits on rising ground, with the wagon circle protecting families and goods. Fritigern's aim is to stall, because Alatheus, Saphrax and the Gothic horse are away foraging.",
+   "positions": {
+    "r-camp": {
+     "frame": false
+    },
+    "r-column": {
+     "at": [
+      26.59943,
+      41.77851
+     ],
+     "label": "Roman field army on the march",
+     "strength_n": 15000,
+     "facing": 20,
+     "conjectural": true
+    }
+   },
+   "moves": [
+    {
+     "unit": "r-column",
+     "type": "march",
+     "path": [
+      [
+       26.553584,
+       41.67239
+      ],
+      [
+       26.576507,
+       41.723651
+      ],
+      [
+       26.59943,
+       41.77851
+      ]
+     ]
+    }
+   ],
+   "frame": true
+  },
+  {
+   "id": "stall",
+   "title": "Smoke and negotiation",
+   "time": "Early afternoon",
+   "narrative": "The Goths set fire to the fields so that smoke and heat harass the approaching Romans. Envoys cross between the lines to arrange an exchange of hostages. Each hour of talk costs the Romans water and patience, while it buys Fritigern time for his cavalry. Valens forms his army into line facing the hill, with infantry in the centre and horse on the flanks. The exact order is not given in the sources.",
+   "positions": {
+    "r-column": {
+     "state": "hidden"
+    },
+    "r-left": {
+     "at": [
+      26.607875,
+      41.792899
+     ],
+     "facing": 0,
+     "width": 500,
+     "depth": 40,
+     "label": "Roman left wing",
+     "strength_n": 3000,
+     "conjectural": true
+    },
+    "r-centre": {
+     "at": [
+      26.614148,
+      41.792719
+     ],
+     "facing": 0,
+     "width": 540,
+     "depth": 40,
+     "conjectural": true
+    },
+    "r-right": {
+     "at": [
+      26.619577,
+      41.792719
+     ],
+     "facing": 0,
+     "width": 360,
+     "depth": 40,
+     "conjectural": true
+    },
+    "r-cav-left": {
+     "at": [
+      26.601843,
+      41.793348
+     ],
+     "facing": 0,
+     "width": 300,
+     "depth": 40,
+     "label": "Roman cavalry",
+     "conjectural": true
+    },
+    "r-cav-right": {
+     "at": [
+      26.629591,
+      41.793348
+     ],
+     "facing": 0,
+     "width": 300,
+     "depth": 40,
+     "label": "Roman cavalry",
+     "conjectural": true
+    },
+    "r-valens": {
+     "at": [
+      26.61632,
+      41.789302
+     ],
+     "label": "Valens",
+     "conjectural": true
+    }
+   }
+  },
+  {
+   "id": "scholae",
+   "title": "The scholae charge without orders",
+   "time": "Mid-afternoon",
+   "narrative": "Before talks conclude, some Roman units open the fight on their own. The imperial scholae, shield bearers and archers under the Iberian prince Bacurius, rush ahead, hoping for an easy win and revenge for two years of raiding. With no support behind them, they are pushed back by the Gothic defenders. The assault shows the discipline breaking and drags the whole line into battle before it is ready.",
+   "positions": {
+    "r-scholae": {
+     "at": [
+      26.61632,
+      41.801811
+     ],
+     "facing": 0,
+     "width": 200,
+     "depth": 30,
+     "label": "Scholae (Bacurius)",
+     "conjectural": true,
+     "state": "engaged"
+    },
+    "g-foot": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "r-scholae",
+     "type": "charge",
+     "path": [
+      [
+       26.615114,
+       41.79155
+      ],
+      [
+       26.61632,
+       41.801811
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "left",
+   "title": "The Roman left reaches the wagons",
+   "time": "Mid-afternoon",
+   "narrative": "The Roman left wing presses forward until it reaches the circle of wagons. It arrives too late and in poor order, with the rest of the army strung out behind it. The attack stalls in the confined space around the carts, and the Romans are fought to a halt by men fighting for their families.",
+   "positions": {
+    "r-left": {
+     "at": [
+      26.61632,
+      41.803061
+     ],
+     "state": "engaged",
+     "width": 300
+    },
+    "g-wagons": {
+     "state": "engaged"
+    },
+    "r-centre": {
+     "at": [
+      26.61451,
+      41.797845
+     ]
+    },
+    "r-right": {
+     "at": [
+      26.620543,
+      41.796046
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "r-left",
+     "type": "attack",
+     "path": [
+      [
+       26.607875,
+       41.792899
+      ],
+      [
+       26.61632,
+       41.803061
+      ]
+     ]
+    },
+    {
+     "unit": "r-centre",
+     "type": "advance",
+     "path": [
+      [
+       26.614148,
+       41.792719
+      ],
+      [
+       26.61451,
+       41.797845
+      ]
+     ]
+    },
+    {
+     "unit": "r-right",
+     "type": "advance",
+     "path": [
+      [
+       26.619577,
+       41.792719
+      ],
+      [
+       26.620543,
+       41.796046
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cavalry",
+   "title": "The Gothic horse returns",
+   "time": "Late afternoon",
+   "narrative": "Alatheus and Saphrax come back with their cavalry, joined by Alans, and fall on the Romans like a thunderbolt, in Ammianus's image. The Roman left, already disordered after the failed assault, is surrounded. Modern writers differ on how many horsemen there were: older accounts made them the decisive force, while recent work gives the Gothic infantry the larger part.",
+   "positions": {
+    "g-cav": {
+     "at": [
+      26.612701,
+      41.795597
+     ],
+     "facing": 230,
+     "width": 500,
+     "depth": 60,
+     "label": "Gothic cavalry (Alatheus, Saphrax)",
+     "conjectural": true,
+     "frame": true,
+     "state": "engaged"
+    },
+    "r-left": {
+     "state": "wavering"
+    }
+   },
+   "moves": [
+    {
+     "unit": "g-cav",
+     "type": "charge",
+     "path": [
+      [
+       26.647688,
+       41.813583
+      ],
+      [
+       26.612701,
+       41.795597
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "crush",
+   "title": "Pressed against the hill",
+   "time": "Late afternoon",
+   "narrative": "The Romans fall back toward the foot of the hill, where they cannot manoeuvre. Their heavy armour and long shields hamper them, units are packed too close to fight, and the pressure on all sides turns retreat into rout. The cavalry on the Roman right flees rather than hold, leaving the foot isolated.",
+   "positions": {
+    "r-cav-right": {
+     "at": [
+      26.642862,
+      41.779409
+     ],
+     "state": "routed"
+    },
+    "r-cav-left": {
+     "at": [
+      26.586159,
+      41.782107
+     ],
+     "state": "routed"
+    },
+    "r-centre": {
+     "state": "wavering",
+     "at": [
+      26.615114,
+      41.796046
+     ]
+    },
+    "r-right": {
+     "state": "wavering",
+     "at": [
+      26.621749,
+      41.793798
+     ]
+    },
+    "r-scholae": {
+     "state": "routed"
+    }
+   },
+   "moves": [
+    {
+     "unit": "r-cav-right",
+     "type": "retreat",
+     "path": [
+      [
+       26.629591,
+       41.793348
+      ],
+      [
+       26.642862,
+       41.779409
+      ]
+     ]
+    },
+    {
+     "unit": "r-cav-left",
+     "type": "retreat",
+     "path": [
+      [
+       26.601843,
+       41.793348
+      ],
+      [
+       26.586159,
+       41.782107
+      ]
+     ]
+    },
+    {
+     "unit": "r-centre",
+     "type": "retreat",
+     "path": [
+      [
+       26.61451,
+       41.797845
+      ],
+      [
+       26.615114,
+       41.796046
+      ]
+     ]
+    },
+    {
+     "unit": "r-right",
+     "type": "retreat",
+     "path": [
+      [
+       26.620543,
+       41.796046
+      ],
+      [
+       26.621749,
+       41.793798
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rout",
+   "title": "Slaughter until nightfall",
+   "time": "Evening",
+   "narrative": "The Roman army dissolves. Ammianus says the killing went on until dark, and modern estimates put Roman dead at between ten and twenty thousand, roughly two thirds of the force. Sebastianus and many senior officers fall. A third of the army escapes, some of it toward the walls of Adrianople.",
+   "positions": {
+    "g-cav": {
+     "at": [
+      26.609081,
+      41.787503
+     ]
+    },
+    "r-centre": {
+     "state": "destroyed"
+    },
+    "r-right": {
+     "state": "destroyed"
+    },
+    "r-left": {
+     "state": "destroyed"
+    }
+   },
+   "moves": [
+    {
+     "unit": "g-cav",
+     "type": "pursuit",
+     "path": [
+      [
+       26.612701,
+       41.795597
+      ],
+      [
+       26.609081,
+       41.787503
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "valens",
+   "title": "The emperor disappears",
+   "time": "Night",
+   "narrative": "Abandoned by his guards, Valens is never seen again and his body is not found. One tale says he reached a peasant's cottage with a few companions; the Goths, unaware who was inside, set it alight and he burned to death. Others think he died unnoticed in the fighting. Either way, it is the end of the senior emperor of the East.",
+   "positions": {
+    "r-valens": {
+     "at": [
+      26.609081,
+      41.783006
+     ],
+     "state": "killed",
+     "label": "Valens (fate uncertain)"
+    }
+   },
+   "moves": [
+    {
+     "unit": "r-valens",
+     "type": "retreat",
+     "path": [
+      [
+       26.61632,
+       41.789302
+      ],
+      [
+       26.609081,
+       41.783006
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      26.609081,
+      41.783006
+     ],
+     "text": "Valens lost; fate unknown",
+     "kind": "death",
+     "conjectural": true
+    }
+   ]
+  },
+  {
+   "id": "after",
+   "title": "The Goths before Adrianople",
+   "time": "10 August and after",
+   "narrative": "The victorious Goths march on Adrianople and try to storm it, but the garrison, helped by soldiers shut out the night before, repels them. The defeat destroys the core of the eastern field army and many arsenals in the Danubian provinces. Theodosius, Valens's successor, eventually settles the Goths as allied peoples inside the empire. Their lasting presence changes the frontier for good.",
+   "positions": {
+    "g-foot": {
+     "at": [
+      26.574094,
+      41.714658
+     ],
+     "state": "ready",
+     "facing": 200
+    },
+    "g-cav": {
+     "state": "ready",
+     "at": [
+      26.580126,
+      41.719155
+     ],
+     "facing": 200
+    },
+    "g-wagons": {
+     "state": "ready",
+     "at": [
+      26.576507,
+      41.710161
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "g-foot",
+     "type": "march",
+     "path": [
+      [
+       26.61632,
+       41.802252
+      ],
+      [
+       26.574094,
+       41.714658
+      ]
+     ]
+    },
+    {
+     "unit": "g-cav",
+     "type": "march",
+     "path": [
+      [
+       26.609081,
+       41.787503
+      ],
+      [
+       26.580126,
+       41.719155
+      ]
+     ]
+    },
+    {
+     "unit": "g-wagons",
+     "type": "march",
+     "path": [
+      [
+       26.61632,
+       41.80459
+      ],
+      [
+       26.576507,
+       41.710161
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

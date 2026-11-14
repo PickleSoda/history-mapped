@@ -1,0 +1,1490 @@
+{
+ "schema": 3,
+ "slug": "battle-of-zama",
+ "kind": "battle",
+ "entity": {
+  "name": "Battle of Zama",
+  "wikidata": "Q200056"
+ },
+ "title": "Battle of Zama",
+ "date_label": "19 October 202 BC",
+ "year": -202,
+ "intro": "In 202 BC, on open ground inland from Carthage, the Second Punic War came to its end. Scipio had\n        carried the war to Africa and defeated two armies. Carthage recalled Hannibal from Italy to meet him. Hannibal\n        lacked both time and cavalry that could match the Numidians who had come over to Scipio under Masinissa. His\n        army was a patchwork of the survivors of three different forces. He marched inland for five days and camped\n        about three kilometres from the Roman camp, and battle was now certain. The battle took place on a plain generally placed south of\n        Sicca, modern El Kef. The two sides were close to equal in infantry but the Romans had the stronger cavalry. The\n        outcome turned on the elephants, the cavalry flanks and Scipio's discipline.",
+ "outcome": "Decisive Roman victory; Carthage soon accepted a harsh peace, ending the Second Punic War.",
+ "uncertainty": "The exact site is disputed; the story centres on Wikidata's coordinates, and every terrain item\n        is conjectural. The north-south axis, camp positions and distances are reconstructions. Armies' sizes\n        vary: the Carthaginian third line is estimated at 12,000 to 20,000, and the second line's strength is\n        unknown. Where the 6,000 Numidian infantry stood is unknown (placed conjecturally behind Masinissa).\n        Depths, gaps and the length of the cavalry pursuit are schematic. Scholars debate whether Hannibal meant\n        the retreat of his second line to bait the Romans.",
+ "sources": [
+  {
+   "title": "Battle of Zama — Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Battle_of_Zama",
+   "kind": "web"
+  }
+ ],
+ "sides": [
+  {
+   "id": "r",
+   "name": "Rome",
+   "color": "#b91c1c",
+   "polity": {
+    "name": "Roman Republic",
+    "wikidata": "Q17167"
+   },
+   "commanders": [
+    {
+     "name": "Scipio Africanus",
+     "wikidata": "Q2253",
+     "role": "Roman commander"
+    }
+   ],
+   "strength": "c. 29,000-30,000 (6,100 cavalry)",
+   "losses": "At least 1,500 killed"
+  },
+  {
+   "id": "c",
+   "name": "Carthage",
+   "color": "#1d4ed8",
+   "polity": {
+    "name": "Ancient Carthage",
+    "wikidata": "Q2429397"
+   },
+   "commanders": [
+    {
+     "name": "Hannibal",
+     "wikidata": "Q36456",
+     "role": "Carthaginian commander"
+    }
+   ],
+   "strength": "c. 40,000-50,000 (4,000 cavalry, 80 elephants)",
+   "losses": "c. 20,000 killed, 20,000 captured"
+  }
+ ],
+ "units": [
+  {
+   "id": "r-hastati",
+   "side": "r",
+   "kind": "heavy_infantry",
+   "label": "Hastati"
+  },
+  {
+   "id": "r-principes",
+   "side": "r",
+   "kind": "heavy_infantry",
+   "label": "Principes"
+  },
+  {
+   "id": "r-triarii",
+   "side": "r",
+   "kind": "heavy_infantry",
+   "label": "Triarii"
+  },
+  {
+   "id": "r-velites",
+   "side": "r",
+   "kind": "light_infantry",
+   "label": "Velites"
+  },
+  {
+   "id": "r-masinissa",
+   "side": "r",
+   "kind": "light_cavalry",
+   "label": "Masinissa's Numidians",
+   "strength": "c. 4,000"
+  },
+  {
+   "id": "r-laelius",
+   "side": "r",
+   "kind": "cavalry",
+   "label": "Laelius's cavalry",
+   "strength": "c. 1,500"
+  },
+  {
+   "id": "r-numid-inf",
+   "side": "r",
+   "kind": "light_infantry",
+   "label": "Numidian foot",
+   "strength": "c. 6,000"
+  },
+  {
+   "id": "r-scipio",
+   "side": "r",
+   "kind": "commander",
+   "label": "Scipio"
+  },
+  {
+   "id": "c-skirm",
+   "side": "c",
+   "kind": "light_infantry",
+   "label": "Slingers, archers, javelins"
+  },
+  {
+   "id": "c-elephants",
+   "side": "c",
+   "kind": "elephants",
+   "label": "War elephants",
+   "strength": "80"
+  },
+  {
+   "id": "c-line1",
+   "side": "c",
+   "kind": "heavy_infantry",
+   "label": "First line (Mago's army)"
+  },
+  {
+   "id": "c-line2",
+   "side": "c",
+   "kind": "heavy_infantry",
+   "label": "Second line (levies)"
+  },
+  {
+   "id": "c-line3",
+   "side": "c",
+   "kind": "heavy_infantry",
+   "label": "Third line (Italy veterans)"
+  },
+  {
+   "id": "c-cav-num",
+   "side": "c",
+   "kind": "light_cavalry",
+   "label": "Numidian cavalry"
+  },
+  {
+   "id": "c-cav-afr",
+   "side": "c",
+   "kind": "cavalry",
+   "label": "African cavalry"
+  },
+  {
+   "id": "c-hannibal",
+   "side": "c",
+   "kind": "commander",
+   "label": "Hannibal"
+  }
+ ],
+ "terrain": [
+  {
+   "id": "plain",
+   "kind": "field",
+   "label": "Plain (Draa el Metnan?)",
+   "area": [
+    [
+     9.48153,
+     36.29889
+    ],
+    [
+     9.480427,
+     36.302149
+    ],
+    [
+     9.477195,
+     36.305185
+    ],
+    [
+     9.472052,
+     36.307793
+    ],
+    [
+     9.46535,
+     36.309794
+    ],
+    [
+     9.457545,
+     36.311051
+    ],
+    [
+     9.44917,
+     36.31148
+    ],
+    [
+     9.440795,
+     36.311051
+    ],
+    [
+     9.43299,
+     36.309794
+    ],
+    [
+     9.426288,
+     36.307793
+    ],
+    [
+     9.421145,
+     36.305185
+    ],
+    [
+     9.417913,
+     36.302149
+    ],
+    [
+     9.41681,
+     36.29889
+    ],
+    [
+     9.417913,
+     36.295631
+    ],
+    [
+     9.421145,
+     36.292595
+    ],
+    [
+     9.426288,
+     36.289987
+    ],
+    [
+     9.43299,
+     36.287986
+    ],
+    [
+     9.440795,
+     36.286729
+    ],
+    [
+     9.44917,
+     36.2863
+    ],
+    [
+     9.457545,
+     36.286729
+    ],
+    [
+     9.46535,
+     36.287986
+    ],
+    [
+     9.472052,
+     36.289987
+    ],
+    [
+     9.477195,
+     36.292595
+    ],
+    [
+     9.480427,
+     36.295631
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "wadi",
+   "kind": "stream",
+   "label": "Dry watercourse",
+   "line": [
+    [
+     9.420157,
+     36.300689
+    ],
+    [
+     9.432432,
+     36.299969
+    ],
+    [
+     9.445822,
+     36.301228
+    ],
+    [
+     9.459213,
+     36.300239
+    ],
+    [
+     9.478183,
+     36.301588
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "road",
+   "kind": "road",
+   "label": "Track to Sicca",
+   "line": [
+    [
+     9.420157,
+     36.314178
+    ],
+    [
+     9.438011,
+     36.31238
+    ],
+    [
+     9.460329,
+     36.31193
+    ],
+    [
+     9.478183,
+     36.313729
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "camp-r",
+   "kind": "camp",
+   "label": "Roman camp",
+   "area": [
+    [
+     9.452518,
+     36.314178
+    ],
+    [
+     9.452328,
+     36.31476
+    ],
+    [
+     9.451771,
+     36.315302
+    ],
+    [
+     9.450884,
+     36.315768
+    ],
+    [
+     9.449728,
+     36.316125
+    ],
+    [
+     9.448382,
+     36.31635
+    ],
+    [
+     9.446938,
+     36.316426
+    ],
+    [
+     9.445494,
+     36.31635
+    ],
+    [
+     9.444148,
+     36.316125
+    ],
+    [
+     9.442992,
+     36.315768
+    ],
+    [
+     9.442105,
+     36.315302
+    ],
+    [
+     9.441548,
+     36.31476
+    ],
+    [
+     9.441358,
+     36.314178
+    ],
+    [
+     9.441548,
+     36.313596
+    ],
+    [
+     9.442105,
+     36.313054
+    ],
+    [
+     9.442992,
+     36.312588
+    ],
+    [
+     9.444148,
+     36.312231
+    ],
+    [
+     9.445494,
+     36.312006
+    ],
+    [
+     9.446938,
+     36.31193
+    ],
+    [
+     9.448382,
+     36.312006
+    ],
+    [
+     9.449728,
+     36.312231
+    ],
+    [
+     9.450884,
+     36.312588
+    ],
+    [
+     9.451771,
+     36.313054
+    ],
+    [
+     9.452328,
+     36.313596
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "camp-c",
+   "kind": "camp",
+   "label": "Carthaginian camp",
+   "area": [
+    [
+     9.45698,
+     36.284951
+    ],
+    [
+     9.45679,
+     36.285533
+    ],
+    [
+     9.456233,
+     36.286075
+    ],
+    [
+     9.455346,
+     36.286541
+    ],
+    [
+     9.454191,
+     36.286898
+    ],
+    [
+     9.452846,
+     36.287123
+    ],
+    [
+     9.451402,
+     36.287199
+    ],
+    [
+     9.449958,
+     36.287123
+    ],
+    [
+     9.448613,
+     36.286898
+    ],
+    [
+     9.447458,
+     36.286541
+    ],
+    [
+     9.446571,
+     36.286075
+    ],
+    [
+     9.446014,
+     36.285533
+    ],
+    [
+     9.445824,
+     36.284951
+    ],
+    [
+     9.446014,
+     36.284369
+    ],
+    [
+     9.446571,
+     36.283827
+    ],
+    [
+     9.447458,
+     36.283361
+    ],
+    [
+     9.448613,
+     36.283004
+    ],
+    [
+     9.449958,
+     36.282779
+    ],
+    [
+     9.451402,
+     36.282703
+    ],
+    [
+     9.452846,
+     36.282779
+    ],
+    [
+     9.454191,
+     36.283004
+    ],
+    [
+     9.455346,
+     36.283361
+    ],
+    [
+     9.456233,
+     36.283827
+    ],
+    [
+     9.45679,
+     36.284369
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "sicca",
+   "kind": "town",
+   "label": "Sicca (El Kef)",
+   "at": [
+    9.421273,
+    36.315977
+   ],
+   "conjectural": true
+  }
+ ],
+ "steps": [
+  {
+   "id": "roman-lines",
+   "title": "Scipio draws up his legions",
+   "time": "Morning",
+   "narrative": "Scipio brings his army out of its camp onto the open plain. The legionary heavy infantry stands in the centre in three ranks: hastati in front, principes behind them and triarii last. Unlike the usual chessboard pattern, each maniple of principes sits directly behind a maniple of hastati, which leaves straight lanes through the line. The velites skirmish in those lanes. Masinissa's Numidian horse takes the right, Laelius's Roman and allied horse the left.",
+   "positions": {
+    "r-hastati": {
+     "at": [
+      9.44917,
+      36.303566
+     ],
+     "facing": 180,
+     "width": 1800,
+     "depth": 50,
+     "state": "ready"
+    },
+    "r-principes": {
+     "at": [
+      9.44917,
+      36.304556
+     ],
+     "facing": 180,
+     "width": 1800,
+     "depth": 50
+    },
+    "r-triarii": {
+     "at": [
+      9.44917,
+      36.305545
+     ],
+     "facing": 180,
+     "width": 1800,
+     "depth": 50
+    },
+    "r-velites": {
+     "facing": 180,
+     "width": 1800,
+     "shape": "line",
+     "depth": 10,
+     "at": [
+      9.44917,
+      36.302936
+     ]
+    },
+    "r-masinissa": {
+     "at": [
+      9.433548,
+      36.303566
+     ],
+     "facing": 180,
+     "width": 800,
+     "depth": 70
+    },
+    "r-laelius": {
+     "at": [
+      9.463676,
+      36.303566
+     ],
+     "facing": 180,
+     "width": 500,
+     "depth": 60
+    },
+    "r-numid-inf": {
+     "at": [
+      9.433548,
+      36.304736
+     ],
+     "facing": 180,
+     "width": 700,
+     "depth": 60,
+     "conjectural": true
+    },
+    "r-scipio": {
+     "with": "r-triarii"
+    }
+   }
+  },
+  {
+   "id": "carthage-lines",
+   "title": "Hannibal's three lines",
+   "time": "Morning",
+   "narrative": "Hannibal, who has had no time to weld his three armies together, keeps them apart. Eighty elephants screened by slingers, archers and javelin-men stand in front. Behind them come the veterans of Mago's army, then Carthaginian and African levies, and about 200 metres further back the men brought home from Italy. His Numidian cavalry faces Masinissa on the left and African horse faces Laelius on the right.",
+   "positions": {
+    "c-skirm": {
+     "at": [
+      9.44917,
+      36.295922
+     ],
+     "facing": 0,
+     "width": 1800,
+     "depth": 12,
+     "state": "ready"
+    },
+    "c-elephants": {
+     "at": [
+      9.44917,
+      36.295383
+     ],
+     "facing": 0,
+     "width": 1800,
+     "depth": 20
+    },
+    "c-line1": {
+     "at": [
+      9.44917,
+      36.294573
+     ],
+     "facing": 0,
+     "width": 1800,
+     "depth": 50
+    },
+    "c-line2": {
+     "at": [
+      9.44917,
+      36.293584
+     ],
+     "facing": 0,
+     "width": 1800,
+     "depth": 50
+    },
+    "c-line3": {
+     "at": [
+      9.44917,
+      36.291516
+     ],
+     "facing": 0,
+     "width": 1700,
+     "depth": 60
+    },
+    "c-cav-num": {
+     "at": [
+      9.433548,
+      36.294573
+     ],
+     "facing": 0,
+     "width": 800,
+     "depth": 70
+    },
+    "c-cav-afr": {
+     "at": [
+      9.463676,
+      36.294573
+     ],
+     "facing": 0,
+     "width": 700,
+     "depth": 60
+    },
+    "c-hannibal": {
+     "with": "c-line3"
+    }
+   }
+  },
+  {
+   "id": "skirmish",
+   "title": "Javelins on the Numidian flank",
+   "time": "Late morning",
+   "narrative": "The armies advance. On the western wing the two bodies of Numidian horse trade javelins, charging in small groups and then wheeling away; the fighting is half-hearted. Hannibal then gives the order that sets the battle moving. The elephants lurch forward, and his first two lines follow them.",
+   "positions": {
+    "c-cav-num": {
+     "at": [
+      9.433548,
+      36.295473
+     ],
+     "state": "engaged"
+    },
+    "r-masinissa": {
+     "at": [
+      9.433548,
+      36.296192
+     ],
+     "state": "engaged"
+    },
+    "c-elephants": {
+     "at": [
+      9.44917,
+      36.297001
+     ]
+    },
+    "c-skirm": {
+     "at": [
+      9.44917,
+      36.297541
+     ]
+    },
+    "c-line1": {
+     "at": [
+      9.44917,
+      36.296192
+     ]
+    },
+    "c-line2": {
+     "at": [
+      9.44917,
+      36.295203
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "c-cav-num",
+     "type": "advance",
+     "path": [
+      [
+       9.433548,
+       36.294573
+      ],
+      [
+       9.433548,
+       36.295473
+      ]
+     ]
+    },
+    {
+     "unit": "c-elephants",
+     "type": "advance",
+     "path": [
+      [
+       9.44917,
+       36.295383
+      ],
+      [
+       9.44917,
+       36.297001
+      ]
+     ]
+    },
+    {
+     "unit": "c-skirm",
+     "type": "advance",
+     "path": [
+      [
+       9.44917,
+       36.295922
+      ],
+      [
+       9.44917,
+       36.297541
+      ]
+     ]
+    },
+    {
+     "unit": "c-line1",
+     "type": "advance",
+     "path": [
+      [
+       9.44917,
+       36.294573
+      ],
+      [
+       9.44917,
+       36.296192
+      ]
+     ]
+    },
+    {
+     "unit": "c-line2",
+     "type": "advance",
+     "path": [
+      [
+       9.44917,
+       36.293584
+      ],
+      [
+       9.44917,
+       36.295203
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "elephants",
+   "title": "The elephants are met",
+   "time": "Midday",
+   "narrative": "The velites run forward into the gap, throw javelins at the animals and fall back into the lanes. The Roman horns blare, and perhaps weapons beat on shields. Many elephants shy at the noise. Most of them plunge into the empty lanes, where javelins strike their flanks and those that emerge behind the army are hunted down. A few slam into the hastati and do real harm before they are driven off.",
+   "positions": {
+    "r-velites": {
+     "at": [
+      9.44917,
+      36.301858
+     ],
+     "state": "engaged"
+    },
+    "c-elephants": {
+     "at": [
+      9.44917,
+      36.301858
+     ],
+     "state": "engaged",
+     "width": 1700
+    },
+    "r-hastati": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "r-velites",
+     "type": "advance",
+     "path": [
+      [
+       9.44917,
+       36.302936
+      ],
+      [
+       9.44917,
+       36.301858
+      ]
+     ]
+    },
+    {
+     "unit": "c-elephants",
+     "type": "charge",
+     "path": [
+      [
+       9.44917,
+       36.297001
+      ],
+      [
+       9.44917,
+       36.301858
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      9.44917,
+      36.305095
+     ],
+     "text": "Elephants lost in the lanes",
+     "kind": "event"
+    }
+   ]
+  },
+  {
+   "id": "cavalry-flight",
+   "title": "Both wings of cavalry drive off the enemy",
+   "time": "Midday",
+   "narrative": "Terrified elephants on the Carthaginian left stampede through their own Numidian horse. Masinissa seizes the moment and charges, and the broken squadrons flee with his men on their heels. On the other wing elephants that balked at the infantry turn on Laelius's horse and are wounded by javelins, then they crash into the Carthaginian cavalry. Laelius charges as well. Both Roman horse wings gallop away in pursuit, leaving the infantry to settle the day.",
+   "positions": {
+    "c-elephants": {
+     "state": "destroyed"
+    },
+    "c-cav-num": {
+     "at": [
+      9.423505,
+      36.290796
+     ],
+     "state": "routed",
+     "frame": false
+    },
+    "r-masinissa": {
+     "at": [
+      9.424063,
+      36.291875
+     ],
+     "facing": 225,
+     "frame": false
+    },
+    "c-cav-afr": {
+     "at": [
+      9.473719,
+      36.289897
+     ],
+     "state": "routed",
+     "frame": false
+    },
+    "r-laelius": {
+     "at": [
+      9.473161,
+      36.290976
+     ],
+     "facing": 135,
+     "state": "engaged",
+     "frame": false
+    },
+    "r-numid-inf": {
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "c-cav-num",
+     "type": "rout",
+     "path": [
+      [
+       9.433548,
+       36.295473
+      ],
+      [
+       9.423505,
+       36.290796
+      ]
+     ]
+    },
+    {
+     "unit": "r-masinissa",
+     "type": "pursuit",
+     "path": [
+      [
+       9.433548,
+       36.296192
+      ],
+      [
+       9.424063,
+       36.291875
+      ]
+     ]
+    },
+    {
+     "unit": "c-cav-afr",
+     "type": "rout",
+     "path": [
+      [
+       9.463676,
+       36.294573
+      ],
+      [
+       9.473719,
+       36.289897
+      ]
+     ]
+    },
+    {
+     "unit": "r-laelius",
+     "type": "pursuit",
+     "path": [
+      [
+       9.463676,
+       36.303566
+      ],
+      [
+       9.473161,
+       36.290976
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "first-clash",
+   "title": "Hastati against the first line",
+   "time": "Afternoon",
+   "narrative": "With the wings empty, the Roman heavy infantry and the first two Carthaginian lines advance and crash together. It is a hard push of shield against shield. The Roman training and swords tell, and the Carthaginian first line breaks. The second line will not let the fugitives through, and they have to slip round its flanks. Many rally there and lengthen the second line's ends.",
+   "positions": {
+    "c-elephants": {
+     "state": "hidden"
+    },
+    "r-velites": {
+     "state": "hidden"
+    },
+    "c-skirm": {
+     "at": [
+      9.44917,
+      36.301138
+     ],
+     "state": "routed",
+     "frame": true
+    },
+    "c-line1": {
+     "at": [
+      9.44917,
+      36.299789
+     ],
+     "state": "engaged"
+    },
+    "r-hastati": {
+     "at": [
+      9.44917,
+      36.300275
+     ]
+    },
+    "c-line2": {
+     "at": [
+      9.44917,
+      36.298171
+     ],
+     "state": "ready"
+    },
+    "r-principes": {
+     "at": [
+      9.44917,
+      36.302307
+     ]
+    },
+    "r-triarii": {
+     "at": [
+      9.44917,
+      36.303387
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "c-line1",
+     "type": "advance",
+     "path": [
+      [
+       9.44917,
+       36.296192
+      ],
+      [
+       9.44917,
+       36.299789
+      ]
+     ]
+    },
+    {
+     "unit": "r-hastati",
+     "type": "attack",
+     "path": [
+      [
+       9.44917,
+       36.303566
+      ],
+      [
+       9.44917,
+       36.300275
+      ]
+     ]
+    },
+    {
+     "unit": "c-line2",
+     "type": "advance",
+     "path": [
+      [
+       9.44917,
+       36.295203
+      ],
+      [
+       9.44917,
+       36.298171
+      ]
+     ]
+    },
+    {
+     "unit": "r-principes",
+     "type": "advance",
+     "path": [
+      [
+       9.44917,
+       36.304556
+      ],
+      [
+       9.44917,
+       36.302307
+      ]
+     ]
+    },
+    {
+     "unit": "r-triarii",
+     "type": "advance",
+     "path": [
+      [
+       9.44917,
+       36.305545
+      ],
+      [
+       9.44917,
+       36.303387
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "second-line",
+   "title": "The second line pushes the Romans back",
+   "time": "Afternoon",
+   "narrative": "The hastati, already bloodied, now meet the Carthaginian and African spearmen of the second line, who fight fiercely and drive them back in disorder. Scipio has to feed the principes into the fight. They steady the line and at last break the second line, whose men retreat while the hastati chase them. Hannibal does not send his third line forward, and the ground between is slippery with corpses.",
+   "positions": {
+    "c-line1": {
+     "state": "destroyed"
+    },
+    "c-skirm": {
+     "state": "hidden"
+    },
+    "c-line2": {
+     "at": [
+      9.44917,
+      36.29871
+     ],
+     "state": "engaged"
+    },
+    "r-hastati": {
+     "at": [
+      9.44917,
+      36.300059
+     ],
+     "state": "wavering"
+    },
+    "r-principes": {
+     "at": [
+      9.44917,
+      36.299196
+     ],
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "c-line2",
+     "type": "advance",
+     "path": [
+      [
+       9.44917,
+       36.298171
+      ],
+      [
+       9.44917,
+       36.29871
+      ]
+     ]
+    },
+    {
+     "unit": "r-principes",
+     "type": "attack",
+     "path": [
+      [
+       9.44917,
+       36.302307
+      ],
+      [
+       9.44917,
+       36.299196
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      9.44917,
+      36.29925
+     ],
+     "text": "Ground choked with the dead",
+     "kind": "label"
+    }
+   ]
+  },
+  {
+   "id": "recall",
+   "title": "Scipio recalls his men",
+   "time": "Afternoon",
+   "narrative": "The second line gives way, and the hastati pursue it. Scipio sees the risk and sounds the recall. The Romans pull back and re-form. The hastati stay in the centre while the principes and triarii move out to both sides to build one long line against Hannibal's rested veterans, who overlap it at each end. There is a long pause. Carthaginian survivors gather on the flanks and extend their line.",
+   "positions": {
+    "c-line2": {
+     "state": "routed",
+     "at": [
+      9.44917,
+      36.296642
+     ]
+    },
+    "r-hastati": {
+     "at": [
+      9.44917,
+      36.301408
+     ],
+     "width": 700,
+     "state": "ready"
+    },
+    "r-principes": {
+     "at": [
+      9.440801,
+      36.301408
+     ],
+     "width": 800,
+     "state": "ready"
+    },
+    "r-triarii": {
+     "at": [
+      9.457539,
+      36.301408
+     ],
+     "width": 800,
+     "state": "ready"
+    },
+    "c-line3": {
+     "at": [
+      9.44917,
+      36.298171
+     ],
+     "width": 1900,
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "c-line2",
+     "type": "retreat",
+     "path": [
+      [
+       9.44917,
+       36.29871
+      ],
+      [
+       9.44917,
+       36.296642
+      ]
+     ]
+    },
+    {
+     "unit": "r-hastati",
+     "type": "back_water",
+     "path": [
+      [
+       9.44917,
+       36.300059
+      ],
+      [
+       9.44917,
+       36.301408
+      ]
+     ]
+    },
+    {
+     "unit": "r-principes",
+     "type": "flank",
+     "path": [
+      [
+       9.44917,
+       36.299196
+      ],
+      [
+       9.440801,
+       36.301408
+      ]
+     ]
+    },
+    {
+     "unit": "r-triarii",
+     "type": "flank",
+     "path": [
+      [
+       9.44917,
+       36.303387
+      ],
+      [
+       9.457539,
+       36.301408
+      ]
+     ]
+    },
+    {
+     "unit": "c-line3",
+     "type": "advance",
+     "path": [
+      [
+       9.44917,
+       36.291516
+      ],
+      [
+       9.44917,
+       36.298171
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "last-clash",
+   "title": "The last fresh Carthaginian line",
+   "time": "Late afternoon",
+   "narrative": "The two heavy lines, now nearly equal in men, charge with great fury. Hannibal's soldiers are fresh and veterans of long campaigns. The Romans are tired but flushed with two victories that day. Their line is thinner, so they can no longer swap tired men for fresh ones. The fighting is a grim, even struggle and for some time neither side gives way.",
+   "positions": {
+    "c-line3": {
+     "at": [
+      9.44917,
+      36.29907
+     ],
+     "state": "engaged"
+    },
+    "r-hastati": {
+     "at": [
+      9.44917,
+      36.299556
+     ],
+     "depth": 40,
+     "state": "engaged"
+    },
+    "r-principes": {
+     "at": [
+      9.440801,
+      36.29952
+     ],
+     "state": "engaged"
+    },
+    "r-triarii": {
+     "at": [
+      9.457539,
+      36.29952
+     ],
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "c-line3",
+     "type": "attack",
+     "path": [
+      [
+       9.44917,
+       36.298171
+      ],
+      [
+       9.44917,
+       36.29907
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      9.44917,
+      36.299969
+     ],
+     "text": "Even, grinding fight",
+     "kind": "clash"
+    }
+   ]
+  },
+  {
+   "id": "cavalry-return",
+   "title": "The cavalry come back",
+   "time": "Late afternoon",
+   "narrative": "Masinissa and Laelius ride back from their long pursuit, at about the same moment. With the Carthaginian infantry pinned in the front, nothing can prevent the horse from falling on their rear. Both wings crash into the rear of the line. Polybius says the cavalry came back at just the right time.",
+   "positions": {
+    "r-masinissa": {
+     "at": [
+      9.439127,
+      36.294214
+     ],
+     "facing": 0,
+     "frame": true
+    },
+    "r-laelius": {
+     "at": [
+      9.459213,
+      36.294214
+     ],
+     "facing": 0,
+     "frame": true
+    },
+    "c-cav-num": {
+     "state": "destroyed"
+    },
+    "c-cav-afr": {
+     "state": "destroyed"
+    }
+   },
+   "moves": [
+    {
+     "unit": "r-masinissa",
+     "type": "charge",
+     "path": [
+      [
+       9.424063,
+       36.291875
+      ],
+      [
+       9.439127,
+       36.294214
+      ]
+     ]
+    },
+    {
+     "unit": "r-laelius",
+     "type": "charge",
+     "path": [
+      [
+       9.473161,
+       36.290976
+      ],
+      [
+       9.459213,
+       36.294214
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rout",
+   "title": "The Carthaginian line collapses",
+   "time": "Dusk",
+   "narrative": "Attacked from front and rear, the line gives way. Most of Hannibal's last line is cut down where it stands, and the survivors are caught by the cavalry. Hannibal gets away with a few others, but the army he led to Zama is destroyed.",
+   "positions": {
+    "c-line3": {
+     "state": "destroyed"
+    },
+    "c-hannibal": {
+     "at": [
+      9.439127,
+      36.2854
+     ],
+     "facing": 180,
+     "state": "ready"
+    },
+    "r-masinissa": {
+     "at": [
+      9.440243,
+      36.294843
+     ]
+    },
+    "r-laelius": {
+     "at": [
+      9.458097,
+      36.294843
+     ]
+    },
+    "r-hastati": {
+     "state": "ready"
+    },
+    "r-principes": {
+     "state": "ready"
+    },
+    "r-triarii": {
+     "state": "ready"
+    }
+   },
+   "moves": [
+    {
+     "unit": "c-hannibal",
+     "type": "retreat",
+     "path": [
+      [
+       9.44917,
+       36.29907
+      ],
+      [
+       9.439127,
+       36.2854
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      9.44917,
+      36.297811
+     ],
+     "text": "A great slaughter and thousands captured",
+     "kind": "death"
+    }
+   ]
+  }
+ ]
+}

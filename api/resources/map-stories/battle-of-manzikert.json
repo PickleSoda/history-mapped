@@ -1,0 +1,1445 @@
+{
+ "schema": 3,
+ "slug": "battle-of-manzikert",
+ "kind": "battle",
+ "entity": {
+  "name": "Battle of Manzikert",
+  "wikidata": "Q200032"
+ },
+ "title": "Battle of Manzikert",
+ "date_label": "26 August 1071",
+ "year": 1071,
+ "intro": "In August 1071 the Byzantine emperor Romanos IV Diogenes led a large, mixed army to the eastern frontier near Lake Van to settle the question of Turkic raiding and settlement. He met the Seljuk sultan Alp Arslan at Manzikert, in the highlands north of the lake. The Byzantine force had been halved by a detachment sent towards Khliat, and its Turkic mercenaries were wavering. Over several days the Seljuk horse archers refused a pitched fight, drew the Byzantines forward, and on 26 August caught them in a disordered retreat. The emperor was captured and the professional core of the army destroyed.",
+ "outcome": "Seljuk victory: Romanos IV was captured and the Byzantine field army broken, opening Anatolia to Turkic settlement.",
+ "uncertainty": "Sources disagree on army sizes (Byzantine figures range from about 40,000 to over 200,000) and give no compass bearings or exact positions. The directions, the line of advance, the Seljuk crescent and the Seljuk camp are reconstructed and marked conjectural. The fate of Tarchaniotes' detachment is unclear, and accounts differ on who fled first.",
+ "sources": [
+  {
+   "title": "Battle of Manzikert - Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Battle_of_Manzikert",
+   "kind": "web"
+  }
+ ],
+ "sides": [
+  {
+   "id": "byz",
+   "name": "Byzantine Empire",
+   "color": "#7c3aed",
+   "polity": {
+    "name": "Byzantine Empire",
+    "wikidata": "Q12544"
+   },
+   "commanders": [
+    {
+     "name": "Romanos IV Diogenes",
+     "wikidata": "Q41834",
+     "role": "emperor"
+    },
+    {
+     "name": "Nikephoros Bryennios the Elder",
+     "wikidata": "Q1246496",
+     "role": "left wing"
+    },
+    {
+     "name": "Theodore Alyates",
+     "wikidata": "Q7781674",
+     "role": "right wing"
+    },
+    {
+     "name": "Andronikos Doukas",
+     "wikidata": "Q513495",
+     "role": "reserve"
+    }
+   ],
+   "strength": "c. 40,000 (sources vary widely)",
+   "losses": "2,000-8,000 killed; 4,000 captured; many deserted"
+  },
+  {
+   "id": "sel",
+   "name": "Seljuk Empire",
+   "color": "#15803d",
+   "polity": {
+    "name": "Seljuk Empire",
+    "wikidata": "Q3708094"
+   },
+   "commanders": [
+    {
+     "name": "Alp Arslan",
+     "wikidata": "Q200193",
+     "role": "sultan"
+    }
+   ],
+   "strength": "35,000-50,000",
+   "losses": "Unknown"
+  }
+ ],
+ "units": [
+  {
+   "id": "byz-army",
+   "side": "byz",
+   "kind": "army",
+   "label": "Byzantine main army"
+  },
+  {
+   "id": "tarchaniotes",
+   "side": "byz",
+   "kind": "army",
+   "label": "Tarchaniotes' detachment"
+  },
+  {
+   "id": "byz-cav",
+   "side": "byz",
+   "kind": "cavalry",
+   "label": "Basilakes' cavalry"
+  },
+  {
+   "id": "byz-left",
+   "side": "byz",
+   "kind": "heavy_cavalry",
+   "label": "Left wing (Bryennios)",
+   "strength": "c. 5,000"
+  },
+  {
+   "id": "byz-centre",
+   "side": "byz",
+   "kind": "heavy_infantry",
+   "label": "Centre (Romanos)",
+   "strength": "c. 6,000"
+  },
+  {
+   "id": "byz-right",
+   "side": "byz",
+   "kind": "heavy_infantry",
+   "label": "Right wing (Alyates)",
+   "strength": "c. 5,000"
+  },
+  {
+   "id": "byz-reserve",
+   "side": "byz",
+   "kind": "infantry",
+   "label": "Reserve (Doukas)",
+   "strength": "c. 4,000"
+  },
+  {
+   "id": "varangians",
+   "side": "byz",
+   "kind": "heavy_infantry",
+   "label": "Varangian Guard"
+  },
+  {
+   "id": "romanos",
+   "side": "byz",
+   "kind": "commander",
+   "label": "Romanos IV"
+  },
+  {
+   "id": "seljuk-host",
+   "side": "sel",
+   "kind": "army",
+   "label": "Seljuk host (hidden)"
+  },
+  {
+   "id": "seljuk-skirm",
+   "side": "sel",
+   "kind": "horse_archers",
+   "label": "Seljuk horse archers"
+  },
+  {
+   "id": "seljuk-centre",
+   "side": "sel",
+   "kind": "horse_archers",
+   "label": "Seljuk centre"
+  },
+  {
+   "id": "seljuk-left",
+   "side": "sel",
+   "kind": "horse_archers",
+   "label": "Seljuk wing (north)"
+  },
+  {
+   "id": "seljuk-right",
+   "side": "sel",
+   "kind": "horse_archers",
+   "label": "Seljuk wing (south)"
+  },
+  {
+   "id": "seljuk-camp",
+   "side": "sel",
+   "kind": "camp",
+   "label": "Alp Arslan's camp"
+  },
+  {
+   "id": "alp-arslan",
+   "side": "sel",
+   "kind": "commander",
+   "label": "Alp Arslan"
+  }
+ ],
+ "terrain": [
+  {
+   "id": "murat",
+   "kind": "river",
+   "label": "Murat river",
+   "line": [
+    [
+     42.5232,
+     39.22864
+    ],
+    [
+     42.527,
+     39.22248
+    ],
+    [
+     42.52404,
+     39.21836
+    ],
+    [
+     42.52877,
+     39.21716
+    ],
+    [
+     42.53036,
+     39.21503
+    ],
+    [
+     42.53002,
+     39.20629
+    ],
+    [
+     42.52623,
+     39.20325
+    ],
+    [
+     42.52016,
+     39.20164
+    ],
+    [
+     42.51773,
+     39.19257
+    ],
+    [
+     42.52479,
+     39.17938
+    ],
+    [
+     42.52409,
+     39.17606
+    ],
+    [
+     42.51849,
+     39.17423
+    ],
+    [
+     42.5181,
+     39.1712
+    ],
+    [
+     42.52413,
+     39.1613
+    ],
+    [
+     42.51498,
+     39.15615
+    ],
+    [
+     42.5083,
+     39.15498
+    ],
+    [
+     42.50118,
+     39.15733
+    ],
+    [
+     42.49229,
+     39.16758
+    ],
+    [
+     42.47722,
+     39.1663
+    ],
+    [
+     42.46911,
+     39.16284
+    ]
+   ]
+  },
+  {
+   "id": "manzikert",
+   "kind": "town",
+   "label": "Manzikert",
+   "at": [
+    42.54095,
+    39.14614
+   ]
+  },
+  {
+   "id": "khliat",
+   "kind": "town",
+   "label": "Khliat (Ahlat)",
+   "at": [
+    42.543385,
+    39.083682
+   ]
+  },
+  {
+   "id": "hills",
+   "kind": "hill",
+   "label": "Hills east of Manzikert",
+   "area": [
+    [
+     42.627923,
+     39.153335
+    ],
+    [
+     42.626935,
+     39.157525
+    ],
+    [
+     42.624039,
+     39.161429
+    ],
+    [
+     42.619431,
+     39.164781
+    ],
+    [
+     42.613427,
+     39.167354
+    ],
+    [
+     42.606434,
+     39.168971
+    ],
+    [
+     42.59893,
+     39.169523
+    ],
+    [
+     42.591426,
+     39.168971
+    ],
+    [
+     42.584433,
+     39.167354
+    ],
+    [
+     42.578429,
+     39.164781
+    ],
+    [
+     42.573821,
+     39.161429
+    ],
+    [
+     42.570925,
+     39.157525
+    ],
+    [
+     42.569937,
+     39.153335
+    ],
+    [
+     42.570925,
+     39.149145
+    ],
+    [
+     42.573821,
+     39.145241
+    ],
+    [
+     42.578429,
+     39.141889
+    ],
+    [
+     42.584433,
+     39.139316
+    ],
+    [
+     42.591426,
+     39.137699
+    ],
+    [
+     42.59893,
+     39.137147
+    ],
+    [
+     42.606434,
+     39.137699
+    ],
+    [
+     42.613427,
+     39.139316
+    ],
+    [
+     42.619431,
+     39.141889
+    ],
+    [
+     42.624039,
+     39.145241
+    ],
+    [
+     42.626935,
+     39.149145
+    ]
+   ],
+   "conjectural": true
+  },
+  {
+   "id": "byz-camp",
+   "kind": "camp",
+   "label": "Byzantine camp",
+   "area": [
+    [
+     42.536312,
+     39.144341
+    ],
+    [
+     42.536114,
+     39.145156
+    ],
+    [
+     42.535535,
+     39.145915
+    ],
+    [
+     42.534614,
+     39.146567
+    ],
+    [
+     42.533413,
+     39.147067
+    ],
+    [
+     42.532015,
+     39.147381
+    ],
+    [
+     42.530514,
+     39.147489
+    ],
+    [
+     42.529013,
+     39.147381
+    ],
+    [
+     42.527615,
+     39.147067
+    ],
+    [
+     42.526414,
+     39.146567
+    ],
+    [
+     42.525493,
+     39.145915
+    ],
+    [
+     42.524914,
+     39.145156
+    ],
+    [
+     42.524716,
+     39.144341
+    ],
+    [
+     42.524914,
+     39.143526
+    ],
+    [
+     42.525493,
+     39.142767
+    ],
+    [
+     42.526414,
+     39.142115
+    ],
+    [
+     42.527615,
+     39.141615
+    ],
+    [
+     42.529013,
+     39.141301
+    ],
+    [
+     42.530514,
+     39.141193
+    ],
+    [
+     42.532015,
+     39.141301
+    ],
+    [
+     42.533413,
+     39.141615
+    ],
+    [
+     42.534614,
+     39.142115
+    ],
+    [
+     42.535535,
+     39.142767
+    ],
+    [
+     42.536114,
+     39.143526
+    ]
+   ],
+   "conjectural": true
+  }
+ ],
+ "steps": [
+  {
+   "id": "march",
+   "title": "The army splits on the march",
+   "time": "June to 22 August 1071",
+   "narrative": "Romanos marched his composite army across Anatolia, resting at Sebasteia and reaching Theodosiopolis in June. Believing Alp Arslan was far off, he turned towards Lake Van to retake Manzikert and the fortress of Khliat. Near the end he divided his force: Joseph Tarchaniotes took part of the regulars, the Varangians and the Pecheneg and Frankish mercenaries towards Khliat, while the emperor went on to Manzikert. What became of Tarchaniotes is unclear, but he never rejoined the field army, which was left far smaller than planned.",
+   "positions": {
+    "byz-army": {
+     "at": [
+      42.436585,
+      39.14614
+     ],
+     "facing": 90,
+     "width": 900,
+     "depth": 500,
+     "shape": "block",
+     "label": "Byzantine main army"
+    },
+    "tarchaniotes": {
+     "at": [
+      42.500364,
+      39.092181
+     ],
+     "facing": 135,
+     "width": 500,
+     "depth": 250,
+     "label": "Tarchaniotes' detachment",
+     "frame": false,
+     "conjectural": true
+    },
+    "seljuk-host": {
+     "at": [
+      42.604728,
+      39.15963
+     ],
+     "facing": 270,
+     "width": 1200,
+     "depth": 500,
+     "label": "Seljuk host (hidden)",
+     "conjectural": true
+    }
+   }
+  },
+  {
+   "id": "manzikert",
+   "title": "Manzikert taken, 23 August",
+   "time": "23 August",
+   "narrative": "Romanos reached Manzikert and took it with little trouble. Alp Arslan, who had been in the area all along with allied horse and Kurdish contingents from the Marwanid emir, knew exactly where the Byzantines were, while the emperor had no idea where the Sultan was. Seljuk horse archers began harassing the camp at once, a first sign of how the fighting would go.",
+   "positions": {
+    "byz-army": {
+     "at": [
+      42.536312,
+      39.14614
+     ],
+     "width": 1500,
+     "depth": 600
+    },
+    "tarchaniotes": {
+     "at": [
+      42.543385,
+      39.083682
+     ]
+    },
+    "seljuk-host": {
+     "at": [
+      42.589654,
+      39.155133
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "byz-army",
+     "type": "advance",
+     "path": [
+      [
+       42.436585,
+       39.14614
+      ],
+      [
+       42.536312,
+       39.14614
+      ]
+     ]
+    },
+    {
+     "unit": "tarchaniotes",
+     "type": "march",
+     "path": [
+      [
+       42.500364,
+       39.092181
+      ],
+      [
+       42.543385,
+       39.083682
+      ]
+     ]
+    },
+    {
+     "unit": "seljuk-host",
+     "type": "advance",
+     "path": [
+      [
+       42.604728,
+       39.15963
+      ],
+      [
+       42.589654,
+       39.155133
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "foragers",
+   "title": "Foragers meet the Seljuk army",
+   "time": "24 August",
+   "narrative": "Foraging parties under Nikephoros Bryennios ran into the main Seljuk force and fell back on Manzikert. Romanos doubted it was the Sultan's whole army and sent the Armenian general Basilakes with cavalry; they were routed and Basilakes was captured. The emperor then drew up his men and sent Bryennios' left wing out, and it was nearly surrounded by the fast Turkish horsemen before it withdrew. At night the Seljuks vanished into the hills, leaving no target for a counter-attack.",
+   "positions": {
+    "byz-cav": {
+     "at": [
+      42.564142,
+      39.154234
+     ],
+     "facing": 90,
+     "width": 500,
+     "depth": 60,
+     "label": "Basilakes' cavalry",
+     "conjectural": true,
+     "state": "engaged"
+    },
+    "seljuk-skirm": {
+     "at": [
+      42.568781,
+      39.154234
+     ],
+     "facing": 270,
+     "width": 1200,
+     "depth": 60,
+     "label": "Seljuk horse archers",
+     "conjectural": true,
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "byz-cav",
+     "type": "attack",
+     "path": [
+      [
+       42.544429,
+       39.151536
+      ],
+      [
+       42.564142,
+       39.154234
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      42.566461,
+      39.154234
+     ],
+     "text": "Basilakes captured",
+     "kind": "capture",
+     "conjectural": true
+    }
+   ]
+  },
+  {
+   "id": "desertion",
+   "title": "Desertions and a refused peace",
+   "time": "25 August",
+   "narrative": "Some of the Turkic mercenaries met their Seljuk kinsmen and went over to them. An envoy came with peace terms, but Romanos refused: he wanted a decisive victory over the Turks to settle the eastern frontier, and he knew a second army would be hard and costly to raise. He tried to recall Tarchaniotes, who was by then out of reach. No fighting took place that day.",
+   "positions": {
+    "byz-cav": {
+     "state": "hidden"
+    },
+    "seljuk-skirm": {
+     "state": "hidden"
+    }
+   }
+  },
+  {
+   "id": "deploy",
+   "title": "The two lines form up",
+   "time": "26 August, morning",
+   "narrative": "On 26 August the Byzantines formed a full line of battle. Bryennios held the left wing, Theodore Alyates the right and the emperor the centre. Andronikos Doukas commanded the reserve in the rear, a placing that later looked reckless given the Doukas family's rivalry with Romanos. About four kilometres off, the Seljuks waited in a crescent. All placements here are reconstructed, since the sources give no compass bearings.",
+   "positions": {
+    "byz-army": {
+     "state": "hidden"
+    },
+    "seljuk-host": {
+     "state": "hidden"
+    },
+    "byz-left": {
+     "at": [
+      42.544429,
+      39.156482
+     ],
+     "facing": 90,
+     "width": 1100,
+     "depth": 120,
+     "label": "Left wing (Bryennios)",
+     "strength_n": 5000
+    },
+    "byz-centre": {
+     "at": [
+      42.544429,
+      39.14614
+     ],
+     "facing": 90,
+     "width": 1100,
+     "depth": 140,
+     "label": "Centre (Romanos)",
+     "strength_n": 6000
+    },
+    "byz-right": {
+     "at": [
+      42.544429,
+      39.135798
+     ],
+     "facing": 90,
+     "width": 1100,
+     "depth": 120,
+     "label": "Right wing (Alyates)",
+     "strength_n": 5000
+    },
+    "byz-reserve": {
+     "at": [
+      42.532833,
+      39.14614
+     ],
+     "facing": 90,
+     "width": 1600,
+     "depth": 120,
+     "label": "Reserve (Doukas)",
+     "strength_n": 4000
+    },
+    "varangians": {
+     "at": [
+      42.54211,
+      39.143892
+     ],
+     "facing": 90,
+     "width": 250,
+     "depth": 60,
+     "label": "Varangian Guard",
+     "conjectural": true
+    },
+    "seljuk-centre": {
+     "at": [
+      42.588494,
+      39.14614
+     ],
+     "facing": 270,
+     "width": 1400,
+     "depth": 100,
+     "shape": "crescent",
+     "label": "Seljuk centre",
+     "conjectural": true
+    },
+    "seljuk-left": {
+     "at": [
+      42.583855,
+      39.163227
+     ],
+     "facing": 250,
+     "width": 1500,
+     "depth": 100,
+     "label": "Seljuk wing (north)",
+     "conjectural": true
+    },
+    "seljuk-right": {
+     "at": [
+      42.583855,
+      39.129053
+     ],
+     "facing": 290,
+     "width": 1500,
+     "depth": 100,
+     "label": "Seljuk wing (south)",
+     "conjectural": true
+    },
+    "seljuk-camp": {
+     "at": [
+      42.633719,
+      39.148838
+     ],
+     "label": "Alp Arslan's camp"
+    },
+    "romanos": {
+     "with": "byz-centre"
+    },
+    "alp-arslan": {
+     "with": "seljuk-centre"
+    }
+   }
+  },
+  {
+   "id": "advance",
+   "title": "Into the arrows",
+   "time": "26 August, midday",
+   "narrative": "The Byzantines marched towards the Seljuk crescent and horse archers shot at them as they closed. The crescent's middle kept drawing back while its wings curled round the flanks. Alp Arslan's men would not stand and fight, so each advance only carried the Byzantines further from their camp and deeper into the arc of fire. The wings, where the arrows fell thickest, were the first to suffer.",
+   "positions": {
+    "byz-left": {
+     "at": [
+      42.561823,
+      39.156482
+     ]
+    },
+    "byz-centre": {
+     "at": [
+      42.561823,
+      39.14614
+     ]
+    },
+    "byz-right": {
+     "at": [
+      42.561823,
+      39.135798
+     ]
+    },
+    "byz-reserve": {
+     "at": [
+      42.550227,
+      39.14614
+     ]
+    },
+    "varangians": {
+     "at": [
+      42.559504,
+      39.143892
+     ]
+    },
+    "seljuk-centre": {
+     "at": [
+      42.60125,
+      39.14614
+     ]
+    },
+    "seljuk-left": {
+     "at": [
+      42.573419,
+      39.165026
+     ],
+     "facing": 200
+    },
+    "seljuk-right": {
+     "at": [
+      42.573419,
+      39.127254
+     ],
+     "facing": 340
+    }
+   },
+   "moves": [
+    {
+     "unit": "byz-left",
+     "type": "advance",
+     "path": [
+      [
+       42.544429,
+       39.156482
+      ],
+      [
+       42.561823,
+       39.156482
+      ]
+     ]
+    },
+    {
+     "unit": "byz-centre",
+     "type": "advance",
+     "path": [
+      [
+       42.544429,
+       39.14614
+      ],
+      [
+       42.561823,
+       39.14614
+      ]
+     ]
+    },
+    {
+     "unit": "byz-right",
+     "type": "advance",
+     "path": [
+      [
+       42.544429,
+       39.135798
+      ],
+      [
+       42.561823,
+       39.135798
+      ]
+     ]
+    },
+    {
+     "unit": "byz-reserve",
+     "type": "advance",
+     "path": [
+      [
+       42.532833,
+       39.14614
+      ],
+      [
+       42.550227,
+       39.14614
+      ]
+     ]
+    },
+    {
+     "unit": "varangians",
+     "type": "advance",
+     "path": [
+      [
+       42.54211,
+       39.143892
+      ],
+      [
+       42.559504,
+       39.143892
+      ]
+     ]
+    },
+    {
+     "unit": "seljuk-centre",
+     "type": "retreat",
+     "path": [
+      [
+       42.588494,
+       39.14614
+      ],
+      [
+       42.60125,
+       39.14614
+      ]
+     ]
+    },
+    {
+     "unit": "seljuk-left",
+     "type": "flank",
+     "path": [
+      [
+       42.583855,
+       39.163227
+      ],
+      [
+       42.573419,
+       39.165026
+      ]
+     ]
+    },
+    {
+     "unit": "seljuk-right",
+     "type": "flank",
+     "path": [
+      [
+       42.583855,
+       39.129053
+      ],
+      [
+       42.573419,
+       39.127254
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "camp",
+   "title": "Alp Arslan's camp is taken",
+   "time": "26 August, afternoon",
+   "narrative": "By late afternoon the Byzantine centre had pushed through to Alp Arslan's camp and captured it. It was an empty prize. Along the wings, units that tried to force the Seljuks into a close fight found the enemy simply riding off, the old steppe habit of giving way and then shooting from a distance. The line was stretched and ragged, and the army had no victory to show for a day of marching.",
+   "positions": {
+    "byz-centre": {
+     "at": [
+      42.616325,
+      39.147039
+     ],
+     "state": "engaged"
+    },
+    "varangians": {
+     "at": [
+      42.614005,
+      39.145241
+     ]
+    },
+    "seljuk-camp": {
+     "state": "captured",
+     "by": "byz"
+    },
+    "byz-left": {
+     "at": [
+      42.579217,
+      39.15873
+     ],
+     "state": "engaged"
+    },
+    "byz-right": {
+     "at": [
+      42.579217,
+      39.13355
+     ],
+     "state": "engaged"
+    },
+    "seljuk-centre": {
+     "at": [
+      42.627921,
+      39.156932
+     ]
+    },
+    "seljuk-left": {
+     "state": "engaged"
+    },
+    "seljuk-right": {
+     "state": "engaged"
+    }
+   },
+   "moves": [
+    {
+     "unit": "byz-centre",
+     "type": "advance",
+     "path": [
+      [
+       42.561823,
+       39.14614
+      ],
+      [
+       42.616325,
+       39.147039
+      ]
+     ]
+    },
+    {
+     "unit": "varangians",
+     "type": "advance",
+     "path": [
+      [
+       42.559504,
+       39.143892
+      ],
+      [
+       42.614005,
+       39.145241
+      ]
+     ]
+    },
+    {
+     "unit": "byz-left",
+     "type": "advance",
+     "path": [
+      [
+       42.561823,
+       39.156482
+      ],
+      [
+       42.579217,
+       39.15873
+      ]
+     ]
+    },
+    {
+     "unit": "byz-right",
+     "type": "advance",
+     "path": [
+      [
+       42.561823,
+       39.135798
+      ],
+      [
+       42.579217,
+       39.13355
+      ]
+     ]
+    },
+    {
+     "unit": "seljuk-centre",
+     "type": "retreat",
+     "path": [
+      [
+       42.60125,
+       39.14614
+      ],
+      [
+       42.627921,
+       39.156932
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "withdraw",
+   "title": "A withdrawal order goes wrong",
+   "time": "26 August, dusk",
+   "narrative": "With nothing gained, Romanos ordered a retreat as evening came. The right wing misread the signal, and Andronikos Doukas, who was meant to cover the withdrawal, ignored it and marched back to the camp by Manzikert, leaving the emperor's force uncovered. Whether this was treachery or confusion is argued, but the army was now in disorder and the Seljuks saw their chance.",
+   "positions": {
+    "byz-reserve": {
+     "at": [
+      42.527035,
+      39.143442
+     ],
+     "facing": 270,
+     "label": "Reserve leaves the field"
+    },
+    "byz-centre": {
+     "at": [
+      42.60125,
+      39.147039
+     ],
+     "facing": 270
+    },
+    "varangians": {
+     "at": [
+      42.59893,
+      39.145241
+     ],
+     "facing": 270
+    },
+    "byz-right": {
+     "at": [
+      42.566461,
+      39.136247
+     ],
+     "facing": 270,
+     "state": "wavering"
+    },
+    "byz-left": {
+     "at": [
+      42.568781,
+      39.156033
+     ],
+     "facing": 270
+    }
+   },
+   "moves": [
+    {
+     "unit": "byz-reserve",
+     "type": "retreat",
+     "path": [
+      [
+       42.550227,
+       39.14614
+      ],
+      [
+       42.527035,
+       39.143442
+      ]
+     ]
+    },
+    {
+     "unit": "byz-centre",
+     "type": "retreat",
+     "path": [
+      [
+       42.616325,
+       39.147039
+      ],
+      [
+       42.60125,
+       39.147039
+      ]
+     ]
+    },
+    {
+     "unit": "varangians",
+     "type": "retreat",
+     "path": [
+      [
+       42.614005,
+       39.145241
+      ],
+      [
+       42.59893,
+       39.145241
+      ]
+     ]
+    },
+    {
+     "unit": "byz-right",
+     "type": "retreat",
+     "path": [
+      [
+       42.579217,
+       39.13355
+      ],
+      [
+       42.566461,
+       39.136247
+      ]
+     ]
+    },
+    {
+     "unit": "byz-left",
+     "type": "retreat",
+     "path": [
+      [
+       42.579217,
+       39.15873
+      ],
+      [
+       42.568781,
+       39.156033
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rout",
+   "title": "The wings collapse",
+   "time": "26 August, evening",
+   "narrative": "The Seljuks turned and attacked. The right wing, believing it had been betrayed by the Armenians or the Turkish auxiliaries, broke almost at once. Accounts disagree about who fled first: some say the Armenians ran, others that Armenian foot stood firm and the Turkish auxiliaries stayed loyal. The left wing under Bryennios resisted a little longer, then gave way as well.",
+   "positions": {
+    "seljuk-centre": {
+     "at": [
+      42.590813,
+      39.14614
+     ],
+     "state": "engaged"
+    },
+    "seljuk-left": {
+     "at": [
+      42.566461,
+      39.15963
+     ],
+     "facing": 250
+    },
+    "seljuk-right": {
+     "at": [
+      42.564142,
+      39.131751
+     ],
+     "facing": 290
+    },
+    "byz-right": {
+     "at": [
+      42.550227,
+      39.13265
+     ],
+     "state": "routed"
+    },
+    "byz-left": {
+     "at": [
+      42.551386,
+      39.15963
+     ],
+     "state": "wavering"
+    }
+   },
+   "moves": [
+    {
+     "unit": "seljuk-centre",
+     "type": "attack",
+     "path": [
+      [
+       42.627921,
+       39.156932
+      ],
+      [
+       42.590813,
+       39.14614
+      ]
+     ]
+    },
+    {
+     "unit": "seljuk-left",
+     "type": "attack",
+     "path": [
+      [
+       42.573419,
+       39.165026
+      ],
+      [
+       42.566461,
+       39.15963
+      ]
+     ]
+    },
+    {
+     "unit": "seljuk-right",
+     "type": "attack",
+     "path": [
+      [
+       42.573419,
+       39.127254
+      ],
+      [
+       42.564142,
+       39.131751
+      ]
+     ]
+    },
+    {
+     "unit": "byz-right",
+     "type": "rout",
+     "path": [
+      [
+       42.566461,
+       39.136247
+      ],
+      [
+       42.550227,
+       39.13265
+      ]
+     ]
+    },
+    {
+     "unit": "byz-left",
+     "type": "retreat",
+     "path": [
+      [
+       42.568781,
+       39.156033
+      ],
+      [
+       42.551386,
+       39.15963
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "encircled",
+   "title": "The emperor is surrounded",
+   "time": "26 August, night",
+   "narrative": "What was left of the centre, including Romanos and the Varangian Guard, was ringed by the Seljuks. The Armenian infantry and the emperor's own household troops took the heaviest losses. Romanos was wounded and captured. Survivors fled in the dark and were chased through the night but not beyond it, and by dawn the professional core of the Byzantine army was destroyed, while many levies under Doukas had already gone.",
+   "positions": {
+    "seljuk-centre": {
+     "at": [
+      42.597771,
+      39.14614
+     ]
+    },
+    "seljuk-left": {
+     "at": [
+      42.594292,
+      39.154234
+     ],
+     "facing": 230
+    },
+    "seljuk-right": {
+     "at": [
+      42.594292,
+      39.138046
+     ],
+     "facing": 310
+    },
+    "byz-centre": {
+     "at": [
+      42.596611,
+      39.147039
+     ],
+     "width": 500,
+     "depth": 250
+    },
+    "varangians": {
+     "state": "engaged"
+    },
+    "byz-left": {
+     "at": [
+      42.536312,
+      39.160529
+     ],
+     "state": "routed"
+    },
+    "byz-right": {
+     "state": "destroyed"
+    }
+   },
+   "moves": [
+    {
+     "unit": "seljuk-left",
+     "type": "flank",
+     "path": [
+      [
+       42.566461,
+       39.15963
+      ],
+      [
+       42.594292,
+       39.154234
+      ]
+     ]
+    },
+    {
+     "unit": "seljuk-right",
+     "type": "flank",
+     "path": [
+      [
+       42.564142,
+       39.131751
+      ],
+      [
+       42.594292,
+       39.138046
+      ]
+     ]
+    },
+    {
+     "unit": "byz-left",
+     "type": "rout",
+     "path": [
+      [
+       42.551386,
+       39.15963
+      ],
+      [
+       42.536312,
+       39.160529
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      42.596611,
+      39.147039
+     ],
+     "text": "Romanos wounded and captured",
+     "kind": "capture"
+    }
+   ]
+  },
+  {
+   "id": "captivity",
+   "title": "The emperor before the Sultan",
+   "time": "27 August and the week after",
+   "narrative": "Romanos was brought before Alp Arslan, who at first could not believe the filthy, bloodied prisoner was the Roman emperor. After a symbolic humiliation he was treated kindly. During a week of captivity the two agreed terms: Antioch, Edessa, Hierapolis and Manzikert were to be given up, with a ransom of 1.5 million gold pieces and 360,000 a year after, plus a marriage alliance. Romanos left with an escort. At home the Doukas faction defeated him, deposed and blinded him, and he died soon afterwards.",
+   "positions": {
+    "seljuk-centre": {
+     "at": [
+      42.59893,
+      39.14614
+     ]
+    },
+    "byz-centre": {
+     "state": "captured",
+     "by": "sel"
+    }
+   }
+  }
+ ]
+}

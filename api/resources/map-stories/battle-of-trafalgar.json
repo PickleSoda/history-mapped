@@ -1,0 +1,1068 @@
+{
+ "schema": 3,
+ "slug": "battle-of-trafalgar",
+ "kind": "naval_battle",
+ "entity": {
+  "name": "Battle of Trafalgar",
+  "wikidata": "Q171416"
+ },
+ "title": "Battle of Trafalgar",
+ "date_label": "21 October 1805",
+ "year": 1805,
+ "intro": "On 21 October 1805, off the Atlantic coast of Spain west of Cadiz and near Cape Trafalgar, a British fleet of twenty-seven ships of the line under Lord Nelson met thirty-three French and Spanish ships under Admiral Villeneuve. The allies had sailed out of Cadiz and were strung out in one long, ragged line. Nelson broke with the usual practice of sailing parallel and exchanging broadsides. He sent two columns straight at the line at right angles, accepting heavy fire on the approach in exchange for a close melee in which his crews' gunnery and seamanship would count. The plan worked. Nelson was shot in the middle of the fight and died that afternoon, but the British took twenty ships and lost none. The result ended any serious French hope of challenging British command of the sea.",
+ "outcome": "British victory: Nelson's two columns split the Franco-Spanish line, and the British took twenty ships and lost none, though Nelson was killed.",
+ "uncertainty": "Exact ship positions, spacing and the order of ships in the allied line are reconstructed (all marked conjectural), as the light wind and smoke make any minute-by-minute plot approximate. Times are those given by the main account, which cites about 12:00, 12:45, 13:55 and 16:30, and the others here are rounded. Fleet blocks stand for groups whose full composition is not shown. The Cadiz sortie and the British line of ten are placed approximately. The wreck and sinking events of the storm are drawn as a general outcome, not ship by ship.",
+ "sources": [
+  {
+   "title": "Battle of Trafalgar - Wikipedia",
+   "url": "https://en.wikipedia.org/wiki/Battle_of_Trafalgar",
+   "kind": "web"
+  }
+ ],
+ "sides": [
+  {
+   "id": "gb",
+   "name": "Britain",
+   "color": "#b91c1c",
+   "polity": {
+    "name": "United Kingdom of Great Britain and Ireland",
+    "wikidata": "Q174193"
+   },
+   "commanders": [
+    {
+     "name": "Horatio Nelson",
+     "wikidata": "Q83235",
+     "role": "commander-in-chief, killed"
+    },
+    {
+     "name": "Cuthbert Collingwood",
+     "wikidata": "Q335267",
+     "role": "second in command, leeward column"
+    }
+   ],
+   "strength": "27 ships of the line, 4 frigates, 1 schooner, 1 cutter",
+   "losses": "458 killed, 1,208 wounded"
+  },
+  {
+   "id": "fs",
+   "name": "France and Spain",
+   "color": "#1e40af",
+   "polity": {
+    "name": "First French Empire",
+    "wikidata": "Q71084"
+   },
+   "contingents": [
+    {
+     "id": "spain",
+     "name": "Spain",
+     "polity": {
+      "name": "Kingdom of Spain",
+      "wikidata": "Q3399982"
+     }
+    }
+   ],
+   "commanders": [
+    {
+     "name": "Pierre-Charles Villeneuve",
+     "wikidata": "Q315255",
+     "role": "combined fleet commander"
+    },
+    {
+     "name": "Federico Gravina",
+     "wikidata": "Q602054",
+     "role": "Spanish admiral, mortally wounded"
+    }
+   ],
+   "strength": "33 ships of the line, 5 frigates, 2 brigs",
+   "losses": "4,395 killed, 2,541 wounded, 7,000-8,000 captured; 17 ships of the line captured, 1 destroyed"
+  }
+ ],
+ "units": [
+  {
+   "id": "weather-column",
+   "side": "gb",
+   "kind": "fleet",
+   "label": "Nelson column"
+  },
+  {
+   "id": "lee-column",
+   "side": "gb",
+   "kind": "fleet",
+   "label": "Collingwood column"
+  },
+  {
+   "id": "victory",
+   "side": "gb",
+   "kind": "warship",
+   "label": "Victory"
+  },
+  {
+   "id": "royal-sovereign",
+   "side": "gb",
+   "kind": "warship",
+   "label": "Royal Sovereign"
+  },
+  {
+   "id": "temeraire",
+   "side": "gb",
+   "kind": "warship",
+   "label": "Temeraire"
+  },
+  {
+   "id": "belleisle",
+   "side": "gb",
+   "kind": "warship",
+   "label": "Belleisle"
+  },
+  {
+   "id": "british-line",
+   "side": "gb",
+   "kind": "fleet",
+   "label": "Collingwood's line of ten"
+  },
+  {
+   "id": "allied-van",
+   "side": "fs",
+   "kind": "fleet",
+   "label": "Allied van (Dumanoir)"
+  },
+  {
+   "id": "trinidad",
+   "side": "fs",
+   "kind": "warship",
+   "label": "Trinidad",
+   "strength": "130 guns"
+  },
+  {
+   "id": "bucentaure",
+   "side": "fs",
+   "kind": "warship",
+   "label": "Bucentaure"
+  },
+  {
+   "id": "redoutable",
+   "side": "fs",
+   "kind": "warship",
+   "label": "Redoutable",
+   "strength": "74 guns"
+  },
+  {
+   "id": "santa-ana",
+   "side": "fs",
+   "kind": "warship",
+   "label": "Santa Ana",
+   "strength": "112 guns"
+  },
+  {
+   "id": "allied-rear",
+   "side": "fs",
+   "kind": "fleet",
+   "label": "Allied rear"
+  },
+  {
+   "id": "sortie",
+   "side": "fs",
+   "kind": "fleet",
+   "label": "Cadiz sortie squadron"
+  }
+ ],
+ "terrain": [
+  {
+   "id": "cape-trafalgar",
+   "kind": "label",
+   "label": "Cabo de Trafalgar",
+   "at": [
+    -6.03413,
+    36.18163
+   ]
+  },
+  {
+   "id": "conil",
+   "kind": "village",
+   "label": "Conil de la Frontera",
+   "at": [
+    -6.08819,
+    36.27705
+   ]
+  },
+  {
+   "id": "cabo-roche",
+   "kind": "label",
+   "label": "Cabo Roche",
+   "at": [
+    -6.12905,
+    36.30546
+   ]
+  },
+  {
+   "id": "barbate",
+   "kind": "town",
+   "label": "Barbate",
+   "at": [
+    -5.91928,
+    36.1924
+   ]
+  },
+  {
+   "id": "vejer",
+   "kind": "town",
+   "label": "Vejer de la Frontera",
+   "at": [
+    -5.96705,
+    36.25194
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "id": "approach",
+   "title": "Two columns against one line",
+   "time": "Dawn to c. 11:00",
+   "narrative": "The Franco-Spanish fleet had left Cadiz and was strung out in a ragged curve heading north, with its van far ahead of its rear. Nelson's twenty-seven ships came up from the west already arranged in two columns, as he had briefed his captains over dinner. He led the northern, windward column in Victory. Collingwood led the southern, leeward one in Royal Sovereign. Nelson intended to hit the line at right angles, split it, and force a close melee in which his better-drilled gunners would tell. Villeneuve guessed something like this was coming, but kept a single line because he doubted his officers could manage more.",
+   "positions": {
+    "allied-van": {
+     "at": [
+      -6.196654,
+      36.284174
+     ],
+     "facing": 270,
+     "width": 2500,
+     "depth": 120,
+     "shape": "line",
+     "conjectural": true
+    },
+    "trinidad": {
+     "at": [
+      -6.2,
+      36.258094
+     ],
+     "facing": 270,
+     "width": 70,
+     "depth": 18,
+     "shape": "block",
+     "conjectural": true
+    },
+    "bucentaure": {
+     "at": [
+      -6.2,
+      36.253148
+     ],
+     "facing": 270,
+     "width": 70,
+     "depth": 18,
+     "shape": "block",
+     "conjectural": true
+    },
+    "redoutable": {
+     "at": [
+      -6.2,
+      36.248651
+     ],
+     "facing": 270,
+     "width": 70,
+     "depth": 18,
+     "shape": "block",
+     "conjectural": true
+    },
+    "santa-ana": {
+     "at": [
+      -6.2,
+      36.233812
+     ],
+     "facing": 270,
+     "width": 70,
+     "depth": 18,
+     "shape": "block",
+     "conjectural": true
+    },
+    "allied-rear": {
+     "at": [
+      -6.203346,
+      36.214027
+     ],
+     "facing": 270,
+     "width": 2800,
+     "depth": 120,
+     "shape": "line",
+     "conjectural": true
+    },
+    "weather-column": {
+     "at": [
+      -6.320438,
+      36.265288
+     ],
+     "facing": 90,
+     "width": 120,
+     "depth": 2600,
+     "shape": "column",
+     "conjectural": true
+    },
+    "victory": {
+     "at": [
+      -6.30148,
+      36.265288
+     ],
+     "facing": 90,
+     "width": 70,
+     "depth": 18,
+     "shape": "block",
+     "conjectural": true
+    },
+    "lee-column": {
+     "at": [
+      -6.320438,
+      36.22302
+     ],
+     "facing": 90,
+     "width": 120,
+     "depth": 2600,
+     "shape": "column",
+     "conjectural": true
+    },
+    "royal-sovereign": {
+     "at": [
+      -6.30148,
+      36.22302
+     ],
+     "facing": 90,
+     "width": 70,
+     "depth": 18,
+     "shape": "block",
+     "conjectural": true
+    },
+    "temeraire": {
+     "at": [
+      -6.310402,
+      36.265288
+     ],
+     "facing": 90,
+     "width": 70,
+     "depth": 18,
+     "shape": "block",
+     "conjectural": true
+    },
+    "belleisle": {
+     "at": [
+      -6.310402,
+      36.22302
+     ],
+     "facing": 90,
+     "width": 70,
+     "depth": 18,
+     "shape": "block",
+     "conjectural": true
+    }
+   }
+  },
+  {
+   "id": "feint",
+   "title": "England expects",
+   "time": "c. 11:45",
+   "narrative": "Light winds meant the British crawled in. Nelson ran up his signal that England expected every man to do his duty, then followed it with the order for close action. His column made a feint toward the allied van before swinging at the real target, the centre near Bucentaure. Collingwood nudged his heading so that the two columns would converge on the line together. For the leading ships the price of this plan was already being paid, because they would have to absorb the allied broadsides for a long stretch before their own guns could answer.",
+   "positions": {
+    "victory": {
+     "at": [
+      -6.257989,
+      36.272483
+     ]
+    },
+    "temeraire": {
+     "at": [
+      -6.26691,
+      36.272483
+     ]
+    },
+    "weather-column": {
+     "at": [
+      -6.289213,
+      36.272483
+     ]
+    },
+    "royal-sovereign": {
+     "at": [
+      -6.257989,
+      36.227517
+     ]
+    },
+    "belleisle": {
+     "at": [
+      -6.26691,
+      36.226618
+     ]
+    },
+    "lee-column": {
+     "at": [
+      -6.289213,
+      36.226618
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "victory",
+     "type": "feint",
+     "path": [
+      [
+       -6.30148,
+       36.265288
+      ],
+      [
+       -6.257989,
+       36.272483
+      ]
+     ]
+    },
+    {
+     "unit": "temeraire",
+     "type": "advance",
+     "path": [
+      [
+       -6.310402,
+       36.265288
+      ],
+      [
+       -6.26691,
+       36.272483
+      ]
+     ]
+    },
+    {
+     "unit": "weather-column",
+     "type": "advance",
+     "path": [
+      [
+       -6.320438,
+       36.265288
+      ],
+      [
+       -6.289213,
+       36.272483
+      ]
+     ]
+    },
+    {
+     "unit": "royal-sovereign",
+     "type": "advance",
+     "path": [
+      [
+       -6.30148,
+       36.22302
+      ],
+      [
+       -6.257989,
+       36.227517
+      ]
+     ]
+    },
+    {
+     "unit": "belleisle",
+     "type": "advance",
+     "path": [
+      [
+       -6.310402,
+       36.22302
+      ],
+      [
+       -6.26691,
+       36.226618
+      ]
+     ]
+    },
+    {
+     "unit": "lee-column",
+     "type": "advance",
+     "path": [
+      [
+       -6.320438,
+       36.22302
+      ],
+      [
+       -6.289213,
+       36.226618
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      -6.280292,
+      36.278778
+     ],
+     "text": "11:45 signal: England expects",
+     "kind": "label"
+    }
+   ]
+  },
+  {
+   "id": "first-shots",
+   "title": "Royal Sovereign outruns the fleet",
+   "time": "c. 12:00",
+   "narrative": "At noon Villeneuve signalled the allied ships to engage and Fougueux fired the first ranging shot at Royal Sovereign. Collingwood's flagship, with a freshly cleaned bottom, had pulled well ahead of the rest of her column. She now came under fire from four allied ships at once. Victory, meanwhile, was swinging back from the feint toward the line, and for some forty minutes she was battered by Heros, Santisima Trinidad, Redoutable and Neptune before she could fire a shot. Her wheel was shot away, so she had to be steered by tiller from below decks.",
+   "positions": {
+    "royal-sovereign": {
+     "at": [
+      -6.217843,
+      36.233363
+     ]
+    },
+    "victory": {
+     "at": [
+      -6.233455,
+      36.259893
+     ]
+    },
+    "temeraire": {
+     "at": [
+      -6.242376,
+      36.259893
+     ]
+    },
+    "weather-column": {
+     "at": [
+      -6.271371,
+      36.261691
+     ]
+    },
+    "belleisle": {
+     "at": [
+      -6.241261,
+      36.227517
+     ]
+    },
+    "lee-column": {
+     "at": [
+      -6.262449,
+      36.228416
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "royal-sovereign",
+     "type": "attack",
+     "path": [
+      [
+       -6.257989,
+       36.227517
+      ],
+      [
+       -6.217843,
+       36.233363
+      ]
+     ]
+    },
+    {
+     "unit": "victory",
+     "type": "advance",
+     "path": [
+      [
+       -6.257989,
+       36.272483
+      ],
+      [
+       -6.233455,
+       36.259893
+      ]
+     ]
+    },
+    {
+     "unit": "temeraire",
+     "type": "advance",
+     "path": [
+      [
+       -6.26691,
+       36.272483
+      ],
+      [
+       -6.242376,
+       36.259893
+      ]
+     ]
+    },
+    {
+     "unit": "weather-column",
+     "type": "advance",
+     "path": [
+      [
+       -6.289213,
+       36.272483
+      ],
+      [
+       -6.271371,
+       36.261691
+      ]
+     ]
+    },
+    {
+     "unit": "belleisle",
+     "type": "advance",
+     "path": [
+      [
+       -6.26691,
+       36.226618
+      ],
+      [
+       -6.241261,
+       36.227517
+      ]
+     ]
+    },
+    {
+     "unit": "lee-column",
+     "type": "advance",
+     "path": [
+      [
+       -6.289213,
+       36.226618
+      ],
+      [
+       -6.262449,
+       36.228416
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      -6.217843,
+      36.238309
+     ],
+     "text": "Fougueux fires first shot",
+     "kind": "event"
+    }
+   ]
+  },
+  {
+   "id": "collingwood-breaks",
+   "title": "The leeward column cuts the rear",
+   "time": "Shortly after noon",
+   "narrative": "Royal Sovereign broke the allied line just astern of the Spanish flagship Santa Ana, firing a double-shotted raking broadside into her stern as she passed. Seeing it, Nelson remarked how nobly Collingwood was taking his ship in. Behind her, Belleisle was jumped by Aigle, Achille, Neptune and Fougueux. She was dismasted and could barely fight, her fallen sails blinding her own batteries, yet she kept her flag flying for three quarters of an hour until the following ships reached her. The fight in the rear was now a crowd of single-ship duels, exactly what the British wanted.",
+   "positions": {
+    "royal-sovereign": {
+     "at": [
+      -6.200892,
+      36.232463
+     ],
+     "state": "engaged"
+    },
+    "santa-ana": {
+     "state": "engaged"
+    },
+    "belleisle": {
+     "at": [
+      -6.210037,
+      36.225718
+     ],
+     "state": "wavering"
+    },
+    "allied-rear": {
+     "state": "engaged"
+    },
+    "lee-column": {
+     "at": [
+      -6.237916,
+      36.225718
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "royal-sovereign",
+     "type": "attack",
+     "path": [
+      [
+       -6.217843,
+       36.233363
+      ],
+      [
+       -6.200892,
+       36.232463
+      ]
+     ]
+    },
+    {
+     "unit": "belleisle",
+     "type": "advance",
+     "path": [
+      [
+       -6.241261,
+       36.227517
+      ],
+      [
+       -6.210037,
+       36.225718
+      ]
+     ]
+    },
+    {
+     "unit": "lee-column",
+     "type": "advance",
+     "path": [
+      [
+       -6.262449,
+       36.228416
+      ],
+      [
+       -6.237916,
+       36.225718
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      -6.210037,
+      36.220322
+     ],
+     "text": "Belleisle dismasted, fights on",
+     "kind": "event"
+    }
+   ]
+  },
+  {
+   "id": "victory-breaks",
+   "title": "Victory cuts the centre",
+   "time": "12:45",
+   "narrative": "At a quarter to one Victory came through the line between Bucentaure and Redoutable. Her guns were loaded with multiple shot and her big carronade with hundreds of musket balls, and she fired a raking broadside through the French flagship's stern. Several hundred of Bucentaure's men were killed or wounded, and she lost her masts. Villeneuve expected to be boarded and held up the ship's eagle, ready to hurl it across. Victory instead turned on Redoutable, and the stricken flagship was left for Temeraire, Neptune, Conqueror and Leviathan to deal with. Allied ships ahead of the break could no longer read their leader's signals.",
+   "positions": {
+    "victory": {
+     "at": [
+      -6.200669,
+      36.250899
+     ],
+     "state": "engaged"
+    },
+    "bucentaure": {
+     "state": "wavering"
+    },
+    "redoutable": {
+     "state": "engaged"
+    },
+    "temeraire": {
+     "at": [
+      -6.216728,
+      36.254497
+     ]
+    },
+    "weather-column": {
+     "at": [
+      -6.246837,
+      36.258094
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "victory",
+     "type": "attack",
+     "path": [
+      [
+       -6.233455,
+       36.259893
+      ],
+      [
+       -6.200669,
+       36.250899
+      ]
+     ]
+    },
+    {
+     "unit": "temeraire",
+     "type": "advance",
+     "path": [
+      [
+       -6.242376,
+       36.259893
+      ],
+      [
+       -6.216728,
+       36.254497
+      ]
+     ]
+    },
+    {
+     "unit": "weather-column",
+     "type": "advance",
+     "path": [
+      [
+       -6.271371,
+       36.261691
+      ],
+      [
+       -6.246837,
+       36.258094
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      -6.207806,
+      36.256295
+     ],
+     "text": "Raking broadside into Bucentaure",
+     "kind": "clash"
+    }
+   ]
+  },
+  {
+   "id": "nelson-falls",
+   "title": "Locked with Redoutable",
+   "time": "c. 13:15",
+   "narrative": "Victory's masts locked with those of Redoutable, whose crew included a strong body of soldiers who gathered to board. A musket ball fired from Redoutable's mizzen top struck Nelson in the shoulder and travelled through his spine. He was carried below and said that they had succeeded and he was dead. Victory's gunners were called up to fight boarders and the ship stopped firing, until French grenades drove them down again. As Redoutable's men prepared to board, Temeraire came up on her starboard bow and swept the exposed French crowd with a carronade.",
+   "positions": {
+    "victory": {
+     "at": [
+      -6.200502,
+      36.249191
+     ]
+    },
+    "temeraire": {
+     "at": [
+      -6.201338,
+      36.246583
+     ],
+     "facing": 30,
+     "state": "engaged"
+    },
+    "weather-column": {
+     "at": [
+      -6.233455,
+      36.253597
+     ]
+    }
+   },
+   "moves": [
+    {
+     "unit": "temeraire",
+     "type": "attack",
+     "path": [
+      [
+       -6.216728,
+       36.254497
+      ],
+      [
+       -6.201338,
+       36.246583
+      ]
+     ]
+    },
+    {
+     "unit": "weather-column",
+     "type": "advance",
+     "path": [
+      [
+       -6.246837,
+       36.258094
+      ],
+      [
+       -6.233455,
+       36.253597
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      -6.203346,
+      36.24973
+     ],
+     "text": "Nelson shot from Redoutable's top",
+     "kind": "death"
+    }
+   ]
+  },
+  {
+   "id": "redoutable-yields",
+   "title": "The centre is overwhelmed",
+   "time": "13:55 onward",
+   "narrative": "At five to two Redoutable's captain, Lucas, himself badly wounded, surrendered with only 99 fit men left of 643. Bucentaure was cut off by Victory and Temeraire and then worked over by Neptune, Leviathan and Conqueror. Santisima Trinidad, the largest ship afloat, was isolated and beaten down, and gave up after about three hours. Further south the same thing was happening around Santa Ana. As more British ships arrived, the allied centre and rear were ground down one ship at a time, while the allied van stood by with little effect.",
+   "positions": {
+    "redoutable": {
+     "state": "captured",
+     "by": "gb"
+    },
+    "bucentaure": {
+     "state": "captured",
+     "by": "gb"
+    },
+    "trinidad": {
+     "state": "captured",
+     "by": "gb"
+    },
+    "santa-ana": {
+     "state": "captured",
+     "by": "gb"
+    },
+    "allied-rear": {
+     "state": "wavering"
+    },
+    "victory": {
+     "state": "ready"
+    },
+    "temeraire": {
+     "state": "ready"
+    },
+    "royal-sovereign": {
+     "state": "ready"
+    }
+   }
+  },
+  {
+   "id": "van-leaves",
+   "title": "Dumanoir sails away",
+   "time": "Late afternoon, 21 October",
+   "narrative": "Rear-Admiral Dumanoir, whose van had hardly been engaged, tried to come back to help the collapsing centre. He could not fight his way through and broke off with four ships, Formidable, Scipion, Duguay-Trouin and Mont Blanc. He first steered for the Straits of Gibraltar, later changed course, and was caught and captured on 4 November at Cape Ortegal. Gravina was wounded and handed on the survivors, and only eleven allied ships reached Cadiz. Nelson died at half past four, three hours after being hit, having first ordered the fleet to anchor because a storm was expected. The British took twenty ships and lost none.",
+   "positions": {
+    "allied-van": {
+     "at": [
+      -6.142011,
+      36.271584
+     ],
+     "facing": 90,
+     "width": 900,
+     "label": "Dumanoir's four ships"
+    },
+    "allied-rear": {
+     "state": "routed"
+    }
+   },
+   "moves": [
+    {
+     "unit": "allied-van",
+     "type": "retreat",
+     "path": [
+      [
+       -6.196654,
+       36.284174
+      ],
+      [
+       -6.142011,
+       36.271584
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      -6.194424,
+      36.255396
+     ],
+     "text": "Nelson dies, c. 16:30",
+     "kind": "death"
+    },
+    {
+     "at": [
+      -6.142011,
+      36.280577
+     ],
+     "text": "Van bound for the Straits",
+     "kind": "label"
+    }
+   ]
+  },
+  {
+   "id": "storm",
+   "title": "The storm",
+   "time": "22 October",
+   "narrative": "The gale Nelson had foreseen arrived as the fleets, scattered and crippled, were still near the coast. Many damaged ships sank, ran aground on the shoals or were wrecked. Achille had already exploded, Redoutable sank, and the British scuttled Santisima Trinidad and Argonauta. Intrepide and San Agustin burned, while Aigle, Berwick, Fougueux and Monarca were wrecked in the gale. Some prizes were retaken, either by their own prisoners rising against the small British prize crews or by ships coming out from Cadiz. Collingwood's captains fought to keep their own battered ships and their prizes off the lee shore.",
+   "positions": {
+    "bucentaure": {
+     "state": "sunk"
+    },
+    "redoutable": {
+     "state": "sunk"
+    },
+    "trinidad": {
+     "state": "sunk"
+    },
+    "lee-column": {
+     "at": [
+      -6.244607,
+      36.215826
+     ],
+     "state": "wavering"
+    },
+    "weather-column": {
+     "at": [
+      -6.239031,
+      36.257195
+     ],
+     "state": "wavering"
+    }
+   }
+  },
+  {
+   "id": "sortie",
+   "title": "The sortie from Cadiz",
+   "time": "23 October",
+   "narrative": "With Gravina badly wounded, Commodore Cosmao took charge in Cadiz. From the harbour the allied officers could see the prizes scattered to leeward, and a rescue seemed possible. Pluton, Neptune, Indomptable, the Spanish Rayo and San Francisco de Asis, five frigates and two brigs sailed out. The wind veered west-southwest and raised a heavy sea, and many prizes broke their tow lines. Collingwood told his best ships to cast off their prizes and formed a line of ten by three o'clock. The allied squadron would not close, but in the confusion French frigates retook Santa Ana and Neptuno, whose Spanish crews rose against their prize crews.",
+   "positions": {
+    "sortie": {
+     "at": [
+      -6.272486,
+      36.335435
+     ],
+     "facing": 190,
+     "width": 1800,
+     "depth": 120,
+     "shape": "line",
+     "conjectural": true,
+     "label": "Cosmao's sortie from Cadiz"
+    },
+    "british-line": {
+     "at": [
+      -6.255758,
+      36.285973
+     ],
+     "facing": 0,
+     "width": 3000,
+     "depth": 120,
+     "shape": "line",
+     "conjectural": true,
+     "label": "Collingwood's line of ten"
+    },
+    "santa-ana": {
+     "at": [
+      -6.244607,
+      36.218524
+     ],
+     "state": "ready",
+     "facing": 0
+    }
+   },
+   "moves": [
+    {
+     "unit": "santa-ana",
+     "type": "retreat",
+     "path": [
+      [
+       -6.2,
+       36.233812
+      ],
+      [
+       -6.244607,
+       36.218524
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "at": [
+      -6.244607,
+      36.22392
+     ],
+     "text": "Santa Ana retaken by French frigates",
+     "kind": "event"
+    }
+   ]
+  }
+ ]
+}
