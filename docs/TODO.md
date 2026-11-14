@@ -73,8 +73,8 @@
   slug) and keeps showing drafts, since every import starts as one. The admin still lists all three.
 - [x] **Stop exposing internal entity attributes.** `EntityResource` now leaves out `_`-prefixed keys
   and `validation_flags`. `confidence_notes` stays: the entity page shows it.
-- [ ] **Rate-limit the public API.** `throttleApi()` is not configured; only `POST /contributions` is
-  throttled.
+- [x] **Rate-limit the public API.** `throttleApi()` now applies the `api` limiter: `API_RATE_LIMIT`
+  (default 600) requests a minute per user, else per IP. Vector tiles stay outside it.
 - [ ] **Exclude the `agent_*` tables from the content dump.** AI conversations and proposals are not in
   the `--exclude-table-data` list in `content-data-transfer.md`, so local chats ship to prod.
 - [ ] **Align the agent's relation types.** `extract_candidates.py` offers `allied_with`, `trades_with`,

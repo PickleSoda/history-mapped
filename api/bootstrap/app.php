@@ -31,6 +31,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
 
         $middleware->statefulApi();
+        // The `api` limiter (AppServiceProvider): API_RATE_LIMIT requests a minute.
+        $middleware->throttleApi();
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         // spatie/laravel-permission middleware aliases (used to gate write routes).

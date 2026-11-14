@@ -73,6 +73,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | API Rate Limit
+    |--------------------------------------------------------------------------
+    |
+    | Requests per minute to /api, per signed-in user or else per client IP
+    | (the `api` limiter in AppServiceProvider). Generous: scrubbing the
+    | timeline and panning the map refetch freely. Vector tiles are outside.
+    |
+    */
+
+    'api_rate_limit' => (int) env('API_RATE_LIMIT', 600),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------
     |

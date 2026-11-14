@@ -31,10 +31,13 @@ use Carbon\CarbonImmutable;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -54,6 +57,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // /api: per user when signed in, else per client IP (bootstrap/app.php: throttleApi()).
+        RateLimiter::for('api', fn (Request $request) => Limit::perMinute((int) config('app.api_rate_limit'))
+            ->by($request->user()?->getAuthIdentifier() ?? $request->ip()));
+
         GeometryPeriod::observe(GeometryPeriodObserver::class);
         EntityTemporalRange::observe(EntityTemporalRangeObserver::class);
         EntityRelationship::observe(EntityRelationshipObserver::class);

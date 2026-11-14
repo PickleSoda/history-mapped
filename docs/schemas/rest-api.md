@@ -19,7 +19,7 @@ endpoint group, its parameters and the conventions they share. Request validatio
 | Lists | `per_page` (1–100, default per endpoint) and `page` |
 | Array parameters | `types[]=a&types[]=b`. `tags` also accepts a comma-separated string |
 | Caching | Map endpoints send an `ETag` and `max-age=60`. Tags and collections send `max-age=300`. Reference tables are cached for 24 hours on the server |
-| Rate limits | Contributions: 10 per minute. Sign-in: 5 per minute per e-mail and IP |
+| Rate limits | Every `/api` route: 600 requests a minute per signed-in user, else per client IP (`API_RATE_LIMIT`); past it, 429 with `Retry-After`. Contributions: 10 per minute. Sign-in: 5 per minute per e-mail and IP. Vector tiles are not limited |
 | Generated docs | Scramble serves an OpenAPI UI at `/docs/api` (JSON at `/docs/api.json`) on the API host. It is open to admins, or to everyone when `SCRAMBLE_DOCS_PUBLIC=true` |
 
 ## Endpoint map
