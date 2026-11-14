@@ -19,4 +19,15 @@ describe('ohmDateRange', () => {
     expect(range?.startDecimalDate).toBeCloseTo(1000.0, 5);
     expect(range?.endDecimalDate).toBeCloseTo(1101.0, 5);
   });
+
+  // Date.UTC reads years 0–99 as 1900–1999; the bounds must not.
+  it('spans the right year in the first century', () => {
+    for (const year of [1, 50, 98, 99]) {
+      const range = ohmDateRange(String(year).padStart(4, '0'));
+
+      expect(range?.startDecimalDate).toBeCloseTo(year, 5);
+      expect(range?.endDecimalDate).toBeCloseTo(year + 1, 5);
+    }
+    expect(ohmDateRange('0050-07')?.startDecimalDate).toBeCloseTo(50 + 181 / 365, 5);
+  });
 });

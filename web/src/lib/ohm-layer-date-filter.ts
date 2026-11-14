@@ -154,8 +154,9 @@ function dateRangeFromDate(date: Date | string | null): DateRange | null {
 
 function toDecimalYear(date: Date): number {
     const year = date.getUTCFullYear();
-    const startOfYear = Date.UTC(year, 0, 1);
-    const startOfNextYear = Date.UTC(year + 1, 0, 1);
+    // Not Date.UTC(year, 0, 1): it reads years 0–99 as 1900–1999.
+    const startOfYear = dateFromUTC(year, 0, 1).getTime();
+    const startOfNextYear = dateFromUTC(year + 1, 0, 1).getTime();
     const elapsedMs = date.getTime() - startOfYear;
     const yearLengthMs = startOfNextYear - startOfYear;
 
