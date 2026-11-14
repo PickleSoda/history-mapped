@@ -38,7 +38,7 @@ class ChronicleController extends Controller
             'per_page' => $request->integer('per_page', 20),
         ];
 
-        $chronicles = $listChronicles($filters);
+        $chronicles = $listChronicles($filters, includeArchived: true);
 
         return Inertia::render('chronicles/index', [
             'chronicles' => [

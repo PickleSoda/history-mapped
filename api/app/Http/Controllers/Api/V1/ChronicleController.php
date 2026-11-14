@@ -29,6 +29,7 @@ class ChronicleController extends Controller
             'tags',
         ])
             ->where('slug', $slug)
+            ->notArchived()
             ->firstOrFail();
 
         return (new ChronicleResource($chronicle))->response();

@@ -52,6 +52,19 @@ class TagApiTest extends TestCase
         $this->assertSame('prehistory', $res->json('data.0.slug'));
     }
 
+    public function test_archived_chronicles_do_not_count_toward_a_tag(): void
+    {
+        $this->chronicle('Tang China', ['china']);
+        $this->chronicle('Old Tang draft', ['china', 'Retired Topic'])->update(['status' => 'archived']);
+
+        $tags = collect($this->getJson('/api/v1/tags')->assertOk()->json('data'))->keyBy('slug');
+
+        $this->assertSame(1, $tags['china']['chronicle_count']);
+        // A topic only an archived chronicle uses counts as unused.
+        $this->assertDatabaseHas('chronicle_tags', ['tag' => 'retired-topic']);
+        $this->assertFalse($tags->has('retired-topic'));
+    }
+
     public function test_chronicle_tag_filter_is_and_across_facets_or_within_a_facet(): void
     {
         $this->chronicle('Song China', ['china', 'medieval', 'regional']);

@@ -178,4 +178,21 @@ class CollectionApiTest extends TestCase
         $rome->delete();
         $this->getJson('/api/v1/collections/the-roman-world')->assertOk()->assertJsonPath('data.cover', null);
     }
+
+    public function test_an_archived_chronicle_is_dropped_from_a_collection(): void
+    {
+        Chronicle::factory()->create(['slug' => 'kept']);
+        Chronicle::factory()->archived()->create(['slug' => 'retired']);
+        $this->collection('wars', [
+            'items' => [
+                ['kind' => 'chronicle', 'ref' => 'kept'],
+                ['kind' => 'chronicle', 'ref' => 'retired'],
+            ],
+        ]);
+
+        $this->getJson('/api/v1/collections/wars')
+            ->assertOk()
+            ->assertJsonPath('data.items_by_kind.chronicle', 1)
+            ->assertJsonPath('data.items.*.chronicle.slug', ['kept']);
+    }
 }

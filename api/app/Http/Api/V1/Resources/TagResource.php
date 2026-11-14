@@ -5,17 +5,32 @@ declare(strict_types=1);
 namespace App\Http\Api\V1\Resources;
 
 use App\Models\Tag;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * A tag as GET /tags lists it (and a curated collection embeds it). Load the
- * usage counts first: `withCount(['chronicles', 'entities'])`.
+ * usage counts first: `withCount(TagResource::counts())`.
  *
  * @mixin Tag
  */
 class TagResource extends JsonResource
 {
+    /**
+     * The usage counts row() reads. Archived chronicles are hidden from the
+     * public site, so they don't count.
+     *
+     * @return array<int|string, mixed>
+     */
+    public static function counts(): array
+    {
+        return [
+            'chronicles' => fn (Builder $query) => $query->notArchived(),
+            'entities',
+        ];
+    }
+
     /** @return array<string, mixed> */
     public function toArray(Request $request): array
     {

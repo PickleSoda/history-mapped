@@ -19,7 +19,7 @@ class ChronicleGraphController extends Controller
      */
     public function show(string $slug, ChronicleGraphRequest $request, GetChronicleGraphAction $action): JsonResponse
     {
-        $chronicle = Chronicle::query()->where('slug', $slug)->firstOrFail();
+        $chronicle = Chronicle::query()->where('slug', $slug)->notArchived()->firstOrFail();
 
         return response()->json(['data' => $action($chronicle, $request->validated())]);
     }

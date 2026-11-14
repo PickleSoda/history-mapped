@@ -12,6 +12,9 @@ class ListChroniclesAction
     /**
      * List chronicles with optional search, status and tag filters.
      *
+     * Archived chronicles are left out unless `$includeArchived` is set (the
+     * admin index sets it; the public API does not).
+     *
      * `search` matches the title, the slug, or the name of a tag the chronicle
      * carries ("bronze" finds every Bronze Age chronicle). `tags` filters by
      * slug: AND across facets, OR within a facet (see Tag::filterGroups()).
@@ -19,9 +22,13 @@ class ListChroniclesAction
      * @param  array{search?: string|null, status?: string|null, tags?: list<string>|null, sort?: string|null, page?: int, per_page?: int}  $filters
      * @return LengthAwarePaginator<Chronicle>
      */
-    public function __invoke(array $filters = []): LengthAwarePaginator
+    public function __invoke(array $filters = [], bool $includeArchived = false): LengthAwarePaginator
     {
         $query = Chronicle::query()->withCount('entries')->with('tags');
+
+        if (! $includeArchived) {
+            $query->notArchived();
+        }
 
         if (! empty($filters['search'])) {
             $search = '%'.$filters['search'].'%';

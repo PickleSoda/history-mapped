@@ -74,6 +74,17 @@ class MapStoryIndexApiTest extends TestCase
             ->assertJsonMissingPath('data.0.document');
     }
 
+    public function test_a_story_does_not_link_to_an_archived_chronicle(): void
+    {
+        $chronicle = Chronicle::factory()->archived()->create(['slug' => 'retired']);
+        $this->story('retired-story', 'epidemic', 'A retired story', 1347, ['chronicle_id' => $chronicle->chronicle_id]);
+
+        $this->getJson('/api/v1/map-stories')
+            ->assertOk()
+            ->assertJsonPath('data.0.slug', 'retired-story')
+            ->assertJsonPath('data.0.chronicle', null);
+    }
+
     public function test_index_filters_by_one_or_several_kinds(): void
     {
         $this->story('battle-a', 'battle', 'A', 100);

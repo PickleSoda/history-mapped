@@ -6,9 +6,11 @@ namespace Tests\Feature\Api;
 
 use App\Models\Chronicle;
 use App\Models\ChronicleEntry;
+use App\Models\Entity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class ChronicleApiTest extends TestCase
@@ -313,5 +315,51 @@ class ChronicleApiTest extends TestCase
         $this->getJson(route('api.v1.chronicles.show', $chronicle->slug))
             ->assertOk()
             ->assertJsonPath('data.entries.0.timestamp', '1121-08-12');
+    }
+
+    public function test_archived_chronicles_are_left_out_of_the_public_api(): void
+    {
+        Chronicle::factory()->create(['slug' => 'a-draft']);
+        Chronicle::factory()->published()->create(['slug' => 'a-published']);
+        Chronicle::factory()->archived()->create(['slug' => 'an-archived']);
+
+        $slugs = collect($this->getJson('/api/v1/chronicles')->assertOk()->json('data'))
+            ->pluck('slug')->sort()->values()->all();
+        $this->assertSame(['a-draft', 'a-published'], $slugs);
+
+        // Asking for the status does not bring them back.
+        $this->getJson('/api/v1/chronicles?status=archived')->assertOk()->assertJsonCount(0, 'data');
+
+        $this->getJson('/api/v1/chronicles/a-draft')->assertOk();
+        $this->getJson('/api/v1/chronicles/an-archived')->assertNotFound();
+        $this->getJson('/api/v1/chronicles/an-archived/graph')->assertNotFound();
+    }
+
+    public function test_an_entitys_chronicles_leave_out_archived_ones(): void
+    {
+        $entity = Entity::factory()->create();
+        foreach (['kept' => 'draft', 'retired' => 'archived'] as $slug => $status) {
+            $chronicle = Chronicle::factory()->create(['slug' => $slug, 'status' => $status]);
+            $entry = ChronicleEntry::factory()->create(['chronicle_id' => $chronicle->chronicle_id]);
+            DB::table('chronicle_entry_entities')->insert([
+                'entry_id' => $entry->entry_id,
+                'entity_id' => $entity->entity_id,
+            ]);
+        }
+
+        $this->getJson("/api/v1/entities/{$entity->entity_id}/chronicles")
+            ->assertOk()
+            ->assertJsonPath('data.*.slug', ['kept']);
+    }
+
+    public function test_the_admin_index_still_lists_archived_chronicles(): void
+    {
+        Chronicle::factory()->create(['slug' => 'a-draft']);
+        Chronicle::factory()->archived()->create(['slug' => 'an-archived']);
+
+        $this->actingAs($this->userWithRole('admin'))
+            ->get(route('chronicles.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->has('chronicles.data', 2));
     }
 }

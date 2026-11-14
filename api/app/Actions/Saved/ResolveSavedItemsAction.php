@@ -15,8 +15,8 @@ use Illuminate\Support\Str;
 /**
  * Load the summary card of every starred target in one query per type.
  *
- * Returns `"{type}:{id}" => summary`; a star whose target has been deleted has
- * no key (the resource renders `item: null`).
+ * Returns `"{type}:{id}" => summary`; a star whose target has been deleted (or,
+ * for a chronicle, archived) has no key (the resource renders `item: null`).
  */
 class ResolveSavedItemsAction
 {
@@ -73,6 +73,7 @@ class ResolveSavedItemsAction
     {
         return Chronicle::query()
             ->whereKey($ids)
+            ->notArchived()
             ->withCount('entries')
             ->get(['chronicle_id', 'slug', 'title', 'start_year', 'end_year'])
             ->mapWithKeys(fn (Chronicle $c) => [$c->chronicle_id => [

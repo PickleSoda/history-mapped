@@ -60,6 +60,18 @@ class Chronicle extends Model
     }
 
     /**
+     * Chronicles the public site shows: everything but `archived`. Drafts stay
+     * visible, since every imported chronicle starts as one; archiving is how an
+     * editor retires a chronicle.
+     *
+     * @param  Builder<Chronicle>  $query
+     */
+    public function scopeNotArchived(Builder $query): void
+    {
+        $query->where('chronicles.status', '!=', ChronicleStatus::Archived->value);
+    }
+
+    /**
      * Only chronicles carrying the given tags (see Tag::filterGroups()).
      *
      * @param  Builder<Chronicle>  $query

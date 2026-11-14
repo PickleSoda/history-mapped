@@ -23,7 +23,7 @@ class TagController extends Controller
     {
         $tags = Tag::query()
             ->ordered()
-            ->withCount(['chronicles', 'entities'])
+            ->withCount(TagResource::counts())
             ->get()
             ->reject(fn (Tag $t): bool => $t->facet === TagFacet::Topic
                 && $t->chronicles_count === 0 && $t->entities_count === 0);

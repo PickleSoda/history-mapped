@@ -25,12 +25,24 @@ class ChronicleFactory extends Factory
             'slug' => $this->faker->slug(),
             'source_type' => $this->faker->randomElement(SourceType::cases()),
             'source_reference' => $this->faker->word(),
-            'status' => $this->faker->randomElement(ChronicleStatus::cases()),
+            // Every imported chronicle starts as a draft. A random status would
+            // make public listings flaky now that archived ones are hidden.
+            'status' => ChronicleStatus::Draft->value,
             'start_year' => $startYear,
             'end_year' => $endYear,
             'impact_score' => $this->faker->numberBetween(1, 10),
             'approximate_location' => ['lat' => $this->faker->latitude(), 'lng' => $this->faker->longitude()],
             'metadata' => [],
         ];
+    }
+
+    public function published(): static
+    {
+        return $this->state(['status' => ChronicleStatus::Published->value]);
+    }
+
+    public function archived(): static
+    {
+        return $this->state(['status' => ChronicleStatus::Archived->value]);
     }
 }

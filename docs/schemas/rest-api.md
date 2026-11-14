@@ -90,6 +90,10 @@ The public web app uses vector tiles instead of `entities/map` on the hosted sit
 | `GET /chronicles/{slug}` | The chronicle with its ordered entries, each entry's primary relationship and entities, and its map story if it has one |
 | `GET /chronicles/{slug}/graph` | The chronicle as a graph, with per-step membership. `external`, `external_limit` (≤ 100), `relationship_types` |
 
+Archived chronicles are hidden everywhere in the public API: the list (even with `status=archived`),
+an entity's chronicles, tag counts, collections, stars and map-story links. Their slugs answer 404.
+Drafts are listed like published chronicles.
+
 ## Map stories, collections, tags, reference data
 
 | Endpoint | Purpose |

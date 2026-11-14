@@ -94,7 +94,7 @@ Both endpoints are public, return `Cache-Control: public, max-age=300`, and only
 ```
 
 Ordered by `sort_order`, then `title`. `cover` resolves `cover_ref` like an entity item (one query for all covers). The
-counts include only items that currently resolve (one existence query per kind for the whole list).
+counts include only items that currently resolve, so not an archived chronicle (one existence query per kind for the whole list).
 
 ### `GET /api/v1/collections/{slug}`
 

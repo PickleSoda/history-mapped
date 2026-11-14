@@ -89,7 +89,7 @@ loads the vocabulary only.
 ## API
 
 - `GET /api/v1/tags`: the vocabulary in display order, with `parent`, and
-  `chronicle_count`/`entity_count`. Unused topic tags are omitted. Cached for
+  `chronicle_count`/`entity_count` (archived chronicles don't count). Unused topic tags are omitted. Cached for
   5 minutes.
 - `GET /api/v1/chronicles?search=&tags[]=&sort=chronological|recent|title|impact`:
   `tags` also accepts a comma-separated string. `search` matches titles, slugs

@@ -207,10 +207,10 @@ class ResolveCollectionItemsAction
             return [];
         }
         if (! $full) {
-            return Chronicle::query()->whereIn('slug', $slugs)->pluck('slug')->flip()->map(fn () => true)->all();
+            return Chronicle::query()->whereIn('slug', $slugs)->notArchived()->pluck('slug')->flip()->map(fn () => true)->all();
         }
 
-        $chronicles = Chronicle::query()->whereIn('slug', $slugs)->withCount('entries')->with('tags')->get();
+        $chronicles = Chronicle::query()->whereIn('slug', $slugs)->notArchived()->withCount('entries')->with('tags')->get();
 
         return collect(ChronicleResource::collection($chronicles)->resolve())->keyBy('slug')->all();
     }
@@ -252,7 +252,7 @@ class ResolveCollectionItemsAction
 
         return Tag::query()
             ->whereIn('slug', $slugs)
-            ->withCount(['chronicles', 'entities'])
+            ->withCount(TagResource::counts())
             ->get()
             ->mapWithKeys(fn (Tag $t) => [$t->slug => TagResource::row($t)])
             ->all();

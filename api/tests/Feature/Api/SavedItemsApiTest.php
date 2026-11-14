@@ -120,6 +120,15 @@ class SavedItemsApiTest extends TestCase
         $this->getJson('/api/v1/me/stars')->assertOk()->assertJsonPath('data.0.item', null);
     }
 
+    public function test_an_archived_chronicle_leaves_a_dangling_star(): void
+    {
+        $chronicle = Chronicle::factory()->create();
+        $this->actingAs($this->user)->postJson('/api/v1/me/stars', ['type' => 'chronicle', 'id' => $chronicle->chronicle_id]);
+        $chronicle->update(['status' => 'archived']);
+
+        $this->getJson('/api/v1/me/stars')->assertOk()->assertJsonPath('data.0.item', null);
+    }
+
     public function test_unstarring_removes_the_item_from_every_folder(): void
     {
         $entity = Entity::factory()->create();

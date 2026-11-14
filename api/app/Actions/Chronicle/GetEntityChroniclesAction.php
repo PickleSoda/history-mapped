@@ -23,6 +23,7 @@ class GetEntityChroniclesAction
     public function __invoke(string $entityId): Collection
     {
         return Chronicle::query()
+            ->notArchived()
             ->whereHas('entries', function ($entry) use ($entityId): void {
                 $entry->whereHas('primaryRelationship', function ($rel) use ($entityId): void {
                     $rel->where(function ($w) use ($entityId): void {

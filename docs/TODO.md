@@ -65,9 +65,9 @@
 - [x] **API entity writes skip the `entities.verify` check.** Fixed: the admin form and
   `POST`/`PUT /api/v1/entities` share `GuardsVerificationStatus`, so setting a status other than the
   stored one (or, on create, other than `pipeline_draft`) needs `entities.verify`.
-- [ ] **Decide what chronicle `status` means in public.** `GET /api/v1/chronicles` and `/chronicles/{slug}`
-  ignore status unless asked, so drafts and archived chronicles are listed and shown. The agent creates
-  every chronicle as `draft`.
+- [x] **Decide what chronicle `status` means in public.** Decided: the public API hides `archived`
+  chronicles (lists, an entity's chronicles, tag counts, collections, stars and map-story links; 404 by
+  slug) and keeps showing drafts, since every import starts as one. The admin still lists all three.
 - [ ] **Stop exposing internal entity attributes.** `EntityResource` returns the whole `attributes` JSON,
   including `_media_curated_at`, `validation_flags` and `confidence_notes`.
 - [ ] **Rate-limit the public API.** `throttleApi()` is not configured; only `POST /contributions` is

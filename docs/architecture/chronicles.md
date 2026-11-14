@@ -65,7 +65,7 @@ classDiagram
 | **Entry entities** | Every entity the step touches, each with a role: `participant`, `mentioned`, `location` or `outcome` |
 | **Tags** | Era, region, theme and type facets. See [Tags](tags.md) |
 | **Map layer** | Optionally, a [map story](map-stories.md) that draws extra detail for each step |
-| **Status and source** | `status` is `draft`, `published` or `archived`. `source_type` records where the text came from: `video_transcript`, `article`, `book_excerpt` or `manual` |
+| **Status and source** | `status` is `draft`, `published` or `archived`. Imports start as `draft` (not yet reviewed by a person). The public site shows drafts and published chronicles and hides archived ones; the admin lists all three. `source_type` records where the text came from: `video_transcript`, `article`, `book_excerpt` or `manual` |
 
 Events are ordinary entities. An event "belongs" to a chronicle when it is an end of an entry's
 primary relationship or one of the entry's entities.
@@ -180,9 +180,6 @@ sequenceDiagram
 
 ## Known gaps
 
-- **Status is not enforced.** The public endpoints list and show chronicles in every status, and
-  the agent creates them as `draft`. So `draft` currently means "not yet reviewed by a person", not
-  "hidden".
 - The atlas player frames each step but does not animate between steps.
 
 ## Where next
