@@ -98,7 +98,7 @@ flowchart TB
 | Images | `api` (`docker/api/Dockerfile.prod`: PHP extensions, Composer without dev packages, the admin build, FrankenPHP runtime) and `web` (`docker/web/Dockerfile.prod`: the SPA plus the `docs/` markdown, built with the `VITE_*` repository variables) |
 | Build gate | The web image is not built unless the `VITE_API_URL` repository variable is set |
 | Docs | The `/docs` pages are compiled into the web image, so a docs change goes live with the next deploy |
-| Tests not in CI | The web Vitest suite and the Python pipeline tests run locally only |
+| Tests not in CI | The Python pipeline tests run locally only |
 | Rollback | Re-run `web-dist` and `up -d` with the previous image tags. Migrations are not rolled back |
 
 ## What runs when

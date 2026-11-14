@@ -325,8 +325,7 @@ content/docs/   the docs manifest
   `docker/web/Dockerfile.prod`; see [Deployment and operations](deployment.md).
 - Vitest with jsdom runs `src/**/*.test.ts`: 38 files, mostly pure logic in `lib/` (map-story
   geometry, graph model, scope snapping, docs, URL rules). The map, shells and players have no tests.
-- CI runs the web lint, type check and build, but not the web Vitest suite. Run `pnpm test` in
-  `web/` yourself.
+- CI runs the web lint, type check, Vitest suite and build (`pnpm test` in `web/` locally).
 
 ## Where next
 
