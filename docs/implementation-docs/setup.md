@@ -41,6 +41,7 @@ git clone https://github.com/PickleSoda/history-mapped.git && cd history-mapped
 cp api/.env.example api/.env
 cp web/.env.example web/.env
 cp pipeline/.env.example pipeline/.env      # only if you will run the pipeline
+cp docker/.env.example docker/.env          # only to change host ports
 
 # 2. Start everything (installs PHP and JS dependencies on the first run)
 pnpm dev                                     # = docker compose -f docker/docker-compose.yml up

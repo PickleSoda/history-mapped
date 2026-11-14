@@ -63,8 +63,8 @@
   content loader takes before a full replace.
 - [x] **Retire or fix the App Platform path.** Retired: `.do/app.yaml` and CI's `deploy` job are gone,
   and the runbook covers the droplet only.
-- [ ] **Make the dev port overrides work from the documented place.** Compose reads `docker/.env`, but
-  the root `.env.example` suggests a root `.env`.
+- [x] **Make the dev port overrides work from the documented place.** The template is now
+  `docker/.env.example`, beside the compose file whose `.env` Compose reads.
 - [x] **API entity writes skip the `entities.verify` check.** Fixed: the admin form and
   `POST`/`PUT /api/v1/entities` share `GuardsVerificationStatus`, so setting a status other than the
   stored one (or, on create, other than `pipeline_draft`) needs `entities.verify`.

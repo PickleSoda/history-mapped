@@ -174,7 +174,7 @@ For larger imports, replace the final step with `--skip-resolve`, then run one r
 
 ## Environment Variables
 
-Docker Compose defaults are defined in `docker/docker-compose.yml`. Override them in `docker/.env` (Compose reads the `.env` beside the compose file, not one at the repository root) or with exported environment variables.
+Docker Compose defaults are defined in `docker/docker-compose.yml`. Override them in `docker/.env` (template: `docker/.env.example`; Compose reads the `.env` beside the compose file, not one at the repository root) or with exported environment variables.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
@@ -184,6 +184,7 @@ Docker Compose defaults are defined in `docker/docker-compose.yml`. Override the
 | `FORWARD_DB_PORT` | `5432` | PostgreSQL port |
 | `FORWARD_REDIS_PORT` | `6379` | Redis port |
 | `FORWARD_MAILPIT_PORT` | `8025` | Mailpit UI port |
+| `FORWARD_MARTIN_PORT` | `3000` | Martin vector tiles port |
 | `FORWARD_CLOUDBEAVER_PORT` | `8978` | CloudBeaver port |
 | `FORWARD_REDISINSIGHT_PORT` | `5540` | RedisInsight port |
 | `HISTORY_MAPPED_DB_IMAGE` | `history-mapped-db:16-pgvector-v0.8.2` | Optional prebuilt DB image tag to skip local pgvector compilation |

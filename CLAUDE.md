@@ -22,7 +22,7 @@ pnpm dev:build      # ...up --build  (rebuild images)
 pnpm dev:down       # ...down --remove-orphans
 ```
 
-Dev URLs (override with `FORWARD_*_PORT` in `.env`): API+admin via Nginx → `:8000`, public SPA → `:5173`, admin Vite → `:5174`, Postgres → `:5432`, Martin tiles → `:3000` (`/tiles/catalog`), Mailpit → `:8025`, CloudBeaver → `:8978`, RedisInsight → `:5540`.
+Dev URLs (override with `FORWARD_*_PORT` in `docker/.env`; template `docker/.env.example`): API+admin via Nginx → `:8000`, public SPA → `:5173`, admin Vite → `:5174`, Postgres → `:5432`, Martin tiles → `:3000` (`/tiles/catalog`), Mailpit → `:8025`, CloudBeaver → `:8978`, RedisInsight → `:5540`.
 
 Run backend commands inside `app` (this prefix is assumed below):
 
