@@ -51,6 +51,11 @@ def _shard(spec: dict[str, Any]) -> Window | ValueShard | None:
 
 def step_qids(s: Slice, store: SliceStore, client: Client) -> dict[str, Any]:
     state = store.state()
+    if store.queue_path.exists() and store.part_numbers():
+        # Parts index into the queue by position; re-filtering it now (rows
+        # imported since) would shift every later part and skip rows.
+        say(f"{s.id}: queue frozen ({state.get('queued', len(store.queue()))} queued, parts already fetched)")
+        return state
     if "todo" not in state:
         state["todo"] = [_shard_spec(sh) for sh in s.initial_shards()]
         store.save(state)

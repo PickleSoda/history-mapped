@@ -128,3 +128,23 @@ def test_part_files_keep_fetch_and_import_state_apart(tmp_path, monkeypatch):
     st.add_listed([("Q2", 5), ("Q3", 1)], "all")
     st.add_listed([("Q2", 7)], "other")
     assert st.listed() == {"Q2": 7, "Q3": 1}
+
+
+def test_queue_is_frozen_once_parts_exist(tmp_path, monkeypatch):
+    import pipeline.bulk.store as store_mod
+    from pipeline.bulk import __main__ as cli
+    from pipeline.bulk.spec import Slice
+
+    monkeypatch.setattr(store_mod, "ROOT", tmp_path)
+    s = Slice(id="test-frozen", entity_type="event_battle", where="?item wdt:P31 wd:Q178561 .", description="t")
+    st = store_mod.SliceStore(s.id)
+    st.queue_path.write_text("Q1\t9\nQ2\t5\nQ3\t1\n")
+    st.write_json(st.meta_path(0), {"records": 1})
+
+    class Boom:
+        def sparql(self, q):
+            raise AssertionError("must not list again")
+
+    monkeypatch.setattr(cli, "db_qids", lambda: {"Q1"})
+    cli.step_qids(s, st, Boom())
+    assert [q for q, _ in st.queue()] == ["Q1", "Q2", "Q3"]
