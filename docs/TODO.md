@@ -48,8 +48,8 @@
 
 - [ ] **Run the web Vitest suite in CI.** `.github/workflows/ci.yml` runs web lint, types and build,
   but not `pnpm test` in `web/` (38 test files).
-- [ ] **Fix the root `pnpm typecheck` script.** It runs `pnpm -r typecheck`, but neither workspace
-  defines `typecheck` (both use `types:check`).
+- [x] **Fix the root `pnpm typecheck` script.** It now runs each workspace's `types:check`. The web
+  one is `tsc -b`: its `tsconfig.json` only lists project references, so `tsc --noEmit` checked nothing.
 - [ ] **Check BCE alignment with OHM dates.** `web/src/lib/ohm-date.ts` sends `-0044` for 44 BCE.
   Under ISO 8601 astronomical numbering `-0044` is 45 BCE. Confirm OHM's convention and adjust the
   date filter if needed.
