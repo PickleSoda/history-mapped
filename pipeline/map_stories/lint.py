@@ -209,17 +209,32 @@ def check_camera(doc: dict, frames: list[dict[str, dict]]) -> list[Issue]:
     return out
 
 
+def _offstage(fr: dict[str, dict]) -> set[str]:
+    """Units the atlas leaves out of a step's auto-framing, as the web's
+    `stepBounds` does: `frame: false`, or a marker pinned (`with`) to such a
+    unit unless the marker sets `frame` itself."""
+    def framed(pl: dict) -> bool:
+        if "frame" in pl:
+            return pl["frame"] is not False
+        host = fr.get(pl.get("with") or "")
+        return host is None or host.get("frame") is not False
+    return {uid for uid, pl in fr.items() if not framed(pl)}
+
+
 def _framing_points(doc: dict, st: dict, fr: dict[str, dict], origin) -> list[tuple[float, float]]:  # noqa: ANN001
     units = _units(doc)
+    offstage = _offstage(fr)
     pts: list[tuple[float, float]] = []
     for uid, pl in fr.items():
-        if "at" not in pl or pl.get("frame") is False:
+        if "at" not in pl or uid in offstage:
             continue
         if _is_formation(units.get(uid)):
             pts.extend(footprint(pl, origin).exterior.coords)
         else:
             pts.append(local(pl["at"], origin))
     for mv in st.get("moves") or []:
+        if mv.get("unit") in offstage:
+            continue
         pts.extend(local(p, origin) for p in mv.get("path") or [])
     for n in st.get("notes") or []:
         if "at" in n:
@@ -310,7 +325,9 @@ def check_arrows(doc: dict, frames: list[dict[str, dict]], raw: dict) -> list[Is
 
 
 def check_framing(doc: dict, frames: list[dict[str, dict]]) -> list[Issue]:
-    """Steps whose auto-framing spans more than the kind's spread limit."""
+    """Steps whose auto-framing spans more than the kind's spread limit, and
+    steps with nothing to frame (every unit off-frame, no note, no camera):
+    the atlas cannot place the camera for those."""
     origin, out = _origin(frames), []
     if origin is None:
         return out
@@ -320,6 +337,7 @@ def check_framing(doc: dict, frames: list[dict[str, dict]]) -> list[Issue]:
             continue
         pts = _framing_points(doc, st, fr, origin)
         if not pts:
+            out.append(Issue(st.get("id"), "framing", "nothing to frame: give a unit frame: true, a note or a camera"))
             continue
         span = max(max(p[0] for p in pts) - min(p[0] for p in pts), max(p[1] for p in pts) - min(p[1] for p in pts))
         if span > limit:

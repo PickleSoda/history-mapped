@@ -289,6 +289,26 @@ def test_framing_wider_than_the_spread_limit() -> None:
     assert "framing" not in _codes(_doc([{"id": "s", "positions": pos}]))
 
 
+def test_a_step_with_nothing_to_frame_is_flagged() -> None:
+    units = [{"id": "a1", "side": "a", "kind": "infantry", "label": "Alpha foot"},
+             {"id": "ka", "side": "a", "kind": "commander", "label": "Alpha king"},
+             {"id": "b1", "side": "b", "kind": "infantry", "label": "Beta foot"}]
+    # Everything far off: the army off-frame, its king pinned to it, and only
+    # the off-frame army's own arrow. As in battle-of-tours' first draft.
+    steps = [{"id": "s1", "positions": {"a1": {"at": P(0, -4000), "facing": 0, "width": 300, "frame": False},
+                                        "ka": {"with": "a1"}}},
+             {"id": "s2", "positions": {"a1": {"at": P(0, -3000)}},
+              "moves": [{"unit": "a1", "type": "march", "path": [P(0, -4000), P(0, -3000)]}]}]
+    issues = [i for i in L.lint(_doc(steps, units)) if i.code == "framing"]
+    assert [i.step for i in issues] == ["s1", "s2"]
+    assert "nothing to frame" in issues[0].msg
+    steps[0]["positions"]["ka"]["frame"] = True  # the king alone is enough
+    assert [i.step for i in L.lint(_doc(steps, units)) if i.code == "framing"] == []
+    steps[0]["camera"] = {"center": P(0, -4000), "zoom": 12}
+    del steps[0]["positions"]["ka"]["frame"]
+    assert [i.step for i in L.lint(_doc(steps, units)) if i.code == "framing"] == ["s2"]
+
+
 def test_static_unit_whose_narrative_says_it_advances() -> None:
     steps = [{"id": "s0", "narrative": "x", "positions": {"a1": {"at": P(0, 0), "facing": 0, "width": 200}}}]
     steps += [{"id": f"s{i}", "narrative": "The Alpha foot advanced steadily on the ridge."} for i in range(1, 6)]
