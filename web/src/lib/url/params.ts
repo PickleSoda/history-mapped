@@ -1,5 +1,5 @@
 /**
- * nuqs parsers — the typed URL schema (spec §2): bbox, t, g, sel, q, chron,
+ * nuqs parsers — the typed URL schema (spec §2): bbox, t, g, sel, chron,
  * step, story, sstep, full, view, base, ct.
  *
  * Each search param has a parser here. Hooks in `@/hooks` consume these so that
@@ -36,9 +36,8 @@ export const parseAsGroups = parseAsArrayOf(
   ',',
 );
 
-/** sel, q, chron — type-prefixed id / free text / chronicle id. */
+/** sel, chron — type-prefixed id / chronicle id. */
 export const parseAsSelection = parseAsString;
-export const parseAsSearch = parseAsString;
 export const parseAsChronicle = parseAsString;
 
 /** step = chronicle step index. */

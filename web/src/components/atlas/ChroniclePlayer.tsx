@@ -233,8 +233,8 @@ export function ChroniclePlayerContent() {
 
 /**
  * Chronicle tour player. Takes over the left sidebar while a chronicle is
- * active (?chron=). Stepping bumps ?step= (back-button walks steps) and drives
- * the timeline year. (Map camera following is deferred with map integration.)
+ * active (?chron=). Stepping bumps ?step= (back-button walks steps), drives
+ * the timeline year; the map camera frames each step.
  */
 export function ChroniclePlayer() {
   const { exit } = useChronicleNav();

@@ -5,7 +5,6 @@ export { useViewport } from './useViewport';
 export { useTimeState } from './useTimeState';
 export { useFilters } from './useFilters';
 export { useSelection } from './useSelection';
-export { useSearchQuery } from './useSearchQuery';
 export { useChronicleNav } from './useChronicleNav';
 export { useStoryNav } from './useStoryNav';
 export { useView } from './useView';
@@ -25,7 +24,6 @@ export { useEntitiesInView } from './useEntitiesInView';
 export { useEntityList } from './useEntityList';
 export { useEntity, useEntityConnections } from './useEntity';
 export { useEntityGeometries } from './useEntityGeometries';
-export { useSearch, useHighlights, useTimelineDensity } from './useDiscovery';
 export { useEntitySearch } from './useEntitySearch';
 export { useChronicle } from './useChronicle';
 export { useMapStory } from './useMapStory';
@@ -36,7 +34,6 @@ export { useEntityChronicles } from './useEntityChronicles';
 export { useEntityTimeline } from './useEntityTimeline';
 export { useEntityGraph, useChronicleGraph, useFetchNeighbourhood } from './useGraph';
 export { usePrefetchEntity } from './usePrefetchEntity';
-export { useHistoricalPeriods } from './useHistoricalPeriods';
 
 // Browse (track D)
 export { useCollections } from './useCollections';

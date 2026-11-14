@@ -12,7 +12,7 @@ import type { ChronicleGraphParams, EntityGraphParams } from '@/lib/api/graph';
 import type { MapStoryListParams } from '@/lib/api/map-stories';
 import type { ListOptions, MapLayer } from '@/lib/api/params';
 import type { StarListParams } from '@/lib/api/saved';
-import type { Scope, TimeState } from '@/types/atlas';
+import type { Scope } from '@/types/atlas';
 
 export const qk = {
   /** Map FeatureCollection (pins/borders), one layer of the scope. */
@@ -38,10 +38,6 @@ export const qk = {
    *  page share one cache entry. */
   entityGraph: (id: string, params: EntityGraphParams) =>
     ['entity', id, 'graph', params] as const,
-  search: (q: string, scope: Scope) =>
-    ['search', q, scope.bbox, scope.time, scope.groups] as const,
-  highlights: (time: TimeState) => ['highlights', time] as const,
-  density: (scope: Scope) => ['density', scope.bbox, scope.groups] as const,
   chronicle: (slug: string) => ['chronicle', slug] as const,
   /** A step-by-step battle map (GET /map-stories/{slug}). */
   mapStory: (slug: string) => ['map-story', slug] as const,
@@ -54,7 +50,6 @@ export const qk = {
   chronicleGraph: (slug: string, params: ChronicleGraphParams) =>
     ['chronicle', slug, 'graph', params] as const,
   /** Public historical-periods reference list (timeline gantt). */
-  historicalPeriods: () => ['reference', 'historical-periods'] as const,
 
   // ── Browse (public site): curated sets, the story index, tag listings.
   /** Every published curated set (GET /collections). */

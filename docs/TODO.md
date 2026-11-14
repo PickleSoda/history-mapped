@@ -56,9 +56,9 @@
   (`OhmDate::yearFromDate`, the pipeline's `from_ohm_year`), and migration `2026_11_14_000001`
   re-reads the OHM refs stored before. About half of OHM's BCE dates use the historical number
   anyway (the Roman Empire from `-0027`), so those show a year early: an OHM data issue.
-- [ ] **Remove dead web code:** the unused `q` URL param, `useSearch`, `useHighlights`,
-  `useTimelineDensity`, `useHistoricalPeriods`, and the stale comments in `TimelineScope.tsx` and
-  `ChroniclePlayer.tsx`.
+- [x] **Remove dead web code:** the unused `q` URL param (`useSearchQuery`), `useSearch`,
+  `useHighlights`, `useTimelineDensity`, `useHistoricalPeriods` with the API calls, schema and gantt
+  helpers only they used, and the stale comments in `TimelineScope.tsx` and `ChroniclePlayer.tsx`.
 - [ ] **Automate database backups** for the hosted site. Today the only dumps are the ones the
   content loader takes before a full replace.
 - [ ] **Retire or fix the App Platform path** (`.do/app.yaml` and the `deploy` job). Its routing

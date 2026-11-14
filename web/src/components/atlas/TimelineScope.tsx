@@ -19,7 +19,6 @@ const EMPTY = {};
 
 /**
  * Bottom timeline — a simple timescope scrubber (date axis + draggable playhead).
- * The chevron opens the historical-periods gantt in a panel above the bar.
  *
  * Flicker fix: timescope's *programmatic* setTime (from a chronicle step or the
  * TopBar) animates the playhead and emits `timechanged` with intermediate frame

@@ -10,7 +10,7 @@ export {
   entityConnections,
   entityTimeline,
 } from './entities';
-export { search, searchEntities, highlights, timelineDensity } from './discovery';
+export { searchEntities } from './discovery';
 export {
   chronicle,
   chronicleList,
@@ -21,7 +21,6 @@ export { tagList } from './tags';
 export { collectionList, collection } from './collections';
 export { mapStoryList, type MapStoryListParams } from './map-stories';
 export { entitiesByTags, type EntitiesByTagsParams } from './browse';
-export { historicalPeriods } from './reference';
 export {
   fetchEntityGraph,
   fetchChronicleGraph,
