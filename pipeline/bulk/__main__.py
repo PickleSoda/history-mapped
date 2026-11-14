@@ -137,18 +137,21 @@ def import_part(s: Slice, store: SliceStore, n: int) -> dict[str, Any]:
         "docker", "compose", "-f", compose, "exec", "-T", "app", "php", "artisan", "pipeline:import",
         f"storage/app/pipeline/bulk/{s.id}/{name}", "--sync", "--skip-images", f"--batch-id=bulk-{s.id}-{n:04d}",
     ]
-    started = time.monotonic()
     with locked("import"):
+        # Another importer may have taken this part while we waited.
+        if store.import_path(n).exists():
+            return store.read_json(store.import_path(n)) or {}
+        started = time.monotonic()
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=4 * 3600)
-    m = SUMMARY.search(proc.stdout)
-    result: dict[str, Any] = {"seconds": round(time.monotonic() - started), "exit": proc.returncode, "at": time.time()}
-    if m:
-        summary = json.loads(m.group(1))
-        summary["failed_names"] = summary.get("failed_names", [])[:20]
-        result["summary"] = summary
-    else:
-        result["error"] = (proc.stderr or proc.stdout)[-1500:]
-    store.write_json(store.import_path(n), result)
+        m = SUMMARY.search(proc.stdout)
+        result: dict[str, Any] = {"seconds": round(time.monotonic() - started), "exit": proc.returncode, "at": time.time()}
+        if m:
+            summary = json.loads(m.group(1))
+            summary["failed_names"] = summary.get("failed_names", [])[:20]
+            result["summary"] = summary
+        else:
+            result["error"] = (proc.stderr or proc.stdout)[-1500:]
+        store.write_json(store.import_path(n), result)
     if m:
         sm = result["summary"]
         say(f"{s.id} {name}: imported {sm['imported']}, skipped {sm['skipped']}, failed {sm['failed']} in {result['seconds']}s")
