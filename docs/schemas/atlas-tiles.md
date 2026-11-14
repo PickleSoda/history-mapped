@@ -160,6 +160,6 @@ Dev: `web/.env.example` (commented out). Prod: the GitHub repository variable `V
   touches `tiles`: new functions and changed TileJSON comments are only picked up at startup.
   - Dev: `docker compose -f docker/docker-compose.yml restart martin`.
   - Prod: the CI deploy recreates `martin` and `caddy` after `migrate`; see
-    [deployment-runbook.md §4](../implementation-docs/deployment-runbook.md#4-option-b--droplet-cheapest-you-own-ops).
+    [deployment-runbook.md §3](../implementation-docs/deployment-runbook.md#3-the-droplet-self-hosted-compose).
 - **Parity with REST:** the view mirrors `App\Actions\Entity\MapEntitiesAction`. A property added to the REST projection must also
   be added to the view, the function's SELECT list and its JSON comment (new migration), and to this table.

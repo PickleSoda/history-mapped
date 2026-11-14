@@ -6,7 +6,7 @@ see [../architecture/](../architecture/); for the data model, see [../entity-mod
 ## Setup & deployment
 
 - [setup.md](setup.md) — local dev: Docker stack, services, commands, route layout.
-- [deployment-runbook.md](deployment-runbook.md) — canonical GHCR → DigitalOcean deploy (App Platform or Droplet + Compose).
+- [deployment-runbook.md](deployment-runbook.md) — canonical GHCR → DigitalOcean Droplet deploy (Docker Compose).
 
 ## Admin AI agent
 

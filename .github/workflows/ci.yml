@@ -316,28 +316,6 @@ jobs:
           cache-to: type=gha,mode=max,scope=web,ignore-error=true
 
   # ───────────────────────────────────────────────────────────────────────────
-  # Deploy to DigitalOcean App Platform — main branch only, and OPT-IN: the job
-  # is skipped until you set the repo variable DEPLOY_TO_DO=true
-  # (Settings → Secrets and variables → Actions → Variables). It also needs the
-  # DIGITALOCEAN_ACCESS_TOKEN secret and an app already created from .do/app.yaml.
-  # GHCR images can't use App Platform's deploy-on-push, so this step triggers
-  # the deploy after the image is published. See docs/implementation-docs/deployment-runbook.md.
-  # ───────────────────────────────────────────────────────────────────────────
-  deploy:
-    name: Deploy (DigitalOcean App Platform)
-    if: github.ref == 'refs/heads/main' && vars.DEPLOY_TO_DO == 'true'
-    needs: [images]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Deploy App Platform app
-        uses: digitalocean/app_action/deploy@v2
-        with:
-          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-          app_name: history-mapped
-
-  # ───────────────────────────────────────────────────────────────────────────
   # Deploy to a DigitalOcean Droplet over SSH — main branch only, and OPT-IN:
   # skipped until you set repo variable DEPLOY_TO_DROPLET=true.
   #

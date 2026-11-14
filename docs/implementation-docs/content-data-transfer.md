@@ -18,7 +18,7 @@ on prod; it never seeds content. So prod's **schema** matches local (same
 migrations) but its **content** is empty/stale. That's exactly the case this guide
 covers: load content into prod's already-migrated schema.
 
-> Scope here: the **droplet, self-hosted `db` container** (Option B), where you
+> Scope here: the **droplet, self-hosted `db` container**, where you
 > have Postgres superuser. DO Managed Postgres has no superuser, so
 > `--disable-triggers` fails — there you'd take a full `pg_dump --clean` instead.
 
@@ -149,7 +149,7 @@ cat output/truncate-content.sql output/prod-content-backup-<stamp>.sql \
 
 ## Gotchas
 
-- **Managed Postgres** (Option A) has no superuser → `--disable-triggers` fails on
+- **Managed Postgres** (if the droplet is ever pointed at one) has no superuser → `--disable-triggers` fails on
   load. Use a full `pg_dump --clean --if-exists` into a fresh DB instead, or drop
   FKs around a data-only load.
 - **Keep the table list in three places in sync**: the dump's `--exclude-table-data`

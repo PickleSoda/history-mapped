@@ -61,8 +61,8 @@
   helpers only they used, and the stale comments in `TimelineScope.tsx` and `ChroniclePlayer.tsx`.
 - [ ] **Automate database backups** for the hosted site. Today the only dumps are the ones the
   content loader takes before a full replace.
-- [ ] **Retire or fix the App Platform path** (`.do/app.yaml` and the `deploy` job). Its routing
-  predates the admin, tiles and AI routes.
+- [x] **Retire or fix the App Platform path.** Retired: `.do/app.yaml` and CI's `deploy` job are gone,
+  and the runbook covers the droplet only.
 - [ ] **Make the dev port overrides work from the documented place.** Compose reads `docker/.env`, but
   the root `.env.example` suggests a root `.env`.
 - [x] **API entity writes skip the `entities.verify` check.** Fixed: the admin form and
