@@ -78,7 +78,8 @@ from pipeline.backfill_dates import (ALIVE_BORN_AFTER, MAX_LIFESPAN, _touches, f
 
 import psycopg
 
-DSN = "postgresql://history-mapped:secret@localhost:5432/history-mapped"
+from pipeline.local_db import dsn
+
 COMPOSE = ["docker", "compose", "-f", str(_REPO_ROOT / "docker" / "docker-compose.yml")]
 NOTE = "backfill_person_dates"
 MERGE_VERDICTS = _REPO_ROOT / "output" / "audit" / "merge-review-20261101" / "verdicts.csv"
@@ -1045,7 +1046,7 @@ def main() -> int:
                     default=_REPO_ROOT / "output" / "audit" / f"person-dates-{date.today():%Y%m%d}")
     args = ap.parse_args()
 
-    conn = psycopg.connect(DSN)
+    conn = psycopg.connect(dsn())
     cur = conn.cursor()
     rows = load_state(cur)
     merge_ids = load_exclusions(MERGE_VERDICTS)

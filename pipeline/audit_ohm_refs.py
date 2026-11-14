@@ -62,6 +62,7 @@ import psycopg
 from pipeline import backfill_geo as bg
 from pipeline.agent.tools.disambiguation import _name_tokens, names_compatible, names_equal
 from pipeline.audit.dates import wd_bounds
+from pipeline.local_db import dsn
 from pipeline.ohm_borders.date_parser import from_ohm_year
 from pipeline.audit.wd import SPARQL, WikidataClient
 
@@ -798,7 +799,7 @@ def main() -> int:
     args = ap.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
 
-    conn = psycopg.connect(bg.DSN)
+    conn = psycopg.connect(dsn())
     cur = conn.cursor()
     rows, stats = audit(cur, args.out)
     conn.rollback()  # end the read transaction

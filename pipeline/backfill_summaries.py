@@ -25,6 +25,8 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 import psycopg
+
+from pipeline.local_db import dsn
 from langchain_core.messages import HumanMessage
 
 from pipeline.agent.config import AgentConfig
@@ -34,8 +36,6 @@ from pipeline.agent.tools.wikidata import fetch_entity_meta
 from pipeline.agent.graph.nodes.generate_content import (
     _ENTITY_PROMPT, _load_style_guide, _sentence_count, _chunked, ENTITY_CHUNK_SIZE,
 )
-
-DSN = "postgresql://history-mapped:secret@localhost:5432/history-mapped"
 
 
 def load_targets(cur, limit: int) -> list[dict]:
@@ -98,7 +98,7 @@ def main() -> int:
                                     reasoning_effort=cfg.reasoning_effort)
     style_guide = _load_style_guide()
 
-    conn = psycopg.connect(DSN)
+    conn = psycopg.connect(dsn())
     cur = conn.cursor()
 
     targets = load_targets(cur, args.limit)

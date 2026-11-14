@@ -35,7 +35,7 @@ if str(_REPO_ROOT) not in sys.path:
 
 import psycopg
 
-DSN = "postgresql://history-mapped:secret@localhost:5432/history-mapped"
+from pipeline.local_db import dsn
 
 
 def rel_count(cur, eid: str) -> int:
@@ -84,7 +84,7 @@ def main() -> int:
     ap.add_argument("--apply", action="store_true", help="write (default: dry run)")
     args = ap.parse_args()
 
-    conn = psycopg.connect(DSN)
+    conn = psycopg.connect(dsn())
     cur = conn.cursor()
     actions: list[tuple] = []
 

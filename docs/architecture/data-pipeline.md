@@ -217,8 +217,9 @@ no story yet. The JSON lands in `api/resources/map-stories/` and reaches the dat
 | Images | `php artisan entity:fetch-images` (Laravel) | Links Commons images with their credits; also runs after imports and nightly |
 
 These scripts preview by default and change data only with `--apply`. The audits and the person-date
-backfill also take a database dump first. They connect to the local dev database at a fixed address
-in the code (`DATABASE_URL` is ignored), so run them against the dev stack.
+backfill also take a database dump first. They connect through `pipeline/local_db.py`: `DATABASE_URL`
+from the environment or `pipeline/.env`, else the dev stack's default address. A non-local host is
+refused, so they only ever touch a dev database.
 
 ## The import contract
 

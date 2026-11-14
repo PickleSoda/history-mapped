@@ -42,6 +42,8 @@ if str(_REPO_ROOT) not in sys.path:
 
 import psycopg
 
+from pipeline.local_db import dsn
+
 from pipeline.agent.tools.wikidata import (
     search_wikidata_by_name,
     fetch_entity_meta,
@@ -58,7 +60,6 @@ from pipeline.agent.tools.disambiguation import (
     screen_candidates,
 )
 
-DSN = "postgresql://history-mapped:secret@localhost:5432/history-mapped"
 
 # P31 classes that are acceptable for a "person" entity beyond plain human (Q5):
 # deities, mythical/legendary figures, prophets, biblical/saint figures — so we
@@ -152,7 +153,7 @@ def main() -> int:
     ap.add_argument("--limit", type=int, default=0, help="cap entities processed (smoke test)")
     args = ap.parse_args()
 
-    conn = psycopg.connect(DSN)
+    conn = psycopg.connect(dsn())
     cur = conn.cursor()
 
     # ── Load committed state ────────────────────────────────────────────────

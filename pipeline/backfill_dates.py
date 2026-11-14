@@ -120,6 +120,8 @@ if str(_REPO_ROOT) not in sys.path:
 
 import psycopg
 
+from pipeline.local_db import dsn
+
 from pipeline.agent.tools.disambiguation import era_year
 from pipeline.agent.tools.wikidata import (
     DECADE_PRECISION,
@@ -130,7 +132,6 @@ from pipeline.agent.tools.wikidata import (
 from pipeline.audit.dates import text_years
 from pipeline.audit.wd import API, QID_RE, WikidataClient, _parse_time
 
-DSN = "postgresql://history-mapped:secret@localhost:5432/history-mapped"
 METHOD = "source_database"  # DateResolutionMethod::SourceDatabase
 NOTE = "backfill_dates"
 CLAIMS_CACHE = "wd-date-claims.jsonl"
@@ -764,7 +765,7 @@ def main() -> int:
     plan_csv, rollback_sql = args.out / f"planned{suffix}.csv", args.out / f"rollback{suffix}.sql"
     excluded = load_exclusions(args.exclude)
 
-    conn = psycopg.connect(DSN)
+    conn = psycopg.connect(dsn())
     cur = conn.cursor()
     rows = load_state(cur)
     if args.limit:

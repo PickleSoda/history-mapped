@@ -618,7 +618,7 @@ def _same_point(point, coord) -> bool:
 
 def merge_command(survivor: str, loser: str) -> str:
     return ('scripts/capped.sh pipeline/.venv/bin/python3 -c "import psycopg; from pipeline.merge_entities '
-            f"import merge, DSN; c=psycopg.connect(DSN); merge(c.cursor(), '{survivor}', '{loser}'); c.commit()\"")
+            f"import merge; from pipeline.local_db import dsn; c=psycopg.connect(dsn()); merge(c.cursor(), '{survivor}', '{loser}'); c.commit()\"")
 
 
 def plan(out: Path) -> None:

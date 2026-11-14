@@ -55,11 +55,12 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 import psycopg
+
+from pipeline.local_db import dsn
 import requests
 
 from pipeline.agent.tools.wikidata import fetch_entity_meta
 
-DSN = "postgresql://history-mapped:secret@localhost:5432/history-mapped"
 OHM_OVERPASS = "https://overpass-api.openhistoricalmap.org/api/interpreter"
 USER_AGENT = "history-mapped/1.0 (https://github.com/PickleSoda/history-mapped)"
 
@@ -432,7 +433,7 @@ def main() -> int:
                     help="CSV of the planned points")
     args = ap.parse_args()
 
-    conn = psycopg.connect(DSN)
+    conn = psycopg.connect(dsn())
     cur = conn.cursor()
     no_point, located = load_state(cur)
     if args.limit:

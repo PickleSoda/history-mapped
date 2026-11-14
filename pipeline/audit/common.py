@@ -3,11 +3,12 @@ from __future__ import annotations
 
 import csv
 import json
-import os
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterable
+
+from pipeline.local_db import dsn  # noqa: F401  (re-exported: connect() and callers use it)
 
 REPO = Path(__file__).resolve().parents[2]
 DEFAULT_OUT = REPO / "output" / "audit" / "identity-20261031"
@@ -16,21 +17,6 @@ CACHE_DIR = REPO / "output" / "audit" / "cache"
 STORIES_DIR = REPO / "api" / "resources" / "map-stories"
 STORY_SOURCES = REPO / "pipeline" / "map_stories" / "stories"
 COMPOSE = ["docker", "compose", "-f", str(REPO / "docker" / "docker-compose.yml")]
-
-
-def dsn() -> str:
-    """The pipeline's DATABASE_URL (pipeline/.env), local dev DB by default."""
-    url = os.environ.get("DATABASE_URL")
-    env = REPO / "pipeline" / ".env"
-    if not url and env.exists():
-        for line in env.read_text().splitlines():
-            if line.startswith("DATABASE_URL="):
-                url = line.split("=", 1)[1].strip()
-    url = url or "postgresql://history-mapped:secret@localhost:5432/history-mapped"
-    host = url.split("@")[-1].split("/")[0].split(":")[0]
-    if host not in ("localhost", "127.0.0.1", "db"):
-        raise SystemExit(f"refusing to run against non-local database host {host!r}")
-    return url
 
 
 @dataclass

@@ -24,7 +24,8 @@ if str(_REPO_ROOT) not in sys.path:
 
 import psycopg
 
-DSN = "postgresql://history-mapped:secret@localhost:5432/history-mapped"
+from pipeline.local_db import dsn
+
 
 # Geographic types whose own coordinate must be meaningful (skip people/works,
 # which are located via an approximate place-of-association).
@@ -48,7 +49,7 @@ def haversine(a, b):
 
 
 def main() -> int:
-    conn = psycopg.connect(DSN)
+    conn = psycopg.connect(dsn())
     cur = conn.cursor()
 
     cur.execute("SELECT entity_id, name, entity_type::text, wikidata_id FROM entities")

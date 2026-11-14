@@ -32,11 +32,12 @@ if str(_REPO_ROOT) not in sys.path:
 
 import psycopg
 
+from pipeline.local_db import dsn
+
 from pipeline.agent.tools.wikidata import fetch_entity_meta
 from pipeline.agent.tools.disambiguation import era_year
 from pipeline.backfill_geo import WIKIDATA_POINT_TYPES
 
-DSN = "postgresql://history-mapped:secret@localhost:5432/history-mapped"
 EVENT_TYPES = (
     "event_war", "event_battle", "event_treaty", "event_rebellion",
     "event_natural_disaster", "event_tech_adoption", "event_legal_reform",
@@ -57,7 +58,7 @@ def main() -> int:
     # Only point-like types: other events' P625 is a centroid.
     types = tuple(t.strip() for t in args.types.split(",") if t.strip() in WIKIDATA_POINT_TYPES)
 
-    conn = psycopg.connect(DSN)
+    conn = psycopg.connect(dsn())
     cur = conn.cursor()
     cur.execute("""
         SELECT e.entity_id, e.name, e.entity_type::text, e.wikidata_id,

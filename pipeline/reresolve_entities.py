@@ -35,6 +35,8 @@ if str(_REPO_ROOT) not in sys.path:
 
 import psycopg
 
+from pipeline.local_db import dsn
+
 from pipeline.agent.tools.wikidata import (
     search_wikidata_by_name, fetch_entity_meta, _rank_candidates, storable_wikidata_dates,
 )
@@ -44,7 +46,6 @@ from pipeline.agent.tools.disambiguation import (
 )
 from pipeline.agent.graph.nodes.commit_writer import ENTITY_TYPE_TO_GROUP
 
-DSN = "postgresql://history-mapped:secret@localhost:5432/history-mapped"
 # Accept a QID *change* only above this score — a vague name ("Pyramids",
 # "Senate") otherwise grabs a stray namesake, which is worse than leaving it.
 RERESOLVE_ACCEPT = 0.6
@@ -205,7 +206,7 @@ def main() -> int:
         else:
             targets.append(t)
 
-    conn = psycopg.connect(DSN)
+    conn = psycopg.connect(dsn())
     cur = conn.cursor()
     place_cache: dict[str, dict] = {}
     plans: list[dict] = []

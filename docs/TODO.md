@@ -87,8 +87,9 @@
 - [x] **Decide the presence-period gate.** The per-relationship `derive_geometry_period` flag stays the
   only gate (as 11d7f65 chose); the unused type allowlist is gone. The flag is on by default for API writes
   and `pipeline:import` relationship hints, and off in the admin's add form.
-- [ ] **Let the standalone pipeline scripts read `DATABASE_URL`.** `backfill_geo` and its siblings
-  hard-code the dev database address.
+- [x] **Let the standalone pipeline scripts read `DATABASE_URL`.** `backfill_geo` and its siblings now
+  connect through `pipeline/local_db.py` (env, then `pipeline/.env`, then the dev default; local hosts
+  only).
 
 ## Misc
 

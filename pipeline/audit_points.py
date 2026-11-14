@@ -93,8 +93,8 @@ if str(_REPO_ROOT) not in sys.path:
 import psycopg  # noqa: E402
 
 from pipeline.audit.wd import QID_RE, SPARQL, WikidataClient  # noqa: E402
+from pipeline.local_db import dsn  # noqa: E402
 from pipeline.backfill_geo import (  # noqa: E402
-    DSN,
     OHM_TIER,
     WIKIDATA_POINT_TYPES,
     WIKIDATA_TIER,
@@ -1068,7 +1068,7 @@ def check_rollback(out_dir: Path, applied: list[dict]) -> str:
     old = [r["geometry_period_id"] for r in applied
            if r["result"] == "applied" and r["action"] in ("replace", "delete")]
     new = [x for r in applied if r["result"] == "applied" for x in r.get("new_geometry_period_id", "").split()]
-    with psycopg.connect(DSN) as conn:
+    with psycopg.connect(dsn()) as conn:
         cur = conn.cursor()
         cur.execute(sql.replace("BEGIN;", "", 1))
         cur.execute("SELECT count(*) FROM geometry_periods WHERE geometry_period_id = ANY(%s::uuid[])", (old,))
@@ -1099,7 +1099,7 @@ def main() -> int:
     ap.add_argument("--sample", type=int, default=30, help="planned changes printed for a spot-check")
     args = ap.parse_args()
 
-    conn = psycopg.connect(DSN)
+    conn = psycopg.connect(dsn())
     cur = conn.cursor()
     points = load_points(cur)
     print(f"{len(points)} points ({sum(p.kind == 'period' for p in points)} map, "

@@ -102,7 +102,7 @@ def _neg_time(ts: str) -> str:
 
 def merge_command(survivor: str, loser: str) -> str:
     return ("scripts/capped.sh pipeline/.venv/bin/python3 -c \"import psycopg; "
-            "from pipeline.merge_entities import merge, DSN; c=psycopg.connect(DSN); "
+            "from pipeline.merge_entities import merge; from pipeline.local_db import dsn; c=psycopg.connect(dsn()); "
             f"merge(c.cursor(), '{survivor}', '{loser}'); c.commit()\"")
 
 

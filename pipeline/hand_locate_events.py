@@ -11,7 +11,8 @@ if str(_R) not in sys.path:
     sys.path.insert(0, str(_R))
 import psycopg
 
-DSN = "postgresql://history-mapped:secret@localhost:5432/history-mapped"
+from pipeline.local_db import dsn
+
 
 # (name, lon, lat, year) — representative location of the event/process.
 EVENTS = [
@@ -68,7 +69,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--apply", action="store_true")
     args = ap.parse_args()
-    conn = psycopg.connect(DSN); cur = conn.cursor()
+    conn = psycopg.connect(dsn()); cur = conn.cursor()
     done, missing = 0, []
     for name, lon, lat, year in EVENTS:
         cur.execute("SELECT entity_id FROM entities WHERE name=%s AND (entity_type::text LIKE 'event_%%' OR entity_type::text IN ('migration','epidemic_disease'))", (name,))
