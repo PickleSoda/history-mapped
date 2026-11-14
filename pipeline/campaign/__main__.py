@@ -543,5 +543,56 @@ def measure_cmd(jan1_csv: Path | None, sign_csv: Path | None):
         click.echo(f"wrote {len(findings)} lifespan/sign finding(s) to {_rel(sign_csv)}")
 
 
+@cli.command("entity-find")
+@click.argument("terms", nargs=-1, required=True)
+@click.option("--limit", default=6, show_default=True, help="Matches per term.")
+def entity_find_cmd(terms: tuple[str, ...], limit: int):
+    """Database entities a chronicle entry can link, by name, alias or Q-id."""
+    import psycopg
+
+    from pipeline.campaign import story
+    from pipeline.local_db import dsn
+
+    with psycopg.connect(dsn()) as conn:
+        for term, rows in story.find(conn, terms, limit=limit):
+            click.echo(f"=== {term} ===")
+            if not rows:
+                click.echo("  (none: do not link it; list it in notes.md)")
+            for eid, name, etype, qid, summary in rows:
+                gist = " ".join(summary.split())[:90]
+                click.echo(f"  {qid or '-':<11} {eid}  {name} [{etype}] {gist}")
+
+
+@cli.command("chronicle-check")
+@click.argument("path", type=click.Path(exists=True, dir_okay=False, path_type=Path))
+@click.option("--no-db", is_flag=True, help="Skip resolving the linked entities against the database.")
+def chronicle_check_cmd(path: Path, no_db: bool):
+    """Check a storyteller chronicle.json: schema, chapter rules, entity links."""
+    from pipeline.campaign import story
+
+    try:
+        data = json.loads(path.read_text())
+    except json.JSONDecodeError as exc:
+        _fail(f"{_rel(path)}: invalid JSON: {exc}")
+    report = story.check(data, slug=path.parent.name if path.name == "chronicle.json" else None)
+    if not no_db and isinstance(data, dict) and report.ok:
+        import psycopg
+
+        from pipeline.local_db import dsn
+
+        with psycopg.connect(dsn()) as conn:
+            linked = story.resolve(conn, data)
+        report.errors += linked.errors
+        report.warnings += linked.warnings
+    for line in report.errors[:WARN_CAP]:
+        click.echo(f"ERROR {line}")
+    for line in report.warnings[:WARN_CAP]:
+        click.echo(f"WARN  {line}")
+    entries = len(data.get("entries", [])) if isinstance(data, dict) else 0
+    click.echo(f"{_rel(path)}: {entries} entries, {len(report.errors)} error(s), {len(report.warnings)} warning(s)")
+    if not report.ok:
+        raise SystemExit(1)
+
+
 if __name__ == "__main__":
     cli()
