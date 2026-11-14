@@ -61,6 +61,9 @@ jobs:
       - name: web · typecheck
         run: pnpm --filter @history-mapped/web run types:check
 
+      - name: web · unit tests (vitest)
+        run: pnpm --filter @history-mapped/web test
+
       - name: web · build
         run: pnpm --filter @history-mapped/web build
 

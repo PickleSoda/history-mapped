@@ -76,7 +76,7 @@ droplet. A newer push cancels a run that is still in progress.
 
 ```mermaid
 flowchart TB
-    P{{"push to main, or a pull request"}} --> FE["frontend job: web lint, types, build; admin lint, Prettier, types, Vitest"]
+    P{{"push to main, or a pull request"}} --> FE["frontend job: web lint, types, Vitest, build; admin lint, Prettier, types, Vitest"]
     P --> API["api job: Postgres image, Pint, migrate, PHPUnit"]
     FE --> GATE{"on main?"}
     API --> GATE

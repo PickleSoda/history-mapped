@@ -46,8 +46,8 @@
 
 ## Found in the 2026-11-14 docs review
 
-- [ ] **Run the web Vitest suite in CI.** `.github/workflows/ci.yml` runs web lint, types and build,
-  but not `pnpm test` in `web/` (38 test files).
+- [x] **Run the web Vitest suite in CI.** The `frontend` job now runs `pnpm test` in `web/` between
+  the typecheck and the build.
 - [x] **Fix the root `pnpm typecheck` script.** It now runs each workspace's `types:check`. The web
   one is `tsc -b`: its `tsconfig.json` only lists project references, so `tsc --noEmit` checked nothing.
 - [ ] **Check BCE alignment with OHM dates.** `web/src/lib/ohm-date.ts` sends `-0044` for 44 BCE.
