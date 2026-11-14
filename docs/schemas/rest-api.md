@@ -50,7 +50,7 @@ flowchart LR
 | Endpoint | Purpose |
 |---|---|
 | `GET /entities` | Search and browse entities (paginated) |
-| `GET /entities/{id}` | One entity with dates, location, tags, aliases, images (`media_refs`) and map-story summaries. `?include_relationships=1`, `?include_territory=1` |
+| `GET /entities/{id}` | One entity with dates, location, tags, aliases, images (`media_refs`) and map-story summaries. `?include_relationships=1`, `?include_territory=1`. `attributes` omits `_`-prefixed bookkeeping and `validation_flags` |
 | `GET /entities/{id}/relationships` | Incoming and outgoing relationships, with summaries of both ends |
 | `GET /entities/{id}/graph` | A node and edge graph, 1 or 2 hops ([contract](relation-graph-api.md)) |
 | `GET /entities/{id}/timeline` and `…/timeline/{entry}` | The entity's derived timeline |

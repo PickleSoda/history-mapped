@@ -537,7 +537,7 @@ tables, so an entity can have more than one of each. Type-specific fields are ke
 | `summary` | text | One sentence |
 | `significance` | text | Why it matters |
 | `description` | text | Optional long text in paragraphs |
-| `attributes` | jsonb | Type-specific keys (Section 4), plus shared keys: `date_raw`, `confidence_notes`, `validation_flags`, `media_refs`, `entity_color`, `temporal_display_range`, `era_label` |
+| `attributes` | jsonb | Type-specific keys (Section 4), plus shared keys: `date_raw`, `confidence_notes`, `validation_flags`, `media_refs`, `entity_color`, `temporal_display_range`, `era_label`. `_`-prefixed keys are pipeline and admin bookkeeping; the public API leaves them and `validation_flags` out |
 | `source_citations` | jsonb | Free-form citations (Section 5) |
 | `verification_status` | enum | Default `pipeline_draft` ([2.2](#22-verification-and-confidence-enums)) |
 | `confidence`, `date_confidence`, `location_confidence` | `confidence_level` | Separate confidence for the record, its dates and its place |

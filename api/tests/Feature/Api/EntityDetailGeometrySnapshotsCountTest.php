@@ -50,4 +50,24 @@ class EntityDetailGeometrySnapshotsCountTest extends TestCase
 
         $this->assertGreaterThanOrEqual(1, (int) $response->json('data.timeline_entries_count'));
     }
+
+    public function test_entity_detail_leaves_out_internal_attributes(): void
+    {
+        $entity = Entity::factory()->create(['attributes' => [
+            'capital' => 'Persepolis',
+            'confidence_notes' => 'Dates follow Briant.',
+            'validation_flags' => ['no_wikidata_match'],
+            '_rejected_wikidata_id' => 'Q1',
+            '_backfill_runs' => [['at' => '2026-11-01']],
+        ]]);
+
+        $this->getJson(route('api.v1.entities.show', $entity->entity_id))
+            ->assertOk()
+            ->assertJsonPath('data.attributes', [
+                'capital' => 'Persepolis',
+                'confidence_notes' => 'Dates follow Briant.',
+            ])
+            ->assertJsonPath('data.confidence_notes', 'Dates follow Briant.')
+            ->assertJsonMissingPath('data.validation_flags');
+    }
 }

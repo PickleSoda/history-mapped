@@ -13,10 +13,31 @@ use Illuminate\Http\Resources\Json\JsonResource;
  *
  * Used for show/create/update responses where full detail is needed.
  *
+ * `attributes` leaves out pipeline and admin bookkeeping: `_`-prefixed keys
+ * (rejected QIDs, backfill runs, split provenance) and the import's
+ * `validation_flags`. `confidence_notes` stays: the entity page shows it.
+ *
  * @mixin Entity
  */
 class EntityResource extends JsonResource
 {
+    /** Attribute keys that never leave the API, besides `_`-prefixed ones. */
+    private const INTERNAL_ATTRIBUTES = ['validation_flags'];
+
+    /**
+     * @param  array<string, mixed>  $attrs
+     * @return array<string, mixed>
+     */
+    public static function publicAttributes(array $attrs): array
+    {
+        return array_filter(
+            $attrs,
+            fn (string|int $key): bool => ! str_starts_with((string) $key, '_')
+                && ! in_array($key, self::INTERNAL_ATTRIBUTES, true),
+            ARRAY_FILTER_USE_KEY,
+        );
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -38,7 +59,7 @@ class EntityResource extends JsonResource
             'description' => $this->description,
             'tags' => $this->whenLoaded('entityTags', fn () => $this->entityTags->pluck('tag')->values()->all(), []),
             'impact_score' => $this->impact_score,
-            'attributes' => $attrs,
+            'attributes' => self::publicAttributes($attrs),
 
             // Temporal
             'temporal_start' => $this->whenLoaded('primaryTemporalRange', fn () => $this->primaryTemporalRange?->start_date),
@@ -64,7 +85,6 @@ class EntityResource extends JsonResource
             'verification_status' => $this->verification_status?->value,
             'confidence' => $this->confidence?->value,
             'confidence_notes' => $attrs['confidence_notes'] ?? null,
-            'validation_flags' => $attrs['validation_flags'] ?? null,
 
             // Display
             'display_priority' => $this->display_priority,

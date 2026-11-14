@@ -71,8 +71,8 @@
 - [x] **Decide what chronicle `status` means in public.** Decided: the public API hides `archived`
   chronicles (lists, an entity's chronicles, tag counts, collections, stars and map-story links; 404 by
   slug) and keeps showing drafts, since every import starts as one. The admin still lists all three.
-- [ ] **Stop exposing internal entity attributes.** `EntityResource` returns the whole `attributes` JSON,
-  including `_media_curated_at`, `validation_flags` and `confidence_notes`.
+- [x] **Stop exposing internal entity attributes.** `EntityResource` now leaves out `_`-prefixed keys
+  and `validation_flags`. `confidence_notes` stays: the entity page shows it.
 - [ ] **Rate-limit the public API.** `throttleApi()` is not configured; only `POST /contributions` is
   throttled.
 - [ ] **Exclude the `agent_*` tables from the content dump.** AI conversations and proposals are not in
