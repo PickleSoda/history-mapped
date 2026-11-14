@@ -79,8 +79,9 @@
 - [ ] **Stop borrowed event points in the agent.** `resolve_ohm` emits place-of-association and
   chronicle-centroid points, and `pipeline.locate_events` copies P276/P19 coordinates. Both contradict
   the placement policy that `backfill_geo` and the point audits enforce.
-- [ ] **Decide the presence-period gate.** `CreateDerivedPresencePeriodAction::supportsRelationshipType()`
-  is never called, so every dated relationship saved through the admin or API derives a presence period.
+- [x] **Decide the presence-period gate.** The per-relationship `derive_geometry_period` flag stays the
+  only gate (as 11d7f65 chose); the unused type allowlist is gone. The flag is on by default for API writes
+  and `pipeline:import` relationship hints, and off in the admin's add form.
 - [ ] **Let the standalone pipeline scripts read `DATABASE_URL`.** `backfill_geo` and its siblings
   hard-code the dev database address.
 

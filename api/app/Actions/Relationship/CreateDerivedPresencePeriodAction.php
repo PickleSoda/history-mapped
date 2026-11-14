@@ -5,27 +5,19 @@ declare(strict_types=1);
 namespace App\Actions\Relationship;
 
 use App\DTOs\RelationshipData;
-use App\Enums\RelationshipType;
 use App\Models\Entity;
 use App\Models\EntityRelationship;
 use App\Models\GeometryPeriod;
 
+/**
+ * Derives a `presence` period for a dated relationship: the source entity at
+ * the target's base location (or its own) for the relationship's years.
+ *
+ * The relationship's `derive_geometry_period` flag is the only gate, whatever
+ * the relationship type.
+ */
 class CreateDerivedPresencePeriodAction
 {
-    /** @var list<RelationshipType> */
-    private const AUTO_PRESENCE_TYPES = [
-        RelationshipType::FoughtAt,
-        RelationshipType::SignedBy,
-        RelationshipType::BornIn,
-        RelationshipType::DiedIn,
-        RelationshipType::ResidedIn,
-    ];
-
-    public function supportsRelationshipType(RelationshipType $relationshipType): bool
-    {
-        return in_array($relationshipType, self::AUTO_PRESENCE_TYPES, true);
-    }
-
     public function __invoke(EntityRelationship $relationship, RelationshipData $data, ?string $createdBy = null): ?GeometryPeriod
     {
         if (! $data->deriveGeometryPeriod) {

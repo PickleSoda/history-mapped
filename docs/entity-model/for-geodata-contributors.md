@@ -75,7 +75,7 @@ flowchart LR
 | `route` | A trade route, road or campaign path |
 | `spread_zone` | The extent of an epidemic, religion or culture |
 | `movement_path` | A migration or a journey |
-| `presence` | An entity at a place for a time. When a dated relationship is saved in the admin or through the API with "derive a presence period" on (the default; bulk imports skip it), the relationship's source gets a period at the target's base location (or its own, if the target has none) for the relationship's years. It is removed with the relationship |
+| `presence` | An entity at a place for a time. When a dated relationship is saved with "derive a presence period" on, of any type, the relationship's source gets a period at the target's base location (or its own, if the target has none) for the relationship's years. The flag is on by default for API writes and for the relationship hints `pipeline:import` resolves; the admin's add form starts with it off. It is removed with the relationship |
 
 | Provenance | Meaning | Caveat |
 |---|---|---|

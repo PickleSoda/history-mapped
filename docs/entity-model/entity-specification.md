@@ -1256,7 +1256,7 @@ Relationships are directed, typed edges between two entities, stored in `relatio
 | `relationship_type` | PG enum, 74 values (2.13) |
 | `temporal_start`, `temporal_end` | Optional text dates. A trigger derives `start_year` and `end_year` |
 | `description`, `confidence`, `source_citations` | |
-| `derive_geometry_period` | On by default. Saving in the admin or the API derives a presence period |
+| `derive_geometry_period` | On by default (the admin's add form starts with it off). Saving a dated relationship with it on derives a presence period, whatever the type |
 | `created_by`, `created_at` | No `updated_at` |
 
 There is no unique constraint on (source, target, type): importers check for duplicates instead.
