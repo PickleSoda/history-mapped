@@ -815,10 +815,12 @@ def importer(idle_exit: bool, poll: int) -> None:
     """Import built parts of approved slices (approved.txt), priority order, until STOP exists in the bulk root."""
     from pipeline.bulk.store import ROOT, approved
 
+    reported: set[str] = set()
     while not (ROOT / "STOP").exists():
         did = False
         ok = approved()
-        for s in all_slices(errors=[]):
+        errors: list[str] = []
+        for s in all_slices(errors=errors):
             if s.id not in ok:
                 continue
             store = SliceStore(s.id)
@@ -827,6 +829,11 @@ def importer(idle_exit: bool, poll: int) -> None:
                     break
                 import_part(s, store, n)
                 did = True
+        for err in set(errors) - reported:
+            # an approved slice whose spec this process cannot read is never
+            # imported: say so (a daemon older than a new spec key, or a typo)
+            say(f"importer: skipping unreadable spec {err}")
+        reported |= set(errors)
         if not did:
             if idle_exit:
                 return
