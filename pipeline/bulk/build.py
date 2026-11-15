@@ -27,7 +27,8 @@ DROPPED_HINTS = {"wikidata:P17", "wikidata:P131", "wikidata:P39"}
 # the row; the mapper then falls back to the Wikidata description.
 HATNOTE = re.compile(
     r"(may (also )?refer to|^see also\b|^for other uses\b|^this (article|page) (is|was|contains|lists)\b"
-    r"|^this is (a|an) (article|chronological list|list)\b|^this article is partially translated|^to be distinguished from\b)",
+    r"|^this is (a|an) (article|chronological list|list)\b|^this article is partially translated|^to be distinguished from\b"
+    r"|^for (the|other|a|an)\b[^.]{0,200}\bsee\b|^not to be confused with\b|^this article (concerns|is about)\b)",
     re.I,
 )
 
@@ -332,6 +333,12 @@ def build(raws: list[dict[str, Any]], s: Slice, mapper: EntityMapper | None = No
         if s.entity_type == "person":
             raw = lead_fills_death(lead_corrects_lifespan(reconcile_lifespan(drop_coarse_dates(raw))))
         summary = raw.get("summary") or ""
+        if HATNOTE.search(summary):
+            lead = next((p.strip() for p in (raw.get("full_extract") or "").split("\n")[1:]
+                         if len(p.strip()) > 40 and not HATNOTE.search(p.strip())), None)
+            if lead:  # "For the American sprinter, see Mary Washburn." above the real lead
+                raw = {**raw, "summary": lead}
+                summary = lead
         if HATNOTE.search(summary) or (s.entity_type == "person" and PERSON_OFF_SUBJECT.search(summary)):
             raw = {k: v for k, v in raw.items() if k not in ("summary", "full_extract")}
         record = mapper.map(raw, s.entity_type)

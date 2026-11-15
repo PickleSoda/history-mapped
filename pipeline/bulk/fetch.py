@@ -13,6 +13,7 @@ import time
 from typing import Any, Callable
 
 from pipeline.bulk.wdqs import Client, QueryTimeout, qid_of, value
+from pipeline.wikidata.mapper.entity_mapper import lead_paragraph
 from pipeline.wikidata.mapper.type_configs import WIKIDATA_TYPE_CONFIGS
 
 logger = logging.getLogger(__name__)
@@ -250,7 +251,7 @@ def fetch_extracts(client: Client, items: list[dict[str, Any]]) -> None:
             text = (extract_by_title.get(resolved[title]) or "").strip()
             if not text:
                 continue
-            first = text.split("\n", 1)[0].strip()
+            first = lead_paragraph(text)
             for item in by_title[title]:
                 item["summary"] = first[:900]
                 item["full_extract"] = text

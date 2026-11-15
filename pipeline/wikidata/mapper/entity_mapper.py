@@ -29,12 +29,66 @@ Produces dicts matching the EntityData DTO structure:
 from __future__ import annotations
 
 import logging
+import re
 from typing import Any
 
 from pipeline.config import TYPE_TO_GROUP, settings
 from pipeline.wikidata.mapper.type_configs import WIKIDATA_TYPE_CONFIGS
 
 logger = logging.getLogger(__name__)
+
+
+# Debris the Wikipedia extracts API leaves in a lead: the pronunciation it
+# strips ("Paris (; French: ...)", "Kyiv ()"), footnote markers, doubled spaces.
+_CITE = re.compile(r"\[(?:\d+|[a-z]|citation needed|note \d+|nb \d+)\]", re.I)
+_EMPTY_PAREN = re.compile(r"\s*\(\s*[;,]?\s*\)")
+_PAREN_HEAD = re.compile(r"\(\s*[;,]\s*")
+_PAREN_TAIL = re.compile(r"\s*[;,]\s*\)")
+# Words a period follows without ending a sentence ("c. 1500", "St. Louis",
+# "John F. Kennedy").
+_ABBREV = re.compile(
+    r"(?:\b(?:c|ca|fl|r|b|d|St|Ste|Mt|Ft|Jr|Sr|Dr|Mr|Mrs|Ms|Prof|Gen|Col|Lt|Capt|Cmdr|Adm|Maj|Sgt|Rev|Hon"
+    r"|No|Nos|vol|Vol|pp|ed|eds|approx|est|Inc|Ltd|Co|Bros|vs|viz|cf|al|e\.g|i\.e|U\.S|U\.K|B\.C|A\.D)"
+    r"|\b[A-Z]|\b[A-Z]\.[A-Z])$"
+)
+
+
+def clean_lead(text: str) -> str:
+    """Strip the extracts API's leftovers from a Wikipedia lead."""
+    t = _CITE.sub("", text)
+    t = _EMPTY_PAREN.sub("", t)
+    t = _PAREN_HEAD.sub("(", t)
+    t = _PAREN_TAIL.sub(")", t)
+    t = re.sub(r",\s*\(", " (", t)  # "Read, DSO, MC (" lost its post-nominals: "Read, ("
+    t = re.sub(r"[ \t]{2,}", " ", t)
+    t = re.sub(r" +([,.;:])", r"\1", t)
+    return t.strip()
+
+
+def lead_paragraph(text: str, limit: int = 900) -> str:
+    """The lead's first paragraph, joined with the next while it ends mid-sentence.
+
+    The extracts API breaks a lead at a list ("governor of Cuba:") or splits a
+    name from its parenthesis ("Sir Francis Henry Humphrys,").
+    """
+    out = ""
+    for p in (p.strip() for p in text.split("\n")):
+        if not p:
+            continue
+        out = f"{out} {p}" if out else p
+        if re.search(r"[.!?][\"')\]]?$", out) or len(out) >= limit:
+            break
+    return out[:limit]
+
+
+def sentence_ends(text: str) -> list[int]:
+    """Indexes of the periods (or ! ?) that end a sentence."""
+    out = []
+    for m in re.finditer(r"[.!?](?=\s|$)", text):
+        if text[m.start()] == "." and _ABBREV.search(text[max(0, m.start() - 8) : m.start()]):
+            continue
+        out.append(m.start())
+    return out
 
 
 class EntityMapper:
@@ -149,12 +203,12 @@ class EntityMapper:
         if cached:
             return cached
 
-        summary_source = (
+        summary_source = clean_lead(
             raw.get("summary")
             or raw.get("description")
             or raw.get("full_extract")
             or ""
-        ).strip()
+        )
         if not summary_source:
             return None
 
@@ -177,16 +231,27 @@ class EntityMapper:
 
     @staticmethod
     def _truncate_sentence(text: str, max_len: int) -> str:
-        """Truncate text to max length, preferring sentence boundaries."""
+        """Cut text to whole sentences within max_len.
+
+        The last sentence end within max_len wins; a first sentence that runs
+        on keeps whole up to 1.5 x max_len (a full sentence reads better than
+        a cut one). Only text without such an end is cut at a word with "…".
+        Never at "; " or ": ", which left summaries ending mid-list.
+        """
+        text = text.strip()
         if len(text) <= max_len:
-            return text.strip()
-
-        trimmed = text[:max_len].strip()
-        cut_at = max(trimmed.rfind(". "), trimmed.rfind("; "), trimmed.rfind(": "))
-        if cut_at >= int(max_len * 0.55):
-            return trimmed[: cut_at + 1].strip()
-
-        return f"{trimmed}…"
+            return text
+        ends = [i for i in sentence_ends(text) if i < max_len * 1.5]
+        within = [i for i in ends if i < max_len]
+        if within:
+            return text[: within[-1] + 1].strip()
+        if ends:
+            return text[: ends[0] + 1].strip()
+        trimmed = text[:max_len]
+        space = trimmed.rfind(" ")
+        if space > max_len * 0.6:
+            trimmed = trimmed[:space]
+        return trimmed.rstrip(" ,;:–—-(") + "…"
 
     def _llm_shorten_summary(self, text: str) -> str | None:
         """Optionally shorten text via OpenAI; returns None on any failure."""

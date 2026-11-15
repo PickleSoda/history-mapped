@@ -518,3 +518,35 @@ def test_the_lead_fills_a_death_year_wikidata_lacks():
     assert by["Q53"][1] is None  # circa
     assert by["Q54"][1] is None
 
+
+def test_summaries_lose_extract_debris_and_end_on_a_sentence():
+    from pipeline.wikidata.mapper.entity_mapper import EntityMapper, clean_lead
+
+    assert clean_lead("Kyiv () is the capital[1] of Ukraine.") == "Kyiv is the capital of Ukraine."
+    assert clean_lead("Paris (; French: [paʁi]) is a city.") == "Paris (French: [paʁi]) is a city."
+    assert clean_lead("Sir Herbert Read,  (; 4 December 1893 – 1968) was a poet.") == "Sir Herbert Read (4 December 1893 – 1968) was a poet."
+    cut = EntityMapper._truncate_sentence
+    one = "A" * 300 + " ran St. Louis from c. 1500 to 1520. " + "Then " + "b" * 200 + "."
+    assert cut(one, 420).endswith("to 1520.")  # not at "St." or "c."
+    long_first = "X was a " + "very " * 100 + "long sentence. More."
+    assert cut(long_first, 420) == long_first[: long_first.index("sentence.") + 9]
+    listy = "X was a poet; " + "word " * 120
+    out = cut(listy, 420)
+    assert out.endswith("…") and not out.rstrip("…").endswith((";", ",", ":"))
+
+
+def test_a_hatnote_paragraph_gives_way_to_the_lead_below_it():
+    s = spec(entity_type="person", where="?item wdt:P31 wd:Q5 .")
+    hat = "For the American sprinter, see Mary Washburn."
+    lead = "Mary Washburn (1880–1960) was an English suffragette and organiser in Leeds."
+    kept, _ = build([person(qid="Q60", label="Mary Washburn", summary=hat, full_extract=hat + "\n" + lead,
+                            description="suffragette")], s)
+    assert kept[0]["summary"].startswith("Mary Washburn (1880–1960) was an English suffragette")
+
+
+def test_a_lead_broken_mid_sentence_is_joined():
+    from pipeline.wikidata.mapper.entity_mapper import lead_paragraph
+
+    assert lead_paragraph("Sir Francis Humphrys,\n(1879–1971) was a diplomat.\nHe served in Iraq.") == (
+        "Sir Francis Humphrys, (1879–1971) was a diplomat.")
+    assert lead_paragraph("A museum.\nMore.") == "A museum."
