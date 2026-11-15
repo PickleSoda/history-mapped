@@ -5,15 +5,15 @@ entities, relationships and chronicles from text, with AI agents doing the writi
 Everything it produces is a **file**, and Laravel commands import the files into PostgreSQL. This page
 covers each track, the contract between the pipeline and the app, and the quality rules.
 
-> **Audience:** developers, data operators, technical stakeholders · **Read time:** 14 minutes ·
-> **Last reviewed:** 2026-11-14 · **How-to:** [Importing data](../implementation-docs/data-contributor-guide.md)
+> **Audience:** developers, data operators, technical stakeholders · **Read time:** 16 minutes ·
+> **Last reviewed:** 2026-11-15 · **How-to:** [Importing data](../implementation-docs/data-contributor-guide.md)
 
 ## At a glance
 
 ```mermaid
 flowchart TB
     SRC[("Open data: Wikidata, Wikipedia, OpenHistoricalMap, history texts")]
-    SRC --> T1["Wikidata scrape and topic walk"]
+    SRC --> T1["Wikidata: scrape, topic walk, bulk slices"]
     SRC --> T2["OHM borders and links"]
     SRC --> T3["Campaign and extraction agent"]
     SRC --> T4["Map-story builders"]
@@ -46,6 +46,7 @@ flowchart TB
 | OHM links | `python -m pipeline ohm-links fetch` | `output/ohm_links/<run>/ohm_links.jsonl` | `pipeline:import-ohm-links` |
 | Extraction agent | `python -m pipeline agent --input text.txt` or `--from-candidates candidates.json` | `api/storage/app/pipeline/agent_runs/<run>/` | runs the imports itself |
 | Campaign | `.claude/agents/campaign-*` with `python -m pipeline.campaign` | `output/campaign/extractions/campaign_<slug>/candidates.json` | `run_campaign.sh` → the agent |
+| Bulk Wikidata slices | `python -m pipeline.bulk qids/fetch <slice>` and the `importer` daemon | `output/bulk/<slice>/parts/part-NNNN.jsonl` | `pipeline:import --sync --skip-images` (run by the importer) |
 | Map stories | `python -m pipeline.map_stories build <module>` | `api/resources/map-stories/<slug>.json` | `map-stories:sync` |
 | Backfills and audits | `python -m pipeline.backfill_geo`, `pipeline.audit identity`… | reports in `output/audit/` | direct SQL with `--apply` |
 
@@ -195,7 +196,56 @@ sequenceDiagram
   coverage, orphan relationships, padded dates, geography coverage by group.
 - Details: the internal [campaign orchestration runbook](../implementation-docs/campaign-orchestration.md).
 
-## 5. Map stories
+## 5. Bulk Wikidata slices
+
+```mermaid
+flowchart TB
+    SC["Scout agents: slice proposals per domain"] --> SL["Slicer agent: spec, listing, one sample part"]
+    SL -->|"precision 90% or more"| AP[/"approved.txt"/]
+    AP --> FE["Fetch: WDQS facts and Wikipedia lead, 2,000 rows a part"]
+    FE --> GA["Gates: classes, dates, year bounds, hatnotes"]
+    GA --> IM["Importer daemon: pipeline:import"]
+    IM --> DB[(PostgreSQL)]
+    DB --> AU["Auditor agent: 60-row sample, CSV of fixes"]
+    AU -->|"apply-audit"| DB
+```
+
+The campaign writes about 100 well-researched rows per run. Bulk slices add tens of thousands of
+plainer rows per slice, straight from Wikidata, to fill the map between the curated rows. A
+**slice** (`pipeline/bulk/slices/<id>.json`) is one entity type, a SPARQL pattern, a notability bar
+(minimum sitelinks) and a sharding rule (birth-year windows, or one value per class or country).
+
+| Step | Command | What it does |
+|---|---|---|
+| List | `python -m pipeline.bulk qids <slice>` | Lists the QIDs shard by shard, halving a shard that times out. Drops QIDs already in the database or claimed by an earlier slice (`output/bulk/claims.tsv`) |
+| Fetch | `fetch <slice>` | Labels, dates with precision, coordinates, classes, aliases and relation properties in batches of 100, plus the English Wikipedia lead. A batch that times out is retried, then halved |
+| Build | runs inside `fetch`; `rebuild <slice>` re-runs it | Maps with the regular `EntityMapper`, then applies the slice's gates and writes parts of 2,000 records |
+| Import | `importer --poll 20` | Imports built parts of slices listed in `output/bulk/approved.txt`, one part at a time |
+| Audit | `bulk-auditor` agent, then `apply-audit <csv>` | Applies a curated CSV: flag for review, delete, merge into an older row, fix dates |
+| Tidy | `tidy` | Deletes bulk relations that link a state to an event or person outside the state's lifetime |
+| Roll back | `prune <slice> [--all]` | Deletes the slice's rows that its rebuilt parts no longer keep, or all of them |
+
+**Rules:**
+
+- **Every row is tagged** `attributes._bulk = {slice, sitelinks}`, and its batch is
+  `bulk-<slice>-NNNN`. That is how audits find a slice and how `prune` rolls one back.
+- **Older rows win.** The importer never merges a record into a row that holds a different QID. A
+  record that matches an older row is merged into it and leaves it untagged, so `prune` never deletes
+  curated data.
+- **Rank below curated rows.** Bulk rows get a short lead instead of the full article, and an impact
+  score from the sitelink count.
+- **Points are never borrowed**, as everywhere else. A row without its own coordinates has no point.
+- **Hints that mislead are dropped:** modern country (P17), modern admin unit (P131) and position
+  held (P39, which would read as "rules" its office).
+- **Gates per slice:** excluded classes, a sitelink bar, year bounds, dates required (for every row
+  or only for listed classes outside a region), and leads that are only a hatnote.
+- **A listing is frozen** once any part is fetched, because parts index into it by position.
+
+The slicer and auditor are Claude agents (`.claude/agents/bulk-slicer.md`, `bulk-auditor.md`). The
+slicer approves a slice only at 90% precision or better on a judged sample of 40 rows. The runbook
+is [Bulk Wikidata ingest](../implementation-docs/bulk-wikidata-ingest.md).
+
+## 6. Map stories
 
 A battle or other map story is written as a Python **builder module**. The author uses cached
 research tools (`python -m pipeline.map_stories research`, `places`), and `build` validates the
@@ -204,7 +254,7 @@ Claude agents (`battle-author`, `battle-reviewer`) do this in bulk from a queue 
 no story yet. The JSON lands in `api/resources/map-stories/` and reaches the database through
 `map-stories:sync`. See [Map stories](map-stories.md).
 
-## 6. Enrichment and quality
+## 7. Enrichment and quality
 
 | Job | Tool | What it does |
 |---|---|---|
@@ -232,6 +282,7 @@ refused, so they only ever touch a dev database.
 | `agent_runs/<run>/entities_to_create.jsonl` | `commit_writer.py` | `pipeline:import --sync` (run by the agent) | as `pipeline:import` |
 | `agent_runs/<run>/relations.jsonl` | `commit_writer.py` | `pipeline:import-relations` (run by the agent) | `relationships` |
 | `agent_runs/<run>/chronicle.json` | `agent/schemas/chronicle.py` | `chronicles:import --sync` (run by the agent) | `chronicles`, `chronicle_entries`, `chronicle_entry_entities`, tags |
+| `output/bulk/<slice>/parts/part-NNNN.jsonl` | as `<type>.jsonl` plus `attributes._bulk` | `pipeline:import --sync --skip-images`, copied under `api/storage/app/pipeline/bulk/` by the importer | as `pipeline:import`, without images (run `entity:fetch-images` after a wave) |
 | `api/resources/map-stories/<slug>.json` | `pipeline/map_stories/schema.py` | `map-stories:sync` | `map_stories`, `map_story_revisions` |
 | `api/resources/entity-descriptions/<slug>.md` | front matter `wikidata`, `name` | `entities:sync-descriptions` | `entities.description` |
 
@@ -251,10 +302,10 @@ After a large import, run `tags:sync` (derived tags) and, if you use them, `pipe
 
 ## Tests
 
-`python -m pytest pipeline/tests/ pipeline/agent/tests pipeline/campaign/tests pipeline/audit/tests`
-runs about 850 tests. The largest groups are the agent (235), OHM borders (142), backfills and audits
-(109), the campaign (100), map stories (92) and the identity audit (89). The Wikidata scrape and topic code has no tests. CI does not
-run the Python tests.
+`python -m pytest pipeline/tests/ pipeline/agent/tests pipeline/campaign/tests pipeline/audit/tests pipeline/bulk/tests`
+runs about 880 tests. The largest groups are the agent (235), OHM borders (142), backfills and audits
+(109), the campaign (100), map stories (92), the identity audit (89) and bulk slices (29). The
+Wikidata scrape and topic code has no tests. CI does not run the Python tests.
 
 ## Known gaps
 
@@ -270,4 +321,5 @@ run the Python tests.
 [Data quality runbook](../implementation-docs/data-quality-runbook.md) ·
 [Identity audit](../implementation-docs/identity-audit.md) ·
 [OHM border extraction](../implementation-docs/ohm-border-extraction.md) ·
-[Battle-map bulk run](../implementation-docs/battle-map-bulk-run.md)
+[Battle-map bulk run](../implementation-docs/battle-map-bulk-run.md) ·
+[Bulk Wikidata ingest](../implementation-docs/bulk-wikidata-ingest.md)

@@ -17,6 +17,7 @@ see [../architecture/](../architecture/); for the data model, see [../entity-mod
 - [agentic-pipeline-runbook.md](agentic-pipeline-runbook.md) — the 15-node LangGraph agent: nodes, commands, env, risk policies, LangGraph Studio, known defects.
 - [pipeline-eval-iterations.md](pipeline-eval-iterations.md) — narrative log of agent-pipeline hardening and the eval harness.
 - [campaign-orchestration.md](campaign-orchestration.md) — history-data campaign: subagent roster (author/gatherer/reviewer/fixer/ops, v2 tiering), run lifecycle, dispatch templates, escalation, wave procedure.
+- [bulk-wikidata-ingest.md](bulk-wikidata-ingest.md) — bulk Wikidata slices (`pipeline.bulk`): slicer and auditor agents, approval, fetchers plus one importer daemon, apply-audit, prune, tidy.
 - [entity-reresolution.md](entity-reresolution.md) — fix already-committed entities' QID/type/location/dates in place (preserving relations) when a re-run won't reach them.
 - [data-quality-runbook.md](data-quality-runbook.md) — symptom-indexed fixes for bad committed data: geometry/location model, over-anchored dates, century-parse years, event locations, malformed names.
 - [content-data-transfer.md](content-data-transfer.md) — ship hand-fixed DB content (not the JSONL) from local Postgres to the prod droplet: cleaned data-only dump + atomic full-replace loader.
