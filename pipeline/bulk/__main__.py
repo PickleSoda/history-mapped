@@ -504,12 +504,25 @@ where b0 is not null and e0 is not null and (f1 < b0 - %(slack)s or e0 > b1 + %(
 """
 
 
+# Relations whose shape is impossible: Wikidata puts some sieges "part of"
+# the commander who ran the campaign (Toyotomi Hideyoshi, Sennacherib).
+MISTYPED = """
+select r.relationship_id::text, r.relationship_type, s.name, t.name, null, null, null, null
+from relationships r
+join entities s on s.entity_id = r.source_entity_id
+join entities t on t.entity_id = r.target_entity_id
+where r.created_by like 'pipeline:bulk-%%' and r.relationship_type = 'part_of'
+  and s.entity_type::text like 'event%%' and t.entity_type = 'person'
+"""
+
+
 @cli.command()
 @click.option("--slack", type=int, default=25, help="Years of tolerance around a polity's lifetime")
 @click.option("--person-slack", type=int, default=5, help="Years of tolerance around a person's lifetime")
 @click.option("--yes", is_flag=True, help="Delete; without it, a dry run")
 def tidy(slack: int, person_slack: int, yes: bool) -> None:
-    """Delete bulk-created relations linking a polity or a person to something outside its lifetime (CSV backup)."""
+    """Delete bulk-created relations linking a polity or a person to something outside its lifetime,
+    and events "part of" a person (CSV backup)."""
     import csv
 
     import psycopg
@@ -523,8 +536,11 @@ def tidy(slack: int, person_slack: int, yes: bool) -> None:
         cur.execute(OUTSIDE_LIFE, {"slack": person_slack})
         seen = {r[0] for r in polity}
         person = [r for r in cur.fetchall() if r[0] not in seen]
-        rows = polity + person
-        for label, part in (("polity", polity), ("person-event", person)):
+        seen |= {r[0] for r in person}
+        cur.execute(MISTYPED)
+        mistyped = [r for r in cur.fetchall() if r[0] not in seen]
+        rows = polity + person + mistyped
+        for label, part in (("polity", polity), ("person-event", person), ("event part_of person", mistyped)):
             by_type = Counter(r[1] for r in part)
             say(f"tidy: {len(part)} anachronistic {label} relations {dict(by_type.most_common())}")
             for r in part[:6]:
