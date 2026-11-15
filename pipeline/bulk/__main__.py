@@ -324,26 +324,151 @@ def prune(slice_id: str, everything: bool, yes: bool) -> None:
     say(f"{slice_id}: deleted {len(rows)} rows")
 
 
+def _date_attr_keys(entity_type: str) -> set[str]:
+    """Attribute keys the mapper fills from date properties (birth_date, death_date…)."""
+    from pipeline.bulk.fetch import DATE_PROPS
+    from pipeline.wikidata.mapper.type_configs import WIKIDATA_TYPE_CONFIGS
+
+    field_map = WIKIDATA_TYPE_CONFIGS.get(entity_type, {}).get("field_map", {})
+    return {field_map[pid] for pid, _ in DATE_PROPS if pid in field_map}
+
+
+def _record_span(rec: dict[str, Any]) -> tuple[str | None, str | None]:
+    """The primary range the importer stores for a record (ImportEntityJob)."""
+    attrs = rec.get("attributes") or {}
+    start = rec.get("temporal_start") or attrs.get("start_date")
+    end = rec.get("temporal_end") or attrs.get("end_date")
+    y0 = re.match(r"^-?\d+", str(start)) if start is not None else None
+    y1 = re.match(r"^-?\d+", str(end)) if end is not None else None
+    if y0 and y1 and int(y0.group()) > int(y1.group()):
+        end = None
+    return (None if start is None else str(start)), (None if end is None else str(end))
+
+
+@cli.command()
+@click.argument("slice_ids", nargs=-1, required=True)
+@click.option("--yes", is_flag=True, help="Write; without it, a dry run")
+def redate(slice_ids: tuple[str, ...], yes: bool) -> None:
+    """Give imported rows the dates of their rebuilt records (after a date-gate change).
+
+    Run `rebuild <id> --imported` and `prune <id> --yes` first. Updates the
+    primary range, date_confidence and the date attributes of rows tagged
+    with the slice; rows a curated audit re-dated (fix_dates) are left alone.
+    Before-values go to output/bulk/redate/redate-<stamp>.csv.
+    """
+    import csv
+
+    import psycopg
+    from psycopg.types.json import Jsonb
+
+    from pipeline.bulk.store import ROOT
+    from pipeline.local_db import dsn
+
+    curated: set[str] = set()
+    for path in (ROOT / "audit").glob("applied-*.csv"):
+        with open(path, newline="") as fh:
+            curated |= {r["entity_id"] for r in csv.DictReader(fh) if (r.get("action") or "").startswith("fix_dates")}
+    log_rows: list[list[Any]] = []
+    total: Counter = Counter()
+    with locked("import"), psycopg.connect(dsn()) as conn, conn.cursor() as cur:
+        for slice_id in slice_ids:
+            s, store = _load(slice_id)
+            keys = _date_attr_keys(s.entity_type)
+            records: dict[str, dict[str, Any]] = {}
+            for n in store.part_numbers():
+                if store.import_path(n).exists():
+                    with open(store.part_path(n)) as fh:
+                        for line in fh:
+                            if line.strip():
+                                rec = json.loads(line)
+                                records[rec.get("wikidata_id")] = rec
+            cur.execute(
+                "select e.entity_id::text, e.wikidata_id, e.name, e.date_confidence::text, e.attributes, "
+                "t.temporal_range_id::text, t.start_date, t.end_date from entities e "
+                "left join entity_temporal_ranges t on t.entity_id = e.entity_id and t.is_primary "
+                "where e.attributes->'_bulk'->>'slice' = %s",
+                (slice_id,),
+            )
+            done: Counter = Counter()
+            for eid, qid, name, conf, attrs, range_id, d0, d1 in cur.fetchall():
+                rec = records.get(qid)
+                if rec is None or eid in curated:
+                    continue
+                n0, n1 = _record_span(rec)
+                nconf = rec.get("date_confidence")
+                rattrs = rec.get("attributes") or {}
+                attr_patch = {k: rattrs[k] for k in keys if k in rattrs}
+                attr_drop = [k for k in keys if k in attrs and k not in rattrs]
+                stale_attrs = attr_drop or any(attrs.get(k) != v for k, v in attr_patch.items())
+                if (n0, n1) == (d0, d1) and nconf == conf and not stale_attrs:
+                    continue
+                done["changed"] += 1
+                log_rows.append([slice_id, eid, qid, name, d0, d1, conf, n0, n1, nconf])
+                if not yes:
+                    continue
+                if n0 is None and n1 is None:
+                    if range_id:
+                        cur.execute("delete from entity_temporal_ranges where temporal_range_id = %s", (range_id,))
+                elif range_id:
+                    cur.execute(
+                        "update entity_temporal_ranges set start_date = %s, end_date = %s, date_confidence = %s, "
+                        "updated_at = now() where temporal_range_id = %s",
+                        (n0, n1, nconf, range_id),
+                    )
+                else:
+                    cur.execute(
+                        "insert into entity_temporal_ranges (entity_id, range_type, start_date, end_date, "
+                        "date_confidence, is_primary, created_at, updated_at) "
+                        "values (%s, 'primary', %s, %s, %s, true, now(), now())",
+                        (eid, n0, n1, nconf),
+                    )
+                cur.execute(
+                    "update entities set date_confidence = %s::confidence_level, "
+                    "attributes = (attributes - %s::text[]) || %s, updated_at = now() where entity_id = %s",
+                    (nconf, attr_drop, Jsonb(attr_patch), eid),
+                )
+            say(f"{slice_id}: {done['changed']} rows to re-date")
+            total.update(done)
+        for r in log_rows[:8]:
+            say(f"  {r[2]} {r[3]}: {r[4]}..{r[5]} ({r[6]}) -> {r[7]}..{r[8]} ({r[9]})")
+        if not yes:
+            say(f"redate: {total['changed']} rows (dry run; pass --yes to write)")
+            return
+        out = ROOT / "redate" / f"redate-{time.strftime('%Y%m%d-%H%M%S')}.csv"
+        out.parent.mkdir(parents=True, exist_ok=True)
+        with open(out, "w", newline="") as fh:
+            w = csv.writer(fh)
+            w.writerow(["slice", "entity_id", "qid", "name", "start", "end", "confidence", "new_start", "new_end", "new_confidence"])
+            w.writerows(log_rows)
+        conn.commit()
+    say(f"redate: {total['changed']} rows written; before-values in {out}")
+
+
 # Relations a bulk import created between a polity and something outside the
 # polity's lifetime (with slack): Wikidata names today's state for old
 # events and births (France, founded 1958 in our rows, "participating" in a
-# 1781 action). A polity with no end year is ongoing; other rows with no end
-# are a single year.
+# 1781 action). An event or a person with no end year is a single year;
+# anything else with no end (a polity, a city, a building) is ongoing.
+# Not checked: capital_of (from the polity's own P36; a mismatch means the
+# city's dates are off, e.g. a modern municipal founding year), succession
+# (preceded_by/succeeded_by never overlap by nature: Roman Britain ->
+# Ceredigion) and used_currency (a coin is used long after its minting dates).
 ANACHRONISTIC = """
 with r as (
   select r.relationship_id, r.relationship_type, s.entity_type st, t.entity_type tt, s.name sn, t.name tn,
          ts.start_year s0,
-         case when s.entity_type = 'political_entity' then coalesce(ts.end_year, %(now)s)
-              else coalesce(ts.end_year, ts.start_year) end s1,
+         case when s.entity_type = 'person' or s.entity_type::text like 'event%%' then coalesce(ts.end_year, ts.start_year)
+              else coalesce(ts.end_year, %(now)s) end s1,
          tr.start_year t0,
-         case when t.entity_type = 'political_entity' then coalesce(tr.end_year, %(now)s)
-              else coalesce(tr.end_year, tr.start_year) end t1
+         case when t.entity_type = 'person' or t.entity_type::text like 'event%%' then coalesce(tr.end_year, tr.start_year)
+              else coalesce(tr.end_year, %(now)s) end t1
   from relationships r
   join entities s on s.entity_id = r.source_entity_id
   join entities t on t.entity_id = r.target_entity_id
   left join entity_temporal_ranges ts on ts.entity_id = s.entity_id and ts.is_primary
   left join entity_temporal_ranges tr on tr.entity_id = t.entity_id and tr.is_primary
   where r.created_by like 'pipeline:bulk-%%'
+    and r.relationship_type not in ('capital_of', 'preceded_by', 'succeeded_by', 'used_currency')
 )
 select relationship_id::text, relationship_type, sn, tn, s0, s1, t0, t1 from r
 where s0 is not null and t0 is not null and (
@@ -352,11 +477,39 @@ where s0 is not null and t0 is not null and (
 """
 
 
+# Relations a bulk import created between a person and an event outside the
+# person's lifetime: a man born 1763 "participating" in a war of 1600-1629
+# (a wrong war matched by name, or a bad date). An unknown end of life is
+# taken as 100 years after birth, an unknown birth as 100 years before death.
+OUTSIDE_LIFE = """
+with r as (
+  select r.relationship_id, r.relationship_type, s.name sn, t.name tn,
+         case when s.entity_type = 'person' then ts.start_year else tr.start_year end p0,
+         case when s.entity_type = 'person' then ts.end_year else tr.end_year end p1,
+         case when s.entity_type = 'person' then tr.start_year else ts.start_year end e0,
+         case when s.entity_type = 'person' then tr.end_year else ts.end_year end e1
+  from relationships r
+  join entities s on s.entity_id = r.source_entity_id
+  join entities t on t.entity_id = r.target_entity_id
+  left join entity_temporal_ranges ts on ts.entity_id = s.entity_id and ts.is_primary
+  left join entity_temporal_ranges tr on tr.entity_id = t.entity_id and tr.is_primary
+  where r.created_by like 'pipeline:bulk-%%'
+    and ((s.entity_type = 'person' and t.entity_type::text like 'event%%')
+      or (t.entity_type = 'person' and s.entity_type::text like 'event%%'))
+), b as (
+  select *, coalesce(p0, p1 - 100) b0, coalesce(p1, p0 + 100) b1, coalesce(e1, e0) f1 from r
+)
+select relationship_id::text, relationship_type, sn, tn, p0, p1, e0, e1 from b
+where b0 is not null and e0 is not null and (f1 < b0 - %(slack)s or e0 > b1 + %(slack)s)
+"""
+
+
 @cli.command()
 @click.option("--slack", type=int, default=25, help="Years of tolerance around a polity's lifetime")
+@click.option("--person-slack", type=int, default=5, help="Years of tolerance around a person's lifetime")
 @click.option("--yes", is_flag=True, help="Delete; without it, a dry run")
-def tidy(slack: int, yes: bool) -> None:
-    """Delete bulk-created relations that link a polity to something outside its lifetime (CSV backup)."""
+def tidy(slack: int, person_slack: int, yes: bool) -> None:
+    """Delete bulk-created relations linking a polity or a person to something outside its lifetime (CSV backup)."""
     import csv
 
     import psycopg
@@ -366,11 +519,16 @@ def tidy(slack: int, yes: bool) -> None:
 
     with psycopg.connect(dsn()) as conn, conn.cursor() as cur:
         cur.execute(ANACHRONISTIC, {"now": CURRENT_YEAR, "slack": slack})
-        rows = cur.fetchall()
-        by_type = Counter(r[1] for r in rows)
-        say(f"tidy: {len(rows)} anachronistic polity relations {dict(by_type.most_common())}")
-        for r in rows[:8]:
-            say(f"  {r[2]} {r[1]} {r[3]} ({r[4]}..{r[5]} vs {r[6]}..{r[7]})")
+        polity = cur.fetchall()
+        cur.execute(OUTSIDE_LIFE, {"slack": person_slack})
+        seen = {r[0] for r in polity}
+        person = [r for r in cur.fetchall() if r[0] not in seen]
+        rows = polity + person
+        for label, part in (("polity", polity), ("person-event", person)):
+            by_type = Counter(r[1] for r in part)
+            say(f"tidy: {len(part)} anachronistic {label} relations {dict(by_type.most_common())}")
+            for r in part[:6]:
+                say(f"  {r[2]} {r[1]} {r[3]} ({r[4]}..{r[5]} vs {r[6]}..{r[7]})")
         if not yes or not rows:
             say("dry run; pass --yes to delete" if rows else "nothing to do")
             return
