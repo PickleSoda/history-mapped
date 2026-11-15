@@ -1,0 +1,55 @@
+{
+  "id": "monuments-fortifications-lowbar-castles-sl1",
+  "entity_type": "infrastructure_monument",
+  "description": "Obscure castles, castle ruins, forts, fortresses and chateaux with coords (sl>=1, enwiki), dated before 1700; undated only inside Europe and the Middle East",
+  "where": "OPTIONAL { ?item wdt:P571 ?hm_inc } FILTER((BOUND(?hm_inc) && YEAR(?hm_inc) < 1700) || (!BOUND(?hm_inc) && ?hm_v IN (wd:Q23413, wd:Q17715832, wd:Q92062, wd:Q57831)))",
+  "min_sitelinks": 1,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": [
+        "Q23413",
+        "Q17715832",
+        "Q92062",
+        "Q57831",
+        "Q1785071",
+        "Q751876"
+      ]
+    }
+  },
+  "exclude_p31": [
+    "Q156362",
+    "Q3957",
+    "Q486972",
+    "Q5084",
+    "Q515",
+    "Q532",
+    "Q179700",
+    "Q27686",
+    "Q5056",
+    "Q1021290",
+    "Q41176"
+  ],
+  "require": [
+    "coords"
+  ],
+  "require_dates_p31": [
+    "Q23413",
+    "Q17715832",
+    "Q92062",
+    "Q57831",
+    "Q1785071",
+    "Q751876"
+  ],
+  "require_dates_except_bbox": [
+    -25,
+    25,
+    60,
+    72
+  ],
+  "year_max": 1699,
+  "priority": 4,
+  "notes": "Low-bar copy of monuments-castles (sl>=5) and monuments-lowbar-castles-palaces (sl>=3); lists only the new sl 1-2 tier. Failure modes: hotels/restaurants named Castle, follies, castle-shaped houses, castles that are villages or titles.",
+  "exclude_desc": "neoclassical|neo-gothic|neo-renaissance|baroque (palace|residence|manor)|municipal building|town hall|hotel|restaurant|winery|wine estate|vineyard|manor house|country house|villa|19th[- ]century|20th[- ]century|nineteenth|twentieth|world war|austro-hungarian fort|housing|apartment|theme park|replica|folly|mansion",
+  "keep_desc": "ruin|motte"
+}

@@ -4,10 +4,24 @@
   "description": "Other people born before 1500 (artists, merchants, soldiers, physicians), sitelinks>=3",
   "where": "?item wdt:P31 wd:Q5 . VALUES ?hm_occ { wd:Q1028181 wd:Q1281618 wd:Q215536 wd:Q39631 wd:Q4991371 wd:Q189290 wd:Q42973 wd:Q47064 } ?item wdt:P106 ?hm_occ .",
   "min_sitelinks": 3,
-  "shards": {"years": {"prop": "P569", "from": -700, "to": 1500, "step": 25}},
-  "exclude_p31": ["Q15632617", "Q95074"],
-  "require": ["dates"],
+  "shards": {
+    "years": {
+      "prop": "P569",
+      "from": -500,
+      "to": 1500,
+      "step": 60
+    }
+  },
+  "exclude_p31": [
+    "Q15632617",
+    "Q95074"
+  ],
+  "require": [
+    "dates"
+  ],
   "year_max": 1499,
   "priority": 4,
-  "notes": "wave5"
+  "notes": "wave5",
+  "exclude_desc": "\\b(racing driver|racecar driver|rally driver|motorcycle racer|footballer|football player|soccer player|athlete|swimmer|tennis player|cyclist|boxer|wrestler|rower|coxswain|skier|ski jumper|gymnast|fencer|cricketer|rugby|baseball|basketball|ice hockey|hockey player|jockey|equestrian|sprinter|hurdler|golfer|sport shooter|bobsledder|speed skater|figure skater|weightlifter|canoeist|coach|olympic (?:champion|medalist|medallist|athlete)|long-distance runner|middle-distance runner|high jumper|long jumper|pole vaulter|discus thrower|javelin thrower|shot putter|decathlete|track and field)\\b",
+  "keep_desc": "\\b(politician|diplomat|statesman|minister|president|governor|senator|deputy|member of|mayor|judge|lawyer|jurist|justice|official|activist|officer|general|admiral|soldier|military|army|navy|naval|pilot|aviator|commander|marshal|colonel|scientist|physicist|chemist|mathematician|physician|biologist|professor|scholar|historian|economist|philosopher|inventor|astronomer|engineer|architect|writer|poet|novelist|painter|sculptor|composer|artist|journalist|author|playwright|priest|bishop|clergyman|missionary|theologian|monk|saint|prince|princess|king|queen|count|duke|noble|nobleman|aristocrat|businessman|industrialist|merchant|banker|explorer|founder|philanthropist|educator|teacher|noblewoman|peer|earl|viscount|marquess|baron|baronet|leader|warrior|chief)\\b"
 }

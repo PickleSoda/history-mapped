@@ -1,0 +1,11 @@
+{
+  "id": "works-lowbar-visual-manuscripts-lowbar",
+  "entity_type": "cultural_work",
+  "description": "Manuscripts and codices before 1600, lower sitelink bar",
+  "where": "?item wdt:P31 wd:Q87167 . ?item rdfs:label ?hm_l . FILTER(LANG(?hm_l)=\"en\" && !REGEX(?hm_l,\"^(Papyrus|Uncial|Minuscule|Lectionary|Codex Minuscule|Majuscule) ?[0-9]\"))",
+  "min_sitelinks": 1,
+  "require": ["dates"],
+  "year_max": 1599,
+  "priority": 6,
+  "notes": "lower bar of culture-works-manuscripts"
+}

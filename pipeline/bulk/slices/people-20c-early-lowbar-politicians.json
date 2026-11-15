@@ -1,0 +1,29 @@
+{
+  "id": "people-20c-early-lowbar-politicians",
+  "entity_type": "person",
+  "description": "Politicians born 1900-1924 one tier below the imported bar, sl>=5",
+  "where": "?item wdt:P31 wd:Q5 ; wdt:P106 wd:Q82955 . MINUS { ?item wdt:P106 ?hm_x . VALUES ?hm_x { wd:Q2066131 wd:Q33999 wd:Q177220 wd:Q10800557 wd:Q2405480 } }",
+  "min_sitelinks": 5,
+  "shards": {
+    "years": {
+      "prop": "P569",
+      "from": 1900,
+      "to": 1925,
+      "step": 1
+    }
+  },
+  "exclude_p31": [
+    "Q15632617",
+    "Q95074",
+    "Q4271324"
+  ],
+  "require": [
+    "dates"
+  ],
+  "year_min": 1900,
+  "year_max": 1924,
+  "priority": 6,
+  "notes": "wave6 lowbar tier below people-20c-early-politicians; listing drops QIDs already imported or claimed.",
+  "exclude_desc": "\\b(racing driver|racecar driver|rally driver|motorcycle racer|footballer|football player|soccer player|athlete|swimmer|tennis player|cyclist|boxer|wrestler|rower|coxswain|skier|ski jumper|gymnast|fencer|cricketer|rugby|baseball|basketball|ice hockey|hockey player|jockey|equestrian|sprinter|hurdler|golfer|sport shooter|bobsledder|speed skater|figure skater|weightlifter|canoeist|coach|olympic (?:champion|medalist|medallist|athlete)|long-distance runner|middle-distance runner|high jumper|long jumper|pole vaulter|discus thrower|javelin thrower|shot putter|decathlete|track and field)\\b",
+  "keep_desc": "\\b(politician|diplomat|statesman|minister|president|governor|senator|deputy|member of|mayor|judge|lawyer|jurist|official|activist|trade unionist|justice|supreme court|political|philanthropist|founder)\\b"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "works-lowbar-text-music-film-films-sl8",
+  "entity_type": "cultural_work",
+  "description": "Films released before 1950, 8-14 sitelinks",
+  "where": "?item wdt:P31 wd:Q11424 .",
+  "min_sitelinks": 8,
+  "shards": {"years": {"prop": "P577", "from": 1888, "to": 1950, "step": 5}},
+  "require": ["dates"],
+  "year_max": 1949,
+  "priority": 6,
+  "notes": "lower tier of works-wider-films-pre1950"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "places-first-mention-towns-pre1400",
+  "entity_type": "city",
+  "description": "Towns and cities whose earliest written record (P1249) is before 1400, sl>=6, coordinates",
+  "where": "?item wdt:P31 ?hm_cl . VALUES ?hm_cl { wd:Q3957 wd:Q515 wd:Q1549591 wd:Q15284 } ?item wdt:P625 ?co .",
+  "min_sitelinks": 6,
+  "shards": {"years": {"prop": "P1249", "from": -500, "to": 1400, "step": 25}},
+  "exclude_p31": ["Q23442", "Q532", "Q5084", "Q1115575", "Q1134686", "Q350895", "Q74047", "Q484170", "Q262166"],
+  "require": ["coords", "dates"],
+  "year_max": 1399,
+  "priority": 3,
+  "notes": "First-mention (P1249) dates; P571 modern drops at year_max."
+}

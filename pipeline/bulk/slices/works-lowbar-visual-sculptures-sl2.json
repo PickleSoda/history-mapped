@@ -1,0 +1,13 @@
+{
+  "id": "works-lowbar-visual-sculptures-sl2",
+  "entity_type": "cultural_work",
+  "description": "Sculptures created before 1900, 2-4 sitelinks tier",
+  "where": "?item wdt:P31 wd:Q860861 . ?item wdt:P571 ?hm_d0 . FILTER(YEAR(?hm_d0) < 1900)",
+  "min_sitelinks": 2,
+  "exclude_p31": ["Q4989906", "Q575759"],
+  "require": ["dates"],
+  "year_max": 1899,
+  "exclude_desc": "\\b(copy|replica|print|etching|engraving|lithograph|woodcut|drawing|study for|sketch)\\b|^untitled|catalog",
+  "priority": 6,
+  "notes": "lower bar of works-wider-sculptures-sl5-pre1950"
+}

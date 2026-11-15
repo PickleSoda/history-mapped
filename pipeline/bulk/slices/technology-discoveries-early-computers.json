@@ -7,11 +7,24 @@
   "shards": {
     "values": {
       "pattern": "?item wdt:P31 ?hm_v .",
-      "values": ["Q211586", "Q11742076", "Q6591619", "Q28542014", "Q787116", "Q11019", "Q132911", "Q267298"]
+      "values": [
+        "Q211586",
+        "Q11742076",
+        "Q6591619",
+        "Q28542014",
+        "Q787116"
+      ]
     }
   },
-  "require": ["dates"],
+  "require": [
+    "dates"
+  ],
   "year_max": 1949,
   "priority": 3,
-  "notes": "Small hand-picked classes of dated machines."
+  "notes": "Mechanical calculators, early computers, automata dated by P571. Excludes Faberge eggs and elevators (buildings). Tiny pool (~10 new).",
+  "exclude_p31": [
+    "Q331225",
+    "Q132911",
+    "Q1068842"
+  ]
 }

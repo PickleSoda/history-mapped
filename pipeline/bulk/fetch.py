@@ -143,8 +143,9 @@ def fill_dates(items: dict[str, dict[str, Any]], best: dict[tuple[str, str], tup
 
     In DATE_PROPS order, so inception (P571) wins over publication date
     (P577), except that a century-or-coarser value gives way to a later
-    property's year-precision value: a novel whose P571 is "19th century"
-    takes its P577 year.
+    property's year-precision value inside its own span: a novel whose P571
+    is "19th century" takes its P577 year, but a bronze bull of about 2600
+    BCE keeps its date rather than the year it was found (P575, 1923).
     """
     for qid, item in items.items():
         for pid, raw_key in DATE_PROPS:
@@ -153,9 +154,14 @@ def fill_dates(items: dict[str, dict[str, Any]], best: dict[tuple[str, str], tup
                 continue
             year, prec = found
             precs = item.setdefault("_date_prec", {})
-            if item.get(raw_key) is None or (precs.get(raw_key, 9) <= 7 and prec >= 9):
+            if item.get(raw_key) is None:
                 item[raw_key] = str(year)
                 precs[raw_key] = prec
+            elif precs.get(raw_key, 9) <= 7 and prec >= 9:
+                span = 10 ** (9 - precs[raw_key])  # 100 years for a century, 1000 for a millennium
+                if abs(year - int(item[raw_key])) <= span:
+                    item[raw_key] = str(year)
+                    precs[raw_key] = prec
 
 
 def fetch_aliases(client: Client, qids: list[str], items: dict[str, dict[str, Any]]) -> None:

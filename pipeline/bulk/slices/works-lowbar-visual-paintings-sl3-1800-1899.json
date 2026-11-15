@@ -1,0 +1,14 @@
+{
+  "id": "works-lowbar-visual-paintings-sl3-1800-1899",
+  "entity_type": "cultural_work",
+  "description": "Paintings created 1800-1899, 3-4 sitelinks tier",
+  "where": "?item wdt:P31 wd:Q3305213 .",
+  "min_sitelinks": 3,
+  "shards": {"years": {"prop": "P571", "from": 1800, "to": 1900, "step": 5}},
+  "require": ["dates"],
+  "year_min": 1800,
+  "year_max": 1899,
+  "exclude_desc": "\\b(copy|replica|print|etching|engraving|lithograph|woodcut|drawing|study for|sketch)\\b|^untitled|catalog",
+  "priority": 6,
+  "notes": "lower bar of works-wider-paintings-sl5-1800-1949"
+}

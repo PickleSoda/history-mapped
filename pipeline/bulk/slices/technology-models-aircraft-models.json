@@ -1,0 +1,17 @@
+{
+  "id": "technology-models-aircraft-models",
+  "entity_type": "technology",
+  "description": "Aircraft families and models first flown or in service before 1950",
+  "where": "?item wdt:P606|wdt:P729|wdt:P571 ?hm_dt . FILTER(YEAR(?hm_dt) < 1950)",
+  "min_sitelinks": 5,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": ["Q15056993", "Q15056995"]
+    }
+  },
+  "require": ["dates"],
+  "year_max": 1949,
+  "priority": 3,
+  "notes": "Aircraft families/models by P606/P729/P571. Individual airframes are not P31 aircraft model."
+}

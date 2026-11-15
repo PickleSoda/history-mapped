@@ -1,0 +1,13 @@
+{
+  "id": "works-lowbar-text-music-film-literary-sl3",
+  "entity_type": "cultural_work",
+  "description": "Literary works (novels, plays, poems, epics, short stories) written or published before 1950, 3-4 sitelinks",
+  "where": "?item wdt:P571|wdt:P577 ?hm_d0 . FILTER(YEAR(?hm_d0) < 1950)",
+  "min_sitelinks": 3,
+  "shards": {"values": {"pattern": "?item wdt:P31 ?hm_v .", "values": ["Q7725634", "Q8261", "Q25379", "Q5185279", "Q37484", "Q49084"]}},
+  "exclude_p31": ["Q29154430"],
+  "require": ["dates"],
+  "year_max": 1949,
+  "priority": 6,
+  "notes": "lower tier (sl3-4) of works-wider-literary-sl5-pre1950"
+}

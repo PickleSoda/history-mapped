@@ -1,0 +1,17 @@
+{
+  "id": "technology-models-ship-weapon-lowbar",
+  "entity_type": "technology",
+  "description": "Ship classes, submarine classes and weapon models introduced before 1950 (sitelink 3-4 tier)",
+  "where": "?item wdt:P571|wdt:P729 ?hm_dt . FILTER(YEAR(?hm_dt) < 1950)",
+  "min_sitelinks": 3,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": ["Q559026", "Q1428357", "Q15142894", "Q12800", "Q81103", "Q720711", "Q1192819", "Q1330892", "Q815231", "Q317939"]
+    }
+  },
+  "require": ["dates"],
+  "year_max": 1949,
+  "priority": 3,
+  "notes": "Lower-bar copy of technology-discoveries-ship-classes and -weapon-models, plus submarine classes; adds P729 dates."
+}

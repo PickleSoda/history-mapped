@@ -1,13 +1,32 @@
 {
   "id": "monuments-religious-deep-synagogues-other",
   "entity_type": "infrastructure_monument",
-  "description": "Deep tier: synagogues, Jain temples, gurdwaras, fire temples with inception before 1900 (sl>=2)",
+  "description": "Deep tier: historic Sikh gurdwaras, Jain temples, Zoroastrian fire temples with inception before 1900 (sl>=2)",
   "where": "VALUES ?hm_c { wd:Q34627 wd:Q2613100 wd:Q337986 wd:Q115278 } ?item wdt:P31 ?hm_c . ?item wdt:P625 ?hm_co .",
   "min_sitelinks": 2,
-  "shards": {"years": {"prop": "P571", "from": -500, "to": 1900, "step": 50}},
-  "exclude_p31": ["Q207694", "Q3957", "Q486972", "Q5084", "Q515", "Q532", "Q1549591"],
-  "require": ["coords", "dates"],
+  "shards": {
+    "years": {
+      "prop": "P571",
+      "from": -500,
+      "to": 1900,
+      "step": 50
+    }
+  },
+  "exclude_p31": [
+    "Q207694",
+    "Q3957",
+    "Q486972",
+    "Q5084",
+    "Q515",
+    "Q532",
+    "Q1549591",
+    "Q34627"
+  ],
+  "require": [
+    "coords",
+    "dates"
+  ],
   "year_max": 1899,
   "priority": 4,
-  "notes": "Deep tier. Failure: modern buildings."
+  "notes": "Deep tier. Synagogue class excluded at build: sl2 pool was congregations (organisations) in 19th-c US; keeps gurdwaras, Jain temples, fire temples."
 }

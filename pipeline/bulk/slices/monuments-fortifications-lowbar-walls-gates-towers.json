@@ -1,0 +1,19 @@
+{
+  "id": "monuments-fortifications-lowbar-walls-gates-towers",
+  "entity_type": "infrastructure_monument",
+  "description": "City walls, city gates, defensive towers and watchtowers (sl>=2, enwiki, coords), dated before 1700 only",
+  "where": "?item wdt:P571 ?hm_inc . FILTER(YEAR(?hm_inc) < 1700)",
+  "min_sitelinks": 2,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": ["Q16748868", "Q82117", "Q20034791", "Q947103", "Q81917"]
+    }
+  },
+  "exclude_p31": ["Q156362", "Q3957", "Q486972", "Q5084", "Q515", "Q532", "Q179700", "Q27686", "Q5056", "Q1021290", "Q41176"],
+  "exclude_desc": "neoclassical|municipal building|town hall|hotel|restaurant|19th[- ]century|20th[- ]century|nineteenth|twentieth|world war|housing|apartment|replica|folly|mansion|lighthouse|water tower|clock tower",
+  "require": ["dates", "coords"],
+  "year_max": 1699,
+  "priority": 4,
+  "notes": "Low-bar copy of the wall/gate classes in monuments-lowbar-castles-palaces (sl>=3, undated allowed); lists only the new sl 2 tier plus towers, dated only."
+}

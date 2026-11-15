@@ -393,3 +393,14 @@ def test_first_mention_and_service_entry_fill_only_a_missing_inception():
     fill_dates(items, {("Q1", "P1249"): (1250, 9), ("Q2", "P1249"): (1250, 9)})
     assert items["Q1"]["inception"] == "1250"
     assert items["Q2"]["inception"] == "1974"  # a town's own inception wins
+
+
+def test_a_discovery_year_never_replaces_an_ancient_coarse_date():
+    from pipeline.bulk.fetch import fill_dates
+
+    bull = {"Q1": {}}
+    fill_dates(bull, {("Q1", "P571"): (-2600, 6), ("Q1", "P575"): (1923, 11)})
+    assert bull["Q1"]["inception"] == "-2600"
+    novel = {"Q2": {}}
+    fill_dates(novel, {("Q2", "P571"): (1801, 7), ("Q2", "P577"): (1840, 11)})
+    assert novel["Q2"]["inception"] == "1840"

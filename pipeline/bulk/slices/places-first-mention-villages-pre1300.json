@@ -1,0 +1,13 @@
+{
+  "id": "places-first-mention-villages-pre1300",
+  "entity_type": "city",
+  "description": "Villages whose earliest written record (P1249) is before 1300, sl>=12, coordinates",
+  "where": "?item wdt:P31 wd:Q532 . ?item wdt:P625 ?co .",
+  "min_sitelinks": 12,
+  "shards": {"years": {"prop": "P1249", "from": -500, "to": 1300, "step": 50}},
+  "exclude_p31": ["Q23442", "Q5084", "Q1115575", "Q1134686", "Q350895", "Q74047"],
+  "require": ["coords", "dates"],
+  "year_max": 1299,
+  "priority": 4,
+  "notes": "Villages with first-mention dates, high bar."
+}

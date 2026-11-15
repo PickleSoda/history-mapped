@@ -1,0 +1,17 @@
+{
+  "id": "technology-models-locomotive-classes",
+  "entity_type": "technology",
+  "description": "Locomotive classes and rolling stock classes introduced before 1920",
+  "where": "?item wdt:P571|wdt:P729 ?hm_dt . FILTER(YEAR(?hm_dt) < 1920)",
+  "min_sitelinks": 3,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": ["Q19832486", "Q811704", "Q171043", "Q20650761"]
+    }
+  },
+  "require": ["dates"],
+  "year_max": 1919,
+  "priority": 3,
+  "notes": "Locomotive classes by P571/P729. Classes, not individual preserved locomotives."
+}

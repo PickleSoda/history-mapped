@@ -1,15 +1,59 @@
 {
-  "id": "monuments-heritage-americas-na-historic-sites",
-  "entity_type": "infrastructure_monument",
-  "description": "US National Historic Landmarks and National Historic Sites of Canada with inception before 1900 and coords; districts excluded",
-  "where": "VALUES ?hm_v { wd:Q1516079 wd:Q1426463 } ?item wdt:P1435 ?hm_v . ?item wdt:P571 ?hm_inc . FILTER(YEAR(?hm_inc) < 1900)",
-  "min_sitelinks": 2,
-  "shards": {
-    "years": {"prop": "P571", "from": 1000, "to": 1900, "step": 25}
-  },
-  "exclude_p31": ["Q3957", "Q486972", "Q5084", "Q515", "Q532", "Q1549591", "Q156362", "Q15284", "Q15077007", "Q1021645", "Q22746", "Q55488", "Q13226383", "Q3024240", "Q15642541", "Q15089138", "Q7075", "Q1248784"],
-  "require": ["coords", "dates"],
-  "year_max": 1899,
-  "priority": 3,
-  "notes": "wave5b; NHL/NHSC. Historic districts and NRHP-only houses dropped by P31 and the register filter."
+ "id": "monuments-heritage-americas-na-historic-sites",
+ "entity_type": "infrastructure_monument",
+ "description": "US National Historic Landmarks and National Historic Sites of Canada with inception before 1900 and coords; districts excluded",
+ "where": "VALUES ?hm_v { wd:Q624232 wd:Q1568567 } ?item wdt:P1435 ?hm_v .",
+ "min_sitelinks": 3,
+ "shards": {
+  "years": {
+   "prop": "P571",
+   "from": 1000,
+   "to": 1900,
+   "step": 25
+  }
+ },
+ "exclude_p31": [
+  "Q1021645",
+  "Q1076486",
+  "Q1133961",
+  "Q12063697",
+  "Q123705",
+  "Q1248784",
+  "Q13226383",
+  "Q15077007",
+  "Q15089138",
+  "Q15221623",
+  "Q15243209",
+  "Q15284",
+  "Q1549591",
+  "Q156362",
+  "Q15642541",
+  "Q167346",
+  "Q1799794",
+  "Q1898357",
+  "Q2006279",
+  "Q2023000",
+  "Q22698",
+  "Q22746",
+  "Q3024240",
+  "Q3695082",
+  "Q3957",
+  "Q46169",
+  "Q486972",
+  "Q498162",
+  "Q5084",
+  "Q515",
+  "Q532",
+  "Q55488",
+  "Q7075",
+  "Q74047",
+  "Q811534"
+ ],
+ "require": [
+  "coords",
+  "dates"
+ ],
+ "year_max": 1899,
+ "priority": 3,
+ "notes": "wave5b; NHL/NHSC. Historic districts and NRHP-only houses dropped by P31 and the register filter."
 }
