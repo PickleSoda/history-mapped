@@ -261,6 +261,46 @@ def low_precision(raw: dict[str, Any]) -> bool:
     return any(p < 9 for k, p in precs.items() if raw.get(k) is not None)
 
 
+def _ordinal(n: int) -> str:
+    return f"{n}{'th' if 10 <= n % 100 <= 20 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')}"
+
+
+def coarse_label(year: int, prec: int) -> str:
+    """How a date coarser than a year reads: 1870s, 11th century, 2nd millennium BCE.
+
+    Wikidata stores a century as any year inside it (901, 1000 and 1001 have
+    all been used for the 10th or 11th), so the century is ceil(|year| / 100),
+    as Wikidata itself displays it.
+    """
+    era = " BCE" if year < 0 else ""
+    a = abs(year)
+    if prec >= 8:
+        return f"{a - a % 10}s{era}"
+    if prec == 7:
+        return f"{_ordinal(max(1, math.ceil(a / 100)))} century{era}"
+    if prec == 6 and a <= 10000:
+        return f"{_ordinal(max(1, math.ceil(a / 1000)))} millennium{era}"
+    return f"c. {a - a % 1000 if a >= 1000 else a:,}{era}"  # "c. 600,000 BCE", not the 601st millennium
+
+
+def display_range(raw: dict[str, Any], record: dict[str, Any]) -> str | None:
+    """The date line for a record whose start or end is coarser than a year.
+
+    Without it the atlas shows a century date as the bare year 1001 CE.
+    """
+    precs = raw.get("_date_prec") or {}
+    coarse = {_year(raw.get(k)): p for k, p in precs.items() if p < 9 and raw.get(k) is not None}
+    ends = [_year(record.get("temporal_start")), _year(record.get("temporal_end"))]
+    if not any(y is not None and y in coarse for y in ends):
+        return None
+    labels = [None if y is None else coarse_label(y, coarse[y]) if y in coarse else
+              (f"{-y} BCE" if y < 0 else f"{y} CE") for y in ends]
+    a, b = labels
+    if a and b:
+        return a if a == b else f"{a} – {b}"
+    return a or b
+
+
 def impact_from_sitelinks(sitelinks: int) -> int:
     if sitelinks <= 0:
         return IMPACT_MIN
@@ -359,6 +399,9 @@ def build(raws: list[dict[str, Any]], s: Slice, mapper: EntityMapper | None = No
             ]
         if low_precision(raw) and (record.get("temporal_start") or record.get("temporal_end")) is not None:
             record["date_confidence"] = "low"  # decade, century or millennium
+            label = display_range(raw, record)
+            if label:
+                record.setdefault("attributes", {})["temporal_display_range"] = label
         sitelinks = int(raw.get("sitelinks") or 0)
         record["impact_score"] = impact_from_sitelinks(sitelinks)
         attrs = record.setdefault("attributes", {})

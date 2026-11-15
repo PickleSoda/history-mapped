@@ -550,3 +550,23 @@ def test_a_lead_broken_mid_sentence_is_joined():
     assert lead_paragraph("Sir Francis Humphrys,\n(1879–1971) was a diplomat.\nHe served in Iraq.") == (
         "Sir Francis Humphrys, (1879–1971) was a diplomat.")
     assert lead_paragraph("A museum.\nMore.") == "A museum."
+
+
+def test_coarse_dates_get_a_readable_date_line():
+    from pipeline.bulk.build import coarse_label
+
+    assert coarse_label(1001, 7) == "11th century"
+    assert coarse_label(1000, 7) == "10th century"
+    assert coarse_label(-500, 7) == "5th century BCE"
+    assert coarse_label(1870, 8) == "1870s"
+    assert coarse_label(-2000, 6) == "2nd millennium BCE"
+    assert coarse_label(1201, 7) == "13th century"
+    assert coarse_label(-600001, 4) == "c. 600,000 BCE"
+    assert coarse_label(-36001, 6) == "c. 36,000 BCE"
+    s = spec(entity_type="infrastructure_monument", where="?item wdt:P31 wd:Q16970 .")
+    church = raw(qid="Q70", label="Old Church", point_in_time=None, inception="1001", _date_prec={"inception": 7})
+    kept, _ = build([church], s)
+    assert kept[0]["attributes"]["temporal_display_range"] == "11th century"
+    exact = raw(qid="Q71", label="New Church", point_in_time=None, inception="1450", _date_prec={"inception": 9})
+    kept, _ = build([exact], s)
+    assert "temporal_display_range" not in kept[0]["attributes"]

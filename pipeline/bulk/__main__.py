@@ -475,7 +475,7 @@ def redate(slice_ids: tuple[str, ...], yes: bool) -> None:
     with locked("import"), psycopg.connect(dsn()) as conn, conn.cursor() as cur:
         for slice_id in slice_ids:
             s, store = _load(slice_id)
-            keys = _date_attr_keys(s.entity_type)
+            keys = _date_attr_keys(s.entity_type) | {"temporal_display_range"}
             records: dict[str, dict[str, Any]] = {}
             for n in store.part_numbers():
                 if store.import_path(n).exists():
