@@ -172,6 +172,8 @@ def gate(raw: dict[str, Any], record: dict[str, Any], s: Slice) -> str | None:
         return "no-label"
     if set(raw.get("p31") or []) & set(s.exclude_p31):
         return "excluded-class"
+    if s.require_p31 and not set(raw.get("p31") or []) & set(s.require_p31):
+        return "not-required-class"
     desc = raw.get("description") or ""
     if s.exclude_desc and re.search(s.exclude_desc, desc, re.I):
         # keep_desc also reads the label: "Henry Tufton, 11th Earl of Thanet" is

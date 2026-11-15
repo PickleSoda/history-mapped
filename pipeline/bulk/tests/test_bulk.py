@@ -378,3 +378,9 @@ def test_description_gate_keeps_a_titled_cricketer_by_his_label():
     peer = raw(p31=["Q5"], label="Henry Tufton, 11th Earl of Thanet", description="English cricketer (1775-1849)")
     assert gate(peer, {"name": "x", "temporal_start": "1775"}, s) is None
     assert gate(raw(p31=["Q5"], label="W. G. Grace", description="English amateur cricketer"), {"name": "x"}, s) == "excluded-description"
+
+
+def test_require_p31_keeps_only_the_listed_classes():
+    s = spec(entity_type="trade_route", require_p31=["Q194029"])
+    assert gate(raw(p31=["Q194029", "Q34442"]), {"name": "Via Appia", "temporal_start": "-312"}, s) is None
+    assert gate(raw(p31=["Q34442"]), {"name": "Arctic Ocean Highway", "temporal_start": "1066"}, s) == "not-required-class"

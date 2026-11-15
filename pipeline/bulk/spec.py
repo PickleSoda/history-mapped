@@ -65,6 +65,7 @@ class Slice:
     enwiki: bool = True
     shards: dict[str, Any] = field(default_factory=dict)
     exclude_p31: list[str] = field(default_factory=list)
+    require_p31: list[str] = field(default_factory=list)  # if set, rows need one of these classes
     require: list[str] = field(default_factory=list)  # "dates", "coords"
     require_dates_p31: list[str] = field(default_factory=list)  # rows of these classes need a date
     # ...unless their point lies in this [lon_min, lat_min, lon_max, lat_max] box
@@ -105,7 +106,7 @@ class Slice:
             raise ValueError(f"{self.id}: where must bind ?item")
         if re.search(r"\b(SELECT|LIMIT|OFFSET|GROUP BY)\b", self.where, re.I):
             raise ValueError(f"{self.id}: where is a graph pattern, not a query")
-        for key in ("exclude_p31", "require_dates_p31"):
+        for key in ("exclude_p31", "require_p31", "require_dates_p31"):
             for q in getattr(self, key):
                 if not QID.match(q):
                     raise ValueError(f"{self.id}: {key} {q!r} is not a QID")

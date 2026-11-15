@@ -165,6 +165,8 @@ Bulk rows reach production only through a full content load
 | `Failed to find executable` from `bulk_run.sh` | An old copy of the script; `PY` must be exported to the `xargs` workers |
 | Athletes in a people slice (racing drivers tagged engineer, Olympic riders tagged officer) | Set `exclude_desc` (sport words) and `keep_desc` (the slice's own occupations) in the spec; both match the Wikidata description. Then `rebuild --imported` and `prune` |
 | A person's summary describes an award, a list or a family ("The Knight's Cross of the Iron Cross…") | Their Wikipedia link redirects into a group article. Fetches since 2026-11-15 skip such leads (a redirect to a section, or to a title sharing no word with the person's) and translation notices; 132 older rows got their Wikidata description instead (`output/bulk/audit/summary-fix-20261115.csv`) |
+| A class slice drags in neighbours (modern highways in a Roman-roads slice) | `require_p31` keeps only rows with one of the listed classes; `exclude_p31` drops listed ones. Then `rebuild --imported` and `prune` |
+| Approved slices sit unimported | The importer daemon is older than a spec key; its log says `skipping unreadable spec`. Restart it |
 | A slicer finds its whole pool "claimed by other slices" | An earlier slice listed and then dropped them (year bounds); `release` that slice's claims, then re-run `qids` |
 | Rows imported before approval | The importer predates `approved.txt`; `prune <id> --all --yes` and re-approve |
 | Deletes take minutes | Missing indexes on the columns that reference entities; run the migrations |
