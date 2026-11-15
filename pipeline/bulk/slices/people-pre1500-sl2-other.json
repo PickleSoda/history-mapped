@@ -1,0 +1,13 @@
+{
+  "id": "people-pre1500-sl2-other",
+  "entity_type": "person",
+  "description": "Other people born before 1500 (artists, merchants, soldiers, physicians), sitelinks>=3",
+  "where": "?item wdt:P31 wd:Q5 . VALUES ?hm_occ { wd:Q1028181 wd:Q1281618 wd:Q215536 wd:Q39631 wd:Q4991371 wd:Q189290 wd:Q42973 wd:Q47064 } ?item wdt:P106 ?hm_occ .",
+  "min_sitelinks": 3,
+  "shards": {"years": {"prop": "P569", "from": -700, "to": 1500, "step": 25}},
+  "exclude_p31": ["Q15632617", "Q95074"],
+  "require": ["dates"],
+  "year_max": 1499,
+  "priority": 4,
+  "notes": "wave5"
+}

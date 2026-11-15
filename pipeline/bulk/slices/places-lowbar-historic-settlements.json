@@ -1,0 +1,35 @@
+{
+  "id": "places-lowbar-historic-settlements",
+  "entity_type": "city",
+  "description": "Historic settlement classes (ghost towns, former settlements, market towns, Hanseatic cities, Roman colonies, oppida, lost cities) below the sl8 bar, sl>=3, with coordinates",
+  "where": "?item wdt:P625 ?co . FILTER NOT EXISTS { ?item wdt:P17 ?hm_c . FILTER(?hm_c IN (wd:Q30, wd:Q215)) }",
+  "min_sitelinks": 3,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": [
+        "Q27554677",
+        "Q69391739",
+        "Q2974842",
+        "Q133442",
+        "Q57318",
+        "Q7375052",
+        "Q10500900",
+        "Q16825568",
+        "Q18511725",
+        "Q192601",
+        "Q756780"
+      ]
+    }
+  },
+  "exclude_p31": [
+    "Q350895",
+    "Q532",
+    "Q23442"
+  ],
+  "require": [
+    "coords"
+  ],
+  "priority": 3,
+  "notes": "Low-bar tier (sl>=3) of the Roman/oppidum/Hanseatic/city-state/lost-city classes; ghost town, former settlement, trading post, market-town-like classes (Q707813, Q2202509, Q21751582) dropped as modern-village trivia."
+}

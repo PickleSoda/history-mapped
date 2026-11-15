@@ -1,0 +1,18 @@
+{
+  "id": "places-heritage-regional-asia-africa",
+  "entity_type": "infrastructure_monument",
+  "description": "Heritage-designated (P1435) buildings and structures with inception before 1800 and coordinates, in Asia, Africa and the Middle East (not Europe or the Americas)",
+  "where": "?item wdt:P1435 ?hm_h . ?item wdt:P625 ?hm_c . ?item wdt:P571 ?hm_inc . FILTER(YEAR(?hm_inc) < 1800) MINUS { ?item wdt:P31 wd:Q5 }",
+  "min_sitelinks": 3,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P17 ?hm_v .",
+      "values": ["Q668","Q148","Q17","Q794","Q43","Q79","Q796","Q858","Q801","Q810","Q822","Q265","Q843","Q854","Q837","Q869","Q424","Q252","Q881","Q836","Q884","Q1028","Q948","Q262","Q115","Q912","Q851","Q805","Q842","Q889","Q227","Q230","Q399","Q232","Q924","Q1041","Q117","Q1033","Q1049","Q1016","Q423","Q865","Q928","Q819"]
+    }
+  },
+  "exclude_p31": ["Q3957","Q486972","Q5084","Q515","Q532","Q33506","Q23413","Q16970","Q1048835","Q4989906","Q2221906","Q8502","Q46831","Q23397","Q839954"],
+  "require": ["coords", "dates"],
+  "year_max": 1800,
+  "priority": 3,
+  "notes": "Non-Europe/Americas heritage monuments pre-1800; museums, villages, natural sites excluded; archaeological sites are covered by archaeology-* slices."
+}

@@ -1,0 +1,36 @@
+{
+  "id": "events-law-lowbar-acts-edicts",
+  "entity_type": "event_legal_reform",
+  "description": "Statutes, edicts, royal charters and legislation dated before 1950, sl 3-4",
+  "where": "?item wdt:P585|wdt:P571|wdt:P580|wdt:P577 ?hm_dt . FILTER(YEAR(?hm_dt) < 1950)",
+  "min_sitelinks": 3,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31/wdt:P279* ?hm_v .",
+      "values": [
+        "Q820655",
+        "Q1284645",
+        "Q1422253",
+        "Q49371"
+      ]
+    }
+  },
+  "require": [
+    "dates"
+  ],
+  "year_max": 1949,
+  "priority": 3,
+  "notes": "Lower tier of the imported slice; unsampled.",
+  "exclude_p31": [
+    "Q951841",
+    "Q116741026",
+    "Q123774",
+    "Q29883540",
+    "Q2135361",
+    "Q3331189",
+    "Q3824506",
+    "Q1498487",
+    "Q1412901",
+    "Q217901"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+ "id": "polities-units-lowbar-military-units",
+ "entity_type": "military_unit",
+ "description": "Lower-tier pre-1946 regiments, legions, divisions, fleets, armies and military orders",
+ "where": "VALUES ?hm_c { wd:Q52371 wd:Q37726 wd:Q4508 wd:Q189524 wd:Q163323 wd:Q153936 wd:Q474717 wd:Q781132 wd:Q10358588 wd:Q4890673 wd:Q102356 wd:Q6382533 wd:Q169534 wd:Q188497 wd:Q51977 wd:Q9248092 wd:Q4443691 wd:Q828569 wd:Q15704239 wd:Q23905051 wd:Q679165 wd:Q207320 wd:Q20642011 wd:Q2008856 wd:Q45364 wd:Q204310 } ?item wdt:P31 ?hm_c . { ?item wdt:P576 ?hm_e . FILTER(YEAR(?hm_e) <= 1950) } UNION { ?item wdt:P571 ?hm_s . FILTER(YEAR(?hm_s) < 1900) } ?item wdt:P571|wdt:P580|wdt:P576 ?hm_dd .",
+ "min_sitelinks": 3,
+ "require": [
+  "dates"
+ ],
+ "year_max": 1945,
+ "priority": 7,
+ "notes": "lower tier of military-core (sl>=5) and military-formations (sl>=8); modern still-active units cut: needs an end date <=1950 or inception <1900"
+}

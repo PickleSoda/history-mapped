@@ -1,0 +1,13 @@
+{
+  "id": "monuments-religious-deep-mosques-madrasas",
+  "entity_type": "infrastructure_monument",
+  "description": "Deep tier: mosques, madrasas, caravanserais, mausolea, zawiyas, dargahs with inception before 1850 (sl>=2)",
+  "where": "VALUES ?hm_c { wd:Q32815 wd:Q132834 wd:Q186347 wd:Q162875 wd:Q2001465 wd:Q2639699 } ?item wdt:P31 ?hm_c . ?item wdt:P625 ?hm_co .",
+  "min_sitelinks": 2,
+  "shards": {"years": {"prop": "P571", "from": 600, "to": 1850, "step": 50}},
+  "exclude_p31": ["Q207694", "Q3957", "Q486972", "Q5084", "Q515", "Q532", "Q1549591"],
+  "require": ["coords", "dates"],
+  "year_max": 1849,
+  "priority": 4,
+  "notes": "Deep tier. Failure: modern rebuilt mosques carrying a founding date."
+}

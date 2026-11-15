@@ -1,0 +1,14 @@
+{
+  "id": "places-settlements-medieval-colonial-towns",
+  "entity_type": "city",
+  "description": "Towns and cities in the Americas, Africa, Asia and Oceania with their own inception 1492-1849 (colonial foundations), sl>=5, coordinates",
+  "where": "?item wdt:P31 ?hm_cl . VALUES ?hm_cl { wd:Q3957 wd:Q515 wd:Q1549591 wd:Q1093829 wd:Q15127012 wd:Q15284 wd:Q484692 wd:Q2039348 wd:Q15303838 } ?item wdt:P17 ?hm_ct . ?hm_ct wdt:P30 ?hm_cont . VALUES ?hm_cont { wd:Q18 wd:Q49 wd:Q15 wd:Q48 wd:Q538 } ?item wdt:P625 ?co .",
+  "min_sitelinks": 5,
+  "shards": {"years": {"prop": "P571", "from": 1492, "to": 1850, "step": 25}},
+  "exclude_p31": ["Q23442", "Q532", "Q5084", "Q1115575", "Q1134686", "Q350895", "Q74047", "Q39463"],
+  "require": ["coords", "dates"],
+  "year_min": 1492,
+  "year_max": 1849,
+  "priority": 3,
+  "notes": "Own P571 only (P1249 not in DATE_PROPS). Continent via P17/P30. Modern municipalities with a reform-date P571 mostly fall past 1849."
+}

@@ -1,0 +1,13 @@
+{
+  "id": "works-wider-music-stage-pre1950",
+  "entity_type": "cultural_work",
+  "description": "Operas, ballets, oratorios, musicals and other musical/stage works first performed before 1950, 8+ sitelinks",
+  "where": "VALUES ?hm_cls { wd:Q9734 wd:Q1344 wd:Q207628 wd:Q1432252 wd:Q105543609 wd:Q2088357 wd:Q80930 } ?item wdt:P31 ?hm_cls . ?item wdt:P571|wdt:P577|wdt:P1191 ?hm_d0 . FILTER(YEAR(?hm_d0) < 1950) ?item rdfs:label ?hm_l . FILTER(LANG(?hm_l)=\"en\" && !REGEX(?hm_l,\"^(Symphony|Piano Sonata|Piano Concerto|Piano Trio|Piano Quartet|Piano Quintet|Violin Concerto|Cello Concerto|Horn Concerto|String Quartet|String Quintet|Violin Sonata|Concerto|Sonata|Waltz|Mass|Requiem|Overture|Serenade|Quartet|Trio)( in [A-G].*| No\\\\.? ?[0-9]+.*)?$\") && !REGEX(?hm_l,\"( No\\\\.? ?[0-9]+|, Op\\\\.? ?[0-9]+|BWV [0-9]+|K\\\\.? ?[0-9]+| in [A-G][ -]?(flat|sharp)? ?(major|minor)$)\"))",
+  "min_sitelinks": 8,
+  "require": [
+    "dates"
+  ],
+  "year_max": 1949,
+  "priority": 5,
+  "notes": "lower tier of culture-works-music-pre1900 plus 1900-1949"
+}

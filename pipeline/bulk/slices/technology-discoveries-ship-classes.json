@@ -1,0 +1,11 @@
+{
+  "id": "technology-discoveries-ship-classes",
+  "entity_type": "technology",
+  "description": "Ship classes and types (warship, liner and sailing classes) introduced before 1950",
+  "where": "?item wdt:P31 wd:Q559026 . ?item wdt:P571 ?hm_inc . FILTER(YEAR(?hm_inc) < 1950)",
+  "min_sitelinks": 5,
+  "require": ["dates"],
+  "year_max": 1949,
+  "priority": 3,
+  "notes": "Ship classes dated by P571 only (P729 service entry is not in fetch DATE_PROPS). Individual ships are not P31 ship class."
+}

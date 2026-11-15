@@ -371,3 +371,10 @@ def test_maintenance_notes_are_not_leads(lead):
 
     assert HATNOTE.search(lead)
     assert not HATNOTE.search("Thisbe was a Babylonian woman in a tale told by Ovid.")
+
+
+def test_description_gate_keeps_a_titled_cricketer_by_his_label():
+    s = spec(entity_type="person", exclude_desc=r"\bcricketer\b", keep_desc=r"\b(earl|politician)\b")
+    peer = raw(p31=["Q5"], label="Henry Tufton, 11th Earl of Thanet", description="English cricketer (1775-1849)")
+    assert gate(peer, {"name": "x", "temporal_start": "1775"}, s) is None
+    assert gate(raw(p31=["Q5"], label="W. G. Grace", description="English amateur cricketer"), {"name": "x"}, s) == "excluded-description"

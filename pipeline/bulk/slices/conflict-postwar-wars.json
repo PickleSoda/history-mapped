@@ -1,0 +1,23 @@
+{
+  "id": "conflict-postwar-wars",
+  "entity_type": "event_war",
+  "description": "Wars, civil wars and campaigns/operations started 1950-1999",
+  "where": "VALUES ?hm_cls { wd:Q198 wd:Q8465 wd:Q104212151 wd:Q1348385 wd:Q1827102 wd:Q21994376 wd:Q1006311 wd:Q864113 wd:Q2908804 wd:Q105370834 wd:Q350604 wd:Q831663 wd:Q645883 } ?item wdt:P31 ?hm_cls .",
+  "min_sitelinks": 3,
+  "shards": {
+    "years": {
+      "prop": "P580",
+      "from": 1950,
+      "to": 2000,
+      "step": 5
+    }
+  },
+  "exclude_p31": [],
+  "require": [
+    "dates"
+  ],
+  "year_min": 1950,
+  "year_max": 1999,
+  "priority": 2,
+  "notes": "Postwar copy of conflict-war + campaign-operation."
+}

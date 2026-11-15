@@ -1,0 +1,17 @@
+{
+  "id": "technology-discoveries-weapon-models",
+  "entity_type": "technology",
+  "description": "Weapon models (firearms, artillery, machine guns, torpedoes, tanks) introduced before 1950",
+  "where": "?item wdt:P571 ?hm_inc . FILTER(YEAR(?hm_inc) < 1950)",
+  "min_sitelinks": 5,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": ["Q15142894", "Q12800", "Q81103", "Q720711", "Q1192819", "Q1330892", "Q815231", "Q317939"]
+    }
+  },
+  "require": ["dates"],
+  "year_max": 1949,
+  "priority": 3,
+  "notes": "Weapon models dated by P571. P729 (service entry) is not in fetch DATE_PROPS."
+}

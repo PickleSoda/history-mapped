@@ -1,0 +1,47 @@
+{
+  "id": "places-ancient-gazetteers-trismegistos",
+  "entity_type": "city",
+  "description": "Ancient settlements carrying a Trismegistos geo ID (P1958), with coordinates",
+  "where": "?item wdt:P625 ?co . ?item wdt:P1958 ?hm_g .",
+  "min_sitelinks": 1,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": [
+        "Q15661340",
+        "Q148837",
+        "Q2202509",
+        "Q672490",
+        "Q27916659",
+        "Q1620908",
+        "Q3957"
+      ]
+    }
+  },
+  "exclude_p31": [
+    "Q747074",
+    "Q484170",
+    "Q2074737",
+    "Q667509",
+    "Q70208",
+    "Q116457956",
+    "Q253019",
+    "Q23442",
+    "Q2442279",
+    "Q2284123",
+    "Q4022",
+    "Q8502",
+    "Q839954",
+    "Q1549591",
+    "Q515",
+    "Q532",
+    "Q5084",
+    "Q1115575"
+  ],
+  "require": [
+    "coords"
+  ],
+  "year_max": 1500,
+  "priority": 3,
+  "notes": "Trismegistos-tagged settlement classes (Egypt, eastern Mediterranean); generic settlement and modern communes excluded."
+}

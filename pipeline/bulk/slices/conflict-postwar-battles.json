@@ -1,0 +1,23 @@
+{
+  "id": "conflict-postwar-battles",
+  "entity_type": "event_battle",
+  "description": "Battles, naval battles and skirmishes dated 1950-1999 by P585",
+  "where": "VALUES ?hm_cls { wd:Q178561 wd:Q1261499 wd:Q997267 } ?item wdt:P31 ?hm_cls .",
+  "min_sitelinks": 3,
+  "shards": {
+    "years": {
+      "prop": "P585",
+      "from": 1950,
+      "to": 2000,
+      "step": 5
+    }
+  },
+  "exclude_p31": [],
+  "require": [
+    "dates"
+  ],
+  "year_min": 1950,
+  "year_max": 1999,
+  "priority": 1,
+  "notes": "Postwar copy of conflict-battle-core."
+}

@@ -1,0 +1,32 @@
+{
+  "id": "institutions-lowbar-learned-societies-libraries",
+  "entity_type": "educational_institution",
+  "description": "Learned societies, observatories and historic libraries founded before 1900, sl>=3",
+  "where": "?item wdt:P571 ?hm_inc . FILTER(YEAR(?hm_inc) < 1900)",
+  "min_sitelinks": 3,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31/wdt:P279* ?hm_v .",
+      "values": [
+        "Q955824",
+        "Q62832",
+        "Q7075"
+      ]
+    }
+  },
+  "exclude_p31": [
+    "Q22687",
+    "Q4830453",
+    "Q783794",
+    "Q33506",
+    "Q3918",
+    "Q875538",
+    "Q902104"
+  ],
+  "require": [
+    "dates"
+  ],
+  "priority": 3,
+  "notes": "Wave 5b. Learned society, observatory, library incl subclasses; museums excluded.",
+  "year_max": 1899
+}

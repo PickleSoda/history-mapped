@@ -1,0 +1,28 @@
+{
+  "id": "people-conflict-law-politicians-pre1700",
+  "entity_type": "person",
+  "description": "Politicians born before 1700, sitelinks>=3",
+  "where": "?item wdt:P31 wd:Q5 ; wdt:P106 wd:Q82955 .",
+  "min_sitelinks": 3,
+  "shards": {
+    "years": {
+      "prop": "P569",
+      "from": -500,
+      "to": 1700,
+      "step": 25
+    }
+  },
+  "exclude_p31": [
+    "Q15632617",
+    "Q95074",
+    "Q4271324"
+  ],
+  "require": [
+    "dates"
+  ],
+  "year_max": 1699,
+  "priority": 4,
+  "notes": "wave3 | PARTIAL listing: 825..1500 not listed (WDQS saturation); sample 39/40 real; one wrong-summary row.",
+  "exclude_desc": "\\b(racing driver|racecar driver|rally driver|motorcycle racer|footballer|football player|soccer player|athlete|swimmer|tennis player|cyclist|boxer|wrestler|rower|coxswain|skier|ski jumper|gymnast|fencer|cricketer|rugby|baseball|basketball|ice hockey|hockey player|jockey|equestrian|sprinter|hurdler|golfer|sport shooter|bobsledder|speed skater|figure skater|weightlifter|canoeist|coach|olympic (?:champion|medalist|medallist|athlete)|long-distance runner|middle-distance runner|high jumper|long jumper|pole vaulter|discus thrower|javelin thrower|shot putter|decathlete|track and field)\\b",
+  "keep_desc": "\\b(politician|diplomat|statesman|minister|president|governor|senator|deputy|member of|mayor|judge|lawyer|jurist|official|activist|trade unionist|justice|supreme court|political|philanthropist|founder)\\b"
+}

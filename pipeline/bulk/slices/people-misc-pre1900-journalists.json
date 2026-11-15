@@ -1,0 +1,25 @@
+{
+  "id": "people-misc-pre1900-journalists",
+  "entity_type": "person",
+  "description": "Journalists, editors, publishers, printers born before 1900",
+  "where": "?item wdt:P31 wd:Q5 . VALUES ?hm_occ { wd:Q1930187 wd:Q1607826 wd:Q2516866 wd:Q175151 } ?item wdt:P106 ?hm_occ .",
+  "min_sitelinks": 5,
+  "shards": {
+    "years": {
+      "prop": "P569",
+      "from": -500,
+      "to": 1900,
+      "step": 20
+    }
+  },
+  "exclude_p31": [
+    "Q15632617",
+    "Q95074"
+  ],
+  "require": [
+    "dates"
+  ],
+  "year_max": 1899,
+  "priority": 3,
+  "notes": "wave5b"
+}

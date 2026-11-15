@@ -1,0 +1,25 @@
+{
+  "id": "people-misc-pre1900-actors",
+  "entity_type": "person",
+  "description": "Actors and dancers born before 1900",
+  "where": "?item wdt:P31 wd:Q5 . VALUES ?hm_occ { wd:Q33999 wd:Q2259451 wd:Q10800557 wd:Q5716684 wd:Q805221 } ?item wdt:P106 ?hm_occ .",
+  "min_sitelinks": 5,
+  "shards": {
+    "years": {
+      "prop": "P569",
+      "from": -500,
+      "to": 1900,
+      "step": 20
+    }
+  },
+  "exclude_p31": [
+    "Q15632617",
+    "Q95074"
+  ],
+  "require": [
+    "dates"
+  ],
+  "year_max": 1899,
+  "priority": 3,
+  "notes": "wave5b"
+}

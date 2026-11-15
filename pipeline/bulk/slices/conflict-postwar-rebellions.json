@@ -1,0 +1,23 @@
+{
+  "id": "conflict-postwar-rebellions",
+  "entity_type": "event_rebellion",
+  "description": "Rebellions, revolutions, coups, mutinies started 1950-1999",
+  "where": "VALUES ?hm_cls { wd:Q124734 wd:Q10931 wd:Q45382 wd:Q25906438 wd:Q1323212 wd:Q511866 wd:Q13427116 wd:Q1155622 wd:Q1753200 wd:Q3449092 wd:Q4460509 } ?item wdt:P31 ?hm_cls .",
+  "min_sitelinks": 3,
+  "shards": {
+    "years": {
+      "prop": "P580",
+      "from": 1950,
+      "to": 2000,
+      "step": 5
+    }
+  },
+  "exclude_p31": [],
+  "require": [
+    "dates"
+  ],
+  "year_min": 1950,
+  "year_max": 1999,
+  "priority": 2,
+  "notes": "Postwar copy of conflict-rebellion."
+}

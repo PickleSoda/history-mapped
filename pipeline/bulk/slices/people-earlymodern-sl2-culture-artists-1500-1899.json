@@ -1,0 +1,26 @@
+{
+ "id": "people-earlymodern-sl2-culture-artists-1500-1899",
+ "entity_type": "person",
+ "description": "Painters, sculptors, architects, engravers born 1500-1899, 2 sitelinks",
+ "where": "?item wdt:P31 wd:Q5 . VALUES ?hm_occ { wd:Q1028181 wd:Q1281618 wd:Q42973 wd:Q329439 } ?item wdt:P106 ?hm_occ .",
+ "min_sitelinks": 2,
+ "shards": {
+  "years": {
+   "prop": "P569",
+   "from": 1500,
+   "to": 1900,
+   "step": 10
+  }
+ },
+ "exclude_p31": [
+  "Q15632617",
+  "Q95074"
+ ],
+ "require": [
+  "dates"
+ ],
+ "year_min": 1500,
+ "year_max": 1899,
+ "priority": 5,
+ "notes": "wave5 sl=2 tier (sl>=3 imported/claimed, skipped automatically); copy of lowbar specs"
+}

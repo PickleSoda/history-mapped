@@ -1,0 +1,13 @@
+{
+  "id": "monuments-religious-deep-churches-pre1500",
+  "entity_type": "infrastructure_monument",
+  "description": "Deep tier: churches, chapels, cathedrals, monasteries, abbeys, basilicas with inception before 1500 (sl>=1; sl>=3 tier is imported)",
+  "where": "VALUES ?hm_c { wd:Q16970 wd:Q108325 wd:Q2977 wd:Q44613 wd:Q160742 wd:Q163687 wd:Q317557 } ?item wdt:P31 ?hm_c . ?item wdt:P625 ?hm_co .",
+  "min_sitelinks": 1,
+  "shards": {"years": {"prop": "P571", "from": 0, "to": 1500, "step": 50}},
+  "exclude_p31": ["Q207694", "Q3957", "Q486972", "Q5084", "Q515", "Q532", "Q1549591"],
+  "require": ["coords", "dates"],
+  "year_max": 1499,
+  "priority": 4,
+  "notes": "Deep tier. Failure modes: modern church with medieval parish founding date; parishes/dioceses as orgs; cemeteries."
+}

@@ -1,0 +1,38 @@
+{
+  "id": "institutions-lowbar-schools",
+  "entity_type": "educational_institution",
+  "description": "Secondary schools, gymnasia, lycees and grammar schools founded before 1850, sl>=3",
+  "where": "?item wdt:P571 ?hm_inc . FILTER(YEAR(?hm_inc) < 1850)",
+  "min_sitelinks": 3,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": [
+        "Q3914",
+        "Q159334",
+        "Q9826",
+        "Q149566",
+        "Q1021290"
+      ]
+    }
+  },
+  "exclude_p31": [
+    "Q22687",
+    "Q4830453",
+    "Q783794",
+    "Q1244442",
+    "Q2467461",
+    "Q902104",
+    "Q3918",
+    "Q875538",
+    "Q189004",
+    "Q15936437",
+    "Q1371037"
+  ],
+  "require": [
+    "dates"
+  ],
+  "priority": 3,
+  "notes": "Wave 5b. Schools incl. subclasses; universities/colleges excluded (other slice).",
+  "year_max": 1849
+}

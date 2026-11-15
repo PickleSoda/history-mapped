@@ -1,0 +1,25 @@
+{
+  "id": "people-misc-pre1900-photographers",
+  "entity_type": "person",
+  "description": "Photographers born before 1900",
+  "where": "?item wdt:P31 wd:Q5 . VALUES ?hm_occ { wd:Q33231 } ?item wdt:P106 ?hm_occ .",
+  "min_sitelinks": 4,
+  "shards": {
+    "years": {
+      "prop": "P569",
+      "from": -500,
+      "to": 1900,
+      "step": 50
+    }
+  },
+  "exclude_p31": [
+    "Q15632617",
+    "Q95074"
+  ],
+  "require": [
+    "dates"
+  ],
+  "year_max": 1899,
+  "priority": 3,
+  "notes": "wave5b"
+}

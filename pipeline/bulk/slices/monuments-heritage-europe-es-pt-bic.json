@@ -1,0 +1,34 @@
+{
+  "id": "monuments-heritage-europe-es-pt-bic",
+  "entity_type": "infrastructure_monument",
+  "description": "Spanish BIC (P808/P1435 Q8346 etc.) and Portuguese national monuments, dated, coords, before 1850",
+  "where": "{ ?item wdt:P808 ?hm_reg } UNION { ?item wdt:P1435 wd:Q23712 } UNION { ?item wdt:P1435 wd:Q908411 } UNION { ?item wdt:P1435 wd:Q10769132 } UNION { ?item wdt:P1435 wd:Q11958355 }",
+  "min_sitelinks": 1,
+  "shards": {
+    "years": {
+      "prop": "P571",
+      "from": 500,
+      "to": 1850,
+      "step": 25
+    }
+  },
+  "exclude_p31": [
+    "Q3957",
+    "Q486972",
+    "Q5084",
+    "Q515",
+    "Q532",
+    "Q156362",
+    "Q15284",
+    "Q1549591",
+    "Q6256",
+    "Q3024240"
+  ],
+  "require": [
+    "coords",
+    "dates"
+  ],
+  "year_max": 1849,
+  "priority": 3,
+  "notes": "wave5 heritage register slice; enwiki required."
+}

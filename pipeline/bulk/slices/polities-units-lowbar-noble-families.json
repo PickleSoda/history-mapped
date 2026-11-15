@@ -1,0 +1,19 @@
+{
+ "id": "polities-units-lowbar-noble-families",
+ "entity_type": "dynasty",
+ "description": "Lower-tier noble families and houses",
+ "where": "VALUES ?hm_c { wd:Q13417114 wd:Q27062351 wd:Q61881926 wd:Q61881575 wd:Q58804331 wd:Q15054477 } ?item wdt:P31 ?hm_c . FILTER NOT EXISTS { ?item schema:description ?hm_ds . FILTER(LANG(?hm_ds)=\"en\" && CONTAINS(LCASE(?hm_ds),\"hasidic\")) }",
+ "min_sitelinks": 3,
+ "exclude_p31": [
+  "Q18759100",
+  "Q2591905",
+  "Q101352",
+  "Q4167410",
+  "Q14514600",
+  "Q82799",
+  "Q13406463"
+ ],
+ "require": [],
+ "priority": 7,
+ "notes": "lower tier of polities-dynasties-units-noble-families (sl>=10); excludes surnames, disambiguation"
+}

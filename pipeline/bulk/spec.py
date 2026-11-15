@@ -71,8 +71,9 @@ class Slice:
     # (old undated cathedrals in Europe are medieval; elsewhere mostly modern)
     require_dates_except_bbox: list[float] | None = None
     # Drop rows whose Wikidata description matches exclude_desc unless it also
-    # matches keep_desc (both case-insensitive regexes): "Scottish racing driver"
-    # out of an engineers' slice, "football player and politician" kept.
+    # matches keep_desc, which also reads the label (both case-insensitive
+    # regexes): "Scottish racing driver" out of an engineers' slice, "football
+    # player and politician" and "Henry Tufton, 11th Earl of Thanet" kept.
     exclude_desc: str = ""
     keep_desc: str = ""
     year_min: int | None = None  # historical years, applied to the start date

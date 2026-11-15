@@ -1,0 +1,27 @@
+{
+  "id": "people-20c-mid-activists-religious",
+  "entity_type": "person",
+  "description": "Activists, revolutionaries, unionists, clergy born 1925-1949, sl>=10",
+  "where": "?item wdt:P31 wd:Q5 . VALUES ?hm_occ { wd:Q15253558 wd:Q3242115 wd:Q15627169 wd:Q42603 wd:Q611644 wd:Q1234713 } ?item wdt:P106 ?hm_occ . MINUS { ?item wdt:P106 ?hm_x . VALUES ?hm_x { wd:Q2066131 wd:Q33999 wd:Q177220 wd:Q10800557 wd:Q2405480 } }",
+  "min_sitelinks": 10,
+  "shards": {
+    "years": {
+      "prop": "P569",
+      "from": 1925,
+      "to": 1950,
+      "step": 5
+    }
+  },
+  "exclude_p31": [
+    "Q15632617",
+    "Q95074",
+    "Q4271324"
+  ],
+  "require": [
+    "dates"
+  ],
+  "year_min": 1925,
+  "year_max": 1949,
+  "priority": 5,
+  "notes": "wave4 people-20c-mid; born 1925-1949"
+}

@@ -1,0 +1,27 @@
+{
+  "id": "people-20c-mid-scientists-scholars",
+  "entity_type": "person",
+  "description": "Scientists and scholars born 1925-1949, sl>=15",
+  "where": "?item wdt:P31 wd:Q5 . VALUES ?hm_occ { wd:Q901 wd:Q169470 wd:Q593644 wd:Q170790 wd:Q11063 wd:Q4964182 wd:Q201788 wd:Q1234713 wd:Q185351 wd:Q188094 wd:Q901402 wd:Q39631 wd:Q864503 wd:Q2374149 wd:Q205375 wd:Q81096 } ?item wdt:P106 ?hm_occ . MINUS { ?item wdt:P106 ?hm_x . VALUES ?hm_x { wd:Q2066131 wd:Q33999 wd:Q177220 wd:Q10800557 wd:Q2405480 } }",
+  "min_sitelinks": 15,
+  "shards": {
+    "years": {
+      "prop": "P569",
+      "from": 1925,
+      "to": 1950,
+      "step": 5
+    }
+  },
+  "exclude_p31": [
+    "Q15632617",
+    "Q95074",
+    "Q4271324"
+  ],
+  "require": [
+    "dates"
+  ],
+  "year_min": 1925,
+  "year_max": 1949,
+  "priority": 5,
+  "notes": "wave4 people-20c-mid; born 1925-1949"
+}

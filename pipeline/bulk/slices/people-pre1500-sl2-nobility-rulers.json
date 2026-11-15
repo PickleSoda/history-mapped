@@ -1,0 +1,25 @@
+{
+  "id": "people-pre1500-sl2-nobility-rulers",
+  "entity_type": "person",
+  "description": "Nobles, rulers, consorts born before 1500 (noble title, dynasty or ruler position), sitelinks>=2",
+  "where": "?item wdt:P31 wd:Q5 . { ?item wdt:P97 ?hm_t } UNION { ?item wdt:P53 ?hm_t }",
+  "min_sitelinks": 2,
+  "shards": {
+    "years": {
+      "prop": "P569",
+      "from": -700,
+      "to": 1500,
+      "step": 40
+    }
+  },
+  "exclude_p31": [
+    "Q15632617",
+    "Q95074"
+  ],
+  "require": [
+    "dates"
+  ],
+  "year_max": 1499,
+  "priority": 4,
+  "notes": "wave5 sl>=2 tier; listing drops QIDs already claimed by sl>=3 slices"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "polities-tail-historical-country-sl2",
+  "entity_type": "political_entity",
+  "description": "Historical countries (Q3024240) at sitelinks 2, dates required",
+  "where": "?item wdt:P31 wd:Q3024240 . FILTER NOT EXISTS { ?item wdt:P31 wd:Q164950 }",
+  "min_sitelinks": 2,
+  "shards": {},
+  "exclude_p31": [
+    "Q164950"
+  ],
+  "require": [
+    "dates"
+  ],
+  "priority": 1,
+  "notes": "Lower-bar tier of polities-states-historical-country."
+}

@@ -1,0 +1,24 @@
+{
+  "id": "events-law-lowbar-epidemics-famines",
+  "entity_type": "epidemic_disease",
+  "description": "Epidemics, pandemics, outbreaks, plagues before 1950, sl 2",
+  "where": "?item wdt:P585|wdt:P571|wdt:P580|wdt:P577 ?hm_dt . FILTER(YEAR(?hm_dt) < 1950)",
+  "min_sitelinks": 2,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31/wdt:P279* ?hm_v .",
+      "values": [
+        "Q44512",
+        "Q12184",
+        "Q3241045",
+        "Q133780"
+      ]
+    }
+  },
+  "require": [
+    "dates"
+  ],
+  "year_max": 1949,
+  "priority": 3,
+  "notes": "Lower tier of the imported slice; unsampled."
+}

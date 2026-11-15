@@ -1,0 +1,29 @@
+{
+  "id": "events-law-lowbar-constitutions",
+  "entity_type": "legal_code",
+  "description": "Constitutions and legal codes dated before 1950, sl 2+",
+  "where": "?item wdt:P585|wdt:P571|wdt:P580|wdt:P577 ?hm_dt . FILTER(YEAR(?hm_dt) < 1950)",
+  "min_sitelinks": 2,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31/wdt:P279* ?hm_v .",
+      "values": [
+        "Q7755",
+        "Q922203",
+        "Q17096605"
+      ]
+    }
+  },
+  "require": [
+    "dates"
+  ],
+  "year_max": 1949,
+  "priority": 3,
+  "notes": "Lower tier of the imported slice; unsampled.",
+  "exclude_p31": [
+    "Q951841",
+    "Q116741026",
+    "Q123774",
+    "Q3331189"
+  ]
+}

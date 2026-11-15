@@ -1,0 +1,27 @@
+{
+  "id": "people-earlymodern-sl2-power-politicians-1500-1899",
+  "entity_type": "person",
+  "description": "Politicians and diplomats born 1500-1899, sitelinks=2 tier",
+  "where": "VALUES ?hm_o { wd:Q82955 wd:Q193391 } ?item wdt:P31 wd:Q5 ; wdt:P106 ?hm_o . MINUS { ?item wdt:P106 ?hm_x . VALUES ?hm_x { wd:Q2066131 wd:Q33999 wd:Q177220 wd:Q10800557 wd:Q2405480 } }",
+  "min_sitelinks": 2,
+  "shards": {
+    "years": {
+      "prop": "P569",
+      "from": 1500,
+      "to": 1900,
+      "step": 1
+    }
+  },
+  "exclude_p31": [
+    "Q15632617",
+    "Q95074",
+    "Q4271324"
+  ],
+  "require": [
+    "dates"
+  ],
+  "year_min": 1500,
+  "year_max": 1899,
+  "priority": 6,
+  "notes": "sl=2 tier (sl>=3 imported separately); copied from reference slices; unmeasured"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "works-wider-sculptures-sl5-pre1950",
+  "entity_type": "cultural_work",
+  "description": "Sculptures created before 1950, 5+ sitelinks",
+  "where": "?item wdt:P31 wd:Q860861 . ?item wdt:P571 ?hm_d0 . FILTER(YEAR(?hm_d0) < 1950)",
+  "min_sitelinks": 5,
+  "exclude_p31": ["Q4989906", "Q575759"],
+  "require": ["dates"],
+  "year_max": 1949,
+  "priority": 5,
+  "notes": "lower tier of culture-works-sculptures-pre1900 plus 1900-1949"
+}

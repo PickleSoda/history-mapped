@@ -1,0 +1,17 @@
+{
+  "id": "technology-discoveries-early-computers",
+  "entity_type": "technology",
+  "description": "Mechanical calculators, early computers, automata and other landmark machines before 1950",
+  "where": "?item wdt:P571 ?hm_inc . FILTER(YEAR(?hm_inc) < 1950)",
+  "min_sitelinks": 4,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": ["Q211586", "Q11742076", "Q6591619", "Q28542014", "Q787116", "Q11019", "Q132911", "Q267298"]
+    }
+  },
+  "require": ["dates"],
+  "year_max": 1949,
+  "priority": 3,
+  "notes": "Small hand-picked classes of dated machines."
+}

@@ -1,0 +1,13 @@
+{
+  "id": "works-wider-paintings-sl5-1800-1949",
+  "entity_type": "cultural_work",
+  "description": "Paintings created 1800-1949, 5+ sitelinks",
+  "where": "?item wdt:P31 wd:Q3305213 .",
+  "min_sitelinks": 5,
+  "shards": {"years": {"prop": "P571", "from": 1800, "to": 1950, "step": 10}},
+  "require": ["dates"],
+  "year_min": 1800,
+  "year_max": 1949,
+  "priority": 5,
+  "notes": "lower tier of culture-works-paintings-pre1900 (1800-1899) plus 1900-1949"
+}

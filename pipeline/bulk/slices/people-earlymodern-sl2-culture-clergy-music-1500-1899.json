@@ -1,0 +1,26 @@
+{
+ "id": "people-earlymodern-sl2-culture-clergy-music-1500-1899",
+ "entity_type": "person",
+ "description": "Clergy, theologians, composers, musicians born 1500-1899, 2 sitelinks",
+ "where": "?item wdt:P31 wd:Q5 . VALUES ?hm_occ { wd:Q42603 wd:Q611644 wd:Q1234713 wd:Q36834 wd:Q639669 wd:Q733786 wd:Q219477 } ?item wdt:P106 ?hm_occ .",
+ "min_sitelinks": 2,
+ "shards": {
+  "years": {
+   "prop": "P569",
+   "from": 1500,
+   "to": 1900,
+   "step": 10
+  }
+ },
+ "exclude_p31": [
+  "Q15632617",
+  "Q95074"
+ ],
+ "require": [
+  "dates"
+ ],
+ "year_min": 1500,
+ "year_max": 1899,
+ "priority": 5,
+ "notes": "wave5 sl=2 tier (sl>=3 imported/claimed, skipped automatically); copy of lowbar specs"
+}

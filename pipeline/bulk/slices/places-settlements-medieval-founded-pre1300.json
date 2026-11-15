@@ -1,0 +1,13 @@
+{
+  "id": "places-settlements-medieval-founded-pre1300",
+  "entity_type": "city",
+  "description": "Towns, cities and municipalities with their own inception before 1300, sl>=5, coordinates (the sl>=8/10 tiers are imported elsewhere)",
+  "where": "?item wdt:P31 ?hm_cl . VALUES ?hm_cl { wd:Q3957 wd:Q515 wd:Q1549591 wd:Q484170 wd:Q262166 wd:Q747074 wd:Q2074737 wd:Q15284 wd:Q484692 } ?item wdt:P625 ?co .",
+  "min_sitelinks": 5,
+  "shards": {"years": {"prop": "P571", "from": -1000, "to": 1300, "step": 50}},
+  "exclude_p31": ["Q23442", "Q532", "Q5084", "Q1115575", "Q1134686", "Q350895", "Q74047"],
+  "require": ["coords", "dates"],
+  "year_max": 1299,
+  "priority": 3,
+  "notes": "Own P571 only (P1249 is not in fetch DATE_PROPS, so first-mention dates do not reach the mapper). Villages (Q532) excluded; they would need sl>=8."
+}

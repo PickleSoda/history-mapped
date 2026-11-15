@@ -1,0 +1,30 @@
+{
+  "id": "events-law-lowbar-councils-synods",
+  "entity_type": "event_legal_reform",
+  "description": "Church councils, synods, constitutional conventions before 1900, sl 2",
+  "where": "?item wdt:P585|wdt:P571|wdt:P580|wdt:P577 ?hm_dt . FILTER(YEAR(?hm_dt) < 1900)",
+  "min_sitelinks": 2,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31/wdt:P279* ?hm_v .",
+      "values": [
+        "Q111161",
+        "Q10551516",
+        "Q51645",
+        "Q1743118",
+        "Q267995",
+        "Q2720142"
+      ]
+    }
+  },
+  "require": [
+    "dates"
+  ],
+  "year_max": 1899,
+  "priority": 3,
+  "notes": "Lower tier of the imported slice; unsampled.",
+  "exclude_p31": [
+    "Q2495862",
+    "Q209715"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "id": "places-ancient-gazetteers-roman-roads",
+  "entity_type": "trade_route",
+  "description": "Roman roads, historic roads and trade routes with at least 2 sitelinks, not founded after 1800",
+  "where": "FILTER NOT EXISTS { ?item wdt:P571 ?hm_y . FILTER(?hm_y > \"1800-01-01T00:00:00Z\"^^xsd:dateTime) }",
+  "min_sitelinks": 2,
+  "shards": {"values": {"pattern": "?item wdt:P31 ?hm_v .", "values": ["Q194029", "Q405155", "Q445741"]}},
+  "exclude_p31": ["Q4022", "Q1229765", "Q15284", "Q532", "Q515"],
+  "require": [],
+  "year_max": 1800,
+  "priority": 4,
+  "notes": "Roman roads (Q194029), historic roads, trade routes."
+}

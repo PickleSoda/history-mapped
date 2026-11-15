@@ -1,0 +1,18 @@
+{
+  "id": "monuments-heritage-americas-latam-colonial",
+  "entity_type": "infrastructure_monument",
+  "description": "Colonial-era churches, cathedrals, convents, monasteries, forts and fortresses of Latin America and the Philippines with inception before 1850 and coords",
+  "where": "VALUES ?hm_c { wd:Q16970 wd:Q108325 wd:Q2977 wd:Q44613 wd:Q160742 wd:Q163687 wd:Q317557 wd:Q57831 wd:Q1785071 wd:Q23413 wd:Q751876 wd:Q16560 wd:Q1066845 } ?item wdt:P31 ?hm_c . ?item wdt:P571 ?hm_inc . ?item wdt:P625 ?hm_co . FILTER(YEAR(?hm_inc) < 1850)",
+  "min_sitelinks": 2,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P17 ?hm_v .",
+      "values": ["Q96", "Q155", "Q419", "Q739", "Q241", "Q928", "Q414", "Q298", "Q736", "Q750", "Q717", "Q774", "Q786", "Q804", "Q733", "Q77", "Q800", "Q783", "Q811", "Q792", "Q790", "Q766", "Q242"]
+    }
+  },
+  "exclude_p31": ["Q207694", "Q3957", "Q486972", "Q5084", "Q515", "Q532", "Q1549591", "Q156362", "Q15284"],
+  "require": ["coords", "dates"],
+  "year_max": 1849,
+  "priority": 3,
+  "notes": "wave5b; sharded by P17 country. Failure modes: modern church with colonial parish founding date."
+}
