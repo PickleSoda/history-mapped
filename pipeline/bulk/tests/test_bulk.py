@@ -250,3 +250,15 @@ def test_people_with_contradictory_lifespans_stay_undated():
     assert not kept and dropped == {"no-dates": 1}
     # a long-lived place or event keeps its span
     assert gate(raw(), {"name": "X", "temporal_start": "950", "temporal_end": "1067"}, spec()) is None
+
+def test_a_coarse_date_gives_way_to_a_later_precise_one():
+    from pipeline.bulk.fetch import fill_dates
+    items = {"Q1": {}, "Q2": {}, "Q3": {}}
+    fill_dates(items, {
+        ("Q1", "P571"): (1801, 7), ("Q1", "P577"): (1862, 11),   # century inception, exact publication
+        ("Q2", "P571"): (1850, 9), ("Q2", "P577"): (1862, 11),   # year inception wins
+        ("Q3", "P571"): (1801, 7), ("Q3", "P577"): (1801, 7),    # both coarse: the first stays
+    })
+    assert items["Q1"]["inception"] == "1862" and items["Q1"]["_date_prec"]["inception"] == 11
+    assert items["Q2"]["inception"] == "1850"
+    assert items["Q3"]["inception"] == "1801" and items["Q3"]["_date_prec"]["inception"] == 7

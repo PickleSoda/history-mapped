@@ -132,14 +132,27 @@ SELECT ?item ?pid ?t ?prec ?rank WHERE {{
         key = (0 if preferred else 1, -prec, year)
         if (qid, pid) not in best or key < best[(qid, pid)][0]:
             best[(qid, pid)] = (key, year, prec)
-    # In DATE_PROPS order, so e.g. inception (P571) wins over publication date.
+    fill_dates(items, {k: (year, prec) for k, (_, year, prec) in best.items()})
+
+
+def fill_dates(items: dict[str, dict[str, Any]], best: dict[tuple[str, str], tuple[int, int]]) -> None:
+    """Set each item's raw date keys from its best value per property.
+
+    In DATE_PROPS order, so inception (P571) wins over publication date
+    (P577), except that a century-or-coarser value gives way to a later
+    property's year-precision value: a novel whose P571 is "19th century"
+    takes its P577 year.
+    """
     for qid, item in items.items():
         for pid, raw_key in DATE_PROPS:
             found = best.get((qid, pid))
-            if found and item.get(raw_key) is None:
-                _, year, prec = found
+            if not found:
+                continue
+            year, prec = found
+            precs = item.setdefault("_date_prec", {})
+            if item.get(raw_key) is None or (precs.get(raw_key, 9) <= 7 and prec >= 9):
                 item[raw_key] = str(year)
-                item.setdefault("_date_prec", {})[raw_key] = prec
+                precs[raw_key] = prec
 
 
 def fetch_aliases(client: Client, qids: list[str], items: dict[str, dict[str, Any]]) -> None:
