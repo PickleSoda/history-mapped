@@ -96,6 +96,50 @@ def lead_lifespan(summary: str | None) -> tuple[int | None, int | None]:
     return None, None
 
 
+MONTH = (r"(?:January|February|March|April|May|June|July|August|September|October|November|December"
+         r"|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\.?")
+FULL_DATE = re.compile(rf"(?:\b\d{{1,2}} {MONTH},? (\d{{4}})\b|\b{MONTH} \d{{1,2}},? (\d{{4}})\b)")
+VAGUE = re.compile(r"\b(BC|BCE|c|ca|circa|or|born|died|fl|after|before|probably|possibly)\b\.?|\?", re.I)
+
+
+def lead_full_lifespan(summary: str | None) -> tuple[int, int] | None:
+    """Birth and death years when the lead's first parenthesis is a range of two
+    day-precise dates ("(26 February 1879 – 12 December 1959)"), else None."""
+    m = re.match(r"[^(]{0,120}\(([^()]{0,160})\)", summary or "")
+    if not m or VAGUE.search(m.group(1)):
+        return None
+    ends = re.split(r"\s[–—-]\s|–|—", m.group(1))
+    if len(ends) != 2:
+        return None
+    b, d = FULL_DATE.search(ends[0]), FULL_DATE.search(ends[1])
+    if not (b and d):
+        return None
+    return int(b.group(1) or b.group(2)), int(d.group(1) or d.group(2))
+
+
+def lead_corrects_lifespan(raw: dict[str, Any]) -> dict[str, Any]:
+    """Take the lead's year for one end of a lifespan that Wikidata has 3+ years off.
+
+    Only when the lead gives both ends as day-precise dates and the other end
+    agrees with Wikidata exactly, so the article is surely about this person:
+    "Alice Muriel Williamson (8 October 1858 – 24 September 1933)" over a
+    Wikidata birth of 1869. Smaller gaps (calendars, typos either way) stay.
+    """
+    lead = lead_full_lifespan(raw.get("summary"))
+    b, d = _year(raw.get("birth_date")), _year(raw.get("death_date"))
+    if lead is None or b is None or d is None:
+        return raw
+    lb, ld = lead
+    for key, pid, ours, theirs, other_ok in (("birth_date", "P569", b, lb, d == ld), ("death_date", "P570", d, ld, b == lb)):
+        if other_ok and abs(ours - theirs) >= 3 and lb < ld:
+            out = dict(raw)
+            out[key] = str(theirs)
+            out["_date_prec"] = {**(raw.get("_date_prec") or {}), key: 9}
+            out["properties"] = {k: v for k, v in (raw.get("properties") or {}).items() if k != pid}
+            return out
+    return raw
+
+
 def _wd_years(values: list[dict[str, Any]]) -> list[int]:
     out = []
     for v in values or []:
@@ -249,7 +293,7 @@ def build(raws: list[dict[str, Any]], s: Slice, mapper: EntityMapper | None = No
             # came back without an English one: name them by their article.
             raw = {**raw, "label": DISAMBIG.sub("", raw["wikipedia_title"]).strip()}
         if s.entity_type == "person":
-            raw = reconcile_lifespan(drop_coarse_dates(raw))
+            raw = lead_corrects_lifespan(reconcile_lifespan(drop_coarse_dates(raw)))
         summary = raw.get("summary") or ""
         if HATNOTE.search(summary) or (s.entity_type == "person" and PERSON_OFF_SUBJECT.search(summary)):
             raw = {k: v for k, v in raw.items() if k not in ("summary", "full_extract")}

@@ -461,3 +461,22 @@ def test_an_item_without_an_english_label_is_named_by_its_article():
                       description="American politician", birth_date="1895", death_date="1945")
     kept, dropped = build([mul_only], s)
     assert kept[0]["name"] == "Stephen J. Wojtkowiak" and not dropped
+
+
+def test_a_day_precise_lead_corrects_one_end_wikidata_has_far_off():
+    s = spec(entity_type="person", where="?item wdt:P31 wd:Q5 .")
+    lead = "Alice Muriel Williamson (8 October 1858 – 24 September 1933) was a British novelist."
+    off = person(qid="Q40", label="Alice Muriel Williamson", birth_date="1869", death_date="1933", summary=lead,
+                 _date_prec={"birth_date": 11, "death_date": 11})
+    near = person(qid="Q41", label="Pearl Bergoff", birth_date="1876", death_date="1947",
+                  summary="Pearl Bergoff (14 March 1875 – 15 April 1947) was an American strikebreaker.")
+    namesake = person(qid="Q42", label="John White", birth_date="1820", death_date="1890",
+                      summary="John White (2 May 1850 – 3 June 1931) was a judge.")
+    vague = person(qid="Q43", label="Old Man", birth_date="1700", death_date="1780",
+                   summary="Old Man (c. 1 May 1690 – 3 June 1780) was a farmer.")
+    kept, _ = build([off, near, namesake, vague], s)
+    by = {k["wikidata_id"]: (k.get("temporal_start"), k.get("temporal_end")) for k in kept}
+    assert by["Q40"] == ("1858", "1933")
+    assert by["Q41"] == ("1876", "1947")  # one year off: left alone
+    assert by["Q42"] == ("1820", "1890")  # neither end agrees: maybe not this person
+    assert by["Q43"] == ("1700", "1780")  # circa
