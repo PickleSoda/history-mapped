@@ -32,6 +32,20 @@ HATNOTE = re.compile(
 )
 
 
+# A person whose Wikipedia link lands on another subject's article: the
+# warship named after them ("USS Inch (DE-146) was…", "Z9 Wolfgang Zenker
+# was…") or their family or title ("The Mason family of Virginia…", "The
+# Firebrace Baronetcy…"). The row falls back to the Wikidata description.
+PERSON_OFF_SUBJECT = re.compile(
+    r"^(?:The (?:first |second |third |fourth )?)?(?:(?:USS|HMS|HMAS|HMCS|HMNZS|SMS|SS|RMS|USNS|USCGC|USRC|CSS|ARA|"
+    r"HNLMS|HNoMS|HDMS|HSwMS|ORP|RFA|NRP|BAP|TCG|INS|HMT) |(?:[A-Z][a-z]+ )?(?:destroyer|cruiser|battleship|"
+    r"submarine|frigate|torpedo boat|gunboat|corvette|sloop|aircraft carrier) [A-Z0-9]|[ZU]-?\d+ [A-Z])"
+    r"|^The (?:(?!\b(?:is|was|are|were)\b)[^.]){0,60}\b(?:[Ff]amily|[Bb]aronetcy|[Bb]aronetcies|[Dd]ukedom|[Ee]arldom|[Bb]arony|[Vv]iscountcy|"
+    r"[Mm]arquessate|[Ll]ordship)\b[^.]{0,40}?\b(?:is|was|are|were|has)\b"
+    r"|^The [A-Z][^.\s]+s (?:are|were) an? [^.]{0,40}\bfamily\b"
+)
+
+
 # Wikidata time precision: 9 year, 8 decade, 7 century, 6 millennium. A
 # century value comes back as a bare year (901 or 1000), so a person "born in
 # the 10th century" reads as born in 901 exactly: Roman lives of -101..100,
@@ -209,7 +223,8 @@ def build(raws: list[dict[str, Any]], s: Slice, mapper: EntityMapper | None = No
     for raw in raws:
         if s.entity_type == "person":
             raw = reconcile_lifespan(drop_coarse_dates(raw))
-        if HATNOTE.search(raw.get("summary") or ""):
+        summary = raw.get("summary") or ""
+        if HATNOTE.search(summary) or (s.entity_type == "person" and PERSON_OFF_SUBJECT.search(summary)):
             raw = {k: v for k, v in raw.items() if k not in ("summary", "full_extract")}
         record = mapper.map(raw, s.entity_type)
         if record is not None and s.entity_type == "person" and bad_lifespan(record):

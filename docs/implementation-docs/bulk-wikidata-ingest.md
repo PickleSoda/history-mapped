@@ -66,15 +66,22 @@ Throughput is roughly 5–6 rows a second per process.
 
 ## 4. Import
 
-Run exactly one importer daemon. It imports built parts of approved slices only, one part at a time:
+An importer daemon imports built parts of approved slices only, one part at a time:
 
 ```bash
 MEM_MAX=2G $CLI importer --poll 20 >> output/bulk/logs/importer.log 2>&1 &
-touch output/bulk/STOP                      # stops it after the current part
+touch output/bulk/STOP                      # stops every daemon after its current part
 ```
 
-Each part runs `pipeline:import --sync --skip-images` with batch id `bulk-<id>-NNNN`, at 60–90 rows
-a second.
+Each part runs `pipeline:import --sync --skip-images` with batch id `bulk-<id>-NNNN`. A lane imports
+10–15 person rows a second. When fetchers outrun it, run several lanes: `--lanes N --lane k` (k = 0
+… N-1) gives each daemon the slices whose id hashes to k and its own lock. Claims keep a QID in one
+slice, so lanes never import the same item. Start every lane with the same N; to change N, STOP all
+of them first.
+
+```bash
+for k in 0 1 2; do MEM_MAX=2G $CLI importer --poll 20 --lane $k --lanes 3 >> output/bulk/logs/importer-lane$k.log 2>&1 & done
+```
 
 ## 5. Audit
 
@@ -165,6 +172,7 @@ Bulk rows reach production only through a full content load
 | `Failed to find executable` from `bulk_run.sh` | An old copy of the script; `PY` must be exported to the `xargs` workers |
 | Athletes in a people slice (racing drivers tagged engineer, Olympic riders tagged officer) | Set `exclude_desc` (sport words) and `keep_desc` (the slice's own occupations) in the spec; both match the Wikidata description. Then `rebuild --imported` and `prune` |
 | A person's summary describes an award, a list or a family ("The Knight's Cross of the Iron Cross…") | Their Wikipedia link redirects into a group article. Fetches since 2026-11-15 skip such leads (a redirect to a section, or to a title sharing no word with the person's) and translation notices; 132 older rows got their Wikidata description instead (`output/bulk/audit/summary-fix-20261115.csv`) |
+| A naval officer's summary describes a destroyer ("USS Inch (DE-146) was…", "Z9 Wolfgang Zenker was…"), or a person's describes their family or baronetcy | Their Wikipedia link lands on the namesake ship's or the family's article. Builds since 2026-11-15 drop such person leads (`PERSON_OFF_SUBJECT` in `build.py`) and use the Wikidata description |
 | A class slice drags in neighbours (modern highways in a Roman-roads slice) | `require_p31` keeps only rows with one of the listed classes; `exclude_p31` drops listed ones. Then `rebuild --imported` and `prune` |
 | Approved slices sit unimported | The importer daemon is older than a spec key; its log says `skipping unreadable spec`. Restart it |
 | A slicer finds its whole pool "claimed by other slices" | An earlier slice listed and then dropped them (year bounds); `release` that slice's claims, then re-run `qids` |

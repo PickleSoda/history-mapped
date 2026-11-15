@@ -189,6 +189,22 @@ def test_hatnote_lead_falls_back_to_the_description():
     assert "refer to" not in (kept[0].get("summary") or "")
 
 
+def test_person_lead_about_a_namesake_ship_or_family_falls_back():
+    s = spec(entity_type="person", where="?item wdt:P31 wd:Q5 .")
+    leads = [
+        "USS Inch (DE-146) was an Edsall-class destroyer escort in service with the United States Navy.",
+        "Z9 Wolfgang Zenker was a Type 1934A-class destroyer built for the Kriegsmarine.",
+        "The Mason family of Virginia is a historically significant American political family.",
+        "The Firebrace Baronetcy, of London, was a title in the Baronetage of England.",
+    ]
+    for lead in leads:
+        kept, _ = build([person(summary=lead, description="American naval officer")], s)
+        assert kept[0]["summary"] == "American naval officer", lead
+    own = "The Venerable Bede was a monk whose family is unknown."
+    kept, _ = build([person(summary=own)], s)
+    assert kept[0]["summary"].startswith("The Venerable Bede")
+
+
 def test_undated_rows_inside_the_exempt_box_are_kept():
     s = spec(require_dates_p31=["Q2977"], require_dates_except_bbox=[-25, 25, 60, 72])
     europe = {"name": "Ardfert Cathedral", "geojson": {"type": "Point", "coordinates": [-9.8, 52.3]}}
