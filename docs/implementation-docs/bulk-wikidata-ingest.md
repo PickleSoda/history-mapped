@@ -31,6 +31,7 @@ export LANGCHAIN_TRACING_V2=false LANGSMITH_TRACING=false
 | `output/bulk/logs/` | `<id>.log` per slice, `importer.log`, `run.log` |
 | `output/bulk/audit/` | Auditor reports (`<id>.md`), proposed fixes (`<id>.csv`), applied fixes (`applied-<stamp>.csv`) |
 | `output/bulk/tidy/` | Relations deleted by `tidy`, as CSV |
+| `output/bulk/redate/` | Dates before each `redate`, as CSV |
 
 ## 1. Scout and slice
 
@@ -82,7 +83,8 @@ Launch `bulk-auditor` ("Read `.claude/agents/bulk-auditor.md` and follow it", `s
 relations the import created, and writes `output/bulk/audit/<id>.csv`. It never changes data.
 
 Curate the CSV before applying it. Auditors guess dates for century-rounded records, and some merges
-are namesakes; downgrade those rows to `needs_review`. Then:
+are namesakes; downgrade those rows to `needs_review` (a `fix_dates` needs a year-precision source;
+a merge needs the same dates and place, not only the same name). Then:
 
 ```bash
 $CLI apply-audit output/bulk/audit/<id>.csv          # dry run
@@ -111,12 +113,25 @@ $CLI prune <id> --all --yes           # roll back the whole slice and forget its
 `prune` deletes only rows tagged with the slice, refuses while a chronicle links one of them, and
 reopens other rows' relationship hints that pointed at a deleted row.
 
+A change to a date rule reaches rows already imported through `redate`: it compares each row's
+primary date range, confidence and birth and death attributes with its rebuilt record and rewrites
+the ones that differ. It skips rows whose dates an applied audit fixed, and saves the old values:
+
+```bash
+$CLI rebuild <id> --imported && $CLI prune <id> --yes
+$CLI redate <id> …                    # dry run: lists the changes
+$CLI redate <id> … --yes              # before-values go to output/bulk/redate/
+```
+
+A rebuilt part that keeps more rows than before does not import the new ones: the part is already
+marked imported.
+
 ## 7. After a wave
 
 | Step | Command |
 |---|---|
 | Link relations across slices | `php artisan pipeline:resolve-relationships` (in `app`) |
-| Remove anachronistic state links | `$CLI tidy` (dry run), then `$CLI tidy --yes` |
+| Remove anachronistic links | `$CLI tidy` (dry run), then `$CLI tidy --yes`. State links outside the state's lifetime (25 years of slack; capitals, succession and currency are kept) and person-event links outside the person's life (5 years) |
 | Images | `php artisan entity:fetch-images` (bulk imports skip them) |
 | Derived tags | `php artisan tags:sync` |
 | Embeddings | `php artisan pipeline:embeddings --pending` (paid API calls: decide first) |
@@ -133,3 +148,4 @@ Bulk rows reach production only through a full content load
 | Rows imported before approval | The importer predates `approved.txt`; `prune <id> --all --yes` and re-approve |
 | Deletes take minutes | Missing indexes on the columns that reference entities; run the migrations |
 | "person rules X" relations to offices | Old builds kept P39 hints; rebuilt parts drop them |
+| A medieval person born in 901 or 1001 exactly | A century date read as a year; parts built before 06870bd keep them. `rebuild --imported`, `prune`, `redate` |

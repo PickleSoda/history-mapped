@@ -222,7 +222,8 @@ plainer rows per slice, straight from Wikidata, to fill the map between the cura
 | Build | runs inside `fetch`; `rebuild <slice>` re-runs it | Maps with the regular `EntityMapper`, then applies the slice's gates and writes parts of 2,000 records |
 | Import | `importer --poll 20` | Imports built parts of slices listed in `output/bulk/approved.txt`, one part at a time |
 | Audit | `bulk-auditor` agent, then `apply-audit <csv>` | Applies a curated CSV: flag for review, delete, merge into an older row, fix dates |
-| Tidy | `tidy` | Deletes bulk relations that link a state to an event or person outside the state's lifetime |
+| Re-date | `redate <slice>…` | Rewrites the dates of imported rows to match their rebuilt parts, after a date rule changes. Rows with an applied `fix_dates` are skipped |
+| Tidy | `tidy` | Deletes bulk relations that link a state to an event or person outside the state's lifetime, or a person to an event outside their life |
 | Roll back | `prune <slice> [--all]` | Deletes the slice's rows that its rebuilt parts no longer keep, or all of them |
 
 **Rules:**
@@ -237,6 +238,10 @@ plainer rows per slice, straight from Wikidata, to fill the map between the cura
 - **Points are never borrowed**, as everywhere else. A row without its own coordinates has no point.
 - **Hints that mislead are dropped:** modern country (P17), modern admin unit (P131) and position
   held (P39, which would read as "rules" its office).
+- **People get year-precision dates only.** Wikidata returns "10th century" as the bare year 901,
+  so a person's century-or-coarser dates are dropped, and a lifespan that is reversed or over 115
+  years loses its dates too. The person stays, undated, unless the slice requires dates. Places and
+  events keep coarse dates with low confidence.
 - **Gates per slice:** excluded classes, a sitelink bar, year bounds, dates required (for every row
   or only for listed classes outside a region), and leads that are only a hatnote.
 - **A listing is frozen** once any part is fetched, because parts index into it by position.
