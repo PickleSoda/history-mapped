@@ -384,3 +384,12 @@ def test_require_p31_keeps_only_the_listed_classes():
     s = spec(entity_type="trade_route", require_p31=["Q194029"])
     assert gate(raw(p31=["Q194029", "Q34442"]), {"name": "Via Appia", "temporal_start": "-312"}, s) is None
     assert gate(raw(p31=["Q34442"]), {"name": "Arctic Ocean Highway", "temporal_start": "1066"}, s) == "not-required-class"
+
+
+def test_first_mention_and_service_entry_fill_only_a_missing_inception():
+    from pipeline.bulk.fetch import fill_dates
+
+    items = {"Q1": {}, "Q2": {"inception": "1974", "_date_prec": {"inception": 9}}}
+    fill_dates(items, {("Q1", "P1249"): (1250, 9), ("Q2", "P1249"): (1250, 9)})
+    assert items["Q1"]["inception"] == "1250"
+    assert items["Q2"]["inception"] == "1974"  # a town's own inception wins

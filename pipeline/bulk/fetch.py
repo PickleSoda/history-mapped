@@ -33,6 +33,9 @@ DATE_PROPS: list[tuple[str, str]] = [
     ("P1319", "inception"),  # earliest date
     ("P1326", "dissolution"),  # latest date
     ("P1317", "point_in_time"),  # floruit
+    ("P729", "inception"),  # service entry (ship and weapon models)
+    ("P606", "inception"),  # first flight (aircraft models)
+    ("P1249", "inception"),  # earliest written record (a town's first mention)
 ]
 START_KEYS = ("inception", "start_time", "birth_date", "point_in_time")
 
