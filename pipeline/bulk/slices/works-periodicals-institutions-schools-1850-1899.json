@@ -1,43 +1,52 @@
 {
-  "id": "works-periodicals-institutions-schools-1850-1899",
-  "require": [
-    "dates"
-  ],
-  "priority": 5,
-  "entity_type": "educational_institution",
-  "description": "Schools, academies, gymnasia founded 1850-1899, 3+ sitelinks",
-  "where": "?item wdt:P571 ?hm_inc . FILTER(YEAR(?hm_inc) >= 1850 && YEAR(?hm_inc) < 1900)",
-  "min_sitelinks": 3,
-  "shards": {
-    "values": {
-      "pattern": "?item wdt:P31 ?hm_v .",
-      "values": [
-        "Q3914",
-        "Q159334",
-        "Q9826",
-        "Q149566",
-        "Q1021290",
-        "Q2385804",
-        "Q180958"
-      ]
-    }
-  },
-  "exclude_p31": [
-    "Q1075106",
-    "Q1244442",
-    "Q1371037",
-    "Q15936437",
-    "Q180958",
-    "Q189004",
-    "Q22687",
-    "Q2467461",
-    "Q3918",
-    "Q4830453",
-    "Q783794",
-    "Q875538",
-    "Q902104"
-  ],
-  "year_min": 1850,
-  "year_max": 1899,
-  "notes": "1850-1899 schools"
+ "id": "works-periodicals-institutions-schools-1850-1899",
+ "require": [
+  "dates"
+ ],
+ "priority": 5,
+ "entity_type": "educational_institution",
+ "description": "Schools, academies, gymnasia founded 1850-1899, 3+ sitelinks",
+ "where": "?item wdt:P571 ?hm_inc . FILTER(YEAR(?hm_inc) >= 1850 && YEAR(?hm_inc) < 1900)",
+ "min_sitelinks": 3,
+ "shards": {
+  "values": {
+   "pattern": "?item wdt:P31 ?hm_v .",
+   "values": [
+    "Q3914",
+    "Q159334",
+    "Q9826",
+    "Q149566",
+    "Q1021290",
+    "Q2385804",
+    "Q180958"
+   ]
+  }
+ },
+ "exclude_p31": [
+  "Q1075106",
+  "Q1088552",
+  "Q120560",
+  "Q1244442",
+  "Q1370598",
+  "Q1371037",
+  "Q15936437",
+  "Q17143723",
+  "Q180958",
+  "Q189004",
+  "Q22687",
+  "Q2467461",
+  "Q3918",
+  "Q4830453",
+  "Q5460604",
+  "Q783794",
+  "Q875538",
+  "Q902104",
+  "Q955824",
+  "Q988108"
+ ],
+ "year_min": 1850,
+ "year_max": 1899,
+ "notes": "1850-1899 schools",
+ "exclude_desc": "^((Roman )?Catholic |Anglican |Orthodox )?(church|parish|parish church)( building)?\\b|\\b(learned|scientific|literary|historical) society\\b|^society\\b",
+ "exclude_lead": "^(The )?Royal Art Society"
 }

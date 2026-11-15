@@ -1,11 +1,13 @@
 {
-  "id": "culture-belief-tail-technology-types",
-  "entity_type": "technology",
-  "description": "Weapon types, instrument types, ship types, inventions and techniques (concept level)",
-  "where": "VALUES ?hm_c { wd:Q124078422 wd:Q15142889 wd:Q110295396 wd:Q2235308 wd:Q12579633 } ?item wdt:P31 ?hm_c . OPTIONAL { ?item wdt:P571|wdt:P575 ?hm_inc } ?item wikibase:sitelinks ?hm_s2 . FILTER((!BOUND(?hm_inc) && ?hm_s2 >= 6) || (BOUND(?hm_inc) && YEAR(?hm_inc) < 1950))",
-  "min_sitelinks": 4,
-  "year_max": 1950,
-  "priority": 3,
-  "notes": "scout 75%; dropped Q2695280 (modern techniques); exclude_desc for modern lab/medical; undated rows need sl>=6 (tail of undated sl4-5 is modern rifles/trivia)",
-  "exclude_desc": "\\b(unmanned|drone|nanoweapon|biathlon|laser|photon|non-invasive|folk genre|genre of|style of music|cyber|hypersonic|stealth|missile defen[cs]e|homemade|privately made|ghost gun|sports equipment|kalashnikov|assault rifle family)\\b"
+ "id": "culture-belief-tail-technology-types",
+ "entity_type": "technology",
+ "description": "Weapon types, instrument types, ship types, inventions and techniques (concept level)",
+ "where": "VALUES ?hm_c { wd:Q124078422 wd:Q15142889 wd:Q110295396 wd:Q2235308 wd:Q12579633 } ?item wdt:P31 ?hm_c . OPTIONAL { ?item wdt:P571|wdt:P575 ?hm_inc } ?item wikibase:sitelinks ?hm_s2 . FILTER((!BOUND(?hm_inc) && ?hm_s2 >= 6) || (BOUND(?hm_inc) && YEAR(?hm_inc) < 1950))",
+ "min_sitelinks": 4,
+ "year_max": 1950,
+ "priority": 3,
+ "notes": "scout 75%; dropped Q2695280 (modern techniques); exclude_desc for modern lab/medical; undated rows need sl>=6 (tail of undated sl4-5 is modern rifles/trivia)",
+ "exclude_desc": "\\b(unmanned|drone|nanoweapon|biathlon|laser|photon|non-invasive|folk genre|genre of|style of music|cyber|hypersonic|stealth|missile defen[cs]e|homemade|privately made|ghost gun|sports equipment|kalashnikov|assault rifle family)\\b|\\b(guided missiles?|ballistic missiles?|cruise missiles?|anti-\\w+ missile|surface-to-\\w+ missile|air-to-\\w+ missile|nuclear (bomb|weapon|torpedo)|thermobaric)\\b",
+ "exclude_lead": "^[^.]{0,70}\\b(missiles?|ballistic missiles?|ballistic trajectory|nuclear|thermobaric|improvised (explosive|nuclear)|dirty bomb|radiological|laser weapon|drone|cyber\\w*|spaceport|close-in weapon|anti-satellite|attack helicopter|Trinitron|gravity gun|Weishi|ice class|guided[- ]missile|standoff weapons?|ICBM)\\b",
+ "keep_desc": "\\b(tracking ship|catapult|shield|knife|armou?r-piercing|trebuchet|ballista|drone instrument|tanpura)\\b"
 }

@@ -1,55 +1,66 @@
 {
-  "id": "works-periodicals-institutions-research-gardens-archives-zoos",
-  "require": [
-    "dates"
-  ],
-  "priority": 5,
-  "entity_type": "educational_institution",
-  "description": "Research institutes, botanical gardens, archives, zoos, observatories founded before 1900, 3+ sitelinks",
-  "where": "?item wdt:P571 ?hm_d0 . FILTER(YEAR(?hm_d0) < 1900)",
-  "min_sitelinks": 3,
-  "shards": {
-    "values": {
-      "pattern": "?item wdt:P31/wdt:P279* ?hm_v .",
-      "values": [
-        "Q31855",
-        "Q167346",
-        "Q166118",
-        "Q43501",
-        "Q1128397"
-      ]
-    }
-  },
-  "exclude_p31": [
-    "Q1350536",
-    "Q14911880",
-    "Q1497375",
-    "Q16560",
-    "Q16970",
-    "Q1701174",
-    "Q2031836",
-    "Q22687",
-    "Q22698",
-    "Q22746",
-    "Q2319498",
-    "Q23413",
-    "Q24354",
-    "Q272231",
-    "Q2977",
-    "Q33506",
-    "Q3914",
-    "Q3918",
-    "Q3950",
-    "Q41253",
-    "Q476028",
-    "Q4830453",
-    "Q486972",
-    "Q783794",
-    "Q79007",
-    "Q875538",
-    "Q902104",
-    "Q96354572"
-  ],
-  "year_max": 1899,
-  "notes": "institutes/gardens/archives/zoos"
+ "id": "works-periodicals-institutions-research-gardens-archives-zoos",
+ "require": [
+  "dates"
+ ],
+ "priority": 5,
+ "entity_type": "educational_institution",
+ "description": "Research institutes, botanical gardens, archives, zoos, observatories founded before 1900, 3+ sitelinks",
+ "where": "?item wdt:P571 ?hm_d0 . FILTER(YEAR(?hm_d0) < 1900)",
+ "min_sitelinks": 3,
+ "shards": {
+  "values": {
+   "pattern": "?item wdt:P31/wdt:P279* ?hm_v .",
+   "values": [
+    "Q31855",
+    "Q167346",
+    "Q166118",
+    "Q43501",
+    "Q1128397"
+   ]
+  }
+ },
+ "exclude_p31": [
+  "Q1207757",
+  "Q124714",
+  "Q1350536",
+  "Q14911880",
+  "Q1497375",
+  "Q15936437",
+  "Q16560",
+  "Q16970",
+  "Q1701174",
+  "Q180958",
+  "Q191807",
+  "Q2031836",
+  "Q22687",
+  "Q22698",
+  "Q22746",
+  "Q2319498",
+  "Q23413",
+  "Q24354",
+  "Q272231",
+  "Q2977",
+  "Q33506",
+  "Q3488547",
+  "Q3914",
+  "Q3918",
+  "Q3950",
+  "Q39614",
+  "Q41253",
+  "Q44539",
+  "Q476028",
+  "Q4830453",
+  "Q486972",
+  "Q5460604",
+  "Q783794",
+  "Q79007",
+  "Q875538",
+  "Q902104",
+  "Q96354572",
+  "Q988108"
+ ],
+ "year_max": 1899,
+ "notes": "institutes/gardens/archives/zoos",
+ "exclude_desc": "^faculty (of|in)\\b|\\bfaculty of (the |a )?(University|Charles)|^(Buddhist |Shinto )?temple\\b|^public park in\\b|\\bcountry club\\b|^group of (artesian )?springs"
 }

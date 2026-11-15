@@ -1,15 +1,18 @@
 {
- "id": "polities-tail-dynasty-gens-clans",
- "entity_type": "dynasty",
- "description": "Roman gentes, stirps, clans",
- "where": "VALUES ?hm_c { wd:Q899409 wd:Q211503 wd:Q499247 wd:Q104258569 } ?item wdt:P31 ?hm_c .",
- "min_sitelinks": 1,
- "exclude_p31": [
-  "Q2591905",
-  "Q18759100",
-  "Q41710"
- ],
- "notes": "scout 92%",
- "require": [],
- "priority": 8
+  "id": "polities-tail-dynasty-gens-clans",
+  "entity_type": "dynasty",
+  "description": "Roman gentes, stirps, clans",
+  "where": "VALUES ?hm_c { wd:Q899409 wd:Q211503 wd:Q499247 wd:Q104258569 } ?item wdt:P31 ?hm_c .",
+  "min_sitelinks": 1,
+  "exclude_p31": [
+    "Q2591905",
+    "Q18759100",
+    "Q41710"
+  ],
+  "notes": "scout 92%",
+  "require": [],
+  "priority": 8,
+  "exclude_desc": "\\b(caste|gotra|Rajput|Jat|Bhil|Koli|Akan|Batak|Somali|Manchu|Mafia|Camorra|criminal organi[sz]ation|ethnic group|Gurjar|Gujjar|Sindhi|Punjabi|Pashtun|Brahmin|political (clan|family)|Hindu clan|Mer people)\\b|'ndrangheta|^Clan in India|^Clan in Pakistan|^surname of Manchus",
+  "exclude_lead": "\\b(Rajput|Jat|Gurjar|Gujjar|Gujar|Bhil|Koli|Mohyal|Khatri|Brahmin|Mer|Charan|Charana|Agrawal|Oswal|Kayastha|Sindhi|Punjabi|Pashtun|Telugu|Somali|Akan|Batak|Tswana|Aboriginal|Nyungar|Oromo|Igbo|Ingush|Karo|Meitei|Newar|Nepali)\\b[^.]{0,40}\\b(clan|clans|sub-?clan|caste|community|tribe|people)\\b|\\bgotra\\b|\\bcastes?\\b|\\bsub-?caste\\b|\\bethnic (group|community)\\b|\\bCamorra|\\bMafia|'Ndrangheta|Cosa Nostra|criminal (organi[sz]ation|clan)|political (clan|groups)|\\bteip\\b|Manchu (clan|and Sibe|nobility)|\\bis (a|an) [a-z ]*(town|village)\\b|\\bwas written by|series of events|Somali",
+  "keep_desc": "\\b(Aisin Gioro|Roman|Scottish|Irish|Japanese|samurai|Highland|Welsh|Gaelic|Scotland|Ireland|Japan|ruling|ruled|rulers?|royal|dynasty|dynasties|kingdom|princely|imperial|Kachhwaha|Paramara|Parmar|Choros|Chauhan|Rathore|Sisodia|Bhati|Jadeja|Solanki|Chalukya|Tomara|Gahadavala|Hada|Shekhawat|Dzungar|Khoshut|Torghut)\\b"
 }

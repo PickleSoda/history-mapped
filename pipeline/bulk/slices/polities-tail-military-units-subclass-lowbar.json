@@ -29,5 +29,7 @@
   "Q936518"
  ],
  "notes": "scout 90%; min_sitelinks 1 - will cap via sl<=3? imported bar >=3 handled by claims",
- "priority": 8
+ "priority": 8,
+ "exclude_lead": "^(?!(?:The )?(?:\\w+ )?\\d|Unit |.{0,80}Joint Logistic)(?:[^.]{0,160}?)\\b(?:is|was) (?:a|an) (?:(?!unit|regiment|battalion|brigade|division|squadron|command|company|corps|force|forces|wing|group|detachment|formation|fleet|flotilla|staffel|school|in\\b|of\\b|at\\b|and\\b|that\\b|which\\b|for\\b|whose\\b)[\\w.'’,-]+ ){0,4}(?:military (?:base|camp|installation|post)|army (?:post|installation|base|garrison(?! brigade))|air ?base|air station|naval (?:base|station)|garrison (?:located|in|at)(?! brigade)|(?:research )?laborator(?:y|ies)|research (?:facility|center|centre))\\b(?! (?:brigade|battalion|regiment|unit|company))|^(?:JGSDF |JASDF |JMSDF |U\\.?S\\.? |United States |Canadian Forces )?(?:Army |Naval |Marine |Air )?(?:Camp|Fort|Base|CFB)\\b|^(?:The )?(?:United States |U\\.S\\. )?(?:Naval|Army|Air Force) (?:Research )?Laborator(?:y|ies)\\b|\\bis the (?:corporate )?research laboratory\\b",
+ "exclude_desc": "^(?:former )?(?:U\\.?S\\.? |Canadian |Japanese )?(?:military|army|naval) (?:base|camp|post|installation)\\b"
 }

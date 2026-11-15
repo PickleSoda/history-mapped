@@ -28,5 +28,6 @@
     "Q5393308"
    ]
   }
- }
+ },
+ "exclude_lead": "\\b(?:is|was) (?:a|an) (?:(?!building\\b|synagogue\\b|chapel\\b|in\\b|of\\b|within\\b|located\\b|at\\b|on\\b|that\\b|which\\b)[\\w'’,-]+ ){0,6}(?<!Welcoming )congregation\\b(?! and (?:synagogue|church|chapel))|\\bChurch in America congregation\\b"
 }

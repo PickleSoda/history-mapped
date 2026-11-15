@@ -1,11 +1,18 @@
 {
-  "id": "culture-belief-tail-religious-orders-denominations",
-  "entity_type": "religious_movement",
-  "description": "Religious orders, congregations, Hasidic dynasties, national churches, denominations before 1950",
-  "where": "VALUES ?hm_c { wd:Q5135744 wd:Q2061186 wd:Q1384677 wd:Q2591905 wd:Q1649443 wd:Q879146 } ?item wdt:P31 ?hm_c . OPTIONAL { ?item wdt:P571 ?hm_inc } ?item wikibase:sitelinks ?hm_s2 . FILTER((!BOUND(?hm_inc) && ?hm_s2 >= 5) || (BOUND(?hm_inc) && YEAR(?hm_inc) < 1950))",
-  "min_sitelinks": 2,
-  "year_max": 1950,
-  "priority": 3,
-  "notes": "scout 85%; no orders of chivalry; single churches are the failure; undated rows need sl>=5 (undated tail is modern denominations, dioceses, provinces)",
-  "exclude_desc": "\\b(diocese|province of|presbytery|vestal|priestess|megachurch|network)\\b"
+ "id": "culture-belief-tail-religious-orders-denominations",
+ "entity_type": "religious_movement",
+ "description": "Religious orders, congregations, Hasidic dynasties, national churches, denominations before 1950",
+ "where": "VALUES ?hm_c { wd:Q5135744 wd:Q2061186 wd:Q1384677 wd:Q2591905 wd:Q1649443 wd:Q879146 } ?item wdt:P31 ?hm_c . OPTIONAL { ?item wdt:P571 ?hm_inc } ?item wikibase:sitelinks ?hm_s2 . FILTER((!BOUND(?hm_inc) && ?hm_s2 >= 5) || (BOUND(?hm_inc) && YEAR(?hm_inc) < 1950))",
+ "min_sitelinks": 2,
+ "year_max": 1950,
+ "priority": 3,
+ "notes": "scout 85%; no orders of chivalry; single churches are the failure; undated rows need sl>=5 (undated tail is modern denominations, dioceses, provinces)",
+ "exclude_desc": "\\b(diocese|province of|presbytery|vestal|priestess|megachurch|network)\\b|^(Roman Catholic |titular |minor )?(church|basilica)( building)? in (Rome|Italy|Vatican|Regola)|^building in (Rome|Italy)|\\bchurch building\\b|^church in Chicago",
+ "exclude_lead": "^(The )?(Church|Basilica) of (the )?(Saints?|St\\.?|Santa|San|Santi|Santo|Sant['’])\\b|^(The )?Basilica\\b|^(The )?S(an|anta|anti|ant|anto)['’ ]\\w|^Nostra Signora",
+ "exclude_p31": [
+  "Q120560",
+  "Q1088552",
+  "Q1370598",
+  "Q19899465"
+ ]
 }
