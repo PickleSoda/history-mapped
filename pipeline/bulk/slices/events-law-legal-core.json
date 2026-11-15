@@ -1,0 +1,33 @@
+{
+  "id": "events-law-legal-core",
+  "entity_type": "legal_code",
+  "description": "Constitutions, codes of law, major statutes dated before 1950",
+  "where": "?item wdt:P585|wdt:P571|wdt:P580|wdt:P577 ?hm_dt . FILTER(YEAR(?hm_dt) < 1950)",
+  "min_sitelinks": 5,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": [
+        "Q922203",
+        "Q7755",
+        "Q820655",
+        "Q49371",
+        "Q1284645",
+        "Q1422253",
+        "Q36649",
+        "Q17096605"
+      ]
+    }
+  },
+  "require": [
+    "dates"
+  ],
+  "year_max": 1945,
+  "priority": 3,
+  "notes": "Bar raised to 5 sitelinks and year_max 1945 after sample 67%: sl3-4 tail is minor national statutes (Japanese post-war acts, railway/cannabis laws). Excluded Japanese-law class Q951841, USSR formation treaty class.",
+  "exclude_p31": [
+    "Q951841",
+    "Q116741026",
+    "Q123774"
+  ]
+}

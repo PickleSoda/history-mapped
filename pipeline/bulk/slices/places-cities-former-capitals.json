@@ -1,0 +1,34 @@
+{
+ "id": "places-cities-former-capitals",
+ "entity_type": "city",
+ "description": "Capitals of dissolved historical states (dissolved before 1990)",
+ "where": "?state wdt:P576 ?hm_dis . FILTER(YEAR(?hm_dis) < 1990) ?state wdt:P36 ?item . ?item wdt:P625 ?co .",
+ "min_sitelinks": 5,
+ "shards": {
+  "values": {
+   "pattern": "?state wdt:P31 ?hm_v .",
+   "values": [
+    "Q3024240",
+    "Q417175",
+    "Q28171280",
+    "Q1620908",
+    "Q3624078",
+    "Q1307214"
+   ]
+  }
+ },
+ "exclude_p31": [
+  "Q532",
+  "Q23413",
+  "Q3055118",
+  "Q65661087",
+  "Q1530705",
+  "Q5084",
+  "Q1066670"
+ ],
+ "require": [
+  "coords"
+ ],
+ "priority": 1,
+ "notes": "Scout: ~1500 rows, 98% precision, 40% overlap with existing."
+}

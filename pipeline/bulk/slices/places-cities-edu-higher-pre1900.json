@@ -1,0 +1,48 @@
+{
+  "id": "places-cities-edu-higher-pre1900",
+  "entity_type": "educational_institution",
+  "description": "Universities, colleges, seminaries, madrasas, academies founded before 1900",
+  "where": "?item wdt:P571 ?hm_inc . FILTER(YEAR(?hm_inc) < 1900)",
+  "min_sitelinks": 3,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": [
+        "Q3918",
+        "Q875538",
+        "Q902104",
+        "Q15936437",
+        "Q1371037",
+        "Q189004",
+        "Q38723",
+        "Q4671277",
+        "Q233324",
+        "Q132834",
+        "Q184644",
+        "Q162633",
+        "Q154773",
+        "Q2581649",
+        "Q1238718",
+        "Q1640151",
+        "Q1143413",
+        "Q2667285",
+        "Q494230",
+        "Q1321960",
+        "Q917182",
+        "Q5341295",
+        "Q2385804"
+      ]
+    }
+  },
+  "exclude_p31": [
+    "Q22687",
+    "Q4830453",
+    "Q783794"
+  ],
+  "require": [
+    "dates"
+  ],
+  "priority": 1,
+  "notes": "Scout: ~2970 rows, 92% precision; 19th-c US colleges dominate. Audit 2026-11-15 (output/bulk/audit/places-cities-edu-higher-pre1900.md) tightened the gates.",
+  "year_max": 1899
+}

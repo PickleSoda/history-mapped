@@ -1,0 +1,22 @@
+{
+  "id": "conflict-battle-core",
+  "entity_type": "event_battle",
+  "description": "Battles, naval battles and skirmishes, dated by P585, before 2000",
+  "where": "VALUES ?hm_cls { wd:Q178561 wd:Q1261499 wd:Q997267 } ?item wdt:P31 ?hm_cls .",
+  "min_sitelinks": 3,
+  "shards": {
+    "years": {
+      "prop": "P585",
+      "from": -3000,
+      "to": 2000,
+      "step": 100
+    }
+  },
+  "exclude_p31": [],
+  "require": [
+    "dates"
+  ],
+  "year_max": 1950,
+  "priority": 1,
+  "notes": "Scout est 96% precision. Overlaps trial-ancient-battles for -800..1 (claims dedupe). Battles with only P580 are not covered."
+}

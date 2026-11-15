@@ -1,0 +1,27 @@
+{
+  "id": "places-more-infra-core",
+  "entity_type": "infrastructure_monument",
+  "description": "Bridges, aqueducts, lighthouses, dams, canals, towers dated before 1900",
+  "where": "?item wdt:P625 ?co . ?item wdt:P571 ?hm_inc . FILTER(YEAR(?hm_inc) < 1900)",
+  "min_sitelinks": 8,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": [
+        "Q12280",
+        "Q474",
+        "Q39715",
+        "Q12323",
+        "Q12284",
+        "Q12518"
+      ]
+    }
+  },
+  "require": [
+    "coords",
+    "dates"
+  ],
+  "year_max": 1899,
+  "priority": 3,
+  "notes": "Scout 75%; dated-before-1900 only (undated dropped via require dates)."
+}

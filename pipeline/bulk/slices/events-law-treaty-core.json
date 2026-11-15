@@ -1,0 +1,39 @@
+{
+  "id": "events-law-treaty-core",
+  "entity_type": "event_treaty",
+  "description": "Historical treaties, peace treaties, armistices, cessions dated before 1990",
+  "where": "?item wdt:P585|wdt:P571|wdt:P580|wdt:P577 ?hm_dt . FILTER(YEAR(?hm_dt) < 1990)",
+  "min_sitelinks": 3,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": [
+        "Q131569",
+        "Q625298",
+        "Q9557810",
+        "Q6934728",
+        "Q107706",
+        "Q1143371",
+        "Q864737",
+        "Q252550"
+      ]
+    }
+  },
+  "exclude_p31": [
+    "Q29883540",
+    "Q1691434",
+    "Q16567729",
+    "Q3536928",
+    "Q1414472",
+    "Q127965989",
+    "Q29883647",
+    "Q116741026",
+    "Q217901"
+  ],
+  "require": [
+    "dates"
+  ],
+  "year_max": 1950,
+  "priority": 3,
+  "notes": "Scout est 80%. Dated only (undated leak modern conventions); capitulation Q217901 dropped (catches sieges)."
+}

@@ -1,0 +1,25 @@
+{
+  "id": "places-more-cities-sl15",
+  "entity_type": "city",
+  "description": "Cities (any subclass) with coordinates, founded before 1900, 15+ sitelinks",
+  "where": "?item wdt:P31/wdt:P279* wd:Q515 . ?item wdt:P625 ?co .",
+  "min_sitelinks": 15,
+  "shards": {
+    "years": {
+      "prop": "P571",
+      "from": -3500,
+      "to": 1900,
+      "step": 100
+    }
+  },
+  "exclude_p31": [
+    "Q23442"
+  ],
+  "require": [
+    "coords",
+    "dates"
+  ],
+  "year_max": 1899,
+  "priority": 2,
+  "notes": "Scout 70% precision; raised bar: inception (P571) before 1900 required, so modern municipalities drop. Sample precision ~93%."
+}

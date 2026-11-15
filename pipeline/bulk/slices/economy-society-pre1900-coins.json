@@ -1,0 +1,12 @@
+{
+  "id": "economy-society-pre1900-coins",
+  "entity_type": "currency_monetary_system",
+  "description": "Coin types before 1900 (solidus, ducat, obol)",
+  "where": "?item wdt:P279+ wd:Q41207 . ?item wdt:P571|wdt:P580|wdt:P575 ?hm_d0 . FILTER(YEAR(?hm_d0) < 1900)",
+  "min_sitelinks": 3,
+  "shards": {},
+  "require": ["dates"],
+  "year_max": 1900,
+  "priority": 4,
+  "notes": "scout cur3 85%"
+}

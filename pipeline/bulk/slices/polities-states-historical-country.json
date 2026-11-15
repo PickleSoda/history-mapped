@@ -1,0 +1,16 @@
+{
+  "id": "polities-states-historical-country",
+  "entity_type": "political_entity",
+  "description": "Historical countries (Q3024240), excluding dynasties",
+  "where": "?item wdt:P31 wd:Q3024240 . FILTER NOT EXISTS { ?item wdt:P31 wd:Q164950 }",
+  "min_sitelinks": 3,
+  "shards": {},
+  "exclude_p31": [
+    "Q164950"
+  ],
+  "require": [
+    "dates"
+  ],
+  "priority": 1,
+  "notes": "Scout est 88%."
+}

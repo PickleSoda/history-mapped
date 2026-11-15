@@ -1,0 +1,38 @@
+{
+  "id": "events-law-migration-events",
+  "entity_type": "migration",
+  "description": "Migrations, deportations, expulsions, population transfers dated before 2000",
+  "where": "?item wdt:P585|wdt:P571|wdt:P580|wdt:P577 ?hm_dt . FILTER(YEAR(?hm_dt) < 2000)",
+  "min_sitelinks": 3,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": [
+        "Q177626",
+        "Q379693",
+        "Q154278",
+        "Q15589476",
+        "Q779939",
+        "Q135726663",
+        "Q106065164",
+        "Q815962",
+        "Q285701"
+      ]
+    }
+  },
+  "require": [
+    "dates"
+  ],
+  "year_max": 1950,
+  "priority": 3,
+  "notes": "Excludes massacres, NKVD operations, Operation Reinhard, marsh draining; sample was 74% before.",
+  "exclude_p31": [
+    "Q3199915",
+    "Q1752350",
+    "Q2763",
+    "Q1130322",
+    "Q105967822",
+    "Q494497",
+    "Q296486"
+  ]
+}

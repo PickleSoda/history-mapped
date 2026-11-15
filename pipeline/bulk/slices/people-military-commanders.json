@@ -1,0 +1,13 @@
+{
+  "id": "people-military-commanders",
+  "entity_type": "person",
+  "description": "Military officers, personnel, soldiers and commanders born before 1900, excluding sportspeople",
+  "where": "VALUES ?hm_o { wd:Q189290 wd:Q47064 wd:Q4991371 wd:Q11545923 } ?item wdt:P31 wd:Q5 ; wdt:P106 ?hm_o . FILTER NOT EXISTS { ?item wdt:P106 wd:Q2066131 }",
+  "min_sitelinks": 3,
+  "shards": {"years": {"prop": "P569", "from": -800, "to": 1900, "step": 25}},
+  "exclude_p31": ["Q15632617"],
+  "require": ["dates"],
+  "year_max": 1899,
+  "priority": 3,
+  "notes": "scout proposal pp-military-commanders"
+}

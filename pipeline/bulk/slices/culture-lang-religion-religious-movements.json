@@ -1,0 +1,16 @@
+{
+  "id": "culture-lang-religion-religious-movements",
+  "entity_type": "religious_movement",
+  "description": "Religions, denominations, new religious movements, Buddhist schools, sects (founded before 2000)",
+  "where": "VALUES ?hm_c { wd:Q9174 wd:Q13414953 wd:Q477544 wd:Q222516 wd:Q1189816 wd:Q108704490 wd:Q1263926 wd:Q10874708 wd:Q1068640 wd:Q3952369 wd:Q4316503 wd:Q744589 wd:Q2168554 wd:Q2592417 wd:Q355746 } ?item wdt:P31 ?hm_c . OPTIONAL { ?item wdt:P571 ?hm_inc } ?item wikibase:sitelinks ?hm_s2 . FILTER((!BOUND(?hm_inc) || YEAR(?hm_inc) < 1950) && (BOUND(?hm_inc) || ?hm_c != wd:Q13414953 || ?hm_s2 >= 12))",
+  "min_sitelinks": 3,
+  "year_max": 1950,
+  "priority": 3,
+  "notes": "scout 80%; modern denominations, Hasidic dynasties and mistyped orgs are the failures; undated denominations (Q13414953) need sl>=12 (drops tiny national Baptist/Presbyterian conventions); excluded deity/ethnic-group classes (Q1322674,Q3027597,Q41710,Q178885)",
+  "exclude_p31": [
+    "Q1322674",
+    "Q3027597",
+    "Q41710",
+    "Q178885"
+  ]
+}

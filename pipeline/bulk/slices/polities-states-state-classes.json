@@ -1,0 +1,58 @@
+{
+  "id": "polities-states-state-classes",
+  "entity_type": "political_entity",
+  "description": "Kingdoms, principalities, duchies, sultanates, khanates, colonies, princely states etc.",
+  "where": "VALUES ?hm_cls { wd:Q417175 wd:Q208500 wd:Q154547 wd:Q353344 wd:Q12759805 wd:Q331644 wd:Q48349 wd:Q133156 wd:Q164142 wd:Q1336152 wd:Q26830017 wd:Q217177 wd:Q189898 wd:Q1371288 wd:Q208164 wd:Q1250464 wd:Q50068795 wd:Q836688 wd:Q99541706 wd:Q141168505 wd:Q26879769 wd:Q472538 wd:Q1351282 wd:Q133442 wd:Q463742 } ?item wdt:P31 ?hm_cls . FILTER NOT EXISTS { ?item wdt:P31 ?hm_x . VALUES ?hm_x { wd:Q3024240 wd:Q486972 wd:Q515 wd:Q532 wd:Q3957 wd:Q15661340 wd:Q13417114 wd:Q164950 wd:Q5 wd:Q44613 } } FILTER EXISTS { { ?item wdt:P576 ?hm_e } UNION { ?item wdt:P582 ?hm_e } }",
+  "min_sitelinks": 5,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": [
+        "Q417175",
+        "Q208500",
+        "Q154547",
+        "Q353344",
+        "Q12759805",
+        "Q331644",
+        "Q48349",
+        "Q133156",
+        "Q164142",
+        "Q1336152",
+        "Q26830017",
+        "Q217177",
+        "Q189898",
+        "Q1371288",
+        "Q208164",
+        "Q1250464",
+        "Q50068795",
+        "Q836688",
+        "Q99541706",
+        "Q141168505",
+        "Q26879769",
+        "Q472538",
+        "Q1351282",
+        "Q133442",
+        "Q463742"
+      ]
+    }
+  },
+  "exclude_p31": [
+    "Q3024240",
+    "Q486972",
+    "Q515",
+    "Q532",
+    "Q3957",
+    "Q15661340",
+    "Q13417114",
+    "Q164950",
+    "Q5",
+    "Q44613",
+    "Q3624078",
+    "Q6256"
+  ],
+  "require": [
+    "dates"
+  ],
+  "priority": 2,
+  "notes": "Scout est 76%. Requires a dissolution/end date (P576/P582) to drop modern and unrecognised states typed kingdom/principality (Bhutan, Lesotho, Sealand, Denmark)."
+}

@@ -1,0 +1,11 @@
+{
+ "id": "polities-dynasties-units-noble-families",
+ "entity_type": "dynasty",
+ "description": "Noble families and houses with high notability, dated",
+ "where": "VALUES ?hm_c { wd:Q13417114 wd:Q27062351 wd:Q61881926 wd:Q61881575 wd:Q58804331 wd:Q15054477 } ?item wdt:P31 ?hm_c .",
+ "min_sitelinks": 10,
+ "exclude_p31": ["Q18759100", "Q2591905"],
+ "require": [],
+ "priority": 6,
+ "notes": "scout 70%; raised bar to 10 sitelinks"
+}

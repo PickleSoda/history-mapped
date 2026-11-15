@@ -1,0 +1,13 @@
+{
+  "id": "culture-works-manuscripts",
+  "entity_type": "cultural_work",
+  "description": "Manuscripts and codices (excluding NT catalog entries)",
+  "where": "?item wdt:P31 wd:Q87167 . ?item rdfs:label ?hm_l . FILTER(LANG(?hm_l)=\"en\" && !REGEX(?hm_l,\"^(Papyrus|Uncial|Minuscule|Lectionary|Codex Minuscule|Majuscule) ?[0-9]\"))",
+  "min_sitelinks": 8,
+  "require": [
+    "dates"
+  ],
+  "year_max": 1900,
+  "priority": 4,
+  "notes": "scout cw1; NT catalog manuscripts excluded by label regex"
+}

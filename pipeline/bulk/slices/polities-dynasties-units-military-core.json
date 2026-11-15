@@ -1,0 +1,11 @@
+{
+ "id": "polities-dynasties-units-military-core",
+ "entity_type": "military_unit",
+ "description": "Historical regiments, armies, navies, legions, militias, military orders (pre-1946)",
+ "where": "VALUES ?hm_c { wd:Q52371 wd:Q37726 wd:Q4508 wd:Q189524 wd:Q163323 wd:Q153936 wd:Q474717 wd:Q781132 wd:Q10358588 wd:Q4890673 } ?item wdt:P31 ?hm_c . ?item wdt:P571|wdt:P580 ?hm_dd . FILTER(YEAR(?hm_dd) < 1946)",
+ "min_sitelinks": 5,
+ "require": ["dates"],
+ "year_max": 1945,
+ "priority": 4,
+ "notes": "scout 88%"
+}

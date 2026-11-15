@@ -1,0 +1,14 @@
+{
+  "id": "economy-society-historical-currencies",
+  "entity_type": "currency_monetary_system",
+  "description": "Obsolete and historical currencies",
+  "where": "{ ?item wdt:P31 wd:Q28783456 } UNION { ?item wdt:P31 wd:Q63117399 } UNION { ?item wdt:P31 wd:Q7048891 } UNION { ?item wdt:P31 wd:Q8142 . ?item wdt:P576 ?hm_end . FILTER(YEAR(?hm_end) < 2000) }",
+  "min_sitelinks": 3,
+  "shards": {},
+  "exclude_p31": ["Q747699","Q25530138"],
+  "require": ["dates"],
+  "year_min": null,
+  "year_max": 1999,
+  "priority": 3,
+  "notes": "measured ~92% on 40; drops units of account (ECU), generic silver coin; some modern-ish 1990s currencies kept"
+}

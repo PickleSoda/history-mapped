@@ -1,0 +1,22 @@
+{
+  "id": "conflict-siege",
+  "entity_type": "event_battle",
+  "description": "Sieges (battle_subtype siege), dated by P585, before 2000",
+  "where": "VALUES ?hm_cls { wd:Q188055 } ?item wdt:P31 ?hm_cls .",
+  "min_sitelinks": 3,
+  "shards": {
+    "years": {
+      "prop": "P585",
+      "from": -3000,
+      "to": 2000,
+      "step": 100
+    }
+  },
+  "exclude_p31": [],
+  "require": [
+    "dates"
+  ],
+  "year_max": 1950,
+  "priority": 2,
+  "notes": "Scout est 95%. Overlaps trial-ancient-battles for -800..1."
+}

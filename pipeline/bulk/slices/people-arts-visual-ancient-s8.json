@@ -1,0 +1,22 @@
+{
+  "id": "people-arts-visual-ancient-s8",
+  "entity_type": "person",
+  "description": "Painters, sculptors, architects born 800 BCE-1200 (sitelinks>=8)",
+  "where": "VALUES ?hm_occ { wd:Q1028181 wd:Q1281618 wd:Q42973 } ?item wdt:P106 ?hm_occ . MINUS { ?item wdt:P106 ?hm_x . VALUES ?hm_x { wd:Q49757 wd:Q36180 wd:Q6625963 wd:Q214917 wd:Q33999 wd:Q10800557 wd:Q33231 wd:Q211346 wd:Q212980 wd:Q81096 wd:Q13582652 wd:Q82955 wd:Q4964182 wd:Q11774202 wd:Q1930187 wd:Q28389 wd:Q177220 } }",
+  "min_sitelinks": 8,
+  "shards": {
+    "years": {
+      "prop": "P569",
+      "from": -800,
+      "to": 1200,
+      "step": 2000
+    }
+  },
+  "exclude_p31": [
+    "Q15632617"
+  ],
+  "require": [],
+  "year_max": 1900,
+  "priority": 2,
+  "notes": "scout precision 84%; failures poets/writers with art occupation; MINUS writer/actor/etc occupations after first sample at ~78-80% 2026-11-15: dates no longer required: century-only dates are dropped for people, and ancient artists are mostly known only to the century."
+}

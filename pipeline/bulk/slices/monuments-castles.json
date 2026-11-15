@@ -1,0 +1,21 @@
+{
+  "id": "monuments-castles",
+  "entity_type": "infrastructure_monument",
+  "description": "Castles, fortresses, forts, citadels, city walls and gates; undated allowed, pre-1900",
+  "where": "VALUES ?hm_c { wd:Q23413 wd:Q57831 wd:Q1785071 wd:Q751876 wd:Q16748868 wd:Q82117 } ?item wdt:P31 ?hm_c . OPTIONAL { ?item wdt:P571 ?hm_inc } FILTER(!BOUND(?hm_inc) || YEAR(?hm_inc) < 1900)",
+  "min_sitelinks": 5,
+  "exclude_p31": [
+    "Q156362",
+    "Q3957",
+    "Q486972",
+    "Q5084",
+    "Q515",
+    "Q532"
+  ],
+  "require": [
+    "coords"
+  ],
+  "year_max": 1900,
+  "priority": 1,
+  "notes": "scout 92% 2026-11-15 audit: wineries (Q156362) excluded; Bordeaux wine chateaux typed castle."
+}

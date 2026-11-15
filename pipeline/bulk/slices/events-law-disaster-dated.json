@@ -1,0 +1,27 @@
+{
+  "id": "events-law-disaster-dated",
+  "entity_type": "event_natural_disaster",
+  "description": "Earthquakes, eruptions, tsunamis, floods, famines dated before 2000",
+  "where": "?item wdt:P585|wdt:P571|wdt:P580|wdt:P577 ?hm_dt . FILTER(YEAR(?hm_dt) < 2000)",
+  "min_sitelinks": 3,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": [
+        "Q7944",
+        "Q8065",
+        "Q7692360",
+        "Q8070",
+        "Q168247",
+        "Q8068",
+        "Q167903"
+      ]
+    }
+  },
+  "require": [
+    "dates"
+  ],
+  "year_max": 1950,
+  "priority": 3,
+  "notes": "Scout est 85%. Dated only."
+}

@@ -1,0 +1,22 @@
+{
+  "id": "people-writers-writer",
+  "entity_type": "person",
+  "description": "Writers (Q36180) born before 1900, sitelinks>=8",
+  "where": "?item wdt:P31 wd:Q5 . VALUES ?hm_occ { wd:Q36180 } ?item wdt:P106 ?hm_occ .",
+  "min_sitelinks": 8,
+  "shards": {
+    "years": {
+      "prop": "P569",
+      "from": -800,
+      "to": 1900,
+      "step": 50
+    }
+  },
+  "exclude_p31": [
+    "Q15632617",
+    "Q95074"
+  ],
+  "year_max": 1899,
+  "priority": 2,
+  "notes": "scout pc-literature-s8 split by occupation (wave 1 OR of 5 timed out); dates not required: the listing is by P569, so an undated row only has century-precision dates, which people drop (keeps e.g. Ibycus, Tulsidas undated)"
+}

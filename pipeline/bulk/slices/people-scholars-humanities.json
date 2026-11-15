@@ -1,0 +1,25 @@
+{
+  "id": "people-scholars-humanities",
+  "entity_type": "person",
+  "description": "Philosophers, historians, theologians, jurists, economists, geographers born before 1900, sitelinks>=8",
+  "where": "?item wdt:P31 wd:Q5 . VALUES ?hm_occ { wd:Q4964182 wd:Q201788 wd:Q1234713 wd:Q185351 wd:Q188094 wd:Q901402 } ?item wdt:P106 ?hm_occ .",
+  "min_sitelinks": 8,
+  "shards": {
+    "years": {
+      "prop": "P569",
+      "from": -800,
+      "to": 1900,
+      "step": 100
+    }
+  },
+  "exclude_p31": [
+    "Q15632617",
+    "Q95074"
+  ],
+  "require": [
+    "dates"
+  ],
+  "year_max": 1899,
+  "priority": 2,
+  "notes": "scout pc-scholars-s8 (precision 64% from modern-born rows; year bound added); sample 40: 35 scholars, 5 real-but-not-scholar (Houdini, a FBI official, politicians, an industrialist); no modern-born rows after year_max 1899"
+}

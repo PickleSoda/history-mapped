@@ -1,0 +1,11 @@
+{
+ "id": "polities-dynasties-units-military-formations",
+ "entity_type": "military_unit",
+ "description": "Pre-1946 divisions, brigades, corps, squadrons, paramilitary",
+ "where": "VALUES ?hm_c { wd:Q102356 wd:Q6382533 wd:Q169534 wd:Q188497 wd:Q51977 wd:Q9248092 wd:Q4443691 wd:Q828569 wd:Q15704239 wd:Q23905051 wd:Q679165 wd:Q207320 wd:Q20642011 wd:Q2008856 wd:Q45364 wd:Q204310 } ?item wdt:P31 ?hm_c . ?item wdt:P571|wdt:P580 ?hm_dd . FILTER(YEAR(?hm_dd) < 1946)",
+ "min_sitelinks": 8,
+ "require": ["dates"],
+ "year_max": 1945,
+ "priority": 6,
+ "notes": "scout 80%; raised bar to 8"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "culture-works-literary-pre1900",
+  "entity_type": "cultural_work",
+  "description": "Literary works before 1900",
+  "where": "VALUES ?hm_cls { wd:Q7725634 wd:Q8261 wd:Q25379 wd:Q5185279 wd:Q37484 } ?item wdt:P31 ?hm_cls . ?item wdt:P571|wdt:P577 ?hm_d0 . FILTER(YEAR(?hm_d0) < 1900)",
+  "min_sitelinks": 15,
+  "require": [
+    "dates"
+  ],
+  "year_max": 1900,
+  "priority": 3,
+  "notes": "scout cw2",
+  "exclude_p31": [
+    "Q29154430"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "people-rulers-consorts",
+  "entity_type": "person",
+  "description": "Spouses of monarchs born before 1900",
+  "where": "?item wdt:P31 wd:Q5 . ?item wdt:P26 ?hm_sp . ?hm_sp wdt:P106 wd:Q116 .",
+  "min_sitelinks": 3,
+  "shards": {},
+  "require": ["dates"],
+  "year_max": 1900,
+  "priority": 7,
+  "notes": "Scout pp-royal-consorts."
+}

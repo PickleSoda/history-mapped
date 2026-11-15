@@ -1,0 +1,31 @@
+{
+  "id": "monuments-religious",
+  "entity_type": "infrastructure_monument",
+  "description": "Cathedrals, basilicas, monasteries, abbeys, mosques, synagogues, temples; dated pre-1900 sl>=3, undated sl>=6 (Hindu temples sl>=12)",
+  "where": "VALUES ?hm_c { wd:Q2977 wd:Q163687 wd:Q44613 wd:Q160742 wd:Q32815 wd:Q34627 wd:Q44539 wd:Q842402 wd:Q2750108 wd:Q1128397 } ?item wdt:P31 ?hm_c . OPTIONAL { ?item wdt:P571 ?hm_inc } ?item wikibase:sitelinks ?hm_s2 . FILTER((BOUND(?hm_inc) && YEAR(?hm_inc) < 1900) || (!BOUND(?hm_inc) && ?hm_c IN (wd:Q2977, wd:Q163687, wd:Q44613, wd:Q160742, wd:Q2750108, wd:Q1128397) && ?hm_s2 >= 6) || (!BOUND(?hm_inc) && ?hm_c = wd:Q44539 && ?hm_s2 >= 10))",
+  "min_sitelinks": 3,
+  "exclude_p31": [
+    "Q207694",
+    "Q3957",
+    "Q486972",
+    "Q5084",
+    "Q515",
+    "Q532"
+  ],
+  "require": [
+    "coords"
+  ],
+  "year_max": 1900,
+  "priority": 1,
+  "notes": "scout 88%; undated mosques/synagogues/Hindu temples dropped (modern); settlements excluded Audit 2026-11-15 (output/bulk/audit/monuments-religious.md) tightened the gates.",
+  "require_dates_p31": [
+    "Q2977",
+    "Q160742"
+  ],
+  "require_dates_except_bbox": [
+    -25,
+    25,
+    60,
+    72
+  ]
+}

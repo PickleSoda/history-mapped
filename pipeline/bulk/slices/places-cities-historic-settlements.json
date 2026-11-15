@@ -1,0 +1,39 @@
+{
+ "id": "places-cities-historic-settlements",
+ "entity_type": "city",
+ "description": "Former settlements, Hanseatic and Roman cities, oppida, city-states, lost cities",
+ "where": "?item wdt:P625 ?co .",
+ "min_sitelinks": 8,
+ "shards": {
+  "values": {
+   "pattern": "?item wdt:P31 ?hm_v .",
+   "values": [
+    "Q21751582",
+    "Q27554677",
+    "Q69391739",
+    "Q2974842",
+    "Q133442",
+    "Q707813",
+    "Q57318",
+    "Q7375052",
+    "Q10500900",
+    "Q16825568",
+    "Q18511725",
+    "Q192601",
+    "Q2202509",
+    "Q756780",
+    "Q350895"
+   ]
+  }
+ },
+ "exclude_p31": [
+  "Q350895",
+  "Q74047",
+  "Q532"
+ ],
+ "require": [
+  "coords"
+ ],
+ "priority": 2,
+ "notes": "Dropped ghost town (Q74047), former settlement (Q22674925), trading post (Q39463): US trivia tail. Abandoned-village class Q350895 excluded (trivia tail). min_sitelinks 8."
+}

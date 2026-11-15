@@ -1,0 +1,13 @@
+{
+  "id": "people-nobility-1800s",
+  "entity_type": "person",
+  "description": "Persons with a noble title (P97) born 1800-1899",
+  "where": "?item wdt:P31 wd:Q5 ; wdt:P97 ?hm_t .",
+  "min_sitelinks": 3,
+  "shards": {"years": {"prop": "P569", "from": 1800, "to": 1900, "step": 10}},
+  "require": ["dates"],
+  "year_min": 1800,
+  "year_max": 1899,
+  "priority": 2,
+  "notes": "1800-1899 band"
+}

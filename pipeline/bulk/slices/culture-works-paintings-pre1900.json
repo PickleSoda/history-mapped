@@ -1,0 +1,21 @@
+{
+  "id": "culture-works-paintings-pre1900",
+  "entity_type": "cultural_work",
+  "description": "Paintings before 1900",
+  "where": "?item wdt:P31 wd:Q3305213 .",
+  "min_sitelinks": 15,
+  "require": [
+    "dates"
+  ],
+  "year_max": 1900,
+  "priority": 3,
+  "notes": "scout cw3",
+  "shards": {
+    "years": {
+      "prop": "P571",
+      "from": 1250,
+      "to": 1900,
+      "step": 25
+    }
+  }
+}

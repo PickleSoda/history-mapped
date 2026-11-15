@@ -1,0 +1,22 @@
+{
+  "id": "conflict-campaign-operation",
+  "entity_type": "event_war",
+  "description": "Military campaigns and operations before 2000",
+  "where": "VALUES ?hm_cls { wd:Q831663 wd:Q645883 } ?item wdt:P31 ?hm_cls .",
+  "min_sitelinks": 3,
+  "shards": {
+    "years": {
+      "prop": "P580",
+      "from": -3000,
+      "to": 2000,
+      "step": 200
+    }
+  },
+  "exclude_p31": [],
+  "require": [
+    "dates"
+  ],
+  "year_max": 1950,
+  "priority": 3,
+  "notes": "Scout est 80%; evacuations/sabotage failure mode."
+}

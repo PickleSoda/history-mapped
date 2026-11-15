@@ -1,0 +1,25 @@
+{
+  "id": "people-letters-clergy",
+  "entity_type": "person",
+  "description": "Priests, bishops, monks, missionaries, theologians born before 1900 (sitelinks>=8)",
+  "where": "VALUES ?hm_occ { wd:Q42603 wd:Q611644 wd:Q733786 wd:Q219477 wd:Q1234713 } ?item wdt:P106 ?hm_occ .",
+  "min_sitelinks": 8,
+  "shards": {
+    "years": {
+      "prop": "P569",
+      "from": -800,
+      "to": 1900,
+      "step": 100
+    }
+  },
+  "exclude_p31": [
+    "Q15632617",
+    "Q95074"
+  ],
+  "require": [
+    "dates"
+  ],
+  "year_max": 1899,
+  "priority": 2,
+  "notes": "scout pc-religion-s8, cut at born<1900"
+}

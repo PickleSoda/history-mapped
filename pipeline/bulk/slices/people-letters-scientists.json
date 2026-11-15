@@ -1,0 +1,25 @@
+{
+  "id": "people-letters-scientists",
+  "entity_type": "person",
+  "description": "Scientists, physicists, chemists, mathematicians, astronomers born before 1900 (sitelinks>=8)",
+  "where": "VALUES ?hm_occ { wd:Q901 wd:Q169470 wd:Q593644 wd:Q170790 wd:Q11063 } ?item wdt:P106 ?hm_occ .",
+  "min_sitelinks": 8,
+  "shards": {
+    "years": {
+      "prop": "P569",
+      "from": -800,
+      "to": 1900,
+      "step": 100
+    }
+  },
+  "exclude_p31": [
+    "Q15632617",
+    "Q95074"
+  ],
+  "require": [
+    "dates"
+  ],
+  "year_max": 1899,
+  "priority": 2,
+  "notes": "scout pc-science-s8, cut at born<1900"
+}

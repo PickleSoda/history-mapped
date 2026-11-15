@@ -1,0 +1,26 @@
+{
+  "id": "places-more-extract-core",
+  "entity_type": "extraction_infra",
+  "description": "Mines and quarries dated before 1900",
+  "where": "?item wdt:P625 ?co . ?item wdt:P571 ?hm_inc . FILTER(YEAR(?hm_inc) < 1900)",
+  "min_sitelinks": 3,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": [
+        "Q820477",
+        "Q188040"
+      ]
+    }
+  },
+  "exclude_p31": [
+    "Q74047"
+  ],
+  "require": [
+    "coords",
+    "dates"
+  ],
+  "year_max": 1899,
+  "priority": 5,
+  "notes": "Scout 80%; dated before 1900 required."
+}

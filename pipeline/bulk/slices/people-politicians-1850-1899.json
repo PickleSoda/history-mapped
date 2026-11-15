@@ -1,0 +1,27 @@
+{
+  "id": "people-politicians-1850-1899",
+  "entity_type": "person",
+  "description": "Politicians born 1850-1899",
+  "where": "?item wdt:P31 wd:Q5 ; wdt:P106 wd:Q82955 .",
+  "min_sitelinks": 3,
+  "shards": {
+    "years": {
+      "prop": "P569",
+      "from": 1850,
+      "to": 1900,
+      "step": 1
+    }
+  },
+  "exclude_p31": [
+    "Q15632617",
+    "Q95074",
+    "Q4271324"
+  ],
+  "require": [
+    "dates"
+  ],
+  "year_min": 1850,
+  "year_max": 1900,
+  "priority": 4,
+  "notes": "Politicians born 1850-1899, sl>=3 + enwiki, 1-year P569 shards. Sample precision 40/40; co-tagged writers/scientists (Bordet, Croce) are real persons. Listing run was PARTIAL: WDQS saturated, 1851-1876 listed, 1850 and 1877-1899 not listed, and 12 listed years timed out (1850,52,55,58,60,62,63,65,72,74,76,77). Reset and relist in a quiet window to complete (full pool est ~22k)."
+}

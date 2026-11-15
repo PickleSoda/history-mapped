@@ -1,0 +1,14 @@
+{
+ "id": "monuments-palaces",
+ "entity_type": "infrastructure_monument",
+ "description": "Palaces and villas, undated allowed, pre-1900",
+ "where": "VALUES ?hm_c { wd:Q16560 wd:Q3950 } ?item wdt:P31 ?hm_c . OPTIONAL { ?item wdt:P571 ?hm_inc } FILTER(!BOUND(?hm_inc) || YEAR(?hm_inc) < 1900)",
+ "min_sitelinks": 8,
+ "exclude_p31": [],
+ "require": [
+  "coords"
+ ],
+ "year_max": 1900,
+ "priority": 2,
+ "notes": "scout 80%; sl>=8 to drop trivial Italian palazzi/villas"
+}

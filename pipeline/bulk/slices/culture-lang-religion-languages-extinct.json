@@ -1,0 +1,9 @@
+{
+  "id": "culture-lang-religion-languages-extinct",
+  "entity_type": "language",
+  "description": "Dead, ancient and extinct languages",
+  "where": "VALUES ?hm_c { wd:Q45762 wd:Q436240 wd:Q38058796 } ?item wdt:P31 ?hm_c .",
+  "min_sitelinks": 3,
+  "priority": 2,
+  "notes": "scout 92%; dialects, pidgins and language groups possible; few dates"
+}

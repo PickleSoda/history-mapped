@@ -1,0 +1,17 @@
+{
+  "id": "culture-works-sculptures-pre1900",
+  "entity_type": "cultural_work",
+  "description": "Sculptures before 1900",
+  "where": "?item wdt:P31 wd:Q860861 . ?item wdt:P571 ?hm_d0 . FILTER(YEAR(?hm_d0) < 1900)",
+  "min_sitelinks": 12,
+  "require": [
+    "dates"
+  ],
+  "year_max": 1900,
+  "priority": 4,
+  "notes": "scout cw4",
+  "exclude_p31": [
+    "Q4989906",
+    "Q575759"
+  ]
+}

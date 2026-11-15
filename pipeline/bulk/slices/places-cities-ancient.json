@@ -1,0 +1,28 @@
+{
+  "id": "places-cities-ancient",
+  "entity_type": "city",
+  "description": "Ancient cities, poleis and historic cities with their own coordinates",
+  "where": "?item wdt:P625 ?co .",
+  "min_sitelinks": 1,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": [
+        "Q15661340",
+        "Q40364446",
+        "Q148837"
+      ]
+    }
+  },
+  "exclude_p31": [
+    "Q23442",
+    "Q2442279",
+    "Q2284123"
+  ],
+  "require": [
+    "coords"
+  ],
+  "priority": 1,
+  "notes": "Scout: ~2600 rows, 96% precision. Failures: city-kingdoms that are polities, monuments. Audit 2026-11-15 (output/bulk/audit/places-cities-ancient.md) tightened the gates.",
+  "year_max": 1500
+}

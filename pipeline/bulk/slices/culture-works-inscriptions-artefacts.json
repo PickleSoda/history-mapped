@@ -1,0 +1,16 @@
+{
+  "id": "culture-works-inscriptions-artefacts",
+  "entity_type": "cultural_work",
+  "description": "Inscriptions, steles, archaeological artefacts",
+  "where": "VALUES ?hm_cls { wd:Q220659 wd:Q1640824 wd:Q178743 } ?item wdt:P31 ?hm_cls .",
+  "min_sitelinks": 8,
+  "require": [
+    "dates"
+  ],
+  "year_max": 1700,
+  "priority": 4,
+  "notes": "scout cw7; dates are often discovery dates, so rows after 1700 dropped and dates required",
+  "exclude_p31": [
+    "Q4989906"
+  ]
+}

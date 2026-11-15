@@ -1,0 +1,14 @@
+{
+  "id": "culture-lang-religion-religious-texts",
+  "entity_type": "religious_text",
+  "description": "Religious texts incl. sutras, tractates, apocrypha, Upanishads",
+  "where": "VALUES ?hm_c { wd:Q179461 wd:Q1001051 wd:Q7831615 wd:Q51632 wd:Q6718887 wd:Q1191035 wd:Q209680 wd:Q170207 wd:Q6113985 wd:Q1194040 wd:Q29851044 wd:Q2986441 wd:Q10642135 wd:Q1054662 wd:Q2089875 wd:Q47148 wd:Q823671 wd:Q7513679 wd:Q41795401 wd:Q385530 wd:Q208628 wd:Q4119762 } ?item wdt:P31 ?hm_c .",
+  "min_sitelinks": 3,
+  "priority": 2,
+  "notes": "scout 84%; Bible chapters, parables, brachot are failures; excluded parables (Q51632), hagiography (Q208628), Q44342 literary romances",
+  "exclude_p31": [
+    "Q51632",
+    "Q208628",
+    "Q44342"
+  ]
+}

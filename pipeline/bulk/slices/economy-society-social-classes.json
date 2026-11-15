@@ -1,0 +1,11 @@
+{
+  "id": "economy-society-social-classes",
+  "entity_type": "social_class",
+  "description": "Social classes and estates (serf, slave, equites)",
+  "where": "VALUES ?hm_c { wd:Q187588 wd:Q657326 wd:Q1392538 wd:Q127871326 wd:Q177826 } ?item wdt:P31 ?hm_c .",
+  "min_sitelinks": 3,
+  "shards": {},
+  "exclude_p31": ["Q484416","Q43229","Q28640","Q12737077","Q2119819"],
+  "priority": 5,
+  "notes": "measured ~92%; excluded org, occupation, chivalry classes; residual modern terms (A-list, Middle England)"
+}

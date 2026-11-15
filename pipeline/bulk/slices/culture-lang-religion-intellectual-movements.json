@@ -1,0 +1,20 @@
+{
+  "id": "culture-lang-religion-intellectual-movements",
+  "entity_type": "intellectual_movement",
+  "description": "Art, literary, cultural and philosophical movements (before 2000)",
+  "where": "VALUES ?hm_c { wd:Q968159 wd:Q2198855 wd:Q3326717 wd:Q2915955 } ?item wdt:P31 ?hm_c . OPTIONAL { ?item wdt:P571|wdt:P580 ?hm_inc } ?item wikibase:sitelinks ?hm_s2 . FILTER((!BOUND(?hm_inc) && ?hm_s2 >= 5) || (BOUND(?hm_inc) && YEAR(?hm_inc) < 1950))",
+  "min_sitelinks": 3,
+  "year_max": 1950,
+  "priority": 3,
+  "notes": "scout 76%; art groups/orgs, periods, 1960s+ subcultures, design styles are failures; excluded genre/humor/technique/lifestyle classes (Q223393,Q1792379,Q9332,Q622645,Q1149305,Q877729,Q32090,Q11862829); undated rows need sl>=5 (tail of undated sl3-4 is niche/modern groups)",
+  "exclude_p31": [
+    "Q223393",
+    "Q1792379",
+    "Q9332",
+    "Q622645",
+    "Q1149305",
+    "Q877729",
+    "Q32090",
+    "Q11862829"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "id": "polities-states-admin-divisions",
+  "entity_type": "political_entity",
+  "description": "Historical provinces and divisions of empires",
+  "where": "VALUES ?hm_cls { wd:Q182547 wd:Q44565 wd:Q1462047 wd:Q330425 wd:Q47530375 wd:Q18867465 wd:Q18867064 wd:Q65770082 wd:Q681026 wd:Q574299 wd:Q691981 wd:Q7075127 wd:Q84582639 } ?item wdt:P31 ?hm_cls .",
+  "min_sitelinks": 5,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": [
+        "Q182547",
+        "Q44565",
+        "Q1462047",
+        "Q330425",
+        "Q47530375",
+        "Q18867465",
+        "Q18867064",
+        "Q65770082",
+        "Q681026",
+        "Q574299",
+        "Q691981",
+        "Q7075127",
+        "Q84582639"
+      ]
+    }
+  },
+  "exclude_p31": [
+    "Q150093",
+    "Q18663579"
+  ],
+  "require": [
+    "dates"
+  ],
+  "priority": 4,
+  "notes": "Scout est 90%."
+}

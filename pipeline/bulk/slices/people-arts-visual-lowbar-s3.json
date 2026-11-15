@@ -1,0 +1,24 @@
+{
+ "id": "people-arts-visual-lowbar-s3",
+ "entity_type": "person",
+ "description": "Painters, sculptors, architects born before 1900 (sitelinks 3+; s>=8 overlap skipped)",
+ "where": "VALUES ?hm_occ { wd:Q1028181 wd:Q1281618 wd:Q42973 } ?item wdt:P106 ?hm_occ .",
+ "min_sitelinks": 3,
+ "shards": {
+  "years": {
+   "prop": "P569",
+   "from": 1200,
+   "to": 1900,
+   "step": 10
+  }
+ },
+ "exclude_p31": [
+  "Q15632617"
+ ],
+ "require": [
+  "dates"
+ ],
+ "year_max": 1900,
+ "priority": 4,
+ "notes": "scout precision 96%"
+}

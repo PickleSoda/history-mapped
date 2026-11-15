@@ -1,0 +1,24 @@
+{
+  "entity_type": "person",
+  "min_sitelinks": 3,
+  "exclude_p31": [
+    "Q15632617",
+    "Q95074",
+    "Q4271324"
+  ],
+  "priority": 5,
+  "id": "people-politicians-2-diplomats",
+  "description": "Diplomats born before 1900",
+  "where": "?item wdt:P31 wd:Q5 ; wdt:P106 wd:Q193391 .",
+  "shards": {
+    "years": {
+      "prop": "P569",
+      "from": 1300,
+      "to": 1900,
+      "step": 10
+    }
+  },
+  "year_min": 1300,
+  "year_max": 1900,
+  "notes": "Diplomats born 1300-1899, sl>=3 + enwiki; overlaps politicians, deduped by QID.; dates not required: the listing is by P569, so an undated row only has century-precision dates, which people drop (keeps e.g. Ibycus, Tulsidas undated)"
+}

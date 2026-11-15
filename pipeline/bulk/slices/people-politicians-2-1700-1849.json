@@ -1,0 +1,27 @@
+{
+  "entity_type": "person",
+  "min_sitelinks": 3,
+  "exclude_p31": [
+    "Q15632617",
+    "Q95074",
+    "Q4271324"
+  ],
+  "require": [
+    "dates"
+  ],
+  "priority": 4,
+  "id": "people-politicians-2-1700-1849",
+  "description": "Politicians born 1700-1849",
+  "where": "?item wdt:P31 wd:Q5 ; wdt:P106 wd:Q82955 .",
+  "shards": {
+    "years": {
+      "prop": "P569",
+      "from": 1700,
+      "to": 1850,
+      "step": 1
+    }
+  },
+  "year_min": 1700,
+  "year_max": 1850,
+  "notes": "Politicians born 1700-1849, sl>=3 + enwiki, 1-year P569 shards. Listing PARTIAL: WDQS saturated; only 1700-1724 listed (1723 failed once, listed anyway after retry? see state shards_failed). Run `qids` again to list 1725-1849 (resumable, todo restored). Sample 40/40 real persons (many British MPs, colonial legislators)."
+}

@@ -1,0 +1,14 @@
+{
+ "id": "monuments-tombs",
+ "entity_type": "infrastructure_monument",
+ "description": "Mausolea and pyramids, pre-1900 or undated",
+ "where": "VALUES ?hm_c { wd:Q162875 wd:Q12516 } ?item wdt:P31 ?hm_c . OPTIONAL { ?item wdt:P571 ?hm_inc } ?item wikibase:sitelinks ?hm_s2 . FILTER((BOUND(?hm_inc) && YEAR(?hm_inc) < 1900) || (!BOUND(?hm_inc) && ?hm_s2 >= 6))",
+ "min_sitelinks": 4,
+ "exclude_p31": [],
+ "require": [
+  "coords"
+ ],
+ "year_max": 1900,
+ "priority": 2,
+ "notes": "scout 85%; undated need sl>=6 (undated sl4-5 were modern US/Bangladeshi mausolea); known failures: Mao mausoleum, Bosnian pyramid claims"
+}

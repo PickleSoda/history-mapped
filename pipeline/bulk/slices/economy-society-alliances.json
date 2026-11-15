@@ -1,0 +1,13 @@
+{
+  "id": "economy-society-alliances",
+  "entity_type": "diplomatic_relationship",
+  "description": "Military alliances, leagues, personal unions",
+  "where": "VALUES ?hm_c { wd:Q1127126 wd:Q188800 wd:Q6944158 wd:Q170156 } ?item wdt:P31 ?hm_c .",
+  "min_sitelinks": 3,
+  "shards": {},
+  "require": ["dates"],
+  "year_max": 1950,
+  "exclude_p31": ["Q484652","Q163740","Q7840353","Q43229"],
+  "priority": 5,
+  "notes": "measured ~90% on 41 dated rows; undated rows dropped; failures: sports federation, treaties-as-alliances"
+}

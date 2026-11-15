@@ -1,0 +1,12 @@
+{
+  "id": "polities-states-han-japan",
+  "entity_type": "political_entity",
+  "description": "Japanese Edo-period domains (han)",
+  "where": "?item wdt:P31 wd:Q841985 .",
+  "min_sitelinks": 3,
+  "shards": {},
+  "exclude_p31": [],
+  "require": [],
+  "priority": 3,
+  "notes": "Scout est 100%."
+}

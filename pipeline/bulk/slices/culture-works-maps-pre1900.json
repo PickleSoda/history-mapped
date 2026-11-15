@@ -1,0 +1,13 @@
+{
+  "id": "culture-works-maps-pre1900",
+  "entity_type": "cultural_work",
+  "description": "Historic maps before 1900",
+  "where": "?item wdt:P31 wd:Q4006 . ?item wdt:P571|wdt:P577 ?hm_d0 . FILTER(YEAR(?hm_d0) < 1900)",
+  "min_sitelinks": 3,
+  "require": [
+    "dates"
+  ],
+  "year_max": 1900,
+  "priority": 5,
+  "notes": "scout cw6"
+}

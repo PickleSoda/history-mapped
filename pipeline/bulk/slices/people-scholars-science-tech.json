@@ -1,0 +1,25 @@
+{
+  "id": "people-scholars-science-tech",
+  "entity_type": "person",
+  "description": "Physicians, biologists, botanists, inventors, engineers born before 1900, sitelinks>=8",
+  "where": "?item wdt:P31 wd:Q5 . VALUES ?hm_occ { wd:Q39631 wd:Q864503 wd:Q2374149 wd:Q205375 wd:Q81096 } ?item wdt:P106 ?hm_occ .",
+  "min_sitelinks": 8,
+  "shards": {
+    "years": {
+      "prop": "P569",
+      "from": -800,
+      "to": 1900,
+      "step": 100
+    }
+  },
+  "exclude_p31": [
+    "Q15632617",
+    "Q95074"
+  ],
+  "require": [
+    "dates"
+  ],
+  "year_max": 1899,
+  "priority": 2,
+  "notes": "scout pc-medicine-naturalhist-tech-s8 (year bound added); sample 40: ~38 good; stray writers/athletes with physician tag; many real persons overlap writers slices (skipped at build)"
+}

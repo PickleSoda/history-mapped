@@ -1,0 +1,14 @@
+{
+ "id": "monuments-churches-dated",
+ "entity_type": "infrastructure_monument",
+ "description": "Church buildings dated before 1800",
+ "where": "?item wdt:P31 wd:Q16970 . ?item wdt:P571 ?hm_inc . FILTER(YEAR(?hm_inc) < 1800)",
+ "min_sitelinks": 5,
+ "exclude_p31": [],
+ "require": [
+  "coords"
+ ],
+ "year_max": 1800,
+ "priority": 4,
+ "notes": "scout 85%"
+}

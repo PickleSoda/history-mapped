@@ -1,0 +1,12 @@
+{
+ "id": "archaeology-monument-classes",
+ "entity_type": "infrastructure_monument",
+ "description": "Stone circles, tumuli, necropolises, pyramids, Roman villas/theatres/forts etc. not typed as archaeological site",
+ "where": "VALUES ?hm_c { wd:Q1935728 wd:Q34023 wd:Q200141 wd:Q172896 wd:Q755017 wd:Q11269813 wd:Q1149405 wd:Q175582 wd:Q267596 wd:Q918230 wd:Q7362268 wd:Q19757 wd:Q2860319 wd:Q88205 wd:Q3363945 wd:Q12137573 wd:Q53336805 wd:Q2593777 wd:Q65007262 wd:Q89477 wd:Q131668 wd:Q1708422 wd:Q1152199 wd:Q325017 wd:Q2075268 wd:Q18292693 } ?item wdt:P31 ?hm_c . MINUS { ?item wdt:P31 wd:Q839954 } MINUS { ?item wdt:P31 wd:Q15661340 } OPTIONAL { ?item wdt:P571 ?hm_inc } FILTER(!BOUND(?hm_inc) || YEAR(?hm_inc) < 1800)",
+ "min_sitelinks": 3,
+ "exclude_p31": [],
+ "require": [],
+ "year_max": 1800,
+ "priority": 4,
+ "notes": "scout 85%; Roman villages and modern places co-typed are the failure mode"
+}

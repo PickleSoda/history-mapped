@@ -1,0 +1,13 @@
+{
+  "id": "culture-works-music-pre1900",
+  "entity_type": "cultural_work",
+  "description": "Musical works before 1900, top tier",
+  "where": "VALUES ?hm_cls { wd:Q9734 wd:Q1344 wd:Q207628 wd:Q1432252 wd:Q105543609 } ?item wdt:P31 ?hm_cls . ?item wdt:P571|wdt:P577|wdt:P1191 ?hm_d0 . FILTER(YEAR(?hm_d0) < 1900) ?item rdfs:label ?hm_l . FILTER(LANG(?hm_l)=\"en\" && !REGEX(?hm_l,\"^(Symphony|Piano Sonata|Piano Concerto|Violin Concerto|String Quartet|Violin Sonata|Concerto|Sonata|Mass|Requiem|Overture|Serenade)( in [A-G].*| No\\\\.? ?[0-9]+.*)?$\"))",
+  "min_sitelinks": 30,
+  "require": [
+    "dates"
+  ],
+  "year_max": 1900,
+  "priority": 5,
+  "notes": "scout cw5"
+}

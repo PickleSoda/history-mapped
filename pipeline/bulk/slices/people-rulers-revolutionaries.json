@@ -1,0 +1,12 @@
+{
+  "id": "people-rulers-revolutionaries",
+  "entity_type": "person",
+  "description": "Revolutionaries and independence fighters born before 1900",
+  "where": "?item wdt:P31 wd:Q5 . ?item wdt:P106 wd:Q3242115 .",
+  "min_sitelinks": 3,
+  "shards": {},
+  "require": ["dates"],
+  "year_max": 1900,
+  "priority": 6,
+  "notes": "Scout pp-revolutionaries."
+}

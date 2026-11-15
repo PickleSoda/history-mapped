@@ -1,0 +1,13 @@
+{
+  "id": "people-nobility-pre1800",
+  "entity_type": "person",
+  "description": "Persons with a noble title (P97) born before 1800",
+  "where": "?item wdt:P31 wd:Q5 ; wdt:P97 ?hm_t .",
+  "min_sitelinks": 3,
+  "shards": {"years": {"prop": "P569", "from": -700, "to": 1800, "step": 50}},
+  "exclude_p31": [],
+  "require": ["dates"],
+  "year_max": 1799,
+  "priority": 2,
+  "notes": "scout: 90% precision at born<1800, sl>=3"
+}

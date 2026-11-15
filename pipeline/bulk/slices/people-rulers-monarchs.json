@@ -1,0 +1,32 @@
+{
+  "id": "people-rulers-monarchs",
+  "entity_type": "person",
+  "description": "Monarchs, rulers and holders of monarch-type positions born before 1900",
+  "where": "{ ?item wdt:P106 wd:Q116 } UNION { ?item wdt:P106 wd:Q1097498 } UNION { ?item wdt:P39 ?hm_pos . ?hm_pos wdt:P279* wd:Q116 . } FILTER NOT EXISTS { VALUES ?hm_bad { wd:Q611644 wd:Q29182 wd:Q49476 wd:Q250867 } ?item wdt:P106 ?hm_bad }",
+  "min_sitelinks": 3,
+  "shards": {
+    "years": {
+      "prop": "P569",
+      "from": -3000,
+      "to": 1900,
+      "step": 100
+    }
+  },
+  "exclude_p31": [
+    "Q15632617",
+    "Q95074",
+    "Q4271324",
+    "Q13002315",
+    "Q20643955",
+    "Q3658341",
+    "Q178885",
+    "Q21070598"
+  ],
+  "require": [
+    "dates"
+  ],
+  "year_min": null,
+  "year_max": 1900,
+  "priority": 1,
+  "notes": "Scout pp-rulers-monarchs. Bishops/archbishops excluded via P106 MINUS."
+}

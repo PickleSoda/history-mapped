@@ -1,0 +1,15 @@
+{
+ "id": "archaeology-cultures",
+ "entity_type": "archaeological_culture",
+ "description": "Archaeological cultures with enwiki and >=3 sitelinks",
+ "where": "?item wdt:P31 wd:Q465299 . MINUS { ?item wdt:P31 wd:Q839954 }",
+ "min_sitelinks": 3,
+ "exclude_p31": [
+  "Q11514315",
+  "Q17524420",
+  "Q9174"
+ ],
+ "require": [],
+ "priority": 3,
+ "notes": "scout 98%; civilizations co-typed as polity overlap political_entity; periods/aspects excluded; sample precision 36/40+"
+}

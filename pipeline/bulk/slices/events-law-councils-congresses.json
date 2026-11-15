@@ -1,0 +1,31 @@
+{
+  "id": "events-law-councils-congresses",
+  "entity_type": "event_legal_reform",
+  "description": "Church councils and synods dated before 1950 (no congresses or coronations)",
+  "where": "?item wdt:P585|wdt:P571|wdt:P580|wdt:P577 ?hm_dt . FILTER(YEAR(?hm_dt) < 1950)",
+  "min_sitelinks": 3,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": [
+        "Q111161",
+        "Q10551516",
+        "Q51645",
+        "Q1743118",
+        "Q209715",
+        "Q267995",
+        "Q2720142"
+      ]
+    }
+  },
+  "require": [
+    "dates"
+  ],
+  "year_max": 1950,
+  "priority": 3,
+  "notes": "Congress class Q2495862 (standing bodies, academic/writers congresses) and coronations Q209715 dropped: sample was 75%.",
+  "exclude_p31": [
+    "Q2495862",
+    "Q209715"
+  ]
+}
