@@ -529,6 +529,8 @@ def redate(slice_ids: tuple[str, ...], yes: bool) -> None:
                     "attributes = (attributes - %s::text[]) || %s, updated_at = now() where entity_id = %s",
                     (nconf, attr_drop, Jsonb(attr_patch), eid),
                 )
+                if (n0, n1) != (d0, d1):
+                    sync_geometry(cur, eid)
             say(f"{slice_id}: {done['changed']} rows to re-date")
             total.update(done)
         for r in log_rows[:8]:
@@ -922,6 +924,104 @@ def resummarize(yes: bool) -> None:
     say(f"resummarize: {len(changes)} written; before-values in {out}")
 
 
+AUTO_PERIOD = "Auto-generated from imported primary location"
+
+
+def sync_geometry(cur, eid: str, drop_without_point: bool = False) -> str:
+    """Bring an entity's map period (the one ImportEntityJob copies from its
+    primary location) in line with its current point and primary years.
+
+    The tiles read geometry_periods, not entity_locations, so a re-dated row
+    still showed at its old years and a requid row at its wrong item's point.
+    A row with no point keeps its period's point (many curated rows hold their
+    point only there) unless drop_without_point (after requid the point came
+    from the wrong item). A row with no start year loses the period: the map
+    needs one. Returns what happened.
+    """
+    cur.execute(
+        "select geom, territory_geom from entity_locations where entity_id = %s and is_primary "
+        "and (geom is not null or territory_geom is not null) limit 1",
+        (eid,),
+    )
+    loc = cur.fetchone()
+    cur.execute("select start_year, end_year from entity_temporal_ranges where entity_id = %s and is_primary limit 1", (eid,))
+    rng = cur.fetchone()
+    if rng is None or rng[0] is None or (loc is None and drop_without_point):
+        cur.execute("delete from geometry_periods where entity_id = %s and description = %s", (eid, AUTO_PERIOD))
+        return "dropped" if cur.rowcount else "none"
+    if loc is None:
+        cur.execute(
+            "update geometry_periods set start_year = %s, end_year = %s, updated_at = now() "
+            "where entity_id = %s and description = %s and (start_year <> %s or end_year is distinct from %s)",
+            (rng[0], rng[1], eid, AUTO_PERIOD, rng[0], rng[1]),
+        )
+        return "years" if cur.rowcount else "none"
+    cur.execute(
+        "update geometry_periods g set start_year = %s, end_year = %s, geom = l.geom, territory_geom = l.territory_geom, "
+        "updated_at = now() from entity_locations l where l.entity_id = g.entity_id and l.is_primary "
+        "and (l.geom is not null or l.territory_geom is not null) and g.entity_id = %s and g.description = %s "
+        "and (g.start_year <> %s or g.end_year is distinct from %s or not st_equals(coalesce(g.geom, g.territory_geom), "
+        "coalesce(l.geom, l.territory_geom)))",
+        (rng[0], rng[1], eid, AUTO_PERIOD, rng[0], rng[1]),
+    )
+    if cur.rowcount:
+        return "updated"
+    cur.execute("select 1 from geometry_periods where entity_id = %s and description = %s", (eid, AUTO_PERIOD))
+    if cur.fetchone():
+        return "none"
+    cur.execute(
+        "insert into geometry_periods (entity_id, period_type, start_year, end_year, geom, territory_geom, description, "
+        "provenance_mode, confidence, created_by, created_at, updated_at) "
+        "select %s, 'territory', %s, %s, geom, territory_geom, %s, 'ohm_import', 'medium', 'pipeline:bulk-sync', now(), now() "
+        "from entity_locations where entity_id = %s and is_primary and (geom is not null or territory_geom is not null) limit 1",
+        (eid, rng[0], rng[1], AUTO_PERIOD, eid),
+    )
+    return "created"
+
+
+SYNC_CANDIDATES = """
+select distinct g.entity_id::text
+from geometry_periods g
+left join entity_temporal_ranges t on t.entity_id = g.entity_id and t.is_primary
+left join entity_locations l on l.entity_id = g.entity_id and l.is_primary and l.geom is not null
+where g.description = %(auto)s and (
+      t.start_year is null or g.start_year <> t.start_year or g.end_year is distinct from t.end_year
+   or (l.geom is not null and g.geom is not null and st_distance(l.geom::geography, g.geom::geography) > 1000))
+"""
+
+
+@cli.command("sync-geometry")
+@click.option("--requid-since", default="", help="Also re-sync rows requid'd in applied-<stamp>.csv files at or after this stamp")
+@click.option("--yes", is_flag=True, help="Write; without it, a dry run")
+def sync_geometry_cmd(requid_since: str, yes: bool) -> None:
+    """Re-sync map periods whose years or point drifted from the entity (see sync_geometry)."""
+    import csv
+
+    import psycopg
+
+    from pipeline.bulk.store import ROOT
+    from pipeline.local_db import dsn
+
+    requids: set[str] = set()
+    if requid_since:
+        for path in sorted((ROOT / "audit").glob("applied-*.csv")):
+            if path.stem.removeprefix("applied-") >= requid_since:
+                with open(path, newline="") as fh:
+                    requids |= {r["entity_id"] for r in csv.DictReader(fh) if (r.get("action") or "").startswith("requid")}
+    done: Counter = Counter()
+    with psycopg.connect(dsn()) as conn, conn.cursor() as cur:
+        cur.execute("set statement_timeout = 0")
+        cur.execute(SYNC_CANDIDATES, {"auto": AUTO_PERIOD})
+        ids = {r[0] for r in cur.fetchall()}
+        for eid in sorted(ids | requids):
+            done[sync_geometry(cur, eid, drop_without_point=eid in requids)] += 1
+        say(f"sync-geometry: {dict(done)}" + ("" if yes else " (dry run; pass --yes to write)"))
+        if yes:
+            conn.commit()
+        else:
+            conn.rollback()
+
+
 AUDIT_ACTIONS = ("needs_review", "delete", "merge_into", "fix_dates", "requid")
 
 
@@ -1088,15 +1188,24 @@ def apply_audit(csv_paths: tuple[str, ...], yes: bool) -> None:
                 if surv is None or arg == eid:
                     done["bad-merge-target"] += 1
                     continue
+                cur.execute(
+                    "select exists(select 1 from entity_locations where entity_id = %s and is_primary and geom is not null)",
+                    (arg,),
+                )
+                if not cur.fetchone()[0]:  # the survivor takes the loser's point; merge() would cascade it away
+                    cur.execute("delete from entity_locations where entity_id = %s and geom is null", (arg,))
+                    cur.execute("update entity_locations set entity_id = %s where entity_id = %s", (arg, eid))
                 merge(cur, arg, eid)
                 if surv[0] is None and qid:
                     cur.execute("update entities set wikidata_id = %s where entity_id = %s", (qid, arg))
+                sync_geometry(cur, arg)
             elif action == "requid":
                 target, _, mode = arg.partition(":")
                 why = requid(cur, eid, target, same=mode == "same")
                 if why:
                     done[why] += 1
                     continue
+                sync_geometry(cur, eid, drop_without_point=True)
             elif action == "fix_dates":
                 a, _, b = arg.partition("..")
                 start = None if a.strip() == "none" else int(a) if a.strip() else y0
@@ -1107,6 +1216,7 @@ def apply_audit(csv_paths: tuple[str, ...], yes: bool) -> None:
                     "where entity_id = %s and is_primary",
                     (start, end, None if start is None else str(start), None if end is None else str(end), eid),
                 )
+                sync_geometry(cur, eid)
             done[action] += 1
         say(f"apply-audit: {dict(done)}" + ("" if yes else " (dry run; pass --yes to write)"))
         if not yes:
