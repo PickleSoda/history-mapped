@@ -374,6 +374,9 @@ def test_a_redirect_into_a_group_article_gives_no_lead():
     items = [{"wikipedia_title": t} for t in ("Paul Betz", "Jean Valjean (saint)", "Ibn Taymiyya")]
     fetch.fetch_extracts(Wiki(), items)
     assert [i.get("summary") for i in items] == [None, None, "Ibn Taymiyyah was a Sunni scholar."]
+    badged = [{"wikipedia_title": "Ibn Taymiyya", "wikipedia_redirect": True}]
+    fetch.fetch_extracts(Wiki(), badged)
+    assert badged[0].get("summary") is None
 
 
 @pytest.mark.parametrize("lead", [

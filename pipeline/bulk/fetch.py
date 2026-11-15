@@ -84,13 +84,16 @@ def fetch_core(client: Client, qids: list[str]) -> dict[str, dict[str, Any]]:
     rows = client.sparql(f"""
 SELECT ?item ?label ?mul ?desc ?wp ?sl
        (GROUP_CONCAT(DISTINCT STRAFTER(STR(?c), "entity/"); separator="|") AS ?p31)
-       (SAMPLE(?coord) AS ?co)
+       (SAMPLE(?coord) AS ?co) (SAMPLE(?bdg) AS ?wpredirect)
 WHERE {{
   VALUES ?item {{ {_values(qids)} }}
   OPTIONAL {{ ?item rdfs:label ?label . FILTER(LANG(?label) = "en") }}
   OPTIONAL {{ ?item rdfs:label ?mul . FILTER(LANG(?mul) = "mul") }}
   OPTIONAL {{ ?item schema:description ?desc . FILTER(LANG(?desc) = "en") }}
-  OPTIONAL {{ ?wpa schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> ; schema:name ?wp . }}
+  OPTIONAL {{
+    ?wpa schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> ; schema:name ?wp .
+    OPTIONAL {{ ?wpa wikibase:badge ?bdg . FILTER(?bdg IN (wd:Q70893996, wd:Q70894304)) }}
+  }}
   OPTIONAL {{ ?item wikibase:sitelinks ?sl . }}
   OPTIONAL {{ ?item wdt:P31 ?c . }}
   OPTIONAL {{ ?item wdt:P625 ?coord . }}
@@ -109,6 +112,8 @@ WHERE {{
             "aliases": [],
             "coords": point(value(b, "co")),
             "wikipedia_title": value(b, "wp"),
+            # a "sitelink to redirect" badge: the link lands on another article
+            "wikipedia_redirect": bool(value(b, "wpredirect")),
             "sitelinks": int(value(b, "sl") or 0),
             "p31": [q for q in p31.split("|") if q],
             "properties": {},
@@ -264,7 +269,10 @@ def fetch_extracts(client: Client, items: list[dict[str, Any]]) -> None:
     """The lead paragraph of each item's English Wikipedia article."""
     by_title: dict[str, list[dict[str, Any]]] = {}
     for item in items:
-        if item.get("wikipedia_title"):
+        # A sitelink badged as a redirect lands on a parent's, family's or
+        # broader article (QC 2026-11-15: about another subject 7 times in 10);
+        # the Wikidata description is a better summary than its lead.
+        if item.get("wikipedia_title") and not item.get("wikipedia_redirect"):
             by_title.setdefault(item["wikipedia_title"], []).append(item)
     titles = list(by_title)
     for i in range(0, len(titles), 20):
