@@ -1022,7 +1022,36 @@ def sync_geometry_cmd(requid_since: str, yes: bool) -> None:
             conn.rollback()
 
 
-AUDIT_ACTIONS = ("needs_review", "delete", "merge_into", "fix_dates", "requid")
+AUDIT_ACTIONS = ("needs_review", "delete", "merge_into", "fix_dates", "requid", "rename", "wrong_lead")
+START_ATTRS = ("inception", "start_time", "point_in_time", "birth_date")
+END_ATTRS = ("dissolution", "end_time", "death_date")
+
+
+def date_attrs_follow(attrs: dict[str, Any], start: int | None, end: int | None) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Make the date attributes agree with a re-dated primary range.
+
+    A key whose year differs from its side's new year becomes that bare year
+    (dropped when the side is cleared); point_in_time follows the start. The
+    coarse temporal_display_range goes when anything changed, since it named
+    the old years. Returns (new attributes, before-values of changed keys).
+    """
+    new = dict(attrs)
+    before: dict[str, Any] = {}
+    for keys, year in ((START_ATTRS, start), (END_ATTRS, end)):
+        for key in keys:
+            if key not in attrs:
+                continue
+            m = re.match(r"^\+?(-?)0*(\d+)", str(attrs[key]))
+            if m and year is not None and int(m[1] + m[2]) == year:
+                continue
+            before[key] = attrs[key]
+            if year is None:
+                del new[key]
+            else:
+                new[key] = str(year)
+    if before and "temporal_display_range" in new:
+        before["temporal_display_range"] = new.pop("temporal_display_range")
+    return new, before
 
 
 def drop_wrong_qid_links(cur, eid: str, old_qid: str) -> int:
@@ -1131,13 +1160,20 @@ def apply_audit(csv_paths: tuple[str, ...], yes: bool) -> None:
     requid:<bulk id | QID | none>[:same] gives an older row that holds the
     wrong QID the right one, folding in a bulk row about the same subject;
     :same when the old QID was a duplicate item of the same subject (see
-    `requid`).
+    `requid`);
+    rename:<name> replaces a junk or generic name (a vandalised label,
+    "Schloss") unless another row of the type already has that name;
+    wrong_lead:<summary> is for a row whose stored lead is another subject's
+    article (a sitelink to a redirect into a parent's page): the summary
+    becomes <summary> (empty: none), the lead is dropped and
+    _lead_rejected is stamped.
     Anything else is flagged needs_review. One transaction; before-values go
     to output/bulk/audit/applied-<stamp>.csv.
     """
     import csv
 
     import psycopg
+    from psycopg.types.json import Jsonb
 
     from pipeline.bulk.store import ROOT
     from pipeline.local_db import dsn
@@ -1216,16 +1252,49 @@ def apply_audit(csv_paths: tuple[str, ...], yes: bool) -> None:
                     "where entity_id = %s and is_primary",
                     (start, end, None if start is None else str(start), None if end is None else str(end), eid),
                 )
+                cur.execute("select attributes from entities where entity_id = %s", (eid,))
+                attrs, before = date_attrs_follow(cur.fetchone()[0] or {}, start, end)
+                if before:
+                    cur.execute("update entities set attributes = %s where entity_id = %s", (Jsonb(attrs), eid))
+                    log_rows[-1].append(json.dumps(before))
                 sync_geometry(cur, eid)
+            elif action == "rename":
+                new = arg.strip()
+                cur.execute(
+                    "select 1 from entities where name = %s and entity_type = (select entity_type from entities where entity_id = %s) "
+                    "and entity_id <> %s limit 1",
+                    (new, eid, eid),
+                )
+                if not new or cur.fetchone():
+                    done["rename-collision"] += 1
+                    log_rows.pop()
+                    continue
+                cur.execute("update entities set name = %s, updated_at = now() where entity_id = %s", (new, eid))
+                log_rows[-1].append(json.dumps({"name": name}))
+            elif action == "wrong_lead":
+                cur.execute("select summary, attributes from entities where entity_id = %s", (eid,))
+                old_summary, attrs = cur.fetchone()
+                attrs = dict(attrs or {})
+                before = {"summary": old_summary, "_wikipedia_extract": attrs.pop("_wikipedia_extract", None)}
+                attrs["_lead_rejected"] = time.strftime("%Y-%m-%d")
+                cur.execute(
+                    "update entities set summary = %s, attributes = %s, updated_at = now() where entity_id = %s",
+                    (arg.strip() or None, Jsonb(attrs), eid),
+                )
+                log_rows[-1].append(json.dumps(before))
             done[action] += 1
         say(f"apply-audit: {dict(done)}" + ("" if yes else " (dry run; pass --yes to write)"))
         if not yes:
             conn.rollback()
             return
         out = ROOT / "audit" / f"applied-{time.strftime('%Y%m%d-%H%M%S')}.csv"
+        n = 1
+        while out.exists():  # two applies in one second must not share a log
+            n += 1
+            out = ROOT / "audit" / f"applied-{time.strftime('%Y%m%d-%H%M%S')}-{n}.csv"
         with open(out, "w", newline="") as fh:
             w = csv.writer(fh)
-            w.writerow(["entity_id", "qid", "name", "action", "before_start", "before_end", "file"])
+            w.writerow(["entity_id", "qid", "name", "action", "before_start", "before_end", "file", "before_attrs"])
             w.writerows(log_rows)
         conn.commit()
     say(f"apply-audit: written; before-values in {out}")

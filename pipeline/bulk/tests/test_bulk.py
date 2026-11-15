@@ -570,3 +570,17 @@ def test_coarse_dates_get_a_readable_date_line():
     exact = raw(qid="Q71", label="New Church", point_in_time=None, inception="1450", _date_prec={"inception": 9})
     kept, _ = build([exact], s)
     assert "temporal_display_range" not in kept[0]["attributes"]
+
+
+def test_date_attrs_follow_a_fixed_range():
+    from pipeline.bulk.__main__ import date_attrs_follow
+
+    attrs = {"birth_date": "1870-04-22T00:00:00Z", "death_date": "1953-02-23T00:00:00Z", "occupation": "x"}
+    new, before = date_attrs_follow(attrs, 1870, 1952)
+    assert new == {"birth_date": "1870-04-22T00:00:00Z", "death_date": "1952", "occupation": "x"}
+    assert before == {"death_date": "1953-02-23T00:00:00Z"}
+    new, before = date_attrs_follow({"inception": "-0500-01-01", "temporal_display_range": "6th century BCE"}, -500, None)
+    assert before == {} and new["temporal_display_range"] == "6th century BCE"
+    new, before = date_attrs_follow({"inception": "1950-01-01", "temporal_display_range": "c. 1950"}, None, None)
+    assert new == {} and set(before) == {"inception", "temporal_display_range"}
+
