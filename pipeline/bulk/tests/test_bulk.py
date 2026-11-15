@@ -232,9 +232,21 @@ def test_places_keep_century_dates_as_low_confidence_including_the_end():
     assert kept[0]["temporal_start"] == "1101" and kept[0]["date_confidence"] == "low"
 
 
-def test_implausible_lifespans_are_dropped():
+def test_people_with_contradictory_lifespans_stay_undated():
     s = spec(entity_type="person", where="?item wdt:P31 wd:Q5 .")
-    rec = {"name": "X", "temporal_start": "950", "temporal_end": "1067"}
-    assert gate(person(), rec, s) == "implausible-lifespan"
-    assert gate(person(), {**rec, "temporal_end": "1040"}, s) is None
-    assert gate(raw(), rec, spec()) is None  # a long-lived place or event is fine
+    legend = person(birth_date="1497", death_date="1623",  # a traditional birth year
+                    properties={"P569": [{"qid": None, "label": "1497-01-01T00:00:00Z", "uri": "x"}]})
+    reversed_ = person(qid="Q10", birth_date="1900", death_date="1850")
+    long_lived = person(qid="Q11", birth_date="1890", death_date="2002")  # 112 years is real
+    kept, dropped = build([legend, reversed_, long_lived], s)
+    assert not dropped
+    by_qid = {r["wikidata_id"]: r for r in kept}
+    for q in ("Q9", "Q10"):
+        assert by_qid[q].get("temporal_start") is None and by_qid[q].get("temporal_end") is None
+        assert "birth_date" not in by_qid[q].get("attributes", {})
+    assert by_qid["Q11"]["temporal_start"] == "1890" and by_qid["Q11"]["temporal_end"] == "2002"
+    # with dates required, they are dropped as undated
+    kept, dropped = build([legend], spec(entity_type="person", where="?item wdt:P31 wd:Q5 .", require=["dates"]))
+    assert not kept and dropped == {"no-dates": 1}
+    # a long-lived place or event keeps its span
+    assert gate(raw(), {"name": "X", "temporal_start": "950", "temporal_end": "1067"}, spec()) is None

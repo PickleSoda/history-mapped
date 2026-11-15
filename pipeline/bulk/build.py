@@ -35,8 +35,9 @@ HATNOTE = re.compile(r"(may (also )?refer to|^see also\b|^for other uses\b|^this
 # drop such dates (the row stays undated, or `require: dates` drops it);
 # places and events keep them as low-confidence era markers.
 COARSE_PRECISION = 7
-# A recorded lifespan beyond this is a data error (wrong birth or death value).
-MAX_LIFESPAN = 110
+# A recorded lifespan beyond this is a data error (a traditional birth year, or
+# a wrong birth or death value); the oldest verified people lived 115-122 years.
+MAX_LIFESPAN = 115
 RAW_KEY_PIDS: dict[str, list[str]] = {}
 for _pid, _key in DATE_PROPS:
     RAW_KEY_PIDS.setdefault(_key, []).append(_pid)
@@ -53,6 +54,22 @@ def drop_coarse_dates(raw: dict[str, Any]) -> dict[str, Any]:
     drop_pids = {pid for k in coarse for pid in RAW_KEY_PIDS.get(k, [])}
     out["properties"] = {k: v for k, v in (raw.get("properties") or {}).items() if k not in drop_pids}
     return out
+
+
+def drop_dates(raw: dict[str, Any]) -> dict[str, Any]:
+    """The raw item without any of its dates (and their properties)."""
+    keys = {k for k in RAW_KEY_PIDS if raw.get(k) is not None}
+    out = {k: v for k, v in raw.items() if k not in keys}
+    out["_date_prec"] = {}
+    drop_pids = {pid for pids in RAW_KEY_PIDS.values() for pid in pids}
+    out["properties"] = {k: v for k, v in (raw.get("properties") or {}).items() if k not in drop_pids}
+    return out
+
+
+def bad_lifespan(record: dict[str, Any]) -> bool:
+    """Whether a person's death precedes their birth or comes implausibly late."""
+    start, end = _year(record.get("temporal_start")), _year(record.get("temporal_end"))
+    return start is not None and end is not None and (end < start or end - start > MAX_LIFESPAN)
 
 
 def low_precision(raw: dict[str, Any]) -> bool:
@@ -98,8 +115,6 @@ def gate(raw: dict[str, Any], record: dict[str, Any], s: Slice) -> str | None:
         return "no-coords"
     if start is not None and end is not None and end < start:
         return "end-before-start"
-    if s.entity_type == "person" and start is not None and end is not None and end - start > MAX_LIFESPAN:
-        return "implausible-lifespan"
     for y in (start, end):
         if y is not None and (y > CURRENT_YEAR or y == 0):
             return "impossible-year"
@@ -122,6 +137,10 @@ def build(raws: list[dict[str, Any]], s: Slice, mapper: EntityMapper | None = No
         if HATNOTE.search(raw.get("summary") or ""):
             raw = {k: v for k, v in raw.items() if k not in ("summary", "full_extract")}
         record = mapper.map(raw, s.entity_type)
+        if record is not None and s.entity_type == "person" and bad_lifespan(record):
+            # A real person with a contradictory lifespan: keep them undated.
+            raw = drop_dates(raw)
+            record = mapper.map(raw, s.entity_type)
         if record is None:
             dropped["unmappable"] += 1
             continue
