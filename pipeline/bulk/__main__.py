@@ -661,6 +661,267 @@ def tidy(slack: int, person_slack: int, yes: bool) -> None:
     say(f"tidy: deleted {len(rows)}; backup {out}")
 
 
+@cli.command("drop-relations")
+@click.argument("csv_paths", nargs=-1, required=True)
+@click.option("--yes", is_flag=True, help="Delete; without it, a dry run")
+def drop_relations(csv_paths: tuple[str, ...], yes: bool) -> None:
+    """Delete the relations a curated QC CSV marks `delete` (relationship_id,...,action,...).
+
+    Rows with any other action stay. The deleted rows, every column, go to
+    output/bulk/tidy/dropped-<stamp>.csv.
+    """
+    import csv
+
+    import psycopg
+
+    from pipeline.bulk.store import ROOT
+    from pipeline.local_db import dsn
+
+    ids: set[str] = set()
+    for path in csv_paths:
+        with open(path, newline="") as fh:
+            ids |= {r["relationship_id"].strip() for r in csv.DictReader(fh) if (r.get("action") or "").strip() == "delete"}
+    with psycopg.connect(dsn()) as conn, conn.cursor() as cur:
+        cur.execute("select * from relationships where relationship_id = any(%s::uuid[])", (sorted(ids),))
+        rows = cur.fetchall()
+        cols = [d.name for d in cur.description]
+        by_type = Counter(r[cols.index("relationship_type")] for r in rows)
+        say(f"drop-relations: {len(rows)} of {len(ids)} found {dict(by_type.most_common())}")
+        if not yes or not rows:
+            say("dry run; pass --yes to delete" if rows else "nothing to do")
+            return
+        out = ROOT / "tidy" / f"dropped-{time.strftime('%Y%m%d-%H%M%S')}.csv"
+        out.parent.mkdir(parents=True, exist_ok=True)
+        with open(out, "w", newline="") as fh:
+            w = csv.writer(fh)
+            w.writerow(cols)
+            w.writerows(rows)
+        cur.execute("delete from relationships where relationship_id = any(%s::uuid[])", ([str(r[0]) for r in rows],))
+        conn.commit()
+    say(f"drop-relations: deleted {len(rows)}; backup {out}")
+
+
+@cli.command("relink-relations")
+@click.argument("csv_path")
+@click.option("--yes", is_flag=True, help="Write; without it, a dry run")
+def relink_relations(csv_path: str, yes: bool) -> None:
+    """Re-point one end of relations that hit a namesake (relationship_id,end,new_entity_id[,detail]).
+
+    end is `source`, `target` or `swap` (an inverted link: "Balfour
+    Declaration authored Arthur Balfour"). A relink that would duplicate an
+    existing link deletes the wrong one instead. Before-values go to
+    output/bulk/tidy/relinked-<stamp>.csv.
+    """
+    import csv
+
+    import psycopg
+
+    from pipeline.bulk.store import ROOT
+    from pipeline.local_db import dsn
+
+    with open(csv_path, newline="") as fh:
+        todo = list(csv.DictReader(fh))
+    done: Counter = Counter()
+    log = []
+    with psycopg.connect(dsn()) as conn, conn.cursor() as cur:
+        for r in todo:
+            rid, end, new = r["relationship_id"].strip(), r["end"].strip(), (r.get("new_entity_id") or "").strip()
+            cur.execute(
+                "select source_entity_id::text, target_entity_id::text, relationship_type::text from relationships "
+                "where relationship_id = %s",
+                (rid,),
+            )
+            row = cur.fetchone()
+            if row is None:
+                done["gone"] += 1
+                continue
+            src, tgt, rtype = row
+            if end == "swap":
+                src2, tgt2 = tgt, src
+            elif end in ("source", "target"):
+                cur.execute("select 1 from entities where entity_id = %s", (new,))
+                if cur.fetchone() is None:
+                    done["bad-new-entity"] += 1
+                    continue
+                src2, tgt2 = (new, tgt) if end == "source" else (src, new)
+            else:
+                done["bad-end"] += 1
+                continue
+            if src2 == tgt2:
+                done["would-self-link"] += 1
+                continue
+            log.append([rid, rtype, src, tgt, src2, tgt2, r.get("detail", "")])
+            cur.execute(
+                "select 1 from relationships where source_entity_id = %s and target_entity_id = %s "
+                "and relationship_type::text = %s and relationship_id <> %s",
+                (src2, tgt2, rtype, rid),
+            )
+            if cur.fetchone():
+                cur.execute("delete from relationships where relationship_id = %s", (rid,))
+                done["deleted-as-duplicate"] += 1
+                continue
+            cur.execute(
+                "update relationships set source_entity_id = %s, target_entity_id = %s "
+                "where relationship_id = %s",
+                (src2, tgt2, rid),
+            )
+            done[end] += 1
+        say(f"relink-relations: {dict(done)}" + ("" if yes else " (dry run; pass --yes to write)"))
+        if not yes:
+            conn.rollback()
+            return
+        out = ROOT / "tidy" / f"relinked-{time.strftime('%Y%m%d-%H%M%S')}.csv"
+        out.parent.mkdir(parents=True, exist_ok=True)
+        with open(out, "w", newline="") as fh:
+            w = csv.writer(fh)
+            w.writerow(["relationship_id", "type", "source_before", "target_before", "source_after", "target_after", "detail"])
+            w.writerows(log)
+        conn.commit()
+    say(f"relink-relations: written; before-values in {out}")
+
+
+# A person's image that is really a stock file: a Commons file several
+# unrelated people share whose name holds no word of the person's name and
+# is not heraldry (arms are a fair stand-in for a medieval lord). "Mitre
+# (plain).svg" on 46 bishops, a Knight's Cross ribbon on 50 officers, a
+# House of Commons group painting, a regional map. QC judged 44 of 48 wrong.
+GENERIC_IMAGES = r"""
+with r as materialized (
+  select e.entity_id, e.name, x.v->>'file' as file
+  from entities e, jsonb_array_elements(e.attributes->'media_refs') x(v)
+  where e.entity_type = 'person' and jsonb_typeof(e.attributes->'media_refs') = 'array'
+    and not e.attributes ? '_media_curated_at'
+), sh as materialized (
+  select x.v->>'file' as file
+  from entities e, jsonb_array_elements(e.attributes->'media_refs') x(v)
+  where jsonb_typeof(e.attributes->'media_refs') = 'array'
+  group by 1 having count(distinct e.entity_id) >= %(min)s and count(distinct lower(e.name)) >= 3
+)
+select r.entity_id::text, r.name, r.file from r join sh using (file)
+where r.file !~* '(arms|blason|wappen|coat|stemma|herb|escudo|armoiries|COA|crest|emblem|flag|seal|gules|azure|argent|sable|chevron|fess|shield|lion|löwe|wapen|banner|house of|haus |lozenge|nassau|hohenlohe|stemme|escut|armas|brasão|bandiera|герб|clan|dynasty|family|tamga|monogram|erb|schild|slepowron|portrait|doge|\mmon\M|standard)'
+  and not exists (select 1 from regexp_split_to_table(lower(r.name), '[^[:alpha:]]+') t
+                  where length(t) >= 4 and lower(r.file) like '%%' || t || '%%')
+"""
+
+
+@cli.command("strip-generic-images")
+@click.option("--min-uses", type=int, default=5, help="Entities that must share a file before it counts as stock")
+@click.option("--yes", is_flag=True, help="Write; without it, a dry run")
+def strip_generic_images(min_uses: int, yes: bool) -> None:
+    """Drop stock Commons files from people's images (GENERIC_IMAGES).
+
+    Only the matching entries go; media_refs stays (possibly empty), so the
+    nightly entity:fetch-images, which fills rows without media_refs, does not
+    bring them back. Removed entries go to output/bulk/tidy/images-<stamp>.csv.
+    """
+    import csv
+
+    import psycopg
+
+    from pipeline.bulk.store import ROOT
+    from pipeline.local_db import dsn
+
+    with psycopg.connect(dsn()) as conn, conn.cursor() as cur:
+        cur.execute("set statement_timeout = 0")
+        cur.execute(GENERIC_IMAGES, {"min": min_uses})
+        rows = cur.fetchall()
+        files = Counter(r[2] for r in rows)
+        say(f"strip-generic-images: {len(rows)} entries on {len({r[0] for r in rows})} people; top files:")
+        for f, n in files.most_common(12):
+            say(f"  {n:4d}  {f}")
+        if not yes or not rows:
+            say("dry run; pass --yes to write" if rows else "nothing to do")
+            return
+        out = ROOT / "tidy" / f"images-{time.strftime('%Y%m%d-%H%M%S')}.csv"
+        out.parent.mkdir(parents=True, exist_ok=True)
+        with open(out, "w", newline="") as fh:
+            w = csv.writer(fh)
+            w.writerow(["entity_id", "name", "file"])
+            w.writerows(rows)
+        by_entity: dict[str, list[str]] = {}
+        for eid, _, f in rows:
+            by_entity.setdefault(eid, []).append(f)
+        for eid, drop in by_entity.items():
+            cur.execute(
+                "update entities set attributes = jsonb_set(attributes, '{media_refs}', "
+                "coalesce((select jsonb_agg(v) from jsonb_array_elements(attributes->'media_refs') v "
+                "where not (v->>'file' = any(%s))), '[]'::jsonb)), updated_at = now() where entity_id = %s",
+                (drop, eid),
+            )
+        conn.commit()
+    say(f"strip-generic-images: written; removed entries in {out}")
+
+
+RESUMMARIZE = r"""
+select entity_id::text, summary, attributes->>'_wikipedia_extract'
+from entities
+where attributes ? '_bulk' and attributes ? '_wikipedia_extract' and summary is not null
+  and (summary like '%%…' or summary ~ '[;:,]\s*$' or summary ~ '\(\s*[;,]?\s*\)' or summary ~ '\(\s*[;,]'
+       or summary ~ '\[[0-9]+\]' or summary ~* '^(for (the|other|a|an)\M[^.]{0,200}\msee\M|not to be confused|this article)')
+"""
+
+
+@cli.command()
+@click.option("--yes", is_flag=True, help="Write; without it, a dry run")
+def resummarize(yes: bool) -> None:
+    """Re-cut bulk summaries that are debris-laden, cut mid-sentence or a hatnote.
+
+    The new summary comes from the row's own stored lead with today's
+    clean_lead and _truncate_sentence; a row whose summary is not a cut of
+    that lead (a Wikidata description fallback, an admin edit) is left alone.
+    Before-values go to output/bulk/tidy/summaries-<stamp>.csv.
+    """
+    import csv
+
+    import psycopg
+
+    from pipeline.bulk.build import HATNOTE
+    from pipeline.bulk.store import ROOT
+    from pipeline.config import settings
+    from pipeline.local_db import dsn
+    from pipeline.wikidata.mapper.entity_mapper import EntityMapper, clean_lead, lead_paragraph
+
+    def norm(t: str) -> str:
+        return re.sub(r"\W+", "", clean_lead(t).rstrip("…")).lower()
+
+    changes = []
+    kinds: Counter = Counter()
+    with psycopg.connect(dsn()) as conn, conn.cursor() as cur:
+        cur.execute("set statement_timeout = 0")
+        cur.execute(RESUMMARIZE)
+        for eid, old, extract in cur.fetchall():
+            paras = [p.strip() for p in extract.split("\n") if p.strip()]
+            hat = bool(HATNOTE.search(old))
+            if hat:
+                lead = next((p for p in paras if len(p) > 40 and not HATNOTE.search(p)), None)
+            else:
+                first = lead_paragraph(extract)
+                lead = first if first and norm(first).startswith(norm(old)[:60]) else None
+            if not lead:
+                kinds["not-from-lead"] += 1
+                continue
+            new = EntityMapper._truncate_sentence(clean_lead(lead), settings.summary_max_chars)
+            if new and new != old:
+                kinds["hatnote" if hat else "recut"] += 1
+                changes.append((eid, old, new))
+        say(f"resummarize: {dict(kinds)}")
+        for eid, old, new in changes[:: max(1, len(changes) // 6)][:6]:
+            say(f"  - {old[-70:]!r}\n    + {new[-70:]!r}")
+        if not yes or not changes:
+            say("dry run; pass --yes to write" if changes else "nothing to do")
+            return
+        out = ROOT / "tidy" / f"summaries-{time.strftime('%Y%m%d-%H%M%S')}.csv"
+        out.parent.mkdir(parents=True, exist_ok=True)
+        with open(out, "w", newline="") as fh:
+            w = csv.writer(fh)
+            w.writerow(["entity_id", "before", "after"])
+            w.writerows(changes)
+        cur.executemany("update entities set summary = %s, updated_at = now() where entity_id = %s",
+                        [(new, eid) for eid, _, new in changes])
+        conn.commit()
+    say(f"resummarize: {len(changes)} written; before-values in {out}")
+
+
 AUDIT_ACTIONS = ("needs_review", "delete", "merge_into", "fix_dates", "requid")
 
 
@@ -765,7 +1026,8 @@ def apply_audit(csv_paths: tuple[str, ...], yes: bool) -> None:
     needs_review flags the row; delete removes a bulk row (others are only
     flagged); merge_into:<id> folds the row into <id> (relations and
     chronicle links re-pointed; the survivor takes the QID if it has none);
-    fix_dates:<start>..<end> sets the primary range (an empty end keeps it);
+    fix_dates:<start>..<end> sets the primary range (an empty side keeps it,
+    `none` clears it: a city's 1950 incorporation is not its founding);
     requid:<bulk id | QID | none>[:same] gives an older row that holds the
     wrong QID the right one, folding in a bulk row about the same subject;
     :same when the old QID was a duplicate item of the same subject (see
@@ -837,8 +1099,8 @@ def apply_audit(csv_paths: tuple[str, ...], yes: bool) -> None:
                     continue
             elif action == "fix_dates":
                 a, _, b = arg.partition("..")
-                start = int(a) if a.strip() else y0
-                end = int(b) if b.strip() else y1
+                start = None if a.strip() == "none" else int(a) if a.strip() else y0
+                end = None if b.strip() == "none" else int(b) if b.strip() else y1
                 cur.execute(
                     "update entity_temporal_ranges set start_year = %s, end_year = %s, start_date = %s, end_date = %s, "
                     "notes = coalesce(notes || ' ', '') || 'audit fix_dates', updated_at = now() "

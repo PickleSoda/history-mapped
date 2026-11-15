@@ -11,6 +11,7 @@ flowchart TB
     I --> U["5. Audit and apply-audit"]
     U --> G["6. Gate fixes: rebuild, prune"]
     G --> T["7. After a wave: resolve, tidy, images, tags"]
+    T --> Q["8. Whole-database QC (agents)"]
 ```
 
 All commands run from the repository root, through the memory cap:
@@ -30,7 +31,8 @@ export LANGCHAIN_TRACING_V2=false LANGSMITH_TRACING=false
 | `output/bulk/approved.txt` | Slice ids the importer may import, one per line, `#` comments allowed |
 | `output/bulk/logs/` | `<id>.log` per slice, `importer.log`, `run.log` |
 | `output/bulk/audit/` | Auditor reports (`<id>.md`), proposed fixes (`<id>.csv`), applied fixes (`applied-<stamp>.csv`) |
-| `output/bulk/tidy/` | Relations deleted by `tidy`, as CSV |
+| `output/bulk/tidy/` | Before-values of the repair commands: relations `tidy` and `drop-relations` deleted, links `relink-relations` moved, images `strip-generic-images` removed, summaries `resummarize` re-cut |
+| `output/qc/<id>/` | A QC agent's `candidates.csv`, `relations.csv`, `rules.json` and `report.md`; `output/qc/curated/` holds what was applied |
 | `output/bulk/redate/` | Dates before each `redate`, as CSV |
 
 ## 1. Scout and slice
@@ -105,7 +107,7 @@ $CLI apply-audit output/bulk/audit/<id>.csv --yes
 | `needs_review` | Sets the row's review flag |
 | `delete` | Deletes a bulk row (older rows are only flagged) |
 | `merge_into:<id>` | Folds the row into an older one with `pipeline.merge_entities`; the survivor takes the QID if it has none |
-| `fix_dates:a..b` | Sets the start and end years |
+| `fix_dates:a..b` | Sets the start and end years; an empty side keeps the year, `none` clears it (a city's 1950 incorporation is not its founding) |
 | `requid:<bulk id or QID or none>` | An older row that holds another item's QID takes the right one. It folds in the bulk row about the same subject, swaps its point and images for the right item's, and deletes relations made through the wrong QID (their hints reopen) |
 | `requid:<…>:same` | As `requid`, when the old QID was a duplicate item of the same subject (a "city seat" item): its links stay and its hints move to the new QID |
 
@@ -166,6 +168,30 @@ Only fetched parts are examined; claims on unfetched queue entries and `qid-audi
 Bulk rows reach production only through a full content load
 ([content data transfer](content-data-transfer.md)); check the droplet's disk and memory first.
 
+## 8. Whole-database QC
+
+After a large wave, run QC agents over the whole database rather than per slice. Two shapes work:
+
+| Shape | What it does |
+|---|---|
+| Sample judge | Judges ~120 random rows of one group (people by era, places, polities, events, culture) on scope, type, dates, summary and links, and gives an error rate per check |
+| Sweep | Hunts one defect over every row with SQL (dates, summaries, types, geography, duplicates, scope, relations, images) |
+
+Each agent is read-only and writes `output/qc/<id>/`: `candidates.csv` in the `apply-audit`
+format, `relations.csv`, and `rules.json` for classes of 50+ rows judged at 90%+ precision. Curate
+before applying: drop merges of distinct items that share a name (Tokyo the city and its special
+wards), keep the curated row as the survivor, and turn a `fix_dates` that rests on a "c." year
+into nothing. Then:
+
+| Fix | Command |
+|---|---|
+| Rows | `$CLI apply-audit output/qc/curated/entities.csv [--yes]` |
+| Bad links | `$CLI drop-relations <csv> [--yes]` deletes rows marked `delete` (`relationship_id,…,action,…`) |
+| Links to a namesake | `$CLI relink-relations <csv> [--yes]` with `relationship_id,end,new_entity_id,detail`; `end` is `source`, `target` or `swap` (an inverted link) |
+| Stock images on people | `$CLI strip-generic-images [--yes]`: files several unrelated people share that name none of them and are not heraldry (a plain mitre on bishops, a medal ribbon on officers). Run it again after a long image fetch |
+| Cut or debris-laden summaries | `$CLI resummarize [--yes]` re-cuts bulk summaries from their own stored lead |
+| Date rule changes | `rebuild --imported` on the person slices, then `redate` |
+
 ## Troubleshooting
 
 | Symptom | Cause and fix |
@@ -184,3 +210,6 @@ Bulk rows reach production only through a full content load
 | Deletes take minutes | Missing indexes on the columns that reference entities; run the migrations |
 | "person rules X" relations to offices | Old builds kept P39 hints; rebuilt parts drop them |
 | A medieval person born in 901 or 1001 exactly | A century date read as a year; parts built before 06870bd keep them. `rebuild --imported`, `prune`, `redate` |
+| Maimonides born in Córdoba, Mexico | A curated link resolved by name to a namesake (the Spanish city was stored without its accent). Find them by distance and dates (§8) and fix with `relink-relations` |
+| A summary ends on ":" or ";" or with "…" mid-sentence | Built before 0f6258f; `resummarize --yes` |
+| A person a year or two off the lead, or with no death year | Built before 95d549d; `rebuild --imported` on the person slices, then `redate` |
