@@ -148,3 +148,19 @@ def test_queue_is_frozen_once_parts_exist(tmp_path, monkeypatch):
     monkeypatch.setattr(cli, "db_qids", lambda: {"Q1"})
     cli.step_qids(s, st, Boom())
     assert [q for q, _ in st.queue()] == ["Q1", "Q2", "Q3"]
+
+
+def test_split_retry_halves_slow_batches_and_skips_a_hopeless_item(monkeypatch):
+    from pipeline.bulk import fetch
+    from pipeline.bulk.wdqs import QueryTimeout
+
+    monkeypatch.setattr(fetch, "RETRY_PAUSE", 0)
+    done: list[str] = []
+
+    def call(batch):
+        if len(batch) > 2 or "Q9" in batch:
+            raise QueryTimeout("server timeout")
+        done.extend(batch)
+
+    fetch.split_retry(call, [f"Q{i}" for i in range(1, 11)], "test")
+    assert sorted(done, key=lambda q: int(q[1:])) == [f"Q{i}" for i in range(1, 11) if i != 9]

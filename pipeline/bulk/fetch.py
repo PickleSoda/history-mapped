@@ -9,9 +9,10 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any
+import time
+from typing import Any, Callable
 
-from pipeline.bulk.wdqs import Client, qid_of, value
+from pipeline.bulk.wdqs import Client, QueryTimeout, qid_of, value
 from pipeline.wikidata.mapper.type_configs import WIKIDATA_TYPE_CONFIGS
 
 logger = logging.getLogger(__name__)
@@ -218,14 +219,38 @@ def fetch_extracts(client: Client, items: list[dict[str, Any]]) -> None:
                 item["full_extract"] = text
 
 
+RETRY_PAUSE = 30.0
+
+
+def split_retry(call: Callable[[list[str]], None], qids: list[str], label: str) -> None:
+    """Run call(qids), surviving WDQS timeouts: pause and retry once, then
+    halve the batch. A single QID that still times out is skipped (logged),
+    so one slow item never kills a whole slice's fetch."""
+    for attempt in range(2):
+        try:
+            call(qids)
+            return
+        except QueryTimeout as exc:
+            reason = exc
+            if attempt == 0:
+                time.sleep(RETRY_PAUSE)
+    if len(qids) == 1:
+        logger.warning("%s: %s timed out twice (%s); skipped", label, qids[0], reason)
+        return
+    mid = len(qids) // 2
+    split_retry(call, qids[:mid], label)
+    split_retry(call, qids[mid:], label)
+
+
 def fetch_batch(client: Client, qids: list[str], entity_type: str, wikipedia: bool = True) -> list[dict[str, Any]]:
-    items = fetch_core(client, qids)
+    items: dict[str, dict[str, Any]] = {}
+    split_retry(lambda b: items.update(fetch_core(client, b)), qids, "core")
     if not items:
         return []
     present = list(items)
-    fetch_dates(client, present, items)
-    fetch_aliases(client, present, items)
-    fetch_properties(client, present, items, entity_type)
+    split_retry(lambda b: fetch_dates(client, b, items), present, "dates")
+    split_retry(lambda b: fetch_aliases(client, b, items), present, "aliases")
+    split_retry(lambda b: fetch_properties(client, b, items, entity_type), present, "properties")
     raws = [items[q] for q in qids if q in items]
     if wikipedia:
         fetch_extracts(client, raws)
