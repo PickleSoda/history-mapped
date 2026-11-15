@@ -268,6 +268,62 @@ def reset(slice_id: str) -> None:
 
 
 @cli.command()
+@click.argument("slice_id")
+@click.option("--all", "everything", is_flag=True, help="Every row of the slice, and forget its import markers")
+@click.option("--yes", is_flag=True, help="Delete; without it, a dry run")
+def prune(slice_id: str, everything: bool, yes: bool) -> None:
+    """Delete DB rows a slice created: rows its (rebuilt) parts no longer keep, or all of them with --all.
+
+    Only rows tagged attributes._bulk.slice are touched (the importer never
+    tags rows it merged into); their aliases, dates, points and relations
+    cascade. With --all the parts can be imported again later.
+    """
+    import psycopg
+
+    from pipeline.local_db import dsn
+
+    store = SliceStore(slice_id)
+    keep: set[str] = set()
+    if not everything:
+        for n in store.part_numbers():
+            with open(store.part_path(n)) as fh:
+                keep |= {json.loads(line).get("wikidata_id") for line in fh if line.strip()}
+    with locked("import"), psycopg.connect(dsn()) as conn, conn.cursor() as cur:
+        cur.execute(
+            "select entity_id::text, wikidata_id, name from entities where attributes->'_bulk'->>'slice' = %s",
+            (slice_id,),
+        )
+        rows = [r for r in cur.fetchall() if r[1] not in keep]
+        ids = [r[0] for r in rows]
+        cur.execute("select count(*) from chronicle_entry_entities where entity_id = any(%s::uuid[])", (ids,))
+        linked = cur.fetchone()[0]
+        say(f"{slice_id}: {len(rows)} rows to delete" + (f"; {linked} chronicle links block it" if linked else ""))
+        for r in rows[:5]:
+            say(f"  {r[1]} {r[2]}")
+        if linked:
+            raise click.ClickException("unlink those chronicle entries first")
+        if not yes:
+            say("dry run; pass --yes to delete")
+            return
+        # Hints from other rows that resolved to a deleted row lose their
+        # relation in the cascade; reopen them so a later resolve pass
+        # links them again if the target comes back.
+        cur.execute(
+            "update pipeline_relationship_hints set resolved = false, resolution_note = 'target pruned' "
+            "where target_wikidata_id = any(%s) and not (source_entity_id = any(%s::uuid[]))",
+            ([r[1] for r in rows if r[1]], ids),
+        )
+        reopened = cur.rowcount
+        cur.execute("delete from entities where entity_id = any(%s::uuid[])", (ids,))
+        conn.commit()
+        say(f"{slice_id}: reopened {reopened} hints of other rows")
+        if everything:
+            for n in store.part_numbers():
+                store.import_path(n).unlink(missing_ok=True)
+    say(f"{slice_id}: deleted {len(rows)} rows")
+
+
+@cli.command()
 @click.option("--idle-exit", is_flag=True, help="Exit when nothing is left to import")
 @click.option("--poll", type=int, default=30)
 def importer(idle_exit: bool, poll: int) -> None:
