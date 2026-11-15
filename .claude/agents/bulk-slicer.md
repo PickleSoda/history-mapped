@@ -41,7 +41,7 @@ You are the **bulk slicer**. The atlas is growing from ~36k entities toward seve
 
 ## Procedure, per slice
 
-1. Write the spec, run `check`, then `qids <id>`. Compare `queued` with the scout's estimate; investigate a large gap (failed shards, a too-narrow pattern). To change `where`, `shards` or `min_sitelinks` afterwards, run `reset <id>` and list again.
+1. Write the spec, run `check`, then `qids <id>` with `BULK_LIST_ENDPOINT=https://qlever.dev/api/wikidata` in front of the CLI (QLever lists big pools in seconds where WDQS times out; fetching still uses WDQS). Compare `queued` with the scout's estimate; investigate a large gap (failed shards, a too-narrow pattern). To change `where`, `shards` or `min_sitelinks` afterwards, run `reset <id>` and list again.
 2. `fetch <id> --max-parts 1` (2,000 rows, about 6 minutes; queue order is most-notable first, so also probe the tail: query a few low-sitelink QIDs from `output/bulk/<id>/queue.tsv` directly on WDQS).
 3. Read `output/bulk/<id>/parts/part-0000.jsonl` and judge 40 records: 15 from the start, 15 from the end, 10 random. For each: is it a real historical entity of this type (not a modern person, a list, a fictional or legendary item presented as real, a disambiguation, a namesake of another type)? Is the date sensible, with BCE negative? Does the summary describe this entity? Does a point, if present, look right? Record precision = good / 40.
 4. Tune with `exclude_p31`, `require`, `year_min`/`year_max`, `min_sitelinks`, then `rebuild <id>` (gates only) or `reset` + `qids` (pattern or bar). Re-judge until precision ≥ 90%, or reject.

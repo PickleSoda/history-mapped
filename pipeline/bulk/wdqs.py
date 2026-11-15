@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import time
 from typing import Any
 
@@ -12,6 +13,11 @@ from pipeline.config import settings
 logger = logging.getLogger(__name__)
 
 WDQS = "https://query.wikidata.org/sparql"
+# Listing (the qids step) may use another Wikidata SPARQL endpoint: big
+# person pools that time out on a busy WDQS list in seconds on QLever
+# (BULK_LIST_ENDPOINT=https://qlever.dev/api/wikidata). Item data always
+# comes from WDQS and the Wikidata API at fetch time.
+LIST_ENDPOINT = os.environ.get("BULK_LIST_ENDPOINT", WDQS)
 WIKIPEDIA_API = "https://en.wikipedia.org/w/api.php"
 
 PREFIXES = """PREFIX wd: <http://www.wikidata.org/entity/>
@@ -34,7 +40,8 @@ class QueryTimeout(Exception):
 
 
 class Client:
-    def __init__(self, min_interval: float = 1.0, timeout: float = 75.0):
+    def __init__(self, min_interval: float = 1.0, timeout: float = 75.0, endpoint: str = WDQS):
+        self.endpoint = endpoint
         self.session = requests.Session()
         self.session.headers["User-Agent"] = settings.wikidata_user_agent
         self.min_interval = min_interval
@@ -54,7 +61,7 @@ class Client:
             self._wait()
             try:
                 resp = self.session.post(
-                    WDQS,
+                    self.endpoint,
                     data={"query": PREFIXES + query},
                     headers={"Accept": "application/sparql-results+json"},
                     timeout=self.timeout,

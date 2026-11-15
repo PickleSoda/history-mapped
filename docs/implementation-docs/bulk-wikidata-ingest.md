@@ -161,7 +161,7 @@ Bulk rows reach production only through a full content load
 
 | Symptom | Cause and fix |
 |---|---|
-| A slicer or fetch logs 429 or 504 for minutes | WDQS is saturated. Run fewer slicers and fetchers at once |
+| A slicer or fetch logs 429 or 504 for minutes | WDQS is saturated. Run fewer slicers and fetchers at once, and list through QLever: `BULK_LIST_ENDPOINT=https://qlever.dev/api/wikidata $CLI qids <id>` (30k people in 45 s). Only the listing moves; fetches stay on WDQS and the Wikidata API |
 | `Failed to find executable` from `bulk_run.sh` | An old copy of the script; `PY` must be exported to the `xargs` workers |
 | Athletes in a people slice (racing drivers tagged engineer, Olympic riders tagged officer) | Set `exclude_desc` (sport words) and `keep_desc` (the slice's own occupations) in the spec; both match the Wikidata description. Then `rebuild --imported` and `prune` |
 | A person's summary describes an award, a list or a family ("The Knight's Cross of the Iron Cross…") | Their Wikipedia link redirects into a group article. Fetches since 2026-11-15 skip such leads (a redirect to a section, or to a title sharing no word with the person's) and translation notices; 132 older rows got their Wikidata description instead (`output/bulk/audit/summary-fix-20261115.csv`) |

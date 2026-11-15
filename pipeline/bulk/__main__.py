@@ -22,7 +22,7 @@ from pipeline.bulk.build import CURRENT_YEAR, build
 from pipeline.bulk.fetch import fetch_batch
 from pipeline.bulk.spec import Slice, ValueShard, Window, all_slices
 from pipeline.bulk.store import API_DROP, PART_SIZE, REPO, SliceStore, add_claims, claims, db_qids, locked
-from pipeline.bulk.wdqs import Client, QueryTimeout, qid_of, value
+from pipeline.bulk.wdqs import LIST_ENDPOINT, Client, QueryTimeout, qid_of, value
 
 BATCH = 100
 SUMMARY = re.compile(r"^IMPORT_SUMMARY (\{.*\})\s*$", re.M)
@@ -203,7 +203,7 @@ def check() -> None:
 def qids(slice_id: str) -> None:
     """List the slice's QIDs and queue the new ones."""
     s, store = _load(slice_id)
-    step_qids(s, store, Client())
+    step_qids(s, store, Client(endpoint=LIST_ENDPOINT))
 
 
 @cli.command()
@@ -231,7 +231,7 @@ def run(slice_id: str, max_parts: int | None, no_import: bool) -> None:
     """qids -> fetch -> import for one slice."""
     s, store = _load(slice_id)
     client = Client()
-    step_qids(s, store, client)
+    step_qids(s, store, Client(endpoint=LIST_ENDPOINT))
     step_fetch(s, store, client, max_parts)
     if not no_import:
         step_import(s, store)
