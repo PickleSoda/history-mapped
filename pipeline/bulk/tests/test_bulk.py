@@ -432,3 +432,14 @@ def test_a_held_part_lock_is_skipped_not_awaited(tmp_path):
             assert not second
     with try_locked(path) as again:
         assert again
+
+
+def test_a_modern_lead_undates_a_person_wikidata_puts_in_antiquity():
+    s = spec(entity_type="person", where="?item wdt:P31 wd:Q5 .", require=["dates"])
+    modern = person(qid="Q20", label="Kirker Butler", wikipedia_title="Kirker Butler", birth_date="14", summary="Kirker Butler (born October 14, 1977) is an American television writer.")
+    old = person(birth_date="1450", death_date="1510",
+                 summary="Otto (c. 1450 – 1510) was a duke; a statue of him was unveiled in 1905.")
+    ancient = person(qid="Q21", label="Ur-Nammu", wikipedia_title="Ur-Nammu", birth_date="-2112", death_date="-2094",
+                     summary="Ur-Nammu (died 2094 BC) was the founder of the Third Dynasty of Ur.")
+    kept, dropped = build([modern, old, ancient], s)
+    assert [k["name"] for k in kept] == ["Otto", "Ur-Nammu"] and dropped["no-dates"] == 1

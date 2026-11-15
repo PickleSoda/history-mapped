@@ -27,7 +27,7 @@ DROPPED_HINTS = {"wikidata:P17", "wikidata:P131", "wikidata:P39"}
 # the row; the mapper then falls back to the Wikidata description.
 HATNOTE = re.compile(
     r"(may (also )?refer to|^see also\b|^for other uses\b|^this (article|page) (is|was|contains|lists)\b"
-    r"|^this is (a|an) (article|chronological list|list)\b|^this article is partially translated)",
+    r"|^this is (a|an) (article|chronological list|list)\b|^this article is partially translated|^to be distinguished from\b)",
     re.I,
 )
 
@@ -148,9 +148,27 @@ def drop_dates(raw: dict[str, Any]) -> dict[str, Any]:
 
 
 def bad_lifespan(record: dict[str, Any]) -> bool:
-    """Whether a person's death precedes their birth or comes implausibly late."""
+    """Whether a person's death precedes their birth or comes implausibly late,
+    or their lead shows a modern person whom Wikidata dates before 1800."""
     start, end = _year(record.get("temporal_start")), _year(record.get("temporal_end"))
-    return start is not None and end is not None and (end < start or end - start > MAX_LIFESPAN)
+    if start is not None and end is not None and (end < start or end - start > MAX_LIFESPAN):
+        return True
+    return start is not None and start < 1800 and modern_lead(record.get("summary") or "")
+
+
+def modern_lead(lead: str) -> bool:
+    """A lead whose opening parenthesis holds only years from 1900 ("Kirker Butler
+    (born October 14, 1977)") or that says born in 19xx/20xx: a living or
+    modern person whose Wikidata birth year is a day number or a typo."""
+    m = re.match(r"[^(]{0,150}\(([^)]{0,120})\)", lead)
+    if m and not BCE.search(m.group(1)):
+        years = [int(y) for y in re.findall(r"\b(1\d{3}|20\d{2})\b", m.group(1))]
+        if years and min(years) >= 1900:
+            return True
+    return bool(re.search(r"\bborn\b[^.;]{0,40}?\b(19\d{2}|20\d{2})\b(?!\s*(?:BC|B\.C|BCE))", lead[:200], re.I))
+
+
+BCE = re.compile(r"\b(?:BC|BCE|B\.C\.?(?:E\.?)?)(?!\w)")
 
 
 def low_precision(raw: dict[str, Any]) -> bool:
