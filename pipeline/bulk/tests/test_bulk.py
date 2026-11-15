@@ -420,3 +420,15 @@ def test_a_discovery_year_never_replaces_an_ancient_coarse_date():
     novel = {"Q2": {}}
     fill_dates(novel, {("Q2", "P571"): (1801, 7), ("Q2", "P577"): (1840, 11)})
     assert novel["Q2"]["inception"] == "1840"
+
+
+def test_a_held_part_lock_is_skipped_not_awaited(tmp_path):
+    from pipeline.bulk.store import try_locked
+
+    path = tmp_path / "part-0000.import.lock"
+    with try_locked(path) as first:
+        assert first
+        with try_locked(path) as second:
+            assert not second
+    with try_locked(path) as again:
+        assert again

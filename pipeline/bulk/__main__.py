@@ -21,7 +21,7 @@ import click
 from pipeline.bulk.build import CURRENT_YEAR, build
 from pipeline.bulk.fetch import fetch_batch
 from pipeline.bulk.spec import Slice, ValueShard, Window, all_slices
-from pipeline.bulk.store import API_DROP, PART_SIZE, REPO, SliceStore, add_claims, claims, db_qids, locked
+from pipeline.bulk.store import API_DROP, PART_SIZE, REPO, SliceStore, add_claims, claims, db_qids, locked, try_locked
 from pipeline.bulk.wdqs import LIST_ENDPOINT, Client, QueryTimeout, qid_of, value
 
 BATCH = 100
@@ -132,20 +132,29 @@ def step_fetch(s: Slice, store: SliceStore, client: Client, max_parts: int | Non
         say(f"{s.id} part {n + 1}/{nparts}: fetched {meta['fetched']}, kept {meta['records']}, dropped {meta['dropped']}")
 
 
-def import_part(s: Slice, store: SliceStore, n: int, lock: str = "import") -> dict[str, Any]:
+def import_part(s: Slice, store: SliceStore, n: int) -> dict[str, Any] | None:
+    """Import one built part, or return None when another importer holds it.
+
+    Each part has its own lock, so any number of importer daemons share the
+    queue. Concurrent parts are safe: claims keep a QID in one slice and one
+    part, and the name fallback only matches rows without a QID or with the
+    same one.
+    """
     compose = str(REPO / "docker" / "docker-compose.yml")
     name = f"part-{n:04d}.jsonl"
-    dest = API_DROP / s.id / name
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(store.part_path(n), dest)
     cmd = [
         "docker", "compose", "-f", compose, "exec", "-T", "app", "php", "artisan", "pipeline:import",
         f"storage/app/pipeline/bulk/{s.id}/{name}", "--sync", "--skip-images", f"--batch-id=bulk-{s.id}-{n:04d}",
     ]
-    with locked(lock):
-        # Another importer may have taken this part while we waited.
+    with try_locked(store.import_lock_path(n)) as mine:
+        if not mine:
+            return None
+        # Another importer may have finished this part before we looked.
         if store.import_path(n).exists():
             return store.read_json(store.import_path(n)) or {}
+        dest = API_DROP / s.id / name
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(store.part_path(n), dest)
         started = time.monotonic()
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=4 * 3600)
         m = SUMMARY.search(proc.stdout)
@@ -811,20 +820,13 @@ def apply_audit(csv_paths: tuple[str, ...], yes: bool) -> None:
 @cli.command()
 @click.option("--idle-exit", is_flag=True, help="Exit when nothing is left to import")
 @click.option("--poll", type=int, default=30)
-@click.option("--lane", type=int, default=0, help="With --lanes: this daemon's share of the slices")
-@click.option("--lanes", type=int, default=1, help="Run this many daemons, each on its own share and lock")
-def importer(idle_exit: bool, poll: int, lane: int, lanes: int) -> None:
+def importer(idle_exit: bool, poll: int) -> None:
     """Import built parts of approved slices (approved.txt), priority order, until STOP exists in the bulk root.
 
-    Claims keep every QID in one slice, so daemons on different slices do
-    not collide: with --lanes N, daemon --lane k takes the slices whose id
-    hashes to k and holds its own lock.
+    Several daemons may run at once: each takes the next part no other
+    daemon holds.
     """
-    import zlib
-
     from pipeline.bulk.store import ROOT, approved
-
-    lock = "import" if lanes == 1 else f"import-lane{lane}"
 
     reported: set[str] = set()
     while not (ROOT / "STOP").exists():
@@ -832,14 +834,14 @@ def importer(idle_exit: bool, poll: int, lane: int, lanes: int) -> None:
         ok = approved()
         errors: list[str] = []
         for s in all_slices(errors=errors):
-            if s.id not in ok or zlib.crc32(s.id.encode()) % lanes != lane:
+            if s.id not in ok:
                 continue
             store = SliceStore(s.id)
             for n in pending_imports(store):
                 if (ROOT / "STOP").exists():
                     break
-                import_part(s, store, n, lock)
-                did = True
+                if import_part(s, store, n) is not None:
+                    did = True
         for err in set(errors) - reported:
             # an approved slice whose spec this process cannot read is never
             # imported: say so (a daemon older than a new spec key, or a typo)

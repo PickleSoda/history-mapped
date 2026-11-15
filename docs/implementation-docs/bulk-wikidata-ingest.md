@@ -73,15 +73,17 @@ MEM_MAX=2G $CLI importer --poll 20 >> output/bulk/logs/importer.log 2>&1 &
 touch output/bulk/STOP                      # stops every daemon after its current part
 ```
 
-Each part runs `pipeline:import --sync --skip-images` with batch id `bulk-<id>-NNNN`. A lane imports
-10–15 person rows a second. When fetchers outrun it, run several lanes: `--lanes N --lane k` (k = 0
-… N-1) gives each daemon the slices whose id hashes to k and its own lock. Claims keep a QID in one
-slice, so lanes never import the same item. Start every lane with the same N; to change N, STOP all
-of them first.
+Each part runs `pipeline:import --sync --skip-images` with batch id `bulk-<id>-NNNN`; one daemon
+imports 10–15 person rows a second. When fetchers outrun it, start more daemons: each part has its
+own lock (`parts/part-NNNN.import.lock`), so a daemon skips a part another one holds and takes the
+next. Claims keep a QID in one slice and part, so parallel parts never import the same item.
 
 ```bash
-for k in 0 1 2; do MEM_MAX=2G $CLI importer --poll 20 --lane $k --lanes 3 >> output/bulk/logs/importer-lane$k.log 2>&1 & done
+for k in 0 1 2 3 4; do MEM_MAX=2G $CLI importer --poll 20 >> output/bulk/logs/importer-$k.log 2>&1 & done
 ```
+
+`prune` and `redate` do not wait for running imports; stop the daemons first when they touch a slice
+that is still importing.
 
 ## 5. Audit
 

@@ -26,6 +26,22 @@ def locked(name: str) -> Iterator[None]:
             fcntl.flock(fh, fcntl.LOCK_UN)
 
 
+@contextmanager
+def try_locked(path: Path) -> Iterator[bool]:
+    """Take an exclusive lock on path without waiting: yields whether we hold it."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w") as fh:
+        try:
+            fcntl.flock(fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            yield False
+            return
+        try:
+            yield True
+        finally:
+            fcntl.flock(fh, fcntl.LOCK_UN)
+
+
 class SliceStore:
     def __init__(self, slice_id: str):
         self.id = slice_id
@@ -100,6 +116,9 @@ class SliceStore:
 
     def import_path(self, n: int) -> Path:
         return self.dir / "parts" / f"part-{n:04d}.import.json"
+
+    def import_lock_path(self, n: int) -> Path:
+        return self.dir / "parts" / f"part-{n:04d}.import.lock"
 
     def read_json(self, path: Path) -> dict[str, Any] | None:
         return json.loads(path.read_text()) if path.exists() else None
