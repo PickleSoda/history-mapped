@@ -1,0 +1,30 @@
+{
+  "id": "places-lowbar-towns-pre1500",
+  "entity_type": "city",
+  "description": "Towns and settlements (direct class) with their own inception before 1500, sl>=10, coordinates",
+  "where": "?item wdt:P31 wd:Q3957 . ?item wdt:P625 ?co .",
+  "min_sitelinks": 10,
+  "shards": {
+    "years": {
+      "prop": "P571",
+      "from": -1000,
+      "to": 1500,
+      "step": 100
+    }
+  },
+  "exclude_p31": [
+    "Q23442",
+    "Q532",
+    "Q5084",
+    "Q15284",
+    "Q1115575",
+    "Q1134686"
+  ],
+  "require": [
+    "coords",
+    "dates"
+  ],
+  "year_max": 1499,
+  "priority": 3,
+  "notes": "Towns (direct class Q3957 only; generic human settlement Q486972 pulled in villages) with own inception before 1500."
+}

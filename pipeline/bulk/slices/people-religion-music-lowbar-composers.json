@@ -1,0 +1,24 @@
+{
+ "id": "people-religion-music-lowbar-composers",
+ "entity_type": "person",
+ "description": "Composers born before 1900 (sitelinks 3-7 tier)",
+ "where": "?item wdt:P106 wd:Q36834 . MINUS { ?item wdt:P106 ?hm_x . VALUES ?hm_x { wd:Q49757 wd:Q36180 wd:Q6625963 wd:Q214917 wd:Q33999 wd:Q10800557 wd:Q82955 wd:Q4964182 wd:Q177220 wd:Q28389 } }",
+ "min_sitelinks": 3,
+ "shards": {
+  "years": {
+   "prop": "P569",
+   "from": 1200,
+   "to": 1900,
+   "step": 25
+  }
+ },
+ "exclude_p31": [
+  "Q15632617"
+ ],
+ "require": [
+  "dates"
+ ],
+ "year_max": 1879,
+ "priority": 4,
+ "notes": "low-bar tier of people-arts-composers-s8"
+}

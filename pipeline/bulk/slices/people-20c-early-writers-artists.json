@@ -1,0 +1,27 @@
+{
+  "id": "people-20c-early-writers-artists",
+  "entity_type": "person",
+  "description": "Writers, poets, painters, sculptors, architects, composers born 1900-1924, sl>=15",
+  "where": "?item wdt:P31 wd:Q5 . VALUES ?hm_occ { wd:Q36180 wd:Q49757 wd:Q1028181 wd:Q1281618 wd:Q42973 wd:Q36834 } ?item wdt:P106 ?hm_occ . MINUS { ?item wdt:P106 ?hm_x . VALUES ?hm_x { wd:Q2066131 wd:Q33999 wd:Q177220 wd:Q10800557 wd:Q2405480 } }",
+  "min_sitelinks": 15,
+  "shards": {
+    "years": {
+      "prop": "P569",
+      "from": 1900,
+      "to": 1925,
+      "step": 2
+    }
+  },
+  "exclude_p31": [
+    "Q15632617",
+    "Q95074",
+    "Q4271324"
+  ],
+  "require": [
+    "dates"
+  ],
+  "year_min": 1900,
+  "year_max": 1924,
+  "priority": 5,
+  "notes": "wave3 people-20c-early; born 1900-1924"
+}

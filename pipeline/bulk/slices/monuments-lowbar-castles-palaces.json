@@ -1,0 +1,18 @@
+{
+  "id": "monuments-lowbar-castles-palaces",
+  "entity_type": "infrastructure_monument",
+  "description": "Low-bar tier: castles, forts, citadels, walls, gates (sl>=3), palaces and villas (sl>=5), manor and country houses (sl>=4); undated allowed, pre-1900",
+  "where": "OPTIONAL { ?item wdt:P571 ?hm_inc } ?item wikibase:sitelinks ?hm_s2 . FILTER((!BOUND(?hm_inc) || YEAR(?hm_inc) < 1900) && ((?hm_v IN (wd:Q23413, wd:Q57831, wd:Q1785071, wd:Q751876, wd:Q16748868, wd:Q82117) && ?hm_s2 >= 3) || (?hm_v IN (wd:Q16560, wd:Q3950) && ?hm_s2 >= 5) || (?hm_v IN (wd:Q879050, wd:Q1802963) && ?hm_s2 >= 4)))",
+  "min_sitelinks": 3,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": ["Q23413", "Q57831", "Q1785071", "Q751876", "Q16748868", "Q82117", "Q16560", "Q3950", "Q879050", "Q1802963"]
+    }
+  },
+  "exclude_p31": ["Q156362", "Q3957", "Q486972", "Q5084", "Q515", "Q532"],
+  "require": ["coords"],
+  "year_max": 1900,
+  "priority": 3,
+  "notes": "Low-bar copy of monuments-castles/palaces; wineries Q156362 excluded."
+}

@@ -1,0 +1,25 @@
+{
+ "id": "people-letters-lowbar-novelists-playwrights-translators",
+ "entity_type": "person",
+ "description": "Novelists, playwrights, translators born 1400-1899, sitelinks>=3",
+ "where": "?item wdt:P31 wd:Q5 . VALUES ?hm_occ { wd:Q6625963 wd:Q214917 wd:Q333634 } ?item wdt:P106 ?hm_occ .",
+ "min_sitelinks": 3,
+ "shards": {
+  "years": {
+   "prop": "P569",
+   "from": 1400,
+   "to": 1900,
+   "step": 10
+  }
+ },
+ "exclude_p31": [
+  "Q15632617",
+  "Q95074"
+ ],
+ "require": [
+  "dates"
+ ],
+ "year_max": 1899,
+ "priority": 4,
+ "notes": "wave3 low-bar tier below people-writers-*; copy of the sl>=8 slice spec"
+}

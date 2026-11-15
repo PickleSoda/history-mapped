@@ -1,0 +1,22 @@
+{
+  "id": "events-tails-war",
+  "entity_type": "event_war",
+  "description": "Wars, civil wars and campaigns dated before 1950, low-sitelink tail",
+  "where": "VALUES ?hm_cls { wd:Q198 wd:Q8465 wd:Q104212151 wd:Q1348385 wd:Q1827102 wd:Q21994376 wd:Q1006311 wd:Q864113 wd:Q2908804 wd:Q105370834 wd:Q350604 } ?item wdt:P31 ?hm_cls .",
+  "min_sitelinks": 1,
+  "shards": {
+    "years": {
+      "prop": "P580",
+      "from": -3000,
+      "to": 1950,
+      "step": 50
+    }
+  },
+  "exclude_p31": [],
+  "require": [
+    "dates"
+  ],
+  "year_max": 1950,
+  "priority": 4,
+  "notes": "Low-bar tail of conflict-war."
+}

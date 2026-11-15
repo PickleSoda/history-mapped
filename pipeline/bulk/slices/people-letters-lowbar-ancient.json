@@ -1,0 +1,25 @@
+{
+ "id": "people-letters-lowbar-ancient",
+ "entity_type": "person",
+ "description": "Writers and poets born 800 BCE-999 CE, sitelinks>=3",
+ "where": "?item wdt:P31 wd:Q5 . VALUES ?hm_occ { wd:Q36180 wd:Q49757 } ?item wdt:P106 ?hm_occ .",
+ "min_sitelinks": 3,
+ "shards": {
+  "years": {
+   "prop": "P569",
+   "from": -800,
+   "to": 1000,
+   "step": 100
+  }
+ },
+ "exclude_p31": [
+  "Q15632617",
+  "Q95074"
+ ],
+ "require": [
+  "dates"
+ ],
+ "year_max": 1899,
+ "priority": 4,
+ "notes": "wave3 low-bar tier below people-writers-*; copy of the sl>=8 slice spec"
+}

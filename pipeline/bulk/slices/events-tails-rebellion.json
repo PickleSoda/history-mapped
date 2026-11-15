@@ -1,0 +1,22 @@
+{
+  "id": "events-tails-rebellion",
+  "entity_type": "event_rebellion",
+  "description": "Rebellions, revolts, coups, mutinies before 1950, low-sitelink tail",
+  "where": "VALUES ?hm_cls { wd:Q124734 wd:Q10931 wd:Q45382 wd:Q25906438 wd:Q1323212 wd:Q511866 wd:Q13427116 wd:Q1155622 wd:Q1753200 wd:Q3449092 wd:Q4460509 } ?item wdt:P31 ?hm_cls .",
+  "min_sitelinks": 1,
+  "shards": {
+    "years": {
+      "prop": "P580",
+      "from": -3000,
+      "to": 1950,
+      "step": 50
+    }
+  },
+  "exclude_p31": [],
+  "require": [
+    "dates"
+  ],
+  "year_max": 1950,
+  "priority": 4,
+  "notes": "Low-bar tail of conflict-rebellion."
+}

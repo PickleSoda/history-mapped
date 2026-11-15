@@ -1,0 +1,25 @@
+{
+  "id": "people-scholars-lowbar-science-tech",
+  "entity_type": "person",
+  "description": "Physicians, biologists, botanists, inventors, engineers born before 1900, 3-7 sitelinks (low-bar tier)",
+  "where": "?item wdt:P31 wd:Q5 . VALUES ?hm_occ { wd:Q39631 wd:Q864503 wd:Q2374149 wd:Q205375 wd:Q81096 } ?item wdt:P106 ?hm_occ .",
+  "min_sitelinks": 3,
+  "shards": {
+    "years": {
+      "prop": "P569",
+      "from": 1500,
+      "to": 1900,
+      "step": 20
+    }
+  },
+  "exclude_p31": [
+    "Q15632617",
+    "Q95074"
+  ],
+  "require": [
+    "dates"
+  ],
+  "year_max": 1899,
+  "priority": 3,
+  "notes": "low-bar copy of reference slice; born 1500-1899 only (20y shards); pre-1500 not covered"
+}

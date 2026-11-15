@@ -1,0 +1,18 @@
+{
+  "id": "monuments-lowbar-churches-religious",
+  "entity_type": "infrastructure_monument",
+  "description": "Low-bar tier: churches dated before 1800 (sl>=3), cathedrals and monasteries dated before 1800 (sl>=3)",
+  "where": "?item wdt:P31 ?hm_v . ?item wdt:P571 ?hm_inc . FILTER(YEAR(?hm_inc) < 1800)",
+  "min_sitelinks": 3,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": ["Q16970", "Q2977", "Q44613"]
+    }
+  },
+  "exclude_p31": ["Q207694", "Q3957", "Q486972", "Q5084", "Q515", "Q532"],
+  "require": ["coords", "dates"],
+  "year_max": 1800,
+  "priority": 3,
+  "notes": "Low-bar copy of monuments-churches-dated plus dated cathedrals/monasteries."
+}

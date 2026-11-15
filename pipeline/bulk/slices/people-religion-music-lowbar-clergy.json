@@ -1,0 +1,25 @@
+{
+ "id": "people-religion-music-lowbar-clergy",
+ "entity_type": "person",
+ "description": "Priests, bishops, monks, missionaries, theologians born before 1900 (sitelinks 3-7 tier)",
+ "where": "VALUES ?hm_occ { wd:Q42603 wd:Q611644 wd:Q733786 wd:Q219477 wd:Q1234713 } ?item wdt:P106 ?hm_occ .",
+ "min_sitelinks": 3,
+ "shards": {
+  "years": {
+   "prop": "P569",
+   "from": 0,
+   "to": 1900,
+   "step": 20
+  }
+ },
+ "exclude_p31": [
+  "Q15632617",
+  "Q95074"
+ ],
+ "require": [
+  "dates"
+ ],
+ "year_max": 1879,
+ "priority": 4,
+ "notes": "low-bar tier of people-letters-clergy; century-only dates dropped at build"
+}

@@ -1,0 +1,24 @@
+{
+ "id": "people-religion-music-lowbar-musicians",
+ "entity_type": "person",
+ "description": "Pre-1900 musicians, singers, organists, violinists, pianists (sitelinks>=5)",
+ "where": "VALUES ?hm_occ { wd:Q639669 wd:Q177220 wd:Q765778 wd:Q1259917 wd:Q486748 } ?item wdt:P106 ?hm_occ . MINUS { ?item wdt:P106 ?hm_x . VALUES ?hm_x { wd:Q33999 wd:Q36180 wd:Q1028181 wd:Q82955 wd:Q28389 wd:Q42973 wd:Q185351 wd:Q10800557 wd:Q2526255 } }",
+ "min_sitelinks": 5,
+ "shards": {
+  "years": {
+   "prop": "P569",
+   "from": 1300,
+   "to": 1900,
+   "step": 20
+  }
+ },
+ "exclude_p31": [
+  "Q15632617"
+ ],
+ "require": [
+  "dates"
+ ],
+ "year_max": 1879,
+ "priority": 4,
+ "notes": "low-bar performers born before 1900; MINUS actors/writers/painters/politicians/architects/jurists after first sample at ~80%"
+}

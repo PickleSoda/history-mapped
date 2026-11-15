@@ -1,0 +1,27 @@
+{
+  "id": "events-tails-disaster",
+  "entity_type": "event_natural_disaster",
+  "description": "Dated natural disasters before 1950, low-sitelink tail",
+  "where": "?item wdt:P585|wdt:P571|wdt:P580|wdt:P577 ?hm_dt . FILTER(YEAR(?hm_dt) < 1950)",
+  "min_sitelinks": 1,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": [
+        "Q7944",
+        "Q8065",
+        "Q7692360",
+        "Q8070",
+        "Q168247",
+        "Q8068",
+        "Q167903"
+      ]
+    }
+  },
+  "require": [
+    "dates"
+  ],
+  "year_max": 1950,
+  "priority": 4,
+  "notes": "Low-bar tail of events-law-disaster-dated."
+}

@@ -1,0 +1,13 @@
+{
+  "id": "places-lowbar-cities-sl8-historic",
+  "entity_type": "city",
+  "description": "Cities with coordinates, an inception before 1800 and 8+ sitelinks (the sl>=15 tier is places-more-cities-sl15)",
+  "where": "?item wdt:P31/wdt:P279* wd:Q515 . ?item wdt:P625 ?co .",
+  "min_sitelinks": 8,
+  "shards": {"years": {"prop": "P571", "from": -3500, "to": 1800, "step": 100}},
+  "exclude_p31": ["Q23442"],
+  "require": ["coords", "dates"],
+  "year_max": 1799,
+  "priority": 3,
+  "notes": "Modern municipalities dropped by requiring an old own inception."
+}
