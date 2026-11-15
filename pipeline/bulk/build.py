@@ -25,7 +25,11 @@ DROPPED_HINTS = {"wikidata:P17", "wikidata:P131", "wikidata:P39"}
 
 # A lead that is really a hatnote or a disambiguation line says nothing about
 # the row; the mapper then falls back to the Wikidata description.
-HATNOTE = re.compile(r"(may (also )?refer to|^see also\b|^for other uses\b|^this article is about\b)", re.I)
+HATNOTE = re.compile(
+    r"(may (also )?refer to|^see also\b|^for other uses\b|^this (article|page) (is|was|contains|lists)\b"
+    r"|^this is (a|an) (article|chronological list|list)\b|^this article is partially translated)",
+    re.I,
+)
 
 
 # Wikidata time precision: 9 year, 8 decade, 7 century, 6 millennium. A

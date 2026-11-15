@@ -335,3 +335,39 @@ def test_description_gate_drops_sportspeople_but_keeps_the_dual_careers():
     assert gate(raw(**person, description="British physicist"), {"name": "x", "temporal_start": "1910"}, s) is None
     with pytest.raises(ValueError):
         spec(exclude_desc="(unclosed")
+
+
+def test_a_redirect_into_a_group_article_gives_no_lead():
+    from pipeline.bulk import fetch
+
+    class Wiki:
+        def wikipedia(self, params):
+            return {"query": {
+                "redirects": [
+                    {"from": "Paul Betz", "to": "Knight's Cross of the Iron Cross"},
+                    {"from": "Jean Valjean (saint)", "to": "Martyrs of Lyon", "tofragment": "Jean"},
+                    {"from": "Ibn Taymiyya", "to": "Ibn Taymiyyah"},
+                ],
+                "pages": [
+                    {"title": "Knight's Cross of the Iron Cross", "extract": "The Knight's Cross was an award."},
+                    {"title": "Martyrs of Lyon", "extract": "The Martyrs of Lyon were Christians."},
+                    {"title": "Ibn Taymiyyah", "extract": "Ibn Taymiyyah was a Sunni scholar."},
+                ],
+            }}
+
+    items = [{"wikipedia_title": t} for t in ("Paul Betz", "Jean Valjean (saint)", "Ibn Taymiyya")]
+    fetch.fetch_extracts(Wiki(), items)
+    assert [i.get("summary") for i in items] == [None, None, "Ibn Taymiyyah was a Sunni scholar."]
+
+
+@pytest.mark.parametrize("lead", [
+    "This article contains material translated from the Italian Wikipedia's version of this page.",
+    "This page was created from the Dutch Wikipedia with the aid of automatic translation",
+    "This is a list of German painters.",
+    "This article lists the presidents of Honduras.",
+])
+def test_maintenance_notes_are_not_leads(lead):
+    from pipeline.bulk.build import HATNOTE
+
+    assert HATNOTE.search(lead)
+    assert not HATNOTE.search("Thisbe was a Babylonian woman in a tale told by Ovid.")

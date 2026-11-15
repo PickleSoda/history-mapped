@@ -197,6 +197,14 @@ SELECT ?item ?prop ?value ?valueLabel WHERE {{
         items[qid]["properties"].setdefault(prop, []).append({"qid": vqid, "label": label, "uri": uri})
 
 
+def shares_word(title: str, target: str) -> bool:
+    """Whether a redirect keeps a word of its title ("Ibn Taymiyya" -> "Ibn
+    Taymiyyah"), unlike one into a group article ("Paul Betz" -> "Knight's
+    Cross of the Iron Cross")."""
+    words = lambda s: {w for w in re.findall(r"\w+", s.lower()) if len(w) >= 3}  # noqa: E731
+    return title == target or bool(words(title) & words(target))
+
+
 def fetch_extracts(client: Client, items: list[dict[str, Any]]) -> None:
     """The lead paragraph of each item's English Wikipedia article."""
     by_title: dict[str, list[dict[str, Any]]] = {}
@@ -217,12 +225,17 @@ def fetch_extracts(client: Client, items: list[dict[str, Any]]) -> None:
         })
         query = data.get("query", {})
         resolved: dict[str, str] = {t: t for t in batch}
+        sectioned: set[str] = set()
         for hop in query.get("normalized", []) + query.get("redirects", []):
             for src, dst in list(resolved.items()):
                 if dst == hop.get("from"):
                     resolved[src] = hop.get("to")
+                    if hop.get("tofragment"):
+                        sectioned.add(src)
         extract_by_title = {p.get("title"): p.get("extract") or "" for p in query.get("pages", [])}
         for title in batch:
+            if title in sectioned or not shares_word(title, resolved[title]):
+                continue  # a redirect into a group article: its lead is about something else
             text = (extract_by_title.get(resolved[title]) or "").strip()
             if not text:
                 continue
