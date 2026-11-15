@@ -132,7 +132,7 @@ def step_fetch(s: Slice, store: SliceStore, client: Client, max_parts: int | Non
         say(f"{s.id} part {n + 1}/{nparts}: fetched {meta['fetched']}, kept {meta['records']}, dropped {meta['dropped']}")
 
 
-def import_part(s: Slice, store: SliceStore, n: int) -> dict[str, Any]:
+def import_part(s: Slice, store: SliceStore, n: int, lock: str = "import") -> dict[str, Any]:
     compose = str(REPO / "docker" / "docker-compose.yml")
     name = f"part-{n:04d}.jsonl"
     dest = API_DROP / s.id / name
@@ -142,7 +142,7 @@ def import_part(s: Slice, store: SliceStore, n: int) -> dict[str, Any]:
         "docker", "compose", "-f", compose, "exec", "-T", "app", "php", "artisan", "pipeline:import",
         f"storage/app/pipeline/bulk/{s.id}/{name}", "--sync", "--skip-images", f"--batch-id=bulk-{s.id}-{n:04d}",
     ]
-    with locked("import"):
+    with locked(lock):
         # Another importer may have taken this part while we waited.
         if store.import_path(n).exists():
             return store.read_json(store.import_path(n)) or {}
@@ -811,9 +811,20 @@ def apply_audit(csv_paths: tuple[str, ...], yes: bool) -> None:
 @cli.command()
 @click.option("--idle-exit", is_flag=True, help="Exit when nothing is left to import")
 @click.option("--poll", type=int, default=30)
-def importer(idle_exit: bool, poll: int) -> None:
-    """Import built parts of approved slices (approved.txt), priority order, until STOP exists in the bulk root."""
+@click.option("--lane", type=int, default=0, help="With --lanes: this daemon's share of the slices")
+@click.option("--lanes", type=int, default=1, help="Run this many daemons, each on its own share and lock")
+def importer(idle_exit: bool, poll: int, lane: int, lanes: int) -> None:
+    """Import built parts of approved slices (approved.txt), priority order, until STOP exists in the bulk root.
+
+    Claims keep every QID in one slice, so daemons on different slices do
+    not collide: with --lanes N, daemon --lane k takes the slices whose id
+    hashes to k and holds its own lock.
+    """
+    import zlib
+
     from pipeline.bulk.store import ROOT, approved
+
+    lock = "import" if lanes == 1 else f"import-lane{lane}"
 
     reported: set[str] = set()
     while not (ROOT / "STOP").exists():
@@ -821,13 +832,13 @@ def importer(idle_exit: bool, poll: int) -> None:
         ok = approved()
         errors: list[str] = []
         for s in all_slices(errors=errors):
-            if s.id not in ok:
+            if s.id not in ok or zlib.crc32(s.id.encode()) % lanes != lane:
                 continue
             store = SliceStore(s.id)
             for n in pending_imports(store):
                 if (ROOT / "STOP").exists():
                     break
-                import_part(s, store, n)
+                import_part(s, store, n, lock)
                 did = True
         for err in set(errors) - reported:
             # an approved slice whose spec this process cannot read is never
