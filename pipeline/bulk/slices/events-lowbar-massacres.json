@@ -1,0 +1,22 @@
+{
+  "id": "events-lowbar-massacres",
+  "entity_type": "event_battle",
+  "description": "Massacres dated before 1950, enwiki",
+  "where": "?item wdt:P585|wdt:P571|wdt:P580 ?hm_dt . FILTER(YEAR(?hm_dt) < 1950)",
+  "min_sitelinks": 1,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": [
+        "Q3199915"
+      ]
+    }
+  },
+  "exclude_p31": [],
+  "require": [
+    "dates"
+  ],
+  "year_max": 1950,
+  "priority": 4,
+  "notes": "wave7 events-lowbar; sample pending"
+}

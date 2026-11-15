@@ -1,0 +1,21 @@
+{
+  "id": "culture-belief-tail-intellectual-schools-lowbar",
+  "entity_type": "intellectual_movement",
+  "description": "Schools of thought and art/music/cinema movements, lower bar",
+  "where": "VALUES ?hm_c { wd:Q1387659 wd:Q12765852 wd:Q12020884 wd:Q3001152 wd:Q3326867 wd:Q2736610 wd:Q1278791 wd:Q10260870 wd:Q136329308 wd:Q968159 wd:Q2198855 wd:Q3326717 wd:Q2915955 } ?item wdt:P31 ?hm_c . OPTIONAL { ?item wdt:P571|wdt:P580 ?hm_inc } ?item wikibase:sitelinks ?hm_s2 . FILTER((!BOUND(?hm_inc) && ?hm_s2 >= 4) || (BOUND(?hm_inc) && YEAR(?hm_inc) < 1950))",
+  "min_sitelinks": 2,
+  "year_max": 1950,
+  "priority": 3,
+  "notes": "scout 80%; exclusions copied from culture-lang-religion-intellectual-movements; exclude_desc drops attitudes, associations, economic systems",
+  "exclude_p31": [
+    "Q223393",
+    "Q1792379",
+    "Q9332",
+    "Q622645",
+    "Q1149305",
+    "Q877729",
+    "Q32090",
+    "Q11862829"
+  ],
+  "exclude_desc": "\\b(attitude|condition|economic system|economic policy|association|artists' (group|association)|study and research|mental|21st century|early 21st)\\b"
+}

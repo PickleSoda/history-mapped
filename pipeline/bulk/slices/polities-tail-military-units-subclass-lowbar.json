@@ -1,0 +1,33 @@
+{
+ "id": "polities-tail-military-units-subclass-lowbar",
+ "entity_type": "military_unit",
+ "description": "Subclass-of-military-unit items sl1-3 started 1790-1945",
+ "where": "?item wdt:P31/wdt:P279* wd:Q176799 . FILTER NOT EXISTS { ?item wdt:P31 wd:Q176799 } ?item wdt:P571|wdt:P580 ?hm_dd .",
+ "min_sitelinks": 1,
+ "require": [
+  "dates"
+ ],
+ "year_min": 1790,
+ "year_max": 1945,
+ "exclude_p31": [
+  "Q1021645",
+  "Q127701543",
+  "Q136532418",
+  "Q136607677",
+  "Q137258491",
+  "Q1522839",
+  "Q16831714",
+  "Q1898357",
+  "Q1935049",
+  "Q2088357",
+  "Q209465",
+  "Q23002039",
+  "Q39614",
+  "Q42908058",
+  "Q4830453",
+  "Q917182",
+  "Q936518"
+ ],
+ "notes": "scout 90%; min_sitelinks 1 - will cap via sl<=3? imported bar >=3 handled by claims",
+ "priority": 8
+}

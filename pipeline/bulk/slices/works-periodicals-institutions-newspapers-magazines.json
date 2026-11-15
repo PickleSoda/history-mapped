@@ -1,0 +1,30 @@
+{
+  "id": "works-periodicals-institutions-newspapers-magazines",
+  "require": [
+    "dates"
+  ],
+  "priority": 5,
+  "entity_type": "cultural_work",
+  "description": "Newspapers, magazines and periodicals first issued before 1950, 3+ sitelinks",
+  "where": "?item wdt:P571|wdt:P577 ?hm_d0 . FILTER(YEAR(?hm_d0) < 1950)",
+  "min_sitelinks": 3,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": [
+        "Q11032",
+        "Q1110794",
+        "Q41298",
+        "Q1002697"
+      ]
+    }
+  },
+  "exclude_p31": [
+    "Q35127",
+    "Q1260006",
+    "Q4830453",
+    "Q43229"
+  ],
+  "year_max": 1949,
+  "notes": "periodicals pre-1950; sl3 floor"
+}

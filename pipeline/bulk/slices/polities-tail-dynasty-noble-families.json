@@ -1,0 +1,14 @@
+{
+ "id": "polities-tail-dynasty-noble-families",
+ "entity_type": "dynasty",
+ "description": "Q8436 families described as noble/ruling",
+ "where": "?item wdt:P31 wd:Q8436 . ?item schema:description ?hm_ds . FILTER(LANG(?hm_ds)=\"en\" && REGEX(LCASE(?hm_ds),\"noble|aristocrat|princely|boyar|patrician|magnate|ducal|baronial|royal|szlachta|junker|knightly|ruling\")) FILTER NOT EXISTS { ?item wdt:P31 wd:Q13417114 }",
+ "min_sitelinks": 1,
+ "exclude_p31": [
+  "Q2591905",
+  "Q18759100"
+ ],
+ "notes": "scout 92%",
+ "require": [],
+ "priority": 8
+}

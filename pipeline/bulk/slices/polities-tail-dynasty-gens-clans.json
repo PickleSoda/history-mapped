@@ -1,0 +1,15 @@
+{
+ "id": "polities-tail-dynasty-gens-clans",
+ "entity_type": "dynasty",
+ "description": "Roman gentes, stirps, clans",
+ "where": "VALUES ?hm_c { wd:Q899409 wd:Q211503 wd:Q499247 wd:Q104258569 } ?item wdt:P31 ?hm_c .",
+ "min_sitelinks": 1,
+ "exclude_p31": [
+  "Q2591905",
+  "Q18759100",
+  "Q41710"
+ ],
+ "notes": "scout 92%",
+ "require": [],
+ "priority": 8
+}

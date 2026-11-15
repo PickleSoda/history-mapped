@@ -1,0 +1,18 @@
+{
+ "id": "polities-tail-military-units-direct",
+ "entity_type": "military_unit",
+ "description": "Items typed exactly military unit, started 1790-1950, all sitelink levels",
+ "where": "?item wdt:P31 wd:Q176799 . ?item wdt:P571|wdt:P580 ?hm_dd .",
+ "min_sitelinks": 1,
+ "require": [
+  "dates"
+ ],
+ "year_min": 1790,
+ "year_max": 1945,
+ "exclude_p31": [
+  "Q917182",
+  "Q936518"
+ ],
+ "notes": "scout 93%",
+ "priority": 8
+}

@@ -1,0 +1,32 @@
+{
+ "id": "monuments-earlymodern-religious",
+ "entity_type": "infrastructure_monument",
+ "description": "Churches, cathedrals, chapels, abbeys, monasteries, mosques, synagogues and temples built 1500-1899 (inception P571 or opening P1619), coords + enwiki required, sl>=2.",
+ "where": "?item wdt:P625 ?hm_co . { ?item wdt:P571 ?hm_inc } UNION { ?item wdt:P1619 ?hm_inc } FILTER(YEAR(?hm_inc) >= 1500 && YEAR(?hm_inc) < 1900)",
+ "min_sitelinks": 2,
+ "exclude_p31": [],
+ "require": [
+  "coords",
+  "dates"
+ ],
+ "year_min": 1500,
+ "year_max": 1899,
+ "priority": 4,
+ "notes": "wave7 scout: 88% est",
+ "shards": {
+  "values": {
+   "pattern": "?item wdt:P31/wdt:P279* ?hm_v .",
+   "values": [
+    "Q16970",
+    "Q2977",
+    "Q44613",
+    "Q32815",
+    "Q108325",
+    "Q34627",
+    "Q160742",
+    "Q44539",
+    "Q5393308"
+   ]
+  }
+ }
+}

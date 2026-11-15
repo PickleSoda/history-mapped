@@ -1,0 +1,33 @@
+{
+ "id": "monuments-earlymodern-residences-forts",
+ "entity_type": "infrastructure_monument",
+ "description": "Palaces, manor houses, mansions, villas, castles, fortresses, forts and barracks built 1500-1899 (P571 or P1619), coords + enwiki, sl>=2.",
+ "where": "?item wdt:P625 ?hm_co . { ?item wdt:P571 ?hm_inc } UNION { ?item wdt:P1619 ?hm_inc } FILTER(YEAR(?hm_inc) >= 1500 && YEAR(?hm_inc) < 1900)",
+ "min_sitelinks": 2,
+ "exclude_p31": [
+  "Q245016"
+ ],
+ "require": [
+  "coords",
+  "dates"
+ ],
+ "year_min": 1500,
+ "year_max": 1899,
+ "priority": 4,
+ "notes": "wave7 scout: 85% est",
+ "shards": {
+  "values": {
+   "pattern": "?item wdt:P31/wdt:P279* ?hm_v .",
+   "values": [
+    "Q16560",
+    "Q879050",
+    "Q1802963",
+    "Q3950",
+    "Q23413",
+    "Q57831",
+    "Q1785071",
+    "Q131263"
+   ]
+  }
+ }
+}

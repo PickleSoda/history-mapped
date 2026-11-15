@@ -1,0 +1,57 @@
+{
+  "id": "works-periodicals-institutions-museums-pre1900",
+  "require": [
+    "dates"
+  ],
+  "priority": 5,
+  "entity_type": "educational_institution",
+  "description": "Museums founded before 1900, 3+ sitelinks",
+  "where": "?item wdt:P571 ?hm_d0 . FILTER(YEAR(?hm_d0) < 1900)",
+  "min_sitelinks": 3,
+  "shards": {
+    "values": {
+      "pattern": "?item wdt:P31 ?hm_v .",
+      "values": [
+        "Q33506",
+        "Q207694",
+        "Q17431399",
+        "Q2772772",
+        "Q1007870"
+      ]
+    }
+  },
+  "exclude_p31": [
+    "Q1007870",
+    "Q1303167",
+    "Q1307276",
+    "Q1370598",
+    "Q1497375",
+    "Q160742",
+    "Q16560",
+    "Q16748868",
+    "Q16970",
+    "Q2031836",
+    "Q22687",
+    "Q227857",
+    "Q23413",
+    "Q26944999",
+    "Q27686",
+    "Q2811",
+    "Q2977",
+    "Q35509",
+    "Q3867560",
+    "Q3918",
+    "Q3947",
+    "Q39715",
+    "Q44494",
+    "Q44539",
+    "Q4830453",
+    "Q486972",
+    "Q56344492",
+    "Q79007",
+    "Q811979",
+    "Q83405"
+  ],
+  "year_max": 1899,
+  "notes": "museums pre-1900"
+}

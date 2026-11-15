@@ -1,0 +1,43 @@
+{
+ "id": "archaeology-lowbar-sites-noenwiki-sl2",
+ "entity_type": "infrastructure_monument",
+ "description": "Archaeological sites with coordinates and no English Wikipedia article, >=2 sitelinks, not founded after 1800",
+ "where": "?item wdt:P31 wd:Q839954 . ?item wdt:P625 ?hm_co . FILTER NOT EXISTS { ?item wdt:P571 ?hm_y . FILTER(?hm_y > \"1800-01-01T00:00:00Z\"^^xsd:dateTime) } MINUS { ?item wdt:P31 wd:Q15661340 } MINUS { ?item wdt:P31 wd:Q852190 } MINUS { ?item wdt:P31 wd:Q23413 }",
+ "min_sitelinks": 2,
+ "enwiki": false,
+ "exclude_p31": [
+  "Q1048835",
+  "Q10864048",
+  "Q123705",
+  "Q148837",
+  "Q15284",
+  "Q1549591",
+  "Q16970",
+  "Q211302",
+  "Q2221906",
+  "Q23397",
+  "Q23413",
+  "Q23442",
+  "Q355304",
+  "Q3957",
+  "Q39816",
+  "Q4022",
+  "Q46831",
+  "Q484170",
+  "Q486972",
+  "Q515",
+  "Q532",
+  "Q56061",
+  "Q590080",
+  "Q6256",
+  "Q747074",
+  "Q8502",
+  "Q852190"
+ ],
+ "require": [
+  "coords"
+ ],
+ "year_max": 1800,
+ "priority": 3,
+ "notes": "wave7 scout est 80%; sites without enwiki; sample precision 0.93 (polis cities excluded); undated ok; enwiki:false"
+}

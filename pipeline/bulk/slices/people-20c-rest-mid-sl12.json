@@ -1,0 +1,24 @@
+{
+  "id": "people-20c-rest-mid-sl12",
+  "entity_type": "person",
+  "description": "People born 1925-1949, sitelinks>=12, outside the occupation slices, not sport or entertainment",
+  "where": "?item wdt:P31 wd:Q5 . MINUS { ?item wdt:P106 ?x . VALUES ?x { wd:Q2066131 wd:Q33999 wd:Q177220 wd:Q10800557 wd:Q2405480 wd:Q10798782 wd:Q639669 wd:Q947873 wd:Q245068 wd:Q855091 wd:Q386854 wd:Q130857 wd:Q753110 wd:Q488205 wd:Q2252262 wd:Q43845 wd:Q131524 wd:Q3282637 wd:Q2259451 wd:Q4610556 wd:Q177220 wd:Q12362622 wd:Q1415090 wd:Q3455803 } } MINUS { ?item wdt:P106/wdt:P279* wd:Q50995749 }",
+  "min_sitelinks": 12,
+  "shards": {
+    "years": {
+      "prop": "P569",
+      "from": 1925,
+      "to": 1950,
+      "step": 1
+    }
+  },
+  "require": [
+    "dates"
+  ],
+  "year_min": 1925,
+  "year_max": 1949,
+  "exclude_desc": "\\b(actor|actress|singer|musician|presenter|drummer|guitarist|rapper|model|comedian|dancer|racing driver|racecar driver|rally driver|motorcycle racer|footballer|football player|soccer player|athlete|swimmer|tennis player|cyclist|boxer|wrestler|rower|coxswain|skier|ski jumper|gymnast|fencer|cricketer|rugby|baseball|basketball|ice hockey|hockey player|jockey|equestrian|sprinter|hurdler|golfer|sport shooter|bobsledder|speed skater|figure skater|weightlifter|canoeist|coach|olympic (?:champion|medalist|medallist|athlete)|long-distance runner|middle-distance runner|high jumper|long jumper|pole vaulter|discus thrower|javelin thrower|shot putter|decathlete|track and field)\\b|supercentenarian|oldest (living|known) (person|man|woman)|competed in the \\d{4} (?:summer|winter) olympics",
+  "keep_desc": "\\b(politician|diplomat|statesman|minister|president|governor|senator|deputy|member of|mayor|judge|lawyer|jurist|justice|official|activist|officer|general|admiral|soldier|military|army|navy|naval|pilot|aviator|commander|marshal|colonel|scientist|physicist|chemist|mathematician|physician|biologist|professor|scholar|historian|economist|philosopher|inventor|astronomer|engineer|architect|writer|poet|novelist|painter|sculptor|composer|artist|journalist|author|playwright|priest|bishop|clergyman|missionary|theologian|monk|saint|prince|princess|king|queen|count|duke|noble|nobleman|aristocrat|businessman|industrialist|merchant|banker|explorer|founder|philanthropist|educator|teacher|noblewoman|peer|earl|viscount|marquess|baron|baronet|leader|warrior|chief)\\b",
+  "priority": 6,
+  "notes": "wave7 people-20c-rest; entertainers/sport/business excluded by P106 MINUS and description gate"
+}

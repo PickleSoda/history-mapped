@@ -1,0 +1,43 @@
+{
+ "id": "archaeology-lowbar-megaliths-hillforts-noenwiki",
+ "entity_type": "infrastructure_monument",
+ "description": "Megaliths, tumuli, tells, hillforts, pyramids etc. with coordinates, no English Wikipedia article, >=2 sitelinks",
+ "where": "VALUES ?hm_c { wd:Q1935728 wd:Q34023 wd:Q101659 wd:Q193475 wd:Q755017 wd:Q11269813 wd:Q1152199 wd:Q5228121 wd:Q1141225 wd:Q175582 wd:Q744099 } ?item wdt:P31 ?hm_c . ?item wdt:P625 ?hm_co . MINUS { ?item wdt:P31 wd:Q839954 } FILTER NOT EXISTS { ?item wdt:P571 ?hm_y . FILTER(?hm_y > \"1800-01-01T00:00:00Z\"^^xsd:dateTime) } MINUS { ?item wdt:P31 wd:Q15661340 } MINUS { ?item wdt:P31 wd:Q852190 } MINUS { ?item wdt:P31 wd:Q23413 }",
+ "min_sitelinks": 2,
+ "enwiki": false,
+ "exclude_p31": [
+  "Q1048835",
+  "Q10864048",
+  "Q123705",
+  "Q15284",
+  "Q1549591",
+  "Q16970",
+  "Q211302",
+  "Q2221906",
+  "Q23397",
+  "Q23413",
+  "Q23442",
+  "Q355304",
+  "Q3957",
+  "Q39816",
+  "Q4022",
+  "Q46831",
+  "Q484170",
+  "Q486972",
+  "Q515",
+  "Q532",
+  "Q56061",
+  "Q590080",
+  "Q6256",
+  "Q747074",
+  "Q8502",
+  "Q852190",
+  "Q1489259"
+ ],
+ "require": [
+  "coords"
+ ],
+ "year_max": 1800,
+ "priority": 3,
+ "notes": "wave7 scout est 80%; monument classes not tagged archaeological site; sample precision 0.95; many Japanese kofun without English description; enwiki:false"
+}

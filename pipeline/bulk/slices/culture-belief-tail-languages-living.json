@@ -1,0 +1,9 @@
+{
+  "id": "culture-belief-tail-languages-living",
+  "entity_type": "language",
+  "description": "Living, minority, endangered and historical-form natural languages",
+  "where": "VALUES ?hm_c { wd:Q34770 wd:Q1288568 wd:Q33742 wd:Q4085712 } ?item wdt:P31 ?hm_c . MINUS { ?item wdt:P31/wdt:P279* wd:Q33215 } MINUS { ?item wdt:P31/wdt:P279* wd:Q9143 } MINUS { ?item wdt:P31/wdt:P279* wd:Q45762 }",
+  "min_sitelinks": 3,
+  "priority": 3,
+  "notes": "scout 90%; excludes constructed, programming and extinct languages"
+}
