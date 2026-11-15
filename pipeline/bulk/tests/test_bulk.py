@@ -262,3 +262,39 @@ def test_a_coarse_date_gives_way_to_a_later_precise_one():
     assert items["Q1"]["inception"] == "1862" and items["Q1"]["_date_prec"]["inception"] == 11
     assert items["Q2"]["inception"] == "1850"
     assert items["Q3"]["inception"] == "1801" and items["Q3"]["_date_prec"]["inception"] == 7
+
+
+@pytest.mark.parametrize("lead,want", [
+    ("Max Waldau (1825 – 1855) was a German poet.", (1825, 1855)),
+    ("William Maginn (10 July 1794 – 21 August 1842) was", (1794, 1842)),
+    ("Ann (born c. 1843 in Paris; died 1893) was", (1843, 1893)),
+    ("Hamuro (fl. 1203–1230) was a poet", (None, None)),
+    ("Otto (reigned 1305–1307) was", (None, None)),
+    ("Jane (1843 or 1844 – 1893) was", (None, None)),
+    ("Kulthum (born 1957) is an Iranian writer", (1957, None)),
+    ("Plain lead without a parenthesis, born 1800.", (None, None)),
+])
+def test_lead_lifespan(lead, want):
+    from pipeline.bulk.build import lead_lifespan
+    assert lead_lifespan(lead) == want
+
+
+def _ts(y):
+    return {"qid": None, "label": f"{y:04d}-01-01T00:00:00Z", "uri": "x"}
+
+
+def test_the_lead_picks_among_several_wikidata_years():
+    s = spec(entity_type="person", where="?item wdt:P31 wd:Q5 .")
+    maginn = person(birth_date="1793", death_date="1842", summary="William Maginn (10 July 1794 – 21 August 1842) was an Irish journalist.",
+                    properties={"P569": [_ts(1793), _ts(1794)], "P570": [_ts(1842)]})
+    lone = person(qid="Q10", birth_date="1793", death_date="1842", summary="Someone (1790 – 1842) was",   # 1790 is not a Wikidata value
+                  properties={"P569": [_ts(1793), _ts(1795)]})
+    hijri = person(qid="Q11", birth_date="1377", summary="An Iranian writer.", properties={"P569": [_ts(1377), _ts(1957)]})
+    hijri_lead = person(qid="Q12", birth_date="1377", summary="Kulthum (born 1957) is an Iranian writer.",
+                        properties={"P569": [_ts(1377), _ts(1957)]})
+    kept, dropped = build([maginn, lone, hijri, hijri_lead], spec(entity_type="person", where="?item wdt:P31 wd:Q5 .", year_max=1899))
+    by = {r["wikidata_id"]: r for r in kept}
+    assert by["Q9"]["temporal_start"] == "1794" and by["Q9"]["attributes"]["birth_date"].startswith("1794")
+    assert by["Q10"]["temporal_start"] == "1793"          # the lead names no Wikidata value: unchanged
+    assert by["Q11"].get("temporal_start") is None         # 580 years apart, no lead: undated
+    assert "Q12" not in by and dropped["after-year-max"] == 1   # the lead says 1957: out of range

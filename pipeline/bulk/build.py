@@ -56,6 +56,69 @@ def drop_coarse_dates(raw: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
+# The first parenthesis of a person's lead usually holds the lifespan:
+# "Max Waldau (1825 – 1855) was". Reign and floruit spans are not lives, and
+# "or", "after", "before" make a year uncertain.
+LEAD_PAREN = re.compile(r"\(([^()]{0,160})\)")
+NOT_A_LIFESPAN = re.compile(r"\b(fl|floruit|r|reign\w*|ruled|or|after|before|aged|bapt\w*)\b\.?", re.I)
+CE_YEAR = re.compile(r"(?<![\d/])(1\d{3}|20[0-2]\d)(?!\d)")
+WD_YEAR = re.compile(r"^([+-]?\d{1,5})-")
+
+
+def lead_lifespan(summary: str | None) -> tuple[int | None, int | None]:
+    """Birth and death years (CE, 1000 on) from the first parenthesis of a lead."""
+    m = LEAD_PAREN.search((summary or "")[:400])
+    if not m or NOT_A_LIFESPAN.search(m.group(1)):
+        return None, None
+    years = [int(y) for y in CE_YEAR.findall(m.group(1))]
+    if len(years) >= 2 and years[0] < years[-1]:
+        return years[0], years[-1]
+    if len(years) == 1 and re.search(r"\bborn\b|\bb\.", m.group(1)):
+        return years[0], None
+    return None, None
+
+
+def _wd_years(values: list[dict[str, Any]]) -> list[int]:
+    out = []
+    for v in values or []:
+        m = WD_YEAR.match(str(v.get("label") or ""))
+        if m:
+            out.append(int(m.group(1)))
+    return out
+
+
+def reconcile_lifespan(raw: dict[str, Any]) -> dict[str, Any]:
+    """Choose among a person's several Wikidata birth or death years.
+
+    The fetch keeps the earliest of equally ranked values, which is often a
+    variant (William Maginn 1793 against the accepted 1794) and sometimes a
+    misread calendar (a living author born 1957 stored as 1377). When the
+    lead names one of the values, that one wins; when the values lie more
+    than 100 years apart and the lead names none, the date is dropped.
+    Only Wikidata's own values are ever chosen.
+    """
+    props = raw.get("properties") or {}
+    lead = lead_lifespan(raw.get("summary"))
+    out = raw
+    for i, (pid, key) in enumerate((("P569", "birth_date"), ("P570", "death_date"))):
+        years = _wd_years(props.get(pid))
+        if len(set(years)) < 2 or raw.get(key) is None:
+            continue
+        want = lead[i]
+        if want is not None and want in years:
+            if str(want) != str(raw.get(key)):
+                out = dict(out) if out is raw else out
+                out[key] = str(want)
+                out["_date_prec"] = {**(out.get("_date_prec") or {}), key: 9}
+                out["properties"] = {**(out.get("properties") or {}), pid: [v for v, y in zip(props[pid], years) if y == want][:1]}
+        elif max(years) - min(years) > 100:
+            out = dict(out) if out is raw else out
+            out.pop(key, None)
+            out["_date_prec"] = {k: v for k, v in (out.get("_date_prec") or {}).items() if k != key}
+            out["properties"] = {k: v for k, v in (out.get("properties") or {}).items() if k != pid}
+    return out
+
+
 def drop_dates(raw: dict[str, Any]) -> dict[str, Any]:
     """The raw item without any of its dates (and their properties)."""
     keys = {k for k in RAW_KEY_PIDS if raw.get(k) is not None}
@@ -133,7 +196,7 @@ def build(raws: list[dict[str, Any]], s: Slice, mapper: EntityMapper | None = No
     dropped: Counter = Counter()
     for raw in raws:
         if s.entity_type == "person":
-            raw = drop_coarse_dates(raw)
+            raw = reconcile_lifespan(drop_coarse_dates(raw))
         if HATNOTE.search(raw.get("summary") or ""):
             raw = {k: v for k, v in raw.items() if k not in ("summary", "full_extract")}
         record = mapper.map(raw, s.entity_type)
