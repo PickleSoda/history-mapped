@@ -18,7 +18,7 @@ from typing import Any
 
 import click
 
-from pipeline.bulk.build import build
+from pipeline.bulk.build import CURRENT_YEAR, build
 from pipeline.bulk.fetch import fetch_batch
 from pipeline.bulk.spec import Slice, ValueShard, Window, all_slices
 from pipeline.bulk.store import API_DROP, PART_SIZE, REPO, SliceStore, add_claims, claims, db_qids, locked
@@ -322,6 +322,67 @@ def prune(slice_id: str, everything: bool, yes: bool) -> None:
             for n in store.part_numbers():
                 store.import_path(n).unlink(missing_ok=True)
     say(f"{slice_id}: deleted {len(rows)} rows")
+
+
+# Relations a bulk import created between a polity and something outside the
+# polity's lifetime (with slack): Wikidata names today's state for old
+# events and births (France, founded 1958 in our rows, "participating" in a
+# 1781 action). A polity with no end year is ongoing; other rows with no end
+# are a single year.
+ANACHRONISTIC = """
+with r as (
+  select r.relationship_id, r.relationship_type, s.entity_type st, t.entity_type tt, s.name sn, t.name tn,
+         ts.start_year s0,
+         case when s.entity_type = 'political_entity' then coalesce(ts.end_year, %(now)s)
+              else coalesce(ts.end_year, ts.start_year) end s1,
+         tr.start_year t0,
+         case when t.entity_type = 'political_entity' then coalesce(tr.end_year, %(now)s)
+              else coalesce(tr.end_year, tr.start_year) end t1
+  from relationships r
+  join entities s on s.entity_id = r.source_entity_id
+  join entities t on t.entity_id = r.target_entity_id
+  left join entity_temporal_ranges ts on ts.entity_id = s.entity_id and ts.is_primary
+  left join entity_temporal_ranges tr on tr.entity_id = t.entity_id and tr.is_primary
+  where r.created_by like 'pipeline:bulk-%%'
+)
+select relationship_id::text, relationship_type, sn, tn, s0, s1, t0, t1 from r
+where s0 is not null and t0 is not null and (
+      (st = 'political_entity' and (t1 < s0 - %(slack)s or t0 > s1 + %(slack)s))
+   or (tt = 'political_entity' and (s1 < t0 - %(slack)s or s0 > t1 + %(slack)s)))
+"""
+
+
+@cli.command()
+@click.option("--slack", type=int, default=25, help="Years of tolerance around a polity's lifetime")
+@click.option("--yes", is_flag=True, help="Delete; without it, a dry run")
+def tidy(slack: int, yes: bool) -> None:
+    """Delete bulk-created relations that link a polity to something outside its lifetime (CSV backup)."""
+    import csv
+
+    import psycopg
+
+    from pipeline.bulk.store import ROOT
+    from pipeline.local_db import dsn
+
+    with psycopg.connect(dsn()) as conn, conn.cursor() as cur:
+        cur.execute(ANACHRONISTIC, {"now": CURRENT_YEAR, "slack": slack})
+        rows = cur.fetchall()
+        by_type = Counter(r[1] for r in rows)
+        say(f"tidy: {len(rows)} anachronistic polity relations {dict(by_type.most_common())}")
+        for r in rows[:8]:
+            say(f"  {r[2]} {r[1]} {r[3]} ({r[4]}..{r[5]} vs {r[6]}..{r[7]})")
+        if not yes or not rows:
+            say("dry run; pass --yes to delete" if rows else "nothing to do")
+            return
+        out = ROOT / "tidy" / f"anachronistic-{time.strftime('%Y%m%d-%H%M%S')}.csv"
+        out.parent.mkdir(parents=True, exist_ok=True)
+        with open(out, "w", newline="") as fh:
+            w = csv.writer(fh)
+            w.writerow(["relationship_id", "type", "source", "target", "s0", "s1", "t0", "t1"])
+            w.writerows(rows)
+        cur.execute("delete from relationships where relationship_id = any(%s::uuid[])", ([r[0] for r in rows],))
+        conn.commit()
+    say(f"tidy: deleted {len(rows)}; backup {out}")
 
 
 @cli.command()
