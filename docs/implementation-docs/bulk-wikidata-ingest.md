@@ -192,6 +192,9 @@ into nothing. Then:
 | Cut or debris-laden summaries | `$CLI resummarize [--yes]` re-cuts bulk summaries from their own stored lead |
 | Date rule changes | `rebuild --imported` on the person slices, then `redate` |
 | Map points or years that drifted | `$CLI sync-geometry [--requid-since <stamp>] [--yes]`: the tiles read `geometry_periods`, which the import copies once from the primary location; `apply-audit` and `redate` now re-sync them, this fixes older drift |
+| A lead about another subject | `apply-audit` with `wrong_lead:<Wikidata description>`: the summary becomes the description (empty: none), the lead is dropped and `_lead_rejected` stamped. Find candidates by sitelinks Wikidata badges as redirects (QLever, `wikibase:badge wd:Q70893996`) and by summaries that never name the row; a judge decides each |
+| Junk or generic names | `apply-audit` with `rename:<name>`: vandalised labels ("Battle of Deez Nutz"), bot labels ("Schloss", "Burgruine"); take the item's own article title. Skipped when the type already has a row of that name |
+| Pre-1582 dates shown in the Gregorian calendar | `$CLI julian-dates <tsv> [--yes]` with the QLever result of `JULIAN_QUERY` (in `__main__.py`); later Julian dates stay New Style |
 
 ## Troubleshooting
 
@@ -216,3 +219,5 @@ into nothing. Then:
 | A person a year or two off the lead, or with no death year | Built before 95d549d; `rebuild --imported` on the person slices, then `redate` |
 | A church shows "1001 CE" | A century date read as a year; rebuilt parts carry `temporal_display_range` ("11th century") since 65fdb4e. `rebuild --imported` and `redate` |
 | A corrected row still shows at its old point or years on the map | Its map period was not re-synced (before b08f930); `sync-geometry --yes` |
+| An infant princess's summary is her father's biography | Her English sitelink is a redirect into his article; fetches since f2cd085 take no lead from a badged sitelink. Older rows: `wrong_lead` |
+| Edward the Confessor died "1066-01-11" | WDQS converts Julian dates to Gregorian; fetches since 8550b35 convert pre-1582 dates back. Older rows: `julian-dates` |
