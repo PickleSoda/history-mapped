@@ -298,3 +298,29 @@ def test_the_lead_picks_among_several_wikidata_years():
     assert by["Q10"]["temporal_start"] == "1793"          # the lead names no Wikidata value: unchanged
     assert by["Q11"].get("temporal_start") is None         # 580 years apart, no lead: undated
     assert "Q12" not in by and dropped["after-year-max"] == 1   # the lead says 1957: out of range
+
+
+def test_release_gives_back_only_claims_dropped_for_the_bound(tmp_path, monkeypatch):
+    import pipeline.bulk.store as store_mod
+    from click.testing import CliRunner
+
+    from pipeline.bulk import __main__ as cli
+
+    monkeypatch.setattr(store_mod, "ROOT", tmp_path)
+    s = spec(year_max=1950)
+    st = store_mod.SliceStore(s.id)
+    monkeypatch.setattr(cli, "_load", lambda _id: (s, st))
+    raws = [raw(), raw(qid="Q2", point_in_time="1967"), raw(qid="Q3", label="")]
+    kept, _ = build(raws, s)
+    st.write_raw(0, raws)
+    st.write_part(0, kept)
+    st.write_json(st.meta_path(0), {"records": len(kept)})
+    claims = tmp_path / "claims.tsv"
+    claims.write_text("Q1\ttest-slice\nQ2\ttest-slice\nQ3\ttest-slice\nQ4\ttest-slice\nQ2\tother\n")
+    dry = CliRunner().invoke(cli.cli, ["release", "test-slice"])
+    assert dry.exit_code == 0, dry.output
+    assert "Q2\ttest-slice" in claims.read_text()
+    run = CliRunner().invoke(cli.cli, ["release", "test-slice", "--yes"])
+    assert run.exit_code == 0, run.output
+    # kept (Q1), unmappable (Q3) and unfetched (Q4) stay; another slice's line is untouched
+    assert claims.read_text() == "Q1\ttest-slice\nQ3\ttest-slice\nQ4\ttest-slice\nQ2\tother\n"

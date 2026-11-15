@@ -133,6 +133,17 @@ $CLI redate <id> … --yes              # before-values go to output/bulk/redate
 A rebuilt part that keeps more rows than before does not import the new ones: the part is already
 marked imported.
 
+A slice claims every QID it lists, including the ones its gates later drop. When a later slice is
+meant for those items (a 1950–1999 battles slice after a battles slice bounded at 1950), give the
+dropped claims back first:
+
+```bash
+$CLI release <id> …                   # dry run: claims dropped for after-year-max or before-year-min
+$CLI release <id> … --reason no-dates --yes
+```
+
+Only fetched parts are examined; claims on unfetched queue entries and `qid-audit-blocked` stay.
+
 ## 7. After a wave
 
 | Step | Command |
@@ -152,6 +163,7 @@ Bulk rows reach production only through a full content load
 |---|---|
 | A slicer or fetch logs 429 or 504 for minutes | WDQS is saturated. Run fewer slicers and fetchers at once |
 | `Failed to find executable` from `bulk_run.sh` | An old copy of the script; `PY` must be exported to the `xargs` workers |
+| A slicer finds its whole pool "claimed by other slices" | An earlier slice listed and then dropped them (year bounds); `release` that slice's claims, then re-run `qids` |
 | Rows imported before approval | The importer predates `approved.txt`; `prune <id> --all --yes` and re-approve |
 | Deletes take minutes | Missing indexes on the columns that reference entities; run the migrations |
 | "person rules X" relations to offices | Old builds kept P39 hints; rebuilt parts drop them |

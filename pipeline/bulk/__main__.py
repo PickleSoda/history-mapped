@@ -251,6 +251,57 @@ def rebuild(slice_id: str, imported: bool) -> None:
 
 
 @cli.command()
+@click.argument("slice_ids", nargs=-1, required=True)
+@click.option(
+    "--reason",
+    "reasons",
+    multiple=True,
+    default=("after-year-max", "before-year-min"),
+    show_default=True,
+    help="Gate reasons whose drops are given back",
+)
+@click.option("--yes", is_flag=True, help="Rewrite claims.tsv; without it, a dry run")
+def release(slice_ids: tuple[str, ...], reasons: tuple[str, ...], yes: bool) -> None:
+    """Give back claims on QIDs a fetched slice dropped for these gate reasons.
+
+    A slice claims every QID it lists, so an item it later drops (say, a
+    1960s battle under a year_max of 1950) stays out of reach of the slice
+    meant for it. Only fetched parts are examined; claims of unfetched
+    queue entries and of `qid-audit-blocked` are never touched.
+    """
+    from pipeline.bulk.store import ROOT
+
+    freed: dict[str, set[str]] = {}
+    for slice_id in slice_ids:
+        s, store = _load(slice_id)
+        out: set[str] = set()
+        for n in store.part_numbers():
+            if not store.raw_path(n).exists():
+                continue
+            with open(store.part_path(n)) as fh:
+                kept = {json.loads(line).get("wikidata_id") for line in fh if line.strip()}
+            for raw in store.read_raw(n):
+                if raw.get("qid") in kept:
+                    continue
+                _, dropped = build([raw], s)
+                if set(dropped) & set(reasons):
+                    out.add(raw["qid"])
+        freed[slice_id] = out
+        say(f"{slice_id}: {len(out)} claims to release ({', '.join(reasons)})")
+    if not yes:
+        return
+    with locked("claims"):
+        path = ROOT / "claims.tsv"
+        keep = []
+        for ln in path.read_text().splitlines():
+            qid, sid = (ln.split("\t") + [""])[:2]
+            if qid not in freed.get(sid, ()):
+                keep.append(ln)
+        path.write_text("".join(f"{ln}\n" for ln in keep))
+    say(f"released {sum(map(len, freed.values()))} claims")
+
+
+@cli.command()
 @click.argument("slice_id")
 def reset(slice_id: str) -> None:
     """Forget a slice's listing, parts and claims (only before any part is imported)."""
