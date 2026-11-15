@@ -92,7 +92,8 @@ def test_gate_reasons():
 
 def test_build_maps_tags_and_never_borrows_a_point():
     s = spec()
-    no_point = raw(qid="Q2", coords=None, properties={"P17": [{"qid": "Q38", "label": "Italy", "uri": "x"}]},
+    no_point = raw(qid="Q2", coords=None, properties={"P17": [{"qid": "Q38", "label": "Italy", "uri": "x"}],
+                                                    "P39": [{"qid": "Q61982", "label": "daimyo", "uri": "x"}]},
                    _date_prec={"point_in_time": 7})
     kept, dropped = build([raw(), no_point, raw(qid="Q3", label="")], s)
     assert dropped == Counter({"unmappable": 1})
@@ -103,7 +104,7 @@ def test_build_maps_tags_and_never_borrows_a_point():
     assert "geojson" not in second  # the country's point is never borrowed
     assert second["date_confidence"] == "low"  # century precision
     assert start_precision(no_point) == 7
-    assert not any(h["source"] == "wikidata:P17" for h in second.get("_relationship_hints", []))
+    assert not any(h["source"] in ("wikidata:P17", "wikidata:P39") for h in second.get("_relationship_hints", []))
     assert second["location_name"] == "Italy"  # still named by its country
 
 

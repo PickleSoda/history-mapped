@@ -14,10 +14,13 @@ from pipeline.wikidata.mapper.entity_mapper import EntityMapper
 # unless widely covered: 3 sitelinks -> 45, 10 -> 56, 30 -> 66, 100 -> 76.
 IMPACT_MIN, IMPACT_MAX = 30, 80
 CURRENT_YEAR = 2026
-# P17 (country) and P131 (admin territory) name today's units: a hint from
-# them would make the Battle of Zela "part of Turkey". They still give the
-# row its location name.
-MODERN_UNIT_HINTS = {"wikidata:P17", "wikidata:P131"}
+# Hints bulk rows never stage:
+# - P17 (country) and P131 (admin territory) name today's units: a hint
+#   would make the Battle of Zela "part of Turkey". They still give the row
+#   its location name.
+# - P39 (position held) names an office, not a realm: it resolved to rows
+#   like Daimyo or Constable of France as "rules".
+DROPPED_HINTS = {"wikidata:P17", "wikidata:P131", "wikidata:P39"}
 
 
 # A lead that is really a hatnote or a disambiguation line says nothing about
@@ -91,7 +94,7 @@ def build(raws: list[dict[str, Any]], s: Slice, mapper: EntityMapper | None = No
             continue
         if record.get("_relationship_hints"):
             record["_relationship_hints"] = [
-                h for h in record["_relationship_hints"] if h.get("source") not in MODERN_UNIT_HINTS
+                h for h in record["_relationship_hints"] if h.get("source") not in DROPPED_HINTS
             ]
         prec = start_precision(raw)
         if prec is not None and prec < 9 and record.get("temporal_start") is not None:
