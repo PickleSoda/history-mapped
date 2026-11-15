@@ -474,9 +474,47 @@ def test_a_day_precise_lead_corrects_one_end_wikidata_has_far_off():
                       summary="John White (2 May 1850 – 3 June 1931) was a judge.")
     vague = person(qid="Q43", label="Old Man", birth_date="1700", death_date="1780",
                    summary="Old Man (c. 1 May 1690 – 3 June 1780) was a farmer.")
-    kept, _ = build([off, near, namesake, vague], s)
+    coarse = person(qid="Q44", label="Shlomo Goren", birth_date="1917", death_date="1994",
+                    summary="Shlomo Goren (3 February 1918 – 29 October 1994) was a rabbi.",
+                    _date_prec={"birth_date": 9, "death_date": 11})
+    precise = person(qid="Q45", label="Nam Il", birth_date="1915", death_date="1976",
+                     summary="Nam Il (5 June 1913 – 7 March 1976) was a North Korean officer.",
+                     _date_prec={"birth_date": 11, "death_date": 11})
+    typo = person(qid="Q46", label="Jedd P. Ladd", birth_date="1828", death_date="1894",
+                  summary="Jeffrey P. Ladd (September 28, 1828 – December 27, 2000) was a Vermont politician.",
+                  _date_prec={"birth_date": 11, "death_date": 9})
+    buried = person(qid="Q47", label="Edward Barrett", birth_date="1581", death_date="1644",
+                    summary="Sir Edward Barrett (21 June 1581 – buried 2 January 1645) was an English politician.",
+                    _date_prec={"birth_date": 11, "death_date": 9})
+    kept, _ = build([off, near, namesake, vague, coarse, precise, typo, buried], s)
     by = {k["wikidata_id"]: (k.get("temporal_start"), k.get("temporal_end")) for k in kept}
     assert by["Q40"] == ("1858", "1933")
-    assert by["Q41"] == ("1876", "1947")  # one year off: left alone
+    assert by["Q41"] == ("1876", "1947")  # one year off and Wikidata's precision unknown: left alone
+    assert by["Q44"] == ("1918", "1994")  # a bare 1917 against a day-precise lead
+    assert by["Q45"] == ("1915", "1976")  # two day-precise dates: a real conflict
+    assert by["Q46"] == ("1828", "1894")  # a 172-year lead lifespan is a typo
+    assert by["Q47"] == ("1581", "1644")  # a burial is not a death
     assert by["Q42"] == ("1820", "1890")  # neither end agrees: maybe not this person
     assert by["Q43"] == ("1700", "1780")  # circa
+
+
+def test_the_lead_fills_a_death_year_wikidata_lacks():
+    s = spec(entity_type="person", where="?item wdt:P31 wd:Q5 .")
+    plain = person(qid="Q50", label="John Taylor", birth_date="1775", death_date=None,
+                   summary="John Taylor (1775–1848) was an English hymn writer.")
+    near = person(qid="Q51", label="Ann Lee", birth_date="1736", death_date=None,
+                  summary="Ann Lee (29 February 1736 – 8 September 1784) was the leader of the Shakers.")
+    other = person(qid="Q52", label="Tom Hill", birth_date="1800", death_date=None,
+                   summary="Tom Hill (1760–1830) was a farmer.")
+    vague = person(qid="Q53", label="Ned Kay", birth_date="1700", death_date=None,
+                   summary="Ned Kay (1700 – c. 1770) was a weaver.")
+    living = person(qid="Q54", label="Lu Wen", birth_date="1950", death_date=None,
+                    summary="Lu Wen (born 1950) is a painter.")
+    kept, _ = build([plain, near, other, vague, living], s)
+    by = {k["wikidata_id"]: (k.get("temporal_start"), k.get("temporal_end")) for k in kept}
+    assert by["Q50"] == ("1775", "1848")
+    assert by["Q51"] == ("1736", "1784")
+    assert by["Q52"][1] is None  # the lead's birth is 40 years off: not this person
+    assert by["Q53"][1] is None  # circa
+    assert by["Q54"][1] is None
+
