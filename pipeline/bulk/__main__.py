@@ -385,6 +385,99 @@ def tidy(slack: int, yes: bool) -> None:
     say(f"tidy: deleted {len(rows)}; backup {out}")
 
 
+AUDIT_ACTIONS = ("needs_review", "delete", "merge_into", "fix_dates")
+
+
+@cli.command("apply-audit")
+@click.argument("csv_paths", nargs=-1, required=True)
+@click.option("--yes", is_flag=True, help="Write; without it, a dry run")
+def apply_audit(csv_paths: tuple[str, ...], yes: bool) -> None:
+    """Apply a bulk-auditor CSV (entity_id,qid,name,action,detail) after the orchestrator has curated it.
+
+    needs_review flags the row; delete removes a bulk row (others are only
+    flagged); merge_into:<id> folds the row into <id> (relations and
+    chronicle links re-pointed; the survivor takes the QID if it has none);
+    fix_dates:<start>..<end> sets the primary range (an empty end keeps it).
+    Anything else is flagged needs_review. One transaction; before-values go
+    to output/bulk/audit/applied-<stamp>.csv.
+    """
+    import csv
+
+    import psycopg
+
+    from pipeline.bulk.store import ROOT
+    from pipeline.local_db import dsn
+    from pipeline.merge_entities import merge
+
+    todo = []
+    for path in csv_paths:
+        with open(path, newline="") as fh:
+            todo += [dict(r, _file=path) for r in csv.DictReader(fh)]
+    done: Counter = Counter()
+    log_rows = []
+    with psycopg.connect(dsn()) as conn, conn.cursor() as cur:
+        for r in todo:
+            eid = (r.get("entity_id") or "").strip()
+            if not re.fullmatch(r"[0-9a-f-]{36}", eid):
+                cur.execute("select entity_id::text from entities where wikidata_id = %s", (r.get("qid"),))
+                hit = cur.fetchall()
+                if len(hit) != 1:
+                    done["unresolved"] += 1
+                    continue
+                eid = hit[0][0]
+            cur.execute(
+                "select e.name, e.wikidata_id, e.attributes ? '_bulk', t.start_year, t.end_year from entities e "
+                "left join entity_temporal_ranges t on t.entity_id = e.entity_id and t.is_primary where e.entity_id = %s",
+                (eid,),
+            )
+            row = cur.fetchone()
+            if row is None:
+                done["gone"] += 1
+                continue
+            name, qid, is_bulk, y0, y1 = row
+            action, _, arg = (r.get("action") or "").partition(":")
+            if action == "delete" and not is_bulk:
+                action = "needs_review"
+            if action not in AUDIT_ACTIONS:
+                action = "needs_review"
+            log_rows.append([eid, qid, name, r.get("action"), y0, y1, r["_file"]])
+            if action == "needs_review":
+                cur.execute("update entities set verification_status = 'needs_review' where entity_id = %s", (eid,))
+            elif action == "delete":
+                cur.execute("delete from entities where entity_id = %s", (eid,))
+            elif action == "merge_into":
+                cur.execute("select wikidata_id from entities where entity_id = %s", (arg,))
+                surv = cur.fetchone()
+                if surv is None or arg == eid:
+                    done["bad-merge-target"] += 1
+                    continue
+                merge(cur, arg, eid)
+                if surv[0] is None and qid:
+                    cur.execute("update entities set wikidata_id = %s where entity_id = %s", (qid, arg))
+            elif action == "fix_dates":
+                a, _, b = arg.partition("..")
+                start = int(a) if a.strip() else y0
+                end = int(b) if b.strip() else y1
+                cur.execute(
+                    "update entity_temporal_ranges set start_year = %s, end_year = %s, start_date = %s, end_date = %s, "
+                    "notes = coalesce(notes || ' ', '') || 'audit fix_dates', updated_at = now() "
+                    "where entity_id = %s and is_primary",
+                    (start, end, None if start is None else str(start), None if end is None else str(end), eid),
+                )
+            done[action] += 1
+        say(f"apply-audit: {dict(done)}" + ("" if yes else " (dry run; pass --yes to write)"))
+        if not yes:
+            conn.rollback()
+            return
+        out = ROOT / "audit" / f"applied-{time.strftime('%Y%m%d-%H%M%S')}.csv"
+        with open(out, "w", newline="") as fh:
+            w = csv.writer(fh)
+            w.writerow(["entity_id", "qid", "name", "action", "before_start", "before_end", "file"])
+            w.writerows(log_rows)
+        conn.commit()
+    say(f"apply-audit: written; before-values in {out}")
+
+
 @cli.command()
 @click.option("--idle-exit", is_flag=True, help="Exit when nothing is left to import")
 @click.option("--poll", type=int, default=30)
