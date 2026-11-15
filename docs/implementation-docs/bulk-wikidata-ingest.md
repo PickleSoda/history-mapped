@@ -97,6 +97,13 @@ $CLI apply-audit output/bulk/audit/<id>.csv --yes
 | `delete` | Deletes a bulk row (older rows are only flagged) |
 | `merge_into:<id>` | Folds the row into an older one with `pipeline.merge_entities`; the survivor takes the QID if it has none |
 | `fix_dates:a..b` | Sets the start and end years |
+| `requid:<bulk id or QID or none>` | An older row that holds another item's QID takes the right one. It folds in the bulk row about the same subject, swaps its point and images for the right item's, and deletes relations made through the wrong QID (their hints reopen) |
+| `requid:<…>:same` | As `requid`, when the old QID was a duplicate item of the same subject (a "city seat" item): its links stay and its hints move to the new QID |
+
+Older curated rows sometimes hold a namesake's QID (the president James Monroe held a Michigan
+politician's), and a bulk slice then adds the real subject as a second row. To find them, join
+curated and bulk rows on name and type, or compare each curated row's years with its own QID's
+Wikidata dates; a span that does not overlap marks a wrong QID. Fix them with `requid`.
 
 ## 6. Gate fixes and rollback
 
