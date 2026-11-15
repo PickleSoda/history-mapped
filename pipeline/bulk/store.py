@@ -122,6 +122,16 @@ class SliceStore:
         return path
 
 
+def approved() -> set[str]:
+    """Slices signed off for import (output/bulk/approved.txt, one id per
+    line). The importer daemon skips every other slice, so a slicer's
+    sample part is never imported before its verdict."""
+    path = ROOT / "approved.txt"
+    if not path.exists():
+        return set()
+    return {line.split("#")[0].strip() for line in path.read_text().splitlines()} - {""}
+
+
 def claims() -> dict[str, str]:
     path = ROOT / "claims.tsv"
     out: dict[str, str] = {}

@@ -164,3 +164,12 @@ def test_split_retry_halves_slow_batches_and_skips_a_hopeless_item(monkeypatch):
 
     fetch.split_retry(call, [f"Q{i}" for i in range(1, 11)], "test")
     assert sorted(done, key=lambda q: int(q[1:])) == [f"Q{i}" for i in range(1, 11) if i != 9]
+
+
+def test_approved_reads_ids_and_ignores_comments(tmp_path, monkeypatch):
+    import pipeline.bulk.store as store_mod
+
+    monkeypatch.setattr(store_mod, "ROOT", tmp_path)
+    assert store_mod.approved() == set()
+    (tmp_path / "approved.txt").write_text("# wave 1\nslice-a\n\nslice-b  # late\n")
+    assert store_mod.approved() == {"slice-a", "slice-b"}

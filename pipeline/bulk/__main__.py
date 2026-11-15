@@ -271,12 +271,15 @@ def reset(slice_id: str) -> None:
 @click.option("--idle-exit", is_flag=True, help="Exit when nothing is left to import")
 @click.option("--poll", type=int, default=30)
 def importer(idle_exit: bool, poll: int) -> None:
-    """Import built parts of every slice, priority order, until STOP exists in the bulk root."""
-    from pipeline.bulk.store import ROOT
+    """Import built parts of approved slices (approved.txt), priority order, until STOP exists in the bulk root."""
+    from pipeline.bulk.store import ROOT, approved
 
     while not (ROOT / "STOP").exists():
         did = False
+        ok = approved()
         for s in all_slices(errors=[]):
+            if s.id not in ok:
+                continue
             store = SliceStore(s.id)
             for n in pending_imports(store):
                 if (ROOT / "STOP").exists():
