@@ -543,7 +543,43 @@ def tidy(slack: int, person_slack: int, yes: bool) -> None:
     say(f"tidy: deleted {len(rows)}; backup {out}")
 
 
-AUDIT_ACTIONS = ("needs_review", "delete", "merge_into", "fix_dates")
+AUDIT_ACTIONS = ("needs_review", "delete", "merge_into", "fix_dates", "requid")
+
+
+def requid(cur, eid: str, bulk_id: str) -> str | None:
+    """Give an older row the QID of the bulk row about the same subject, folding the bulk row in.
+
+    The older row held another item's QID, so its points (unless an admin
+    placed them) and its uncurated images came from that item: they are
+    replaced by the bulk row's. Its own text, dates and chronicle links
+    stay. Returns why it was refused, or None.
+    """
+    from pipeline.merge_entities import merge
+
+    cur.execute("select wikidata_id, attributes ? '_bulk' from entities where entity_id = %s", (bulk_id,))
+    row = cur.fetchone()
+    if row is None or not row[0] or not row[1] or bulk_id == eid:
+        return "bad-requid-target"
+    qid = row[0]
+    cur.execute(
+        "delete from entity_locations where entity_id = %s and location_method is distinct from 'human_assigned'",
+        (eid,),
+    )
+    cur.execute("select exists(select 1 from entity_locations where entity_id = %s and is_primary)", (eid,))
+    has_primary = cur.fetchone()[0]
+    cur.execute(
+        "update entity_locations set entity_id = %s, is_primary = is_primary and not %s where entity_id = %s",
+        (eid, has_primary, bulk_id),
+    )
+    cur.execute("update entities set wikidata_id = null where entity_id = %s", (eid,))
+    cur.execute(
+        "update entities set attributes = attributes - 'media_refs' "
+        "where entity_id = %s and not attributes ? '_media_curated_at'",
+        (eid,),
+    )
+    merge(cur, eid, bulk_id)
+    cur.execute("update entities set wikidata_id = %s where entity_id = %s", (qid, eid))
+    return None
 
 
 @cli.command("apply-audit")
@@ -555,7 +591,9 @@ def apply_audit(csv_paths: tuple[str, ...], yes: bool) -> None:
     needs_review flags the row; delete removes a bulk row (others are only
     flagged); merge_into:<id> folds the row into <id> (relations and
     chronicle links re-pointed; the survivor takes the QID if it has none);
-    fix_dates:<start>..<end> sets the primary range (an empty end keeps it).
+    fix_dates:<start>..<end> sets the primary range (an empty end keeps it);
+    requid:<bulk id> gives an older row that holds the wrong QID the bulk
+    row's QID, point and images and folds the bulk row in (see `requid`).
     Anything else is flagged needs_review. One transaction; before-values go
     to output/bulk/audit/applied-<stamp>.csv.
     """
@@ -596,6 +634,9 @@ def apply_audit(csv_paths: tuple[str, ...], yes: bool) -> None:
             action, _, arg = (r.get("action") or "").partition(":")
             if action == "delete" and not is_bulk:
                 action = "needs_review"
+            if action == "requid" and is_bulk:
+                done["requid-on-bulk-row"] += 1
+                continue
             if action not in AUDIT_ACTIONS:
                 action = "needs_review"
             log_rows.append([eid, qid, name, r.get("action"), y0, y1, r["_file"]])
@@ -612,6 +653,11 @@ def apply_audit(csv_paths: tuple[str, ...], yes: bool) -> None:
                 merge(cur, arg, eid)
                 if surv[0] is None and qid:
                     cur.execute("update entities set wikidata_id = %s where entity_id = %s", (qid, arg))
+            elif action == "requid":
+                why = requid(cur, eid, arg)
+                if why:
+                    done[why] += 1
+                    continue
             elif action == "fix_dates":
                 a, _, b = arg.partition("..")
                 start = int(a) if a.strip() else y0
