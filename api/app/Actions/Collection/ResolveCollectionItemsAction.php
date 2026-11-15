@@ -250,9 +250,7 @@ class ResolveCollectionItemsAction
             return Tag::query()->whereIn('slug', $slugs)->pluck('slug')->flip()->map(fn () => true)->all();
         }
 
-        return Tag::query()
-            ->whereIn('slug', $slugs)
-            ->withCount(TagResource::counts())
+        return TagResource::withCounts(Tag::query()->whereIn('slug', $slugs))
             ->get()
             ->mapWithKeys(fn (Tag $t) => [$t->slug => TagResource::row($t)])
             ->all();

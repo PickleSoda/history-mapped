@@ -21,9 +21,7 @@ class TagController extends Controller
      */
     public function index(): JsonResponse
     {
-        $tags = Tag::query()
-            ->ordered()
-            ->withCount(TagResource::counts())
+        $tags = TagResource::withCounts(Tag::query()->ordered())
             ->get()
             ->reject(fn (Tag $t): bool => $t->facet === TagFacet::Topic
                 && $t->chronicles_count === 0 && $t->entities_count === 0);

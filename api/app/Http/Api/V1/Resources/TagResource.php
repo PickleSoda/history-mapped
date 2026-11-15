@@ -8,27 +8,35 @@ use App\Models\Tag;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\DB;
 
 /**
  * A tag as GET /tags lists it (and a curated collection embeds it). Load the
- * usage counts first: `withCount(TagResource::counts())`.
+ * usage counts first: `TagResource::withCounts(Tag::query())`.
  *
  * @mixin Tag
  */
 class TagResource extends JsonResource
 {
     /**
-     * The usage counts row() reads. Archived chronicles are hidden from the
-     * public site, so they don't count.
+     * Add the usage counts row() reads. Archived chronicles are hidden from the
+     * public site, so they don't count. Entities are counted straight from
+     * entity_tags: its foreign key cascades, so every row has its entity, and
+     * a join to entities made the count take seconds once tags reached
+     * millions of rows.
      *
-     * @return array<int|string, mixed>
+     * @template TModel of Tag
+     *
+     * @param  Builder<TModel>  $query
+     * @return Builder<TModel>
      */
-    public static function counts(): array
+    public static function withCounts(Builder $query): Builder
     {
-        return [
-            'chronicles' => fn (Builder $query) => $query->notArchived(),
-            'entities',
-        ];
+        return $query
+            ->withCount(['chronicles' => fn (Builder $q) => $q->notArchived()])
+            ->addSelect(['entities_count' => DB::table('entity_tags')
+                ->selectRaw('count(*)')
+                ->whereColumn('entity_tags.tag', 'tags.slug')]);
     }
 
     /** @return array<string, mixed> */
