@@ -1,0 +1,24 @@
+{
+  "id": "people-rest-1500-1699",
+  "entity_type": "person",
+  "description": "Every other person born 1500-1699 with an English Wikipedia article and a year-precision birth date, not a sportsperson",
+  "where": "?item wdt:P31 wd:Q5 . MINUS { ?item wdt:P106/wdt:P279* wd:Q50995749 }",
+  "min_sitelinks": 1,
+  "shards": {
+    "years": {
+      "prop": "P569",
+      "from": 1500,
+      "to": 1700,
+      "step": 5
+    }
+  },
+  "require": [
+    "dates"
+  ],
+  "year_min": 1500,
+  "year_max": 1699,
+  "exclude_desc": "\\b(racing driver|racecar driver|rally driver|motorcycle racer|footballer|football player|soccer player|athlete|swimmer|tennis player|cyclist|boxer|wrestler|rower|coxswain|skier|ski jumper|gymnast|fencer|cricketer|rugby|baseball|basketball|ice hockey|hockey player|jockey|equestrian|sprinter|hurdler|golfer|sport shooter|bobsledder|speed skater|figure skater|weightlifter|canoeist|coach|olympic (?:champion|medalist|medallist|athlete)|long-distance runner|middle-distance runner|high jumper|long jumper|pole vaulter|discus thrower|javelin thrower|shot putter|decathlete|track and field)\\b|supercentenarian|oldest (living|known) (person|man|woman)|competed in the \\d{4} (?:summer|winter) olympics",
+  "keep_desc": "\\b(politician|diplomat|statesman|minister|president|governor|senator|deputy|member of|mayor|judge|lawyer|jurist|justice|official|activist|officer|general|admiral|soldier|military|army|navy|naval|pilot|aviator|commander|marshal|colonel|scientist|physicist|chemist|mathematician|physician|biologist|professor|scholar|historian|economist|philosopher|inventor|astronomer|engineer|architect|writer|poet|novelist|painter|sculptor|composer|artist|journalist|author|playwright|priest|bishop|clergyman|missionary|theologian|monk|saint|prince|princess|king|queen|count|duke|noble|nobleman|aristocrat|businessman|industrialist|merchant|banker|explorer|founder|philanthropist|educator|teacher|noblewoman|peer|earl|viscount|marquess|baron|baronet|leader|warrior|chief)\\b",
+  "priority": 5,
+  "notes": "Catch-all tier after the occupation slices (2026-11-15): the English Wikipedia article is the bar. List through QLever (BULK_LIST_ENDPOINT). Sportspeople out by class (Q50995749 subclasses) and by description."
+}
