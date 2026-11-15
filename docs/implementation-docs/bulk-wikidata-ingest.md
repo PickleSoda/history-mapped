@@ -191,6 +191,7 @@ into nothing. Then:
 | Stock images on people | `$CLI strip-generic-images [--yes]`: files several unrelated people share that name none of them and are not heraldry (a plain mitre on bishops, a medal ribbon on officers). Run it again after a long image fetch |
 | Cut or debris-laden summaries | `$CLI resummarize [--yes]` re-cuts bulk summaries from their own stored lead |
 | Date rule changes | `rebuild --imported` on the person slices, then `redate` |
+| Map points or years that drifted | `$CLI sync-geometry [--requid-since <stamp>] [--yes]`: the tiles read `geometry_periods`, which the import copies once from the primary location; `apply-audit` and `redate` now re-sync them, this fixes older drift |
 
 ## Troubleshooting
 
@@ -213,3 +214,5 @@ into nothing. Then:
 | Maimonides born in Córdoba, Mexico | A curated link resolved by name to a namesake (the Spanish city was stored without its accent). Find them by distance and dates (§8) and fix with `relink-relations` |
 | A summary ends on ":" or ";" or with "…" mid-sentence | Built before 0f6258f; `resummarize --yes` |
 | A person a year or two off the lead, or with no death year | Built before 95d549d; `rebuild --imported` on the person slices, then `redate` |
+| A church shows "1001 CE" | A century date read as a year; rebuilt parts carry `temporal_display_range` ("11th century") since 65fdb4e. `rebuild --imported` and `redate` |
+| A corrected row still shows at its old point or years on the map | Its map period was not re-synced (before b08f930); `sync-geometry --yes` |
