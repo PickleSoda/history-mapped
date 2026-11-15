@@ -29,7 +29,7 @@ shift $((OPTIND - 1))
 
 LOGS=output/bulk/logs
 mkdir -p "$LOGS"
-PY="pipeline/.venv/bin/python"
+export PY="pipeline/.venv/bin/python"
 export LANGCHAIN_TRACING_V2=false LANGSMITH_TRACING=false
 
 echo "[$(date -Is)] bulk_run: ${*} (parallel ${PARALLEL})" >> "$LOGS/run.log"
