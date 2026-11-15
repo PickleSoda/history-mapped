@@ -562,15 +562,46 @@ def tidy(slack: int, person_slack: int, yes: bool) -> None:
 AUDIT_ACTIONS = ("needs_review", "delete", "merge_into", "fix_dates", "requid")
 
 
-def requid(cur, eid: str, target: str) -> str | None:
+def drop_wrong_qid_links(cur, eid: str, old_qid: str) -> int:
+    """Delete relations made from hints aimed at a QID the row held by mistake.
+
+    A hint "born in Q316891" resolved to the curated "Emile" because that row
+    held Montmorency's QID. Such relations go and their hints reopen, so the
+    next resolve finds the real target or none. Returns the relations deleted.
+    """
+    cur.execute(
+        """
+        with h as (
+          update pipeline_relationship_hints
+             set resolved = false, resolution_note = 'requid: target held this QID by mistake'
+           where target_wikidata_id = %(old)s and resolved and resolution_note = 'created'
+          returning source_entity_id, relationship_type
+        ), d as (
+          delete from relationships r using h
+           where r.relationship_type::text = h.relationship_type
+             and ((r.source_entity_id = h.source_entity_id and r.target_entity_id = %(eid)s)
+               or (r.target_entity_id = h.source_entity_id and r.source_entity_id = %(eid)s))
+          returning 1
+        )
+        select count(*) from d
+        """,
+        {"old": old_qid, "eid": eid},
+    )
+    return cur.fetchone()[0]
+
+
+def requid(cur, eid: str, target: str, same: bool = False) -> str | None:
     """Give an older row that holds another item's QID the right one.
 
     `target` is the bulk row about the same subject (it is folded in), the
     right QID (a bulk row holding it is folded in), or `none` to clear the
     wrong QID. The older row's points (unless an admin placed them) and its
     uncurated images came from the wrong item, so they go; the bulk row's
-    point takes their place. Its own text, dates and chronicle links stay.
-    Returns why it was refused, or None.
+    point takes their place, and relations made from hints aimed at the
+    wrong QID go (`drop_wrong_qid_links`). Its own text, dates and chronicle
+    links stay. With `same` the old QID is a thin duplicate of the same
+    subject (a "city seat" item): its links are right, and its hints are
+    pointed at the new QID instead. Returns why it was refused, or None.
     """
     from pipeline.merge_entities import merge
 
@@ -589,6 +620,16 @@ def requid(cur, eid: str, target: str) -> str | None:
         if row is None or not row[0] or not row[1] or target == eid:
             return "bad-requid-target"
         bulk_id, qid = target, row[0]
+    cur.execute("select wikidata_id from entities where entity_id = %s", (eid,))
+    old = (cur.fetchone() or [None])[0]
+    if old and old != qid:
+        if same:  # the old QID is a thin duplicate of the same subject: its links are right
+            cur.execute(
+                "update pipeline_relationship_hints set target_wikidata_id = %s where target_wikidata_id = %s",
+                (qid, old),
+            )
+        else:
+            drop_wrong_qid_links(cur, eid, old)
     cur.execute(
         "delete from entity_locations where entity_id = %s and location_method is distinct from 'human_assigned'",
         (eid,),
@@ -623,8 +664,9 @@ def apply_audit(csv_paths: tuple[str, ...], yes: bool) -> None:
     flagged); merge_into:<id> folds the row into <id> (relations and
     chronicle links re-pointed; the survivor takes the QID if it has none);
     fix_dates:<start>..<end> sets the primary range (an empty end keeps it);
-    requid:<bulk id | QID | none> gives an older row that holds the wrong
-    QID the right one, folding in a bulk row about the same subject (see
+    requid:<bulk id | QID | none>[:same] gives an older row that holds the
+    wrong QID the right one, folding in a bulk row about the same subject;
+    :same when the old QID was a duplicate item of the same subject (see
     `requid`).
     Anything else is flagged needs_review. One transaction; before-values go
     to output/bulk/audit/applied-<stamp>.csv.
@@ -686,7 +728,8 @@ def apply_audit(csv_paths: tuple[str, ...], yes: bool) -> None:
                 if surv[0] is None and qid:
                     cur.execute("update entities set wikidata_id = %s where entity_id = %s", (qid, arg))
             elif action == "requid":
-                why = requid(cur, eid, arg)
+                target, _, mode = arg.partition(":")
+                why = requid(cur, eid, target, same=mode == "same")
                 if why:
                     done[why] += 1
                     continue
