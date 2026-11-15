@@ -81,18 +81,19 @@ def _values(qids: list[str]) -> str:
 
 def fetch_core(client: Client, qids: list[str]) -> dict[str, dict[str, Any]]:
     rows = client.sparql(f"""
-SELECT ?item ?label ?desc ?wp ?sl
+SELECT ?item ?label ?mul ?desc ?wp ?sl
        (GROUP_CONCAT(DISTINCT STRAFTER(STR(?c), "entity/"); separator="|") AS ?p31)
        (SAMPLE(?coord) AS ?co)
 WHERE {{
   VALUES ?item {{ {_values(qids)} }}
   OPTIONAL {{ ?item rdfs:label ?label . FILTER(LANG(?label) = "en") }}
+  OPTIONAL {{ ?item rdfs:label ?mul . FILTER(LANG(?mul) = "mul") }}
   OPTIONAL {{ ?item schema:description ?desc . FILTER(LANG(?desc) = "en") }}
   OPTIONAL {{ ?wpa schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> ; schema:name ?wp . }}
   OPTIONAL {{ ?item wikibase:sitelinks ?sl . }}
   OPTIONAL {{ ?item wdt:P31 ?c . }}
   OPTIONAL {{ ?item wdt:P625 ?coord . }}
-}} GROUP BY ?item ?label ?desc ?wp ?sl""")
+}} GROUP BY ?item ?label ?mul ?desc ?wp ?sl""")
     out: dict[str, dict[str, Any]] = {}
     for b in rows:
         qid = qid_of(value(b, "item"))
@@ -101,7 +102,8 @@ WHERE {{
         p31 = value(b, "p31") or ""
         out[qid] = {
             "qid": qid,
-            "label": (value(b, "label") or "").strip(),
+            # many items now carry only the language-neutral "mul" label
+            "label": (value(b, "label") or value(b, "mul") or "").strip(),
             "description": value(b, "desc") or "",
             "aliases": [],
             "coords": point(value(b, "co")),

@@ -14,6 +14,7 @@ import subprocess
 import sys
 import time
 from collections import Counter, deque
+from pathlib import Path
 from typing import Any
 
 import click
@@ -132,6 +133,29 @@ def step_fetch(s: Slice, store: SliceStore, client: Client, max_parts: int | Non
         say(f"{s.id} part {n + 1}/{nparts}: fetched {meta['fetched']}, kept {meta['records']}, dropped {meta['dropped']}")
 
 
+def run_import(slice_id: str, src: Path, name: str, batch: str) -> dict[str, Any]:
+    """Copy a JSONL file into the API's storage and run pipeline:import on it."""
+    compose = str(REPO / "docker" / "docker-compose.yml")
+    dest = API_DROP / slice_id / name
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(src, dest)
+    cmd = [
+        "docker", "compose", "-f", compose, "exec", "-T", "app", "php", "artisan", "pipeline:import",
+        f"storage/app/pipeline/bulk/{slice_id}/{name}", "--sync", "--skip-images", f"--batch-id={batch}",
+    ]
+    started = time.monotonic()
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=4 * 3600)
+    m = SUMMARY.search(proc.stdout)
+    result: dict[str, Any] = {"seconds": round(time.monotonic() - started), "exit": proc.returncode, "at": time.time()}
+    if m:
+        summary = json.loads(m.group(1))
+        summary["failed_names"] = summary.get("failed_names", [])[:20]
+        result["summary"] = summary
+    else:
+        result["error"] = (proc.stderr or proc.stdout)[-1500:]
+    return result
+
+
 def import_part(s: Slice, store: SliceStore, n: int) -> dict[str, Any] | None:
     """Import one built part, or return None when another importer holds it.
 
@@ -140,37 +164,20 @@ def import_part(s: Slice, store: SliceStore, n: int) -> dict[str, Any] | None:
     part, and the name fallback only matches rows without a QID or with the
     same one.
     """
-    compose = str(REPO / "docker" / "docker-compose.yml")
     name = f"part-{n:04d}.jsonl"
-    cmd = [
-        "docker", "compose", "-f", compose, "exec", "-T", "app", "php", "artisan", "pipeline:import",
-        f"storage/app/pipeline/bulk/{s.id}/{name}", "--sync", "--skip-images", f"--batch-id=bulk-{s.id}-{n:04d}",
-    ]
     with try_locked(store.import_lock_path(n)) as mine:
         if not mine:
             return None
         # Another importer may have finished this part before we looked.
         if store.import_path(n).exists():
             return store.read_json(store.import_path(n)) or {}
-        dest = API_DROP / s.id / name
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(store.part_path(n), dest)
-        started = time.monotonic()
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=4 * 3600)
-        m = SUMMARY.search(proc.stdout)
-        result: dict[str, Any] = {"seconds": round(time.monotonic() - started), "exit": proc.returncode, "at": time.time()}
-        if m:
-            summary = json.loads(m.group(1))
-            summary["failed_names"] = summary.get("failed_names", [])[:20]
-            result["summary"] = summary
-        else:
-            result["error"] = (proc.stderr or proc.stdout)[-1500:]
+        result = run_import(s.id, store.part_path(n), name, f"bulk-{s.id}-{n:04d}")
         store.write_json(store.import_path(n), result)
-    if m:
+    if "summary" in result:
         sm = result["summary"]
         say(f"{s.id} {name}: imported {sm['imported']}, skipped {sm['skipped']}, failed {sm['failed']} in {result['seconds']}s")
     else:
-        say(f"{s.id} {name}: import FAILED (exit {proc.returncode}); see {store.import_path(n)}")
+        say(f"{s.id} {name}: import FAILED (exit {result['exit']}); see {store.import_path(n)}")
     return result
 
 
@@ -257,6 +264,41 @@ def rebuild(slice_id: str, imported: bool) -> None:
             continue
         meta = _build_part(s, store, n, store.read_raw(n))
         say(f"{s.id} part {n + 1}: kept {meta['records']}, dropped {meta['dropped']}")
+
+
+@cli.command()
+@click.argument("slice_ids", nargs=-1, required=True)
+@click.option("--yes", is_flag=True, help="Import them; without it, a dry run")
+def fill(slice_ids: tuple[str, ...], yes: bool) -> None:
+    """Import rows of imported parts that the build used to drop for want of an English label.
+
+    Run `rebuild --imported` first. Only records whose raw label was empty
+    (items labelled in "mul" alone) and whose QID the DB lacks are imported,
+    so rows that audits deleted or merged never come back.
+    """
+    have = db_qids()
+    for sid in slice_ids:
+        s, store = _load(sid)
+        unlabelled: set[str] = set()
+        for n in store.part_numbers():
+            if store.import_path(n).exists() and store.raw_path(n).exists():
+                unlabelled |= {r["qid"] for r in store.read_raw(n) if not (r.get("label") or "").strip()}
+        lines = []
+        for n in store.part_numbers():
+            if not store.import_path(n).exists():
+                continue
+            for line in store.part_path(n).read_text().splitlines():
+                qid = json.loads(line).get("wikidata_id")
+                if qid in unlabelled and qid not in have:
+                    lines.append(line)
+        say(f"{sid}: {len(lines)} unlabelled rows missing from the DB")
+        if not yes or not lines:
+            continue
+        src = store.dir / "parts" / "fill.jsonl"
+        src.write_text("\n".join(lines) + "\n")
+        result = run_import(sid, src, "fill.jsonl", f"bulk-{sid}-fill")
+        sm = result.get("summary")
+        say(f"{sid} fill: " + (f"imported {sm['imported']}, skipped {sm['skipped']}, failed {sm['failed']}" if sm else f"FAILED (exit {result['exit']})"))
 
 
 @cli.command()

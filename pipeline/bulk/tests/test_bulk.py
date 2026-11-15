@@ -95,7 +95,7 @@ def test_build_maps_tags_and_never_borrows_a_point():
     no_point = raw(qid="Q2", coords=None, properties={"P17": [{"qid": "Q38", "label": "Italy", "uri": "x"}],
                                                     "P39": [{"qid": "Q61982", "label": "daimyo", "uri": "x"}]},
                    _date_prec={"point_in_time": 7})
-    kept, dropped = build([raw(), no_point, raw(qid="Q3", label="")], s)
+    kept, dropped = build([raw(), no_point, raw(qid="Q3", label="", wikipedia_title=None)], s)
     assert dropped == Counter({"unmappable": 1})
     first, second = kept
     assert first["geojson"]["coordinates"] == [10.0, 45.0]
@@ -443,3 +443,21 @@ def test_a_modern_lead_undates_a_person_wikidata_puts_in_antiquity():
                      summary="Ur-Nammu (died 2094 BC) was the founder of the Third Dynasty of Ur.")
     kept, dropped = build([modern, old, ancient], s)
     assert [k["name"] for k in kept] == ["Otto", "Ur-Nammu"] and dropped["no-dates"] == 1
+
+
+def test_exclude_lead_drops_olympians_whose_description_says_only_sailor():
+    s = spec(entity_type="person", where="?item wdt:P31 wd:Q5 .",
+             exclude_lead=r"who competed (?:in|at) the \d{4} (?:summer|winter) olympics", keep_desc=r"\bofficer\b")
+    lead = "Knud Degn (11 May 1880 - 16 May 1965) was a Danish sailor who competed in the 1912 Summer Olympics."
+    sailor = person(qid="Q30", label="Knud Degn", description="Danish sailor", summary=lead)
+    officer = person(qid="Q31", label="Erik Wallerius", description="Swedish naval officer", summary=lead)
+    kept, dropped = build([sailor, officer], s)
+    assert [k["name"] for k in kept] == ["Erik Wallerius"] and dropped["excluded-description"] == 1
+
+
+def test_an_item_without_an_english_label_is_named_by_its_article():
+    s = spec(entity_type="person", where="?item wdt:P31 wd:Q5 .")
+    mul_only = person(qid="Q15995833", label="", wikipedia_title="Stephen J. Wojtkowiak (politician)",
+                      description="American politician", birth_date="1895", death_date="1945")
+    kept, dropped = build([mul_only], s)
+    assert kept[0]["name"] == "Stephen J. Wojtkowiak" and not dropped

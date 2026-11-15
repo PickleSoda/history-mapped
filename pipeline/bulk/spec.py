@@ -77,6 +77,10 @@ class Slice:
     # player and politician" and "Henry Tufton, 11th Earl of Thanet" kept.
     exclude_desc: str = ""
     keep_desc: str = ""
+    # The same for the opening of the Wikipedia lead (first 300 characters),
+    # for what descriptions leave out: "Danish sailor" whose lead says "who
+    # competed in the 1920 Summer Olympics". keep_desc still overrides it.
+    exclude_lead: str = ""
     year_min: int | None = None  # historical years, applied to the start date
     year_max: int | None = None
     max_items: int | None = None
@@ -110,7 +114,7 @@ class Slice:
             for q in getattr(self, key):
                 if not QID.match(q):
                     raise ValueError(f"{self.id}: {key} {q!r} is not a QID")
-        for key in ("exclude_desc", "keep_desc"):
+        for key in ("exclude_desc", "keep_desc", "exclude_lead"):
             try:
                 re.compile(getattr(self, key))
             except re.error as exc:

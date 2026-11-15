@@ -168,6 +168,8 @@ def modern_lead(lead: str) -> bool:
     return bool(re.search(r"\bborn\b[^.;]{0,40}?\b(19\d{2}|20\d{2})\b(?!\s*(?:BC|B\.C|BCE))", lead[:200], re.I))
 
 
+DISAMBIG = re.compile(r"\s*\([^()]*\)$")  # "John Smith (politician)" -> "John Smith"
+
 BCE = re.compile(r"\b(?:BC|BCE|B\.C\.?(?:E\.?)?)(?!\w)")
 
 
@@ -207,7 +209,10 @@ def gate(raw: dict[str, Any], record: dict[str, Any], s: Slice) -> str | None:
     if s.require_p31 and not set(raw.get("p31") or []) & set(s.require_p31):
         return "not-required-class"
     desc = raw.get("description") or ""
-    if s.exclude_desc and re.search(s.exclude_desc, desc, re.I):
+    lead = (raw.get("summary") or "")[:300]
+    if (s.exclude_desc and re.search(s.exclude_desc, desc, re.I)) or (
+        s.exclude_lead and re.search(s.exclude_lead, lead, re.I)
+    ):
         # keep_desc also reads the label: "Henry Tufton, 11th Earl of Thanet" is
         # described only as an "English cricketer"
         if not (s.keep_desc and re.search(s.keep_desc, f"{raw.get('label') or ''} {desc}", re.I)):
@@ -239,6 +244,10 @@ def build(raws: list[dict[str, Any]], s: Slice, mapper: EntityMapper | None = No
     kept: list[dict] = []
     dropped: Counter = Counter()
     for raw in raws:
+        if not (raw.get("label") or "").strip() and raw.get("wikipedia_title"):
+            # Items labelled only in "mul" (Wikidata's language-neutral label)
+            # came back without an English one: name them by their article.
+            raw = {**raw, "label": DISAMBIG.sub("", raw["wikipedia_title"]).strip()}
         if s.entity_type == "person":
             raw = reconcile_lifespan(drop_coarse_dates(raw))
         summary = raw.get("summary") or ""
