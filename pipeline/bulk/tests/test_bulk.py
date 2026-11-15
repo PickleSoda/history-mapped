@@ -584,3 +584,13 @@ def test_date_attrs_follow_a_fixed_range():
     new, before = date_attrs_follow({"inception": "1950-01-01", "temporal_display_range": "c. 1950"}, None, None)
     assert new == {} and set(before) == {"inception", "temporal_display_range"}
 
+
+def test_julian_of_converts_wdqs_gregorian_back():
+    from pipeline.bulk.fetch import julian_of, rdf_year
+
+    assert julian_of("1565-01-04T00:00:00Z") == "1564-12-25T00:00:00Z"  # crosses New Year
+    assert julian_of("1732-01-09T00:00:00Z") is None  # after the reform: New Style stays
+    assert julian_of("1066-10-20T00:00:00Z") == "1066-10-14T00:00:00Z"  # Hastings
+    assert julian_of("-0043-03-13T00:00:00Z") == "-0043-03-15T00:00:00Z"  # the Ides of March, 44 BCE
+    assert rdf_year(julian_of("-0043-03-13T00:00:00Z")) == -44
+    assert julian_of("not a date") is None

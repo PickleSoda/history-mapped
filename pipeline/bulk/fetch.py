@@ -116,23 +116,65 @@ WHERE {{
     return out
 
 
+JULIAN = "http://www.wikidata.org/entity/Q1985786"
+
+
+def julian_of(dt: str) -> str | None:
+    """The Julian-calendar form of a WDQS xsd:dateTime.
+
+    WDQS writes every date in the proleptic Gregorian calendar, converting
+    statements entered in the Julian calendar: Brook Taylor's death, 29
+    December 1731 (Julian), reads 1732-01-09. Historians and Wikipedia give
+    the Julian date for anything before the Gregorian reform, so a
+    day-precision Julian statement dated before 15 October 1582 is converted
+    back. Later Julian dates keep the Gregorian (New Style) form: English
+    Wikipedia gives Russian dates New Style, British ones Old Style, and no
+    single rule fits both.
+    """
+    m = re.match(r"^([+-]?)(\d+)-(\d\d)-(\d\d)(T.*)?$", dt)
+    if not m:
+        return None
+    y = int(m[2]) * (-1 if m[1] == "-" else 1)
+    mo, d = int(m[3]), int(m[4])
+    if (y, mo, d) >= (1582, 10, 15):
+        return None
+    a = (14 - mo) // 12
+    yy, mm = y + 4800 - a, mo + 12 * a - 3
+    jdn = d + (153 * mm + 2) // 5 + 365 * yy + yy // 4 - yy // 100 + yy // 400 - 32045
+    c = jdn + 32082
+    dd = (4 * c + 3) // 1461
+    e = c - 1461 * dd // 4
+    m5 = (5 * e + 2) // 153
+    day, month, year = e - (153 * m5 + 2) // 5 + 1, m5 + 3 - 12 * (m5 // 10), dd - 4800 + m5 // 10
+    sign = "-" if year < 0 else ""
+    return f"{sign}{abs(year):04d}-{month:02d}-{day:02d}{m[5] or 'T00:00:00Z'}"
+
+
 def fetch_dates(client: Client, qids: list[str], items: dict[str, dict[str, Any]]) -> None:
     pairs = " ".join(f'(p:{p} psv:{p} "{p}")' for p, _ in DATE_PROPS)
     rows = client.sparql(f"""
-SELECT ?item ?pid ?t ?prec ?rank WHERE {{
+SELECT ?item ?pid ?t ?prec ?rank ?cal WHERE {{
   VALUES ?item {{ {_values(qids)} }}
   VALUES (?p ?psv ?pid) {{ {pairs} }}
   ?item ?p ?st . ?st ?psv ?tv . ?st wikibase:rank ?rank .
   ?tv wikibase:timeValue ?t ; wikibase:timePrecision ?prec .
+  OPTIONAL {{ ?tv wikibase:timeCalendarModel ?cal . }}
   FILTER(?rank != wikibase:DeprecatedRank)
 }}""")
     best: dict[tuple[str, str], tuple] = {}
     for b in rows:
         qid, pid = qid_of(value(b, "item")), value(b, "pid")
-        year = rdf_year(value(b, "t"))
+        t = value(b, "t")
+        prec = int(value(b, "prec") or 0)
+        if t and prec >= 11 and value(b, "cal") == JULIAN and qid in items:
+            julian = julian_of(t)
+            if julian:
+                # fetch_properties reads the same Gregorian value for the attribute
+                items[qid].setdefault("_julian_dates", {})[t] = julian
+                t = julian
+        year = rdf_year(t)
         if not qid or not pid or year is None or qid not in items:
             continue
-        prec = int(value(b, "prec") or 0)
         preferred = (value(b, "rank") or "").endswith("PreferredRank")
         # Preferred rank first, then the most precise, then the earliest.
         key = (0 if preferred else 1, -prec, year)
@@ -200,6 +242,7 @@ SELECT ?item ?prop ?value ?valueLabel WHERE {{
             continue
         prop = (value(b, "prop") or "").rsplit("/", 1)[-1]
         uri = value(b, "value") or ""
+        uri = items[qid].get("_julian_dates", {}).get(uri, uri)
         label = value(b, "valueLabel") or ""
         vqid = qid_of(uri)
         if vqid and label == vqid:
@@ -289,6 +332,8 @@ def fetch_batch(client: Client, qids: list[str], entity_type: str, wikipedia: bo
     split_retry(lambda b: fetch_dates(client, b, items), present, "dates")
     split_retry(lambda b: fetch_aliases(client, b, items), present, "aliases")
     split_retry(lambda b: fetch_properties(client, b, items, entity_type), present, "properties")
+    for item in items.values():
+        item.pop("_julian_dates", None)
     raws = [items[q] for q in qids if q in items]
     if wikipedia:
         fetch_extracts(client, raws)

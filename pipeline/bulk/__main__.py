@@ -455,7 +455,8 @@ def redate(slice_ids: tuple[str, ...], yes: bool) -> None:
 
     Run `rebuild <id> --imported` and `prune <id> --yes` first. Updates the
     primary range, date_confidence and the date attributes of rows tagged
-    with the slice; rows a curated audit re-dated (fix_dates) are left alone.
+    with the slice; rows a curated audit re-dated (fix_dates) or julian-dates
+    restored are left alone.
     Before-values go to output/bulk/redate/redate-<stamp>.csv.
     """
     import csv
@@ -470,6 +471,9 @@ def redate(slice_ids: tuple[str, ...], yes: bool) -> None:
     for path in (ROOT / "audit").glob("applied-*.csv"):
         with open(path, newline="") as fh:
             curated |= {r["entity_id"] for r in csv.DictReader(fh) if (r.get("action") or "").startswith("fix_dates")}
+    for path in (ROOT / "tidy").glob("julian-*.csv"):  # the parts still hold WDQS's Gregorian form
+        with open(path, newline="") as fh:
+            curated |= {r["entity_id"] for r in csv.DictReader(fh)}
     log_rows: list[list[Any]] = []
     total: Counter = Counter()
     with locked("import"), psycopg.connect(dsn()) as conn, conn.cursor() as cur:
@@ -988,6 +992,108 @@ where g.description = %(auto)s and (
       t.start_year is null or g.start_year <> t.start_year or g.end_year is distinct from t.end_year
    or (l.geom is not null and g.geom is not null and st_distance(l.geom::geography, g.geom::geography) > 1000))
 """
+
+
+JULIAN_QUERY = """SELECT ?item ?pid ?t WHERE {
+  VALUES (?p ?psv ?pid) { (p:P569 psv:P569 "P569") (p:P570 psv:P570 "P570") }
+  ?item ?p ?st . ?st ?psv ?v .
+  ?v wikibase:timeCalendarModel wd:Q1985786 ; wikibase:timePrecision 11 ; wikibase:timeValue ?t .
+}"""
+
+
+@cli.command("julian-dates")
+@click.argument("tsv_path")
+@click.option("--yes", is_flag=True, help="Write; without it, a dry run")
+def julian_dates(tsv_path: str, yes: bool) -> None:
+    """Restore the Julian form of birth and death dates WDQS converted to Gregorian.
+
+    TSV_PATH is the QLever result of JULIAN_QUERY (item, pid, Gregorian
+    value of every day-precision Julian P569/P570). A birth_date/death_date
+    attribute still holding that Gregorian value becomes the Julian date
+    (julian_of: dates before the 1582 reform only), and where the
+    conversion crossed New Year (25 December 1564 read as 1565-01-04) the
+    primary range year follows. Rows a curated
+    audit re-dated are left alone; the map period re-syncs. Before-values go
+    to output/bulk/tidy/julian-<stamp>.csv.
+    """
+    import csv
+
+    import psycopg
+    from psycopg.types.json import Jsonb
+
+    from pipeline.bulk.fetch import julian_of, rdf_year
+    from pipeline.bulk.store import ROOT
+    from pipeline.local_db import dsn
+
+    greg: dict[tuple[str, str], str] = {}
+    with open(tsv_path, newline="") as fh:
+        for row in csv.reader(fh, delimiter="\t"):
+            qid = qid_of(row[0].strip("<>")) if row and row[0].startswith("<") else None
+            if qid and len(row) >= 3:
+                key = "birth_date" if "P569" in row[1] else "death_date"
+                greg[(qid, row[2].strip('"').split("^^")[0].strip('"'))] = key
+    curated: set[str] = set()
+    for path in (ROOT / "audit").glob("applied-*.csv"):
+        with open(path, newline="") as fh:
+            curated |= {r["entity_id"] for r in csv.DictReader(fh) if (r.get("action") or "").startswith("fix_dates")}
+    qids = sorted({q for q, _ in greg})
+    done: Counter = Counter()
+    log_rows: list[list[Any]] = []
+    with psycopg.connect(dsn()) as conn, conn.cursor() as cur:
+        cur.execute("create temp table jq (q text primary key)")
+        with cur.copy("copy jq from stdin") as cp:
+            for q in qids:
+                cp.write_row((q,))
+        cur.execute(
+            "select e.entity_id::text, e.wikidata_id, e.attributes, t.start_year, t.end_year from jq "
+            "join entities e on e.wikidata_id = jq.q "
+            "left join entity_temporal_ranges t on t.entity_id = e.entity_id and t.is_primary"
+        )
+        for eid, qid, attrs, y0, y1 in cur.fetchall():
+            if eid in curated:
+                done["curated"] += 1
+                continue
+            attrs = dict(attrs or {})
+            before = {}
+            years = [y0, y1]
+            for side, key in ((0, "birth_date"), (1, "death_date")):
+                value = str(attrs.get(key) or "").lstrip("+")
+                if greg.get((qid, value)) != key:
+                    continue
+                julian = julian_of(value)
+                if not julian or julian == value:
+                    continue
+                before[key] = attrs[key]
+                attrs[key] = julian
+                old, new = rdf_year(value), rdf_year(julian)
+                if new != old and years[side] == old:
+                    years[side] = new
+            if not before:
+                continue
+            done["dates"] += 1
+            cur.execute("update entities set attributes = %s where entity_id = %s", (Jsonb(attrs), eid))
+            if years != [y0, y1]:
+                done["years"] += 1
+                cur.execute(
+                    "update entity_temporal_ranges set start_year = %s, end_year = %s, start_date = %s, end_date = %s, "
+                    "updated_at = now() where entity_id = %s and is_primary",
+                    (years[0], years[1], None if years[0] is None else str(years[0]),
+                     None if years[1] is None else str(years[1]), eid),
+                )
+                sync_geometry(cur, eid)
+            log_rows.append([eid, qid, y0, y1, years[0], years[1], json.dumps(before)])
+        say(f"julian-dates: {dict(done)}" + ("" if yes else " (dry run; pass --yes to write)"))
+        if not yes:
+            conn.rollback()
+            return
+        out = ROOT / "tidy" / f"julian-{time.strftime('%Y%m%d-%H%M%S')}.csv"
+        out.parent.mkdir(parents=True, exist_ok=True)
+        with open(out, "w", newline="") as fh:
+            w = csv.writer(fh)
+            w.writerow(["entity_id", "qid", "before_start", "before_end", "start", "end", "before_attrs"])
+            w.writerows(log_rows)
+        conn.commit()
+    say(f"julian-dates: written; before-values in {out}")
 
 
 @cli.command("sync-geometry")
