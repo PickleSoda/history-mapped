@@ -546,39 +546,54 @@ def tidy(slack: int, person_slack: int, yes: bool) -> None:
 AUDIT_ACTIONS = ("needs_review", "delete", "merge_into", "fix_dates", "requid")
 
 
-def requid(cur, eid: str, bulk_id: str) -> str | None:
-    """Give an older row the QID of the bulk row about the same subject, folding the bulk row in.
+def requid(cur, eid: str, target: str) -> str | None:
+    """Give an older row that holds another item's QID the right one.
 
-    The older row held another item's QID, so its points (unless an admin
-    placed them) and its uncurated images came from that item: they are
-    replaced by the bulk row's. Its own text, dates and chronicle links
-    stay. Returns why it was refused, or None.
+    `target` is the bulk row about the same subject (it is folded in), the
+    right QID (a bulk row holding it is folded in), or `none` to clear the
+    wrong QID. The older row's points (unless an admin placed them) and its
+    uncurated images came from the wrong item, so they go; the bulk row's
+    point takes their place. Its own text, dates and chronicle links stay.
+    Returns why it was refused, or None.
     """
     from pipeline.merge_entities import merge
 
-    cur.execute("select wikidata_id, attributes ? '_bulk' from entities where entity_id = %s", (bulk_id,))
-    row = cur.fetchone()
-    if row is None or not row[0] or not row[1] or bulk_id == eid:
-        return "bad-requid-target"
-    qid = row[0]
+    bulk_id, qid = None, None
+    if re.fullmatch(r"Q\d+", target):
+        qid = target
+        cur.execute("select entity_id::text, attributes ? '_bulk' from entities where wikidata_id = %s", (qid,))
+        hit = cur.fetchone()
+        if hit and hit[0] != eid:
+            if not hit[1]:
+                return "requid-qid-held-by-curated-row"
+            bulk_id = hit[0]
+    elif target != "none":
+        cur.execute("select wikidata_id, attributes ? '_bulk' from entities where entity_id = %s", (target,))
+        row = cur.fetchone()
+        if row is None or not row[0] or not row[1] or target == eid:
+            return "bad-requid-target"
+        bulk_id, qid = target, row[0]
     cur.execute(
         "delete from entity_locations where entity_id = %s and location_method is distinct from 'human_assigned'",
         (eid,),
     )
-    cur.execute("select exists(select 1 from entity_locations where entity_id = %s and is_primary)", (eid,))
-    has_primary = cur.fetchone()[0]
-    cur.execute(
-        "update entity_locations set entity_id = %s, is_primary = is_primary and not %s where entity_id = %s",
-        (eid, has_primary, bulk_id),
-    )
+    if bulk_id:
+        cur.execute("select exists(select 1 from entity_locations where entity_id = %s and is_primary)", (eid,))
+        has_primary = cur.fetchone()[0]
+        cur.execute(
+            "update entity_locations set entity_id = %s, is_primary = is_primary and not %s where entity_id = %s",
+            (eid, has_primary, bulk_id),
+        )
     cur.execute("update entities set wikidata_id = null where entity_id = %s", (eid,))
     cur.execute(
         "update entities set attributes = attributes - 'media_refs' "
         "where entity_id = %s and not attributes ? '_media_curated_at'",
         (eid,),
     )
-    merge(cur, eid, bulk_id)
-    cur.execute("update entities set wikidata_id = %s where entity_id = %s", (qid, eid))
+    if bulk_id:
+        merge(cur, eid, bulk_id)
+    if qid:
+        cur.execute("update entities set wikidata_id = %s where entity_id = %s", (qid, eid))
     return None
 
 
@@ -592,8 +607,9 @@ def apply_audit(csv_paths: tuple[str, ...], yes: bool) -> None:
     flagged); merge_into:<id> folds the row into <id> (relations and
     chronicle links re-pointed; the survivor takes the QID if it has none);
     fix_dates:<start>..<end> sets the primary range (an empty end keeps it);
-    requid:<bulk id> gives an older row that holds the wrong QID the bulk
-    row's QID, point and images and folds the bulk row in (see `requid`).
+    requid:<bulk id | QID | none> gives an older row that holds the wrong
+    QID the right one, folding in a bulk row about the same subject (see
+    `requid`).
     Anything else is flagged needs_review. One transaction; before-values go
     to output/bulk/audit/applied-<stamp>.csv.
     """
