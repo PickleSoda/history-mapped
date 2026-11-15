@@ -197,3 +197,44 @@ def test_undated_rows_inside_the_exempt_box_are_kept():
     assert gate(raw(p31=["Q2977"]), americas, s) == "no-dates"
     with pytest.raises(ValueError):
         spec(require_dates_except_bbox=[60, 25, -25, 72])
+
+
+def person(**kw):
+    base = raw(qid="Q9", label="Otto", description="duke", coords=None, wikipedia_title="Otto",
+               p31=["Q5"], point_in_time=None)
+    return {**base, **kw}
+
+
+def test_people_drop_century_dates_but_keep_decades():
+    s = spec(entity_type="person", where="?item wdt:P31 wd:Q5 .")
+    century = person(birth_date="901", death_date="1047", _date_prec={"birth_date": 7, "death_date": 9},
+                     properties={"P569": [{"qid": None, "label": "0901-01-01T00:00:00Z", "uri": "x"}]})
+    decade = person(qid="Q10", birth_date="1870", death_date="1931", _date_prec={"birth_date": 8, "death_date": 9})
+    exact = person(qid="Q11", birth_date="1870", death_date="1931", _date_prec={"birth_date": 9, "death_date": 9})
+    kept, dropped = build([century, decade, exact], s)
+    assert not dropped
+    by_qid = {r["wikidata_id"]: r for r in kept}
+    assert by_qid["Q9"].get("temporal_start") is None  # "10th century" is not the year 901
+    assert by_qid["Q9"]["temporal_end"] == "1047"
+    assert "birth_date" not in by_qid["Q9"].get("attributes", {})
+    assert by_qid["Q10"]["temporal_start"] == "1870" and by_qid["Q10"]["date_confidence"] == "low"
+    assert by_qid["Q11"].get("date_confidence") != "low"
+    # with dates required, a person known only to the century is dropped
+    only_century = person(qid="Q12", birth_date="-101", death_date="100", _date_prec={"birth_date": 7, "death_date": 7})
+    _, dropped = build([only_century], spec(entity_type="person", where="?item wdt:P31 wd:Q5 .", require=["dates"]))
+    assert dropped == Counter({"no-dates": 1})
+
+
+def test_places_keep_century_dates_as_low_confidence_including_the_end():
+    battle = raw(point_in_time=None, start_time="1101", end_time="1200",
+                 _date_prec={"start_time": 9, "end_time": 7})
+    kept, _ = build([battle], spec())
+    assert kept[0]["temporal_start"] == "1101" and kept[0]["date_confidence"] == "low"
+
+
+def test_implausible_lifespans_are_dropped():
+    s = spec(entity_type="person", where="?item wdt:P31 wd:Q5 .")
+    rec = {"name": "X", "temporal_start": "950", "temporal_end": "1067"}
+    assert gate(person(), rec, s) == "implausible-lifespan"
+    assert gate(person(), {**rec, "temporal_end": "1040"}, s) is None
+    assert gate(raw(), rec, spec()) is None  # a long-lived place or event is fine

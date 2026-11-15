@@ -6,7 +6,7 @@ import re
 from collections import Counter
 from typing import Any
 
-from pipeline.bulk.fetch import start_precision
+from pipeline.bulk.fetch import DATE_PROPS
 from pipeline.bulk.spec import Slice
 from pipeline.wikidata.mapper.entity_mapper import EntityMapper
 
@@ -26,6 +26,39 @@ DROPPED_HINTS = {"wikidata:P17", "wikidata:P131", "wikidata:P39"}
 # A lead that is really a hatnote or a disambiguation line says nothing about
 # the row; the mapper then falls back to the Wikidata description.
 HATNOTE = re.compile(r"(may (also )?refer to|^see also\b|^for other uses\b|^this article is about\b)", re.I)
+
+
+# Wikidata time precision: 9 year, 8 decade, 7 century, 6 millennium. A
+# century value comes back as a bare year (901 or 1000), so a person "born in
+# the 10th century" reads as born in 901 exactly: Roman lives of -101..100,
+# reigns from 800, deaths in 2000, children born before their parents. People
+# drop such dates (the row stays undated, or `require: dates` drops it);
+# places and events keep them as low-confidence era markers.
+COARSE_PRECISION = 7
+# A recorded lifespan beyond this is a data error (wrong birth or death value).
+MAX_LIFESPAN = 110
+RAW_KEY_PIDS: dict[str, list[str]] = {}
+for _pid, _key in DATE_PROPS:
+    RAW_KEY_PIDS.setdefault(_key, []).append(_pid)
+
+
+def drop_coarse_dates(raw: dict[str, Any]) -> dict[str, Any]:
+    """The raw item without its century-or-coarser dates (and their properties)."""
+    precs = raw.get("_date_prec") or {}
+    coarse = {k for k, p in precs.items() if p <= COARSE_PRECISION and raw.get(k) is not None}
+    if not coarse:
+        return raw
+    out = {k: v for k, v in raw.items() if k not in coarse}
+    out["_date_prec"] = {k: p for k, p in precs.items() if k not in coarse}
+    drop_pids = {pid for k in coarse for pid in RAW_KEY_PIDS.get(k, [])}
+    out["properties"] = {k: v for k, v in (raw.get("properties") or {}).items() if k not in drop_pids}
+    return out
+
+
+def low_precision(raw: dict[str, Any]) -> bool:
+    """Whether any date the row keeps is coarser than a year."""
+    precs = raw.get("_date_prec") or {}
+    return any(p < 9 for k, p in precs.items() if raw.get(k) is not None)
 
 
 def impact_from_sitelinks(sitelinks: int) -> int:
@@ -65,6 +98,8 @@ def gate(raw: dict[str, Any], record: dict[str, Any], s: Slice) -> str | None:
         return "no-coords"
     if start is not None and end is not None and end < start:
         return "end-before-start"
+    if s.entity_type == "person" and start is not None and end is not None and end - start > MAX_LIFESPAN:
+        return "implausible-lifespan"
     for y in (start, end):
         if y is not None and (y > CURRENT_YEAR or y == 0):
             return "impossible-year"
@@ -82,6 +117,8 @@ def build(raws: list[dict[str, Any]], s: Slice, mapper: EntityMapper | None = No
     kept: list[dict] = []
     dropped: Counter = Counter()
     for raw in raws:
+        if s.entity_type == "person":
+            raw = drop_coarse_dates(raw)
         if HATNOTE.search(raw.get("summary") or ""):
             raw = {k: v for k, v in raw.items() if k not in ("summary", "full_extract")}
         record = mapper.map(raw, s.entity_type)
@@ -96,8 +133,7 @@ def build(raws: list[dict[str, Any]], s: Slice, mapper: EntityMapper | None = No
             record["_relationship_hints"] = [
                 h for h in record["_relationship_hints"] if h.get("source") not in DROPPED_HINTS
             ]
-        prec = start_precision(raw)
-        if prec is not None and prec < 9 and record.get("temporal_start") is not None:
+        if low_precision(raw) and (record.get("temporal_start") or record.get("temporal_end")) is not None:
             record["date_confidence"] = "low"  # decade, century or millennium
         sitelinks = int(raw.get("sitelinks") or 0)
         record["impact_score"] = impact_from_sitelinks(sitelinks)
