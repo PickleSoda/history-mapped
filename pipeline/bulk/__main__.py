@@ -239,11 +239,12 @@ def run(slice_id: str, max_parts: int | None, no_import: bool) -> None:
 
 @cli.command()
 @click.argument("slice_id")
-def rebuild(slice_id: str) -> None:
-    """Re-run the gates on fetched raw parts (after editing the spec); parts not yet imported only."""
+@click.option("--imported", is_flag=True, help="Also imported parts; then `prune` deletes the rows they no longer keep")
+def rebuild(slice_id: str, imported: bool) -> None:
+    """Re-run the gates on fetched raw parts (after editing the spec); parts not yet imported unless --imported."""
     s, store = _load(slice_id)
     for n in store.part_numbers():
-        if store.import_path(n).exists() or not store.raw_path(n).exists():
+        if (store.import_path(n).exists() and not imported) or not store.raw_path(n).exists():
             continue
         meta = _build_part(s, store, n, store.read_raw(n))
         say(f"{s.id} part {n + 1}: kept {meta['records']}, dropped {meta['dropped']}")

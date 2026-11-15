@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import math
+import re
 from collections import Counter
 from typing import Any
 
@@ -19,6 +20,11 @@ CURRENT_YEAR = 2026
 MODERN_UNIT_HINTS = {"wikidata:P17", "wikidata:P131"}
 
 
+# A lead that is really a hatnote or a disambiguation line says nothing about
+# the row; the mapper then falls back to the Wikidata description.
+HATNOTE = re.compile(r"(may (also )?refer to|^see also\b|^for other uses\b|^this article is about\b)", re.I)
+
+
 def impact_from_sitelinks(sitelinks: int) -> int:
     if sitelinks <= 0:
         return IMPACT_MIN
@@ -32,6 +38,14 @@ def _year(v: Any) -> int | None:
         return None
 
 
+def _in_box(record: dict[str, Any], box: list[float] | None) -> bool:
+    coords = (record.get("geojson") or {}).get("coordinates")
+    if not box or not coords:
+        return False
+    lon, lat = coords[0], coords[1]
+    return box[0] <= lon <= box[2] and box[1] <= lat <= box[3]
+
+
 def gate(raw: dict[str, Any], record: dict[str, Any], s: Slice) -> str | None:
     """Why this row is dropped, or None to keep it."""
     if not record.get("name") or record["name"] == raw.get("qid"):
@@ -39,8 +53,11 @@ def gate(raw: dict[str, Any], record: dict[str, Any], s: Slice) -> str | None:
     if set(raw.get("p31") or []) & set(s.exclude_p31):
         return "excluded-class"
     start, end = _year(record.get("temporal_start")), _year(record.get("temporal_end"))
-    if "dates" in s.require and start is None and end is None:
-        return "no-dates"
+    if start is None and end is None:
+        if "dates" in s.require:
+            return "no-dates"
+        if set(raw.get("p31") or []) & set(s.require_dates_p31) and not _in_box(record, s.require_dates_except_bbox):
+            return "no-dates"
     if "coords" in s.require and not record.get("geojson"):
         return "no-coords"
     if start is not None and end is not None and end < start:
@@ -62,6 +79,8 @@ def build(raws: list[dict[str, Any]], s: Slice, mapper: EntityMapper | None = No
     kept: list[dict] = []
     dropped: Counter = Counter()
     for raw in raws:
+        if HATNOTE.search(raw.get("summary") or ""):
+            raw = {k: v for k, v in raw.items() if k not in ("summary", "full_extract")}
         record = mapper.map(raw, s.entity_type)
         if record is None:
             dropped["unmappable"] += 1

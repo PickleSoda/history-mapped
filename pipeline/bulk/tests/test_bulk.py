@@ -173,3 +173,26 @@ def test_approved_reads_ids_and_ignores_comments(tmp_path, monkeypatch):
     assert store_mod.approved() == set()
     (tmp_path / "approved.txt").write_text("# wave 1\nslice-a\n\nslice-b  # late\n")
     assert store_mod.approved() == {"slice-a", "slice-b"}
+
+
+def test_dates_required_only_for_listed_classes():
+    s = spec(require_dates_p31=["Q2977"])
+    assert gate(raw(p31=["Q2977"]), {"name": "X"}, s) == "no-dates"
+    assert gate(raw(p31=["Q16970"]), {"name": "X"}, s) is None
+    assert gate(raw(p31=["Q2977"]), {"name": "X", "temporal_start": "1250"}, s) is None
+
+
+def test_hatnote_lead_falls_back_to_the_description():
+    hat = raw(summary="Battle of Cellorigo may refer to either of two battles:", description="battle in 1067")
+    kept, _ = build([hat], spec())
+    assert "refer to" not in (kept[0].get("summary") or "")
+
+
+def test_undated_rows_inside_the_exempt_box_are_kept():
+    s = spec(require_dates_p31=["Q2977"], require_dates_except_bbox=[-25, 25, 60, 72])
+    europe = {"name": "Ardfert Cathedral", "geojson": {"type": "Point", "coordinates": [-9.8, 52.3]}}
+    americas = {"name": "Cathedral of Mercedes", "geojson": {"type": "Point", "coordinates": [-58.0, -34.6]}}
+    assert gate(raw(p31=["Q2977"]), europe, s) is None
+    assert gate(raw(p31=["Q2977"]), americas, s) == "no-dates"
+    with pytest.raises(ValueError):
+        spec(require_dates_except_bbox=[60, 25, -25, 72])

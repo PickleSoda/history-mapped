@@ -66,6 +66,10 @@ class Slice:
     shards: dict[str, Any] = field(default_factory=dict)
     exclude_p31: list[str] = field(default_factory=list)
     require: list[str] = field(default_factory=list)  # "dates", "coords"
+    require_dates_p31: list[str] = field(default_factory=list)  # rows of these classes need a date
+    # ...unless their point lies in this [lon_min, lat_min, lon_max, lat_max] box
+    # (old undated cathedrals in Europe are medieval; elsewhere mostly modern)
+    require_dates_except_bbox: list[float] | None = None
     year_min: int | None = None  # historical years, applied to the start date
     year_max: int | None = None
     max_items: int | None = None
@@ -95,9 +99,13 @@ class Slice:
             raise ValueError(f"{self.id}: where must bind ?item")
         if re.search(r"\b(SELECT|LIMIT|OFFSET|GROUP BY)\b", self.where, re.I):
             raise ValueError(f"{self.id}: where is a graph pattern, not a query")
-        for q in self.exclude_p31:
-            if not QID.match(q):
-                raise ValueError(f"{self.id}: exclude_p31 {q!r} is not a QID")
+        for key in ("exclude_p31", "require_dates_p31"):
+            for q in getattr(self, key):
+                if not QID.match(q):
+                    raise ValueError(f"{self.id}: {key} {q!r} is not a QID")
+        box = self.require_dates_except_bbox
+        if box is not None and (len(box) != 4 or not (box[0] < box[2] and box[1] < box[3])):
+            raise ValueError(f"{self.id}: require_dates_except_bbox is [lon_min, lat_min, lon_max, lat_max]")
         bad = set(self.require) - {"dates", "coords"}
         if bad:
             raise ValueError(f"{self.id}: unknown require {sorted(bad)}")
