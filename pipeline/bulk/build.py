@@ -168,6 +168,9 @@ def gate(raw: dict[str, Any], record: dict[str, Any], s: Slice) -> str | None:
         return "no-label"
     if set(raw.get("p31") or []) & set(s.exclude_p31):
         return "excluded-class"
+    desc = raw.get("description") or ""
+    if s.exclude_desc and re.search(s.exclude_desc, desc, re.I) and not (s.keep_desc and re.search(s.keep_desc, desc, re.I)):
+        return "excluded-description"
     start, end = _year(record.get("temporal_start")), _year(record.get("temporal_end"))
     if start is None and end is None:
         if "dates" in s.require:

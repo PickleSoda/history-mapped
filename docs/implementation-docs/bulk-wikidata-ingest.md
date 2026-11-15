@@ -163,6 +163,7 @@ Bulk rows reach production only through a full content load
 |---|---|
 | A slicer or fetch logs 429 or 504 for minutes | WDQS is saturated. Run fewer slicers and fetchers at once |
 | `Failed to find executable` from `bulk_run.sh` | An old copy of the script; `PY` must be exported to the `xargs` workers |
+| Athletes in a people slice (racing drivers tagged engineer, Olympic riders tagged officer) | Set `exclude_desc` (sport words) and `keep_desc` (the slice's own occupations) in the spec; both match the Wikidata description. Then `rebuild --imported` and `prune` |
 | A slicer finds its whole pool "claimed by other slices" | An earlier slice listed and then dropped them (year bounds); `release` that slice's claims, then re-run `qids` |
 | Rows imported before approval | The importer predates `approved.txt`; `prune <id> --all --yes` and re-approve |
 | Deletes take minutes | Missing indexes on the columns that reference entities; run the migrations |

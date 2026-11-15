@@ -23,5 +23,7 @@
   "year_min": 1900,
   "year_max": 1924,
   "priority": 5,
-  "notes": "wave3 people-20c-early; born 1900-1924"
+  "notes": "wave3 people-20c-early; born 1900-1924 Audit 2026-11-15: sportspeople co-tagged with the slice's occupation (racing drivers as engineers, athletes as officers) are dropped by exclude_desc unless the description also names the slice's occupation (keep_desc).",
+  "exclude_desc": "\\b(racing driver|racecar driver|rally driver|motorcycle racer|footballer|football player|soccer player|athlete|swimmer|tennis player|cyclist|boxer|wrestler|rower|coxswain|skier|ski jumper|gymnast|fencer|cricketer|rugby|baseball|basketball|ice hockey|hockey player|jockey|equestrian|sprinter|hurdler|golfer|sport shooter|bobsledder|speed skater|figure skater|weightlifter|canoeist|coach|olympic (?:champion|medalist|medallist|athlete)|long-distance runner|middle-distance runner|high jumper|long jumper|pole vaulter|discus thrower|javelin thrower|shot putter|decathlete|track and field)\\b",
+  "keep_desc": "\\b(scientist|physicist|chemist|mathematician|physician|biologist|professor|scholar|historian|economist|philosopher|inventor|astronomer|geologist|archaeologist|anthropologist|linguist|sociologist|psychologist|academic|researcher|engineer)\\b"
 }

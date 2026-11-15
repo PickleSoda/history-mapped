@@ -324,3 +324,14 @@ def test_release_gives_back_only_claims_dropped_for_the_bound(tmp_path, monkeypa
     assert run.exit_code == 0, run.output
     # kept (Q1), unmappable (Q3) and unfetched (Q4) stay; another slice's line is untouched
     assert claims.read_text() == "Q1\ttest-slice\nQ3\ttest-slice\nQ4\ttest-slice\nQ2\tother\n"
+
+
+def test_description_gate_drops_sportspeople_but_keeps_the_dual_careers():
+    s = spec(entity_type="person", exclude_desc=r"\b(racing driver|football player|footballer)\b",
+             keep_desc=r"\b(politician|engineer)\b")
+    person = dict(p31=["Q5"], point_in_time=None, coords=None, birth_date="1910", death_date="1980")
+    assert gate(raw(**person, description="Scottish racing driver"), {"name": "x", "temporal_start": "1910"}, s) == "excluded-description"
+    assert gate(raw(**person, description="American football player and politician"), {"name": "x", "temporal_start": "1910"}, s) is None
+    assert gate(raw(**person, description="British physicist"), {"name": "x", "temporal_start": "1910"}, s) is None
+    with pytest.raises(ValueError):
+        spec(exclude_desc="(unclosed")

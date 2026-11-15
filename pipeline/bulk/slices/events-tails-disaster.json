@@ -23,5 +23,6 @@
   ],
   "year_max": 1950,
   "priority": 4,
-  "notes": "Low-bar tail of events-law-disaster-dated."
+  "notes": "Low-bar tail of events-law-disaster-dated. Audit 2026-11-15: year_min -10000 drops geological eruptions (Semilir, Los Chocoyos).",
+  "year_min": -10000
 }

@@ -70,6 +70,11 @@ class Slice:
     # ...unless their point lies in this [lon_min, lat_min, lon_max, lat_max] box
     # (old undated cathedrals in Europe are medieval; elsewhere mostly modern)
     require_dates_except_bbox: list[float] | None = None
+    # Drop rows whose Wikidata description matches exclude_desc unless it also
+    # matches keep_desc (both case-insensitive regexes): "Scottish racing driver"
+    # out of an engineers' slice, "football player and politician" kept.
+    exclude_desc: str = ""
+    keep_desc: str = ""
     year_min: int | None = None  # historical years, applied to the start date
     year_max: int | None = None
     max_items: int | None = None
@@ -103,6 +108,11 @@ class Slice:
             for q in getattr(self, key):
                 if not QID.match(q):
                     raise ValueError(f"{self.id}: {key} {q!r} is not a QID")
+        for key in ("exclude_desc", "keep_desc"):
+            try:
+                re.compile(getattr(self, key))
+            except re.error as exc:
+                raise ValueError(f"{self.id}: {key} is not a regex: {exc}") from exc
         box = self.require_dates_except_bbox
         if box is not None and (len(box) != 4 or not (box[0] < box[2] and box[1] < box[3])):
             raise ValueError(f"{self.id}: require_dates_except_bbox is [lon_min, lat_min, lon_max, lat_max]")
