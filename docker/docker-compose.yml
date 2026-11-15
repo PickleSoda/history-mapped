@@ -95,6 +95,9 @@ services:
     build:
       context: .
       dockerfile: db/Dockerfile
+    # Parallel queries and VACUUM share memory through /dev/shm; Docker's 64 MB
+    # default fails them ("could not resize shared memory segment") at 600k+ rows.
+    shm_size: 256m
     ports:
       - '${FORWARD_DB_PORT:-5432}:5432'
     environment:
