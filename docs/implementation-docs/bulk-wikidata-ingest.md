@@ -193,6 +193,7 @@ into nothing. Then:
 | Date rule changes | `rebuild --imported` on the person slices, then `redate` |
 | Map points or years that drifted | `$CLI sync-geometry [--requid-since <stamp>] [--yes]`: the tiles read `geometry_periods`, which the import copies once from the primary location; `apply-audit` and `redate` now re-sync them, this fixes older drift |
 | A lead about another subject | `apply-audit` with `wrong_lead:<Wikidata description>`: the summary becomes the description (empty: none), the lead is dropped and `_lead_rejected` stamped. Find candidates by sitelinks Wikidata badges as redirects (QLever, `wikibase:badge wd:Q70893996`) and by summaries that never name the row; a judge decides each |
+| Duplicates behind a redirect | A badged sitelink judged "same subject" often means two items for one thing. Resolve the redirect's own item (Wikipedia API `redirects` + `pageprops`), and where it is also in the database, `merge_into` it; a historical phase on the same article (Samosata and Samsat, a dialect and its language) stays apart and takes `wrong_lead` |
 | Junk or generic names | `apply-audit` with `rename:<name>`: vandalised labels ("Battle of Deez Nutz"), bot labels ("Schloss", "Burgruine"); take the item's own article title. Skipped when the type already has a row of that name |
 | Pre-1582 dates shown in the Gregorian calendar | `$CLI julian-dates <tsv> [--yes]` with the QLever result of `JULIAN_QUERY` (in `__main__.py`); later Julian dates stay New Style |
 
