@@ -68,6 +68,7 @@
     ],
     "theme": [
       { "slug": "war", "name": "War & Conflict" },
+      { "slug": "massacres", "name": "Massacres & Atrocities", "parent": "war", "description": "Massacres, pogroms, genocides and war crimes against civilians." },
       { "slug": "empires-states", "name": "Empires & States", "description": "State formation, dynasties, empires and their politics." },
       { "slug": "religion", "name": "Religion & Belief" },
       { "slug": "trade", "name": "Trade & Economy" },

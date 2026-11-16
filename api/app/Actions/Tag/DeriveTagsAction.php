@@ -20,7 +20,9 @@ use Illuminate\Support\Facades\DB;
  *   3. sub-eras (Neolithic, Bronze/Iron Age) from its chronicles, when the
  *      entity's dates fall in the sub-era's window (or it has no dates);
  *   4. region from its chronicles, skipping thematic (cross-regional) ones;
- *   5. theme from entity type;
+ *   5. theme from entity type, and from the Wikidata class the bulk import
+ *      stored in attributes._p31 (a massacre is typed event_battle, the
+ *      closest of the 30 types, and tagged Massacres & Atrocities);
  *   6. the ancestors of all of the above.
  * An entity "is in" a chronicle when it is the source or target of an entry's
  * primary relationship, or a secondary entity of an entry.
@@ -68,6 +70,16 @@ class DeriveTagsAction
         'migration' => ['migration'],
         'language' => ['language-writing'],
         'social_class' => ['society'],
+    ];
+
+    /** @var array<string, list<string>> Wikidata class (P31) => theme slugs */
+    private const CLASS_THEMES = [
+        'Q3199915' => ['massacres'], // massacre
+        'Q750215' => ['massacres'],  // mass murder
+        'Q177716' => ['massacres'],  // pogrom
+        'Q41397' => ['massacres'],   // genocide
+        'Q135010' => ['massacres'],  // war crime
+        'Q6983405' => ['massacres'], // Nazi crime
     ];
 
     /** Entity ↔ chronicle membership, as a reusable CTE body. */
@@ -186,6 +198,25 @@ class DeriveTagsAction
             SELECT e.entity_id, m.tag, 'derived', now(), now()
             FROM entities e
             JOIN (VALUES %s) AS m(entity_type, tag) ON m.entity_type = e.entity_type::text
+            JOIN tags t ON t.slug = m.tag
+            ON CONFLICT DO NOTHING
+        SQL, implode(', ', $pairs)), $bindings);
+
+        // 5b. Theme from the Wikidata class (an array holding the QID contains it).
+        $pairs = [];
+        $bindings = [];
+        foreach (self::CLASS_THEMES as $class => $themes) {
+            foreach ($themes as $theme) {
+                $pairs[] = '(?, ?)';
+                array_push($bindings, $class, $theme);
+            }
+        }
+        $count += DB::affectingStatement(sprintf(<<<'SQL'
+            INSERT INTO entity_tags (entity_id, tag, source, created_at, updated_at)
+            SELECT DISTINCT e.entity_id, m.tag, 'derived', now(), now()
+            FROM entities e
+            JOIN (VALUES %s) AS m(class, tag)
+              ON jsonb_typeof(e.attributes->'_p31') = 'array' AND e.attributes->'_p31' @> to_jsonb(m.class::text)
             JOIN tags t ON t.slug = m.tag
             ON CONFLICT DO NOTHING
         SQL, implode(', ', $pairs)), $bindings);

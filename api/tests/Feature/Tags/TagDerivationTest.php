@@ -174,6 +174,19 @@ class TagDerivationTest extends TestCase
         $this->assertSame(['ancient', 'bronze-age', 'europe', 'iron-age', 'italy'], $this->tagsOf($undated));
     }
 
+    public function test_a_massacre_typed_as_a_battle_is_tagged_from_its_wikidata_class(): void
+    {
+        $massacre = Entity::factory()->ofType(EntityType::EventBattle)->create(['attributes' => ['_p31' => ['Q3199915']]]);
+        $battle = Entity::factory()->ofType(EntityType::EventBattle)->create(['attributes' => ['_p31' => ['Q178561']]]);
+        $curated = Entity::factory()->ofType(EntityType::EventBattle)->create(['attributes' => ['_p31' => 'Q3199915']]);
+
+        app(DeriveTagsAction::class)();
+
+        $this->assertSame(['massacres', 'war'], $this->tagsOf($massacre));
+        $this->assertSame(['war'], $this->tagsOf($battle));
+        $this->assertSame(['war'], $this->tagsOf($curated)); // not an array: ignored
+    }
+
     public function test_derive_replaces_previous_derived_tags_and_keeps_manual_ones(): void
     {
         $entity = Entity::factory()->ofType(EntityType::EventBattle)->create();

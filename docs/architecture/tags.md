@@ -65,7 +65,10 @@ Set-based SQL, about 4s for 37k entities.
      dates fall in the sub-era's window. Those periods differ by region, so they
      are never derived from dates alone.
   4. Region from its chronicles, skipping `thematic` ones.
-  5. Theme from entity type (battle → War & Conflict, religious text → Religion…).
+  5. Theme from entity type (battle → War & Conflict, religious text → Religion…),
+     and from the Wikidata class the bulk import keeps in `attributes._p31`:
+     massacres, pogroms, genocides and war crimes are typed `event_battle` (the
+     closest of the 30 types) and tagged Massacres & Atrocities.
   6. Ancestors of all of the above.
 
   Inheritance from chronicles (steps 2–4) is **weighted**: a tag is kept only if
