@@ -1,5 +1,6 @@
 resources/js/components/ui/*
 resources/views/mail/*
-# Content written by the map-story builders and description authors
+# Content written by the map-story builders, description and chapter authors
 resources/map-stories/*
 resources/entity-descriptions/*
+resources/chronicles/*

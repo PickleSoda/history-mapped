@@ -6,7 +6,11 @@
     "cover_qid": "Q48314",
     "sort_order": 30,
     "items": [
-        { "kind": "story", "ref": "battle-of-megiddo", "note": "The first battle known in detail, from Thutmose III's annals." },
+        {
+            "kind": "story",
+            "ref": "battle-of-megiddo",
+            "note": "The first battle known in detail, from Thutmose III's annals."
+        },
         { "kind": "story", "ref": "battle-of-kadesh" },
         { "kind": "story", "ref": "battle-of-marathon" },
         { "kind": "story", "ref": "battle-of-thermopylae" },
