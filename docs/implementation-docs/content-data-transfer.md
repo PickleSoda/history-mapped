@@ -130,8 +130,11 @@ The loader (`output/load-content-on-droplet.sh`) does:
 1. `pg_dump` current prod content → `output/prod-content-backup-<stamp>.sql` (rollback insurance).
 2. `cat truncate-content.sql <dump> | psql -1 -v ON_ERROR_STOP=1` — **atomic** truncate + load.
 3. `php artisan db:repair-sequences`: move every sequence back up to its column's max (see Gotchas).
-4. Print row counts (`entities`, `relationships`, `geometry_periods`) to confirm the load.
-5. `php artisan cache:clear` + `config:clear`.
+4. `php artisan tiles:refresh --force`: rebuild the atlas tile features. A data-only dump carries no materialized-view rows
+   and the load runs with triggers disabled, so the tiles would otherwise keep the old content (see
+   [Atlas vector tiles](../schemas/atlas-tiles.md#the-feature-table-tilesatlas_features)).
+5. Print row counts (`entities`, `relationships`, `geometry_periods`) to confirm the load.
+6. `php artisan cache:clear` + `config:clear`.
 
 If your prod compose file or service names differ, edit the `COMPOSE=` line at the
 top of the loader — it's the only environment-specific knob.

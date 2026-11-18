@@ -132,12 +132,12 @@ class TileEndpointTest extends TestCase
         }
     }
 
-    /** One verified polity with one point period at (10.5, 40.5). */
+    /** One verified polity with one point period at (10.5, 40.5), important enough for z0. */
     private function seedFeature(string $name): Entity
     {
         $entity = Entity::factory()->verified()->inGroup(EntityGroup::Polity)->create([
             'name' => $name,
-            'impact_score' => 50,
+            'impact_score' => 95,
         ]);
 
         DB::statement(
@@ -151,6 +151,8 @@ class TileEndpointTest extends TestCase
             )",
             [Str::uuid()->toString(), $entity->entity_id],
         );
+        // Tiles are cut from tiles.atlas_features (tiles:refresh in production).
+        DB::statement('REFRESH MATERIALIZED VIEW tiles.atlas_features');
 
         return $entity;
     }

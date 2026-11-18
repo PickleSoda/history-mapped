@@ -1,6 +1,6 @@
 # Atlas vector tiles
 
-> **Audience:** developers, GIS users · **Last reviewed:** 2026-11-14 · **Overview:**
+> **Audience:** developers, GIS users · **Last reviewed:** 2026-11-18 · **Overview:**
 > [Maps, tiles and OHM](../architecture/ohm-integration.md)
 
 All-time vector tiles of our entity overlay, served from PostGIS by [Martin](https://martin.maplibre.org/) or by the app
@@ -8,8 +8,9 @@ itself (`TILES_DRIVER`, see Operations). The public SPA (`web/`) reads them when
 [spec 2026-10-31](../archive/superpowers-specs/2026-10-31-atlas-tiles-ohm-correlation-design.md) (decisions D1–D9).
 
 Code: `tiles` schema in `api/database/migrations/2026_10_31_000001_create_tiles_schema.php` (helpers + view
-`tiles.atlas_entity_features`) and `2026_10_31_000002_create_atlas_entities_tile_function.php` (`tiles.atlas_entities(z, x, y)`);
-Martin config `docker/martin/config.yaml`; app driver `api/routes/tiles.php` + `App\Services\Tiles\TileServer` (`config/tiles.php`);
+`tiles.atlas_entity_features`), `2026_10_31_000002_create_atlas_entities_tile_function.php` (`tiles.atlas_entities(z, x, y)`) and
+`2026_11_18_000001_tiles_importance_gate_and_feature_table.php` (the feature table, importance gate and current function body);
+refresh command `App\Console\Commands\RefreshTilesCommand`; Martin config `docker/martin/config.yaml`; app driver `api/routes/tiles.php` + `App\Services\Tiles\TileServer` (`config/tiles.php`);
 client `web/src/lib/map-tiles.ts`. Tests: `api/tests/Feature/Tiles/`.
 
 ## Endpoints
@@ -96,18 +97,53 @@ a BCE year to OHM's astronomical number, where year 0 is 1 BCE.) It keeps featur
 `['in', ['get', 'entity_group'], ['literal', [...UPPERCASE]]]`. Scrubbing the timeline fetches no tiles. The sidebar
 list (`GET /api/v1/entities?exists_at=…`) and the ambient stories still refetch for the new year.
 
-## Density: rank-based cap per tile and per century
+## Density: importance gate, then a cap per tile and per century
 
-The cap is set by `tiles.tile_cap_for_zoom(z)`. Within one tile, features are grouped into 100-year buckets of `start_year`
+Two rules, applied in this order.
+
+**1. Importance gate.** Each feature has a `min_zoom`, from `tiles.feature_min_zoom(entity_group, entity_type, importance)`, where
+importance is `GREATEST(display_priority, impact_score)` (a curated priority can raise a feature, never bury it). A tile at zoom z
+holds only features with `min_zoom <= z`. Places wait for close zooms whatever their score: city scores do not tell a capital
+from a hamlet.
+
+| Feature | Importance | First zoom |
+|---|---|---|
+| City (`city`) | ≥ 80 | 7 |
+| City | below 80 | 9 |
+| Other place (group `PLACE`: monuments, schools, mines…) | ≥ 70 | 9 |
+| Other place | below 70 | 11 |
+| Everything else (events, polities, culture…) | ≥ 90 | 0 |
+| | 80–89 | 3 |
+| | 70–79 | 5 |
+| | 60–69 | 7 |
+| | below 60 | 9 |
+
+**2. Cap per century.** Within one tile, the features that pass are grouped into 100-year buckets of `start_year`
 (`floor(start_year / 100.0)`). Each bucket keeps its top N, ordered by `display_priority DESC NULLS LAST`, then
-`impact_score DESC NULLS LAST`, then `geometry_period_id`:
+`impact_score DESC NULLS LAST`, then `geometry_period_id`. N comes from `tiles.tile_cap_for_zoom(z)`:
 
 | Zoom | ≤ 1 | ≤ 3 | ≤ 6 | ≤ 9 | ≤ 12 | ≥ 13 |
 |---|---|---|---|---|---|---|
-| N | 12 | 16 | 24 | 48 | 96 | no cap |
+| N | 8 | 12 | 16 | 32 | 64 | no cap |
 
-Every era keeps some features at low zoom. The cost of this rule: a long-lived entity competes only in the century its period
-starts in. The REST impact ladder does not apply to tiles (D4).
+Every era with an important enough feature keeps some at low zoom. The cost of this rule: a long-lived entity competes only in the
+century its period starts in. The REST impact ladder does not apply to tiles (D4).
+
+On the 641k-entity database (57k periods), z0 went from 121 KB and 0.43 s to 41 KB and 22 ms; a world tile holds about 300
+features across all eras, with no city before z7 and no other place before z9.
+
+## The feature table: `tiles.atlas_features`
+
+Tiles are cut from `tiles.atlas_features`, a materialized copy of the view plus `century` and `min_zoom` (about 15 MB). Reading
+the view per tile joined the 1 GB `entities` table on every request; the z0 tile took 16 s cold on the 2 GB droplet.
+
+| Piece | Role |
+|---|---|
+| `tiles.change_seq` | Bumped by statement-level triggers (`tiles_note_change`) on `geometry_periods`, `entities`, `entity_aliases`, `entity_geo_refs` and `map_stories` |
+| `php artisan tiles:refresh` | `REFRESH MATERIALIZED VIEW CONCURRENTLY` (tiles keep serving), but only when `change_seq` moved since the last refresh (remembered in the cache store). `--force` always refreshes |
+| Scheduler | Runs `tiles:refresh` every five minutes |
+| Content load | A data-only `pg_dump` carries no materialized-view rows and the load disables triggers, so the loader runs `tiles:refresh --force` |
+| Tests | Refresh the table before reading a tile (`REFRESH MATERIALIZED VIEW tiles.atlas_features`) |
 
 ## Link to OHM: `ohm_osm_id`
 
@@ -135,8 +171,8 @@ entity's top active OHM geo-ref: `match_role = primary` first, then the latest `
 | Caddy (prod) | `Cache-Control: public, max-age=300` and gzip/zstd on `/tiles/*`, whichever the driver. Dev has no Caddy: Martin sends no `Cache-Control`, the app sends `max-age=300, public` |
 | Service worker | `StaleWhileRevalidate` on `/tiles/atlas_entities/`, cache `atlas-tiles`, 2000 entries, 1 day (`web/vite.config.ts`) |
 
-A data change reaches a returning browser within about 10 minutes (Martin expiry plus HTTP max-age). The service worker serves
-one stale copy first, then revalidates in the background.
+A data change reaches a returning browser within about 15 minutes (the five-minute `tiles:refresh`, Martin expiry and HTTP
+max-age). The service worker serves one stale copy first, then revalidates in the background.
 
 ## Feature flag
 
@@ -152,7 +188,7 @@ Dev: `web/.env.example` (commented out). Prod: the GitHub repository variable `V
 - **Driver:** `TILES_DRIVER=martin|app` in `docker/.env.prod` (default `martin`). Caddy imports the matching upstream snippet
   (`docker/Caddyfile`), and `docker/compose-prod.sh` enables the `martin` compose profile only for `martin`, so the sidecar runs
   only when it is the driver. Switching needs no SPA rebuild: the URLs are the same. The app driver is one container fewer, but
-  its tile requests share Octane's PHP workers (one per vCPU) with the API; Martin has its own pool and cache.
+  its tile requests share Octane's PHP workers (`OCTANE_WORKERS`, 4 in prod) with the API; Martin has its own pool and cache.
 - **Martin version:** `ghcr.io/maplibre/martin:1.16.1`, pinned in both compose files.
 - **Connection:** `MARTIN_DATABASE_URL`, built from `POSTGRES_*` in dev and `DB_*` in prod (keep `DB_PASSWORD` URL-safe). Martin
   uses the app's credentials; a read-only role is a follow-up.
