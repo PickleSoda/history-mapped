@@ -57,11 +57,11 @@ is set on the parent domain (`SESSION_DOMAIN`), the SPA host is listed in
 | Service | Image | Role |
 |---|---|---|
 | `caddy` | `caddy:2-alpine` | TLS (Let's Encrypt), routing, static files; the only service that publishes ports |
-| `app` | `ghcr.io/…/history-mapped/api:<sha>` | API and admin on Octane; health check `/up` |
+| `app` | `ghcr.io/…/history-mapped/api:<sha>` | API and admin on Octane (`OCTANE_WORKERS` PHP workers, 4 by default); health check `/up` |
 | `queue` | same image | `queue:work --tries=3 --max-time=3600` |
-| `scheduler` | same image | `schedule:work`: daily proposal pruning and image fetching |
+| `scheduler` | same image | `schedule:work`: daily proposal pruning and image fetching, tile refresh every five minutes |
 | `martin` | `ghcr.io/maplibre/martin:1.16.1` | Vector tiles, only with the `martin` profile |
-| `db` | built from `docker/db/` | PostgreSQL 16, PostGIS 3.5, pgvector 0.8.2 |
+| `db` | built from `docker/db/` | PostgreSQL 16, PostGIS 3.5, pgvector 0.8.2; settings sized for the 2 GB / 1 vCPU droplet (see Configuration) |
 | `redis` | `redis:7-alpine` | Cache, sessions and queue, with append-only persistence |
 | `backup` | `postgres:16-alpine` | `docker/backup.sh`: a `pg_dump -Fc` at start and daily, kept 14 days in `output/db-backups` |
 | `migrate` | api image, `setup` profile | One-off: `db:repair-sequences`, `migrate --force`, `collections:sync`, `config:cache` |
@@ -109,6 +109,7 @@ flowchart TB
 | Database backup (`pg_dump -Fc`, 14 days kept) | daily, 03:00 UTC, and when the service starts | the `backup` service |
 | Proposal pruning (`ai:prune-proposals`) | daily | scheduler |
 | Image links (`entity:fetch-images --limit=2000`) | daily, 03:30 UTC | scheduler |
+| Atlas tile features (`tiles:refresh`) | every five minutes, a no-op unless the content changed | scheduler |
 | `map-stories:sync`, `entities:sync-descriptions`, `tags:sync`, `map-stories:relink` | when their source files change | by hand: `bash docker/compose-prod.sh exec app php artisan <command>` |
 | Embeddings (`pipeline:embeddings`) | after large imports | by hand; needs an OpenAI key |
 
@@ -127,7 +128,7 @@ flowchart LR
     end
     subgraph Bulk["3 · Full content load, operator only"]
         direction TB
-        D1["data-only dump of the local DB"] --> D2["back up prod content"] --> D3["truncate and load, one transaction"] --> D4["repair sequences"]
+        D1["data-only dump of the local DB"] --> D2["back up prod content"] --> D3["truncate and load, one transaction"] --> D4["repair sequences, refresh tiles"]
     end
     F1 --> DB[(Hosted database)]
     F2 --> DB
@@ -162,7 +163,8 @@ Names only; values live in `docker/.env.prod` on the server, and in GitHub secre
 
 | Group | Variables |
 |---|---|
-| Compose | `APP_IMAGE`, `WEB_IMAGE`, `APP_DOMAIN`, `WEB_DOMAIN`, `TILES_DRIVER`, `POSTGRES_*` |
+| Compose | `APP_IMAGE`, `WEB_IMAGE`, `APP_DOMAIN`, `WEB_DOMAIN`, `TILES_DRIVER`, `POSTGRES_*`, `OCTANE_WORKERS` (default 4) |
+| Postgres (db `command`, defaults for 2 GB / 1 vCPU) | `PG_SHARED_BUFFERS` (384MB), `PG_EFFECTIVE_CACHE_SIZE` (1GB), `PG_WORK_MEM` (16MB), `PG_MAINTENANCE_WORK_MEM` (128MB), `PG_PARALLEL_WORKERS` (0). Fixed: `jit=off`, `random_page_cost=1.1`, `effective_io_concurrency=200`. A change recreates the db container on the next deploy |
 | Laravel core | `APP_*`, `FRONTEND_URL` (CORS, admin preview), `DB_*`, `REDIS_*`, `CACHE_STORE`, `SESSION_DRIVER`, `QUEUE_CONNECTION`, `LOG_*`, `OCTANE_*` |
 | Sign-in | `SESSION_DOMAIN`, `SESSION_SECURE_COOKIE`, `SANCTUM_STATEFUL_DOMAINS` |
 | AI and external services | `AI_DEFAULT_PROVIDER`, `AI_DEFAULT_MODEL`, `OPENROUTER_API_KEY`, `OPENAI_API_KEY` (embeddings), `WIKIDATA_USER_AGENT`, `OHM_*`, `OVERPASS_*` |

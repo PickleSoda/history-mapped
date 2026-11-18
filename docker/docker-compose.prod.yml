@@ -45,6 +45,10 @@ services:
     image: *app_image
     restart: unless-stopped
     env_file: [.env.prod]
+    environment:
+      # PHP workers (docker/api/Dockerfile.prod). Requests mostly wait on the
+      # database, so more workers than the droplet's one vCPU pays off.
+      OCTANE_WORKERS: "${OCTANE_WORKERS:-4}"
     expose:
       - "8080"
     depends_on:
@@ -154,6 +158,30 @@ services:
     # Parallel queries and VACUUM share memory through /dev/shm; Docker's 64 MB
     # default fails them ("could not resize shared memory segment") at 600k+ rows.
     shm_size: 256m
+    # Sized for the 2 GB / 1 vCPU droplet, which also runs the app, Martin and
+    # Redis (the stock config assumes 128 MB of buffers and spinning disks).
+    # Each value can be overridden in docker/.env.prod. Changing one recreates
+    # the db container on the next deploy (a few seconds of downtime).
+    #   jit=off: JIT compiles for ~0.5 s on plans the API answers in ms.
+    #   max_parallel_workers_per_gather=0: one vCPU, so workers only add overhead.
+    command:
+      - postgres
+      - -c
+      - shared_buffers=${PG_SHARED_BUFFERS:-384MB}
+      - -c
+      - effective_cache_size=${PG_EFFECTIVE_CACHE_SIZE:-1GB}
+      - -c
+      - work_mem=${PG_WORK_MEM:-16MB}
+      - -c
+      - maintenance_work_mem=${PG_MAINTENANCE_WORK_MEM:-128MB}
+      - -c
+      - random_page_cost=1.1
+      - -c
+      - effective_io_concurrency=200
+      - -c
+      - jit=off
+      - -c
+      - max_parallel_workers_per_gather=${PG_PARALLEL_WORKERS:-0}
     environment:
       POSTGRES_DB: "${POSTGRES_DB:-history-mapped}"
       POSTGRES_USER: "${POSTGRES_USER:-history-mapped}"
