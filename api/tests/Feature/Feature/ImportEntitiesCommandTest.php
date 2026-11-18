@@ -323,7 +323,7 @@ class ImportEntitiesCommandTest extends TestCase
         $this->assertDatabaseHas('entities', ['name' => 'Roman Empire', 'summary' => 'first']);
     }
 
-    public function test_dedup_by_name_and_overlapping_era_when_wikidata_differs(): void
+    public function test_a_different_qid_of_the_same_name_and_era_is_kept_apart(): void
     {
         $first = [
             'name' => 'Deutsches Reich',
@@ -338,8 +338,30 @@ class ImportEntitiesCommandTest extends TestCase
         ];
         $this->importRecord($first);
 
-        // Same name + type + overlapping era, different QID -> merge (no new row).
-        $this->importRecord(array_replace($first, ['wikidata_id' => 'Q139911734', 'summary' => 'dup']));
+        // Same name + type + overlapping era but another QID: another thing of
+        // the same name (two William Herberts of one century), so a new row.
+        $this->importRecord(array_replace($first, ['wikidata_id' => 'Q139911734', 'summary' => 'namesake']));
+
+        $this->assertDatabaseCount('entities', 2);
+        $this->assertDatabaseHas('entities', ['wikidata_id' => 'Q43287', 'summary' => 'german empire']);
+        $this->assertDatabaseHas('entities', ['wikidata_id' => 'Q139911734', 'summary' => 'namesake']);
+    }
+
+    public function test_a_record_with_a_qid_still_merges_into_a_same_name_row_without_one(): void
+    {
+        $curated = [
+            'name' => 'Deutsches Reich',
+            'entity_type' => 'political_entity',
+            'entity_group' => 'POLITY',
+            'summary' => 'german empire',
+            'temporal_start' => '1871',
+            'temporal_end' => '1918',
+            'verification_status' => 'pipeline_draft',
+            'confidence' => 'medium',
+        ];
+        $this->importRecord($curated);
+
+        $this->importRecord(array_replace($curated, ['wikidata_id' => 'Q43287', 'summary' => 'dup']));
 
         $this->assertDatabaseCount('entities', 1);
     }
