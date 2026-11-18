@@ -94,7 +94,6 @@ def build() -> dict:
     st.step("aftermath", "Both sides claim victory", "After the battle",
         """Ramesses marches south toward Damascus and Egypt, proclaiming a triumph that he carved on temple walls. Hittite records read the outcome differently, and modern historians treat it as a draw. Muwatalli kept Kadesh and pushed on south into the Egyptian province of Upi. A treaty between Ramesses and Hattusili III followed about fifteen years later, in 1258 BC, a copy of which survives from the Hittite capital.""")
     st.put("amun", at=P(-1800, -9000), facing=180, move="retreat", frame=True)
-    st.put("pharaoh", at=P(-1800, -8700))
     st.put("re", at=P(-1700, -9500), facing=180, state="ready", move="retreat")
     st.put("ptah", at=P(-1900, -9800), facing=180, state="ready", move="retreat")
     st.put("hitt-infantry", at=P(500, 600), facing=270, state="ready")
