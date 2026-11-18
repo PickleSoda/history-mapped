@@ -61,7 +61,7 @@ flowchart LR
 
 | Parameter | Meaning |
 |---|---|
-| `search` | Name search: trigram similarity, `ILIKE` and English full text |
+| `search` | Name search: `ILIKE` substring and English full text, plus trigram similarity from 6 characters (typos). A 1-2 character term matches name prefixes only, most important first |
 | `type`, `types[]`, `group`, `groups[]` | Entity type (one of 30) or group (`POLITY`, `PLACE`, `EVENT`, `ECONOMY`, `CULTURE`) |
 | `status`, `min_confidence` | Verification status; minimum confidence (`high`, `medium`, `low`) |
 | `tag`, `tags[]` | Tag slugs. AND across facets, OR within a facet |
@@ -70,6 +70,8 @@ flowchart LR
 | `exists_at`, `temporal_start`, `temporal_end` | Existed in a year, or overlaps a span |
 | `sort` | `relevance`, `impact`, `recent`, `chronological`, `distance`, `name` |
 | `per_page` (≤ 100), `page`, `include_relationships` | Paging and includes |
+
+The total is counted only up to 1,000: past that, `meta.total` is 1000 and `meta.total_capped` is true (otherwise false). An exact count of a broad filter walked tens of thousands of rows per request.
 
 ## Map
 

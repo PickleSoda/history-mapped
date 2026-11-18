@@ -254,7 +254,10 @@ export function CommandPalette() {
             <Kbd>esc</Kbd> close
           </span>
           {data && (
-            <span className="ml-auto font-mono">{data.meta.total} matches</span>
+            <span className="ml-auto font-mono">
+              {data.meta.total.toLocaleString()}
+              {data.meta.total_capped ? '+' : ''} matches
+            </span>
           )}
         </div>
       </div>

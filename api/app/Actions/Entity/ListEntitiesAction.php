@@ -7,19 +7,28 @@ namespace App\Actions\Entity;
 use App\DTOs\EntityFilterData;
 use App\Models\Entity;
 use App\Models\EntityRelationship;
+use App\Pagination\CappedLengthAwarePaginator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\DB;
 
 /**
  * List entities with filtering, spatial/temporal queries, and pagination.
  *
  * Delegates all query building to EntityBuilder for type-safe, composable queries.
+ *
+ * With `$totalCap` the total is counted only up to that many rows (a
+ * CappedLengthAwarePaginator, `meta.total_capped`). An exact count of a broad
+ * filter (a continent at a year, a common search word) walks tens of
+ * thousands of rows; on the 1-vCPU droplet that took 5-40 s per request. The
+ * public API caps; the admin keeps exact totals for its pager.
  */
 class ListEntitiesAction
 {
     /**
      * @return LengthAwarePaginator<Entity>
      */
-    public function __invoke(EntityFilterData $filters): LengthAwarePaginator
+    public function __invoke(EntityFilterData $filters, ?int $totalCap = null): LengthAwarePaginator
     {
         $query = Entity::query()->withGeoJson();
 
@@ -114,9 +123,29 @@ class ListEntitiesAction
                 : $query->orderByImpact(),
         };
 
-        return $query->paginate(
-            perPage: $filters->perPage,
-            page: $filters->page,
+        if ($totalCap === null) {
+            return $query->paginate(
+                perPage: $filters->perPage,
+                page: $filters->page,
+            );
+        }
+
+        $count = $query->toBase()
+            ->cloneWithout(['columns', 'orders', 'limit', 'offset'])
+            ->cloneWithoutBindings(['select', 'order'])
+            ->selectRaw('1')
+            ->limit($totalCap + 1);
+        $counted = DB::query()->fromSub($count, 'capped')->count();
+
+        $paginator = new CappedLengthAwarePaginator(
+            $query->forPage($filters->page, $filters->perPage)->get(),
+            min($counted, $totalCap),
+            $filters->perPage,
+            $filters->page,
+            ['path' => Paginator::resolveCurrentPath(), 'pageName' => 'page'],
         );
+        $paginator->totalCapped = $counted > $totalCap;
+
+        return $paginator;
     }
 }

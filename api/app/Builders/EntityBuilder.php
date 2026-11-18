@@ -101,8 +101,11 @@ class EntityBuilder extends Builder
      */
     public function inBbox(float $minLng, float $minLat, float $maxLng, float $maxLat): self
     {
+        // EXISTS over the primary location (at most one per entity:
+        // entity_locations_primary_unique), so el_geom_gist_idx is usable. The
+        // former scalar subquery ran once per entity and could not use it.
         return $this->whereRaw(
-            sprintf('%s && ST_MakeEnvelope(?, ?, ?, ?, 4326)', self::primaryLocationGeomSql()),
+            'EXISTS (SELECT 1 FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true AND el.geom && ST_MakeEnvelope(?, ?, ?, ?, 4326))',
             [$minLng, $minLat, $maxLng, $maxLat],
         );
     }
@@ -113,7 +116,7 @@ class EntityBuilder extends Builder
     public function territoryInBbox(float $minLng, float $minLat, float $maxLng, float $maxLat): self
     {
         return $this->whereRaw(
-            sprintf('%s && ST_MakeEnvelope(?, ?, ?, ?, 4326)', self::primaryLocationTerritorySql()),
+            'EXISTS (SELECT 1 FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true AND el.territory_geom && ST_MakeEnvelope(?, ?, ?, ?, 4326))',
             [$minLng, $minLat, $maxLng, $maxLat],
         );
     }
@@ -125,7 +128,7 @@ class EntityBuilder extends Builder
     public function nearPoint(float $lng, float $lat, float $radiusMeters): self
     {
         return $this->whereRaw(
-            sprintf('ST_DWithin((%s)::geography, ST_Point(?, ?)::geography, ?)', self::primaryLocationGeomSql()),
+            'EXISTS (SELECT 1 FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true AND ST_DWithin(el.geom::geography, ST_Point(?, ?)::geography, ?))',
             [$lng, $lat, $radiusMeters],
         );
     }
@@ -207,19 +210,37 @@ class EntityBuilder extends Builder
 
     // ── Text Search ──────────────────────────────────────────
 
+    /** Shorter terms match a name prefix only (trigrams need three characters). */
+    public const SEARCH_PREFIX_BELOW = 3;
+
+    /** Shorter terms skip trigram similarity, which matches tens of thousands of names. */
+    public const SEARCH_FUZZY_FROM = 6;
+
     /**
      * Fuzzy name search. Combines three signals so typos and partial terms
      * still match (not just exact word stems):
-     *   - trigram similarity (pg_trgm `%`) — typo tolerance
-     *   - ILIKE substring — partial / prefix matches
-     *   - full-text (tsvector) — whole-word relevance
-     * All three are index-backed (trigram GIN + FTS GIN).
+     *   - trigram similarity (pg_trgm `%`): typo tolerance, from 6 characters
+     *   - ILIKE substring: partial / prefix matches
+     *   - full-text (tsvector): whole-word relevance
+     * All three are index-backed (trigram GIN + FTS GIN). A 1-2 character term
+     * would make the ILIKE scan every row (the trigram index cannot serve it),
+     * so it matches a name prefix through entities_name_prefix_idx instead.
      */
     public function search(string $term): self
     {
+        $term = trim($term);
+        if ($term === '') {
+            return $this;
+        }
+        if (mb_strlen($term) < self::SEARCH_PREFIX_BELOW) {
+            return $this->whereRaw('lower(name) LIKE ?', [addcslashes(mb_strtolower($term), '\\%_').'%']);
+        }
+
         return $this->where(function (Builder $q) use ($term): void {
-            $q->whereRaw('name % ?', [$term])
-                ->orWhere('name', 'ILIKE', '%'.$term.'%')
+            if (mb_strlen($term) >= self::SEARCH_FUZZY_FROM) {
+                $q->orWhereRaw('name % ?', [$term]);
+            }
+            $q->orWhere('name', 'ILIKE', '%'.$term.'%')
                 ->orWhereRaw("to_tsvector('english', name) @@ plainto_tsquery('english', ?)", [$term]);
         });
     }
@@ -237,6 +258,11 @@ class EntityBuilder extends Builder
      */
     public function orderBySimilarity(string $term): self
     {
+        // Similarity to one or two letters says nothing: most important first.
+        if (mb_strlen(trim($term)) < self::SEARCH_PREFIX_BELOW) {
+            return $this->orderByImpact();
+        }
+
         return $this->orderByRaw('similarity(name, ?) DESC', [$term]);
     }
 

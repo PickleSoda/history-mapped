@@ -48,6 +48,8 @@ const PaginatorMetaSchema = z.object({
   last_page: z.number(),
   per_page: z.number(),
   total: z.number(),
+  /** GET /entities counts at most 1,000 rows; true when it stopped there. */
+  total_capped: z.boolean().optional(),
 });
 
 /** GET /entities — paginated EntitySummaryResource collection. */

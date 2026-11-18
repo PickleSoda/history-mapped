@@ -33,17 +33,21 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class EntityController extends Controller
 {
+    /** `GET /entities` counts its total only this far (`meta.total_capped`). */
+    public const LIST_TOTAL_CAP = 1000;
+
     /**
      * GET /api/v1/entities
      *
      * List entities with filtering, spatial/temporal queries, and pagination.
+     * The total stops at LIST_TOTAL_CAP; `meta.total_capped` says when it did.
      */
     public function index(
         ListEntitiesRequest $request,
         ListEntitiesAction $action,
     ): AnonymousResourceCollection {
         $filters = EntityFilterData::fromArray($request->validated());
-        $entities = $action($filters);
+        $entities = $action($filters, totalCap: self::LIST_TOTAL_CAP);
 
         return EntitySummaryResource::collection($entities);
     }
