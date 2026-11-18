@@ -134,6 +134,13 @@ export const DOC_PAGES: readonly DocEntry[] = [
     path: 'docs/architecture/deployment.md',
     description: 'How History Mapped is hosted and shipped: the production topology, CI/CD, environments and content operations.',
   },
+  {
+    slug: 'scalability',
+    title: 'Scalability benchmark',
+    section: 'architecture',
+    path: 'docs/architecture/scalability.md',
+    description: 'How request times change as the atlas grows from 36k to 2.6M entities, on four server sizes, calibrated against the live droplet.',
+  },
   // ── Data model ────────────────────────────────────────────────────────────
   {
     slug: 'data-model',

@@ -180,6 +180,7 @@ Names only; values live in `docker/.env.prod` on the server, and in GitHub secre
 | Health gate checks only the app container | A broken Caddy, TLS, tiles or SPA release passes the deploy | Check the site after a deploy |
 | No maintenance mode | Migrations run while the old app still serves | Keep migrations backward compatible |
 | One server | No redundancy | Images are in GHCR and the setup is reproducible from the repo |
+| One slow vCPU and 2 GB | The world-wide list, fuzzy search and tag list take 0.5–1.5 s each at 641k entities and queue behind each other; mixed traffic misses the cache from about 1.3M | See the [scalability benchmark](scalability.md) for measured limits per droplet size |
 
 ## Runbooks (internal)
 
