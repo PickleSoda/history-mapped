@@ -1,0 +1,175 @@
+{
+    "list_europe_1600": {
+        "status": 200,
+        "queries": [
+            {
+                "sql": "select count(*) as \"aggregate\" from (select 1 from \"entities\" where EXISTS (SELECT 1 FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true AND el.geom && ST_MakeEnvelope(?, ?, ?, ?, 4326)) and exists (select 1 from \"entity_temporal_ranges\" as \"etr\" where \"etr\".\"entity_id\" = \"entities\".\"entity_id\" and \"etr\".\"is_primary\" = ? and int4range(etr.start_year, CASE WHEN etr.end_year IS NULL THEN NULL ELSE etr.end_year + 1 END, '[)') @> ?::integer) limit 1001) as \"capped\"",
+                "bindings": [
+                    -15,
+                    30,
+                    45,
+                    62,
+                    true,
+                    1600
+                ]
+            },
+            {
+                "sql": "select \"entities\".*, (SELECT etr.start_date FROM entity_temporal_ranges etr WHERE etr.entity_id = entities.entity_id AND etr.is_primary = true ORDER BY etr.updated_at DESC NULLS LAST, etr.created_at DESC NULLS LAST LIMIT 1) AS temporal_start, (SELECT etr.end_date FROM entity_temporal_ranges etr WHERE etr.entity_id = entities.entity_id AND etr.is_primary = true ORDER BY etr.updated_at DESC NULLS LAST, etr.created_at DESC NULLS LAST LIMIT 1) AS temporal_end, (SELECT el.location_name FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true ORDER BY el.updated_at DESC NULLS LAST, el.created_at DESC NULLS LAST LIMIT 1) AS location_name, ST_AsGeoJSON((SELECT el.geom FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true ORDER BY el.updated_at DESC NULLS LAST, el.created_at DESC NULLS LAST LIMIT 1))::jsonb AS geom_geojson, ST_AsGeoJSON((SELECT el.territory_geom FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true ORDER BY el.updated_at DESC NULLS LAST, el.created_at DESC NULLS LAST LIMIT 1))::jsonb AS territory_geom_geojson, COALESCE((SELECT json_agg(et.tag ORDER BY et.tag) FROM entity_tags et WHERE et.entity_id = entities.entity_id), '[]'::json) AS entity_tags_json from \"entities\" where EXISTS (SELECT 1 FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true AND el.geom && ST_MakeEnvelope(?, ?, ?, ?, 4326)) and exists (select 1 from \"entity_temporal_ranges\" as \"etr\" where \"etr\".\"entity_id\" = \"entities\".\"entity_id\" and \"etr\".\"is_primary\" = ? and int4range(etr.start_year, CASE WHEN etr.end_year IS NULL THEN NULL ELSE etr.end_year + 1 END, '[)') @> ?::integer) order by \"impact_score\" desc limit 50 offset 0",
+                "bindings": [
+                    -15,
+                    30,
+                    45,
+                    62,
+                    true,
+                    1600
+                ]
+            }
+        ]
+    },
+    "list_world_-50": {
+        "status": 200,
+        "queries": [
+            {
+                "sql": "select count(*) as \"aggregate\" from (select 1 from \"entities\" where EXISTS (SELECT 1 FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true AND el.geom && ST_MakeEnvelope(?, ?, ?, ?, 4326)) and exists (select 1 from \"entity_temporal_ranges\" as \"etr\" where \"etr\".\"entity_id\" = \"entities\".\"entity_id\" and \"etr\".\"is_primary\" = ? and int4range(etr.start_year, CASE WHEN etr.end_year IS NULL THEN NULL ELSE etr.end_year + 1 END, '[)') @> ?::integer) limit 1001) as \"capped\"",
+                "bindings": [
+                    -180,
+                    -70,
+                    180,
+                    80,
+                    true,
+                    -50
+                ]
+            },
+            {
+                "sql": "select \"entities\".*, (SELECT etr.start_date FROM entity_temporal_ranges etr WHERE etr.entity_id = entities.entity_id AND etr.is_primary = true ORDER BY etr.updated_at DESC NULLS LAST, etr.created_at DESC NULLS LAST LIMIT 1) AS temporal_start, (SELECT etr.end_date FROM entity_temporal_ranges etr WHERE etr.entity_id = entities.entity_id AND etr.is_primary = true ORDER BY etr.updated_at DESC NULLS LAST, etr.created_at DESC NULLS LAST LIMIT 1) AS temporal_end, (SELECT el.location_name FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true ORDER BY el.updated_at DESC NULLS LAST, el.created_at DESC NULLS LAST LIMIT 1) AS location_name, ST_AsGeoJSON((SELECT el.geom FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true ORDER BY el.updated_at DESC NULLS LAST, el.created_at DESC NULLS LAST LIMIT 1))::jsonb AS geom_geojson, ST_AsGeoJSON((SELECT el.territory_geom FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true ORDER BY el.updated_at DESC NULLS LAST, el.created_at DESC NULLS LAST LIMIT 1))::jsonb AS territory_geom_geojson, COALESCE((SELECT json_agg(et.tag ORDER BY et.tag) FROM entity_tags et WHERE et.entity_id = entities.entity_id), '[]'::json) AS entity_tags_json from \"entities\" where EXISTS (SELECT 1 FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true AND el.geom && ST_MakeEnvelope(?, ?, ?, ?, 4326)) and exists (select 1 from \"entity_temporal_ranges\" as \"etr\" where \"etr\".\"entity_id\" = \"entities\".\"entity_id\" and \"etr\".\"is_primary\" = ? and int4range(etr.start_year, CASE WHEN etr.end_year IS NULL THEN NULL ELSE etr.end_year + 1 END, '[)') @> ?::integer) order by \"impact_score\" desc limit 50 offset 0",
+                "bindings": [
+                    -180,
+                    -70,
+                    180,
+                    80,
+                    true,
+                    -50
+                ]
+            }
+        ]
+    },
+    "search_ro": {
+        "status": 200,
+        "queries": [
+            {
+                "sql": "select count(*) as \"aggregate\" from (select 1 from \"entities\" where lower(name) LIKE ? limit 1001) as \"capped\"",
+                "bindings": [
+                    "ro%"
+                ]
+            },
+            {
+                "sql": "select \"entities\".*, (SELECT etr.start_date FROM entity_temporal_ranges etr WHERE etr.entity_id = entities.entity_id AND etr.is_primary = true ORDER BY etr.updated_at DESC NULLS LAST, etr.created_at DESC NULLS LAST LIMIT 1) AS temporal_start, (SELECT etr.end_date FROM entity_temporal_ranges etr WHERE etr.entity_id = entities.entity_id AND etr.is_primary = true ORDER BY etr.updated_at DESC NULLS LAST, etr.created_at DESC NULLS LAST LIMIT 1) AS temporal_end, (SELECT el.location_name FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true ORDER BY el.updated_at DESC NULLS LAST, el.created_at DESC NULLS LAST LIMIT 1) AS location_name, ST_AsGeoJSON((SELECT el.geom FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true ORDER BY el.updated_at DESC NULLS LAST, el.created_at DESC NULLS LAST LIMIT 1))::jsonb AS geom_geojson, ST_AsGeoJSON((SELECT el.territory_geom FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true ORDER BY el.updated_at DESC NULLS LAST, el.created_at DESC NULLS LAST LIMIT 1))::jsonb AS territory_geom_geojson, COALESCE((SELECT json_agg(et.tag ORDER BY et.tag) FROM entity_tags et WHERE et.entity_id = entities.entity_id), '[]'::json) AS entity_tags_json from \"entities\" where lower(name) LIKE ? order by \"impact_score\" desc limit 30 offset 0",
+                "bindings": [
+                    "ro%"
+                ]
+            }
+        ]
+    },
+    "search_rome": {
+        "status": 200,
+        "queries": [
+            {
+                "sql": "select count(*) as \"aggregate\" from (select 1 from \"entities\" where (\"name\"::text ILIKE ? or to_tsvector('english', name) @@ plainto_tsquery('english', ?)) limit 1001) as \"capped\"",
+                "bindings": [
+                    "%rome%",
+                    "rome"
+                ]
+            },
+            {
+                "sql": "select \"entities\".*, (SELECT etr.start_date FROM entity_temporal_ranges etr WHERE etr.entity_id = entities.entity_id AND etr.is_primary = true ORDER BY etr.updated_at DESC NULLS LAST, etr.created_at DESC NULLS LAST LIMIT 1) AS temporal_start, (SELECT etr.end_date FROM entity_temporal_ranges etr WHERE etr.entity_id = entities.entity_id AND etr.is_primary = true ORDER BY etr.updated_at DESC NULLS LAST, etr.created_at DESC NULLS LAST LIMIT 1) AS temporal_end, (SELECT el.location_name FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true ORDER BY el.updated_at DESC NULLS LAST, el.created_at DESC NULLS LAST LIMIT 1) AS location_name, ST_AsGeoJSON((SELECT el.geom FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true ORDER BY el.updated_at DESC NULLS LAST, el.created_at DESC NULLS LAST LIMIT 1))::jsonb AS geom_geojson, ST_AsGeoJSON((SELECT el.territory_geom FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true ORDER BY el.updated_at DESC NULLS LAST, el.created_at DESC NULLS LAST LIMIT 1))::jsonb AS territory_geom_geojson, COALESCE((SELECT json_agg(et.tag ORDER BY et.tag) FROM entity_tags et WHERE et.entity_id = entities.entity_id), '[]'::json) AS entity_tags_json from \"entities\" where (\"name\"::text ILIKE ? or to_tsvector('english', name) @@ plainto_tsquery('english', ?)) order by similarity(name, ?) DESC limit 30 offset 0",
+                "bindings": [
+                    "%rome%",
+                    "rome",
+                    "rome"
+                ]
+            }
+        ]
+    },
+    "search_charles": {
+        "status": 200,
+        "queries": [
+            {
+                "sql": "select count(*) as \"aggregate\" from (select 1 from \"entities\" where (name % ? or \"name\"::text ILIKE ? or to_tsvector('english', name) @@ plainto_tsquery('english', ?)) limit 1001) as \"capped\"",
+                "bindings": [
+                    "charles",
+                    "%charles%",
+                    "charles"
+                ]
+            },
+            {
+                "sql": "select \"entities\".*, (SELECT etr.start_date FROM entity_temporal_ranges etr WHERE etr.entity_id = entities.entity_id AND etr.is_primary = true ORDER BY etr.updated_at DESC NULLS LAST, etr.created_at DESC NULLS LAST LIMIT 1) AS temporal_start, (SELECT etr.end_date FROM entity_temporal_ranges etr WHERE etr.entity_id = entities.entity_id AND etr.is_primary = true ORDER BY etr.updated_at DESC NULLS LAST, etr.created_at DESC NULLS LAST LIMIT 1) AS temporal_end, (SELECT el.location_name FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true ORDER BY el.updated_at DESC NULLS LAST, el.created_at DESC NULLS LAST LIMIT 1) AS location_name, ST_AsGeoJSON((SELECT el.geom FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true ORDER BY el.updated_at DESC NULLS LAST, el.created_at DESC NULLS LAST LIMIT 1))::jsonb AS geom_geojson, ST_AsGeoJSON((SELECT el.territory_geom FROM entity_locations el WHERE el.entity_id = entities.entity_id AND el.is_primary = true ORDER BY el.updated_at DESC NULLS LAST, el.created_at DESC NULLS LAST LIMIT 1))::jsonb AS territory_geom_geojson, COALESCE((SELECT json_agg(et.tag ORDER BY et.tag) FROM entity_tags et WHERE et.entity_id = entities.entity_id), '[]'::json) AS entity_tags_json from \"entities\" where (name % ? or \"name\"::text ILIKE ? or to_tsvector('english', name) @@ plainto_tsquery('english', ?)) order by similarity(name, ?) DESC limit 30 offset 0",
+                "bindings": [
+                    "charles",
+                    "%charles%",
+                    "charles",
+                    "charles"
+                ]
+            }
+        ]
+    },
+    "tags": {
+        "status": 200,
+        "queries": [
+            {
+                "sql": "select \"tags\".*, (select count(*) from \"chronicles\" inner join \"chronicle_tags\" on \"chronicles\".\"chronicle_id\" = \"chronicle_tags\".\"chronicle_id\" where \"tags\".\"slug\" = \"chronicle_tags\".\"tag\" and \"chronicles\".\"status\" != ?) as \"chronicles_count\", (select count(*) from \"entity_tags\" where \"entity_tags\".\"tag\" = \"tags\".\"slug\") as \"entities_count\" from \"tags\" order by CASE facet WHEN 'era' THEN 0 WHEN 'region' THEN 1 WHEN 'theme' THEN 2 WHEN 'type' THEN 3 ELSE 4 END, \"sort_order\" asc, \"name\" asc",
+                "bindings": [
+                    "archived"
+                ]
+            }
+        ]
+    },
+    "entity_detail": {
+        "status": 200,
+        "queries": [
+            {
+                "sql": "select \"entities\".*, (select count(*) from \"geometry_periods\" where \"entities\".\"entity_id\" = \"geometry_periods\".\"entity_id\") as \"geometry_periods_count\", (select count(*) from \"entity_timeline_entries\" where \"entities\".\"entity_id\" = \"entity_timeline_entries\".\"entity_id\") as \"timeline_entries_count\" from \"entities\" where \"entity_id\" = ? limit 1",
+                "bindings": [
+                    "e837cceb-e520-4726-9180-9ebaeef0f1ca"
+                ]
+            },
+            {
+                "sql": "select * from \"entity_temporal_ranges\" where \"is_primary\" = ? and \"entity_temporal_ranges\".\"entity_id\" in (?) order by \"updated_at\" desc",
+                "bindings": [
+                    true,
+                    "e837cceb-e520-4726-9180-9ebaeef0f1ca"
+                ]
+            },
+            {
+                "sql": "select * from \"entity_locations\" where \"is_primary\" = ? and \"entity_locations\".\"entity_id\" in (?) order by \"updated_at\" desc",
+                "bindings": [
+                    true,
+                    "e837cceb-e520-4726-9180-9ebaeef0f1ca"
+                ]
+            },
+            {
+                "sql": "select * from \"entity_tags\" where \"entity_tags\".\"entity_id\" in (?)",
+                "bindings": [
+                    "e837cceb-e520-4726-9180-9ebaeef0f1ca"
+                ]
+            },
+            {
+                "sql": "select * from \"entity_aliases\" where \"entity_aliases\".\"entity_id\" in (?)",
+                "bindings": [
+                    "e837cceb-e520-4726-9180-9ebaeef0f1ca"
+                ]
+            },
+            {
+                "sql": "select \"story_id\", \"entity_id\", \"chronicle_id\", \"slug\", \"kind\", \"title\", \"year\", \"step_count\" from \"map_stories\" where \"map_stories\".\"entity_id\" in (?) order by \"year\" asc, \"title\" asc",
+                "bindings": [
+                    "e837cceb-e520-4726-9180-9ebaeef0f1ca"
+                ]
+            },
+            {
+                "sql": "SELECT ST_AsGeoJSON(?) AS geojson",
+                "bindings": [
+                    "0101000020E61000002CF8C84164F828404DD2A1783AF24440"
+                ]
+            }
+        ]
+    }
+}
