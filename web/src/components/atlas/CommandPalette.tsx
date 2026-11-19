@@ -1,10 +1,5 @@
 import { CornerDownLeft, MapPin, Search, X } from 'lucide-react';
-import {
-  useEffect,
-  useRef,
-  useState
-  
-} from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type {KeyboardEvent as ReactKeyboardEvent} from 'react';
 import { GroupBadge, GroupDot } from '@/components/atlas/GroupBadge';
 import { useCommandPalette, useEntitySearch, useSelection } from '@/hooks';
@@ -126,6 +121,28 @@ export function CommandPalette() {
 
   useEffect(() => setActive(0), [debounced, groups]);
 
+  // On phones the palette sits beside the bottom sheet, whose drawer library
+  // traps focus: its document listeners saw focus leave the sheet for the
+  // search box and pulled it back, so nothing could be typed. While the
+  // palette is open, focus moves into or out of it stop at the document,
+  // before those listeners run.
+  const rootRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const stop = (e: FocusEvent) => {
+      const root = rootRef.current;
+      if (!root) return;
+      const inPalette = (t: EventTarget | null) => t instanceof Node && root.contains(t);
+      if (inPalette(e.target) || inPalette(e.relatedTarget)) e.stopPropagation();
+    };
+    document.addEventListener('focusin', stop, true);
+    document.addEventListener('focusout', stop, true);
+    return () => {
+      document.removeEventListener('focusin', stop, true);
+      document.removeEventListener('focusout', stop, true);
+    };
+  }, [open]);
+
   if (!open) return null;
 
   const close = () => setOpen(false);
@@ -154,7 +171,8 @@ export function CommandPalette() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/30 pt-[12vh] backdrop-blur-sm"
+      ref={rootRef}
+      className="fixed inset-0 z-50 flex items-start justify-center bg-black/30 pt-3 backdrop-blur-sm md:pt-[12vh]"
       onClick={close}
     >
       <div
@@ -170,7 +188,11 @@ export function CommandPalette() {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onInputKey}
             placeholder="Search places, polities, events…"
-            className="h-12 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            // Focused in the tap's own render, so phones raise the keyboard;
+            // 16px on phones, or iOS zooms the page on focus.
+            autoFocus
+            enterKeyHint="search"
+            className="h-12 min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground md:text-sm"
           />
           <button
             type="button"
@@ -219,7 +241,7 @@ export function CommandPalette() {
         </div>
 
         {/* Results — fixed height so the modal doesn't resize once results load */}
-        <div className="h-[50vh] overflow-y-auto p-1.5">
+        <div className="h-[40dvh] overflow-y-auto p-1.5 md:h-[50vh]">
           {debounced.length === 0 ? (
             <p className="px-3 py-8 text-center text-sm text-muted-foreground">
               Type to search History Mapped…
