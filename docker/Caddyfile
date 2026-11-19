@@ -75,6 +75,12 @@
 	# The web-dist service installs each CI-built bundle as releases/<sha> and
 	# points this symlink at it (docker/web/install-web-dist.sh).
 	root * /srv/web/current
+	# Cloudflare caches files by extension (two hours at the edge) and tells
+	# browsers to keep them four hours when the origin names no lifetime. The
+	# service worker points at the current build, so it must be revalidated on
+	# every check or a release stays unseen until those copies expire. Hashed
+	# files under /assets/ are safe to keep.
+	header /sw.js Cache-Control "no-cache"
 	try_files {path} /index.html   # SPA client-side routing
 	file_server
 }

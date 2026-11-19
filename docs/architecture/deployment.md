@@ -5,17 +5,19 @@ This is the architecture view. The step-by-step operator procedures are in the i
 linked at the end.
 
 > **Audience:** developers, operators, technical stakeholders · **Read time:** 10 minutes ·
-> **Last reviewed:** 2026-11-14
+> **Last reviewed:** 2026-11-20
 
 ## At a glance
 
-The hosted site is one DigitalOcean droplet running Docker Compose. Caddy terminates TLS for two
-domains. The **web domain** (historymapped.org) serves the public app as static files. The
-**app domain** (api.historymapped.org) serves the API, the admin and the vector tiles.
+The hosted site is one DigitalOcean droplet running Docker Compose, behind Cloudflare's proxy.
+Caddy terminates TLS on the droplet for two domains. The **web domain** (historymapped.org) serves
+the public app as static files. The **app domain** (api.historymapped.org) serves the API, the
+admin and the vector tiles.
 
 ```mermaid
 flowchart TB
-    U((Internet)) -->|"HTTPS"| C["Caddy: TLS, routing, compression"]
+    U((Internet)) -->|"HTTPS"| CF["Cloudflare: DNS, proxy, edge cache"]
+    CF -->|"HTTPS, certificate checked"| C["Caddy: TLS, routing, compression"]
     C -->|"web domain"| W[("Static web app and /docs")]
     C -->|"app domain"| A["app: Laravel on FrankenPHP + Octane"]
     C -->|"app domain, /tiles/*"| M["Martin, or the app when TILES_DRIVER=app"]
@@ -51,6 +53,31 @@ flowchart TB
 The SPA and the API sit on sibling subdomains. Sign-in works across them because the session cookie
 is set on the parent domain (`SESSION_DOMAIN`), the SPA host is listed in
 `SANCTUM_STATEFUL_DOMAINS`, and CORS allows the SPA origin with credentials.
+
+## Cloudflare in front
+
+Cloudflare hosts the DNS zone and proxies every hostname, so visitors connect to Cloudflare and
+Cloudflare connects to the droplet. The zone is on the Free plan and is configured in the
+Cloudflare dashboard, not in this repository.
+
+| Area | Setting | Why |
+|---|---|---|
+| DNS | `historymapped.org` and `api`: A records to the droplet, **Proxied** | Traffic, caching and attack filtering go through Cloudflare; public DNS no longer shows the droplet address |
+| `www` | Proxied placeholder record (`192.0.2.1`) and a Redirect Rule: 301 to the root, path and query kept | The droplet has no `www` site or certificate |
+| TLS | Mode **Full (strict)**, Always Use HTTPS, minimum TLS 1.2 | Cloudflare checks Caddy's Let's Encrypt certificate on every connection |
+| Bots | Bot Fight Mode **off**; AI crawler policies allow | It challenges non-browser clients (the MCP connector, API clients) and cannot be exempted per path on the Free plan |
+| Visitor address | Caddy trusts Cloudflare's published ranges, reads `CF-Connecting-IP` from those peers only and passes it to the app as the single `X-Forwarded-For` value (`docker/Caddyfile`) | Per-IP rate limits key on the visitor, and a direct caller cannot forge the header |
+| Edge cache | Cloudflare defaults: files with a static extension are kept two hours at the edge and four hours in browsers; HTML, the API and tiles are not cached. `/sw.js` is sent with `Cache-Control: no-cache` | The service worker points at the current build, so a cached copy would hide a release |
+| Mail | SPF `v=spf1 -all`, DMARC `p=reject`, null MX | The domain sends no mail yet. Replace these with the provider's records when SMTP is configured |
+
+Things that follow from the proxy:
+
+| Topic | What to know |
+|---|---|
+| Deploys | The `DROPLET_HOST` secret must be the droplet's address, not a hostname: the hostnames resolve to Cloudflare, which does not carry SSH |
+| Cloudflare's address list | The ranges in `docker/Caddyfile` come from `https://www.cloudflare.com/ips/`. If the list goes stale, visitors arriving through a new range are seen as a Cloudflare address |
+| Limits | Requests are cut after 100 seconds without a byte from the app, and uploads are capped at 100 MB |
+| Load tests | Run them against the droplet address, never through Cloudflare (see `scripts/loadtest/README.md`) |
 
 ## Containers on the hosted site
 
@@ -177,6 +204,8 @@ Names only; values live in `docker/.env.prod` on the server, and in GitHub secre
 | Gap | Effect | Mitigation today |
 |---|---|---|
 | Backups stay on the droplet | Losing the droplet loses its daily dumps too | Copy dumps off the box, or turn on DigitalOcean droplet backups |
+| The droplet still answers on 80 and 443 from anywhere | Anyone who knows its address can skip Cloudflare's filtering | Allow 80 and 443 only from Cloudflare's ranges in a DigitalOcean firewall |
+| Certificate renewal behind the proxy is untested | Caddy's Let's Encrypt renewal now has to pass through Cloudflare, where only the HTTP challenge can work. The certificates issued before the switch run to mid-January 2027. If renewal fails, Full (strict) answers 526 once they expire | Check the origin certificate dates in mid-December 2026; the fallback is a Cloudflare Origin CA certificate in Caddy |
 | Health gate checks only the app container | A broken Caddy, TLS, tiles or SPA release passes the deploy | Check the site after a deploy |
 | No maintenance mode | Migrations run while the old app still serves | Keep migrations backward compatible |
 | One server | No redundancy | Images are in GHCR and the setup is reproducible from the repo |

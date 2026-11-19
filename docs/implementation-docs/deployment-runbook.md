@@ -34,7 +34,7 @@ Files: [`docker/docker-compose.prod.yml`](../../docker/docker-compose.prod.yml),
 
 **Two domains.** The admin (Inertia, served by the app) and the customer SPA both live at `/`, so they need separate hostnames:
 - **`APP_DOMAIN`** → the app container (API `/api`, admin UI, OpenAPI `/docs`).
-- **`WEB_DOMAIN`** → the customer SPA (static files: CI builds them into the `web` image, the `web-dist` service installs them into the `web_dist` volume as `releases/<sha>`, and Caddy serves `/srv/web/current`). Point an A record for each at the Droplet.
+- **`WEB_DOMAIN`** → the customer SPA (static files: CI builds them into the `web` image, the `web-dist` service installs them into the `web_dist` volume as `releases/<sha>`, and Caddy serves `/srv/web/current`). Point an A record for each at the Droplet, in the Cloudflare zone (see [Cloudflare in front](../architecture/deployment.md#cloudflare-in-front) for the proxy and TLS settings).
 
 **Vector tiles.** `APP_DOMAIN/tiles/*` serves the atlas tiles from Postgres ([contract](../schemas/atlas-tiles.md)).
 `TILES_DRIVER` in `docker/.env.prod` picks who answers, with no SPA rebuild either way:
@@ -50,7 +50,7 @@ Files: [`docker/docker-compose.prod.yml`](../../docker/docker-compose.prod.yml),
 - The SPA switches to tiles only when the repository variable `VITE_MAP_TILES_URL=https://<APP_DOMAIN>/tiles` is set when CI
   builds the `web` image. Unset keeps the REST GeoJSON overlay.
 
-1. Create a Droplet (≥2 GB RAM), point DNS A records for **both** `APP_DOMAIN` and `WEB_DOMAIN` at it.
+1. Create a Droplet (≥2 GB RAM), point DNS A records for **both** `APP_DOMAIN` and `WEB_DOMAIN` at it. Leave them **DNS only** until Caddy has its first certificates (step 4), then switch them to Proxied with TLS mode Full (strict). Set the `DROPLET_HOST` secret to the Droplet's address, not a proxied hostname.
 2. Install Docker Engine + Compose plugin.
 3. Clone the repo (the `db` image is built locally, so the full repo is needed), then:
    ```bash
