@@ -13,6 +13,8 @@ const AtlasLayout = lazy(() => import('./routes/AtlasLayout').then((m) => ({ def
 const LoginPage = lazy(() => import('./routes/LoginPage').then((m) => ({ default: m.LoginPage })));
 const RegisterPage = lazy(() => import('./routes/RegisterPage').then((m) => ({ default: m.RegisterPage })));
 const SavedPage = lazy(() => import('./routes/SavedPage').then((m) => ({ default: m.SavedPage })));
+const TalkPage = lazy(() => import('./routes/TalkPage').then((m) => ({ default: m.TalkPage })));
+const TalkLayout = lazy(() => import('./routes/TalkPage').then((m) => ({ default: m.TalkLayout })));
 const ContributionsPage = lazy(() =>
   import('./routes/ContributionsPage').then((m) => ({ default: m.ContributionsPage })),
 );
@@ -78,6 +80,10 @@ export function AppRoutes() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/saved" element={<SavedPage />} />
         <Route path="/contributions" element={<ContributionsPage />} />
+      </Route>
+      <Route element={<TalkLayout />}>
+        <Route path="/talk" element={<TalkPage />} />
+        <Route path="/talk/:entityId" element={<TalkPage />} />
       </Route>
       <Route element={<SiteLayout />}>
         <Route index element={<IndexRoute />} />

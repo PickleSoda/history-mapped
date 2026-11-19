@@ -18,6 +18,11 @@ function stepOrNull(step: number | null | undefined): number | null {
   return step != null && Number.isInteger(step) && step >= 0 ? step : null;
 }
 
+/** "Talk with people": the chat list, or one person's conversation. */
+export function talkPath(entityId?: string): string {
+  return entityId ? `/talk/${seg(entityId)}` : '/talk';
+}
+
 /** Standalone entity page. */
 export function entityPagePath(id: string): string {
   return `/entities/${seg(id)}`;

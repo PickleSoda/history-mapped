@@ -141,6 +141,13 @@ export const DOC_PAGES: readonly DocEntry[] = [
     path: 'docs/architecture/scalability.md',
     description: 'How request times change as the atlas grows from 36k to 2.6M entities, on four server sizes, calibrated against the live droplet.',
   },
+  {
+    slug: 'talk-with-people',
+    title: 'Talk with people',
+    section: 'architecture',
+    path: 'docs/architecture/talk-with-people.md',
+    description: 'How a signed-in visitor chats in character with a historical person, from atlas data only.',
+  },
   // ── Data model ────────────────────────────────────────────────────────────
   {
     slug: 'data-model',

@@ -12,6 +12,7 @@ import {
   RelationshipTimeline,
 } from '@/components/atlas/RelationshipTimeline';
 import { paragraphs, StoryButtons } from '@/components/atlas/StoryCard';
+import { TalkButton } from '@/components/talk/TalkButton';
 import {
   useChronicleNav,
   useEntity,
@@ -122,6 +123,7 @@ export function DetailPanelContent() {
             <h2 className="mt-3 font-heading text-xl font-semibold leading-tight">
               {entity.name}
             </h2>
+            {entity.can_talk && <TalkButton entityId={entity.id} name={entity.name} className="mt-2.5" />}
             <div className="mt-2.5 flex flex-wrap gap-1.5">
               {temporalText(entity) && (
                 <Pill

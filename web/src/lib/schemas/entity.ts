@@ -89,6 +89,8 @@ export const EntityDetailSchema = z.object({
   wikidata_id: z.string().nullable().default(null),
   entity_type: z.string().nullable().default(null),
   entity_group: GroupFromApi,
+  /** A person who died long enough ago to be talked to ("Talk" button). */
+  can_talk: z.boolean().catch(false).default(false),
   summary: z.string().nullable().default(null),
   significance: z.string().nullable().default(null),
   /** Long-form text: plain paragraphs separated by blank lines. */

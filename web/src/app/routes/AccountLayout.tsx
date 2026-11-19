@@ -8,7 +8,7 @@ import { useMe } from '@/hooks';
 import { ATLAS_PATH } from '@/lib/site-links';
 
 /** Shown while an account page chunk loads. */
-function PageFallback() {
+export function PageFallback() {
   return (
     <div className="grid place-items-center py-24 text-[13px] text-muted-foreground">
       <span className="animate-pulse motion-reduce:animate-none">Loading…</span>
@@ -16,34 +16,40 @@ function PageFallback() {
   );
 }
 
+/** The account pages' top bar: brand (home), a link back to the atlas, theme, user menu. */
+export function AccountHeader() {
+  return (
+    <header className="sticky top-0 z-20 flex h-[54px] items-center gap-3 border-b bg-card/95 px-4 backdrop-blur">
+      <Link to="/" className="flex items-center gap-2" aria-label="History Mapped home">
+        <span className="grid size-[30px] place-items-center rounded-lg bg-primary text-primary-foreground">
+          <Compass size={17} />
+        </span>
+        <span className="hidden font-heading text-[17px] font-semibold tracking-tight sm:inline">
+          History Mapped
+        </span>
+      </Link>
+      <Link
+        to={ATLAS_PATH}
+        className="ml-1 inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[12px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+      >
+        <ArrowLeft size={14} /> Atlas
+      </Link>
+      <div className="ml-auto flex items-center gap-2">
+        <ThemeToggle />
+        <UserMenu />
+      </div>
+    </header>
+  );
+}
+
 /**
- * Chrome for the account pages (sign in, saved, contributions): the brand
- * (home), a link back to the atlas, theme and the user menu, over a normally
- * scrolling page.
+ * Chrome for the account pages (sign in, saved, contributions): the header
+ * over a normally scrolling page.
  */
 export function AccountLayout() {
   return (
     <div className="min-h-dvh bg-background text-foreground">
-      <header className="sticky top-0 z-20 flex h-[54px] items-center gap-3 border-b bg-card/95 px-4 backdrop-blur">
-        <Link to="/" className="flex items-center gap-2" aria-label="History Mapped home">
-          <span className="grid size-[30px] place-items-center rounded-lg bg-primary text-primary-foreground">
-            <Compass size={17} />
-          </span>
-          <span className="hidden font-heading text-[17px] font-semibold tracking-tight sm:inline">
-            History Mapped
-          </span>
-        </Link>
-        <Link
-          to={ATLAS_PATH}
-          className="ml-1 inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[12px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-        >
-          <ArrowLeft size={14} /> Atlas
-        </Link>
-        <div className="ml-auto flex items-center gap-2">
-          <ThemeToggle />
-          <UserMenu />
-        </div>
-      </header>
+      <AccountHeader />
       <main className="mx-auto w-full max-w-[1120px] px-4 pb-20 pt-8 md:px-8">
         <Suspense fallback={<PageFallback />}>
           <Outlet />

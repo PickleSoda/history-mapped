@@ -27,6 +27,7 @@ const SOURCES = import.meta.glob<string>(
     '../../../../docs/architecture/admin-map-editor.md',
     '../../../../docs/architecture/deployment.md',
     '../../../../docs/architecture/scalability.md',
+    '../../../../docs/architecture/talk-with-people.md',
     '../../../../docs/entity-model/README.md',
     '../../../../docs/entity-model/entity-specification.md',
     '../../../../docs/entity-model/relationships.md',

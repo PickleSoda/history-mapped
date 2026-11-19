@@ -56,6 +56,7 @@ export {
   useDeleteFolder,
   useStars,
 } from './useSaved';
+export { useTalkList, useTalkConversation, useSendTalkMessage, useClearTalk } from './useTalk';
 export {
   useMyContributions,
   useSubmitContribution,

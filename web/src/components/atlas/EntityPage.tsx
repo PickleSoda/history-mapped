@@ -24,6 +24,7 @@ import {
 import { paragraphs, storyKindLabel } from '@/components/atlas/StoryCard';
 import { TagPills } from '@/components/atlas/TagPills';
 import { RelationGraph } from '@/components/graph';
+import { TalkButton } from '@/components/talk/TalkButton';
 import {
   useEntity,
   useEntityChronicles,
@@ -168,6 +169,8 @@ function Hero({ entity }: { entity: EntityDetail }) {
       ) : (
         <SuggestEditButton className="mt-2 -ml-1.5" label="Add other names" {...aliasTarget} />
       )}
+
+      {entity.can_talk && <TalkButton entityId={entity.id} name={entity.name} className="mt-4" />}
 
       <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-foreground/80">
         <DatesLine entity={entity} />

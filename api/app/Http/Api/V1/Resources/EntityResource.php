@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Api\V1\Resources;
 
 use App\Models\Entity;
+use App\Support\Persona\SpeakerEligibility;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -52,6 +53,10 @@ class EntityResource extends JsonResource
             'wikidata_id' => $this->wikidata_id,
             'entity_type' => $this->entity_type?->value,
             'entity_group' => $this->entity_group?->value,
+
+            // Can a signed-in user talk with this person? (Talk with people; no extra query:
+            // the death year is on the primary temporal range the entity page loads.)
+            'can_talk' => $this->whenLoaded('primaryTemporalRange', fn () => SpeakerEligibility::qualifies($this->entity_type, $this->primaryTemporalRange?->end_year)),
 
             // Content
             'summary' => $this->summary,

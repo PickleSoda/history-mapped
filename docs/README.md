@@ -16,7 +16,7 @@ modelled, and how the system is built and run.
 | **Business, product, partners** | [What is History Mapped?](overview/product-overview.md) | [Map stories](architecture/map-stories.md) · [Data pipeline](architecture/data-pipeline.md) (how the content is produced) |
 | **Historian, editor, researcher** | [For historians](entity-model/for-historians.md) | [Core concepts](overview/concepts.md) · [Relationship types](entity-model/relationships.md) · [Entity types](entity-model/entity-specification.md) |
 | **Geographer, GIS, cartographer** | [For geographers](entity-model/for-geodata-contributors.md) | [Maps, tiles and OHM](architecture/ohm-integration.md) · [Atlas vector tiles](schemas/atlas-tiles.md) |
-| **Developer** | [System overview](architecture/system-overview.md) | [Local setup](implementation-docs/setup.md) · [Backend and API](architecture/backend.md) · [Public web app](architecture/frontend-app.md) · [MCP connector](architecture/mcp-connector.md) |
+| **Developer** | [System overview](architecture/system-overview.md) | [Local setup](implementation-docs/setup.md) · [Backend and API](architecture/backend.md) · [Public web app](architecture/frontend-app.md) · [MCP connector](architecture/mcp-connector.md) · [Talk with people](architecture/talk-with-people.md) |
 | **Data contributor / operator** | [Data pipeline](architecture/data-pipeline.md) | [Importing data](implementation-docs/data-contributor-guide.md) · [Deployment and operations](architecture/deployment.md) · [Scalability benchmark](architecture/scalability.md) |
 
 ## What is in these docs

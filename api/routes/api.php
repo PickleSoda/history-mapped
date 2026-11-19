@@ -13,6 +13,7 @@ use App\Http\Api\V1\Controllers\MapResolutionController;
 use App\Http\Api\V1\Controllers\MapStoryAmbientController;
 use App\Http\Api\V1\Controllers\MapStoryController;
 use App\Http\Api\V1\Controllers\MeController;
+use App\Http\Api\V1\Controllers\PersonaConversationController;
 use App\Http\Api\V1\Controllers\ReferenceController;
 use App\Http\Api\V1\Controllers\SavedFolderController;
 use App\Http\Api\V1\Controllers\SourceController;
@@ -151,6 +152,17 @@ Route::prefix('v1')->group(function () {
                 ->whereNumber('folder')->where('type', $type)->whereUuid('id')->name('folders.items.store');
             Route::delete('/folders/{folder}/items/{type}/{id}', [SavedFolderController::class, 'removeItem'])
                 ->whereNumber('folder')->where('type', $type)->whereUuid('id')->name('folders.items.destroy');
+
+            // "Talk with people": one conversation per person (spec 2026-11-19).
+            Route::get('/talk', [PersonaConversationController::class, 'index'])->name('talk.index');
+            Route::get('/talk/{entity}', [PersonaConversationController::class, 'show'])
+                ->whereUuid('entity')->name('talk.show');
+            Route::post('/talk/{entity}/messages', [PersonaConversationController::class, 'send'])
+                ->whereUuid('entity')
+                ->middleware('throttle:'.(int) config('persona.limits.per_minute', 12).',1')
+                ->name('talk.send');
+            Route::delete('/talk/{entity}', [PersonaConversationController::class, 'destroy'])
+                ->whereUuid('entity')->name('talk.destroy');
 
             Route::get('/contributions', [ContributionController::class, 'mine'])->name('contributions.index');
             Route::post('/contributions/{contribution}/withdraw', [ContributionController::class, 'withdraw'])

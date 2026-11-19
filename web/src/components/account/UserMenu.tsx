@@ -1,5 +1,5 @@
 import { Menu } from '@base-ui/react/menu';
-import { Bookmark, LayoutDashboard, LogIn, LogOut, PencilLine } from 'lucide-react';
+import { Bookmark, LayoutDashboard, LogIn, LogOut, MessageCircle, PencilLine } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthActions, useLoginRedirect, useMe } from '@/hooks';
 import type { Me } from '@/lib/schemas/auth';
@@ -23,11 +23,14 @@ export function Avatar({ me, className }: { me: Me; className?: string }) {
 }
 
 /** Pages that need a signed-in user (signing out there leaves for the atlas). */
-const SIGNED_IN_ONLY = ['/saved', '/contributions'];
+const SIGNED_IN_ONLY = ['/saved', '/contributions', '/talk'];
+const signedInOnly = (pathname: string) =>
+  SIGNED_IN_ONLY.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
 /** Account links shared by the desktop menu and the mobile tools menu. */
 export function accountLinks(me: Me) {
   return [
+    { to: '/talk', label: 'Talk with people', icon: MessageCircle },
     { to: '/saved', label: 'Saved', icon: Bookmark },
     { to: '/contributions', label: 'My contributions', icon: PencilLine },
     ...(me.can.access_admin && me.admin_url
@@ -94,7 +97,7 @@ export function UserMenu() {
               // Leave the pages that need a user for the atlas; every other page stays put.
               onClick={() =>
                 signOut.mutate(undefined, {
-                  onSuccess: () => SIGNED_IN_ONLY.includes(pathname) && navigate(ATLAS_PATH),
+                  onSuccess: () => signedInOnly(pathname) && navigate(ATLAS_PATH),
                 })
               }
             >

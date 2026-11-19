@@ -61,4 +61,5 @@ export {
   type ContributionInput,
   type MyContributionsParams,
 } from './contributions';
+export { talkList, talkConversation, sendTalkMessage, clearTalk, talkErrorCode } from './talk';
 export { errorMessage, errorStatus, fieldErrors } from './errors';

@@ -77,4 +77,8 @@ export const qk = {
   contributions: () => ['me', 'contributions'] as const,
   myContributions: (params: MyContributionsParams) =>
     ['me', 'contributions', params] as const,
+  /** "Talk with people": every talk query, the sidebar list, one conversation. */
+  talk: () => ['me', 'talk'] as const,
+  talkList: () => ['me', 'talk', 'list'] as const,
+  talkConversation: (entityId: string) => ['me', 'talk', 'with', entityId] as const,
 };
