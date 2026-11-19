@@ -35,7 +35,7 @@ figures come from the benchmark host's much faster cores.
 | After a restart everything comes from disk | Cold, the regional list takes 1.5 s at 641k and 3.9 s at 2.6M, on every server size |
 | The live droplet's cores are about six times slower than the benchmark host's | A sixth of a host core reproduces the droplet's CPU timings, and it predicts the droplet's request times within ±50 % for requests over 100 ms (see [Calibration](#calibration)) |
 | On the live droplet today (641k) | Tiles, entity pages and short searches take 3–50 ms and the regional list 370 ms. The world-wide list takes 1.5 s, fuzzy search 0.57 s and the tag list 0.53 s. The database serves about 2 requests/s of a mix where those requests are a third of the traffic |
-| The cheapest wins are query changes, not hardware | The world-wide list's count picks a poor plan; the better one is 7.5× faster. The tag counts and the fuzzy-search ranking can stop growing with the atlas (see [What it means](#what-it-means)) |
+| The cheapest wins are query changes, not hardware | Made on 2026-11-19, after these measurements. On the droplet: the world-wide list's count 1.47 → 0.18 s, the fuzzy-search page for a common word 0.4–1.9 s → 0.07–0.23 s, and the tag list's counts come from a cache (see [Query changes](#query-changes-made-after-the-benchmark)) |
 
 ## What was measured
 
@@ -230,21 +230,29 @@ and pessimistic for the fast ones.
 
 | Atlas size | 1 vCPU / 2 GB (today) | What to change |
 |---|---|---|
-| Up to about 650k (now) | Browsing is fine: tiles, entity pages, searches and regional lists. The world-wide list, fuzzy search and the tag list take 0.5–1.5 s each and run one at a time on the single core, so a few visitors using them at once queue behind each other | Query changes (below) before hardware |
+| Up to about 650k (now) | Browsing is fine: tiles, entity pages, searches and regional lists. Before the query changes below, the world-wide list, fuzzy search and the tag list took 0.5–1.5 s each and ran one at a time on the single core, so a few visitors using them at once queued behind each other | Query changes (below, made) before hardware |
 | About 1.3M | Single requests still fit in memory, but mixed traffic starts to miss the cache, and the growing requests double | 2 vCPU / 4 GB |
 | About 2.6M | Mixed traffic collapses on 2 GB: the regional list reaches 3.9 s at droplet speed | 4 GB at least; 4 vCPU / 8 GB for concurrent visitors |
 
 Memory moves the cliff and vCPUs buy concurrent throughput. Neither makes one slow request faster; faster
 cores (CPU-optimized or Premium droplets) or query changes do.
 
-### Query changes that stop the growth
+### Query changes made after the benchmark
 
-| Request | On the droplet at 641k | Why it grows | Change |
-|---|---:|---|---|
-| World-wide "notable here" list | 1.5 s | The capped count picks a merge join that walks the entity key in order, hoping to reach 1,001 matches early. Matches are not spread evenly, so it walks about half the table | Make the planner use the date-range GiST index (`etr_active_range_gist_idx`). Measured at 641k with merge joins disabled: 7.5× faster, about 0.2 s on the droplet. Today the planner only finds that plan by chance, with the 2 GB settings at 1.3M |
-| Tag list with counts | 0.53 s | A correlated `count(*)` over all 2.4M entity tags on every call | Cache the response until content changes, or keep the counts in `tags` and update them in `tags:sync` |
-| Fuzzy search (6+ letters) | 0.57 s | The trigram index finds every candidate (10.7k for "charles"), then all of them are ranked by similarity to return 30 | Order by trigram distance (`name <-> term`) on a GiST trigram index, which stops after the first page |
-| World tile (z0) | 31 ms | More rows pass the importance gate | None needed: Caddy caches tiles for five minutes |
+The charts above show the queries as they were. Three of the growing requests were changed on
+2026-11-19 (`ListEntitiesAction`, `Tag::entityCounts`). Before and after are timed on the droplet at
+641k, warm.
+
+| Request | Why it grew | Change | Before → after |
+|---|---|---|---|
+| World-wide "notable here" list | The capped count picked a merge join that walks the entity key in order, hoping to reach 1,001 matches early. For a year with few entities that is most of the table | The count runs with merge joins off (`SET LOCAL`), so it starts from the date-range GiST index for sparse years. Dense years keep a nested loop over the key, as fast as before (1900: 77 → 108 ms) | Count at 50 BC: 1.47 → 0.18 s |
+| Fuzzy search (6+ letters) | The trigram index found every candidate (10.7k for "charles"), and all of them were scored to return 30 | Names at least 0.6 (then 0.45) similar rank above all others, so when they fill the page they are the page. Raising pg_trgm's threshold for that query lets the index skip weaker matches. Rare names fall through to the full query. Ranking is unchanged | "battle of" 1.9 → 0.19 s, "temple of" 1.9 → 0.07 s, "william" 0.48 → 0.23 s, "charles" 0.44 → 0.15 s |
+| Tag list with counts | A `count(*)` over all 2.4M entity tags on every call (about 1 s however it is written) | Entity counts per tag are cached in Redis for 10 minutes; `tags:sync` drops them | 0.53 s → one cache read; the count reruns at most every 10 minutes |
+| World tile (z0) | More rows pass the importance gate | None needed: Caddy caches tiles for five minutes | 31 ms |
+
+A GiST trigram index ordered by distance (`name <-> term`) was tried for fuzzy search and dropped: a page
+took 84 ms against 155 ms locally, and the planner then used it instead of the GIN index for the match
+count, which is slower there.
 
 ## Caveats
 
