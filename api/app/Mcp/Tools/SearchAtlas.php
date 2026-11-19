@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace App\Mcp\Tools;
 
 use App\Actions\Chronicle\ListChroniclesAction;
-use App\Actions\Entity\ListEntitiesAction;
-use App\DTOs\EntityFilterData;
 use App\Enums\EntityType;
 use App\Http\Api\V1\Controllers\EntityController;
 use App\Mcp\Support\AtlasUrl;
 use App\Mcp\Support\EntityCards;
+use App\Mcp\Support\EntitySearch;
 use App\Mcp\Support\OutputSchemas;
 use App\Mcp\Support\Reply;
 use App\Mcp\Support\Text;
@@ -24,9 +23,14 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsIdempotent;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
-#[Description('Search the atlas by name: entities (people, places, battles, polities, works and more) ranked by name similarity, plus matching chronicles (curated narratives). Use it first to find an entity id, then call get_entity, get_connections or what_was_happening. Optionally restrict to entity types or to entities that existed in a given year (negative = BC).')]
+#[Description('Search the atlas by name: entities (people, places, battles, polities, works and more), the most historically important close match first (an exact or whole-word name match, then by impact score; so "hastings" lists the Battle of Hastings before small towns of that name, and a misspelling still finds the famous name), plus matching chronicles (curated narratives). Use it first to find an entity id, then call get_entity, get_connections or what_was_happening. Optionally restrict to entity types or to entities that existed in a given year (negative = BC).')]
 #[IsReadOnly]
 #[IsIdempotent]
+/**
+ * Ranking: App\Mcp\Support\EntitySearch fetches up to 60 similarity matches
+ * plus the most important word-start and exact-name matches, and
+ * App\Mcp\Support\SearchRanking orders them by 100 x match quality + impact.
+ */
 class SearchAtlas extends Tool
 {
     private const CHRONICLES = 5;
@@ -55,7 +59,7 @@ class SearchAtlas extends Tool
 
     public function handle(
         Request $request,
-        ListEntitiesAction $entities,
+        EntitySearch $entities,
         ListChroniclesAction $chronicles,
     ): ResponseFactory {
         $input = $request->validate([
@@ -67,15 +71,10 @@ class SearchAtlas extends Tool
         ]);
         $limit = (int) ($input['limit'] ?? 10);
 
-        $page = $entities(EntityFilterData::fromArray([
-            'search' => $input['query'],
-            'types' => $input['types'] ?? null,
-            'exists_at' => $input['year'] ?? null,
-            'per_page' => $limit,
-        ]), totalCap: EntityController::LIST_TOTAL_CAP);
+        $found = $entities($input['query'], $input['types'] ?? null, $input['year'] ?? null, $limit, EntityController::LIST_TOTAL_CAP);
 
-        $cards = EntityCards::summaries($page->items());
-        $capped = (bool) ($page->totalCapped ?? false);
+        $cards = EntityCards::summaries($found['items']);
+        $capped = $found['capped'];
 
         $matches = $chronicles(['search' => $input['query'], 'sort' => 'impact', 'per_page' => self::CHRONICLES])->items();
         $chronicleRows = array_map(fn (Chronicle $c): array => [
@@ -94,7 +93,7 @@ class SearchAtlas extends Tool
         $summary = sprintf(
             '%s%d entities match "%s"%s; showing %d. %s%s',
             $capped ? 'More than ' : '',
-            $page->total(),
+            $found['total'],
             $input['query'],
             isset($input['year']) ? ' at '.Text::year((int) $input['year']) : '',
             count($cards),
@@ -105,7 +104,7 @@ class SearchAtlas extends Tool
         return Reply::make(trim($summary), [
             'query' => $input['query'],
             'entities' => $cards,
-            'total_entities' => $page->total(),
+            'total_entities' => $found['total'],
             'total_capped' => $capped,
             'chronicles' => $chronicleRows,
         ]);

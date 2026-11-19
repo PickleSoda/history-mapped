@@ -6,12 +6,11 @@ namespace App\Mcp\Tools;
 
 use App\Actions\Chronicle\GetEntityChroniclesAction;
 use App\Actions\Entity\GetEntityAction;
-use App\Actions\Entity\ListEntitiesAction;
 use App\Actions\Graph\GetEntityGraphAction;
-use App\DTOs\EntityFilterData;
 use App\Mcp\Resources\EntityCardApp;
 use App\Mcp\Support\AtlasUrl;
 use App\Mcp\Support\EntityCards;
+use App\Mcp\Support\EntitySearch;
 use App\Mcp\Support\OutputSchemas;
 use App\Mcp\Support\RelationshipLabels;
 use App\Mcp\Support\Reply;
@@ -30,7 +29,7 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsIdempotent;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
-#[Description('Full record of one atlas entity: dates, places, aliases, description, tags, its image with credit, its most important relationships and the chronicles it appears in. Identify it by id (from search_atlas), by Wikidata QID (e.g. Q517), or by name (best match: an exact name first, otherwise the top search hit).')]
+#[Description('Full record of one atlas entity: dates, places, aliases, description, tags, its image with credit, its most important relationships and the chronicles it appears in. Identify it by id (from search_atlas), by Wikidata QID (e.g. Q517), or by name (best match: the most historically important close match, as search_atlas ranks it).')]
 #[RendersApp(resource: EntityCardApp::class)]
 #[IsReadOnly]
 #[IsIdempotent]
@@ -103,7 +102,7 @@ class GetEntity extends Tool
     public function handle(
         Request $request,
         GetEntityAction $get,
-        ListEntitiesAction $list,
+        EntitySearch $search,
         GetEntityGraphAction $graph,
         GetEntityChroniclesAction $chronicles,
     ): Response|ResponseFactory {
@@ -115,7 +114,7 @@ class GetEntity extends Tool
             'required_without_all' => 'Give one of id, qid or name.',
         ]);
 
-        $id = $this->resolve($input, $list);
+        $id = $this->resolve($input, $search);
         if ($id === null) {
             $which = isset($input['id']) ? 'id '.$input['id'] : (isset($input['qid']) ? 'QID '.strtoupper($input['qid']) : 'name "'.$input['name'].'"');
 
@@ -166,7 +165,7 @@ class GetEntity extends Tool
     /**
      * @param  array<string, mixed>  $input
      */
-    private function resolve(array $input, ListEntitiesAction $list): ?string
+    private function resolve(array $input, EntitySearch $search): ?string
     {
         if (isset($input['id'])) {
             return (string) $input['id'];
@@ -175,16 +174,8 @@ class GetEntity extends Tool
             return Entity::query()->where('wikidata_id', strtoupper((string) $input['qid']))->value('entity_id');
         }
 
-        $name = trim((string) $input['name']);
-        $exact = Entity::query()
-            ->whereRaw('lower(name) = ?', [mb_strtolower($name)])
-            ->orderByRaw('impact_score DESC NULLS LAST')
-            ->value('entity_id');
-        if ($exact !== null) {
-            return $exact;
-        }
-
-        $hit = $list(EntityFilterData::fromArray(['search' => $name, 'per_page' => 1]))->items()[0] ?? null;
+        // The same ranking as search_atlas: the most important close match.
+        $hit = $search(trim((string) $input['name']), null, null, 1)['items'][0] ?? null;
 
         return $hit?->entity_id;
     }

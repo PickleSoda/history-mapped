@@ -26,6 +26,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(min-width:520px){#stage{height:380px}}
 #stage.busy{opacity:.55}
 #map{position:absolute;inset:0}
+#map.dark .maplibregl-canvas{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.9)}
 .maplibregl-ctrl-attrib{font-size:10px}
 .pin{width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:50%}
 .pin i{width:14px;height:14px;border-radius:50%;background:var(--gc);border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.35)}
@@ -65,8 +66,10 @@ const GROUPS = { POLITY: ['Polities & society', 'polity'], PLACE: ['Places', 'pl
 const gvar = (g) => (GROUPS[g] ? `var(--g-${GROUPS[g][1]})` : 'var(--t3)');
 const MAPLIBRE = '5.21.0';
 const CDN = `https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/${MAPLIBRE}/`;
-const OFM = 'https://tiles.openfreemap.org/styles/';
+// The same OpenHistoricalMap house style the public atlas draws (web/src/lib/map-config.ts), date-filtered to the year.
+const OHM_STYLE = 'https://www.openhistoricalmap.org/map-styles/woodblock/woodblock.json';
 const OHM_TILES = 'https://vtiles.openhistoricalmap.org/maps/ohm_admin/{z}/{x}/{y}.pbf';
+const OHM_ATTRIB = '© <a href="https://www.openhistoricalmap.org/" target="_blank" rel="noopener">OpenHistoricalMap</a> contributors';
 
 // Year arithmetic without a year 0 (1 BC is -1, AD 1 is 1).
 function addYears(y, d) {
@@ -74,12 +77,13 @@ function addYears(y, d) {
   const r = a <= 0 ? a - 1 : a;
   return Math.max(-100000, Math.min(9999, r));
 }
-// OHM date filter for a year of ours (mirrors web/src/lib/ohm-layer-date-filter.ts: OHM years are astronomical).
-function ohmYearFilter(year) {
+// The OHM date filter for a year of ours, ANDed with a layer's own filter (mirrors web/src/lib/ohm-layer-date-filter.ts;
+// OHM years are astronomical, so 1 BC is year 0). Undated features are hidden, as in the atlas.
+function ohmYearFilter(year, own, maxAdmin) {
   const oy = year < 0 ? year + 1 : year;
   const iso = (n) => (n < 0 ? '-' : '') + String(Math.abs(n)).padStart(4, '0') + '-01-01';
   const sIso = iso(oy), eIso = iso(oy + 1), sDec = oy, eDec = oy + 1;
-  return ['all',
+  const f = ['all',
     ['any', ['has', 'start_date'], ['has', 'end_date']],
     ['any',
       ['all', ['has', 'start_decdate'], ['<', ['to-number', ['get', 'start_decdate']], eDec]],
@@ -89,10 +93,43 @@ function ohmYearFilter(year) {
       ['all', ['has', 'end_decdate'], ['>=', ['to-number', ['get', 'end_decdate']], sDec]],
       ['all', ['!', ['has', 'end_decdate']], ['has', 'end_date'], ['>=', ['get', 'end_date'], sIso]],
       ['!', ['has', 'end_date']]],
-    ['<=', ['to-number', ['get', 'admin_level'], 99], 4],
   ];
+  if (maxAdmin) f.push(['<=', ['to-number', ['get', 'admin_level'], 99], maxAdmin]);
+  if (own) f.push(own);
+  return f;
 }
-const HIDE = /^(tunnel|road|bridge|building|aeroway|poi|highway|airport|boundary_|label_country|label_state|label_other|label_village|waterway_tunnel|park|landuse)/;
+// What the atlas's map-config.ts removes from OHM's style: clutter layers, icons on small labels, one bad feature.
+const OHM_HIDDEN = new Set(['place_areas_plot', 'city_county_lines_admin_9', 'city_county_lines_admin_7-8', 'admin_admin_5-6']);
+const OHM_NOISY_ICONS = ['points_from_landuse_', 'points_of_interest_', 'points_place_of_worship_', 'points_religion', 'points_powertower', 'transport_points_', 'transport_area_labels_'];
+const OHM_EXCLUDED = ['!', ['in', ['get', 'wikidata'], ['literal', ['Q1162419']]]];
+// OHM's style with English labels and every OHM layer filtered to `year`. Returns the style and each layer's own filter.
+function historicalStyle(style, year) {
+  const own = {};
+  const layers = (style.layers || []).filter((l) => !OHM_HIDDEN.has(l.id)).map((l) => {
+    const n = { ...l };
+    if (n.type === 'symbol' && n.layout) {
+      n.layout = { ...n.layout };
+      if ('text-field' in n.layout) n.layout['text-field'] = ['coalesce', ['get', 'name_en'], ['get', 'name:en'], ['get', 'name_int'], ['get', 'int_name'], ['get', 'name']];
+      if ('icon-image' in n.layout && (n.id === 'placearea_label' || OHM_NOISY_ICONS.some((p) => n.id.startsWith(p)))) delete n.layout['icon-image'];
+    }
+    if (n.source === 'ohm' && n['source-layer']) {
+      own[n.id] = n.filter ? ['all', n.filter, OHM_EXCLUDED] : OHM_EXCLUDED;
+      n.filter = ohmYearFilter(year, own[n.id], 0);
+    }
+    return n;
+  });
+  // Polity areas and borders for the year, under the first label layer.
+  const at = layers.findIndex((l) => l.type === 'symbol');
+  const tint = ['match', ['%', ['abs', ['to-number', ['get', 'osm_id'], 0]], 5], 0, TINTS[0], 1, TINTS[1], 2, TINTS[2], 3, TINTS[3], TINTS[4]];
+  const f = ohmYearFilter(year, null, 4);
+  layers.splice(at < 0 ? layers.length : at, 0,
+    { id: 'ohm-fill', type: 'fill', source: 'ohm_admin', 'source-layer': 'boundaries', filter: f, paint: { 'fill-color': tint, 'fill-opacity': 0.28 } },
+    { id: 'ohm-line', type: 'line', source: 'ohm_admin', 'source-layer': 'boundaries', filter: f, paint: { 'line-color': '#7a5230', 'line-width': 1.1, 'line-opacity': 0.8 } });
+  return {
+    style: { ...style, projection: style.projection || { type: 'mercator' }, layers, sources: { ...style.sources, ohm_admin: { type: 'vector', tiles: [OHM_TILES], minzoom: 2, maxzoom: 14, attribution: OHM_ATTRIB } } },
+    own,
+  };
+}
 const TINTS = ['#c9a66b', '#8fae8b', '#a08fb8', '#c98b7e', '#7fa3b8'];
 
 createMcpApp(async (app) => {
@@ -102,7 +139,7 @@ createMcpApp(async (app) => {
   app.autoResize();
 
   let args = {}, year = 0, shownYear = 0, entities = [], total = 0, capped = false, atlasUrl = '';
-  let selected = null, mode = 'init', map = null, markers = [], busy = false, firstFit = true, errMsg = '';
+  let ownFilters = {}, selected = null, mode = 'init', map = null, markers = [], busy = false, firstFit = true, errMsg = '';
   let theme = app.getHostContext()?.theme === 'dark' ? 'dark' : 'light';
   const pts = () => entities.filter((e) => e.lng != null && e.lat != null);
 
@@ -172,25 +209,14 @@ createMcpApp(async (app) => {
   const loadScript = (src) => new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('script')); document.head.appendChild(s); });
   const loadCss = (href) => { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; document.head.appendChild(l); };
 
-  function decorate() {
-    // runs on every style load: strip modern detail, add OHM borders for `shownYear`
-    const style = map.getStyle();
-    (style.layers || []).forEach((l) => { if (HIDE.test(l.id)) map.setLayoutProperty(l.id, 'visibility', 'none'); });
-    if (!map.getSource('ohm_admin')) {
-      map.addSource('ohm_admin', { type: 'vector', tiles: [OHM_TILES], minzoom: 2, maxzoom: 14, attribution: '© <a href="https://www.openhistoricalmap.org/" target="_blank" rel="noopener">OpenHistoricalMap</a> contributors' });
-    }
-    const tint = ['match', ['%', ['abs', ['to-number', ['get', 'osm_id'], 0]], 5], 0, TINTS[0], 1, TINTS[1], 2, TINTS[2], 3, TINTS[3], TINTS[4]];
-    const before = (style.layers || []).find((l) => l.type === 'symbol' && !HIDE.test(l.id))?.id;
-    const f = ohmYearFilter(shownYear || year);
-    if (!map.getLayer('ohm-fill')) map.addLayer({ id: 'ohm-fill', type: 'fill', source: 'ohm_admin', 'source-layer': 'boundaries', filter: f, paint: { 'fill-color': tint, 'fill-opacity': 0.3 } }, before);
-    if (!map.getLayer('ohm-line')) map.addLayer({ id: 'ohm-line', type: 'line', source: 'ohm_admin', 'source-layer': 'boundaries', filter: f, paint: { 'line-color': theme === 'dark' ? '#e0c9a6' : '#7a5230', 'line-width': 1.1, 'line-opacity': 0.8 } }, before);
-  }
   function applyOhmFilter() {
-    if (!map || !map.getLayer('ohm-fill')) return;
-    const f = ohmYearFilter(shownYear);
-    map.setFilter('ohm-fill', f);
-    map.setFilter('ohm-line', f);
+    if (!map) return;
+    const y = shownYear || year;
+    for (const [id, own] of Object.entries(ownFilters)) if (map.getLayer(id)) map.setFilter(id, ohmYearFilter(y, own, 0));
+    const f = ohmYearFilter(y, null, 4);
+    ['ohm-fill', 'ohm-line'].forEach((id) => map.getLayer(id) && map.setFilter(id, f));
   }
+  const setDark = () => { const m = $('#map'); if (m) m.classList.toggle('dark', theme === 'dark'); };
   function drawMarkers() {
     markers.forEach((m) => m.marker.remove());
     markers = pts().map((e) => {
@@ -229,10 +255,15 @@ createMcpApp(async (app) => {
       if (!window.maplibregl) throw new Error('no maplibregl');
     } catch (e) { return bail(String(e.message || e)); }
     try {
+      const res = await Promise.race([fetch(OHM_STYLE), new Promise((_, rej) => setTimeout(() => rej(new Error('style timeout')), 4000))]);
+      if (!res.ok) throw new Error(`style ${res.status}`);
+      const built = historicalStyle(await res.json(), shownYear || year);
+      ownFilters = built.own;
       mode = 'map';
-      map = new maplibregl.Map({ container: 'map', style: OFM + (theme === 'dark' ? 'fiord' : 'liberty'), center: [10, 40], zoom: 2, attributionControl: { compact: true }, cooperativeGestures: true, fadeDuration: 0 });
+      setDark();
+      map = new maplibregl.Map({ container: 'map', style: built.style, center: [10, 40], zoom: 2, attributionControl: { compact: true }, cooperativeGestures: true, fadeDuration: 0 });
     } catch (e) { return bail(String(e.message || e)); }
-    map.on('style.load', () => { styleOk = true; try { decorate(); } catch (e) { /* ignore */ } });
+    map.on('style.load', () => { styleOk = true; });
     map.on('error', () => { if (!styleOk) bail('style failed'); });
     map.once('load', () => {
       loaded = true;
@@ -243,10 +274,10 @@ createMcpApp(async (app) => {
     });
     const check = (limit) => setTimeout(() => {
       if (loaded || mode !== 'map') return;
-      if (styleOk && limit < 9000) return check(9000);
+      if (styleOk && limit < 12000) return check(12000);
       bail(`map not loaded after ${Date.now() - t0} ms`);
     }, limit - (Date.now() - t0));
-    check(4000);
+    check(8000);
   }
 
   // ---------- SVG fallback ----------
@@ -354,9 +385,7 @@ createMcpApp(async (app) => {
     const t = ctx?.theme === 'dark' ? 'dark' : 'light';
     if (t === theme) return;
     theme = t;
-    if (mode === 'map' && map) {
-      try { map.getLayer('ohm-fill') && map.removeLayer('ohm-fill'); map.getLayer('ohm-line') && map.removeLayer('ohm-line'); map.getSource('ohm_admin') && map.removeSource('ohm_admin'); map.setStyle(OFM + (theme === 'dark' ? 'fiord' : 'liberty')); } catch (e) { /* ignore */ }
-    }
+    setDark();
   });
 });
 @endverbatim

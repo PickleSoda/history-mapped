@@ -83,10 +83,22 @@ class GetEntityTest extends McpTestCase
         AtlasServer::tool(GetEntity::class, ['name' => 'Napoleon Testu'])->assertStructuredContentPath('entity.id', $e->entity_id);
     }
 
-    public function test_an_exact_name_beats_a_more_important_partial_match(): void
+    public function test_the_most_important_close_match_wins_a_name_lookup(): void
     {
-        $exact = $this->entity('Rome', null, ['impact_score' => 5]);
-        $this->entity('Rome Total War', null, ['impact_score' => 99]);
+        $town = $this->entity('Hastings', null, ['impact_score' => 73]);
+        $this->entity('Hastings', null, ['impact_score' => 67]);
+        $battle = $this->entity('Battle of Hastings', EntityType::EventBattle, ['impact_score' => 92]);
+
+        AtlasServer::tool(GetEntity::class, ['name' => 'hastings'])->assertStructuredContentPath('entity.id', $battle->entity_id);
+        AtlasServer::tool(GetEntity::class, ['name' => 'Hastings'])->assertStructuredContentPath('entity.id', $battle->entity_id);
+        $this->assertNotSame($town->entity_id, $battle->entity_id);
+    }
+
+    public function test_an_exact_name_still_beats_a_weak_partial_match(): void
+    {
+        $exact = $this->entity('Rome', null, ['impact_score' => 45]);
+        $this->entity('Wyroming', null, ['impact_score' => 90]);
+        $this->entity('Romesque', null, ['impact_score' => 90]);
 
         AtlasServer::tool(GetEntity::class, ['name' => 'rome'])->assertStructuredContentPath('entity.id', $exact->entity_id);
     }

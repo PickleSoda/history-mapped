@@ -48,7 +48,7 @@ class ViewsTest extends McpTestCase
         $csp = (new YearMapApp)->resolvedAppMeta()['csp'];
 
         $this->assertSame(['https://cdnjs.cloudflare.com'], $csp['resourceDomains']);
-        $this->assertEqualsCanonicalizing(['https://tiles.openfreemap.org', 'https://vtiles.openhistoricalmap.org'], $csp['connectDomains']);
+        $this->assertEqualsCanonicalizing(['https://www.openhistoricalmap.org', 'https://vtiles.openhistoricalmap.org'], $csp['connectDomains']);
     }
 
     public function test_graph_and_timeline_need_no_external_origins(): void

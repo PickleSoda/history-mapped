@@ -63,16 +63,29 @@ createMcpApp(async (app) => {
   let data = null, page = 0, shown = 5;
   const expanded = new Set();
 
+  // The heading is the name of an entity or the step's first clause (ChronicleHeadings.php); the body never starts with it again.
+  // DATE_PREFIX mirrors ChronicleHeadings::DATE_PREFIX, which the clause heading drops.
+  const DATE_PREFIX = /^(?:In|By|Around|About|During|Early in|Late in|Until|After|Before|From)\s+(?:(?:early|late|mid|the|c\.|circa)\s+)*\d{1,4}(?:\s*(?:BCE|BC|CE|AD))?(?:\s*[–-]\s*\d{1,4}(?:\s*(?:BCE|BC|CE|AD))?)?(?:\s*,\s*|\s+)/;
+  const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
   const body = (en) => {
-    const core = en.title.replace(/\u2026$/, '');
-    const rest = en.title.endsWith('\u2026') ? '' : en.text.startsWith(core) ? en.text.slice(core.length).trim() : '';
-    return rest || en.text;
+    const text = en.text.replace(/\s+/g, ' ').trim();
+    const cut = en.title.endsWith('\u2026');
+    const core = en.title.replace(/\u2026$/, '').trim();
+    const lc = core.toLowerCase();
+    for (const t of [text, cap(text.replace(DATE_PREFIX, ''))]) {
+      if (core && t.toLowerCase().startsWith(lc)) {
+        const rest = t.slice(core.length).replace(/^[\s.,;:!?\u2013\u2014-]+/, '');
+        if (!rest) return '';
+        return cut ? `\u2026${rest}` : cap(rest);
+      }
+    }
+    return text;
   };
   const entry = (en, idx) => `
     <div class="date">${esc(en.date_label || span(en.start_year, en.end_year) || `Step ${en.sequence}`)}</div>
     <div class="et">${esc(en.title)}</div>
-    <div class="tx ${expanded.has(idx) ? '' : 'clamp'}" data-tx="${idx}">${esc(body(en))}</div>
-    <button type="button" class="link" data-more="${idx}" hidden></button>
+    ${body(en) ? `<div class="tx ${expanded.has(idx) ? '' : 'clamp'}" data-tx="${idx}">${esc(body(en))}</div>
+    <button type="button" class="link" data-more="${idx}" hidden></button>` : ''}
     ${en.entity ? `<button type="button" class="ent" data-open="${esc(en.entity.atlas_url)}">${esc(en.entity.name)} ↗</button>` : ''}`;
 
   function wire(scope) {
@@ -80,6 +93,7 @@ createMcpApp(async (app) => {
     scope.querySelectorAll('[data-more]').forEach((b) => {
       const idx = Number(b.dataset.more);
       const tx = scope.querySelector(`[data-tx="${idx}"]`);
+      if (!tx) return;
       const label = () => { b.textContent = expanded.has(idx) ? 'Less' : 'More'; };
       requestAnimationFrame(() => {
         if (expanded.has(idx) || tx.scrollHeight > tx.clientHeight + 2) { b.hidden = false; label(); }

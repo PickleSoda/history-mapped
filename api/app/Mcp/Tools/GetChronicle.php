@@ -6,6 +6,7 @@ namespace App\Mcp\Tools;
 
 use App\Mcp\Resources\TimelineApp;
 use App\Mcp\Support\AtlasUrl;
+use App\Mcp\Support\ChronicleHeadings;
 use App\Mcp\Support\Reply;
 use App\Mcp\Support\Text;
 use App\Models\Chronicle;
@@ -52,7 +53,7 @@ class GetChronicle extends Tool
             ])->required(),
             'entries' => $schema->array()->items($schema->object([
                 'sequence' => $schema->integer()->required(),
-                'title' => $schema->string()->description('First sentence of the step, as a heading.')->required(),
+                'title' => $schema->string()->description('Short heading: the name of the entity the step is about, else its first clause. The text does not start with it again in the view.')->required(),
                 'start_year' => $schema->integer()->nullable()->required(),
                 'end_year' => $schema->integer()->nullable()->required(),
                 'date_label' => $schema->string()->nullable()->required(),
@@ -79,9 +80,16 @@ class GetChronicle extends Tool
         }
 
         $total = $chronicle->entries()->count();
-        $entries = $chronicle->entries()->with('secondaryEntities')->limit(self::ENTRIES)->get();
+        $entries = $chronicle->entries()
+            ->with(['secondaryEntities', 'primaryRelationship.sourceEntity', 'primaryRelationship.targetEntity'])
+            ->limit(self::ENTRIES)
+            ->get();
 
-        $rows = $entries->map(fn (ChronicleEntry $e): array => $this->entry($e))->values()->all();
+        $headings = ChronicleHeadings::forEntries($entries->map(fn (ChronicleEntry $e): array => [
+            'text' => (string) $e->narrative_text,
+            'entities' => $this->linked($e),
+        ])->values()->all());
+        $rows = $entries->values()->map(fn (ChronicleEntry $e, int $i): array => $this->entry($e, $headings[$i]))->all();
 
         $head = [
             'slug' => $chronicle->slug,
@@ -107,8 +115,31 @@ class GetChronicle extends Tool
         return Reply::make($text, ['chronicle' => $head, 'entries' => $rows]);
     }
 
+    /**
+     * The entities a step is about: the primary relationship's two ends and
+     * the linked entities, for ChronicleHeadings.
+     *
+     * @return list<array{name: string, event: bool, primary: bool, impact: int|null}>
+     */
+    private function linked(ChronicleEntry $e): array
+    {
+        $r = $e->primaryRelationship;
+        $primary = array_values(array_filter([$r?->sourceEntity, $r?->targetEntity]));
+        $out = [];
+        foreach ([...$primary, ...$e->secondaryEntities->all()] as $i => $x) {
+            $out[] = [
+                'name' => (string) $x->name,
+                'event' => str_starts_with((string) $x->entity_type?->value, 'event_'),
+                'primary' => $i < count($primary),
+                'impact' => $x->impact_score !== null ? (int) $x->impact_score : null,
+            ];
+        }
+
+        return $out;
+    }
+
     /** @return array<string, mixed> */
-    private function entry(ChronicleEntry $e): array
+    private function entry(ChronicleEntry $e, string $heading): array
     {
         $subject = $e->secondaryEntities->first();
         $location = is_array($e->approximate_location) ? $e->approximate_location : [];
@@ -117,7 +148,7 @@ class GetChronicle extends Tool
 
         return [
             'sequence' => (int) $e->sequence_order,
-            'title' => Text::firstSentence($e->narrative_text),
+            'title' => $heading,
             'start_year' => $e->start_year,
             'end_year' => $e->end_year,
             'date_label' => Text::dateLabel($e->start_year, $e->end_year),

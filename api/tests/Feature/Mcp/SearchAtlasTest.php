@@ -83,6 +83,40 @@ class SearchAtlasTest extends McpTestCase
             ->assertStructuredContentPath('entities.0.name', 'Plugh Later');
     }
 
+    public function test_the_famous_thing_leads_over_namesakes_and_typos_still_find_it(): void
+    {
+        $this->entity('Hastings', null, ['impact_score' => 73]);
+        $this->entity('Hastings', null, ['impact_score' => 67]);
+        $this->entity('Hastings Banda', null, ['impact_score' => 74]);
+        $battle = $this->entity('Battle of Hastings', EntityType::EventBattle, ['impact_score' => 92]);
+        $this->entity('Hastingsford', null, ['impact_score' => 98]);
+
+        $result = AtlasServer::tool(SearchAtlas::class, ['query' => 'hastings', 'limit' => 5])
+            ->assertStructuredContentPath('entities.0.id', $battle->entity_id)
+            ->assertStructuredContentPath('entities.1.name', 'Hastings')
+            ->assertStructuredContentCount(5, 'entities');
+        $result->assertStructuredContentPath('entities.2.name', 'Hastings Banda')
+            ->assertStructuredContentPath('entities.4.name', 'Hastingsford');
+
+        $napoleon = $this->entity('Napoleon Testus', null, ['impact_score' => 70]);
+        $this->entity('Napoleonic Testing Wars', EntityType::EventWar, ['impact_score' => 94]);
+        AtlasServer::tool(SearchAtlas::class, ['query' => 'napolean testus'])
+            ->assertStructuredContentPath('entities.0.id', $napoleon->entity_id);
+    }
+
+    public function test_the_limit_applies_after_ranking_and_the_total_is_unchanged(): void
+    {
+        foreach (range(1, 12) as $i) {
+            $this->entity("Ulm Town {$i}", null, ['impact_score' => 40]);
+        }
+        $star = $this->entity('Battle of Ulm', EntityType::EventBattle, ['impact_score' => 99]);
+
+        AtlasServer::tool(SearchAtlas::class, ['query' => 'ulm', 'limit' => 1])
+            ->assertStructuredContentCount(1, 'entities')
+            ->assertStructuredContentPath('entities.0.id', $star->entity_id)
+            ->assertStructuredContentPath('total_entities', 13);
+    }
+
     public function test_long_summaries_are_cut_at_a_word(): void
     {
         $this->entity('Wordy Place', null, ['summary' => str_repeat('alpha beta gamma ', 60)]);

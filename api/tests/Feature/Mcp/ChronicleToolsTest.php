@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Mcp;
 
+use App\Enums\EntityType;
 use App\Mcp\Servers\AtlasServer;
 use App\Mcp\Tools\FindChronicles;
 use App\Mcp\Tools\GetChronicle;
@@ -60,7 +61,7 @@ class ChronicleToolsTest extends McpTestCase
     {
         $this->seedTags();
         $c = $this->chronicle('Rubicon Tale', ['rome'], ['start_year' => -49, 'end_year' => -44, 'description' => 'Caesar crosses.']);
-        $caesar = $this->entity('Caesar Test');
+        $caesar = $this->entity('Caesar Test', EntityType::Person);
         $this->entry($c, 2, 'Caesar is killed. The Senate panics.', [], ['start_year' => -44, 'end_year' => -44]);
         $this->entry($c, 1, 'Caesar crosses the Rubicon. Civil war begins.', [$caesar], [
             'start_year' => -49,
@@ -87,6 +88,20 @@ class ChronicleToolsTest extends McpTestCase
             ->assertStructuredContentPath('entries.1.sequence', 2)
             ->assertStructuredContentPath('entries.1.entity', null)
             ->assertStructuredContentPath('entries.1.lng', null);
+    }
+
+    public function test_a_step_is_headed_by_its_event_not_by_its_own_words(): void
+    {
+        $c = $this->chronicle('Norman Tale');
+        $battle = $this->entity('Battle of Hastings', EntityType::EventBattle, ['impact_score' => 92]);
+        $harold = $this->entity('Harold Godwinson', EntityType::Person);
+        $this->entry($c, 1, 'In 1066 William of Normandy defeated Harold at Senlac Hill, near Hastings.', [$harold, $battle], ['start_year' => 1066, 'end_year' => 1066]);
+        $this->entry($c, 2, 'William was crowned at Westminster, and the Conquest began, with castles.', [$harold]);
+
+        AtlasServer::tool(GetChronicle::class, ['slug' => 'norman-tale'])
+            ->assertStructuredContentPath('entries.0.title', 'Battle of Hastings')
+            ->assertStructuredContentPath('entries.0.text', 'In 1066 William of Normandy defeated Harold at Senlac Hill, near Hastings.')
+            ->assertStructuredContentPath('entries.1.title', 'William was crowned at Westminster');
     }
 
     public function test_entries_are_capped_at_sixty_and_the_text_says_so(): void

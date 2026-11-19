@@ -13,7 +13,7 @@ use Laravel\Mcp\Server\Attributes\Title;
 
 #[Title('Map at a year')]
 #[Description('The entities mapped in a year over the historical borders of that year.')]
-#[AppMeta(resourceDomains: ['https://cdnjs.cloudflare.com'], connectDomains: ['https://tiles.openfreemap.org', 'https://vtiles.openhistoricalmap.org'])]
+#[AppMeta(resourceDomains: ['https://cdnjs.cloudflare.com'], connectDomains: ['https://www.openhistoricalmap.org', 'https://vtiles.openhistoricalmap.org'])]
 class YearMapApp extends AppResource
 {
     public function handle(Request $request): Response
