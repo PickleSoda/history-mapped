@@ -60,6 +60,10 @@ class AppServiceProvider extends ServiceProvider
         // /api: per user when signed in, else per client IP (bootstrap/app.php: throttleApi()).
         RateLimiter::for('api', fn (Request $request) => Limit::perMinute((int) config('app.api_rate_limit'))
             ->by($request->user()?->getAuthIdentifier() ?? $request->ip()));
+        // /mcp: one tool call per request, and Claude's calls come from its servers, so the key is
+        // the client IP plus the MCP session when there is one.
+        RateLimiter::for('mcp', fn (Request $request) => Limit::perMinute((int) config('app.mcp_rate_limit'))
+            ->by($request->user()?->getAuthIdentifier() ?? $request->ip().'|'.$request->header('MCP-Session-Id', '')));
 
         GeometryPeriod::observe(GeometryPeriodObserver::class);
         EntityTemporalRange::observe(EntityTemporalRangeObserver::class);

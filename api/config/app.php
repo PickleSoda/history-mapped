@@ -84,6 +84,10 @@ return [
 
     'api_rate_limit' => (int) env('API_RATE_LIMIT', 600),
 
+    // Requests per minute to /mcp (the `mcp` limiter). Each is one tool call
+    // or one view fetch; a busy chat makes a few a minute.
+    'mcp_rate_limit' => (int) env('MCP_RATE_LIMIT', 120),
+
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration
