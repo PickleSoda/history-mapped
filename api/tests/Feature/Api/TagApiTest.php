@@ -52,6 +52,20 @@ class TagApiTest extends TestCase
         $this->assertSame('prehistory', $res->json('data.0.slug'));
     }
 
+    public function test_entity_counts_are_cached_until_tags_sync(): void
+    {
+        $silk = fn (): int => collect($this->getJson('/api/v1/tags')->assertOk()->json('data'))
+            ->keyBy('slug')['silk']['entity_count'];
+        app(SyncTagsAction::class)(Entity::factory()->create(), ['Silk'], TagSource::Manual);
+        $this->assertSame(1, $silk());
+
+        app(SyncTagsAction::class)(Entity::factory()->create(), ['Silk'], TagSource::Manual);
+        $this->assertSame(1, $silk(), 'served from the cache');
+
+        $this->artisan('tags:sync', ['--vocabulary-only' => true])->assertSuccessful();
+        $this->assertSame(2, $silk());
+    }
+
     public function test_archived_chronicles_do_not_count_toward_a_tag(): void
     {
         $this->chronicle('Tang China', ['china']);

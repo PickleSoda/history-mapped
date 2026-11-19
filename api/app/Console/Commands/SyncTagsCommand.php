@@ -9,6 +9,7 @@ use App\Actions\Tag\SyncTagsAction;
 use App\Actions\Tag\SyncTagVocabularyAction;
 use App\Enums\TagSource;
 use App\Models\Chronicle;
+use App\Models\Tag;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -39,6 +40,8 @@ class SyncTagsCommand extends Command
         $this->components->twoColumnDetail('Vocabulary', "{$vocabulary['upserted']} upserted, {$vocabulary['deleted']} removed");
 
         if ($this->option('vocabulary-only')) {
+            Tag::forgetEntityCounts();
+
             return self::SUCCESS;
         }
 
@@ -70,6 +73,7 @@ class SyncTagsCommand extends Command
         $derived = $deriveTags();
         $this->components->twoColumnDetail('Derived chronicle tags', (string) $derived['chronicle_tags']);
         $this->components->twoColumnDetail('Derived entity tags', (string) $derived['entity_tags']);
+        Tag::forgetEntityCounts(); // GET /tags shows the new counts now, not after the cache TTL
 
         $untagged = Chronicle::query()->whereDoesntHave('tags')->count();
         if ($untagged > 0) {

@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 #[Fillable([
     'slug', 'name', 'facet', 'parent_slug', 'description', 'start_year', 'end_year', 'sort_order',
@@ -103,6 +105,35 @@ class Tag extends Model
             ->pluck('slug')
             ->values()
             ->all();
+    }
+
+    /** Cache key of entityCounts(). */
+    public const ENTITY_COUNTS_CACHE_KEY = 'tags:entity-counts';
+
+    /** Seconds entityCounts() is kept; GET /tags is itself public for 300. */
+    public const ENTITY_COUNTS_TTL = 600;
+
+    /**
+     * Entities per tag slug (tags with none are absent). Counting entity_tags
+     * (2.4M rows at 641k entities) took about 1 s on the 1-vCPU droplet on
+     * every GET /tags, so the counts are cached: `tags:sync` drops them, and
+     * any other change (an admin edit, an import) shows within the TTL.
+     *
+     * @return array<string, int>
+     */
+    public static function entityCounts(): array
+    {
+        return Cache::remember(self::ENTITY_COUNTS_CACHE_KEY, self::ENTITY_COUNTS_TTL, fn (): array => DB::table('entity_tags')
+            ->selectRaw('tag, count(*) AS n')
+            ->groupBy('tag')
+            ->pluck('n', 'tag')
+            ->map(fn (mixed $n): int => (int) $n)
+            ->all());
+    }
+
+    public static function forgetEntityCounts(): void
+    {
+        Cache::forget(self::ENTITY_COUNTS_CACHE_KEY);
     }
 
     /**

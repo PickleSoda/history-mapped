@@ -93,7 +93,8 @@ loads the vocabulary only.
 
 - `GET /api/v1/tags`: the vocabulary in display order, with `parent`, and
   `chronicle_count`/`entity_count` (archived chronicles don't count). Unused topic tags are omitted. Cached for
-  5 minutes.
+  5 minutes. The entity counts themselves (`Tag::entityCounts`) are cached server-side for 10 minutes, since
+  counting 2.4M rows took about 1 s; `tags:sync` drops that cache.
 - `GET /api/v1/chronicles?search=&tags[]=&sort=chronological|recent|title|impact`:
   `tags` also accepts a comma-separated string. `search` matches titles, slugs
   and tag names.
