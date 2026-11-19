@@ -9,6 +9,12 @@ export type ContributionStatus =
     | 'rejected'
     | 'withdrawn';
 
+/** `edit` corrects one text field; `create` proposes a new entity or relationship. */
+export type ContributionKind = 'edit' | 'create';
+
+/** Where it was submitted: the public atlas, or an MCP client such as Claude. */
+export type ContributionSource = 'atlas' | 'mcp';
+
 export type ContributionTargetType =
     | 'entity'
     | 'relationship'
@@ -30,8 +36,16 @@ export type DiffStats = {
 
 export type ContributionRow = {
     id: number;
+    kind: ContributionKind;
+    source: ContributionSource;
+    /** The MCP client's name, when source is `mcp`. */
+    client: string | null;
+    /** One line describing a `create` proposal; null for edits. */
+    summary: string | null;
     target_type: ContributionTargetType;
-    target_id: string;
+    /** Null for a `create` proposal until it is approved (then the created record's id). */
+    target_id: string | null;
+    /** Empty for a `create` proposal. */
     field: string;
     target_label: string;
     status: ContributionStatus;
@@ -64,6 +78,7 @@ export type PaginatedContributions = {
 export type ContributionFilters = {
     status: string;
     type: string;
+    kind: string;
 };
 
 export type ContributionIndexProps = {
@@ -72,8 +87,37 @@ export type ContributionIndexProps = {
     counts: Record<ContributionStatus, number>;
 };
 
+export type ProposalDuplicate = {
+    entity_id: string;
+    name: string;
+    entity_type: string;
+    start_year: number | null;
+    end_year: number | null;
+    admin_url: string;
+    public_url: string;
+};
+
+/** A `create` proposal as the review page shows it. */
+export type ContributionProposal = {
+    rows: { label: string; value: string }[];
+    possible_duplicates: ProposalDuplicate[];
+    /** Entity proposals a relationship proposal points at. */
+    depends_on: {
+        id: number;
+        label: string;
+        status: ContributionStatus | 'missing';
+        url: string | null;
+    }[];
+    /** A relationship whose entity proposal is not approved yet cannot be approved. */
+    blocked: boolean;
+    /** Pending relationship proposals waiting on this entity proposal. */
+    waiting: { id: number; label: string; url: string }[];
+};
+
 export type ContributionShowProps = {
     contribution: ContributionDetail;
+    /** Set for `create` proposals; null for edits. */
+    proposal: ContributionProposal | null;
     /** Null when the target record has been deleted. */
     current_text: string | null;
     /** Current → proposed, only when the contribution is stale. */

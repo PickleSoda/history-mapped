@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Contribution;
 
+use App\Enums\ContributionSource;
 use App\Enums\ContributionStatus;
 use App\Enums\ContributionTargetType;
 use App\Models\Contribution;
@@ -29,6 +30,8 @@ class SubmitContributionAction
         string $field,
         string $proposedText,
         ?string $note = null,
+        ContributionSource $source = ContributionSource::Atlas,
+        ?string $client = null,
     ): Contribution {
         if (! in_array($field, $type->editableFields(), true)) {
             throw ValidationException::withMessages(['field' => 'This field cannot be edited.']);
@@ -63,6 +66,8 @@ class SubmitContributionAction
             'diff' => ContributionFields::diff($field, $base, $proposed),
             'note' => $note === null || trim($note) === '' ? null : trim($note),
             'status' => ContributionStatus::Pending,
+            'source' => $source,
+            'client' => $client,
         ]);
     }
 }

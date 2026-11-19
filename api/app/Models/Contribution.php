@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\ContributionKind;
+use App\Enums\ContributionSource;
 use App\Enums\ContributionStatus;
 use App\Enums\ContributionTargetType;
 use App\Support\ContributionFields;
@@ -13,11 +15,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * A user's proposed correction to one prose field of one record, stored as a
- * base snapshot + proposal + word-level diff and held for staff review.
+ * A user's proposal held for staff review. Either (`edit`) a correction to one
+ * prose field of one record, stored as a base snapshot + proposal + word-level
+ * diff, or (`create`) a new entity or relationship, stored as a validated
+ * `payload` and only created when a moderator approves it.
  */
 #[Fillable([
-    'user_id', 'target_type', 'target_id', 'field', 'base_text', 'proposed_text',
+    'user_id', 'kind', 'payload', 'source', 'client', 'target_type', 'target_id', 'field', 'base_text', 'proposed_text',
     'diff', 'note', 'status', 'reviewer_id', 'review_note', 'reviewed_at',
 ])]
 class Contribution extends Model
@@ -26,17 +30,22 @@ class Contribution extends Model
      * Label, links and live field values of the target, filled for responses
      * by DescribeContributionTargetsAction (not a column).
      *
-     * @var array{label: string, admin_url: string, public_url: string, fields: array<string, string|null>}|null
+     * @var array{label: string, admin_url: string|null, public_url: string|null, fields: array<string, string|null>}|null
      */
     public ?array $targetInfo = null;
 
     protected $attributes = [
         'status' => 'pending',
+        'kind' => 'edit',
+        'source' => 'atlas',
     ];
 
     protected function casts(): array
     {
         return [
+            'kind' => ContributionKind::class,
+            'source' => ContributionSource::class,
+            'payload' => 'array',
             'target_type' => ContributionTargetType::class,
             'status' => ContributionStatus::class,
             'diff' => 'array',
@@ -56,6 +65,11 @@ class Contribution extends Model
         return $this->belongsTo(User::class, 'reviewer_id');
     }
 
+    public function isCreate(): bool
+    {
+        return $this->kind === ContributionKind::Create;
+    }
+
     public function isPending(): bool
     {
         return $this->status === ContributionStatus::Pending;
@@ -64,7 +78,7 @@ class Contribution extends Model
     /** The record being corrected, or null once it has been deleted. */
     public function target(): ?Model
     {
-        return $this->target_type->find($this->target_id);
+        return $this->target_id === null ? null : $this->target_type->find($this->target_id);
     }
 
     /** The field's live value on the target (null if the target is gone). */
@@ -72,13 +86,18 @@ class Contribution extends Model
     {
         $target ??= $this->target();
 
-        return $target === null ? null : ContributionFields::read($target, $this->field);
+        return $target === null || $this->field === null ? null : ContributionFields::read($target, $this->field);
     }
 
     /** True when the field changed after this contribution was submitted. */
     public function isStaleAgainst(?string $current): bool
     {
-        return $current === null || ! ContributionFields::same($this->field, $current, $this->base_text);
+        if ($this->isCreate()) {
+            return false; // a proposal for a new record has no base text to go stale
+        }
+
+        return $current === null
+            || ! ContributionFields::same((string) $this->field, $current, (string) $this->base_text);
     }
 
     /** @return array{added: int, removed: int} */

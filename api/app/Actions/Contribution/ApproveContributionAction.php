@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
+ * (`create` proposals are handed to ApproveProposalAction.)
+ *
  * Apply a pending contribution's proposed text to its target and mark it
  * approved. The target row is locked while comparing; if the field changed
  * since submission the contribution is stale and is only applied with
@@ -29,7 +31,10 @@ class ApproveContributionAction
     /** `entity_aliases.source` of rows written by approved contributions. */
     public const ALIAS_SOURCE = 'contribution';
 
-    public function __construct(private readonly SyncEntityAliasesAction $syncAliases) {}
+    public function __construct(
+        private readonly SyncEntityAliasesAction $syncAliases,
+        private readonly ApproveProposalAction $approveProposal,
+    ) {}
 
     public function __invoke(
         Contribution $contribution,
@@ -38,6 +43,11 @@ class ApproveContributionAction
         bool $force = false,
         bool $keepOldNameAsAlias = false,
     ): Contribution {
+        // A proposal for a new record is approved by creating it.
+        if ($contribution->isCreate()) {
+            return ($this->approveProposal)($contribution, $reviewer, $note);
+        }
+
         return DB::transaction(function () use ($contribution, $reviewer, $note, $force, $keepOldNameAsAlias): Contribution {
             $contribution = Contribution::query()->lockForUpdate()->findOrFail($contribution->getKey());
             if (! $contribution->isPending()) {

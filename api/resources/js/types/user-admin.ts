@@ -36,6 +36,7 @@ export type UsersIndexProps = {
 
 export type UserRecentContribution = {
     id: number;
+    kind: 'edit' | 'create';
     target_type: ContributionTargetType;
     field: string;
     target_label: string;

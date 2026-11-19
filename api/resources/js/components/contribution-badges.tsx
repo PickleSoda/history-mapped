@@ -1,6 +1,8 @@
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type {
+    ContributionKind,
+    ContributionSource,
     ContributionStatus,
     ContributionTargetType,
     DiffStats,
@@ -64,15 +66,51 @@ export function StatusBadge({ status }: { status: ContributionStatus }) {
 export function TargetBadges({
     type,
     field,
+    kind = 'edit',
 }: {
     type: ContributionTargetType;
     field: string;
+    kind?: ContributionKind;
 }) {
+    if (kind === 'create') {
+        return (
+            <>
+                <Badge variant="outline">
+                    {TARGET_TYPE_LABELS[type] ?? type}
+                </Badge>
+                <Badge variant="secondary">New record</Badge>
+            </>
+        );
+    }
+
     return (
         <>
             <Badge variant="outline">{TARGET_TYPE_LABELS[type] ?? type}</Badge>
             <Badge variant="secondary">{fieldLabel(field)}</Badge>
         </>
+    );
+}
+
+/** Shown only for MCP submissions: the connector (and which client) it came through. */
+export function SourceBadge({
+    source,
+    client,
+}: {
+    source: ContributionSource;
+    client: string | null;
+}) {
+    if (source !== 'mcp') {
+        return null;
+    }
+
+    return (
+        <Badge
+            variant="outline"
+            className="border-violet-300 text-violet-700 dark:border-violet-500/60 dark:text-violet-300"
+            title="Submitted through the MCP connector"
+        >
+            MCP{client ? ` · ${client}` : ''}
+        </Badge>
     );
 }
 

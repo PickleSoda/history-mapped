@@ -12,14 +12,23 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use Laravel\Passport\Contracts\OAuthenticatable;
+use Laravel\Passport\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
-class User extends Authenticatable
+class User extends Authenticatable implements OAuthenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasRoles, Notifiable, TwoFactorAuthenticatable;
+    use HasApiTokens, HasFactory, HasRoles, Notifiable, TwoFactorAuthenticatable;
+
+    /**
+     * Roles and permissions live under the `web` guard. Without this, spatie
+     * picks the guard from the request: an OAuth call (the `api` Passport guard,
+     * /mcp/contribute) would look for permissions that do not exist for `api`.
+     */
+    protected string $guard_name = 'web';
 
     /**
      * Get the attributes that should be cast.
@@ -51,5 +60,11 @@ class User extends Authenticatable
     public function contributions(): HasMany
     {
         return $this->hasMany(Contribution::class);
+    }
+
+    /** @return HasMany<PersonaConversation, $this> */
+    public function personaConversations(): HasMany
+    {
+        return $this->hasMany(PersonaConversation::class);
     }
 }

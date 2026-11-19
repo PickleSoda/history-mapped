@@ -41,6 +41,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Passport\Passport;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -57,6 +58,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // OAuth for the contributor MCP server (/mcp/contribute): the consent page Claude's
+        // connect flow lands on, after the normal web sign-in. Keys: PASSPORT_*_KEY env.
+        Passport::authorizationView(fn ($parameters) => view('mcp.authorize', $parameters));
+        Passport::tokensExpireIn(now()->addDays(30));
+        Passport::refreshTokensExpireIn(now()->addDays(90));
+
         // /api: per user when signed in, else per client IP (bootstrap/app.php: throttleApi()).
         RateLimiter::for('api', fn (Request $request) => Limit::perMinute((int) config('app.api_rate_limit'))
             ->by($request->user()?->getAuthIdentifier() ?? $request->ip()));

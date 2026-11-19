@@ -101,3 +101,22 @@ None is read-only, so Claude asks before each call. There is no delete or direct
 - `laravel/mcp` test helpers for each tool: inputs, caps, structured output, `shouldRegister` per role.
 - Contribution create/approve/reject feature tests, including the pending-entity dependency.
 - MCP Inspector against the local stack; Claude through a tunnel before the first deploy.
+
+## As built (Phase 2)
+
+- Tool names are kebab-case like the read tools (`suggest-correction`, `propose-entity`, ...), not snake_case.
+- `propose-entity` with possible duplicates records **nothing** and returns them; the caller confirms and
+  resubmits with `acknowledge_duplicates: true`. The stored payload keeps the duplicates for the moderator.
+  A QID already pending as another proposal is refused too.
+- `create` rows use `target_type` (`entity` / `relationship`) for what is proposed. Entity payloads are
+  `{entity: {...}, possible_duplicates: [...]}`, relationship ends are `{entity_id}` or `{contribution_id}`.
+- Rejecting or withdrawing an entity proposal closes the contributor's pending relationship proposals that
+  depend on it, rather than blocking the rejection.
+- `User::$guard_name = 'web'` so spatie permissions resolve under the Passport `api` guard. `User` had no
+  Sanctum `HasApiTokens` (Sanctum is used for cookie sessions only), so Passport's trait does not clash.
+- The Fortify login responses return to `/oauth/authorize` when the sign-in began there, for any role
+  (non-staff are otherwise sent to the public site).
+- Registration has its own per-IP limit (10 a minute) instead of wrapping all discovery routes.
+- The client name comes from the OAuth client registration (`Claude`), not MCP `clientInfo` (not available
+  per request on the stateless transport).
+

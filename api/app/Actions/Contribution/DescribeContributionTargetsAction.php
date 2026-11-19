@@ -11,6 +11,7 @@ use App\Models\Contribution;
 use App\Models\Entity;
 use App\Models\EntityRelationship;
 use App\Support\ContributionFields;
+use App\Support\ContributionProposal;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -24,11 +25,13 @@ class DescribeContributionTargetsAction
 {
     /**
      * @param  iterable<Contribution>  $contributions
-     * @return array<string, array{label: string, admin_url: string, public_url: string, fields: array<string, string|null>}>
+     * @return array<string, array{label: string, admin_url: string|null, public_url: string|null, fields: array<string, string|null>}>
      */
     public function __invoke(iterable $contributions): array
     {
-        $idsByType = collect($contributions)
+        $contributions = collect($contributions);
+        $idsByType = $contributions
+            ->filter(fn (Contribution $c) => $c->target_id !== null)
             ->groupBy(fn (Contribution $c) => $c->target_type->value)
             ->map(fn (Collection $group) => $group->pluck('target_id')->unique()->values()->all());
 
@@ -45,12 +48,23 @@ class DescribeContributionTargetsAction
             }
         }
 
+        // A proposal for a new record: its created record once approved, else what it proposes.
+        foreach ($contributions->filter(fn (Contribution $c) => $c->isCreate()) as $c) {
+            $out[self::key($c)] = ($c->target_id !== null ? ($out["{$c->target_type->value}:{$c->target_id}"] ?? null) : null)
+                ?? [
+                    'label' => ContributionProposal::label($c),
+                    'admin_url' => null,
+                    'public_url' => null,
+                    'fields' => [],
+                ];
+        }
+
         return $out;
     }
 
     public static function key(Contribution $c): string
     {
-        return "{$c->target_type->value}:{$c->target_id}";
+        return $c->isCreate() ? "create:{$c->id}" : "{$c->target_type->value}:{$c->target_id}";
     }
 
     /**

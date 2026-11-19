@@ -10,6 +10,7 @@ import {
 import AlertError from '@/components/alert-error';
 import {
     formatDateTime,
+    SourceBadge,
     StaleBadge,
     StatusBadge,
     TargetBadges,
@@ -32,6 +33,7 @@ import AppLayout from '@/layouts/app-layout';
 import type {
     BreadcrumbItem,
     ContributionDetail,
+    ContributionProposal,
     ContributionShowProps,
 } from '@/types';
 
@@ -45,11 +47,14 @@ function ReviewPanel({
     contribution,
     stale,
     targetMissing,
+    blocked,
 }: {
     contribution: ContributionDetail;
     stale: boolean;
     targetMissing: boolean;
+    blocked: boolean;
 }) {
+    const isCreate = contribution.kind === 'create';
     const form = useForm<ReviewForm>({
         review_note: '',
         force: false,
@@ -57,7 +62,9 @@ function ReviewPanel({
     });
     // Renaming an entity can keep the old name searchable as an alias.
     const isRename =
-        contribution.target_type === 'entity' && contribution.field === 'name';
+        !isCreate &&
+        contribution.target_type === 'entity' &&
+        contribution.field === 'name';
     const errors = form.errors as Partial<Record<string, string>>;
     const otherErrors = Object.entries(errors)
         .filter(
@@ -90,15 +97,18 @@ function ReviewPanel({
         });
     };
 
-    const approveBlocked = targetMissing || (stale && !form.data.force);
+    const approveBlocked =
+        targetMissing || blocked || (stale && !form.data.force);
 
     return (
         <Card>
             <CardHeader>
                 <CardTitle>Review</CardTitle>
                 <CardDescription>
-                    Approving writes the proposed text to the record. The
-                    contributor sees your note either way.
+                    {isCreate
+                        ? `Approving creates the ${contribution.target_type} (verified, credited to the contributor). Nothing exists until you do.`
+                        : 'Approving writes the proposed text to the record.'}{' '}
+                    The contributor sees your note either way.
                 </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
@@ -108,7 +118,9 @@ function ReviewPanel({
                         title={
                             errors.conflict
                                 ? 'The text changed before approval.'
-                                : undefined
+                                : errors.dependency
+                                  ? 'It cannot be approved yet.'
+                                  : undefined
                         }
                     />
                 )}
@@ -186,7 +198,7 @@ function ReviewPanel({
                         disabled={form.processing || approveBlocked}
                     >
                         <Check className="size-4" />
-                        Approve and apply
+                        {isCreate ? 'Approve and create' : 'Approve and apply'}
                     </Button>
                     <Button
                         variant="outline"
@@ -199,6 +211,133 @@ function ReviewPanel({
                 </div>
             </CardContent>
         </Card>
+    );
+}
+
+function ProposalDetails({ proposal }: { proposal: ContributionProposal }) {
+    return (
+        <>
+            {proposal.depends_on.length > 0 && (
+                <Alert
+                    variant={proposal.blocked ? 'destructive' : 'default'}
+                    className={
+                        proposal.blocked
+                            ? undefined
+                            : 'border-emerald-300 bg-emerald-50 text-emerald-950 dark:border-emerald-500/40 dark:bg-emerald-950/40 dark:text-emerald-100'
+                    }
+                >
+                    <AlertTriangle />
+                    <AlertTitle>
+                        {proposal.blocked
+                            ? 'Waiting on an entity proposal'
+                            : 'Entity proposals it points at'}
+                    </AlertTitle>
+                    <AlertDescription>
+                        <ul className="list-disc pl-4">
+                            {proposal.depends_on.map((d) => (
+                                <li key={d.id}>
+                                    {d.url ? (
+                                        <Link
+                                            href={d.url}
+                                            className="underline"
+                                        >
+                                            {d.label} (#{d.id})
+                                        </Link>
+                                    ) : (
+                                        `${d.label} (#${d.id})`
+                                    )}
+                                    : {d.status}
+                                </li>
+                            ))}
+                        </ul>
+                        {proposal.blocked &&
+                            'Approve the entity proposal first; this relationship then resolves to the entity it creates.'}
+                    </AlertDescription>
+                </Alert>
+            )}
+
+            {proposal.possible_duplicates.length > 0 && (
+                <Alert className="border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/40 dark:text-amber-100">
+                    <AlertTriangle />
+                    <AlertTitle>
+                        Possible duplicates already in the atlas
+                    </AlertTitle>
+                    <AlertDescription className="text-amber-900/90 dark:text-amber-100/80">
+                        <p>
+                            Same name and type, close in time. The contributor
+                            was told and confirmed this is a different entity.
+                        </p>
+                        <ul className="mt-1 list-disc pl-4">
+                            {proposal.possible_duplicates.map((d) => (
+                                <li key={d.entity_id}>
+                                    <Link
+                                        href={d.admin_url}
+                                        className="underline"
+                                    >
+                                        {d.name}
+                                    </Link>{' '}
+                                    ({d.entity_type.replace(/_/g, ' ')}
+                                    {d.start_year !== null
+                                        ? `, ${d.start_year}${d.end_year !== null ? ` to ${d.end_year}` : ''}`
+                                        : ', undated'}
+                                    ){' · '}
+                                    <a
+                                        href={d.public_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="underline"
+                                    >
+                                        atlas
+                                    </a>
+                                </li>
+                            ))}
+                        </ul>
+                    </AlertDescription>
+                </Alert>
+            )}
+
+            {proposal.waiting.length > 0 && (
+                <p className="text-sm text-muted-foreground">
+                    {proposal.waiting.length} relationship{' '}
+                    {proposal.waiting.length === 1
+                        ? 'proposal waits'
+                        : 'proposals wait'}{' '}
+                    on this one:{' '}
+                    {proposal.waiting.map((w, i) => (
+                        <span key={w.id}>
+                            {i > 0 && ', '}
+                            <Link href={w.url} className="underline">
+                                {w.label}
+                            </Link>
+                        </span>
+                    ))}
+                    . Rejecting this closes them too.
+                </p>
+            )}
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-base">Proposed record</CardTitle>
+                    <CardDescription>
+                        Exactly what will be created on approval.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
+                        {proposal.rows.map((r) => (
+                            <div key={r.label} className="contents">
+                                <dt className="text-muted-foreground">
+                                    {r.label}
+                                </dt>
+                                <dd className="break-words whitespace-pre-wrap">
+                                    {r.value}
+                                </dd>
+                            </div>
+                        ))}
+                    </dl>
+                </CardContent>
+            </Card>
+        </>
     );
 }
 
@@ -233,9 +372,11 @@ export default function ContributionShow({
     admin_url,
     public_url,
     other_pending,
+    proposal,
 }: ContributionShowProps) {
     const pending = contribution.status === 'pending';
-    const targetMissing = current_text === null;
+    const isCreate = proposal !== null;
+    const targetMissing = !isCreate && current_text === null;
     const stale = contribution.is_stale;
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -266,6 +407,11 @@ export default function ContributionShow({
                         <TargetBadges
                             type={contribution.target_type}
                             field={contribution.field}
+                            kind={contribution.kind}
+                        />
+                        <SourceBadge
+                            source={contribution.source}
+                            client={contribution.client}
                         />
                         <StatusBadge status={contribution.status} />
                         {stale && pending && <StaleBadge />}
@@ -357,25 +503,29 @@ export default function ContributionShow({
                     </p>
                 )}
 
+                {proposal && <ProposalDetails proposal={proposal} />}
+
                 {/* Diff */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-base">
-                            Proposed change
-                        </CardTitle>
-                        <CardDescription>
-                            Against the text as it was when submitted.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ContributionDiffViewer
-                            diff={contribution.diff}
-                            stats={contribution.stats}
-                            baseLabel="Submitted against"
-                            proposedLabel="Proposed text"
-                        />
-                    </CardContent>
-                </Card>
+                {!isCreate && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-base">
+                                Proposed change
+                            </CardTitle>
+                            <CardDescription>
+                                Against the text as it was when submitted.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <ContributionDiffViewer
+                                diff={contribution.diff}
+                                stats={contribution.stats}
+                                baseLabel="Submitted against"
+                                proposedLabel="Proposed text"
+                            />
+                        </CardContent>
+                    </Card>
+                )}
 
                 {stale && current_diff && (
                     <Card>
@@ -402,6 +552,7 @@ export default function ContributionShow({
                         contribution={contribution}
                         stale={stale}
                         targetMissing={targetMissing}
+                        blocked={proposal?.blocked ?? false}
                     />
                 ) : (
                     <ReviewOutcome contribution={contribution} />

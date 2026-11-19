@@ -259,7 +259,10 @@ export default function UserShow({
                                                 {TARGET_TYPE_LABELS[
                                                     c.target_type
                                                 ] ?? c.target_type}{' '}
-                                                · {fieldLabel(c.field)}
+                                                ·{' '}
+                                                {c.kind === 'create'
+                                                    ? 'New record'
+                                                    : fieldLabel(c.field)}
                                             </span>
                                             <StatusBadge status={c.status} />
                                             <span className="text-xs whitespace-nowrap text-muted-foreground">

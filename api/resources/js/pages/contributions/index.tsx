@@ -4,6 +4,7 @@ import {
     CONTRIBUTION_STATUSES,
     DiffStatsText,
     formatDateTime,
+    SourceBadge,
     StaleBadge,
     StatusBadge,
     TARGET_TYPE_LABELS,
@@ -47,6 +48,7 @@ export default function ContributionsIndex({
 }: ContributionIndexProps) {
     const status = filters.status || 'pending';
     const type = filters.type || '__all__';
+    const kind = filters.kind || '__all__';
     const total = CONTRIBUTION_STATUSES.reduce(
         (sum, s) => sum + (counts[s] ?? 0),
         0,
@@ -57,6 +59,7 @@ export default function ContributionsIndex({
             const query: Record<string, string | number> = {
                 status,
                 ...(filters.type && { type: filters.type }),
+                ...(filters.kind && { kind: filters.kind }),
                 ...params,
             };
 
@@ -71,7 +74,7 @@ export default function ContributionsIndex({
                 preserveScroll: true,
             });
         },
-        [status, filters.type],
+        [status, filters.type, filters.kind],
     );
 
     return (
@@ -85,8 +88,10 @@ export default function ContributionsIndex({
                         Contributions
                     </h1>
                     <p className="text-sm text-muted-foreground">
-                        Text corrections suggested by atlas users. Approving one
-                        applies the proposed text.
+                        Text corrections and proposals for new entities and
+                        relationships, from atlas users and the MCP connector.
+                        Approving a correction applies the text; approving a
+                        proposal creates the record.
                     </p>
                 </div>
 
@@ -123,31 +128,60 @@ export default function ContributionsIndex({
                         })}
                     </nav>
 
-                    <Select
-                        value={type}
-                        onValueChange={(value) =>
-                            navigate({ type: value === '__all__' ? '' : value })
-                        }
-                    >
-                        <SelectTrigger
-                            className="w-48"
-                            aria-label="Target type"
+                    <div className="flex flex-wrap gap-2">
+                        <Select
+                            value={kind}
+                            onValueChange={(value) =>
+                                navigate({
+                                    kind: value === '__all__' ? '' : value,
+                                })
+                            }
                         >
-                            <SelectValue placeholder="All types" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="__all__">All types</SelectItem>
-                            {(
-                                Object.keys(
-                                    TARGET_TYPE_LABELS,
-                                ) as ContributionTargetType[]
-                            ).map((t) => (
-                                <SelectItem key={t} value={t}>
-                                    {TARGET_TYPE_LABELS[t]}
+                            <SelectTrigger className="w-44" aria-label="Kind">
+                                <SelectValue placeholder="All kinds" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="__all__">
+                                    All kinds
                                 </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                                <SelectItem value="edit">
+                                    Corrections
+                                </SelectItem>
+                                <SelectItem value="create">
+                                    New records
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Select
+                            value={type}
+                            onValueChange={(value) =>
+                                navigate({
+                                    type: value === '__all__' ? '' : value,
+                                })
+                            }
+                        >
+                            <SelectTrigger
+                                className="w-48"
+                                aria-label="Target type"
+                            >
+                                <SelectValue placeholder="All types" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="__all__">
+                                    All types
+                                </SelectItem>
+                                {(
+                                    Object.keys(
+                                        TARGET_TYPE_LABELS,
+                                    ) as ContributionTargetType[]
+                                ).map((t) => (
+                                    <SelectItem key={t} value={t}>
+                                        {TARGET_TYPE_LABELS[t]}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
 
                 {/* List */}
@@ -194,6 +228,11 @@ export default function ContributionsIndex({
                                                 <TargetBadges
                                                     type={c.target_type}
                                                     field={c.field}
+                                                    kind={c.kind}
+                                                />
+                                                <SourceBadge
+                                                    source={c.source}
+                                                    client={c.client}
                                                 />
                                                 {c.is_stale &&
                                                     c.status === 'pending' && (
@@ -218,7 +257,15 @@ export default function ContributionsIndex({
                                             )}
                                         </TableCell>
                                         <TableCell>
-                                            <DiffStatsText stats={c.stats} />
+                                            {c.kind === 'create' ? (
+                                                <span className="text-sm text-muted-foreground">
+                                                    {c.summary}
+                                                </span>
+                                            ) : (
+                                                <DiffStatsText
+                                                    stats={c.stats}
+                                                />
+                                            )}
                                         </TableCell>
                                         <TableCell className="text-sm whitespace-nowrap text-muted-foreground">
                                             {formatDateTime(c.created_at)}

@@ -60,16 +60,28 @@ function ContributionCard({ c }: { c: Contribution }) {
           {STATUS_LABEL[c.status]}
         </span>
         <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-          {TARGET_LABEL[c.target_type]} · {FIELD_LABEL[c.field] ?? humanise(c.field)}
+          {c.kind === 'create'
+            ? `New ${TARGET_LABEL[c.target_type].toLowerCase()}`
+            : `${TARGET_LABEL[c.target_type]} · ${FIELD_LABEL[c.field] ?? humanise(c.field)}`}
         </span>
-        <DiffStats {...c.stats} />
+        {c.kind === 'create' ? (
+          c.source === 'mcp' && (
+            <span className="text-[11px] text-muted-foreground">via {c.client ?? 'a connected app'}</span>
+          )
+        ) : (
+          <DiffStats {...c.stats} />
+        )}
         <span className="ml-auto font-mono text-[11px] text-muted-foreground">{when(c.created_at)}</span>
       </div>
       <div className="mt-2">
         <TargetLink c={c} />
       </div>
       <div className="mt-3 rounded-lg border bg-muted/30 px-3 py-2.5">
-        <DiffText chunks={c.diff} />
+        {c.kind === 'create' ? (
+          <p className="text-[13px]">{c.summary ?? 'Proposed new record'}</p>
+        ) : (
+          <DiffText chunks={c.diff} />
+        )}
       </div>
       {c.note && (
         <p className="mt-3 text-[12.5px] text-foreground/80">

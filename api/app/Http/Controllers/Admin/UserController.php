@@ -75,8 +75,9 @@ class UserController extends Controller
             ],
             'recent_contributions' => $recent->map(fn (Contribution $c) => [
                 'id' => $c->id,
+                'kind' => $c->kind->value,
                 'target_type' => $c->target_type->value,
-                'field' => $c->field,
+                'field' => $c->field ?? '',
                 'target_label' => $info[DescribeContributionTargetsAction::key($c)]['label'] ?? 'Removed record',
                 'status' => $c->status->value,
                 'created_at' => $c->created_at?->toISOString(),
