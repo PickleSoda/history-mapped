@@ -246,6 +246,35 @@ class EntityBuilder extends Builder
     }
 
     /**
+     * The `search()` predicate split into disjoint branches over a table with
+     * a `name` column (`entity_names`). A row matches the search exactly when
+     * it matches one branch, and no row matches two, so the branches can be
+     * counted as a UNION ALL that stops at a cap. Cheap, exact branches come
+     * first: a common word fills the cap from the full-text branch alone and
+     * never reaches the trigram `%` branch, whose index finds tens of
+     * thousands of candidates that each need a recheck.
+     *
+     * Not for terms under SEARCH_PREFIX_BELOW characters (a name prefix match).
+     *
+     * @return list<array{0: string, 1: list<string>}> SQL and bindings per branch
+     */
+    public static function searchBranches(string $term): array
+    {
+        $term = trim($term);
+        $fullText = "to_tsvector('english', name) @@ plainto_tsquery('english', ?)";
+        $like = 'name ILIKE ?';
+        $branches = [
+            [$fullText, [$term]],
+            ["{$like} AND NOT ({$fullText})", ['%'.$term.'%', $term]],
+        ];
+        if (mb_strlen($term) >= self::SEARCH_FUZZY_FROM) {
+            $branches[] = ["name % ? AND NOT ({$like}) AND NOT ({$fullText})", [$term, '%'.$term.'%', $term]];
+        }
+
+        return $branches;
+    }
+
+    /**
      * Partial name match (ILIKE) — fallback for short or non-English terms.
      */
     public function nameLike(string $term): self

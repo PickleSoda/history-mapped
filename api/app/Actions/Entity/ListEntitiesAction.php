@@ -12,6 +12,7 @@ use App\Pagination\CappedLengthAwarePaginator;
 use App\Support\PgSettings;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\DB;
 
@@ -40,11 +41,6 @@ class ListEntitiesAction
     public function __invoke(EntityFilterData $filters, ?int $totalCap = null): LengthAwarePaginator
     {
         $query = Entity::query()->withGeoJson();
-
-        // ── Text search ──────────────────────────────────────
-        if ($filters->search !== null && $filters->search !== '') {
-            $query->search($filters->search);
-        }
 
         // ── Type / Group filters ─────────────────────────────
         if ($filters->type !== null) {
@@ -110,6 +106,14 @@ class ListEntitiesAction
             $query->existsAt($filters->existsAt);
         }
 
+        // ── Text search ──────────────────────────────────────
+        // Applied last: the capped count takes the other filters without it.
+        $searched = $filters->search !== null && trim($filters->search) !== '';
+        $filtered = clone $query;
+        if ($searched) {
+            $query->search($filters->search);
+        }
+
         // ── Eager loading ────────────────────────────────────
         if ($filters->includeRelationships) {
             $query->with([
@@ -140,11 +144,13 @@ class ListEntitiesAction
             );
         }
 
-        $count = $query->toBase()
-            ->cloneWithout(['columns', 'orders', 'limit', 'offset'])
-            ->cloneWithoutBindings(['select', 'order'])
-            ->selectRaw('1')
-            ->limit($totalCap + 1);
+        $count = $searched && mb_strlen(trim($filters->search)) >= EntityBuilder::SEARCH_PREFIX_BELOW
+            ? $this->searchCountQuery($filtered, trim($filters->search), $totalCap)
+            : $query->toBase()
+                ->cloneWithout(['columns', 'orders', 'limit', 'offset'])
+                ->cloneWithoutBindings(['select', 'order'])
+                ->selectRaw('1')
+                ->limit($totalCap + 1);
         // A semi-join merge walks every entity in id order. Postgres picked it
         // for a year with few entities (the world at 50 BC: 1.5 s on the
         // droplet); without it the count starts from the date-range index
@@ -166,6 +172,37 @@ class ListEntitiesAction
         $paginator->totalCapped = $counted > $totalCap;
 
         return $paginator;
+    }
+
+    /**
+     * The capped count of a name search, over the narrow `entity_names` table
+     * instead of the wide `entities` rows. Rechecking a common word's trigram
+     * candidates (52,877 for "temple of") against `entities` read 24k blocks;
+     * `entity_names` is a few thousand. The search is a UNION ALL of disjoint
+     * branches (EntityBuilder::searchBranches) so a word with plenty of
+     * matches fills the cap before the costly trigram branch runs. Other
+     * filters apply to each branch through `entities`; with none, the names
+     * are counted alone.
+     *
+     * @param  EntityBuilder<Entity>  $filtered  the entity query without the search
+     */
+    private function searchCountQuery(EntityBuilder $filtered, string $term, int $totalCap): QueryBuilder
+    {
+        $base = $filtered->toBase()
+            ->cloneWithout(['columns', 'orders', 'limit', 'offset'])
+            ->cloneWithoutBindings(['select', 'order']);
+        $others = $base->wheres !== [];
+
+        $union = null;
+        foreach (EntityBuilder::searchBranches($term) as [$sql, $bindings]) {
+            $names = DB::table('entity_names')->whereRaw($sql, $bindings);
+            $branch = $others
+                ? (clone $base)->selectRaw('1')->whereIn('entities.entity_id', $names->select('entity_id'))
+                : $names->selectRaw('1');
+            $union === null ? $union = $branch : $union->unionAll($branch);
+        }
+
+        return $union->limit($totalCap + 1);
     }
 
     /**
