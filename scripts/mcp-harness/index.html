@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MCP Apps harness</title>
+<style>
+  :root { color-scheme: light; --bg: #f4f3ee; --panel: #ffffff; --ink: #1f1e1d; --muted: #6b6a68; --line: #dedcd5; }
+  :root[data-theme="dark"] { color-scheme: dark; --bg: #262624; --panel: #30302e; --ink: #f5f4ef; --muted: #a6a39b; --line: #4a4945; }
+  body { margin: 0; font: 14px/1.4 system-ui, sans-serif; background: var(--bg); color: var(--ink); }
+  header { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  select, input, textarea, button { font: inherit; color: inherit; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; }
+  textarea { width: min(640px, 100%); height: 44px; font-family: ui-monospace, monospace; font-size: 12px; }
+  main { padding: 16px; }
+  #chat { margin: 0 auto; background: var(--panel); border-radius: 12px; padding: 16px; border: 1px solid var(--line); }
+  #frameWrap iframe { width: 100%; border: 0; display: block; }
+  #frameWrap.bordered iframe { border: 1px solid var(--line); border-radius: 12px; }
+  #log { font: 11px/1.35 ui-monospace, monospace; color: var(--muted); white-space: pre-wrap; max-height: 220px; overflow: auto; margin-top: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <select id="tool"></select>
+  <textarea id="args">{}</textarea>
+  <select id="theme"><option>light</option><option>dark</option></select>
+  <select id="width"><option value="720">desktop 720</option><option value="380">mobile 380</option><option value="1100">wide 1100</option></select>
+  <label><input type="checkbox" id="enforceCsp" checked> CSP</label>
+  <button id="run">Run</button>
+</header>
+<main>
+  <div id="chat"><div id="frameWrap"></div><div id="text"></div></div>
+  <div id="log"></div>
+</main>
+<script type="module">
+const $ = (id) => document.getElementById(id);
+const log = (...a) => { $('log').textContent = a.map((x) => typeof x === 'string' ? x : JSON.stringify(x)).join(' ') + '\n' + $('log').textContent; };
+let session = null, nextId = 1, tools = [];
+
+async function rpc(method, params) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (session) headers['MCP-Session-Id'] = session;
+  const r = await fetch('/mcp', { method: 'POST', headers, body: JSON.stringify({ jsonrpc: '2.0', id: nextId++, method, params }) });
+  if (r.headers.get('MCP-Session-Id')) session = r.headers.get('MCP-Session-Id');
+  const j = await r.json();
+  if (j.error) throw new Error(method + ': ' + JSON.stringify(j.error));
+  return j.result;
+}
+
+async function init() {
+  await rpc('initialize', { protocolVersion: '2025-11-25', capabilities: { extensions: { 'io.modelcontextprotocol/ui': { mimeTypes: ['text/html;profile=mcp-app'] } } }, clientInfo: { name: 'harness', version: '0' } });
+  tools = (await rpc('tools/list', {})).tools;
+  $('tool').innerHTML = tools.map((t) => `<option>${t.name}</option>`).join('');
+  const q = new URLSearchParams(location.search);
+  if (q.get('tool')) $('tool').value = q.get('tool');
+  if (q.get('args')) $('args').value = q.get('args');
+  if (q.get('theme')) $('theme').value = q.get('theme');
+  if (q.get('width')) $('width').value = q.get('width');
+  applyTheme();
+  if (q.get('tool')) run();
+}
+
+function applyTheme() {
+  document.documentElement.dataset.theme = $('theme').value;
+  $('chat').style.maxWidth = $('width').value + 'px';
+}
+
+function cspFor(meta) {
+  const c = meta?.csp ?? {};
+  const block = new URLSearchParams(location.search).get('block') ?? '';  // block=cdn | worker | cdn,worker
+  const res = (block.includes('cdn') ? [] : (c.resourceDomains ?? [])).join(' ');
+  const con = (c.connectDomains ?? []).join(' ');
+  const fr = (c.frameDomains ?? []).join(' ');
+  return [
+    "default-src 'none'",
+    `script-src 'unsafe-inline' ${res}`,
+    `style-src 'unsafe-inline' ${res}`,
+    `img-src data: blob: ${res}`,
+    `font-src data: ${res}`,
+    `media-src data: ${res}`,
+    `connect-src ${con}`,
+    block.includes('worker') ? `worker-src 'none'` : `worker-src blob:`,
+    fr ? `frame-src ${fr}` : "frame-src 'none'",
+  ].join('; ');
+}
+
+let current = null;
+async function run() {
+  applyTheme();
+  const name = $('tool').value;
+  let args = {};
+  try { args = JSON.parse($('args').value || '{}'); } catch (e) { log('bad args JSON'); return; }
+  const def = tools.find((t) => t.name === name);
+  const t0 = performance.now();
+  const result = await rpc('tools/call', { name, arguments: args });
+  log(`tools/call ${name} ${Math.round(performance.now() - t0)} ms`, result.isError ? 'ERROR' : '');
+  const uri = def?._meta?.ui?.resourceUri;
+  $('frameWrap').innerHTML = '';
+  $('text').textContent = '';
+  if (!uri) { $('text').textContent = '(no ui) ' + (result.content?.[0]?.text ?? '').slice(0, 2000); return; }
+  const res = await rpc('resources/read', { uri });
+  const contents = res.contents[0];
+  const meta = contents._meta?.ui ?? {};
+  log('resource', uri, JSON.stringify(meta));
+  let html = contents.text;
+  if ($('enforceCsp').checked) {
+    html = html.replace(/<head>/i, `<head><meta http-equiv="Content-Security-Policy" content="${cspFor(meta)}">`);
+  }
+  $('frameWrap').className = meta.prefersBorder ? 'bordered' : '';
+  const iframe = document.createElement('iframe');
+  iframe.setAttribute('sandbox', 'allow-scripts allow-popups');
+  iframe.style.height = '120px';
+  iframe.srcdoc = html;
+  $('frameWrap').appendChild(iframe);
+  current = { iframe, result, args, name };
+}
+
+const hostVars = () => $('theme').value === 'dark'
+  ? { '--color-background-primary': '#30302e', '--color-background-secondary': '#262624', '--color-text-primary': '#f5f4ef', '--color-text-secondary': '#a6a39b', '--color-border-primary': '#4a4945', '--font-sans': 'system-ui, sans-serif' }
+  : { '--color-background-primary': '#ffffff', '--color-background-secondary': '#f4f3ee', '--color-text-primary': '#1f1e1d', '--color-text-secondary': '#6b6a68', '--color-border-primary': '#dedcd5', '--font-sans': 'system-ui, sans-serif' };
+
+window.addEventListener('message', async (ev) => {
+  if (!current || ev.source !== current.iframe.contentWindow) return;
+  const m = ev.data;
+  const reply = (result) => ev.source.postMessage({ jsonrpc: '2.0', id: m.id, result }, '*');
+  const fail = (message) => ev.source.postMessage({ jsonrpc: '2.0', id: m.id, error: { code: -32000, message } }, '*');
+  const notify = (method, params) => ev.source.postMessage({ jsonrpc: '2.0', method, params }, '*');
+  if (m.method !== 'ui/notifications/size-changed') log('app →', m.method ?? 'response', m.params ? JSON.stringify(m.params).slice(0, 200) : '');
+  try {
+    switch (m.method) {
+      case 'ui/initialize':
+        return reply({
+          protocolVersion: m.params.protocolVersion,
+          hostInfo: { name: 'harness', version: '0' },
+          hostCapabilities: { serverTools: {}, serverResources: {}, openLinks: {}, logging: {} },
+          hostContext: { theme: $('theme').value, displayMode: 'inline', availableDisplayModes: ['inline', 'fullscreen'], containerDimensions: { maxHeight: 700 }, styles: { variables: hostVars() }, platform: Number($('width').value) < 500 ? 'mobile' : 'web' },
+        });
+      case 'ui/notifications/initialized':
+        notify('ui/notifications/tool-input', { arguments: current.args });
+        notify('ui/notifications/tool-result', current.result);
+        return;
+      case 'ui/notifications/size-changed':
+        if (m.params?.height) current.iframe.style.height = Math.min(m.params.height, 1400) + 'px';
+        return;
+      case 'tools/call': {
+        const t0 = performance.now();
+        const r = await rpc('tools/call', m.params);
+        log(`  app tools/call ${m.params.name} ${Math.round(performance.now() - t0)} ms`);
+        return reply(r);
+      }
+      case 'resources/read': return reply(await rpc('resources/read', m.params));
+      case 'ui/open-link': window.open(m.params.url, '_blank', 'noopener'); return reply({});
+      case 'ui/message': log('MESSAGE to model:', JSON.stringify(m.params)); return reply({});
+      case 'ui/request-display-mode': return reply({ mode: 'inline' });
+      case 'ui/update-model-context': log('model context:', JSON.stringify(m.params).slice(0, 300)); return reply({});
+      case 'notifications/message': return;
+      default:
+        if (m.id !== undefined && m.method) return fail('not supported by harness: ' + m.method);
+    }
+  } catch (e) { log('ERR', String(e)); if (m.id !== undefined) fail(String(e)); }
+});
+
+$('run').onclick = run;
+$('theme').onchange = () => { applyTheme(); if (current) notify2(); };
+$('width').onchange = applyTheme;
+function notify2() { current.iframe.contentWindow.postMessage({ jsonrpc: '2.0', method: 'ui/notifications/host-context-changed', params: { theme: $('theme').value, styles: { variables: hostVars() } } }, '*'); }
+init().catch((e) => log('init failed', String(e)));
+</script>
+</body>
+</html>

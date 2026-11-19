@@ -186,6 +186,13 @@ export const DOC_PAGES: readonly DocEntry[] = [
     description: 'The faceted tag vocabulary (era, region, theme, type) used to find chronicles and entities.',
   },
   {
+    slug: 'mcp-connector',
+    title: 'MCP connector',
+    section: 'features',
+    path: 'docs/architecture/mcp-connector.md',
+    description: 'Connect Claude or another MCP host to the atlas: read tools, inline cards and maps, limits, and local testing.',
+  },
+  {
     slug: 'collections',
     title: 'Collections',
     section: 'features',

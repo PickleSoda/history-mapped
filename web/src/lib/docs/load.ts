@@ -33,6 +33,7 @@ const SOURCES = import.meta.glob<string>(
     '../../../../docs/architecture/chronicles.md',
     '../../../../docs/architecture/map-stories.md',
     '../../../../docs/architecture/tags.md',
+    '../../../../docs/architecture/mcp-connector.md',
     '../../../../docs/schemas/collections.md',
     '../../../../docs/architecture/entity-images.md',
     '../../../../docs/implementation-docs/setup.md',
