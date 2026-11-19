@@ -69,7 +69,10 @@ class ChronicleEntry extends Model
             'chronicle_entry_entities',
             'entry_id',
             'entity_id',
-        )->withPivot('role', 'sequence_in_entry');
+        )->withPivot('role', 'sequence_in_entry')
+            // Without an order Postgres returns them in whatever order its
+            // join produces, which varied with the random entity ids.
+            ->orderByPivot('sequence_in_entry');
     }
 
     public function getTimestampAttribute(): ?string
