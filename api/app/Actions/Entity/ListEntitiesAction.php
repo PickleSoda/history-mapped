@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Actions\Entity;
 
+use App\Builders\EntityBuilder;
 use App\DTOs\EntityFilterData;
 use App\Models\Entity;
 use App\Models\EntityRelationship;
 use App\Pagination\CappedLengthAwarePaginator;
+use Closure;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\DB;
 
@@ -25,6 +28,12 @@ use Illuminate\Support\Facades\DB;
  */
 class ListEntitiesAction
 {
+    /**
+     * Similarity thresholds a fuzzy search page tries, in turn, before the
+     * full query (whose `name % term` uses pg_trgm's default of 0.3).
+     */
+    public const SIMILARITY_STEPS = [0.6, 0.45];
+
     /**
      * @return LengthAwarePaginator<Entity>
      */
@@ -110,6 +119,7 @@ class ListEntitiesAction
         }
 
         // ── Sorting ──────────────────────────────────────────
+        $bySimilarity = false;
         match ($filters->sort) {
             'impact' => $query->orderByImpact(),
             'recent' => $query->orderByRecent(),
@@ -118,7 +128,7 @@ class ListEntitiesAction
             'distance' => $filters->hasNearPoint()
                 ? $query->orderByDistanceFrom($filters->nearLng, $filters->nearLat)
                 : $query->orderByImpact(),
-            default => $filters->search !== null
+            default => ($bySimilarity = $filters->search !== null)
                 ? $query->orderBySimilarity($filters->search) // fuzzy: best matches first
                 : $query->orderByImpact(),
         };
@@ -135,10 +145,19 @@ class ListEntitiesAction
             ->cloneWithoutBindings(['select', 'order'])
             ->selectRaw('1')
             ->limit($totalCap + 1);
-        $counted = DB::query()->fromSub($count, 'capped')->count();
+        // A semi-join merge walks every entity in id order. Postgres picked it
+        // for a year with few entities (the world at 50 BC: 1.5 s on the
+        // droplet); without it the count starts from the date-range index
+        // (0.18 s) and dense years stay as fast.
+        $counted = self::withSettings(
+            ['enable_mergejoin' => 'off'],
+            fn (): int => DB::query()->fromSub($count, 'capped')->count(),
+        );
 
         $paginator = new CappedLengthAwarePaginator(
-            $query->forPage($filters->page, $filters->perPage)->get(),
+            $bySimilarity
+                ? $this->mostSimilarPage($query, (string) $filters->search, $filters)
+                : $query->forPage($filters->page, $filters->perPage)->get(),
             min($counted, $totalCap),
             $filters->perPage,
             $filters->page,
@@ -147,5 +166,65 @@ class ListEntitiesAction
         $paginator->totalCapped = $counted > $totalCap;
 
         return $paginator;
+    }
+
+    /**
+     * One page of a fuzzy search, best matches first. The full query fetches
+     * and scores every match to keep a page: a common word matches ~10k names
+     * ("battle of": 1.9 s on the droplet). Every name at least as similar as
+     * a threshold ranks above every name below it, so when those names fill
+     * the page they are the page. Raising pg_trgm's threshold lets the
+     * trigram index skip the weaker matches: 0.07-0.25 s for the same words.
+     * Rare names don't fill the page and fall through to the full query,
+     * which is fast for them.
+     *
+     * @return Collection<int, Entity>
+     */
+    private function mostSimilarPage(EntityBuilder $query, string $term, EntityFilterData $filters): Collection
+    {
+        $term = trim($term);
+        if (mb_strlen($term) >= EntityBuilder::SEARCH_FUZZY_FROM) {
+            foreach (self::SIMILARITY_STEPS as $threshold) {
+                $rows = self::withSettings(
+                    ['pg_trgm.similarity_threshold' => (string) $threshold],
+                    fn (): Collection => (clone $query)
+                        ->whereRaw('name % ?', [$term])
+                        ->forPage($filters->page, $filters->perPage)
+                        ->get(),
+                );
+                if ($rows->count() === $filters->perPage) {
+                    return $rows;
+                }
+            }
+        }
+
+        return $query->forPage($filters->page, $filters->perPage)->get();
+    }
+
+    /**
+     * Run $query with Postgres settings changed for it alone. set_config(…,
+     * true) lasts to the end of the transaction; the RESET puts the default
+     * back at once for a caller already inside one (a test, say), where this
+     * transaction is only a savepoint.
+     *
+     * @template T
+     *
+     * @param  array<string, string>  $settings
+     * @param  Closure(): T  $query
+     * @return T
+     */
+    private static function withSettings(array $settings, Closure $query): mixed
+    {
+        return DB::transaction(function () use ($settings, $query): mixed {
+            foreach ($settings as $name => $value) {
+                DB::select('SELECT set_config(?, ?, true)', [$name, $value]);
+            }
+            $result = $query();
+            foreach (array_keys($settings) as $name) {
+                DB::statement("RESET {$name}");
+            }
+
+            return $result;
+        });
     }
 }

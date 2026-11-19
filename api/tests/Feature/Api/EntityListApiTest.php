@@ -76,6 +76,33 @@ class EntityListApiTest extends TestCase
         $this->assertSame(['Cairo Zed'], $names);
     }
 
+    public function test_fuzzy_search_pages_rank_by_similarity_through_every_threshold_step(): void
+    {
+        // Similarity to "zedvark": 1.0, 0.70, 0.62, 0.38; the last two only
+        // contain it (ILIKE), at 0.26 and 0.18.
+        $ranked = ['Zedvark', 'Zedvarks', 'Zedvark Isle', 'Zedvark of the North',
+            'Old Zedvark Harbour Lighthouse', 'The Long Zedvark Expedition Records Archive'];
+        foreach (array_reverse($ranked) as $name) {
+            Entity::factory()->verified()->create(['name' => $name]);
+        }
+        $page = fn (int $n): array => collect($this->getJson("/api/v1/entities?search=zedvark&per_page=2&page={$n}")
+            ->assertOk()->assertJsonPath('meta.total', 6)->json('data'))->pluck('name')->all();
+
+        DB::enableQueryLog();
+        // Page 1 is the names at least 0.6 similar: no fall-through.
+        $this->assertSame(['Zedvark', 'Zedvarks'], $page(1));
+        $this->assertCount(1, array_filter(DB::getQueryLog(), fn (array $q): bool => str_contains($q['query'], 'set_config')
+            && $q['bindings'][0] === 'pg_trgm.similarity_threshold'));
+        // Page 2 runs out at both thresholds and takes the full query; page 3
+        // is names that only contain the term.
+        $this->assertSame(['Zedvark Isle', 'Zedvark of the North'], $page(2));
+        $this->assertSame(['Old Zedvark Harbour Lighthouse', 'The Long Zedvark Expedition Records Archive'], $page(3));
+
+        // The settings are back for the rest of the (test's) transaction.
+        $this->assertSame('0.3', DB::selectOne("SELECT current_setting('pg_trgm.similarity_threshold') AS v")->v);
+        $this->assertSame('on', DB::selectOne("SELECT current_setting('enable_mergejoin') AS v")->v);
+    }
+
     private function placed(string $name, float $lng, float $lat): Entity
     {
         $entity = Entity::factory()->verified()->atLocation($name.' place')->create(['name' => $name]);
