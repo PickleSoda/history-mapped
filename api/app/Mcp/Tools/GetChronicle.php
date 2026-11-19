@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mcp\Tools;
 
+use App\Mcp\Resources\TimelineApp;
 use App\Mcp\Support\AtlasUrl;
 use App\Mcp\Support\Reply;
 use App\Mcp\Support\Text;
@@ -15,11 +16,13 @@ use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
+use Laravel\Mcp\Server\Attributes\RendersApp;
 use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsIdempotent;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Description('Read one chronicle, a curated narrative told as dated steps in order, each tied to an entity and a place where known. Use the slug from find_chronicles, search_atlas or get_entity. Long chronicles are cut to their first 60 steps; the text says so.')]
+#[RendersApp(resource: TimelineApp::class)]
 #[IsReadOnly]
 #[IsIdempotent]
 class GetChronicle extends Tool

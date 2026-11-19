@@ -9,6 +9,7 @@ use App\Actions\Entity\GetEntityAction;
 use App\Actions\Entity\ListEntitiesAction;
 use App\Actions\Graph\GetEntityGraphAction;
 use App\DTOs\EntityFilterData;
+use App\Mcp\Resources\EntityCardApp;
 use App\Mcp\Support\AtlasUrl;
 use App\Mcp\Support\EntityCards;
 use App\Mcp\Support\OutputSchemas;
@@ -24,11 +25,13 @@ use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
+use Laravel\Mcp\Server\Attributes\RendersApp;
 use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsIdempotent;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Description('Full record of one atlas entity: dates, places, aliases, description, tags, its image with credit, its most important relationships and the chronicles it appears in. Identify it by id (from search_atlas), by Wikidata QID (e.g. Q517), or by name (best match: an exact name first, otherwise the top search hit).')]
+#[RendersApp(resource: EntityCardApp::class)]
 #[IsReadOnly]
 #[IsIdempotent]
 class GetEntity extends Tool

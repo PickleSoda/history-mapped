@@ -6,6 +6,7 @@ namespace App\Mcp\Tools;
 
 use App\Actions\Graph\GetEntityGraphAction;
 use App\Enums\RelationshipType;
+use App\Mcp\Resources\ConnectionsApp;
 use App\Mcp\Support\EntityCards;
 use App\Mcp\Support\OutputSchemas;
 use App\Mcp\Support\RelationshipLabels;
@@ -17,11 +18,13 @@ use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
+use Laravel\Mcp\Server\Attributes\RendersApp;
 use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsIdempotent;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Description('The entities directly connected to one entity (rulers, successors, battles fought, birthplaces, treaties and so on) as nodes and typed edges, most confident and most important links first. Optionally filter by relationship type. Capped: it is the strongest links, not all of them.')]
+#[RendersApp(resource: ConnectionsApp::class)]
 #[IsReadOnly]
 #[IsIdempotent]
 class GetConnections extends Tool

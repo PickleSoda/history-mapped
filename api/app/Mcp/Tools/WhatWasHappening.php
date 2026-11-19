@@ -8,6 +8,7 @@ use App\Actions\Entity\ListEntitiesAction;
 use App\DTOs\EntityFilterData;
 use App\Enums\EntityType;
 use App\Http\Api\V1\Controllers\EntityController;
+use App\Mcp\Resources\YearMapApp;
 use App\Mcp\Support\AtlasUrl;
 use App\Mcp\Support\EntityCards;
 use App\Mcp\Support\OutputSchemas;
@@ -20,11 +21,13 @@ use Illuminate\Validation\Rule;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
+use Laravel\Mcp\Server\Attributes\RendersApp;
 use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsIdempotent;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Description('What the atlas has on the map in a given year: entities that existed then and have a point on the map, most historically important first. Narrow it with a bounding box [west, south, east, north] or a region slug such as "western-europe", and with entity types. Years are signed (BC negative, no year 0). Results are capped; the list is the top of a larger set.')]
+#[RendersApp(resource: YearMapApp::class)]
 #[IsReadOnly]
 #[IsIdempotent]
 class WhatWasHappening extends Tool

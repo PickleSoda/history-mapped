@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Mcp\Servers;
 
+use App\Mcp\Resources\ConnectionsApp;
+use App\Mcp\Resources\EntityCardApp;
+use App\Mcp\Resources\TimelineApp;
+use App\Mcp\Resources\YearMapApp;
 use App\Mcp\Tools\FindChronicles;
 use App\Mcp\Tools\GetChronicle;
 use App\Mcp\Tools\GetConnections;
@@ -53,7 +57,10 @@ class AtlasServer extends Server
      * @var array<int, class-string<Server\Resource>>
      */
     protected array $resources = [
-        // VIEWS
+        EntityCardApp::class,
+        YearMapApp::class,
+        ConnectionsApp::class,
+        TimelineApp::class,
     ];
 
     protected array $prompts = [];
