@@ -87,6 +87,8 @@ return [
     // Requests per minute to /mcp (the `mcp` limiter). Each is one tool call
     // or one view fetch; a busy chat makes a few a minute.
     'mcp_rate_limit' => (int) env('MCP_RATE_LIMIT', 120),
+    // …and per client IP across sessions (Claude's calls share a few IPs).
+    'mcp_rate_limit_per_ip' => (int) env('MCP_RATE_LIMIT_PER_IP', 1200),
 
     /*
     |--------------------------------------------------------------------------

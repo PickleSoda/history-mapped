@@ -59,7 +59,7 @@ again, for example to step the year.
 
 | Limit | Value |
 |---|---|
-| Rate | `MCP_RATE_LIMIT`, 120 requests a minute per IP and MCP session (`throttle:mcp`) |
+| Rate | `MCP_RATE_LIMIT`: 120 requests a minute per MCP session, and `MCP_RATE_LIMIT_PER_IP`: 1,200 per client IP across sessions (`throttle:mcp`). Claude's calls share a few IPs |
 | Rows | Search 20, year map 50, connections 40, chronicle steps 60; counts stop at 1,000 |
 | Data | Most records were imported automatically and are unreviewed; `verification_status` says so and the server tells the model to mention it |
 | Speed | Tools take 6–130 ms on the local 641k dataset. A common-word `search-atlas` can take about a second on the droplet: see [Scalability](scalability.md#query-changes-made-after-the-benchmark) |

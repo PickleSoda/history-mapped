@@ -59,6 +59,20 @@ class AtlasServerTest extends McpTestCase
         $this->assertStringContainsString('Httpia', $response->json('result.content.0.text'));
     }
 
+    public function test_the_rate_limit_is_per_session_with_a_ceiling_per_ip(): void
+    {
+        config(['app.mcp_rate_limit' => 2, 'app.mcp_rate_limit_per_ip' => 3]);
+        $ping = fn (string $session): int => $this->postJson('/mcp', ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'], [
+            'Accept' => 'application/json, text/event-stream',
+            'MCP-Session-Id' => $session,
+        ])->status();
+
+        $this->assertSame([200, 200, 429], [$ping('a'), $ping('a'), $ping('a')]);
+        // A new session id gets its own allowance, but not past the IP's ceiling
+        // (the refused request above didn't count toward it).
+        $this->assertSame([200, 429], [$ping('b'), $ping('c')]);
+    }
+
     public function test_a_failed_call_over_http_is_a_tool_error(): void
     {
         $response = $this->postJson('/mcp', [
