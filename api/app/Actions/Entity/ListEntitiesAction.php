@@ -9,7 +9,7 @@ use App\DTOs\EntityFilterData;
 use App\Models\Entity;
 use App\Models\EntityRelationship;
 use App\Pagination\CappedLengthAwarePaginator;
-use Closure;
+use App\Support\PgSettings;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\Paginator;
@@ -149,7 +149,7 @@ class ListEntitiesAction
         // for a year with few entities (the world at 50 BC: 1.5 s on the
         // droplet); without it the count starts from the date-range index
         // (0.18 s) and dense years stay as fast.
-        $counted = self::withSettings(
+        $counted = PgSettings::with(
             ['enable_mergejoin' => 'off'],
             fn (): int => DB::query()->fromSub($count, 'capped')->count(),
         );
@@ -185,7 +185,7 @@ class ListEntitiesAction
         $term = trim($term);
         if (mb_strlen($term) >= EntityBuilder::SEARCH_FUZZY_FROM) {
             foreach (self::SIMILARITY_STEPS as $threshold) {
-                $rows = self::withSettings(
+                $rows = PgSettings::with(
                     ['pg_trgm.similarity_threshold' => (string) $threshold],
                     fn (): Collection => (clone $query)
                         ->whereRaw('name % ?', [$term])
@@ -199,32 +199,5 @@ class ListEntitiesAction
         }
 
         return $query->forPage($filters->page, $filters->perPage)->get();
-    }
-
-    /**
-     * Run $query with Postgres settings changed for it alone. set_config(…,
-     * true) lasts to the end of the transaction; the RESET puts the default
-     * back at once for a caller already inside one (a test, say), where this
-     * transaction is only a savepoint.
-     *
-     * @template T
-     *
-     * @param  array<string, string>  $settings
-     * @param  Closure(): T  $query
-     * @return T
-     */
-    private static function withSettings(array $settings, Closure $query): mixed
-    {
-        return DB::transaction(function () use ($settings, $query): mixed {
-            foreach ($settings as $name => $value) {
-                DB::select('SELECT set_config(?, ?, true)', [$name, $value]);
-            }
-            $result = $query();
-            foreach (array_keys($settings) as $name) {
-                DB::statement("RESET {$name}");
-            }
-
-            return $result;
-        });
     }
 }
