@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { mapFocus } from '@/lib/api';
 import type { MapFocusTarget } from '@/lib/api';
 import { qk } from '@/lib/query/queryKeys';
@@ -42,9 +42,15 @@ export function useFocusSet() {
     placeholderData: keepPreviousData,
     staleTime: 5 * 60_000,
   });
+  // The observer keeps its last set as a placeholder even after the focus was
+  // dropped. That set is remembered while nothing is focused, so a later,
+  // unrelated target does not start out showing it.
+  const [dropped, setDropped] = useState<typeof query.data>(undefined);
+  if (target === null && query.data !== dropped) setDropped(query.data);
+  const leftover = query.isPlaceholderData && query.data !== undefined && query.data === dropped;
   return {
     target,
-    data: target ? query.data : undefined,
+    data: target && !leftover ? query.data : undefined,
     /** True once `data` belongs to `target` (not the previous set). */
     settled: target !== null && query.isSuccess && !query.isPlaceholderData,
   };

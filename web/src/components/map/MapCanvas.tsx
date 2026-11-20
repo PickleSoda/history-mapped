@@ -596,7 +596,7 @@ export function MapCanvas() {
     if (framedRef.current === key) return;
     framedRef.current = key;
     const rootPlaced =
-      focusTarget.kind === 'related' && focusData.features.some((f) => f.properties.id === focusTarget.id);
+      focusTarget.kind === 'related' && focusData.features.some((f) => f.properties.id === focusTarget.id.toLowerCase());
     if (rootPlaced) return;
     // Direct relations frame a person; the second hop only adds context.
     const near = focusData.features.filter((f) => (f.properties.depth ?? 0) <= 1);

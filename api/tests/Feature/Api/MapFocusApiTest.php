@@ -58,6 +58,8 @@ class MapFocusApiTest extends TestCase
 
         $this->assertSame(['Root' => 0, 'Near' => 1, 'Far' => 2], $this->names("related_to={$root->entity_id}"));
         $this->assertSame(['Root' => 0, 'Near' => 1], $this->names("related_to={$root->entity_id}&depth=1"));
+        // An id typed in capitals is the same entity, still at the centre.
+        $this->assertSame(['Root' => 0, 'Near' => 1], $this->names('related_to='.strtoupper($root->entity_id).'&depth=1'));
 
         $feature = $this->getJson("/api/v1/entities/map/focus?related_to={$near->entity_id}&depth=1")->json('features.0');
         $this->assertSame($near->entity_id, $feature['id']);
@@ -75,6 +77,24 @@ class MapFocusApiTest extends TestCase
         // A typo still finds them when nothing matches as written.
         $this->assertSame(['Fort Zedvark', 'Zedvark Minor'], array_keys($this->names('search=zedvarc')));
         $this->assertSame(['Fort Zedvark'], array_keys($this->names('search=zedvark&limit=1')));
+    }
+
+    public function test_a_search_also_finds_what_is_placed_by_its_borders_alone(): void
+    {
+        $realm = Entity::factory()->verified()->create(['name' => 'Realm of Quorvath']);
+        DB::statement(
+            "INSERT INTO geometry_periods (
+                geometry_period_id, entity_id, period_type, start_year, end_year,
+                territory_geom, provenance_mode, created_by, created_at, updated_at
+            ) VALUES (
+                gen_random_uuid(), ?, 'territory', 900, 1100,
+                ST_SetSRID(ST_GeomFromText('POLYGON((10 40, 11 40, 11 41, 10 41, 10 40))'), 4326),
+                'manual', 'test', NOW(), NOW()
+            )",
+            [$realm->entity_id],
+        );
+
+        $this->assertSame(['Realm of Quorvath'], array_keys($this->names('search=quorvath')));
     }
 
     public function test_it_needs_exactly_one_of_an_entity_or_a_search(): void

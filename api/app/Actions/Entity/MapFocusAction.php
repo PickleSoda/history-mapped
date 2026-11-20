@@ -111,7 +111,8 @@ class MapFocusAction
      */
     private function relatedTo(string $rootId, int $depth, array $groups, int $limit): array
     {
-        $graph = ($this->graph)($rootId, ['depth' => $depth, 'groups' => $groups, 'limit' => $limit]);
+        // Edge rows carry lowercase ids; an uppercase root would not match itself.
+        $graph = ($this->graph)(strtolower($rootId), ['depth' => $depth, 'groups' => $groups, 'limit' => $limit]);
 
         $ranks = [];
         foreach ($graph['nodes'] as $node) {
@@ -152,9 +153,16 @@ class MapFocusAction
                 SELECT e.entity_id
                 FROM matches
                 JOIN entities e ON e.entity_id = matches.entity_id
-                WHERE EXISTS (
-                    SELECT 1 FROM entity_locations el
-                    WHERE el.entity_id = e.entity_id AND el.is_primary = true AND el.geom IS NOT NULL
+                WHERE (
+                    EXISTS (
+                        SELECT 1 FROM entity_locations el
+                        WHERE el.entity_id = e.entity_id AND el.is_primary = true AND el.geom IS NOT NULL
+                    )
+                    -- Placed by its borders alone, as the point query above allows.
+                    OR EXISTS (
+                        SELECT 1 FROM geometry_periods gp
+                        WHERE gp.entity_id = e.entity_id AND COALESCE(gp.geom, gp.territory_geom) IS NOT NULL
+                    )
                 ) {$groupSql}
                 ORDER BY e.impact_score DESC NULLS LAST, e.entity_id
                 LIMIT ?
