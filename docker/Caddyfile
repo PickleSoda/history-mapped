@@ -81,8 +81,9 @@
 	# every check or a release stays unseen until those copies expire. Hashed
 	# files under /assets/ are safe to keep.
 	header /sw.js Cache-Control "no-cache"
-	# Cloudflare also caches .txt by extension: an hour, so an edit to either
-	# file reaches crawlers the same day.
+	# Cloudflare keeps robots.txt at its edge (by name, two hours when the
+	# origin names no lifetime): an hour, so an edit shows the same day.
+	# llms.txt is not cached there; its header only spares repeat fetches.
 	header /robots.txt Cache-Control "public, max-age=3600"
 	header /llms.txt Cache-Control "public, max-age=3600"
 
