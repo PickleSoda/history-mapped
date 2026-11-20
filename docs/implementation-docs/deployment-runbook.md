@@ -34,7 +34,7 @@ Files: [`docker/docker-compose.prod.yml`](../../docker/docker-compose.prod.yml),
 
 **Two domains.** The admin (Inertia, served by the app) and the customer SPA both live at `/`, so they need separate hostnames:
 - **`APP_DOMAIN`** → the app container (API `/api`, admin UI, OpenAPI `/docs`).
-- **`WEB_DOMAIN`** → the customer SPA (static files: CI builds them into the `web` image, the `web-dist` service installs them into the `web_dist` volume as `releases/<sha>`, and Caddy serves `/srv/web/current`). Point an A record for each at the Droplet, in the Cloudflare zone (see [Cloudflare in front](../architecture/deployment.md#cloudflare-in-front) for the proxy and TLS settings).
+- **`WEB_DOMAIN`** → the customer SPA (static files: CI builds them into the `web` image, the `web-dist` service installs them into the `web_dist` volume as `releases/<sha>`, and Caddy serves `/srv/web/current`). Point an A record for each at the Droplet, in the Cloudflare zone (see [Cloudflare in front](../architecture/deployment.md#cloudflare-in-front) for the proxy and TLS settings). Once the records are Proxied, attach the DigitalOcean firewall described there, so ports 80 and 443 answer Cloudflare only.
 
 **Vector tiles.** `APP_DOMAIN/tiles/*` serves the atlas tiles from Postgres ([contract](../schemas/atlas-tiles.md)).
 `TILES_DRIVER` in `docker/.env.prod` picks who answers, with no SPA rebuild either way:

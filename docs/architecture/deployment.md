@@ -66,6 +66,7 @@ Cloudflare dashboard, not in this repository.
 | `www` | Proxied placeholder record (`192.0.2.1`) and a Redirect Rule: 301 to the root, path and query kept | The droplet has no `www` site or certificate |
 | TLS | Mode **Full (strict)**, Always Use HTTPS, minimum TLS 1.2 | Cloudflare checks Caddy's Let's Encrypt certificate on every connection |
 | Bots | Bot Fight Mode **off**; AI crawler policies allow | It challenges non-browser clients (the MCP connector, API clients) and cannot be exempted per path on the Free plan |
+| Origin firewall | DigitalOcean cloud firewall `web-from-cloudflare-only` on the droplet: ports 80 and 443 accept Cloudflare's published ranges only, SSH (22) accepts any address, all other inbound traffic is dropped, outbound is open | Nobody can skip Cloudflare by calling the droplet's address. SSH stays open because CI deploys from GitHub's runners, which have no fixed addresses; it is key-only |
 | Visitor address | Caddy trusts Cloudflare's published ranges, reads `CF-Connecting-IP` from those peers only and passes it to the app as the single `X-Forwarded-For` value (`docker/Caddyfile`) | Per-IP rate limits key on the visitor, and a direct caller cannot forge the header |
 | Edge cache | Cloudflare defaults: files with a static extension are kept two hours at the edge and four hours in browsers; HTML, the API and tiles are not cached. `/sw.js` is sent with `Cache-Control: no-cache` | The service worker points at the current build, so a cached copy would hide a release |
 | Mail | SPF `v=spf1 -all`, DMARC `p=reject`, null MX | The domain sends no mail yet. Replace these with the provider's records when SMTP is configured |
@@ -75,9 +76,10 @@ Things that follow from the proxy:
 | Topic | What to know |
 |---|---|
 | Deploys | The `DROPLET_HOST` secret must be the droplet's address, not a hostname: the hostnames resolve to Cloudflare, which does not carry SSH |
-| Cloudflare's address list | The ranges in `docker/Caddyfile` come from `https://www.cloudflare.com/ips/`. If the list goes stale, visitors arriving through a new range are seen as a Cloudflare address |
+| Cloudflare's address list | The ranges from `https://www.cloudflare.com/ips/` are kept in two places: `docker/Caddyfile` and the firewall's two web rules (Networking → Firewalls in the DigitalOcean panel). When Cloudflare adds a range, update the firewall first: a range missing there cannot reach the droplet and its visitors get a 522 from Cloudflare, while a range missing only in Caddy is seen as a Cloudflare address |
 | Limits | Requests are cut after 100 seconds without a byte from the app, and uploads are capped at 100 MB |
-| Load tests | Run them against the droplet address, never through Cloudflare (see `scripts/loadtest/README.md`) |
+| Load tests | Never run them through Cloudflare. The firewall drops direct requests, so add the load generator's address as a source on the firewall's 80 and 443 rules for the run, target the droplet address, and remove the source afterwards (see `scripts/loadtest/README.md`) |
+| Checking the droplet directly | `curl --resolve historymapped.org:443:<droplet address>` only answers from an address the firewall allows. From anywhere else it times out, which is the expected result |
 
 ## Containers on the hosted site
 
@@ -204,7 +206,8 @@ Names only; values live in `docker/.env.prod` on the server, and in GitHub secre
 | Gap | Effect | Mitigation today |
 |---|---|---|
 | Backups stay on the droplet | Losing the droplet loses its daily dumps too | Copy dumps off the box, or turn on DigitalOcean droplet backups |
-| The droplet still answers on 80 and 443 from anywhere | Anyone who knows its address can skip Cloudflare's filtering | Allow 80 and 443 only from Cloudflare's ranges in a DigitalOcean firewall |
+| The firewall's Cloudflare ranges are a hand-kept copy | A new Cloudflare range that is not in the firewall cannot reach the droplet (522 for those visitors) | Compare the firewall's sources with `https://www.cloudflare.com/ips/` when 522s appear; the list has rarely changed |
+| SSH is open to every address | The droplet's SSH port is reachable from anywhere | Key-only login; restricting it would need fixed addresses for CI |
 | Certificate renewal behind the proxy is untested | Caddy's Let's Encrypt renewal now has to pass through Cloudflare, where only the HTTP challenge can work. The certificates issued before the switch run to mid-January 2027. If renewal fails, Full (strict) answers 526 once they expire | Check the origin certificate dates in mid-December 2026; the fallback is a Cloudflare Origin CA certificate in Caddy |
 | Health gate checks only the app container | A broken Caddy, TLS, tiles or SPA release passes the deploy | Check the site after a deploy |
 | No maintenance mode | Migrations run while the old app still serves | Keep migrations backward compatible |

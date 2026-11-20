@@ -11,9 +11,15 @@ report's SLA targets, so a run directly produces (or fails) the numbers for the 
 - **Never run the generator on the droplet itself** — it competes with FrankenPHP and Postgres
   for the same cores and invalidates the numbers. Run from your dev machine, a second small
   droplet in the same region (best signal), or a cloud runner.
-- **Hit the origin directly.** If Cloudflare (or any CDN) is ever put in front of the site, do
-  NOT load-test through it — it violates Cloudflare's ToS and their cache distorts results.
-  Test the droplet IP / a grey-clouded hostname instead.
+- **Hit the origin directly.** The site is behind Cloudflare since 2026-11-20: do NOT load-test
+  through it — it violates Cloudflare's ToS and their cache distorts results. The hostnames now
+  resolve to Cloudflare, and the droplet's firewall (`web-from-cloudflare-only`) drops web
+  requests from every other address, so for a run:
+  1. add the generator's public address as a source on the firewall's 80 and 443 rules
+     (DigitalOcean panel → Networking → Firewalls);
+  2. on the generator, map the hostnames to the droplet address in `/etc/hosts`
+     (`<droplet address> historymapped.org api.historymapped.org`) so TLS still matches;
+  3. remove both when the run is done.
 - **Own infrastructure only, off-peak, snapshot first.** Testing your own droplet is fine under
   DigitalOcean's acceptable-use policy. Take a droplet snapshot before the first big run.
 - The script only issues **GET** requests against public read endpoints — no writes, no auth.
