@@ -31,6 +31,9 @@ return [
         'per_minute' => (int) env('PERSONA_PER_MINUTE', 12),
         // Output tokens per reply (PERSONA_MAX_OUTPUT_TOKENS).
         'output_tokens' => (int) env('PERSONA_MAX_OUTPUT_TOKENS', 450),
+        // Replies written at once, site-wide (PERSONA_CONCURRENT). The model call
+        // holds a web worker; keep this below the number of Octane workers.
+        'concurrent' => (int) env('PERSONA_CONCURRENT', 2),
         // Provider timeout in seconds.
         'timeout' => (int) env('PERSONA_TIMEOUT', 60),
     ],

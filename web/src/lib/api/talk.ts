@@ -32,7 +32,7 @@ export async function clearTalk(entityId: string): Promise<void> {
 }
 
 /** The API's machine code for a refusal: `daily_limit`, `not_talkable`,
- *  `provider_failed`, `busy`; null for anything else. */
+ *  `provider_failed`, `busy`, `crowded`; null for anything else. */
 export function talkErrorCode(error: unknown): string | null {
   if (!isAxiosError(error)) return null;
   const code = (error.response?.data as { code?: unknown } | undefined)?.code;

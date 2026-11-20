@@ -11,6 +11,7 @@ use App\Models\PersonaConversation;
 use App\Models\PersonaMessage;
 use App\Models\User;
 use App\Support\Persona\SpeakerEligibility;
+use Illuminate\Contracts\Cache\Lock;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -20,14 +21,21 @@ use Throwable;
 /**
  * One turn: the visitor's message in, the person's reply out.
  *
- * Order matters. Checks first (eligibility, daily cap), then the persona and
- * briefing, then the model call. Only when the reply is in hand are the
- * conversation (created on the first message) and both messages written, in
- * one transaction, so a failed call leaves no trace and costs no daily quota.
- * A per-conversation lock stops two replies being written at once.
+ * Order matters. Eligibility first, then the per-conversation lock (two
+ * replies are never written at once), a writing slot, and one message taken
+ * from the daily allowance. Then the persona and briefing, then the model
+ * call. Only when the reply is in hand are the conversation (created on the
+ * first message) and both messages written, in one transaction; a failed
+ * call leaves no trace and gives its message back to the allowance.
+ *
+ * The model call runs inside the web request, so only a few may run at once
+ * (`persona.limits.concurrent`): the rest of the site keeps its workers.
  */
 class SendPersonaMessageAction
 {
+    /** Longer than the slowest turn: persona generation, its lock wait and the reply. */
+    private const LOCK_SECONDS = 240;
+
     public function __construct(
         private readonly EnsurePersonaAction $ensurePersona,
         private readonly GetPersonaBriefingAction $briefing,
@@ -42,17 +50,28 @@ class SendPersonaMessageAction
         if (! SpeakerEligibility::isTalkable($entity)) {
             throw PersonaException::notTalkable();
         }
-        $daily = ($this->usage)($user);
-        if ($daily['remaining'] <= 0) {
-            throw PersonaException::dailyLimit($daily['limit']);
+        if (($this->usage)($user)['remaining'] <= 0) {
+            throw PersonaException::dailyLimit($this->usage->limit());
         }
 
-        $lock = Cache::lock("persona:send:{$user->id}:{$entity->entity_id}", 120);
+        $lock = Cache::lock("persona:send:{$user->id}:{$entity->entity_id}", self::LOCK_SECONDS);
         if (! $lock->get()) {
             throw PersonaException::busy();
         }
+        $slot = $this->slot();
+        if ($slot === null) {
+            $lock->release();
+            throw PersonaException::crowded();
+        }
 
+        $reserved = false;
         try {
+            // Atomic: parallel sends to different people cannot pass the cap together.
+            if (! $this->usage->reserve($user)) {
+                throw PersonaException::dailyLimit($this->usage->limit());
+            }
+            $reserved = true;
+
             $persona = ($this->ensurePersona)($entity);
             $conversation = PersonaConversation::where('user_id', $user->id)->where('entity_id', $entity->entity_id)->first();
 
@@ -96,7 +115,12 @@ class SendPersonaMessageAction
 
                 return ['user' => $userMessage, 'assistant' => $assistant, 'conversation' => $conversation];
             });
+            $reserved = false; // spent
         } finally {
+            if ($reserved) {
+                $this->usage->release($user);
+            }
+            $slot->release();
             $lock->release();
         }
 
@@ -106,23 +130,51 @@ class SendPersonaMessageAction
         return $result;
     }
 
-    /** @return list<Message> */
+    /** One of the few writing slots, or null when all are taken. */
+    private function slot(): ?Lock
+    {
+        $slots = max(1, (int) config('persona.limits.concurrent', 2));
+        for ($i = 0; $i < $slots; $i++) {
+            $slot = Cache::lock("persona:slot:{$i}", self::LOCK_SECONDS);
+            if ($slot->get()) {
+                return $slot;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * The recent window, plus older turns the summary does not cover yet (the
+     * summary is written in batches; until then those turns would be in
+     * neither place and the person would forget them).
+     *
+     * @return list<Message>
+     */
     private function recent(PersonaConversation $conversation): array
     {
         $n = max(2, (int) config('persona.context.recent_messages', 16));
+        $pending = max(2, (int) config('persona.context.summarise_after', 8));
+        $summarisedUntil = (int) $conversation->summarised_until_id;
 
-        return $conversation->messages()->reorder()->orderByDesc('id')->limit($n)->get(['role', 'content'])
+        return $conversation->messages()->reorder()->orderByDesc('id')->limit($n + $pending)->get(['id', 'role', 'content'])
+            ->values()
+            ->filter(fn ($m, int $i): bool => $i < $n || $m->id > $summarisedUntil)
             ->reverse()->map(fn ($m) => new Message($m->role, $m->content))->values()->all();
     }
 
     /**
      * Stage directions in asterisks ("*leans forward*") are removed, however
-     * the model likes them; a reply cut by the token limit ends at its last
-     * full sentence.
+     * the model likes them: a span standing where a sentence would start.
+     * Asterisks used for emphasis inside a sentence ("I said *veni, vidi,
+     * vici*", "**Rome**") go and their words stay. A reply cut by the token
+     * limit ends at its last full sentence.
      */
     private function tidy(string $reply): string
     {
-        $reply = preg_replace('/[ \t]*\*[^*\n]{1,160}\*[ \t]*/u', ' ', $reply) ?? $reply;
+        $reply = preg_replace('/\*\*([^*\n]+)\*\*/u', '$1', $reply) ?? $reply;
+        $reply = preg_replace('/(^|\n|[.!?…"”»]\s)[ \t]*\*[^*\n]{1,160}\*[ \t]*/u', '$1', $reply) ?? $reply;
+        $reply = preg_replace('/\*([^*\n]+)\*/u', '$1', $reply) ?? $reply;
         $reply = trim(preg_replace("/[ \t]+\n/", "\n", preg_replace("/\n{3,}/", "\n\n", $reply) ?? $reply) ?? $reply);
         if ($reply === '' || preg_match('/[.!?…"”»)\]*]$/u', $reply)) {
             return $reply;

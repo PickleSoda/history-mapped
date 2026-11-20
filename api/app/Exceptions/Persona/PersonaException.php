@@ -44,6 +44,11 @@ class PersonaException extends RuntimeException
         return new self('A reply is already being written. Wait for it, then send your next message.', 'busy', 409);
     }
 
+    public static function crowded(): self
+    {
+        return new self('Too many replies are being written right now. Your message was not sent; try again in a moment.', 'crowded', 503);
+    }
+
     public static function providerFailed(): self
     {
         return new self('The reply could not be written just now. Your message was not sent; please try again.', 'provider_failed', 502);

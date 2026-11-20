@@ -97,6 +97,16 @@ class PersonaChatApiTest extends TestCase
             ->assertJsonPath('data.assistant_message.content', "Speak plainly.\n\nWhat do you want?");
     }
 
+    public function test_emphasis_keeps_its_words_and_loses_its_asterisks(): void
+    {
+        $this->fakes('I said *veni, vidi, vici* to the Senate of **Rome**. *smiles* It was enough.');
+        $p = $this->person();
+
+        $this->actingAs(User::factory()->create())->postJson("/api/v1/me/talk/{$p->entity_id}/messages", ['message' => 'Hi'])
+            ->assertCreated()
+            ->assertJsonPath('data.assistant_message.content', 'I said veni, vidi, vici to the Senate of Rome. It was enough.');
+    }
+
     public function test_one_conversation_per_user_per_person(): void
     {
         $this->fakes(['One.', 'Two.']);
@@ -180,6 +190,22 @@ class PersonaChatApiTest extends TestCase
         $this->assertGreaterThan(0, $c->summarised_until_id);
     }
 
+    public function test_turns_outside_the_window_reach_the_model_until_they_are_summarised(): void
+    {
+        config(['persona.context.recent_messages' => 2, 'persona.context.summarise_after' => 6]);
+        $this->fakes(['R1.', 'R2.', 'R3.']);
+        $user = User::factory()->create();
+        $p = $this->person();
+
+        foreach (['My name is Anna', 'second', 'third'] as $text) {
+            $this->actingAs($user)->postJson("/api/v1/me/talk/{$p->entity_id}/messages", ['message' => $text])->assertCreated();
+        }
+
+        $this->assertNull(PersonaConversation::first()->summary);
+        PersonaAgent::assertPrompted(fn (AgentPrompt $prompt) => $prompt->prompt === 'third'
+            && collect($prompt->agent->messages())->map(fn ($m) => $m->content)->all() === ['My name is Anna', 'R1.', 'second', 'R2.']);
+    }
+
     // ── Refusals ─────────────────────────────────────────────
 
     public function test_a_person_who_cannot_be_talked_to_is_refused(): void
@@ -215,6 +241,39 @@ class PersonaChatApiTest extends TestCase
         $this->assertSame(4, PersonaMessage::count());
         // Another user is not affected.
         $this->actingAs(User::factory()->create())->postJson("/api/v1/me/talk/{$p->entity_id}/messages", ['message' => 'x'])->assertCreated();
+    }
+
+    public function test_clearing_a_conversation_does_not_hand_the_quota_back(): void
+    {
+        config(['persona.limits.daily_messages' => 1]);
+        $this->fakes(['One.', 'Never.']);
+        $user = User::factory()->create();
+        $p = $this->person();
+
+        $this->actingAs($user)->postJson("/api/v1/me/talk/{$p->entity_id}/messages", ['message' => 'a'])->assertCreated();
+        $this->actingAs($user)->deleteJson("/api/v1/me/talk/{$p->entity_id}")->assertNoContent();
+
+        $this->actingAs($user)->getJson('/api/v1/me/talk')->assertJsonPath('daily.used', 1);
+        $this->actingAs($user)->postJson("/api/v1/me/talk/{$p->entity_id}/messages", ['message' => 'b'])
+            ->assertStatus(429)->assertJsonPath('code', 'daily_limit');
+    }
+
+    public function test_only_a_few_replies_are_written_at_once(): void
+    {
+        config(['persona.limits.concurrent' => 1]);
+        $this->fakes(['Hello.']);
+        $user = User::factory()->create();
+        $p = $this->person();
+
+        $taken = Cache::lock('persona:slot:0', 60);
+        $this->assertTrue($taken->get());
+        $this->actingAs($user)->postJson("/api/v1/me/talk/{$p->entity_id}/messages", ['message' => 'a'])
+            ->assertStatus(503)->assertJsonPath('code', 'crowded');
+        $this->assertSame(0, PersonaMessage::count());
+        $this->actingAs($user)->getJson('/api/v1/me/talk')->assertJsonPath('daily.used', 0);
+
+        $taken->release();
+        $this->actingAs($user)->postJson("/api/v1/me/talk/{$p->entity_id}/messages", ['message' => 'a'])->assertCreated();
     }
 
     public function test_messages_are_validated(): void
