@@ -4,7 +4,7 @@ Run the whole stack on your machine with Docker Compose: the API and admin, the 
 PostgreSQL, Redis, the tile server and the inspection tools. Allow about 15 minutes for the first
 start. After that, it starts in seconds.
 
-> **Audience:** developers · **Last reviewed:** 2026-11-14 · **You need:** Docker Engine with
+> **Audience:** developers · **Last reviewed:** 2026-11-20 · **You need:** Docker Engine with
 > Compose v2, pnpm 10, Git; Python 3.10 or newer only for the pipeline
 
 ## What you get
@@ -56,6 +56,9 @@ dc exec app php artisan tags:sync
 dc exec app php artisan collections:sync
 dc exec app php artisan map-stories:sync
 dc exec app php artisan entities:sync-descriptions
+
+# 5. Optional: real content (36,000 entities, chronicles, battle maps)
+pnpm demo:load
 ```
 
 The base seed creates one user per role, all with the password `password`: `admin@example.com`,
@@ -148,5 +151,7 @@ the full workflow.
 ## Where next
 
 - [System overview](../architecture/system-overview.md): how the pieces fit together
-- [Importing data](data-contributor-guide.md): fill the database
+- [Demo data](#demo-data): fill the database in a few minutes (`pnpm demo:load`)
+- [Importing data](data-contributor-guide.md): make and import your own data
+- [Demo data release](https://github.com/PickleSoda/history-mapped/releases/tag/demo-data-v1): the files and their licence
 - [Deployment and operations](../architecture/deployment.md): how the hosted site differs

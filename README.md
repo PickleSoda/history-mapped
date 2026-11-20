@@ -84,6 +84,16 @@ After containers are up, run migrations and seed the database:
 docker compose -f docker/docker-compose.yml exec app php artisan migrate --seed
 ```
 
+The seed leaves the atlas empty. To fill it with the demo data set (about 36,000 curated entities,
+their relationships, 314 chronicles and 37 battle maps, from the
+[`demo-data-v1` release](https://github.com/PickleSoda/history-mapped/releases/tag/demo-data-v1)):
+
+```bash
+pnpm demo:load
+```
+
+Details and licence: [Local setup § Demo data](docs/implementation-docs/setup.md#demo-data).
+
 ### Stopping
 
 ```bash
@@ -202,7 +212,7 @@ Docker Compose defaults are defined in `docker/docker-compose.yml`. Override the
 | [docs/overview/product-overview.md](docs/overview/product-overview.md) | What History Mapped is, who it serves, how content is made |
 | [docs/overview/concepts.md](docs/overview/concepts.md) | The ten core concepts in brief |
 | [docs/architecture/system-overview.md](docs/architecture/system-overview.md) | System context, containers and the main flows |
-| [docs/implementation-docs/setup.md](docs/implementation-docs/setup.md) | Local setup and development workflow |
+| [docs/implementation-docs/setup.md](docs/implementation-docs/setup.md) | Local setup, development workflow and the demo data set |
 | [docs/architecture/data-pipeline.md](docs/architecture/data-pipeline.md) | Every pipeline track, the agent, the campaign, the import contract |
 | [docs/entity-model/README.md](docs/entity-model/README.md) | Data model overview |
 | [docs/schemas/rest-api.md](docs/schemas/rest-api.md) | The public REST API |

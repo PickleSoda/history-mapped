@@ -223,4 +223,4 @@ Names only; values live in `docker/.env.prod` on the server, and in GitHub secre
   secrets, rollback
 - [`content-data-transfer.md`](../implementation-docs/content-data-transfer.md): the full content
   load, step by step
-- [Local setup](../implementation-docs/setup.md): the development stack
+- [Local setup](../implementation-docs/setup.md): the development stack and its demo data set

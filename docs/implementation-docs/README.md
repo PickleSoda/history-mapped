@@ -5,7 +5,7 @@ see [../architecture/](../architecture/); for the data model, see [../entity-mod
 
 ## Setup & deployment
 
-- [setup.md](setup.md) — local dev: Docker stack, services, commands, route layout.
+- [setup.md](setup.md) — local dev: Docker stack, services, commands, route layout, and the demo data set (`pnpm demo:load`).
 - [deployment-runbook.md](deployment-runbook.md) — canonical GHCR → DigitalOcean Droplet deploy (Docker Compose).
 
 ## Admin AI agent

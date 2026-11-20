@@ -167,4 +167,4 @@ history-mapped/
 
 - [Data pipeline](data-pipeline.md): how content is produced
 - [Backend and API](backend.md) and [Public web app](frontend-app.md): the two codebases
-- [Local setup](../implementation-docs/setup.md): run it yourself
+- [Local setup](../implementation-docs/setup.md): run it yourself, with the [demo data set](../implementation-docs/setup.md#demo-data)

@@ -15,9 +15,11 @@ Docker Compose — **do not run host-local PHP/Composer/PHPUnit**; use the conta
 ```bash
 pnpm dev                                                  # bring up the whole stack
 docker compose -f docker/docker-compose.yml exec app php artisan migrate --seed
+pnpm demo:load                                            # optional: 36,000 real entities to work with
 ```
 
-Full setup detail: [docs/implementation-docs/setup.md](docs/implementation-docs/setup.md).
+Full setup detail: [docs/implementation-docs/setup.md](docs/implementation-docs/setup.md), including the
+[demo data set](docs/implementation-docs/setup.md#demo-data).
 
 ## Branches & flow
 
