@@ -16,13 +16,16 @@ export interface ChronicleListParams {
   search?: string;
   /** Tag slugs: AND across facets, OR within a facet. */
   tags?: string[];
+  /** Years (BCE negative): only chronicles whose span overlaps the window. */
+  from?: number;
+  to?: number;
   sort?: 'chronological' | 'recent' | 'title' | 'impact';
   page?: number;
 }
 
 /** GET /chronicles — paginated, filterable listing for the Chronicles tab. */
 export async function chronicleList(
-  { search, tags = [], sort = 'chronological', page = 1 }: ChronicleListParams = {},
+  { search, tags = [], from, to, sort = 'chronological', page = 1 }: ChronicleListParams = {},
   signal?: AbortSignal,
 ): Promise<ChronicleList> {
   const { data } = await api.get('/api/v1/chronicles', {
@@ -33,6 +36,8 @@ export async function chronicleList(
       sort,
       ...(search ? { search } : {}),
       ...(tags.length > 0 ? { tags: tags.join(',') } : {}),
+      ...(from != null ? { from } : {}),
+      ...(to != null ? { to } : {}),
     },
   });
   return ChronicleListSchema.parse(data);

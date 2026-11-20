@@ -1,7 +1,8 @@
-import { ChevronLeft, ScrollText, Search, X } from 'lucide-react';
+import { ChevronLeft, Clock, ScrollText, Search, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { useChronicleList, useChronicleNav, useChronicleTags, useTags } from '@/hooks';
-import { formatYear } from '@/lib/format';
+import { useChronicleList, useChronicleNav, useChronicleTags, useTags, useTimeState } from '@/hooks';
+import { globalEra } from '@/lib/era/resolve';
+import { formatYear, instantYear } from '@/lib/format';
 import type { ChronicleSummary } from '@/lib/schemas/chronicle';
 import type { TagFacet } from '@/lib/schemas/tag';
 import { FACETS, ancestorsOf, childrenOf, displayTags, toggleTag } from '@/lib/tags';
@@ -177,9 +178,16 @@ export function ChronicleList() {
   const [facet, setFacet] = useState<TagFacet>('era');
   const search = useDebounced(query.trim(), 250);
 
+  // The list follows the timeline: only chronicles of the era the year falls
+  // in (they have no single place, so the map's view does not narrow them).
+  const { time } = useTimeState();
+  const era = globalEra(instantYear(time));
+  const [allEras, setAllEras] = useState(false);
+
   const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useChronicleList({
     search: search || undefined,
     tags: selected,
+    ...(allEras ? {} : { from: era.start, to: era.end }),
     sort: 'chronological',
   });
   const rows = data?.pages.flatMap((p) => p.data) ?? [];
@@ -217,6 +225,20 @@ export function ChronicleList() {
           aria-label="Search chronicles or tags"
           className="h-9 w-full rounded-lg border bg-card pr-3 pl-8 text-[13px] outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring/40"
         />
+      </div>
+
+      <div className="mt-2 flex items-center gap-1.5 px-1 text-[11px] text-muted-foreground">
+        <Clock size={12} className="flex-none" />
+        <span className="min-w-0 flex-1 truncate">
+          {allEras ? 'All eras' : `${era.label}, from the timeline`}
+        </span>
+        <button
+          type="button"
+          onClick={() => setAllEras((v) => !v)}
+          className="flex-none underline-offset-2 hover:text-foreground hover:underline"
+        >
+          {allEras ? `Only ${era.label}` : 'Show all eras'}
+        </button>
       </div>
 
       {suggestions.length > 0 && (
@@ -287,7 +309,11 @@ export function ChronicleList() {
       {isError && <p className="px-1 py-2 text-sm text-destructive">Could not load chronicles.</p>}
       {data && rows.length === 0 && (
         <p className="px-1 py-2 text-sm text-muted-foreground">
-          {selected.length > 0 || search ? 'No chronicles match these filters.' : 'No chronicles yet.'}
+          {selected.length > 0 || search
+            ? 'No chronicles match these filters.'
+            : allEras
+              ? 'No chronicles yet.'
+              : `No chronicles in ${era.label} yet.`}
         </p>
       )}
 

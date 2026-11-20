@@ -18,8 +18,9 @@ class ListChroniclesAction
      * `search` matches the title, the slug, or the name of a tag the chronicle
      * carries ("bronze" finds every Bronze Age chronicle). `tags` filters by
      * slug: AND across facets, OR within a facet (see Tag::filterGroups()).
+     * `from` / `to` (years, BCE negative) keep chronicles whose span overlaps.
      *
-     * @param  array{search?: string|null, status?: string|null, tags?: list<string>|null, sort?: string|null, page?: int, per_page?: int}  $filters
+     * @param  array{search?: string|null, status?: string|null, tags?: list<string>|null, from?: int|null, to?: int|null, sort?: string|null, page?: int, per_page?: int}  $filters
      * @return LengthAwarePaginator<Chronicle>
      */
     public function __invoke(array $filters = [], bool $includeArchived = false): LengthAwarePaginator
@@ -45,6 +46,17 @@ class ListChroniclesAction
 
         if (! empty($filters['tags'])) {
             $query->withTags($filters['tags']);
+        }
+
+        // Chronicles whose span overlaps the window; an undated one never matches.
+        if (isset($filters['from']) || isset($filters['to'])) {
+            $query->whereNotNull('start_year');
+            if (isset($filters['to'])) {
+                $query->where('start_year', '<=', (int) $filters['to']);
+            }
+            if (isset($filters['from'])) {
+                $query->whereRaw('COALESCE(end_year, start_year) >= ?', [(int) $filters['from']]);
+            }
         }
 
         match ($filters['sort'] ?? 'recent') {

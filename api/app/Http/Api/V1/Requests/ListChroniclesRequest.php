@@ -37,6 +37,8 @@ class ListChroniclesRequest extends FormRequest
             'status' => ['sometimes', 'nullable', 'string', Rule::enum(ChronicleStatus::class)],
             'tags' => ['sometimes', 'array', 'max:20'],
             'tags.*' => ['string', 'max:100'],
+            'from' => ['sometimes', 'integer'],
+            'to' => ['sometimes', 'integer'],
             'sort' => ['sometimes', 'string', Rule::in(['recent', 'chronological', 'title', 'impact'])],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
             'page' => ['sometimes', 'integer', 'min:1'],

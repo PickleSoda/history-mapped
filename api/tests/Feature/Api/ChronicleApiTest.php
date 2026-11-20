@@ -362,4 +362,16 @@ class ChronicleApiTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page->has('chronicles.data', 2));
     }
+
+    public function test_chronicles_can_be_limited_to_a_span_of_years(): void
+    {
+        Chronicle::factory()->create(['title' => 'Before', 'start_year' => 1700, 'end_year' => 1750]);
+        Chronicle::factory()->create(['title' => 'Across', 'start_year' => 1790, 'end_year' => 1815]);
+        Chronicle::factory()->create(['title' => 'Within', 'start_year' => 1850, 'end_year' => null]);
+        Chronicle::factory()->create(['title' => 'After', 'start_year' => 1950, 'end_year' => 1960]);
+
+        $titles = $this->getJson('/api/v1/chronicles?from=1800&to=1913&sort=chronological')->assertOk()->json('data.*.title');
+
+        $this->assertSame(['Across', 'Within'], $titles);
+    }
 }
