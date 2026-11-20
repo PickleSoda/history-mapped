@@ -1,0 +1,87 @@
+name: Certificate watch
+
+# Fails when a certificate Caddy serves on the droplet is overdue for renewal,
+# so GitHub's failed-run email is the warning. Nothing else gives one: the
+# Caddyfile names no contact address, Let's Encrypt sends no expiry mail, and
+# behind Cloudflare the first visible sign would be error 526 on the day the
+# certificate expires.
+#
+# The check has to run on the droplet. From outside, both hostnames answer with
+# Cloudflare's certificate, and the firewall closes the droplet's own ports.
+#
+# Caddy renews when a third of a certificate's lifetime is left. This fails at
+# a fifth: 18 days for a 90-day certificate, which leaves time to act, and the
+# rule stays right as Let's Encrypt shortens lifetimes (64 days from February
+# 2027, 45 from 2028). Run it daily once they are that short.
+
+on:
+  schedule:
+    - cron: "17 7 * * 1"   # Mondays 07:17 UTC
+  workflow_dispatch:
+  # A change to the check runs it once, so a broken edit shows at once.
+  push:
+    branches: [main]
+    paths: [.github/workflows/cert-watch.yml]
+
+permissions: {}
+
+jobs:
+  certificates:
+    name: Certificates on the droplet
+    # Same opt-in and secrets as the deploy job in ci.yml.
+    if: vars.DEPLOY_TO_DROPLET == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read the certificates Caddy serves
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          APP_DIR: ${{ vars.DROPLET_APP_DIR }}
+        with:
+          host: ${{ secrets.DROPLET_HOST }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          port: ${{ secrets.DROPLET_SSH_PORT || 22 }}
+          command_timeout: 2m
+          envs: APP_DIR
+          # No `script_stop` (see the deploy job): the script stops itself.
+          script: |
+            set -Eeuo pipefail
+            trap 'echo "::error::certificate check broke (exit $?) at: $BASH_COMMAND"' ERR
+
+            # The hostnames Caddy serves, from the file Caddy gets them from.
+            env_file="${APP_DIR:-/opt/history-mapped}/docker/.env.prod"
+            hosts=$(sed -n -E 's/^(APP_DOMAIN|WEB_DOMAIN)=//p' "$env_file" \
+              | sed -E 's/[[:space:]]+#.*//' | tr -d "\"'" | tr ',' ' ')
+            if [ -z "${hosts// /}" ]; then
+              echo "::error::no APP_DOMAIN or WEB_DOMAIN in $env_file"
+              exit 1
+            fi
+
+            now=$(date +%s)
+            failed=0
+            for host in $hosts; do
+              # Ask Caddy on the droplet itself; the hostname picks the certificate.
+              cert=$(timeout 20 openssl s_client -connect 127.0.0.1:443 -servername "$host" </dev/null 2>/dev/null \
+                | openssl x509 2>/dev/null || true)
+              if [ -z "$cert" ]; then
+                echo "::error::$host: Caddy served no certificate"
+                failed=1
+                continue
+              fi
+              starts=$(date -d "$(openssl x509 -noout -startdate <<<"$cert" | cut -d= -f2)" +%s)
+              ends_on=$(openssl x509 -noout -enddate <<<"$cert" | cut -d= -f2)
+              ends=$(date -d "$ends_on" +%s)
+              left=$(( ends - now ))
+              days=$(( left / 86400 ))
+              if [ "$left" -le 0 ]; then
+                echo "::error::$host: certificate expired on $ends_on"
+                failed=1
+              elif [ $(( left * 5 )) -lt $(( ends - starts )) ]; then
+                echo "::error::$host: certificate expires $ends_on ($days days left); Caddy should have renewed it by now"
+                failed=1
+              else
+                echo "$host: certificate expires $ends_on ($days days left)"
+              fi
+            done
+            exit "$failed"

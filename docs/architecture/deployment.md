@@ -82,6 +82,7 @@ Things that follow from the proxy:
 | Limits | Requests are cut after 100 seconds without a byte from the app, and uploads are capped at 100 MB |
 | Load tests | Never run them through Cloudflare. The firewall drops direct requests, so add the load generator's address as a source on the firewall's 80 and 443 rules for the run, target the droplet address, and remove the source afterwards (see `scripts/loadtest/README.md`) |
 | Checking the droplet directly | `curl --resolve historymapped.org:443:<droplet address>` only answers from an address the firewall allows. From anywhere else it times out, which is the expected result |
+| Certificate watch | `.github/workflows/cert-watch.yml` runs every Monday, and by hand from the Actions tab. It logs in to the droplet, reads the certificate Caddy serves for each hostname and fails when less than a fifth of its lifetime is left (18 days of 90). GitHub emails the account that last changed the schedule when a run fails | Caddy renews when a third is left, so a failure means renewal has been stuck for days. Nothing else warns: from outside, both hostnames show Cloudflare's certificate, and Let's Encrypt sends no expiry mail |
 
 ## Containers on the hosted site
 
@@ -211,7 +212,7 @@ Names only; values live in `docker/.env.prod` on the server, and in GitHub secre
 | Backups stay on the droplet | Losing the droplet loses its daily dumps too | Copy dumps off the box, or turn on DigitalOcean droplet backups |
 | The firewall's Cloudflare ranges are a hand-kept copy | A new Cloudflare range that is not in the firewall cannot reach the droplet (522 for those visitors) | Compare the firewall's sources with `https://www.cloudflare.com/ips/` when 522s appear; the list has rarely changed |
 | SSH is open to every address | The droplet's SSH port is reachable from anywhere | Key-only login; restricting it would need fixed addresses for CI |
-| Certificate renewal behind the proxy is untested | Caddy's Let's Encrypt renewal now has to pass through Cloudflare, where only the HTTP challenge can work. The certificates issued before the switch run to mid-January 2027. If renewal fails, Full (strict) answers 526 once they expire | Check the origin certificate dates in mid-December 2026; the fallback is a Cloudflare Origin CA certificate in Caddy |
+| Certificate renewal behind the proxy is unproven | Caddy's Let's Encrypt renewal has to pass through Cloudflare, where only the HTTP challenge can work. Cloudflare does pass the challenge path to the droplet on port 80, but no certificate has been renewed that way yet: the ones issued before the switch run to mid-January 2027 and are due for renewal around 14–16 December 2026. If renewal fails, Full (strict) answers 526 once they expire | The weekly certificate watch fails about 18 days before expiry; the fallback is a Cloudflare Origin CA certificate in Caddy |
 | Health gate checks only the app container | A broken Caddy, TLS, tiles or SPA release passes the deploy | Check the site after a deploy |
 | No maintenance mode | Migrations run while the old app still serves | Keep migrations backward compatible |
 | One server | No redundancy | Images are in GHCR and the setup is reproducible from the repo |
