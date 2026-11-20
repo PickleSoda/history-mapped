@@ -50,6 +50,33 @@ export const ChronicleSchema = z.object({
 });
 export type Chronicle = z.infer<typeof ChronicleSchema>;
 
+/** One of a chronicle's entities on the map (GET /chronicles/{slug}/places). */
+export const ChroniclePlaceSchema = z.object({
+  id: z.string(),
+  /** Lowercase entity group (`polity`, `event`…). */
+  group: z.string().nullable().catch(null),
+  /** Its map point, [lng, lat]; null when only its borders are known. */
+  at: z.tuple([z.number(), z.number()]).nullable().catch(null),
+  /** Its OpenHistoricalMap boundaries, each for the years it stands for
+   *  (OHM's signed `osm_id`; primary first, then by match score). */
+  borders: z
+    .array(
+      z.object({
+        id: z.number(),
+        from: z.number().nullable(),
+        to: z.number().nullable(),
+        primary: z.boolean(),
+      }),
+    )
+    .catch([])
+    .default([]),
+});
+export type ChroniclePlace = z.infer<typeof ChroniclePlaceSchema>;
+
+export const ChroniclePlacesSchema = z.object({
+  data: z.array(ChroniclePlaceSchema),
+});
+
 /** Lightweight chronicle row for the listing (GET /chronicles). */
 export const ChronicleSummarySchema = z.object({
   chronicle_id: z.string(),

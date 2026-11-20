@@ -28,6 +28,7 @@ export { useEntity, useEntityConnections } from './useEntity';
 export { useEntityGeometries } from './useEntityGeometries';
 export { useEntitySearch } from './useEntitySearch';
 export { useChronicle } from './useChronicle';
+export { useChroniclePlaces } from './useChroniclePlaces';
 export { useMapStory } from './useMapStory';
 export { useChronicleList } from './useChronicleList';
 export { useTags } from './useTags';

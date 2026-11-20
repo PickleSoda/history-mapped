@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Api\V1\Controllers\ChronicleGraphController;
+use App\Http\Api\V1\Controllers\ChroniclePlacesController;
 use App\Http\Api\V1\Controllers\CollectionController;
 use App\Http\Api\V1\Controllers\ContributionController;
 use App\Http\Api\V1\Controllers\EntityChronicleController;
@@ -95,6 +96,9 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/chronicles/{slug}/graph', [ChronicleGraphController::class, 'show'])
         ->name('api.v1.chronicles.graph');
+
+    Route::get('/chronicles/{slug}/places', [ChroniclePlacesController::class, 'show'])
+        ->name('api.v1.chronicles.places');
 
     Route::get('/chronicles/{slug}', [ChronicleController::class, 'show'])
         ->name('api.v1.chronicles.show');

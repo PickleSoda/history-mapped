@@ -46,6 +46,8 @@ export const qk = {
   entityGraph: (id: string, params: EntityGraphParams) =>
     ['entity', id, 'graph', params] as const,
   chronicle: (slug: string) => ['chronicle', slug] as const,
+  /** Where a chronicle's entities sit on the map (GET /chronicles/{slug}/places). */
+  chroniclePlaces: (slug: string) => ['chronicle', slug, 'places'] as const,
   /** A step-by-step battle map (GET /map-stories/{slug}). */
   mapStory: (slug: string) => ['map-story', slug] as const,
   /** Filtered Chronicles-tab listing (pages are the infinite query's). */

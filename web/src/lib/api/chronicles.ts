@@ -1,12 +1,14 @@
 /** Typed chronicle endpoints. */
 import {
   ChronicleListSchema,
+  ChroniclePlacesSchema,
   ChronicleSchema,
   EntityChroniclesSchema,
 } from '@/lib/schemas/chronicle';
 import type {
   Chronicle,
   ChronicleList,
+  ChroniclePlace,
   EntityChronicles,
 } from '@/lib/schemas/chronicle';
 import { api } from './client';
@@ -67,4 +69,16 @@ export async function chronicle(
   );
   const payload = (data as { data?: unknown }).data ?? data;
   return ChronicleSchema.parse(payload);
+}
+
+/** GET /chronicles/{slug}/places — each chronicle entity's map point and OHM link. */
+export async function chroniclePlaces(
+  slug: string,
+  signal?: AbortSignal,
+): Promise<ChroniclePlace[]> {
+  const { data } = await api.get(
+    `/api/v1/chronicles/${encodeURIComponent(slug)}/places`,
+    { signal },
+  );
+  return ChroniclePlacesSchema.parse(data).data;
 }

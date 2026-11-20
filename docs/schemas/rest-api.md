@@ -91,6 +91,7 @@ The public web app uses vector tiles instead of `entities/map` on the hosted sit
 | `GET /chronicles` | Paginated list. `search` (titles, slugs, tag names), `status`, `tags[]`, `sort` = `recent`, `chronological`, `title` or `impact` |
 | `GET /chronicles/{slug}` | The chronicle with its ordered entries, each entry's primary relationship and entities, and its map story if it has one |
 | `GET /chronicles/{slug}/graph` | The chronicle as a graph, with per-step membership. `external`, `external_limit` (≤ 100), `relationship_types` |
+| `GET /chronicles/{slug}/places` | Where the chronicle's entities sit on the map, for the player's step layer: each entity's `group`, its point `at` ([lng, lat]) and its OpenHistoricalMap `borders` (signed `osm_id`, the years each stands for, `primary`). Entities with neither are left out |
 
 Archived chronicles are hidden everywhere in the public API: the list (even with `status=archived`),
 an entity's chronicles, tag counts, collections, stars and map-story links. Their slugs answer 404.

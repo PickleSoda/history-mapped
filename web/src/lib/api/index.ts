@@ -16,6 +16,7 @@ export { searchEntities } from './discovery';
 export {
   chronicle,
   chronicleList,
+  chroniclePlaces,
   entityChronicles,
   type ChronicleListParams,
 } from './chronicles';

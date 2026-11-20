@@ -4,6 +4,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useEffect, useRef } from 'react';
 import { EraLayer } from '@/components/era/EraLayer';
+import { ChronicleLayer } from '@/components/map/ChronicleLayer';
 import { StoryAmbientLayer } from '@/components/map/StoryAmbientLayer';
 import { StoryOverlay } from '@/components/map/StoryOverlay';
 import {
@@ -19,6 +20,7 @@ import {
   useView,
   useViewport,
 } from '@/hooks';
+import { CHRONICLE_INTERACTIVE_LAYERS } from '@/lib/chronicle-map/layers';
 import { instantYear } from '@/lib/format';
 import { loadHistoricalBasemapStyle } from '@/lib/map-config';
 import { pointsBounds } from '@/lib/map-focus';
@@ -422,6 +424,11 @@ export function MapCanvas() {
       // sequence token drops a stale resolution if the user clicks again.
       let clickSeq = 0;
       map.on('click', (e) => {
+        // A playing chronicle's trail stops and step entities handle their
+        // own clicks (ChronicleLayer), over whatever lies under them.
+        const claimed = CHRONICLE_INTERACTIVE_LAYERS.filter((l) => map.getLayer(l));
+        if (claimed.length && map.queryRenderedFeatures(e.point, { layers: claimed }).length) return;
+
         const layers = INTERACTIVE_LAYERS.filter((l) => map.getLayer(l));
         const hit = layers.length
           ? map.queryRenderedFeatures(e.point, { layers })[0]
@@ -659,6 +666,7 @@ export function MapCanvas() {
       <EraLayer />
       <StoryOverlay />
       <StoryAmbientLayer />
+      <ChronicleLayer />
     </>
   );
 }
