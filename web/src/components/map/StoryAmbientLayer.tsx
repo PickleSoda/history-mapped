@@ -72,7 +72,10 @@ export function StoryAmbientLayer() {
 
   // ── layers, under the entity overlay; re-added when the style is rebuilt ──
   useEffect(() => {
-    if (!map) return;
+    // A removed map has no style, and its layer calls throw. MapCanvas
+    // remounts when the window crosses the phone breakpoint, and this layer
+    // mounts again still holding the map of the one before it.
+    if (!map || !map.style) return;
     addAmbientLayers(map, ENTITY_LAYERS.find((id) => map.getLayer(id)));
     const hover = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 10 });
     hoverRef.current = hover;
@@ -133,11 +136,11 @@ export function StoryAmbientLayer() {
 
   // ── data, and hidden while a story or chronicle plays ──
   useEffect(() => {
-    if (!map || !map.getSource(AMBIENT_SOURCE)) return;
+    if (!map || !map.style || !map.getSource(AMBIENT_SOURCE)) return;
     setSourceData(map, AMBIENT_SOURCE, collection);
   }, [map, collection, styleEpoch]);
   useEffect(() => {
-    if (!map || !map.getSource(AMBIENT_SOURCE)) return;
+    if (!map || !map.style || !map.getSource(AMBIENT_SOURCE)) return;
     setAmbientVisible(map, !hidden);
     if (hidden) {
       cardRef.current?.remove();
