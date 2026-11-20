@@ -5,6 +5,7 @@ export { useViewport } from './useViewport';
 export { useTimeState } from './useTimeState';
 export { useFilters } from './useFilters';
 export { useSelection } from './useSelection';
+export { useSearchFilter, SEARCH_FILTER_MIN } from './useSearchFilter';
 export { useChronicleNav } from './useChronicleNav';
 export { useStoryNav } from './useStoryNav';
 export { useView } from './useView';
@@ -22,6 +23,7 @@ export { useNavTrail, useNavTrailSync } from './useNavTrail';
 // Server-cache
 export { useEntitiesInView } from './useEntitiesInView';
 export { useEntityList } from './useEntityList';
+export { useFocusSet, useFocusTarget } from './useFocusSet';
 export { useEntity, useEntityConnections } from './useEntity';
 export { useEntityGeometries } from './useEntityGeometries';
 export { useEntitySearch } from './useEntitySearch';

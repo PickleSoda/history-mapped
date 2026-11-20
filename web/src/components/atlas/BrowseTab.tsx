@@ -1,10 +1,11 @@
-import { Clock, MapPin, Search, Sparkles } from 'lucide-react';
+import { Clock, Filter, MapPin, Search, Sparkles, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { GroupDot, TypeBadge } from '@/components/atlas/GroupBadge';
 import {
   useEntityList,
   useFilters,
   usePrefetchEntity,
+  useSearchFilter,
   useSelection,
   useTimeState,
 } from '@/hooks';
@@ -119,9 +120,14 @@ function ListRow({ e }: { e: EntitySummary }) {
   );
 }
 
-/** "Notable here" entities tab — ranked list with filter chips and scope note. */
+/**
+ * "Notable here" entities tab — ranked list with filter chips and scope note.
+ * With a search word kept as a filter, the list is its matches instead:
+ * anywhere and at any time, most prominent first.
+ */
 export function BrowseTab() {
-  const { data, isLoading, isError } = useEntityList({ sort: 'impact' });
+  const { q, clear } = useSearchFilter();
+  const { data, isLoading, isError } = useEntityList({ sort: 'impact', search: q ?? undefined });
   const { time } = useTimeState();
   const [filter, setFilter] = useState('');
 
@@ -140,27 +146,47 @@ export function BrowseTab() {
           <input
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            placeholder="Filter within view…"
+            placeholder={q ? 'Filter these matches…' : 'Filter within view…'}
             className="h-9 w-full rounded-lg border bg-card pl-8 pr-3 text-[13px] outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring/40"
           />
         </div>
         <FilterChips />
-        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-          <Clock size={12} /> {formatTime(time)}
-          <span className="opacity-50">·</span>
-          <MapPin size={12} /> current view
-        </div>
+        {q ? (
+          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <span className="inline-flex min-w-0 items-center gap-1 rounded-full bg-primary/10 py-0.5 pl-2 pr-1 text-foreground">
+              <Filter size={11} className="flex-none" />
+              <span className="truncate">“{q}”</span>
+              <button
+                type="button"
+                onClick={() => void clear()}
+                aria-label="Clear the search filter"
+                className="grid size-4 flex-none place-items-center rounded-full hover:bg-muted"
+              >
+                <X size={11} />
+              </button>
+            </span>
+            <span className="flex-none">any time · anywhere</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <Clock size={12} /> {formatTime(time)}
+            <span className="opacity-50">·</span>
+            <MapPin size={12} /> current view
+          </div>
+        )}
       </div>
 
       <div className="h-px bg-border" />
 
       <div className="flex items-center justify-between px-4 py-2.5">
         <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-          <Sparkles size={13} /> Notable here
+          <Sparkles size={13} /> {q ? 'Matches' : 'Notable here'}
         </span>
         {data && (
           <span className="font-mono text-[11px] text-muted-foreground">
-            top {Math.min(items.length, data.meta.per_page)}
+            {q
+              ? `${data.meta.total.toLocaleString()}${data.meta.total_capped ? '+' : ''}`
+              : `top ${Math.min(items.length, data.meta.per_page)}`}
           </span>
         )}
       </div>
@@ -168,6 +194,10 @@ export function BrowseTab() {
       {isLoading && <p className="px-4 py-2 text-sm text-muted-foreground">Loading…</p>}
       {isError && (
         <p className="px-4 py-2 text-sm text-destructive">Could not load entities.</p>
+      )}
+
+      {q && data && items.length === 0 && (
+        <p className="px-4 py-2 text-sm text-muted-foreground">Nothing matches “{q}”.</p>
       )}
 
       <div className="space-y-0.5 px-2 pb-3">

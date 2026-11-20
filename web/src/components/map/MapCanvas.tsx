@@ -10,7 +10,9 @@ import {
   useBasemap,
   useEntitiesInView,
   useFilters,
+  useFocusSet,
   useHover,
+  useMapFocus,
   useMapInstance,
   useSelection,
   useTimeState,
@@ -19,6 +21,7 @@ import {
 } from '@/hooks';
 import { instantYear } from '@/lib/format';
 import { loadHistoricalBasemapStyle } from '@/lib/map-config';
+import { pointsBounds } from '@/lib/map-focus';
 import { registerGroupMarkers, refreshGroupMarkers, STORY_MARKER_ID } from '@/lib/map-icons';
 import { STORY_SOURCES } from '@/lib/map-story/layers';
 import {
@@ -50,6 +53,13 @@ const SYMBOL_LAYER = 'entities-symbols';
  *  its own one-feature GeoJSON source. */
 const HOVER_LAYER = 'entities-hover';
 const HOVER_SOURCE = 'entities-hover-src';
+/** The focused set (an entity's relations, or a search word's matches), from
+ *  its own GeoJSON source; while it shows, the three layers above are emptied. */
+const FOCUS_LAYER = 'entities-focus';
+const FOCUS_SOURCE = 'entities-focus-src';
+/** Matches nothing: empties a layer without touching its visibility (which
+ *  the battle map toggles). */
+const NOTHING: maplibregl.FilterSpecification = ['==', ['literal', 1], 0];
 /** Rebuild the OHM link index this long after our source's last tile. */
 const LINK_INDEX_DEBOUNCE_MS = 150;
 /** Our three layers, for the tile-mode time / group filters. */
@@ -58,7 +68,7 @@ const EMPTY_FC: FeatureCollection = { type: 'FeatureCollection', features: [] };
 const MOVE_DEBOUNCE_MS = 250;
 
 /** Layers a user can click to select the underlying entity. */
-const INTERACTIVE_LAYERS = [SYMBOL_LAYER, FILL_LAYER];
+const INTERACTIVE_LAYERS = [FOCUS_LAYER, SYMBOL_LAYER, FILL_LAYER];
 
 /** The URL `view` as a maplibre projection. The globe flattens back to
  *  mercator on its own as the camera zooms in. */
@@ -176,6 +186,35 @@ function addEntityLayers(map: maplibregl.Map, data: FeatureCollection | undefine
     },
   });
 
+  // The focused set. Nearer relations are larger and labelled first; every
+  // marker shows at any zoom (nothing here depends on the impact threshold).
+  const depth: maplibregl.ExpressionSpecification = ['coalesce', ['get', 'depth'], 0];
+  map.addSource(FOCUS_SOURCE, { type: 'geojson', data: EMPTY_FC });
+  map.addLayer({
+    id: FOCUS_LAYER,
+    type: 'symbol',
+    source: FOCUS_SOURCE,
+    layout: {
+      'icon-image': markerIcon,
+      'icon-size': ['match', depth, 0, 1.05, 1, 0.85, 0.62],
+      'icon-allow-overlap': true,
+      'icon-anchor': 'bottom',
+      'symbol-sort-key': ['-', ['*', depth, 1000], ['coalesce', ['get', 'impact_score'], 0]],
+      'text-field': ['get', 'name'],
+      'text-size': ['match', depth, 0, 12.5, 1, 11, 10],
+      'text-offset': [0, 0.4],
+      'text-anchor': 'top',
+      'text-optional': true,
+      'text-max-width': 8,
+    },
+    paint: {
+      'icon-opacity': ['match', depth, 2, 0.8, 1],
+      'text-color': '#2a2722',
+      'text-halo-color': '#ffffff',
+      'text-halo-width': 1.4,
+    },
+  });
+
   // The hovered entity's marker (list <-> map hover, D5): a copy of its
   // point in a one-feature source, updated with setData. Not feature-state
   // (MapLibre rejects it in layout properties such as icon-size; the marker
@@ -201,19 +240,47 @@ function showHoveredMarker(
   hoverId: string | null,
   year: number,
   data: FeatureCollection | undefined,
+  focus: FeatureCollection | undefined,
 ): void {
   const source = map.getSource(HOVER_SOURCE) as GeoJSONSource | undefined;
   if (!source) return;
   const candidates =
     hoverId === null
       ? []
-      : isMapTilesEnabled()
-        ? map.querySourceFeatures(SOURCE_ID, {
-            sourceLayer: ENTITY_SOURCE_LAYER,
-            filter: ['==', ['get', 'id'], hoverId],
-          })
-        : (data?.features ?? []);
+      : focus
+        ? focus.features
+        : isMapTilesEnabled()
+          ? map.querySourceFeatures(SOURCE_ID, {
+              sourceLayer: ENTITY_SOURCE_LAYER,
+              filter: ['==', ['get', 'id'], hoverId],
+            })
+          : (data?.features ?? []);
   source.setData(hoverMarkerData(candidates, hoverId, year));
+}
+
+/**
+ * Filter our fill / outline / symbol layers: to nothing while a focused set
+ * shows in their place, else to their geometry type (and, in tile mode, the
+ * timeline year and the group filter).
+ */
+function applyBaseFilters(
+  map: maplibregl.Map,
+  focused: boolean,
+  time: Parameters<typeof applyEntityLayerFilters>[1]['time'],
+  groups: Parameters<typeof applyEntityLayerFilters>[1]['groups'],
+): void {
+  if (!focused && isMapTilesEnabled()) {
+    applyEntityLayerFilters(map, { layers: ENTITY_LAYERS, time, groups });
+    return;
+  }
+  const targets: [string, maplibregl.FilterSpecification][] = [
+    [FILL_LAYER, focused ? NOTHING : isPolygon],
+    [LINE_LAYER, focused ? NOTHING : isPolygon],
+    [SYMBOL_LAYER, focused ? NOTHING : isPoint],
+  ];
+  for (const [id, filter] of targets) {
+    if (map.getLayer(id)) map.setFilter(id, filter);
+  }
 }
 
 /**
@@ -237,6 +304,8 @@ export function MapCanvas() {
   const { sel, select } = useSelection();
   const { hoverId, setHover } = useHover();
   const { data } = useEntitiesInView();
+  const { target: focusTarget, data: focusData, settled: focusSettled } = useFocusSet();
+  const { focusBounds } = useMapFocus();
   const theme = useTheme((s) => s.theme);
 
   const year = instantYear(time);
@@ -260,6 +329,9 @@ export function MapCanvas() {
   groupsRef.current = groups;
   const dataRef = useRef(data);
   dataRef.current = data;
+  /** The focused set on the map, or undefined when the viewport's own shows. */
+  const focusRef = useRef(focusData);
+  focusRef.current = focusData;
   const viewRef = useRef(view);
   viewRef.current = view;
   const initialBboxRef = useRef(bbox);
@@ -308,19 +380,21 @@ export function MapCanvas() {
         if (cancelled || map.style !== loading) return;
 
         addEntityLayers(map, dataRef.current as FeatureCollection | undefined);
-        if (isMapTilesEnabled()) {
-          applyEntityLayerFilters(map, {
-            layers: ENTITY_LAYERS,
-            time: timeRef.current,
-            groups: groupsRef.current,
-          });
-        }
+        const focus = focusRef.current as FeatureCollection | undefined;
+        (map.getSource(FOCUS_SOURCE) as GeoJSONSource | undefined)?.setData(focus ?? EMPTY_FC);
+        applyBaseFilters(map, focus !== undefined, timeRef.current, groupsRef.current);
         // OHM correlation (D5): polygon highlight layers under ours, then
         // labels / emphasis / hovered marker re-applied to the new style.
         addOhmAdminLayers(map, FILL_LAYER);
         const hovered = useEphemeralStore.getState().hoverId;
         correlation.styleLoaded(hovered, selRef.current);
-        showHoveredMarker(map, hovered, yearRef.current, dataRef.current as FeatureCollection | undefined);
+        showHoveredMarker(
+          map,
+          hovered,
+          yearRef.current,
+          dataRef.current as FeatureCollection | undefined,
+          focusRef.current as FeatureCollection | undefined,
+        );
         // Catch up on a Map/Globe toggle made while the style was loading.
         map.setProjection(projectionFor(viewRef.current));
         applyOhmLayerDateFilter(map, yearToOhmDate(yearRef.current));
@@ -379,6 +453,8 @@ export function MapCanvas() {
         linkTimer = setTimeout(() => {
           if (!styleReadyRef.current || !map.getSource(SOURCE_ID)) return;
           if (!map.isSourceLoaded(SOURCE_ID)) return;
+          // A focused set is indexed by its own effect.
+          if (focusRef.current) return;
           correlation.setFeatures(
             isMapTilesEnabled()
               ? map.querySourceFeatures(SOURCE_ID, {
@@ -409,7 +485,7 @@ export function MapCanvas() {
           setMapHover(null);
           return;
         }
-        setMapHover(correlation.entityAt(e.point, SYMBOL_LAYER));
+        setMapHover(correlation.entityAt(e.point, focusRef.current ? FOCUS_LAYER : SYMBOL_LAYER));
       });
       map.on('mouseout', () => setMapHover(null));
       // Idle OHM polygon layers go before the new view fetches their tiles.
@@ -482,14 +558,65 @@ export function MapCanvas() {
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !styleReadyRef.current || !isMapTilesEnabled()) return;
-    applyEntityLayerFilters(map, { layers: ENTITY_LAYERS, time, groups });
+    applyBaseFilters(map, focusRef.current !== undefined, time, groups);
   }, [time, groups]);
+
+  // ── the focused set: an entity's relations, or a search word's matches ─────
+  // It replaces the viewport's own markers and shows whole at any zoom.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !styleReadyRef.current) return;
+    const focus = focusData as FeatureCollection | undefined;
+    (map.getSource(FOCUS_SOURCE) as GeoJSONSource | undefined)?.setData(focus ?? EMPTY_FC);
+    applyBaseFilters(map, focus !== undefined, timeRef.current, groupsRef.current);
+    // OHM labels and polygons follow the set on the map.
+    correlationRef.current?.setFeatures(
+      focus
+        ? focus.features
+        : isMapTilesEnabled()
+          ? map.querySourceFeatures(SOURCE_ID, {
+              sourceLayer: ENTITY_SOURCE_LAYER,
+              filter: ['has', 'ohm_osm_id'],
+            })
+          : ((dataRef.current as FeatureCollection | undefined)?.features ?? []),
+    );
+  }, [focusData, loadedMap]);
+
+  // Frame a newly focused set once: a search word's matches, or the relations
+  // of an entity with no place of its own (a person). A placed entity is
+  // framed by its detail panel, with its relations around it.
+  const framedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!focusTarget) {
+      framedRef.current = null;
+      return;
+    }
+    if (!focusSettled || !focusData || !loadedMap) return;
+    const key = JSON.stringify(focusTarget);
+    if (framedRef.current === key) return;
+    framedRef.current = key;
+    const rootPlaced =
+      focusTarget.kind === 'related' && focusData.features.some((f) => f.properties.id === focusTarget.id);
+    if (rootPlaced) return;
+    // Direct relations frame a person; the second hop only adds context.
+    const near = focusData.features.filter((f) => (f.properties.depth ?? 0) <= 1);
+    const points = (near.length > 0 ? near : focusData.features)
+      .map((f) => (f.geometry?.type === 'Point' ? (f.geometry.coordinates as [number, number]) : null))
+      .filter((p): p is [number, number] => p !== null);
+    focusBounds(pointsBounds(points));
+  }, [focusTarget, focusSettled, focusData, loadedMap, focusBounds]);
 
   // ── correlation: the hovered entity's marker (both modes, D5) ──────────────
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !styleReadyRef.current) return;
-    showHoveredMarker(map, hoverId, yearRef.current, dataRef.current as FeatureCollection | undefined);
+    showHoveredMarker(
+      map,
+      hoverId,
+      yearRef.current,
+      dataRef.current as FeatureCollection | undefined,
+      focusRef.current as FeatureCollection | undefined,
+    );
   }, [hoverId]);
 
   // ── correlation: OHM polygon of the hovered / selected entity (D5) ─────────

@@ -79,3 +79,24 @@ export function geometriesBounds(geoms: unknown[]): FocusBounds | null {
 export function isPointBounds(b: FocusBounds): boolean {
   return b[0][0] === b[1][0] && b[0][1] === b[1][1];
 }
+
+/**
+ * Bounds of a set of points with the stragglers left out: the outer `trim`
+ * share on each side of each axis is dropped (from ten points up), so one
+ * far-off relation does not zoom the whole set out to the world.
+ */
+export function pointsBounds(points: [number, number][], trim = 0.05): FocusBounds | null {
+  const ok = points.filter(([x, y]) => Number.isFinite(x) && Number.isFinite(y));
+  if (ok.length === 0) return null;
+  const cut = ok.length >= 10 ? Math.floor(ok.length * trim) : 0;
+  const span = (axis: 0 | 1): [number, number] => {
+    const sorted = ok.map((p) => p[axis]).sort((a, b) => a - b);
+    return [sorted[cut], sorted[sorted.length - 1 - cut]];
+  };
+  const [minX, maxX] = span(0);
+  const [minY, maxY] = span(1);
+  return [
+    [minX, minY],
+    [maxX, maxY],
+  ];
+}

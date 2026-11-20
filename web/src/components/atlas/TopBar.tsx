@@ -1,9 +1,10 @@
-import { Compass, Globe, MapPin, Search, SlidersHorizontal } from 'lucide-react';
+import { Compass, Globe, MapPin, SlidersHorizontal } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { UserMenu } from '@/components/account/UserMenu';
 import { LayersMenu } from '@/components/atlas/LayersMenu';
+import { SearchBarButton } from '@/components/atlas/SearchBarButton';
 import { ThemeToggle } from '@/components/atlas/ThemeToggle';
-import { useCommandPalette, useView } from '@/hooks';
+import { useView } from '@/hooks';
 import { cn } from '@/lib/utils';
 import type { ViewMode } from '@/types/atlas';
 
@@ -33,8 +34,6 @@ function ViewToggle() {
 }
 
 export function TopBar() {
-  const { setOpen } = useCommandPalette();
-
   return (
     <header className="era-surface relative flex h-[54px] flex-none items-center gap-3.5 border-b bg-card px-4">
       {/* The era's ornament hangs under the bar like a cornice. */}
@@ -50,17 +49,11 @@ export function TopBar() {
 
       {/* Center: omni-search */}
       <div className="flex flex-1 items-center justify-center gap-3.5">
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="mx-auto flex h-[38px] w-full max-w-[520px] items-center gap-2.5 rounded-lg border bg-muted/50 px-3 text-[13px] text-muted-foreground transition-colors hover:bg-muted"
-        >
-          <Search size={15} />
-          <span className="flex-1 text-left">Search places, polities, events…</span>
-          <kbd className="rounded border border-b-2 bg-muted px-1.5 py-0.5 font-mono text-[10px]">
-            ⌘K
-          </kbd>
-        </button>
+        <SearchBarButton
+          placeholder="Search places, polities, events…"
+          shortcut
+          className="mx-auto h-[38px] w-full max-w-[520px]"
+        />
       </div>
 
       {/* Right: view toggle + tools */}

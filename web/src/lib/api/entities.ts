@@ -16,7 +16,8 @@ import type {
 } from '@/lib/schemas/entity';
 import { asFeatureCollection  } from '@/lib/schemas/map';
 import type {MapFeatureCollection} from '@/lib/schemas/map';
-import type { Scope } from '@/types/atlas';
+import { ENTITY_GROUPS } from '@/types/atlas';
+import type { EntityGroup, Scope } from '@/types/atlas';
 import { api } from './client';
 import { listParams, mapParams  } from './params';
 import type { ListOptions, MapLayer } from './params';
@@ -37,6 +38,30 @@ export async function entitiesInView(
     signal,
     params: mapParams(scope, layer),
   });
+  return asFeatureCollection(data);
+}
+
+/** What the map is narrowed to: an entity with its relations, or a search word. */
+export type MapFocusTarget =
+  | { kind: 'related'; id: string }
+  | { kind: 'search'; q: string };
+
+/**
+ * GET /entities/map/focus — one point per entity of a focused set, whatever
+ * the year, the view or the zoom: an entity and its relations one and two
+ * hops out (`depth` on each feature = hops), or the placed matches of a word.
+ */
+export async function mapFocus(
+  target: MapFocusTarget,
+  groups: EntityGroup[],
+  signal?: AbortSignal,
+): Promise<MapFeatureCollection> {
+  const params: Record<string, string | number | string[]> =
+    target.kind === 'related' ? { related_to: target.id, depth: 2 } : { search: target.q };
+  if (groups.length > 0 && groups.length < ENTITY_GROUPS.length) {
+    params.groups = groups.map((g) => g.toUpperCase());
+  }
+  const { data } = await api.get('/api/v1/entities/map/focus', { signal, params });
   return asFeatureCollection(data);
 }
 

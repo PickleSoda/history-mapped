@@ -8,6 +8,8 @@ export {
   entityList,
   entity,
   entityConnections,
+  mapFocus,
+  type MapFocusTarget,
   entityTimeline,
 } from './entities';
 export { searchEntities } from './discovery';

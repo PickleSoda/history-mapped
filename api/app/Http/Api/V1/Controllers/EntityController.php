@@ -10,12 +10,14 @@ use App\Actions\Entity\GetEntityAction;
 use App\Actions\Entity\ListEntitiesAction;
 use App\Actions\Entity\MapEntitiesAction;
 use App\Actions\Entity\MapEntitiesByYearAction;
+use App\Actions\Entity\MapFocusAction;
 use App\Actions\Entity\UpdateEntityAction;
 use App\DTOs\EntityData;
 use App\DTOs\EntityFilterData;
 use App\Http\Api\V1\Requests\ListEntitiesRequest;
 use App\Http\Api\V1\Requests\MapEntitiesByYearRequest;
 use App\Http\Api\V1\Requests\MapEntitiesRequest;
+use App\Http\Api\V1\Requests\MapFocusRequest;
 use App\Http\Api\V1\Requests\StoreEntityRequest;
 use App\Http\Api\V1\Requests\UpdateEntityRequest;
 use App\Http\Api\V1\Resources\EntityResource;
@@ -70,6 +72,23 @@ class EntityController extends Controller
         $result = $action($request->validated());
 
         return $this->streamFeatureCollection($result['features'], $etag);
+    }
+
+    /**
+     * GET /api/v1/entities/map/focus
+     *
+     * Points for a focused set: an entity with its relations, or search matches.
+     */
+    public function mapFocus(MapFocusRequest $request, MapFocusAction $action): Response
+    {
+        $validated = $request->validated();
+        abort_if(
+            isset($validated['related_to']) && ! Entity::query()->whereKey($validated['related_to'])->exists(),
+            404,
+        );
+
+        return $this->streamFeatureCollection($action($validated))
+            ->setCache(['public' => true, 'max_age' => 60]);
     }
 
     /**

@@ -33,6 +33,8 @@ export interface MapFeatureProperties {
    * feature's `feature.id` is the stable `fid`, which is not a property. REST
    * features carry `ohm_external_*` instead of `ohm_osm_id`.
    */
+  /** Focus endpoint only: hops from the focused entity (0 = itself, or a search match). */
+  depth?: number;
   display_priority?: number | null;
   ohm_osm_id?: number | null;
   start_decdate?: number;

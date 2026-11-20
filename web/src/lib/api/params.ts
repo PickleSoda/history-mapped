@@ -84,6 +84,15 @@ export function listParams(scope: Scope, opts: ListOptions = {}): Params {
     page: opts.page ?? 1,
   };
 
+  const groups = groupValues(scope.groups);
+  if (groups) params.groups = groups;
+
+  // A search word is a filter of its own: every match, wherever and whenever.
+  if (opts.search) {
+    params.search = opts.search;
+    return params;
+  }
+
   // Only entities placed in the visible area (their primary location) — the
   // part of the map not under a panel or the sheet.
   Object.assign(params, bboxParams(scope.bbox));
@@ -98,10 +107,6 @@ export function listParams(scope: Scope, opts: ListOptions = {}): Params {
     params.temporal_start = scope.time.start;
     params.temporal_end = scope.time.end;
   }
-
-  const groups = groupValues(scope.groups);
-  if (groups) params.groups = groups;
-  if (opts.search) params.search = opts.search;
 
   return params;
 }

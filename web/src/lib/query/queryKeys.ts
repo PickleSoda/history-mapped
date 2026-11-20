@@ -8,11 +8,12 @@
 import type { EntitiesByTagsParams } from '@/lib/api/browse';
 import type { ChronicleListParams } from '@/lib/api/chronicles';
 import type { MyContributionsParams } from '@/lib/api/contributions';
+import type { MapFocusTarget } from '@/lib/api/entities';
 import type { ChronicleGraphParams, EntityGraphParams } from '@/lib/api/graph';
 import type { MapStoryListParams } from '@/lib/api/map-stories';
 import type { ListOptions, MapLayer } from '@/lib/api/params';
 import type { StarListParams } from '@/lib/api/saved';
-import type { Scope } from '@/types/atlas';
+import type { EntityGroup, Scope } from '@/types/atlas';
 
 export const qk = {
   /** Map FeatureCollection (pins/borders), one layer of the scope. */
@@ -26,9 +27,15 @@ export const qk = {
       scope.time,
       scope.groups,
     ] as const,
-  /** Ranked "notable here" list (paginated). */
+  /** Map points of a focused set (an entity's relations, or a search word). */
+  mapFocus: (target: MapFocusTarget, groups: EntityGroup[]) =>
+    ['entities', 'map-focus', target, groups] as const,
+  /** Ranked "notable here" list (paginated); with `search`, the matches
+   *  anywhere and at any time, so the view and the year are left out. */
   entityList: (scope: Scope, opts: ListOptions) =>
-    ['entities', 'list', scope.bbox, scope.time, scope.groups, opts.sort, opts.page] as const,
+    opts.search
+      ? (['entities', 'list', 'search', opts.search, scope.groups, opts.sort, opts.page] as const)
+      : (['entities', 'list', scope.bbox, scope.time, scope.groups, opts.sort, opts.page] as const),
   entity: (id: string) => ['entity', id] as const,
   connections: (id: string) => ['entity', id, 'connections'] as const,
   /** Derived timeline rows (GET /entities/{id}/timeline). */

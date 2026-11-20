@@ -6,18 +6,17 @@ import {
   LogIn,
   LogOut,
   MapPin,
-  Search,
   SlidersHorizontal,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { accountLinks } from '@/components/account/UserMenu';
 import { BASEMAP_IDS } from '@/components/atlas/LayersMenu';
+import { SearchBarButton } from '@/components/atlas/SearchBarButton';
 import { ThemeToggle } from '@/components/atlas/ThemeToggle';
 import {
   useAuthActions,
   useBasemap,
-  useCommandPalette,
   useLoginRedirect,
   useMe,
   useView,
@@ -32,7 +31,6 @@ const TOOL_ROW =
 /** Mobile header: brand mark · search pill (opens ⌘K palette) · tools menu
  *  (view, layers, and the account links). */
 export function MobileTopBar() {
-  const { setOpen } = useCommandPalette();
   const { view, setView } = useView();
   const { basemap, setBasemap } = useBasemap();
   const eraStyle = useEra((s) => s.enabled);
@@ -47,14 +45,7 @@ export function MobileTopBar() {
       <span className="grid size-8 flex-none place-items-center rounded-lg bg-primary text-primary-foreground">
         <Compass size={16} />
       </span>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="flex h-9 flex-1 items-center gap-2 rounded-lg border bg-muted/50 px-3 text-[13px] text-muted-foreground"
-      >
-        <Search size={15} />
-        <span className="flex-1 text-left">Search History Mapped…</span>
-      </button>
+      <SearchBarButton placeholder="Search History Mapped…" className="h-9 min-w-0 flex-1" />
       <ThemeToggle className="flex-none border bg-card" />
       <button
         type="button"
