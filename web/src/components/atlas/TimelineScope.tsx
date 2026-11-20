@@ -14,6 +14,10 @@ import { AXIS_MAX, AXIS_MIN, clampYear, toYear } from '@/lib/timeline/year';
 
 const TRACK = 'main';
 const BAR_PX = 30;
+/** A press released within this many pixels is a click, not a drag (timescope's own tolerance). */
+const CLICK_PX = 8;
+/** How long after a click's release timescope's report of the clicked year is waited for. */
+const CLICK_SETTLE_MS = 700;
 
 /** Stable identities so the @timescope/react effects don't re-fire each render. */
 const TIME_RANGE: [number, number] = [AXIS_MIN, AXIS_MAX];
@@ -41,6 +45,10 @@ export function TimelineScope() {
   const scrubbingRef = useRef(false);
   // Latest year seen during the active drag; committed to global time on release.
   const pendingYearRef = useRef<number | null>(null);
+  // Where the pointer went down, to tell a click from a drag on release.
+  const downRef = useRef<{ x: number; y: number } | null>(null);
+  // After a click: until when timescope's report of the clicked year is honoured.
+  const clickUntilRef = useRef(0);
   // commit() is recreated when its deps change; keep a live ref for the
   // once-registered window listener below.
   const commitRef = useRef(commit);
@@ -54,11 +62,22 @@ export function TimelineScope() {
     // is unreliable) so a real drag always updates the global year, while
     // programmatic setTime (chronicle/TopBar) — where no pointer is down — is
     // ignored because `scrubbingRef` stays false.
-    const end = () => {
+    //
+    // A click (press and release in place) is the exception: timescope moves
+    // the playhead to the clicked year and reports it only after the release,
+    // so that one report is let through for a moment (`clickUntilRef`).
+    const end = (event: PointerEvent) => {
       if (!scrubbingRef.current) return;
       scrubbingRef.current = false;
       const y = pendingYearRef.current;
       pendingYearRef.current = null;
+      const down = downRef.current;
+      downRef.current = null;
+      const clicked =
+        event.type === 'pointerup' &&
+        down !== null &&
+        Math.hypot(event.clientX - down.x, event.clientY - down.y) < CLICK_PX;
+      clickUntilRef.current = clicked ? performance.now() + CLICK_SETTLE_MS : 0;
       if (y !== null) commitRef.current(y);
     };
     window.addEventListener('pointerup', end);
@@ -107,8 +126,10 @@ export function TimelineScope() {
       <div
         className="relative min-w-0 flex-1 rounded-lg border border-border bg-muted/50 px-2 py-0.5"
         style={{ height: BAR_PX + 10 }}
-        onPointerDownCapture={() => {
+        onPointerDownCapture={(event) => {
           scrubbingRef.current = true;
+          downRef.current = { x: event.clientX, y: event.clientY };
+          clickUntilRef.current = 0;
         }}
       >
         <Timescope
@@ -132,7 +153,14 @@ export function TimelineScope() {
             }
           }}
           onTimeChanged={(v) => {
-            if (!scrubbingRef.current) return;
+            if (!scrubbingRef.current) {
+              // The year of a click, reported after its release: commit it, once.
+              if (performance.now() > clickUntilRef.current) return;
+              clickUntilRef.current = 0;
+              const clickedYear = toYear(v);
+              if (clickedYear !== null) commit(clampYear(clickedYear));
+              return;
+            }
             const y = toYear(v);
             if (y !== null) {
               const cy = clampYear(y);
