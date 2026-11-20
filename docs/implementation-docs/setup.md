@@ -60,12 +60,30 @@ dc exec app php artisan entities:sync-descriptions
 
 The base seed creates one user per role, all with the password `password`: `admin@example.com`,
 `moderator@example.com`, `history@example.com`, `geo@example.com` and `user@example.com`. It
-deliberately leaves the knowledge graph empty. For a small sample graph, run
-`dc exec app php artisan db:seed --class=DemoSeeder`. For real data, import pipeline output
-([Importing data](data-contributor-guide.md)) or restore a dump from a teammate.
+deliberately leaves the knowledge graph empty. To fill it, load the demo data set (next section).
+For a tiny sample graph instead, run `dc exec app php artisan db:seed --class=DemoSeeder`. To make
+your own data, import pipeline output ([Importing data](data-contributor-guide.md)).
 
 Map stories and collections refer to entities by Wikidata id, so they only show their full content
 once those entities exist in your database.
+
+## Demo data
+
+```bash
+pnpm demo:load
+```
+
+This downloads the demo data set from the repository's GitHub releases (about 36,000 entities, their
+relationships, the chronicles and the battle maps: the curated core of the live atlas) and loads it
+into your local database. It takes a few minutes.
+
+| | |
+|---|---|
+| What it replaces | The content tables (entities, relationships, chronicles, geometry, tags). Users, roles and saved items stay |
+| What it needs | The stack running and `migrate --seed` done (steps 2 and 3 above) |
+| Options | `pnpm demo:load -- --yes` skips the confirmation; `pnpm demo:load -- file.sql.gz` loads a file you already have; `DEMO_DATA_VERSION` picks another release |
+| Schema | The file is data only and matches the migrations at the time of its release. If a load fails on a newer checkout, check out the release's tag or wait for a newer data release |
+| Licence | Open: public domain, except Wikipedia-derived summaries (CC BY-SA 4.0). See `scripts/demo/LICENSE.md` |
 
 ## Ports and configuration
 

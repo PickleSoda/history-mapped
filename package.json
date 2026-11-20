@@ -7,6 +7,7 @@
     "dev:build": "docker compose -f docker/docker-compose.yml up --build",
     "dev:down": "docker compose -f docker/docker-compose.yml down --remove-orphans",
     "typecheck": "docker compose -f docker/docker-compose.yml exec web pnpm -r run types:check",
-    "api:routes": "docker compose -f docker/docker-compose.yml exec app php artisan route:list"
+    "api:routes": "docker compose -f docker/docker-compose.yml exec app php artisan route:list",
+    "demo:load": "bash scripts/demo/load.sh"
   }
 }
