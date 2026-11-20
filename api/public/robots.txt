@@ -1,2 +1,17 @@
+# The API hostname of History Mapped: the JSON API, the MCP server and the map
+# tiles. The pages for readers are at https://historymapped.org/ and are listed
+# in https://historymapped.org/sitemap.xml.
+#
+# Open here: what those pages load (the API and the tiles) and what tools are
+# pointed at in https://historymapped.org/llms.txt. Everything else on this
+# hostname is the editors' sign-in and admin screens, with nothing to index.
+#
+# The Allow lines come first on purpose: some readers of this file stop at the
+# first rule that matches instead of taking the most specific one.
+
 User-agent: *
-Disallow:
+Allow: /api/v1/
+Allow: /mcp
+Allow: /tiles/
+Allow: /.well-known/
+Disallow: /

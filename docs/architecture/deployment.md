@@ -51,6 +51,7 @@ flowchart TB
 | app domain | `/tiles/*` | Martin, or the app | `Cache-Control: public, max-age=300` |
 | app domain | `/ai/chat` | app | Server-sent events: no compression, flushed immediately |
 | app domain | everything else | app | `/api/v1/*`, sign-in, `/sanctum/csrf-cookie`, the admin, `/docs/api` (generated API docs, admins only by default), `/up` |
+| app domain | every answer | | Carries `X-Robots-Tag: noindex`, and `api/public/robots.txt` lets crawlers into `/api/v1/`, `/mcp`, `/tiles/` and `/.well-known/` only. See [What crawlers see](frontend-app.md#what-crawlers-see) |
 
 The SPA and the API sit on sibling subdomains. Sign-in works across them because the session cookie
 is set on the parent domain (`SESSION_DOMAIN`), the SPA host is listed in

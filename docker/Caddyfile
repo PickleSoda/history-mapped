@@ -36,6 +36,13 @@
 
 # API + admin (Inertia) + OpenAPI docs — the FrankenPHP/Octane app on :8080.
 {$APP_DOMAIN} {
+	# Nothing on this hostname belongs in search results: JSON, tiles, the
+	# admin. Its robots.txt (api/public/robots.txt) has to leave the API and
+	# the tiles open, because the site's pages load them, so this header keeps
+	# them out of results instead. The entity and chronicle pages are not
+	# touched: the web domain below reaches the app directly.
+	header X-Robots-Tag "noindex"
+
 	# The AI chat endpoint streams Server-Sent Events (text/event-stream). The
 	# `encode` directive buffers the whole response to compress it, which defeats
 	# incremental streaming (the browser only sees tokens once the stream closes).

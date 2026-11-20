@@ -334,6 +334,7 @@ flowchart TB
 | `/robots.txt` | Allows everything except the sign-in and account pages, and names the sitemap | `web/public/robots.txt` |
 | `/llms.txt` | A short guide for language models: what the site is, the page addresses, the JSON API and the MCP server | `web/public/llms.txt` |
 | every other page | The shell with a default title and description, and a `<noscript>` note. Browse, docs and the atlas still need JavaScript | `web/index.html` |
+| the API hostname | Its own `robots.txt` lets crawlers into `/api/v1/`, `/mcp`, `/tiles/` and `/.well-known/` and nothing else, so the sign-in page, the admin and the second copy of these pages at `/site-pages/…` are not crawled. Every answer carries `X-Robots-Tag: noindex`, which keeps JSON and tiles out of search results | `api/public/robots.txt`, `docker/Caddyfile` |
 
 How it fits together:
 
@@ -345,6 +346,7 @@ How it fits together:
 | Returning visitors | The service worker answers navigations from its cached `index.html`, so they see the web app's page directly. `robots.txt`, `llms.txt` and the sitemap paths are excluded from that fallback (`vite.config.ts`) |
 | Load | A typical entity page costs about one API call (30 ms on a developer machine; a hub such as a world war about 150 ms). `SITE_RATE_LIMIT` (120 a minute per address) paces crawlers; a visitor loads one such page per visit |
 | Addresses | Canonical and sitemap URLs use `FRONTEND_URL`. `robots.txt` and `llms.txt` are static and name the production host |
+| What stays open on the API hostname | A crawler that runs JavaScript (Googlebot) loads `/api/v1/` and `/tiles/` while it renders a page, and `llms.txt` sends tools to `/api/v1/` and `/mcp`. A new public path there needs an `Allow` line in `api/public/robots.txt`; list `Allow` lines before `Disallow: /`, because some readers of the file stop at the first rule that matches |
 
 Tests: `api/tests/Feature/Site/`. To try it locally, build the web app, point `SITE_SHELL_PATH` at the
 built `index.html` and open `/site-pages/entities/<id>` on the API.
