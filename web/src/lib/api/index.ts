@@ -21,6 +21,7 @@ export {
   type ChronicleListParams,
 } from './chronicles';
 export { tagList } from './tags';
+export { onThisDay, meanwhile, dailyQuest, forYou } from './discover';
 export { collectionList, collection } from './collections';
 export { mapStoryList, type MapStoryListParams } from './map-stories';
 export { entitiesByTags, type EntitiesByTagsParams } from './browse';

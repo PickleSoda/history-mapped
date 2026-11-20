@@ -1,4 +1,5 @@
 import { ChevronLeft } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { BrowseTab } from '@/components/atlas/BrowseTab';
 import { ChronicleList } from '@/components/atlas/ChronicleList';
 import {
@@ -14,6 +15,7 @@ import {
 import { NavBreadcrumb } from '@/components/atlas/NavBreadcrumb';
 import { storyKindLabel } from '@/components/atlas/StoryCard';
 import { StoryPlayerContent } from '@/components/atlas/StoryPlayer';
+import { DiscoverPanel } from '@/components/discover/DiscoverPanel';
 import { TalkPane } from '@/components/talk/TalkHost';
 import {
   useBrowseTab,
@@ -26,6 +28,7 @@ import {
   useStoryNav,
   useTalkDock,
 } from '@/hooks';
+import { BROWSE_TABS } from '@/lib/url/params';
 import { cn } from '@/lib/utils';
 
 /** Detail in the sheet: a back bar over the shared detail body. During a tour
@@ -139,13 +142,20 @@ function SheetStory() {
   );
 }
 
-/** List in the sheet: two tabs over the existing browse / chronicle lists. */
+/** List in the sheet: tabs over the browse list, the chronicle list and Today. */
 function SheetList() {
+  const { sheet, setSheet } = useSheet();
   const [tab, setTab] = useBrowseTab();
+  // Arriving on Today (a link from the browse page) lifts the peeking sheet, once.
+  const lifted = useRef(false);
+  useEffect(() => {
+    if (!lifted.current && tab === 'today' && sheet === 'peek') setSheet('half');
+    lifted.current = true;
+  }, [tab, sheet, setSheet]);
   return (
     <div className="flex h-full flex-col">
       <div className="flex flex-none gap-0.5 rounded-lg bg-muted p-0.5">
-        {(['entities', 'chronicles'] as const).map((t) => (
+        {BROWSE_TABS.map((t) => (
           <button
             key={t}
             type="button"
@@ -160,7 +170,7 @@ function SheetList() {
         ))}
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-        {tab === 'entities' ? <BrowseTab /> : <ChronicleList />}
+        {tab === 'entities' ? <BrowseTab /> : tab === 'chronicles' ? <ChronicleList /> : <DiscoverPanel />}
       </div>
     </div>
   );

@@ -67,7 +67,7 @@ reading top to bottom works:
 2. **Domain guides.** How the model fits historical and geographical knowledge. No code needed.
 3. **Architecture.** The running system, one page per part, with diagrams.
 4. **Data model.** The tables behind every entity, relationship, chronicle and border.
-5. **Features.** Chronicles, map stories, tags, collections and images, each from data to screen.
+5. **Features.** Chronicles, map stories, tags, collections, images and the Today cards, each from data to screen.
 6. **Guides.** Step-by-step tasks: run the stack, import data, author a map story.
 7. **Reference.** Contracts: the REST API, the vector tiles and the pipeline file formats.
 

@@ -68,6 +68,7 @@ Forward-looking / partial design material kept live for direction:
 - **`2026-06-28-ai-proposal-visual-diff-design`** — visual (field-level) diff in the AI proposal apply UI. **Not implemented** (proposal cards render only `human_diff.summary` text); no plan yet.
 - **`2026-06-02-standalone-relationship-resolution-design`** — the standalone `pipeline:resolve-relationships` and `pipeline:report-relationship-hints` commands now exist (checked 2026-11-14). Compare with the spec before archiving it.
 - **`2026-06-12-audit-open-questions-decisions`** — cross-cutting decision record.
+- **`2026-11-20-discover-feed-design`** — the Today cards on the browse page and in the atlas sidebar (on this day, meanwhile, the daily expedition, for you). **Built and verified locally 2026-11-20; not yet committed or deployed.** As built: [architecture/discover.md](../architecture/discover.md); the spec's §10 lists where the build differs. Archive it once it is deployed.
 
 ---
 

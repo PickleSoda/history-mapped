@@ -128,6 +128,21 @@ export function storyAtlasHref(slug: string): string {
   return atlasHref({ story: slug });
 }
 
+/** The atlas with its Today tab open (the daily expedition, on this day, meanwhile). */
+export function todayAtlasHref(): string {
+  return `${ATLAS_PATH}?tab=today`;
+}
+
+/**
+ * The atlas with a search word kept as its filter (the `q` param): the
+ * matches on the map and in the list, at any time and anywhere. A blank word
+ * is the bare atlas.
+ */
+export function searchAtlasHref(word: string): string {
+  const q = word.trim();
+  return q ? `${ATLAS_PATH}?${new URLSearchParams({ q }).toString()}` : ATLAS_PATH;
+}
+
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Entity ids are UUIDs; anything else is a not-found page, not a request. */

@@ -38,6 +38,7 @@ const SOURCES = import.meta.glob<string>(
     '../../../../docs/architecture/mcp-connector.md',
     '../../../../docs/schemas/collections.md',
     '../../../../docs/architecture/entity-images.md',
+    '../../../../docs/architecture/discover.md',
     '../../../../docs/implementation-docs/setup.md',
     '../../../../docs/implementation-docs/data-contributor-guide.md',
     '../../../../docs/implementation-docs/map-story-authoring.md',

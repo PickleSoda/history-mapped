@@ -60,6 +60,12 @@ export const qk = {
     ['chronicle', slug, 'graph', params] as const,
   /** Public historical-periods reference list (timeline gantt). */
 
+  // ── Discover: on this day, meanwhile, the daily expedition, for you.
+  onThisDay: (date: string) => ['discover', 'on-this-day', date] as const,
+  meanwhile: (year: number) => ['discover', 'meanwhile', year] as const,
+  dailyQuest: (date: string) => ['discover', 'quest', date] as const,
+  forYou: (ids: string[]) => ['discover', 'for-you', ids] as const,
+
   // ── Browse (public site): curated sets, the story index, tag listings.
   /** Every published curated set (GET /collections). */
   collections: () => ['collections'] as const,

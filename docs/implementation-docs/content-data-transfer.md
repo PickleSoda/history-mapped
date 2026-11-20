@@ -136,6 +136,12 @@ The loader (`output/load-content-on-droplet.sh`) does:
 5. Print row counts (`entities`, `relationships`, `geometry_periods`) to confirm the load.
 6. `php artisan cache:clear` + `config:clear`.
 
+The load also empties `discover_anniversaries`, the table behind the "on this day" card: it
+references `entities`, so the truncate cascades to it. The scheduler rebuilds it within the hour
+(`discover:build-anniversaries --if-empty`). To have the card back at once, run
+`php artisan discover:build-anniversaries` after the load (see
+[Discover](../architecture/discover.md#operations)).
+
 If your prod compose file or service names differ, edit the `COMPOSE=` line at the
 top of the loader — it's the only environment-specific knob.
 

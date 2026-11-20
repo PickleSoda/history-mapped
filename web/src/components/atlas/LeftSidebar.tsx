@@ -1,5 +1,6 @@
-import { List, PanelLeftClose, ScrollText } from 'lucide-react';
+import { List, PanelLeftClose, ScrollText, Sparkles } from 'lucide-react';
 import { useState } from 'react';
+import { DiscoverPanel } from '@/components/discover/DiscoverPanel';
 import { useBrowseTab } from '@/hooks';
 import type { BrowseTab as Tab } from '@/hooks/useChronicleTags';
 import { cn } from '@/lib/utils';
@@ -64,9 +65,9 @@ function RailIcon({
 }
 
 /**
- * Left sidebar: two tabs (Entities / Chronicles) when expanded; a slim rail with
- * the two tab icons when collapsed. Collapsing shrinks (never disappears) — and
- * clicking a rail icon expands straight into that tab.
+ * Left sidebar: three tabs (Entities / Chronicles / Today) when expanded; a slim
+ * rail with the tab icons when collapsed. Collapsing shrinks (never disappears)
+ * — and clicking a rail icon expands straight into that tab.
  */
 export function LeftSidebar() {
   const [collapsed, setCollapsed] = useState(false);
@@ -98,6 +99,12 @@ export function LeftSidebar() {
             icon={ScrollText}
             label="Chronicles"
           />
+          <RailIcon
+            active={tab === 'today'}
+            onClick={() => openTab('today')}
+            icon={Sparkles}
+            label="Today"
+          />
         </div>
       ) : (
         <>
@@ -118,6 +125,13 @@ export function LeftSidebar() {
               >
                 Chronicles
               </TabButton>
+              <TabButton
+                active={tab === 'today'}
+                onClick={() => setTab('today')}
+                icon={Sparkles}
+              >
+                Today
+              </TabButton>
             </div>
             <button
               type="button"
@@ -129,7 +143,7 @@ export function LeftSidebar() {
             </button>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto">
-            {tab === 'entities' ? <BrowseTab /> : <ChronicleList />}
+            {tab === 'entities' ? <BrowseTab /> : tab === 'chronicles' ? <ChronicleList /> : <DiscoverPanel />}
           </div>
         </>
       )}

@@ -4,6 +4,7 @@ use App\Http\Api\V1\Controllers\ChronicleGraphController;
 use App\Http\Api\V1\Controllers\ChroniclePlacesController;
 use App\Http\Api\V1\Controllers\CollectionController;
 use App\Http\Api\V1\Controllers\ContributionController;
+use App\Http\Api\V1\Controllers\DiscoverController;
 use App\Http\Api\V1\Controllers\EntityChronicleController;
 use App\Http\Api\V1\Controllers\EntityController;
 use App\Http\Api\V1\Controllers\EntityGeoRefController;
@@ -119,6 +120,14 @@ Route::prefix('v1')->group(function () {
     // Tags (vocabulary shared by chronicles and entities)
     Route::get('/tags', [TagController::class, 'index'])
         ->name('api.v1.tags.index');
+
+    // Discover ("Today" on /browse and in the atlas: spec 2026-11-20)
+    Route::prefix('discover')->name('api.v1.discover.')->group(function () {
+        Route::get('/on-this-day', [DiscoverController::class, 'onThisDay'])->name('on-this-day');
+        Route::get('/meanwhile', [DiscoverController::class, 'meanwhile'])->name('meanwhile');
+        Route::get('/quest', [DiscoverController::class, 'quest'])->name('quest');
+        Route::get('/for-you', [DiscoverController::class, 'forYou'])->name('for-you');
+    });
 
     // Reference Tables (cached)
     Route::get('/reference', [ReferenceController::class, 'index'])

@@ -9,6 +9,7 @@ import {
   facetPath,
   isEntityId,
   parseStepParam,
+  searchAtlasHref,
   storiesPath,
 } from './site-links';
 
@@ -87,5 +88,23 @@ describe('atlasHref', () => {
 
   it('encodes values', () => {
     expect(atlasHref({ chron: 'a&b' })).toBe('/app?chron=a%26b');
+  });
+});
+
+describe('searchAtlasHref', () => {
+  it('keeps the word as the atlas filter', () => {
+    expect(searchAtlasHref('rome')).toBe('/app?q=rome');
+    expect(searchAtlasHref('  temple of ')).toBe('/app?q=temple+of');
+  });
+
+  it('encodes the word so it reads back unchanged', () => {
+    const href = searchAtlasHref('a&b=c d');
+    expect(href).toBe('/app?q=a%26b%3Dc+d');
+    expect(new URLSearchParams(href.split('?')[1]).get('q')).toBe('a&b=c d');
+  });
+
+  it('is the bare atlas for a blank word', () => {
+    expect(searchAtlasHref('')).toBe('/app');
+    expect(searchAtlasHref('   ')).toBe('/app');
   });
 });

@@ -142,6 +142,7 @@ flowchart TB
 | Proposal pruning (`ai:prune-proposals`) | daily | scheduler |
 | Image links (`entity:fetch-images --limit=2000`) | daily, 03:30 UTC | scheduler |
 | Atlas tile features (`tiles:refresh`) | every five minutes, a no-op unless the content changed | scheduler |
+| "On this day" table (`discover:build-anniversaries`) | hourly while the table is empty (after a first deploy or a content load), and every Monday 04:10 UTC | scheduler; by hand to skip the wait (see [Discover](discover.md#operations)) |
 | `map-stories:sync`, `entities:sync-descriptions`, `tags:sync`, `map-stories:relink` | when their source files change | by hand: `bash docker/compose-prod.sh exec app php artisan <command>` |
 | Embeddings (`pipeline:embeddings`) | after large imports | by hand; needs an OpenAI key |
 

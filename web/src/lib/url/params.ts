@@ -1,6 +1,6 @@
 /**
  * nuqs parsers — the typed URL schema (spec §2): bbox, t, g, q, sel, chron,
- * step, story, sstep, full, view, base, ct.
+ * step, story, sstep, full, view, base, ct, tab.
  *
  * Each search param has a parser here. Hooks in `@/hooks` consume these so that
  * a component subscribing to `sel` is not woken when `bbox` changes. History
@@ -62,6 +62,13 @@ export const parseAsFull = createParser<boolean>({
 
 /** ct = "medieval,china" — Chronicles-tab tag filter (tag slugs). */
 export const parseAsChronicleTags = parseAsArrayOf(parseAsString, ',');
+
+/** The tabs of the atlas sidebar / sheet list. */
+export const BROWSE_TABS = ['entities', 'chronicles', 'today'] as const;
+export type BrowseTab = (typeof BROWSE_TABS)[number];
+
+/** tab = "chronicles" | "today" — the sidebar / sheet list tab (absent: entities). */
+export const parseAsBrowseTab = parseAsStringLiteral(BROWSE_TABS);
 
 /** view = "map" | "globe" */
 export const parseAsView = parseAsStringLiteral(['map', 'globe'] as const);

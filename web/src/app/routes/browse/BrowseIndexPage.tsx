@@ -1,6 +1,7 @@
 import { ArrowRight } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { DiscoverSection } from '@/components/discover/DiscoverSection';
 import { useChronicleList, useCollections, useMapStoryList, useTags } from '@/hooks';
 import { useDocumentMeta } from '@/lib/document-meta';
 import { storiesPath } from '@/lib/site-links';
@@ -131,6 +132,7 @@ function StoryStrip() {
 }
 
 const JUMPS: { id: string; label: string }[] = [
+  { id: 'today', label: 'Today' },
   { id: 'sets', label: 'Curated sets' },
   { id: 'era', label: 'Eras' },
   { id: 'region', label: 'Regions' },
@@ -183,6 +185,16 @@ export function BrowseIndexPage() {
       </header>
 
       <div className="mt-6">
+        <BrowseSection
+          id="today"
+          title="Today in the atlas"
+          lede="What happened on this day, what the rest of the world was doing that year, and a new expedition to find on the map each day."
+          // Each card leaves itself out when the API has nothing for it; with
+          // none left (the API is down) the heading goes too.
+          className="[&:not(:has(section))]:hidden"
+        >
+          <DiscoverSection />
+        </BrowseSection>
         <CuratedSets />
         {isLoading && (
           <BrowseSection id="era" title="Eras">

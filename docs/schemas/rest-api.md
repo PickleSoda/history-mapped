@@ -18,7 +18,7 @@ endpoint group, its parameters and the conventions they share. Request validatio
 | Years | Integers. BCE years are negative (`-216` is 216 BCE). Time filters take years, not dates |
 | Lists | `per_page` (1–100, default per endpoint) and `page` |
 | Array parameters | `types[]=a&types[]=b`. `tags` also accepts a comma-separated string |
-| Caching | Map endpoints send an `ETag` and `max-age=60`. Tags and collections send `max-age=300`. Reference tables are cached for 24 hours on the server |
+| Caching | Map endpoints send an `ETag` and `max-age=60`. Tags, collections and the shared Discover feeds send `max-age=300`. Reference tables are cached for 24 hours on the server |
 | Rate limits | Every `/api` route: 600 requests a minute per signed-in user, else per client IP (`API_RATE_LIMIT`); past it, 429 with `Retry-After`. Contributions: 10 per minute. Sign-in: 5 per minute per e-mail and IP. Vector tiles are not limited |
 | Generated docs | Scramble serves an OpenAPI UI at `/docs/api` (JSON at `/docs/api.json`) on the API host. It is open to admins, or to everyone when `SCRAMBLE_DOCS_PUBLIC=true` |
 
@@ -32,6 +32,7 @@ flowchart LR
     V1 --> S[map-stories]
     V1 --> CO[collections]
     V1 --> T[tags]
+    V1 --> D[discover]
     V1 --> R[reference]
     V1 --> SO[sources]
     V1 --> ME["me · contributions"]
@@ -43,6 +44,8 @@ flowchart LR
     E1 --> E6[geography-references]
     C --> C1["{slug} · {slug}/graph"]
     S --> S1["{slug} · ambient"]
+    D --> D1["on-this-day · meanwhile"]
+    D --> D2["quest · for-you"]
 ```
 
 ## Entities
@@ -108,6 +111,44 @@ Drafts are listed like published chronicles.
 | `GET /tags` | The tag vocabulary in display order, with chronicle and entity counts |
 | `GET /reference`, `GET /reference/{table}` | Reference tables: historical periods, regions, calendar systems and so on |
 | `GET /sources`, `GET /sources/{id}` | Source records; `search` matches titles |
+
+## Discover
+
+Four small feeds behind "Today" on `/browse` and in the atlas, built from what the atlas already
+holds. All are public and answer `{ "data": … }`.
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /discover/on-this-day` | Up to 8 things that happened on a month and day: `month`, `day`, `widened`, `items`. `date` (`YYYY-MM-DD`, the reader's local day; default: the server's UTC day). Only its month and day are used |
+| `GET /discover/meanwhile` | One year across the world: `year`, `window`, `totals`, `regions`. `year` (required, -4000 to the current year) |
+| `GET /discover/quest` | The day's expedition, three battles to find on the map and the timeline: `date`, `number`, `targets`. `date` (default: the server's UTC day; at most 2 days from it) |
+| `GET /discover/for-you` | Suggestions from the entities a browser opened lately: `because`, `entities`, `chronicles`, `stories`. `ids` (1 to 12 UUIDs, comma-separated, most recent first; ids the atlas does not know are ignored) |
+
+Every entity in these answers has the same shape:
+
+| Field | Meaning |
+|---|---|
+| `id`, `name`, `entity_type`, `entity_group` | As elsewhere; the group is UPPERCASE |
+| `summary` | The entity's summary, or null |
+| `start_year`, `end_year` | Its primary date range in years, else its earliest map period's. Either may be null |
+| `at` | Its map point `[lng, lat]` to 5 decimals: the primary location's point, else the earliest map period's. Null when it has neither |
+| `has_map_story` | It has a step-by-step battle map |
+
+What each endpoint adds to that shape, and how it chooses:
+
+| Endpoint | Adds | Rules |
+|---|---|---|
+| `on-this-day` | Per item: `kind` (`happened`, `began`, `ended`, `born`, `died`, `founded`, `dissolved`), `year`, and `date` as text (`1815-11-20`, `-0753-04-21`) | Entities on the map first, then by impact. At most 4 people, with room for 2 of the other kinds when the day has them. A day with fewer than 4 items borrows from the days before and after, up to 3 days away and only until it has 4; `widened` is how far it went. Only dates with a real day count: 1 January never does, and the 1st of another month only when the entity's summary states that day. A person's birthday counts only when the atlas knows they have died |
+| `meanwhile` | Per region: `key`, `name`, `event`, `polity` (either may be null) and `counts`. `totals` counts the whole map, including what lies in no region | Events within `window` (10) years of the year, the span the tiles keep an event on the map; states (the `POLITY` group, people excluded) standing in the year. The event is the most important, then the nearest in time. The state is the one the chronicles mention most for the time it stood (mentions divided by one plus its centuries), then the most important, then the longest standing. Regions run west to east; one with neither is left out |
+| `quest` | Per target: `difficulty` (`easy`, `medium`, `hard`, in that order), `year` (the year to be in), `region`, and `place` (a nearer place name, or null). `number` counts the days from the first expedition | One battle per difficulty, from the battles the tiles show from zoom 3 that have a summary and a point in a region. Easy: a battle map or at least 2 chronicle mentions. Hard: never mentioned. Medium: the rest. The same three for everyone on a date |
+| `for-you` | Per row: `via`, the id of the opened entity it comes from. Entities also carry `relation` (the relationship type), `outgoing` (a relationship reads "source, type, target"; true when the opened entity is the source) and `year` (the year to open the entity at: the year the relationship starts, else the first year both existed, else the entity's first year). `because` lists the opened entities that produced a row | `entities`: the other end of each opened entity's relationships, the 3 of highest impact for each, 8 in all. `chronicles`: up to 4 that name one, by impact, as rows of `GET /chronicles`. `stories`: up to 3 battle maps of an opened or suggested entity, as rows of `GET /map-stories`. At most 400 relationships are read per opened entity |
+
+| Topic | Detail |
+|---|---|
+| World regions | Decided by the entity's map point, not by tags: `north-america`, `mesoamerica-caribbean`, `south-america`, `europe`, `middle-east-north-africa`, `sub-saharan-africa`, `central-north-asia`, `south-asia`, `east-asia`, `southeast-asia`, `oceania`. The boxes are in `App\Support\Discover\WorldRegion`. A point in no box (mid-ocean, south of 60° S, north of 85° N) has no region |
+| Caching | `on-this-day`, `meanwhile` and `quest` send `Cache-Control: public, max-age=300` and are kept on the server for 12 hours per day of the year, 6 hours per year and 36 hours per date. `for-you` sends `private, max-age=60` and is not kept |
+| Upkeep | `on-this-day` reads the table `discover_anniversaries`, which `php artisan discover:build-anniversaries` rebuilds. The scheduler runs it weekly, and hourly with `--if-empty`, so a first deploy or a content load (which empties the table) is followed by a build within the hour. An empty table gives an empty list. The feature page is [Discover](../architecture/discover.md) |
+| Settings | `api/config/discover.php`: sizes, the expedition's first day and difficulty threshold, cache times |
 
 ## Your account (signed in)
 

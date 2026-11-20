@@ -11,3 +11,4 @@ For *how to run* things, see [../implementation-docs/](../implementation-docs/).
 - [ohm-integration.md](ohm-integration.md) — OpenHistoricalMap tile / MapLibre integration reference.
 - [tags.md](tags.md) — the faceted tag vocabulary for chronicles and entities: storage, derivation, `tags:sync`, API filters, UI.
 - [entity-images.md](entity-images.md) — entity images linked (not copied) from Wikimedia Commons with author/license: `entity:fetch-images`, the admin Images panel, SPA display.
+- [discover.md](discover.md) — the Today cards on the browse page and in the atlas sidebar: on this day, meanwhile, the daily expedition, for you; `discover:build-anniversaries`.

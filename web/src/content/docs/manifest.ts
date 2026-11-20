@@ -220,6 +220,13 @@ export const DOC_PAGES: readonly DocEntry[] = [
     path: 'docs/architecture/entity-images.md',
     description: 'How entities link freely licensed Wikimedia Commons images and display their credits, without copying them.',
   },
+  {
+    slug: 'discover',
+    title: 'Discover',
+    section: 'features',
+    path: 'docs/architecture/discover.md',
+    description: 'The Today cards: on this day, meanwhile across the world, the daily expedition and suggestions, from data to screen.',
+  },
   // ── Guides ────────────────────────────────────────────────────────────────
   {
     slug: 'setup',

@@ -5,6 +5,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { useEffect, useRef } from 'react';
 import { EraLayer } from '@/components/era/EraLayer';
 import { ChronicleLayer } from '@/components/map/ChronicleLayer';
+import { QuestLayer } from '@/components/map/QuestLayer';
 import { StoryAmbientLayer } from '@/components/map/StoryAmbientLayer';
 import { StoryOverlay } from '@/components/map/StoryOverlay';
 import {
@@ -667,6 +668,7 @@ export function MapCanvas() {
       <StoryOverlay />
       <StoryAmbientLayer />
       <ChronicleLayer />
+      <QuestLayer />
     </>
   );
 }

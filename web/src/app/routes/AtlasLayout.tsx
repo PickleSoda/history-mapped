@@ -1,5 +1,6 @@
 import { DesktopShell } from '@/components/atlas/DesktopShell';
 import { MobileShell } from '@/components/atlas/MobileShell';
+import { DiscoverRuntime } from '@/components/discover/DiscoverRuntime';
 import { useEraTheme, useIsMobile, useNavTrailSync } from '@/hooks';
 
 /**
@@ -16,5 +17,10 @@ export function AtlasLayout() {
   const isMobile = useIsMobile();
   useNavTrailSync();
   useEraTheme();
-  return isMobile ? <MobileShell /> : <DesktopShell />;
+  return (
+    <>
+      <DiscoverRuntime />
+      {isMobile ? <MobileShell /> : <DesktopShell />}
+    </>
+  );
 }

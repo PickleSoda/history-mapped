@@ -311,3 +311,34 @@ html[data-era-theme] .era-vignette {
     opacity: 0;
   }
 }
+
+/* ── Daily expedition: the pulse of the found-it marker ─────────────────────
+   (components/map/QuestLayer.tsx). MapLibre moves the marker's root with an
+   inline transform, so only its children animate: the ring pops in on
+   arrival, then two ripples spread from it and fade, half a beat apart.
+   Under reduced motion the ring just stands there. */
+@keyframes quest-ripple {
+  0% { transform: scale(1); opacity: 0; }
+  12% { opacity: 0.75; }
+  100% { transform: scale(2.7); opacity: 0; }
+}
+@keyframes quest-arrive {
+  from { transform: scale(0.3); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.quest-ripple {
+  opacity: 0;
+  animation: quest-ripple 2.4s cubic-bezier(0.2, 0.6, 0.35, 1) 0.3s infinite;
+}
+.quest-ripple + .quest-ripple {
+  animation-delay: 1.5s;
+}
+.quest-ring {
+  animation: quest-arrive 0.45s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .quest-ripple,
+  .quest-ring {
+    animation: none;
+  }
+}
