@@ -48,10 +48,11 @@ function lead(text: string | null | undefined, max = 110): string {
 
 /**
  * The playing chronicle's step on the map: its relationship as an animated
- * arc in the colour of its kind (a fight, a spread, a succession…), its
- * entities as markers joined to where the step happens, the borders of its
- * polities as they stood that year, and the numbered trail of the steps
- * before it (click a stop to go back to it). The atlas's other markers fade
+ * arc in the colour of its kind (a fight, a succession…), or, for something
+ * spreading, an arc to each place it reached; its entities as markers, those
+ * who took part joined to where the step happens; the borders of its polities
+ * as they stood that year; and the numbered trail of the last few steps
+ * (click a stop to go back to it). The atlas's other markers fade
  * meanwhile. A chronicle's own map layer, where it has a step for the entry,
  * draws that step instead (only the trail stays).
  */
@@ -71,7 +72,11 @@ export function ChronicleLayer() {
   const entries = useMemo(() => chronicle?.entries ?? [], [chronicle]);
   const entry = on ? entries[step] : undefined;
   const layerStep = active?.mode === 'chronicle' && active.index != null;
-  const scene = useMemo(() => (entry && !layerStep ? stepScene(entry, places) : null), [entry, layerStep, places]);
+  // A spread is drawn from where it had been: the scene reads the steps before this one.
+  const scene = useMemo(
+    () => (entry && !layerStep ? stepScene(entry, places, entries.slice(0, step)) : null),
+    [entry, layerStep, places, entries, step],
+  );
   const trail = useMemo(
     () => (on ? trailCollection(trailStops(entries, places, step), step) : EMPTY),
     [on, entries, places, step],
@@ -159,18 +164,17 @@ export function ChronicleLayer() {
     fadeEntityLayers(map, scene ? scene.cast.map((m) => m.id) : null);
   }, [map, on, scene, trail, year, styleEpoch]);
 
-  // ── the arc grows from its source, then a glow travels it; the anchor ripples ──
+  // ── the arcs grow from their source, then a glow travels them; the step's places ripple ──
   useEffect(() => {
     if (!map || !map.style || !on || !scene || !map.getSource(CHRONICLE_SOURCES.points)) return;
-    const { color } = scene;
-    const soft = scene.arc?.properties.soft ?? false;
+    const { color, soft } = scene;
     if (reduced) {
       setReveal(map, color, 1, soft);
       setPulse(map, 0.35);
       return;
     }
     setReveal(map, color, 0, soft);
-    const glows = scene.arc != null && !scene.arc.properties.dashed;
+    const glows = scene.arcs.some((arc) => !arc.properties.dashed);
     const start = performance.now();
     let last = 0;
     let revealed = false;

@@ -24,8 +24,18 @@ use Illuminate\Support\Facades\DB;
  *     active relations and ways, not rejected, no `chronology` relation;
  *     primary first, then by match score. `id` is OHM's signed `osm_id`
  *     (negative: a relation).
+ *   - `reaches`: for a thing that spreads (a disease, a religion, a crop, a
+ *     technology), the chronicle's other entities it is recorded as reaching:
+ *     the targets of its `spread_to` links, the sources of `adopted` links to
+ *     it ("Japan adopted Buddhism"), and, once it has either, the places it
+ *     is `located_at`. A step has one primary relationship, so "the second
+ *     wave struck Brest, Freetown and Boston" keeps only one of its three
+ *     links there; these are the others, for the player to draw the spread
+ *     from what is recorded. Each comes with the year the link starts (null
+ *     when it has none): the same two entities can meet again in a step a
+ *     century later. Empty for everything else.
  *
- * Entities with neither are left out.
+ * Entities with none of the three are left out.
  */
 class GetChroniclePlacesAction
 {
@@ -33,7 +43,7 @@ class GetChroniclePlacesAction
     private const PRECISION = 5;
 
     /**
-     * @return list<array{id: string, group: string|null, at: array{0: float, 1: float}|null, borders: list<array{id: int, from: int|null, to: int|null, primary: bool}>}>
+     * @return list<array{id: string, group: string|null, at: array{0: float, 1: float}|null, borders: list<array{id: int, from: int|null, to: int|null, primary: bool}>, reaches: list<array{id: string, year: int|null}>}>
      */
     public function __invoke(Chronicle $chronicle): array
     {
@@ -49,6 +59,30 @@ class GetChroniclePlacesAction
                 FROM chronicle_entries ce
                 JOIN relationships r ON r.relationship_id = ce.primary_relationship_id
                 WHERE ce.chronicle_id = :c2
+            ),
+            reached AS (
+                -- "X spread_to Y": X reached Y. "Y adopted X": X reached Y.
+                SELECT r.source_entity_id AS carrier, r.target_entity_id AS entity_id, r.start_year AS year
+                FROM relationships r
+                WHERE r.relationship_type = 'spread_to'
+                  AND r.source_entity_id IN (SELECT entity_id FROM ids)
+                  AND r.target_entity_id IN (SELECT entity_id FROM ids)
+                UNION
+                SELECT r.target_entity_id, r.source_entity_id, r.start_year
+                FROM relationships r
+                WHERE r.relationship_type = 'adopted'
+                  AND r.target_entity_id IN (SELECT entity_id FROM ids)
+                  AND r.source_entity_id IN (SELECT entity_id FROM ids)
+            ),
+            seen AS (
+                SELECT carrier, entity_id, year FROM reached
+                UNION
+                -- Where a thing that spreads is said to be ("the pandemic, located at Camp Funston").
+                SELECT r.source_entity_id, r.target_entity_id, r.start_year
+                FROM relationships r
+                WHERE r.relationship_type = 'located_at'
+                  AND r.source_entity_id IN (SELECT carrier FROM reached)
+                  AND r.target_entity_id IN (SELECT entity_id FROM ids)
             ),
             placed AS (
                 SELECT e.entity_id, e.entity_group::text AS entity_group,
@@ -72,13 +106,17 @@ class GetChroniclePlacesAction
                      FROM entity_geo_refs egr
                      WHERE egr.entity_id = e.entity_id AND egr.provider = 'ohm' AND egr.is_active = true
                        AND egr.external_type IN ('relation', 'way') AND egr.match_role <> 'rejected'
-                       AND COALESCE(egr.external_tags->>'type', '') <> 'chronology') AS borders
+                       AND COALESCE(egr.external_tags->>'type', '') <> 'chronology') AS borders,
+                    (SELECT COALESCE(json_agg(json_build_object('id', s.entity_id, 'year', s.year)
+                                ORDER BY s.entity_id, s.year), '[]'::json)
+                     FROM seen s
+                     WHERE s.carrier = e.entity_id AND s.entity_id <> e.entity_id) AS reaches
                 FROM ids
                 JOIN entities e ON e.entity_id = ids.entity_id
             )
-            SELECT entity_id, entity_group, ST_X(pt) AS lng, ST_Y(pt) AS lat, borders
+            SELECT entity_id, entity_group, ST_X(pt) AS lng, ST_Y(pt) AS lat, borders, reaches
             FROM placed
-            WHERE pt IS NOT NULL OR json_array_length(borders) > 0
+            WHERE pt IS NOT NULL OR json_array_length(borders) > 0 OR json_array_length(reaches) > 0
             ORDER BY entity_id
             SQL,
             ['c1' => $chronicle->chronicle_id, 'c2' => $chronicle->chronicle_id],
@@ -99,6 +137,10 @@ class GetChroniclePlacesAction
                 ],
                 json_decode((string) $row->borders, true) ?: [],
             ))),
+            'reaches' => array_map(
+                fn (array $r): array => ['id' => (string) $r['id'], 'year' => $r['year'] !== null ? (int) $r['year'] : null],
+                json_decode((string) $row->reaches, true) ?: [],
+            ),
         ], $rows);
     }
 }

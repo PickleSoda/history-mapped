@@ -68,7 +68,7 @@ class ChroniclePlacesApiTest extends TestCase
         }
     }
 
-    private function rel(Entity $a, Entity $b, string $type): EntityRelationship
+    private function rel(Entity $a, Entity $b, string $type, ?string $year = null): EntityRelationship
     {
         return EntityRelationship::create([
             'relationship_id' => (string) Str::uuid(),
@@ -76,6 +76,7 @@ class ChroniclePlacesApiTest extends TestCase
             'target_entity_id' => $b->entity_id,
             'relationship_type' => $type,
             'confidence' => 'high',
+            'temporal_start' => $year,
         ]);
     }
 
@@ -145,6 +146,54 @@ class ChroniclePlacesApiTest extends TestCase
             ['id' => -2856857, 'from' => 1878, 'to' => 1890, 'primary' => true],
             ['id' => -2692425, 'from' => 1890, 'to' => 1918, 'primary' => false],
         ], $places[$empire->entity_id]['borders']);
+    }
+
+    public function test_a_thing_that_spreads_lists_what_it_is_recorded_as_reaching_in_the_chronicle(): void
+    {
+        $flu = $this->entity('1918 influenza pandemic');
+        $camp = $this->entity('Camp Funston');
+        $brest = $this->entity('Brest');
+        $boston = $this->entity('Boston');
+        $usa = $this->entity('United States');
+        $apia = $this->entity('Apia');
+        $buddhism = $this->entity('Buddhism');
+        $japan = $this->entity('Japan');
+        $battle = $this->entity('Battle of Sekigahara');
+        $this->unplace($flu);
+        $this->unplace($buddhism);
+        foreach ([$camp, $brest, $boston, $usa, $japan, $battle] as $i => $entity) {
+            $this->place($entity, $i, $i);
+        }
+
+        $this->step(1, $this->rel($flu, $camp, 'located_at', '1918'));
+        // A step keeps one primary relationship: the spread links below are none of them.
+        $this->step(2, $this->rel($boston, $usa, 'part_of'), [$flu, $brest]);
+        $this->rel($flu, $brest, 'spread_to', '1918');
+        $this->rel($flu, $boston, 'spread_to');
+        $this->rel($flu, $apia, 'spread_to', '1918');
+        $this->step(3, null, [$buddhism, $japan, $battle]);
+        $this->rel($japan, $buddhism, 'adopted');
+        $this->rel($battle, $japan, 'located_at');
+
+        $places = $this->places();
+
+        // It has no point or border of its own, and is kept for what it reaches:
+        // its spread_to targets and where it is located, each with the link's year.
+        $reached = [
+            ['id' => $boston->entity_id, 'year' => null],
+            ['id' => $brest->entity_id, 'year' => 1918],
+            ['id' => $camp->entity_id, 'year' => 1918],
+        ];
+        usort($reached, fn (array $a, array $b): int => strcmp($a['id'], $b['id']));
+        $this->assertNull($places[$flu->entity_id]['at']);
+        $this->assertSame($reached, $places[$flu->entity_id]['reaches']);
+        // "Japan adopted Buddhism": Buddhism reached Japan.
+        $this->assertSame([['id' => $japan->entity_id, 'year' => null]], $places[$buddhism->entity_id]['reaches']);
+        // Being located somewhere does not make a thing spread.
+        $this->assertSame([], $places[$battle->entity_id]['reaches']);
+        $this->assertSame([], $places[$boston->entity_id]['reaches']);
+        // What it reached outside this chronicle is not listed.
+        $this->assertArrayNotHasKey($apia->entity_id, $places);
     }
 
     public function test_entities_of_other_chronicles_are_not_included(): void

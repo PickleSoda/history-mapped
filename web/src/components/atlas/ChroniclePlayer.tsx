@@ -7,6 +7,7 @@ import { NavBreadcrumb } from '@/components/atlas/NavBreadcrumb';
 import {
   useChronicle,
   useChronicleNav,
+  useChroniclePlaces,
   useEntityGeometries,
   useFullPage,
   useMapFocus,
@@ -14,6 +15,7 @@ import {
   useTimeState,
 } from '@/hooks';
 import { useActiveStory } from '@/hooks/useMapStory';
+import { placesIndex, stepScene } from '@/lib/chronicle-map/scene';
 import { formatYear } from '@/lib/format';
 import { geometriesBounds } from '@/lib/map-focus';
 import type { ChronicleEntry } from '@/lib/schemas/chronicle';
@@ -21,6 +23,9 @@ import type { Relationship } from '@/lib/schemas/entity';
 import { cn } from '@/lib/utils';
 
 type SecondaryEntity = NonNullable<ChronicleEntry['secondary_entities']>[number];
+
+/** No extra points for the camera: one array, so a step without any does not re-frame. */
+const NO_POINTS: { type: string; coordinates: number[] }[] = [];
 
 /** Entities attached to the step (chronicle entry's secondary entities). */
 function StepEntities({ entities }: { entities: SecondaryEntity[] }) {
@@ -129,6 +134,16 @@ export function ChroniclePlayerContent() {
     [current],
   );
   const secondaryGeoms = useEntityGeometries(secondaryIds);
+  // A spread is drawn from the place it had reached before (ChronicleLayer),
+  // which is rarely one of this step's own entities: keep where its arcs
+  // start in view too.
+  const { data: placeList } = useChroniclePlaces(chron);
+  const places = useMemo(() => placesIndex(placeList), [placeList]);
+  const arcStarts = useMemo(() => {
+    if (!current || !data) return NO_POINTS;
+    const { arcs } = stepScene(current, places, data.entries.slice(0, step));
+    return arcs.length > 0 ? arcs.map((arc) => ({ type: 'Point', coordinates: arc.geometry.coordinates[0] })) : NO_POINTS;
+  }, [current, data, places, step]);
   const bounds = useMemo(
     () =>
       geometriesBounds([
@@ -136,8 +151,9 @@ export function ChroniclePlayerContent() {
         rel?.target_entity?.geom,
         current?.approximate_location,
         ...secondaryGeoms,
+        ...arcStarts,
       ]),
-    [rel, current?.approximate_location, secondaryGeoms],
+    [rel, current?.approximate_location, secondaryGeoms, arcStarts],
   );
   // A map-layer step with a camera of its own frames the map instead (StoryOverlay).
   const active = useActiveStory();

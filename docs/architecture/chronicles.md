@@ -192,16 +192,17 @@ sequenceDiagram
 ### The step on the map
 
 `ChronicleLayer` draws the playing step from `GET /chronicles/{slug}/places`: each entity's map
-point (its primary location, else its first geometry period, the point the tiles draw) and its
-dated OpenHistoricalMap borders. Nothing is drawn where the atlas has no place for an entity.
+point (its primary location, else its first geometry period, the point the tiles draw), its
+dated OpenHistoricalMap borders and, for a thing that spreads, what it is recorded as reaching.
+Nothing is drawn where the atlas has no place for an entity.
 
 | Part | What it shows |
 |---|---|
 | **Arc** | The primary relationship, from source to target, when both ends are placed at least 3 km apart. It grows from its source as the camera flies in, then a glow runs along it. Its colour and line follow the kind of relationship (below). An arc from a polity fades in, since a polity's point is only somewhere inside its realm |
 | **Borders** | The OHM boundaries of the step's entities standing in the step's year (OHM draws each change of border as its own relation), picked like a map story's: the primary links when one covers the year, else the rest. The relationship's ends are tinted in the arc's colour, the others outlined in grey |
-| **Anchor** | Where the step happens: an entity in the `location` role, else an end that is an event or a place, else any event or place in the step, else the entry's approximate location. It ripples |
-| **Entities** | Each placed entity of the step, ringed and labelled. The others reach the anchor by faint spokes. Clicking one opens it |
-| **Trail** | The anchors of the steps so far, joined in order and numbered, older ones fainter. Hovering a stop shows its year and first sentence; clicking it goes back to that step |
+| **Anchor** | Where the step happens: an entity in the `location` role, else an end that is an event or a place, else any event or place in the step, else the entry's approximate location. It ripples. A step that names several places ripples at each of them |
+| **Entities** | Each placed entity of the step, ringed and labelled. Those who took part (a state, a person) reach the anchor by a faint spoke. A place never gets one: nothing says two places of a step are tied to each other, so a step that names several draws no spokes at all. Clicking an entity opens it |
+| **Trail** | The anchors of the last 5 steps, joined in order and numbered, older ones fainter. Earlier stops are dropped: over a long chronicle the whole path is a web across the map. Hovering a stop shows its year and first sentence; clicking it goes back to that step |
 | **The rest of the atlas** | Fades while a step shows. The step's own entities are drawn by the layer instead |
 
 | Kind | Relationship types (most common) | Drawn as |
@@ -213,6 +214,28 @@ dated OpenHistoricalMap borders. Nothing is drawn where the atlas has no place f
 | A life or a founding | `founded`, `resided_in`, `died_in`, `born_in` | Amber arc |
 | Alliance | `allied_with` | Blue arc |
 | Not about places | `authored`, `signed_by`, `commissioned`, `child_of` | No line: the entities are only ringed |
+
+#### A step that follows something spreading
+
+A step keeps one primary relationship. "The second wave struck Brest, Freetown and Boston" stores
+one link as primary (often an unrelated one: "Boston, part of the United States") and the three
+`spread_to` links only as relationships. The places endpoint returns them as `reaches`, and the
+layer draws the step as the spread.
+
+| Rule | Detail |
+|---|---|
+| What spreads | Any entity of the step with `reaches` among the step's other entities: the targets of its `spread_to` links, the sources of `adopted` links to it, and the places it is `located_at` |
+| Which links count | Those with no year, or a year within 10 years of the step's. The same two entities can meet again a century later |
+| When the spread is drawn | When the primary relationship is the spread itself, or would draw no line anyway. A fight, a succession or a trade between two other entities keeps its own line |
+| Arcs | One teal arc to each place the step says it reached (cities and ports; a realm's point when the step names no place), up to 8 |
+| Where an arc starts | The nearest place the thing had reached in an earlier step. With none, its own map point; with neither, no arc, only rings |
+| Realms reached | Outlined in the spread's colour. Other realms of the step stay grey |
+| Spokes | None: the arcs say who reached what |
+| Camera | Framed to include where the arcs start |
+
+Which places a thing reached is recorded. The way it took is not: "from the nearest place it had
+already reached" is the layer's reading. In the pandemics chronicle the 1918 influenza steps draw
+as Camp Funston, then three arcs to Boston, Brest and Freetown, then one arc to Apia.
 
 A chronicle's own map layer, where it has a step for the entry, draws that step instead; only the
 trail stays. Under reduced motion nothing animates. The kinds and rules are in
@@ -235,6 +258,12 @@ trail stays. Under reduced motion nothing animates. The kinds and rules are in
   atlas knows one, would be a better start.
 - About a fifth of steps place both ends of their relationship, so most steps show borders, spokes
   and the trail rather than an arc. Placing more entities raises this.
+- About 1,270 of 26,000 steps have a recorded spread link of their own years between their
+  entities. A spread told only in a step's text draws no arcs.
+- A spread's arc starts at the nearest place already reached, not along the route taken: the ship
+  that carried the 1918 influenza to Samoa sailed from Auckland, and the arc comes from Kansas.
+- A chronicle step cannot play a step of another entity's map story (the `1918-influenza`
+  epidemic story belongs to the pandemic, not to the pandemics chronicle).
 
 ## Where next
 

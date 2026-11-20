@@ -70,6 +70,15 @@ export const ChroniclePlaceSchema = z.object({
     )
     .catch([])
     .default([]),
+  /**
+   * For a thing that spreads (a disease, a religion, a crop): the chronicle's
+   * entities it is recorded as reaching, each with the year that link starts
+   * (null when it has none). Empty for everything else.
+   */
+  reaches: z
+    .array(z.object({ id: z.string(), year: z.number().nullable().catch(null) }))
+    .catch([])
+    .default([]),
 });
 export type ChroniclePlace = z.infer<typeof ChroniclePlaceSchema>;
 

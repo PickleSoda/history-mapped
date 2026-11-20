@@ -3,11 +3,12 @@
  * the paint changes that animate them. What goes in them is `scene.ts`.
  *
  * Bottom to top: the step's OpenHistoricalMap borders (under the basemap's
- * labels), the trail of earlier steps, spokes, the relationship's arc (a
- * white casing and a gradient line that grows from its source, then a glow
- * that travels along it), its arrowhead, the ripple at the step's anchor,
- * rings under the step's entities, the trail's numbered stops and the step's
- * entities with their labels. While a step shows, the atlas's own markers fade
+ * labels), the trail of the last few steps, spokes, the step's arcs (one for
+ * its relationship, or a fan for a spread: a white casing and a gradient line
+ * that grows from its source, then a glow that travels along it), their
+ * arrowheads, the ripples where the step happens, rings under the step's
+ * entities, the trail's numbered stops and the step's entities with their
+ * labels. While a step shows, the atlas's own markers fade
  * and those of the step's entities hide (theirs are drawn here, on top).
  */
 import type { Feature, FeatureCollection } from 'geojson';
@@ -100,7 +101,8 @@ export function addChronicleLayers(map: MapLibreMap): void {
       'line-color': TRAIL_COLOR,
       'line-width': 2,
       'line-dasharray': [0.6, 2],
-      'line-opacity': ['interpolate', ['linear'], ['get', 'age'], 0, 0.8, 10, 0.25],
+      // The trail keeps a handful of stops (TRAIL_KEEP): the oldest are faint.
+      'line-opacity': ['interpolate', ['linear'], ['get', 'age'], 0, 0.8, 6, 0.2],
     },
   });
   map.addLayer({
@@ -190,8 +192,8 @@ export function addChronicleLayers(map: MapLibreMap): void {
       'circle-color': '#fffdf7',
       'circle-stroke-color': TRAIL_COLOR,
       'circle-stroke-width': 1.5,
-      'circle-opacity': ['interpolate', ['linear'], ['get', 'age'], 1, 0.95, 12, 0.55],
-      'circle-stroke-opacity': ['interpolate', ['linear'], ['get', 'age'], 1, 0.95, 12, 0.45],
+      'circle-opacity': ['interpolate', ['linear'], ['get', 'age'], 1, 0.95, 6, 0.6],
+      'circle-stroke-opacity': ['interpolate', ['linear'], ['get', 'age'], 1, 0.95, 6, 0.4],
     },
   });
   map.addLayer({
@@ -248,24 +250,25 @@ const setData = (map: MapLibreMap, id: string, data: FeatureCollection) =>
 export function setChronicleData(map: MapLibreMap, scene: StepScene | null, trail: FeatureCollection): void {
   setData(map, CHRONICLE_SOURCES.trail, trail);
   setData(map, CHRONICLE_SOURCES.spokes, { type: 'FeatureCollection', features: scene?.spokes ?? [] });
-  setData(map, CHRONICLE_SOURCES.arc, { type: 'FeatureCollection', features: scene?.arc ? [scene.arc] : [] });
+  setData(map, CHRONICLE_SOURCES.arc, { type: 'FeatureCollection', features: scene?.arcs ?? [] });
   const points: Feature[] = [];
   if (scene) {
-    if (scene.anchor) {
-      points.push({ type: 'Feature', properties: { role: 'pulse', color: scene.color }, geometry: { type: 'Point', coordinates: scene.anchor } });
+    for (const at of scene.pulses) {
+      points.push({ type: 'Feature', properties: { role: 'pulse', color: scene.color }, geometry: { type: 'Point', coordinates: at } });
     }
     for (const m of scene.cast) {
       points.push({
         type: 'Feature',
-        properties: { role: 'cast', id: m.id, name: m.name, group: m.group, primary: m.primary, color: m.primary ? scene.color : OTHER_COLOR },
+        // `primary` is the look (the step's colour, a full ring), which a marked entity shares.
+        properties: { role: 'cast', id: m.id, name: m.name, group: m.group, primary: m.marked, color: m.marked ? scene.color : OTHER_COLOR },
         geometry: { type: 'Point', coordinates: m.at },
       });
     }
-    if (scene.arrow) {
+    for (const arrow of scene.arrows) {
       points.push({
         type: 'Feature',
-        properties: { role: 'arrow', color: scene.color, bearing: scene.arrow.bearing },
-        geometry: { type: 'Point', coordinates: scene.arrow.at },
+        properties: { role: 'arrow', color: scene.color, bearing: arrow.bearing },
+        geometry: { type: 'Point', coordinates: arrow.at },
       });
     }
   }
@@ -426,7 +429,7 @@ export function arcGradient(color: string, look: ArcLook, casing = false): Expre
   return ['interpolate', ['linear'], ['line-progress'], ...stops] as unknown as ExpressionSpecification;
 }
 
-/** The arc grown to `p` (0–1) of its length; the spokes and the arrowhead fade in with it. */
+/** The arcs grown to `p` (0–1) of their length; the spokes and the arrowheads fade in with them. */
 export function setReveal(map: MapLibreMap, color: string, grown: number, soft = false): void {
   const p = Math.min(1, Math.max(0, grown));
   const look: ArcLook = { soft, grown: p, glowAt: null };
@@ -443,7 +446,7 @@ export function setGlow(map: MapLibreMap, color: string, phase: number, soft = f
   map.setPaintProperty('chron-arc', 'line-gradient', arcGradient(color, { soft, grown: 1, glowAt: phase }));
 }
 
-/** The anchor's ripple at `phase` (0–1): it widens and fades. */
+/** The ripples at `phase` (0–1): they widen and fade. */
 export function setPulse(map: MapLibreMap, phase: number): void {
   if (!map.getLayer('chron-pulse')) return;
   map.setPaintProperty('chron-pulse', 'circle-radius', 7 + 22 * phase);

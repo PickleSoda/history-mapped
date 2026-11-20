@@ -2,14 +2,20 @@
  * What the chronicle player draws on the map for a step (pure; no MapLibre).
  *
  * A step's primary relationship decides the look: a battle is a red arc from
- * the side to the battlefield, a spread a teal arc, a succession a dashed
- * violet one, and "who controls what" an outlined territory rather than a
- * line. Around it: the step's other placed entities, joined to the step's
+ * the side to the battlefield, a succession a dashed violet one, and "who
+ * controls what" an outlined territory rather than a line. Around it: the
+ * step's other placed entities, those who took part joined to the step's
  * anchor (where it happens) by faint spokes, the OpenHistoricalMap borders of
- * its polities at the step's year, and the trail of earlier steps' anchors.
+ * its polities at the step's year, and the trail of the last few steps.
+ *
+ * A step that follows something spreading (a disease, a religion, a crop) is
+ * drawn as that spread instead: a teal arc to each place the step says it
+ * reached, each from the nearest place it had reached before. Which places it
+ * reached is recorded (`reaches`); the way it took is not, and "from the
+ * nearest place it had already reached" is this layer's reading of it.
  *
  * Geometry comes from GET /chronicles/{slug}/places (`Places`): an entity is
- * drawn only where the atlas places it; nothing is invented.
+ * drawn only where the atlas places it.
  */
 import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
 import type { ChronicleEntry, ChroniclePlace } from '@/lib/schemas/chronicle';
@@ -238,7 +244,14 @@ export interface CastMember {
   at: LngLat;
   /** An end of the step's primary relationship. */
   primary: boolean;
+  /**
+   * Drawn in the step's colour with a full ring: an end of the relationship,
+   * a place the spread reached, or one of several places the step names.
+   */
+  marked: boolean;
 }
+
+export type StepArc = Feature<LineString, { kind: RelationKind; color: string; dashed: boolean }>;
 
 export interface StepScene {
   kind: RelationKind;
@@ -246,23 +259,29 @@ export interface StepScene {
   /** Where the step happens: the point the camera and the trail lead to. */
   anchor: LngLat | null;
   /**
-   * The primary relationship, source → target (or reversed, see REVERSED),
-   * when both ends are placed apart. `soft`: it starts at a polity, whose
-   * point is only somewhere inside a realm, so the line fades in from there.
+   * The step's lines. One for the primary relationship, source → target (or
+   * reversed, see REVERSED), when both ends are placed apart. Or, for a step
+   * drawn as a spread, one to each place it reached, from the nearest place
+   * it had reached before.
    */
-  arc: Feature<LineString, { kind: RelationKind; color: string; dashed: boolean; soft: boolean }> | null;
-  /** An arrowhead at the arc's end, unless the relationship is mutual. */
-  arrow: { at: LngLat; bearing: number } | null;
-  /** Faint lines from the step's other placed entities to its anchor. */
+  arcs: StepArc[];
+  /** An arrowhead at the end of each arc that has a direction. */
+  arrows: { at: LngLat; bearing: number }[];
+  /** The arcs start at a polity, whose point is only somewhere inside a realm: they fade in from there. */
+  soft: boolean;
+  /** Where the step's rings ripple: its anchor, or each place of a step that names several. */
+  pulses: LngLat[];
+  /** Faint lines to the anchor from those who took part there. */
   spokes: Feature<LineString>[];
   /** Every placed entity of the step. */
   cast: CastMember[];
-  /** OHM boundaries (signed ids) to outline at the step's year: the relationship's ends', then the rest's. */
+  /** OHM boundaries (signed ids) to outline at the step's year: those in the step's colour, then the rest. */
   areas: { primary: number[]; other: number[] };
 }
 
-/** At most this many spokes and outlined non-primary borders per step. */
+/** At most this many spokes, arcs of a spread and outlined other borders per step. */
 const MAX_SPOKES = 8;
+const MAX_FAN = 8;
 const MAX_OTHER_AREAS = 6;
 /** At most this many borders per entity in a year (as the map stories). */
 const MAX_BORDERS = 4;
@@ -307,9 +326,157 @@ export function stepAnchor(entry: ChronicleEntry, places: Places): LngLat | null
 
 const upper = (g: string | null | undefined) => (g ? g.toUpperCase() : 'DEFAULT');
 
-export function stepScene(entry: ChronicleEntry, places: Places): StepScene {
+/** Every entity of a step: the relationship's ends first, then the others, each once. */
+function stepEntityIds(entry: ChronicleEntry): string[] {
+  const rel = entry.primary_relationship;
+  const ids = [rel?.source_entity_id, rel?.target_entity_id, ...(entry.secondary_entities ?? []).map((e) => e.entity_id)];
+  return [...new Set(ids.filter((id): id is string => !!id))];
+}
+
+// ── a spread ──────────────────────────────────────────────────────────────────
+
+/** Two points closer than this are one place for a ring: a town and its harbour. */
+export const SAME_PLACE_KM = 25;
+
+/** `points` without those within `SAME_PLACE_KM` of an earlier one. */
+function distinctPlaces(points: LngLat[]): LngLat[] {
+  const out: LngLat[] = [];
+  for (const p of points) if (!out.some((q) => distanceKm(p, q) < SAME_PLACE_KM)) out.push(p);
+  return out;
+}
+
+/** A place something reached, as an end of an arc. */
+export interface ReachedSite {
+  id: string;
+  at: LngLat;
+  /** A polity's point: only somewhere inside its realm. */
+  soft: boolean;
+}
+
+/** What a step says about something spreading. */
+export interface StepSpread {
+  /** The thing that spreads. */
+  carrier: string;
+  /** The step's entities it is recorded as reaching, placed or not. */
+  reached: string[];
+  /** Those of them with a map point: an arc ends at each. */
+  sites: ReachedSite[];
+}
+
+/** A recorded link is this step's when it has no year, or one within this many years of the step's. */
+export const LINK_YEARS = 10;
+
+/**
+ * Whether a link of year `year` belongs to the step. The same two entities
+ * can meet again in a step a century on (yellow fever reached the United
+ * States in 1793; a step of 1904 names both for another reason).
+ */
+function inStepYears(year: number | null, entry: ChronicleEntry): boolean {
+  if (year == null || entry.start_year == null) return true;
+  const end = Math.max(entry.end_year ?? entry.start_year, entry.start_year);
+  return year >= entry.start_year - LINK_YEARS && year <= end + LINK_YEARS;
+}
+
+/**
+ * What a step says `carrier` reached: the step's entities among the carrier's
+ * recorded `reaches` of those years. The arcs end at the places it names (a
+ * city, a port); a step that names none ends them at whatever is placed (a
+ * realm's point). Null when the carrier is not in the step or reached nothing
+ * in it.
+ */
+export function spreadOf(entry: ChronicleEntry, places: Places, carrier: string): StepSpread | null {
+  const links = places.get(carrier)?.reaches ?? [];
+  if (links.length === 0) return null;
+  const ids = stepEntityIds(entry);
+  if (!ids.includes(carrier)) return null;
+  const now = new Set(links.filter((link) => inStepYears(link.year, entry)).map((link) => link.id));
+  const reached = ids.filter((id) => id !== carrier && now.has(id));
+  if (reached.length === 0) return null;
+  const placed: (ReachedSite & { group: string | null })[] = [];
+  for (const id of reached) {
+    const place = places.get(id);
+    if (place?.at) placed.push({ id, at: place.at, soft: place.group === 'polity', group: place.group });
+  }
+  const named = placed.filter((site) => site.group === 'place');
+  const sites = (named.length > 0 ? named : placed).map(({ id, at, soft }) => ({ id, at, soft }));
+  return { carrier, reached, sites };
+}
+
+/**
+ * The spreading thing a step follows, if any: one of its entities that is
+ * recorded as reaching others of them. An end of the step's relationship
+ * comes before the rest; among equals, the one that reached the most here.
+ */
+export function stepSpread(entry: ChronicleEntry, places: Places): StepSpread | null {
+  const rel = entry.primary_relationship;
+  const ends = [rel?.source_entity_id, rel?.target_entity_id];
+  let best: StepSpread | null = null;
+  let bestIsEnd = false;
+  for (const id of stepEntityIds(entry)) {
+    const spread = spreadOf(entry, places, id);
+    if (!spread) continue;
+    const isEnd = ends.includes(id);
+    if (!best || (isEnd && !bestIsEnd) || (isEnd === bestIsEnd && spread.reached.length > best.reached.length)) {
+      best = spread;
+      bestIsEnd = isEnd;
+    }
+  }
+  return best;
+}
+
+/**
+ * Where `carrier` had been before a step: every place the earlier steps say
+ * it reached. When they name none, its own point, if it has one.
+ */
+export function reachedBefore(earlier: readonly ChronicleEntry[], places: Places, carrier: string): ReachedSite[] {
+  const out: ReachedSite[] = [];
+  for (const entry of earlier) {
+    for (const site of spreadOf(entry, places, carrier)?.sites ?? []) {
+      if (!out.some((o) => distanceKm(o.at, site.at) < MIN_LINE_KM)) out.push(site);
+    }
+  }
+  if (out.length > 0) return out;
+  const own = places.get(carrier);
+  return own?.at ? [{ id: carrier, at: own.at, soft: own.group === 'polity' }] : [];
+}
+
+/** A relationship of these kinds draws no line of its own, so a spread hides nothing. */
+const NO_LINE_KINDS = new Set<RelationKind>(['control', 'link', 'none']);
+
+/**
+ * Whether a step is drawn as the spread it mentions rather than as its
+ * primary relationship: when that relationship is the spread itself (the
+ * carrier is one of its ends), or when it would draw no line anyway ("Boston,
+ * part of the United States"). A fight, a succession or a trade between two
+ * other entities keeps its own line.
+ */
+function drawnAsSpread(spread: StepSpread, kind: RelationKind, rel: ChronicleEntry['primary_relationship']): boolean {
+  if (NO_LINE_KINDS.has(kind)) return true;
+  return kind === 'flow' && (rel?.source_entity_id === spread.carrier || rel?.target_entity_id === spread.carrier);
+}
+
+function arcTo(from: LngLat, to: LngLat, kind: RelationKind, color: string, pointed: boolean, dashed: boolean) {
+  const path = arcPath(from, to);
+  const cut = pointed ? trimPath(path, 1 - ARROW_GAP) : path;
+  const arc: StepArc = {
+    type: 'Feature',
+    properties: { kind, color, dashed },
+    geometry: { type: 'LineString', coordinates: cut },
+  };
+  const end = cut[cut.length - 1];
+  return { arc, arrow: pointed ? { at: end, bearing: screenBearing(cut[cut.length - 2], end) } : null };
+}
+
+/**
+ * What to draw for a step. `earlier` are the chronicle's entries before it,
+ * in order: a spread starts from where it had been.
+ */
+export function stepScene(entry: ChronicleEntry, places: Places, earlier: readonly ChronicleEntry[] = []): StepScene {
   const rel = entry.primary_relationship ?? null;
-  const kind = relationKind(rel?.relationship_type, [rel?.source_entity?.entity_type, rel?.target_entity?.entity_type]);
+  const relKind = relationKind(rel?.relationship_type, [rel?.source_entity?.entity_type, rel?.target_entity?.entity_type]);
+  const mentioned = stepSpread(entry, places);
+  const spread = mentioned && drawnAsSpread(mentioned, relKind, rel) ? mentioned : null;
+  const kind: RelationKind = spread ? 'flow' : relKind;
   const color = KIND_COLOR[kind];
   const anchor = stepAnchor(entry, places);
 
@@ -318,22 +485,58 @@ export function stepScene(entry: ChronicleEntry, places: Places): StepScene {
   const areasPrimary: number[] = [];
   const areasOther: number[] = [];
   const seen = new Set<string>();
+  const reached = new Set(spread?.reached ?? []);
   const add = (id: string | undefined, name: string | undefined, group: string | null | undefined, primary: boolean) => {
     if (!id || seen.has(id)) return;
     seen.add(id);
     const place = places.get(id);
+    const marked = primary || reached.has(id);
     for (const b of bordersAt(place, entry.start_year)) {
-      if (!areasPrimary.includes(b) && !areasOther.includes(b)) (primary ? areasPrimary : areasOther).push(b);
+      if (!areasPrimary.includes(b) && !areasOther.includes(b)) (marked ? areasPrimary : areasOther).push(b);
     }
-    if (place?.at) cast.push({ id, name: name ?? '', group: upper(place.group ?? group), at: place.at, primary });
+    if (place?.at) cast.push({ id, name: name ?? '', group: upper(place.group ?? group), at: place.at, primary, marked });
   };
   add(rel?.source_entity_id, rel?.source_entity?.name, rel?.source_entity?.entity_group, true);
   add(rel?.target_entity_id, rel?.target_entity?.name, rel?.target_entity?.entity_group, true);
   for (const e of entry.secondary_entities ?? []) add(e.entity_id, e.name, null, false);
 
-  // The relationship's own line.
-  let arc: StepScene['arc'] = null;
-  let arrow: StepScene['arrow'] = null;
+  const areas = { primary: areasPrimary, other: areasOther.slice(0, MAX_OTHER_AREAS) };
+  const arcs: StepArc[] = [];
+  const arrows: StepScene['arrows'] = [];
+
+  // ── a spread: an arc to each place reached, from the nearest place it had been ──
+  if (spread) {
+    const origins = reachedBefore(earlier, places, spread.carrier);
+    const targets = spread.sites.slice(0, MAX_FAN);
+    let softStarts = 0;
+    for (const site of targets) {
+      let from: ReachedSite | null = null;
+      for (const o of origins) if (!from || distanceKm(o.at, site.at) < distanceKm(from.at, site.at)) from = o;
+      // Nowhere to come from (its first appearance), or it was already here.
+      if (!from || distanceKm(from.at, site.at) < MIN_LINE_KM) continue;
+      const { arc, arrow } = arcTo(from.at, site.at, kind, color, true, false);
+      arcs.push(arc);
+      if (arrow) arrows.push(arrow);
+      if (from.soft) softStarts += 1;
+    }
+    const pulses = distinctPlaces(targets.map((site) => site.at));
+    return {
+      kind,
+      color,
+      anchor,
+      arcs,
+      arrows,
+      soft: arcs.length > 0 && softStarts === arcs.length,
+      pulses: pulses.length > 0 ? pulses : anchor ? [anchor] : [],
+      // The arcs say who reached what; a line from every other entity would say more than is known.
+      spokes: [],
+      cast,
+      areas,
+    };
+  }
+
+  // ── the relationship's own line ──
+  let soft = false;
   const src = rel ? places.get(rel.source_entity_id) : undefined;
   const tgt = rel ? places.get(rel.target_entity_id) : undefined;
   const reversed = REVERSED.has(rel?.relationship_type ?? '');
@@ -344,28 +547,28 @@ export function stepScene(entry: ChronicleEntry, places: Places): StepScene {
   const hasArea = areasPrimary.length > 0;
   const drawn = kind !== 'none' && !(kind === 'control' && hasArea);
   if (drawn && from && to && distanceKm(from, to) >= MIN_LINE_KM) {
-    const path = arcPath(from, to);
     const mutual = MUTUAL.has(rel?.relationship_type ?? '');
     const pointed = !mutual && kind !== 'control';
-    const cut = pointed ? trimPath(path, 1 - ARROW_GAP) : path;
-    arc = {
-      type: 'Feature',
-      properties: { kind, color, dashed: kind === 'succession' || kind === 'control', soft: fromGroup === 'polity' },
-      geometry: { type: 'LineString', coordinates: cut },
-    };
-    if (pointed) {
-      const end = cut[cut.length - 1];
-      arrow = { at: end, bearing: screenBearing(cut[cut.length - 2], end) };
-    }
+    const { arc, arrow } = arcTo(from, to, kind, color, pointed, kind === 'succession' || kind === 'control');
+    arcs.push(arc);
+    if (arrow) arrows.push(arrow);
+    soft = fromGroup === 'polity';
   }
 
-  // Spokes: the step's other entities, to where it happens.
+  // A step that names several places happens at each of them: equal rings,
+  // and no line from anything to just one of them.
+  const sites = distinctPlaces(cast.filter((m) => m.group === 'PLACE').map((m) => m.at));
+  const several = sites.length > 1;
+  if (several) for (const m of cast) if (m.group === 'PLACE') m.marked = true;
+
+  // Spokes: those who took part, to where it happens. Never from a place:
+  // nothing says two places of a step are tied to each other.
   const spokes: Feature<LineString>[] = [];
-  if (anchor) {
-    const ends = new Set(arc ? [from, to].map((p) => (p ? p.join() : '')) : []);
+  if (anchor && !several) {
+    const ends = new Set(arcs.length > 0 ? [from, to].map((p) => (p ? p.join() : '')) : []);
     for (const m of cast) {
       if (spokes.length >= MAX_SPOKES) break;
-      if (m.primary && arc) continue;
+      if (m.group === 'PLACE' || (m.primary && arcs.length > 0)) continue;
       if (ends.has(m.at.join()) || distanceKm(m.at, anchor) < MIN_LINE_KM) continue;
       spokes.push({
         type: 'Feature',
@@ -375,16 +578,7 @@ export function stepScene(entry: ChronicleEntry, places: Places): StepScene {
     }
   }
 
-  return {
-    kind,
-    color,
-    anchor,
-    arc,
-    arrow,
-    spokes,
-    cast,
-    areas: { primary: areasPrimary, other: areasOther.slice(0, MAX_OTHER_AREAS) },
-  };
+  return { kind, color, anchor, arcs, arrows, soft, pulses: several ? sites : anchor ? [anchor] : [], spokes, cast, areas };
 }
 
 /** The first `frac` (0–1) of a path, by its length in Web Mercator. */
@@ -428,16 +622,24 @@ export function trailStops(entries: ChronicleEntry[], places: Places, upto: numb
   return stops;
 }
 
+/** The trail shows this many stops before the current step. */
+export const TRAIL_KEEP = 5;
+
 /**
- * The trail to the current step: a segment between each pair of successive
- * stops (`age` = how many steps ago it ended, for fading), and a numbered dot
- * at each earlier stop. The current step's own point is the scene's anchor.
+ * The trail to the current step: its last `keep` stops, a segment between
+ * each pair of successive ones (`age` = how many steps ago it ended, for
+ * fading) and a numbered dot at each. Older stops are dropped: over a long
+ * chronicle the whole path is a web across the map. The current step's own
+ * point is the scene's anchor.
  */
-export function trailCollection(stops: TrailStop[], current: number): FeatureCollection<LineString | Point> {
+export function trailCollection(stops: TrailStop[], current: number, keep = TRAIL_KEEP): FeatureCollection<LineString | Point> {
+  const before = stops.filter((s) => s.step < current).slice(-Math.max(0, keep));
+  const here = stops.find((s) => s.step === current);
+  const shown = here ? [...before, here] : before;
   const features: Feature<LineString | Point>[] = [];
-  for (let k = 1; k < stops.length; k++) {
-    const a = stops[k - 1];
-    const b = stops[k];
+  for (let k = 1; k < shown.length; k++) {
+    const a = shown[k - 1];
+    const b = shown[k];
     if (distanceKm(a.at, b.at) < MIN_LINE_KM) continue;
     features.push({
       type: 'Feature',
@@ -447,7 +649,7 @@ export function trailCollection(stops: TrailStop[], current: number): FeatureCol
   }
   // One dot per place: a place visited twice shows its latest step.
   const dots = new Map<string, TrailStop>();
-  for (const s of stops) if (s.step < current) dots.set(s.at.join(), s);
+  for (const s of before) dots.set(s.at.join(), s);
   for (const s of dots.values()) {
     features.push({
       type: 'Feature',
