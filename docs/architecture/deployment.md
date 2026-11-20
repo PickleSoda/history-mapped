@@ -45,7 +45,9 @@ flowchart TB
 
 | Domain | Path | Goes to | Notes |
 |---|---|---|---|
-| web domain | everything | `/srv/web/current` | Single-page app: unknown paths fall back to `index.html`. `/docs` is part of this bundle |
+| web domain | `/entities/*`, `/chronicles/*` | app, at `/site-pages/…` | The app returns `index.html` with the page's title and text written in, for readers that run no JavaScript. If the app fails or is away, the plain `index.html` is served. See [What crawlers see](frontend-app.md#what-crawlers-see) |
+| web domain | `/sitemap.xml`, `/sitemaps/*` | app, at `/site-pages/…` | Generated from the database; errors are passed on |
+| web domain | everything else | `/srv/web/current` | Single-page app: unknown paths fall back to `index.html`. `/docs`, `robots.txt` and `llms.txt` are part of this bundle |
 | app domain | `/tiles/*` | Martin, or the app | `Cache-Control: public, max-age=300` |
 | app domain | `/ai/chat` | app | Server-sent events: no compression, flushed immediately |
 | app domain | everything else | app | `/api/v1/*`, sign-in, `/sanctum/csrf-cookie`, the admin, `/docs/api` (generated API docs, admins only by default), `/up` |
@@ -86,7 +88,7 @@ Things that follow from the proxy:
 | Service | Image | Role |
 |---|---|---|
 | `caddy` | `caddy:2-alpine` | TLS (Let's Encrypt), routing, static files; the only service that publishes ports |
-| `app` | `ghcr.io/…/history-mapped/api:<sha>` | API and admin on Octane (`OCTANE_WORKERS` PHP workers, 4 by default); health check `/up` |
+| `app` | `ghcr.io/…/history-mapped/api:<sha>` | API and admin on Octane (`OCTANE_WORKERS` PHP workers, 4 by default); health check `/up`. Mounts `web_dist` read-only to read the web app's `index.html` for the entity and chronicle pages it renders |
 | `queue` | same image | `queue:work --tries=3 --max-time=3600` |
 | `scheduler` | same image | `schedule:work`: daily proposal pruning and image fetching, tile refresh every five minutes |
 | `martin` | `ghcr.io/maplibre/martin:1.16.1` | Vector tiles, only with the `martin` profile |
@@ -198,6 +200,7 @@ Names only; values live in `docker/.env.prod` on the server, and in GitHub secre
 | Sign-in | `SESSION_DOMAIN`, `SESSION_SECURE_COOKIE`, `SANCTUM_STATEFUL_DOMAINS` |
 | AI and external services | `AI_DEFAULT_PROVIDER`, `AI_DEFAULT_MODEL`, `OPENROUTER_API_KEY`, `OPENAI_API_KEY` (embeddings), `WIKIDATA_USER_AGENT`, `OHM_*`, `OVERPASS_*` |
 | Tiles and API | `TILES_CACHE_TTL`, `TILES_MAX_AGE`, `SCRAMBLE_DOCS_PUBLIC`, `API_RATE_LIMIT` (requests a minute, default 600) |
+| Pages for crawlers | `SITE_RATE_LIMIT` (entity, chronicle and sitemap requests a minute per address, default 120), `SITE_SITEMAP_MAX_AGE` (seconds, default 21600), `SITE_SHELL_PATH` (default `/srv/web/current/index.html`) |
 | Web build (repository variables) | `VITE_API_URL` (required), `VITE_MAP_TILES_URL`, `VITE_ADMIN_ORIGINS` |
 | CI secrets | `DROPLET_HOST`, `DROPLET_USER`, `DROPLET_SSH_KEY` (plus optional port and registry credentials) |
 

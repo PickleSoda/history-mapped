@@ -1,0 +1,46 @@
+# History Mapped
+
+> An open, interactive atlas of world history: about 640,000 entities (states, people, cities, battles, treaties, trade routes, ideas), each with dates, a place, a summary and typed links to related entities, shown on a map that moves through time. Curated chronicles tell a story step by step across those entities.
+
+The site is a JavaScript application. Entity and chronicle pages also carry their text in the HTML, so they can be read without running scripts. Other pages (the globe, browse, docs) need a browser. For structured data use the JSON API or the MCP server below: both are public, read-only and need no key.
+
+Conventions: entity ids are UUIDs. Years are signed integers, negative for BCE (-216 is 216 BCE). Entities have one of 30 types in 5 groups: POLITY, PLACE, EVENT, ECONOMY, CULTURE.
+
+## Pages
+
+- [Entity page](https://historymapped.org/entities/{id}): one entity with its type, dates, place, summary, description and connections to other entities
+- [Chronicle page](https://historymapped.org/chronicles/{slug}): a narrative in ordered, dated steps, each linked to the entities it involves
+- [Sitemap](https://historymapped.org/sitemap.xml): every entity and chronicle page
+- [Browse](https://historymapped.org/browse): curated sets, eras, regions and themes (needs JavaScript)
+- [The globe](https://historymapped.org/app): the map and timeline (needs JavaScript)
+
+## JSON API
+
+Base URL `https://api.historymapped.org/api/v1`. Responses are JSON. Requests are rate-limited per address; the `X-RateLimit-*` response headers show the allowance.
+
+- [Search entities](https://api.historymapped.org/api/v1/entities?search=hannibal&per_page=5): `GET /entities` with `search`, `type`, `group`, `tag`, `exists_at` (a year), `bbox_min_lng` / `bbox_min_lat` / `bbox_max_lng` / `bbox_max_lat`, `sort` (`relevance`, `impact`, `chronological`, `name`), `per_page` (up to 100), `page`
+- [One entity](https://api.historymapped.org/api/v1/entities/{id}): `GET /entities/{id}`, add `include_relationships=1` for its links
+- [An entity's relationships](https://api.historymapped.org/api/v1/entities/{id}/relationships): `GET /entities/{id}/relationships`
+- [Chronicles](https://api.historymapped.org/api/v1/chronicles): `GET /chronicles` with `search`, `tags[]`, `sort`
+- [One chronicle](https://api.historymapped.org/api/v1/chronicles/{slug}): `GET /chronicles/{slug}`, the ordered entries with their entities
+- [Battle maps](https://api.historymapped.org/api/v1/map-stories): `GET /map-stories`, step-by-step maps of battles, sieges and campaigns
+- [Curated sets](https://api.historymapped.org/api/v1/collections) and [tags](https://api.historymapped.org/api/v1/tags): `GET /collections`, `GET /tags`
+
+## MCP server
+
+- [MCP endpoint](https://api.historymapped.org/mcp): streamable HTTP, no sign-in. Read-only tools: `search-atlas`, `get-entity`, `what-was-happening` (a year and an area), `get-connections`, `find-chronicles`, `get-chronicle`. Every record carries a link back to its page on the site.
+
+## Documentation
+
+These pages render in the browser.
+
+- [What is History Mapped?](https://historymapped.org/docs/product-overview): the project, its data sources and their licences
+- [Core concepts](https://historymapped.org/docs/concepts): entities, relationships, time and place
+- [Entity types](https://historymapped.org/docs/entity-specification): the 30 types and their attributes
+- [Relationship types](https://historymapped.org/docs/relationships): the typed links between entities
+- [REST API](https://historymapped.org/docs/api): endpoints and parameters in full
+- [MCP connector](https://historymapped.org/docs/mcp-connector): the tools, and how to add the connector to Claude
+
+## Sources
+
+Entity identity, dates and coordinates come from Wikidata (CC0). Historical borders and places come from OpenHistoricalMap (CC0). Summaries draw on Wikipedia (CC BY-SA 4.0). Entities that have a Wikidata item give its id (`wikidata_id`).

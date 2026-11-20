@@ -75,7 +75,7 @@ flowchart TB
 | Deploy-time jobs | run by hand | one-shot `migrate` job: `db:repair-sequences`, `migrate --force`, `collections:sync`, `config:cache` |
 
 Route files are registered in `api/bootstrap/app.php`. That file adds `/up` as a health check,
-mounts `routes/tiles.php` at `/tiles` outside the `web` and `api` groups, turns on Sanctum's
+mounts `routes/tiles.php` at `/tiles` and `routes/site.php` at `/site-pages` outside the `web` and `api` groups, turns on Sanctum's
 `statefulApi()`, and adds the spatie `role` and `permission` middleware aliases.
 
 ## Routes
@@ -86,6 +86,7 @@ mounts `routes/tiles.php` at `/tiles` outside the `web` and `api` groups, turns 
 | `routes/web.php` | `/` | The admin (Inertia React pages) and its JSON helpers | `auth`, `verified`, `permission:admin.access`, plus a permission per write area |
 | `routes/settings.php` | `/settings` | Profile, password, appearance | `auth` (`verified` for security changes) |
 | `routes/tiles.php` | `/tiles` | TileJSON and MVT tiles (Martin-compatible) | public, CORS `*` |
+| `routes/site.php` | `/site-pages` | The public site's entity and chronicle pages with their text in the HTML, and its sitemap. Caddy sends those paths of the web domain here ([What crawlers see](frontend-app.md#what-crawlers-see)) | public, no session; `SITE_RATE_LIMIT` per address |
 | *(Fortify)* | `/login`, `/register`, … | Sign-in, registration, password reset, e-mail verification, 2FA | rate limited (5 per minute) |
 | *(Scramble)* | `/docs/api` | Generated OpenAPI docs for `/api/v1` | admins, or everyone when `SCRAMBLE_DOCS_PUBLIC=true` |
 

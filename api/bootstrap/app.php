@@ -22,6 +22,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // URLs, outside the `api` group (no session, CSRF or throttle).
         then: function (): void {
             Route::prefix('tiles')->group(base_path('routes/tiles.php'));
+
+            // Entity and chronicle pages of the public site with their text in
+            // the HTML, and its sitemap (routes/site.php). Caddy sends those
+            // paths of the site here. No session or CSRF; the `site` limiter.
+            Route::prefix('site-pages')->middleware('throttle:site')->group(base_path('routes/site.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {

@@ -61,7 +61,16 @@ export default defineConfig({
         // fetched on demand instead of precached for every atlas visitor.
         globIgnores: ['**/*.jsx', '**/Historical Atlas Wireframes.html', 'assets/docs/**'],
         navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/^\/api\//, /^\/sanctum\//],
+        // Files for crawlers are not app routes: opened in a browser they must
+        // come from the server, not from the cached index.html.
+        navigateFallbackDenylist: [
+          /^\/api\//,
+          /^\/sanctum\//,
+          /^\/robots\.txt$/,
+          /^\/llms\.txt$/,
+          /^\/sitemap\.xml$/,
+          /^\/sitemaps\//,
+        ],
         // The MapLibre chunk exceeds workbox's 2 MB default.
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         runtimeCaching: [

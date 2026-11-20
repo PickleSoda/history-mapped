@@ -75,6 +75,9 @@ class AppServiceProvider extends ServiceProvider
                 ->by('session|'.($request->user()?->getAuthIdentifier() ?? $request->ip().'|'.$request->header('MCP-Session-Id', ''))),
             Limit::perMinute((int) config('app.mcp_rate_limit_per_ip'))->by('ip|'.$request->ip()),
         ]);
+        // /site-pages: the public site's entity and chronicle pages and its sitemap, per client IP.
+        RateLimiter::for('site', fn (Request $request) => Limit::perMinute((int) config('site.rate_limit'))
+            ->by('site|'.$request->ip()));
 
         GeometryPeriod::observe(GeometryPeriodObserver::class);
         EntityTemporalRange::observe(EntityTemporalRangeObserver::class);

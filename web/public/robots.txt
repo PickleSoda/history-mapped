@@ -1,0 +1,18 @@
+# History Mapped: an open, interactive atlas of world history.
+#
+# Everything public may be crawled and indexed, by search engines and by AI
+# crawlers alike. Entity and chronicle pages carry their text in the HTML, so
+# they can be read without running JavaScript. For structured access (a JSON
+# API and an MCP server, both public), see /llms.txt.
+#
+# The paths below are sign-in and account pages with nothing to index.
+
+User-agent: *
+Allow: /
+Disallow: /login
+Disallow: /register
+Disallow: /saved
+Disallow: /contributions
+Disallow: /talk
+
+Sitemap: https://historymapped.org/sitemap.xml

@@ -7,6 +7,21 @@
     <meta name="theme-color" content="#ffffff" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>History Mapped</title>
+    <!-- Defaults for every route. Pages replace the title and description once
+         they render (lib/document-meta.ts); for entity and chronicle pages the
+         app server fills them in before the HTML is sent (docs/architecture/
+         frontend-app.md, "What crawlers see"). -->
+    <meta
+      name="description"
+      content="History Mapped is an open, interactive atlas of world history: states, people, battles and ideas, linked to one another on a map that moves through time."
+    />
+    <meta property="og:site_name" content="History Mapped" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="History Mapped" />
+    <meta
+      property="og:description"
+      content="An open, interactive atlas of world history: states, people, battles and ideas, linked to one another on a map that moves through time."
+    />
     <script>
       (function () {
         try {
@@ -25,6 +40,17 @@
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <h1>History Mapped</h1>
+      <p>
+        An open, interactive atlas of world history: states, people, battles and ideas, linked to one another on
+        a map that moves through time. The atlas needs JavaScript to run.
+      </p>
+      <p>
+        Without it you can still read the <a href="/sitemap.xml">entity and chronicle pages</a>, or use the
+        public JSON API and MCP server described in <a href="/llms.txt">llms.txt</a>.
+      </p>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

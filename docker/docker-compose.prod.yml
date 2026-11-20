@@ -49,6 +49,11 @@ services:
       # PHP workers (docker/api/Dockerfile.prod). Requests mostly wait on the
       # database, so more workers than the droplet's one vCPU pays off.
       OCTANE_WORKERS: "${OCTANE_WORKERS:-4}"
+    volumes:
+      # The SPA's index.html, read-only: the app writes an entity's or a
+      # chronicle's title and text into it for readers that run no JavaScript
+      # (config/site.php, routes/site.php; Caddy sends those pages here).
+      - web_dist:/srv/web:ro
     expose:
       - "8080"
     depends_on:

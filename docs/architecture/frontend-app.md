@@ -5,7 +5,7 @@
 a full-screen map with a timeline. This page covers its routes, where state lives, how data is
 fetched, and the main user flows.
 
-> **Audience:** developers · **Read time:** 12 minutes · **Last reviewed:** 2026-11-14 ·
+> **Audience:** developers · **Read time:** 12 minutes · **Last reviewed:** 2026-11-20 ·
 > **Stack:** React 19, Vite 7, react-router 7, nuqs 2, TanStack Query 5, zustand 5, zod 4, MapLibre GL 5,
 > Tailwind 4 with shadcn/Base UI, vite-plugin-pwa
 
@@ -310,6 +310,44 @@ depends on the **link mode** (`components/atlas/link-mode.tsx`, policy in `lib/p
 
 Site pages set the document title and description through `useDocumentMeta`. Links into the atlas
 are built in one place: `atlasHref()` in `lib/site-links.ts`.
+
+## What crawlers see
+
+The site is rendered in the browser, so `index.html` is an empty shell. Search engines that run
+JavaScript cope with that; most AI crawlers and link previews do not run it. For the two page kinds
+whose text lives in the database, the app server sends the same `index.html` with the page already
+written into it. The web app then starts and replaces that text with its own page.
+
+```mermaid
+flowchart TB
+    R["GET /entities/:id or /chronicles/:slug"] --> C["Caddy, web domain"]
+    C --> A["App: /site-pages/..."]
+    A --> S["index.html + title, description, text"]
+    C -.->|"app fails or is away"| P["plain index.html"]
+    S --> B["Browser: the web app starts and takes over"]
+```
+
+| Address | What is sent | Where |
+|---|---|---|
+| `/entities/:id`, `/chronicles/:slug` | The shell with a title, description, canonical link, Open Graph tags, `schema.org` JSON and, inside `#root`, the page as text: summary, significance, description, up to 40 connections and the chronicles for an entity; the dated steps and their entities for a chronicle. A missing page is the same shell with status 404 and `noindex` | `api/routes/site.php`, `App\Services\Site\SitePages`, views in `api/resources/views/site/` |
+| `/sitemap.xml`, `/sitemaps/*.xml` | An index, the fixed pages and curated sets, the chronicles, and the entities in 256 files by the first two hex digits of their id (about 2,500 each). Entities without a summary are left out | `App\Http\Site\SitemapController` |
+| `/robots.txt` | Allows everything except the sign-in and account pages, and names the sitemap | `web/public/robots.txt` |
+| `/llms.txt` | A short guide for language models: what the site is, the page addresses, the JSON API and the MCP server | `web/public/llms.txt` |
+| every other page | The shell with a default title and description, and a `<noscript>` note. Browse, docs and the atlas still need JavaScript | `web/index.html` |
+
+How it fits together:
+
+| Point | Detail |
+|---|---|
+| One shell | `App\Services\Site\SiteShell` reads the built `index.html` (`SITE_SHELL_PATH`, the `web_dist` volume on the hosted site), so the script and stylesheet names always match the current release. It follows the `current` symlink by hand, because PHP remembers a resolved path for two minutes |
+| Same HTML for everyone | Visitors get the page text too, for the moment before the web app starts. `createRoot().render()` replaces whatever is in `#root`, so nothing is hydrated |
+| Never required | If the app answers 5xx or cannot be reached, Caddy serves the plain `index.html`. Without the shell file the app answers 503 for the same reason. Sitemap errors are passed on as errors |
+| Returning visitors | The service worker answers navigations from its cached `index.html`, so they see the web app's page directly. `robots.txt`, `llms.txt` and the sitemap paths are excluded from that fallback (`vite.config.ts`) |
+| Load | A typical entity page costs about one API call (30 ms on a developer machine; a hub such as a world war about 150 ms). `SITE_RATE_LIMIT` (120 a minute per address) paces crawlers; a visitor loads one such page per visit |
+| Addresses | Canonical and sitemap URLs use `FRONTEND_URL`. `robots.txt` and `llms.txt` are static and name the production host |
+
+Tests: `api/tests/Feature/Site/`. To try it locally, build the web app, point `SITE_SHELL_PATH` at the
+built `index.html` and open `/site-pages/entities/<id>` on the API.
 
 ## The docs pages
 
