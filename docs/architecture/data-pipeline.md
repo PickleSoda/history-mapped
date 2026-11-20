@@ -248,7 +248,8 @@ plainer rows per slice, straight from Wikidata, to fill the map between the cura
 
 The slicer and auditor are Claude agents (`.claude/agents/bulk-slicer.md`, `bulk-auditor.md`). The
 slicer approves a slice only at 90% precision or better on a judged sample of 40 rows. The runbook
-is [Bulk Wikidata ingest](../implementation-docs/bulk-wikidata-ingest.md).
+is [Bulk Wikidata ingest](../implementation-docs/bulk-wikidata-ingest.md). The story of the first
+full run is [From 36,000 to 641,000 entities](bulk-expansion.md).
 
 ## 6. Map stories
 

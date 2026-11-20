@@ -100,6 +100,13 @@ export const DOC_PAGES: readonly DocEntry[] = [
     description: 'How content flows from Wikidata, Wikipedia, OpenHistoricalMap and AI agents through the pipeline into the database.',
   },
   {
+    slug: 'bulk-expansion',
+    title: 'From 36,000 to 641,000 entities',
+    section: 'architecture',
+    path: 'docs/architecture/bulk-expansion.md',
+    description: 'How the atlas grew seventeenfold in a day: Wikidata slices, the agents that designed and audited them, what went wrong and what came in.',
+  },
+  {
     slug: 'backend',
     title: 'Backend and API',
     section: 'architecture',

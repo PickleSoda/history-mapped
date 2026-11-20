@@ -21,6 +21,7 @@ const SOURCES = import.meta.glob<string>(
     '../../../../docs/entity-model/for-geodata-contributors.md',
     '../../../../docs/architecture/system-overview.md',
     '../../../../docs/architecture/data-pipeline.md',
+    '../../../../docs/architecture/bulk-expansion.md',
     '../../../../docs/architecture/backend.md',
     '../../../../docs/architecture/frontend-app.md',
     '../../../../docs/architecture/ohm-integration.md',
