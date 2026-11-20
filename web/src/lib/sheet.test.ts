@@ -43,6 +43,13 @@ describe('sheetContentKind', () => {
   it('otherwise list', () => {
     expect(sheetContentKind({ chronicleActive: false, hasSelection: false })).toBe('list');
   });
+  it('an open chat wins over everything', () => {
+    expect(sheetContentKind({ chronicleActive: true, hasSelection: true, storyActive: true, talkActive: true })).toBe('talk');
+    expect(sheetContentKind({ chronicleActive: false, hasSelection: false, talkActive: true })).toBe('talk');
+  });
+  it('falls back to what is underneath when the chat is closed', () => {
+    expect(sheetContentKind({ chronicleActive: false, hasSelection: true, talkActive: false })).toBe('detail');
+  });
   it('shows a battle map when one is active and nothing is selected', () => {
     expect(sheetContentKind({ chronicleActive: false, hasSelection: false, storyActive: true })).toBe('story');
     expect(sheetContentKind({ chronicleActive: false, hasSelection: true, storyActive: true })).toBe('detail');

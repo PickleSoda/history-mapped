@@ -9,6 +9,8 @@ import { TimelineScope } from '@/components/atlas/TimelineScope';
 import { TopBar } from '@/components/atlas/TopBar';
 import { EraBorder } from '@/components/era/EraBorder';
 import { MapCanvas } from '@/components/map/MapCanvas';
+import { TalkDock } from '@/components/talk/TalkDock';
+import { TalkHostProvider } from '@/components/talk/TalkHost';
 import { useChronicleNav, useMapInsetsObserver, useStoryNav } from '@/hooks';
 
 /**
@@ -41,6 +43,7 @@ export function DesktopShell() {
   useMapInsetsObserver({ map: mapRef, left: leftRef, right: rightRef });
 
   return (
+    <TalkHostProvider>
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-background text-foreground">
       <TopBar />
 
@@ -72,6 +75,8 @@ export function DesktopShell() {
       </div>
 
       <CommandPalette />
+      <TalkDock />
     </div>
+    </TalkHostProvider>
   );
 }

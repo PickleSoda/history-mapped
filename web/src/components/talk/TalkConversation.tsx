@@ -12,6 +12,9 @@ import { allowanceNotice, isOptimistic, lifeText } from '@/lib/talk';
 import { cn } from '@/lib/utils';
 import { SpeakerAvatar } from './SpeakerAvatar';
 
+/** Where the chat is shown: its own page, the docked window, or the mobile sheet. */
+export type TalkVariant = 'page' | 'dock' | 'sheet';
+
 const link = 'underline-offset-2 hover:text-foreground hover:underline';
 
 /** "Author · CC BY-SA 4.0 · Wikimedia Commons" for the portrait, linked where it can be. */
@@ -50,7 +53,9 @@ function Header({
   canClear,
   onClear,
   clearing,
+  variant,
 }: {
+  variant: TalkVariant;
   speaker: Speaker;
   knowledgeYear: number | null;
   canClear: boolean;
@@ -59,6 +64,71 @@ function Header({
 }) {
   const [confirming, setConfirming] = useState(false);
   const life = lifeText(speaker);
+  const compact = variant !== 'page';
+  const confirm = confirming ? (
+    <div role="alertdialog" aria-label="Delete conversation" className="flex items-center gap-1.5 text-[12px]">
+      <span className="hidden sm:inline">Forget this conversation?</span>
+      <button
+        type="button"
+        disabled={clearing}
+        onClick={() => {
+          onClear();
+          setConfirming(false);
+        }}
+        className="h-7 rounded-md bg-destructive/10 px-2.5 font-medium text-destructive hover:bg-destructive/20"
+      >
+        Delete
+      </button>
+      <button type="button" onClick={() => setConfirming(false)} className="h-7 rounded-md px-2 text-muted-foreground hover:bg-muted">
+        Cancel
+      </button>
+    </div>
+  ) : (
+    <button
+      type="button"
+      onClick={() => setConfirming(true)}
+      title="Delete this conversation"
+      aria-label="Delete this conversation"
+      className="grid size-8 flex-none place-items-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+    >
+      <Trash2 size={15} />
+    </button>
+  );
+  const disclaimer = (
+    <p className="flex items-start gap-1.5 text-[11.5px] leading-snug text-muted-foreground">
+      <Info size={12} className="mt-px flex-none" />
+      <span>
+        AI role-play based on atlas data, not real quotations.
+        {knowledgeYear != null && <> {speaker.name.split(/[\s,]/)[0]} knows nothing after {formatYear(knowledgeYear)}.</>}{' '}
+        <PortraitCredit speaker={speaker} />
+      </span>
+    </p>
+  );
+
+  // Docked / in the sheet: the window already names the person, so this is a slim strip.
+  if (compact) {
+    return (
+      <header className="flex-none border-b bg-card/60 px-3 py-2">
+        <div className="flex items-center gap-2">
+          {variant === 'sheet' && <SpeakerAvatar speaker={speaker} className="size-8 text-[13px]" />}
+          <p className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 text-[12px] text-muted-foreground">
+            {variant === 'sheet' && <span className="truncate font-heading text-[14px] font-semibold text-foreground">{speaker.name}</span>}
+            {life && <span className="font-mono">{life}</span>}
+            <Link to={talkPath()} className={link}>
+              All conversations
+            </Link>
+            {variant === 'sheet' && (
+              <Link to={entityPagePath(speaker.id)} className={cn('inline-flex items-center gap-1', link)}>
+                In the atlas <ExternalLink size={11} />
+              </Link>
+            )}
+          </p>
+          {canClear && confirm}
+        </div>
+        <div className="mt-1.5">{disclaimer}</div>
+      </header>
+    );
+  }
   return (
     <header className="border-b bg-card/60 px-3 py-3 md:px-5">
       <div className="flex items-center gap-3">
@@ -79,56 +149,21 @@ function Header({
             </Link>
           </p>
         </div>
-        {canClear &&
-          (confirming ? (
-            <div role="alertdialog" aria-label="Delete conversation" className="flex items-center gap-1.5 text-[12px]">
-              <span className="hidden sm:inline">Forget this conversation?</span>
-              <button
-                type="button"
-                disabled={clearing}
-                onClick={() => {
-                  onClear();
-                  setConfirming(false);
-                }}
-                className="h-7 rounded-md bg-destructive/10 px-2.5 font-medium text-destructive hover:bg-destructive/20"
-              >
-                Delete
-              </button>
-              <button type="button" onClick={() => setConfirming(false)} className="h-7 rounded-md px-2 text-muted-foreground hover:bg-muted">
-                Cancel
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setConfirming(true)}
-              title="Delete this conversation"
-              aria-label="Delete this conversation"
-              className="grid size-8 flex-none place-items-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-            >
-              <Trash2 size={15} />
-            </button>
-          ))}
+        {canClear && confirm}
       </div>
-      <p className="mt-2.5 flex items-start gap-1.5 text-[11.5px] leading-snug text-muted-foreground">
-        <Info size={12} className="mt-px flex-none" />
-        <span>
-          AI role-play based on atlas data, not real quotations.
-          {knowledgeYear != null && <> {speaker.name.split(/[\s,]/)[0]} knows nothing after {formatYear(knowledgeYear)}.</>}{' '}
-          <PortraitCredit speaker={speaker} />
-        </span>
-      </p>
+      <div className="mt-2.5">{disclaimer}</div>
     </header>
   );
 }
 
-function Bubble({ message, name }: { message: TalkMessage; name: string }) {
+function Bubble({ message, name, compact }: { message: TalkMessage; name: string; compact: boolean }) {
   const mine = message.role === 'user';
   return (
     <div className={cn('flex', mine ? 'justify-end' : 'justify-start')}>
       <div
         className={cn(
-          'max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-[14px] leading-relaxed md:max-w-[70%]',
+          'max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-[14px] leading-relaxed',
+          !compact && 'md:max-w-[70%]',
           mine ? 'rounded-br-md bg-primary text-primary-foreground' : 'rounded-bl-md border bg-card',
           isOptimistic(message) && 'opacity-70',
         )}
@@ -151,11 +186,12 @@ function Typing({ name }: { name: string }) {
 }
 
 /** The chat with one person: header, messages, input. */
-export function TalkConversation({ entityId }: { entityId: string }) {
+export function TalkConversation({ entityId, variant = 'page' }: { entityId: string; variant?: TalkVariant }) {
   const { data, isLoading, error } = useTalkConversation(entityId);
   const send = useSendTalkMessage(entityId);
   const clear = useClearTalk(entityId);
   const navigate = useNavigate();
+  const compact = variant !== 'page';
   const [draft, setDraft] = useState('');
   const [sendError, setSendError] = useState<{ text: string; code: string | null } | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
@@ -218,17 +254,18 @@ export function TalkConversation({ entityId }: { entityId: string }) {
   return (
     <>
       <Header
+        variant={variant}
         speaker={entity}
         knowledgeYear={data.knowledge_year}
         canClear={hasSaved}
         clearing={clear.isPending}
-        onClear={() => clear.mutate(undefined, { onSuccess: () => navigate(talkPath()) })}
+        onClear={() => clear.mutate(undefined, { onSuccess: () => !compact && navigate(talkPath()) })}
       />
 
-      <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto px-3 py-4 md:px-5">
+      <div ref={scroller} className={cn('min-h-0 flex-1 overflow-y-auto px-3 py-4', !compact && 'md:px-5')}>
         <div className="mx-auto flex max-w-[760px] flex-col gap-3">
           {messages.length === 0 && !send.isPending && (
-            <div className="mx-auto max-w-sm py-10 text-center">
+            <div className={cn('mx-auto max-w-sm text-center', compact ? 'py-4' : 'py-10')}>
               <SpeakerAvatar speaker={entity} className="mx-auto size-20 text-[26px]" />
               <p className="mt-3 font-heading text-[18px] font-semibold">Say hello to {first}</p>
               <p className="mt-1 text-[13px] text-muted-foreground">
@@ -252,13 +289,13 @@ export function TalkConversation({ entityId }: { entityId: string }) {
             </div>
           )}
           {messages.map((m) => (
-            <Bubble key={m.id} message={m} name={entity.name} />
+            <Bubble key={m.id} message={m} name={entity.name} compact={compact} />
           ))}
           {send.isPending && <Typing name={entity.name} />}
         </div>
       </div>
 
-      <div className="border-t bg-card/60 px-3 py-3 md:px-5">
+      <div className={cn('flex-none border-t bg-card/60 px-3 py-3', !compact && 'md:px-5')}>
         <div className="mx-auto max-w-[760px]">
           {sendError && (
             <p role="alert" className="mb-2 rounded-lg bg-destructive/10 px-3 py-2 text-[12.5px] text-destructive">

@@ -14,6 +14,7 @@ import {
 import { NavBreadcrumb } from '@/components/atlas/NavBreadcrumb';
 import { storyKindLabel } from '@/components/atlas/StoryCard';
 import { StoryPlayerContent } from '@/components/atlas/StoryPlayer';
+import { TalkPane } from '@/components/talk/TalkHost';
 import {
   useBrowseTab,
   useChronicleNav,
@@ -23,6 +24,7 @@ import {
   useMapStory,
   useSheetContent,
   useStoryNav,
+  useTalkDock,
 } from '@/hooks';
 import { cn } from '@/lib/utils';
 
@@ -56,6 +58,31 @@ function SheetDetail() {
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         <DetailPanelContent />
+      </div>
+    </div>
+  );
+}
+
+/** Chat in the sheet: a back bar (closing the chat) over the conversation. The
+ *  input is inside the sheet, so the drawer's focus handling leaves it alone. */
+function SheetTalk() {
+  const { talkWith, close } = useTalkDock();
+  const { sel } = useSelection();
+  if (!talkWith) return null;
+  const first = talkWith.name.split(/[\s,]/)[0];
+  return (
+    <div className="flex h-full flex-col">
+      <div className="flex flex-none items-center px-2 py-1.5">
+        <button
+          type="button"
+          onClick={close}
+          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[13px] text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          <ChevronLeft size={15} /> {sel === talkWith.id ? `Back to ${first}` : 'Close chat'}
+        </button>
+      </div>
+      <div className="flex min-h-0 flex-1 flex-col">
+        <TalkPane entityId={talkWith.id} name={talkWith.name} variant="sheet" />
       </div>
     </div>
   );
@@ -147,7 +174,9 @@ export function SheetContent() {
   const { sheet } = useSheet();
   const page = useFocusPage();
   const body =
-    sheet === 'full' && page ? (
+    kind === 'talk' ? (
+      <SheetTalk />
+    ) : sheet === 'full' && page ? (
       <page.Page id={page.id} variant="sheet" />
     ) : kind === 'story' ? (
       <SheetStory />

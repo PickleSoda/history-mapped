@@ -71,3 +71,13 @@ export function useCommandPalette() {
   );
   return { open, setOpen: setPaletteOpen, toggle };
 }
+
+/** The in-atlas chat: who it is open with, whether the dock is folded down. */
+export function useTalkDock() {
+  const talkWith = useEphemeralStore((s) => s.talkWith);
+  const minimised = useEphemeralStore((s) => s.talkMinimised);
+  const open = useEphemeralStore((s) => s.openTalk);
+  const close = useEphemeralStore((s) => s.closeTalk);
+  const setMinimised = useEphemeralStore((s) => s.setTalkMinimised);
+  return { talkWith, minimised, open, close, setMinimised };
+}

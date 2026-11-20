@@ -72,6 +72,7 @@ export {
   useSheet,
   useCommandPalette,
   useMapInsetsReady,
+  useTalkDock,
 } from './ephemeral';
 export { useMapFocus } from './useMapFocus';
 

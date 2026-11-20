@@ -32,6 +32,10 @@ interface EphemeralState {
   /** Map share hidden under floating UI; trims the viewport query. Null until
    *  the shell's first measurement, which holds the viewport queries back. */
   mapInsets: MapInsets | null;
+  /** Person the in-atlas chat is open with (docked window or sheet); null when closed. */
+  talkWith: { id: string; name: string } | null;
+  /** The docked chat is folded down to its header bar. */
+  talkMinimised: boolean;
 
   setLiveScrub: (year: number | null) => void;
   setHover: (id: string | null) => void;
@@ -41,6 +45,9 @@ interface EphemeralState {
   bumpStyleEpoch: () => void;
   setTrail: (updater: (prev: Crumb[]) => Crumb[]) => void;
   setMapInsets: (insets: MapInsets) => void;
+  openTalk: (person: { id: string; name: string }) => void;
+  closeTalk: () => void;
+  setTalkMinimised: (minimised: boolean) => void;
 }
 
 export const useEphemeralStore = create<EphemeralState>()((set) => ({
@@ -52,6 +59,8 @@ export const useEphemeralStore = create<EphemeralState>()((set) => ({
   styleEpoch: 0,
   trail: [],
   mapInsets: null,
+  talkWith: null,
+  talkMinimised: false,
 
   setLiveScrub: (liveScrub) => set({ liveScrub }),
   setHover: (hoverId) => set({ hoverId }),
@@ -61,4 +70,7 @@ export const useEphemeralStore = create<EphemeralState>()((set) => ({
   bumpStyleEpoch: () => set((s) => ({ styleEpoch: s.styleEpoch + 1 })),
   setTrail: (updater) => set((s) => ({ trail: updater(s.trail) })),
   setMapInsets: (mapInsets) => set({ mapInsets }),
+  openTalk: (talkWith) => set({ talkWith, talkMinimised: false }),
+  closeTalk: () => set({ talkWith: null, talkMinimised: false }),
+  setTalkMinimised: (talkMinimised) => set({ talkMinimised }),
 }));

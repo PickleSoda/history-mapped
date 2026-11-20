@@ -19,10 +19,11 @@ export function snapToHeight(snap: number | string | null): SheetHeight {
   return i === -1 ? 'peek' : ORDER[i];
 }
 
-export type SheetContentKind = 'story' | 'chronicle' | 'detail' | 'list';
+export type SheetContentKind = 'talk' | 'story' | 'chronicle' | 'detail' | 'list';
 
 /**
- * What the sheet shows. A selected entity wins so you can drill into an entity
+ * What the sheet shows. An open chat covers everything (closing it returns to
+ * what was underneath). Otherwise a selected entity wins so you can drill into an entity
  * mid-tour (detail, with a "back to tour" affordance) — clearing the selection
  * falls back to the active battle map or chronicle; otherwise the list.
  */
@@ -30,7 +31,9 @@ export function sheetContentKind(a: {
   chronicleActive: boolean;
   hasSelection: boolean;
   storyActive?: boolean;
+  talkActive?: boolean;
 }): SheetContentKind {
+  if (a.talkActive) return 'talk';
   if (a.hasSelection) return 'detail';
   if (a.storyActive) return 'story';
   if (a.chronicleActive) return 'chronicle';

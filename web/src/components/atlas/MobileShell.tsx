@@ -1,10 +1,11 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { CommandPalette } from '@/components/atlas/CommandPalette';
 import { MobileSheet } from '@/components/atlas/MobileSheet';
 import { MobileTopBar } from '@/components/atlas/MobileTopBar';
 import { TimelineScope } from '@/components/atlas/TimelineScope';
 import { MapCanvas } from '@/components/map/MapCanvas';
-import { useMapInsetsObserver, useSheet, useSheetSelectionSync } from '@/hooks';
+import { TalkHostProvider } from '@/components/talk/TalkHost';
+import { useMapInsetsObserver, useSheet, useSheetSelectionSync, useTalkDock } from '@/hooks';
 import { heightToSnap } from '@/lib/sheet';
 
 /**
@@ -16,12 +17,20 @@ import { heightToSnap } from '@/lib/sheet';
  */
 export function MobileShell() {
   useSheetSelectionSync();
-  const { sheet } = useSheet();
+  const { sheet, setSheet } = useSheet();
+  const { talkWith } = useTalkDock();
   const mapRef = useRef<HTMLDivElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
   useMapInsetsObserver({ map: mapRef, top: topRef, bottomSnap: heightToSnap(sheet) });
 
+  // A chat needs room to type: lift the sheet when one opens.
+  const talkId = talkWith?.id ?? null;
+  useEffect(() => {
+    if (talkId) setSheet('full');
+  }, [talkId, setSheet]);
+
   return (
+    <TalkHostProvider>
     <div className="flex h-dvh w-screen flex-col overflow-hidden bg-background text-foreground">
       <MobileTopBar />
       <div ref={mapRef} className="relative min-h-0 flex-1 overflow-hidden">
@@ -38,5 +47,6 @@ export function MobileShell() {
       <MobileSheet />
       <CommandPalette />
     </div>
+    </TalkHostProvider>
   );
 }
