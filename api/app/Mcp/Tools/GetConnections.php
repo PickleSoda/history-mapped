@@ -78,7 +78,7 @@ class GetConnections extends Tool
         $ids = collect($g['nodes'])->pluck('id')->reject(fn (string $id): bool => $id === $center->entity_id)->values()->all();
         $byId = Entity::query()->withGeoJson()->whereIn('entities.entity_id', $ids)->get()->keyBy('entity_id');
         // Keep the graph's order (strongest links first); a node could vanish between the two queries.
-        $nodes = $byId->only($ids)->values();
+        $nodes = collect($ids)->map(fn (string $id) => $byId->get($id))->filter()->values();
 
         $cards = EntityCards::summaries($nodes->prepend($center));
         $centerCard = array_shift($cards);

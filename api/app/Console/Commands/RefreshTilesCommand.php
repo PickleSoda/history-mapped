@@ -35,7 +35,9 @@ class RefreshTilesCommand extends Command
         // the counter past this value, so the next run refreshes again.
         $change = (int) DB::selectOne('SELECT last_value FROM tiles.change_seq')->last_value;
 
-        if (! $this->option('force') && Cache::get(self::CACHE_KEY) === $change) {
+        // The Redis store hands numbers back as strings, so compare as integers.
+        $refreshedAt = Cache::get(self::CACHE_KEY);
+        if (! $this->option('force') && is_numeric($refreshedAt) && (int) $refreshedAt === $change) {
             $this->components->info('Atlas tile features are current.');
 
             return self::SUCCESS;
