@@ -153,16 +153,12 @@ class MapFocusAction
                 SELECT e.entity_id
                 FROM matches
                 JOIN entities e ON e.entity_id = matches.entity_id
-                WHERE (
-                    EXISTS (
-                        SELECT 1 FROM entity_locations el
-                        WHERE el.entity_id = e.entity_id AND el.is_primary = true AND el.geom IS NOT NULL
-                    )
-                    -- Placed by its borders alone, as the point query above allows.
-                    OR EXISTS (
-                        SELECT 1 FROM geometry_periods gp
-                        WHERE gp.entity_id = e.entity_id AND COALESCE(gp.geom, gp.territory_geom) IS NOT NULL
-                    )
+                -- The primary point only: checking geometry periods as well made
+                -- common words four times slower. Entities placed by a period
+                -- alone were given a primary point (migration 2026_11_20_110000).
+                WHERE EXISTS (
+                    SELECT 1 FROM entity_locations el
+                    WHERE el.entity_id = e.entity_id AND el.is_primary = true AND el.geom IS NOT NULL
                 ) {$groupSql}
                 ORDER BY e.impact_score DESC NULLS LAST, e.entity_id
                 LIMIT ?

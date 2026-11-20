@@ -79,22 +79,29 @@ class MapFocusApiTest extends TestCase
         $this->assertSame(['Fort Zedvark'], array_keys($this->names('search=zedvark&limit=1')));
     }
 
-    public function test_a_search_also_finds_what_is_placed_by_its_borders_alone(): void
+    public function test_an_entity_placed_by_its_own_geometry_period_gets_a_primary_point_and_is_found(): void
     {
-        $realm = Entity::factory()->verified()->create(['name' => 'Realm of Quorvath']);
-        DB::statement(
+        $period = fn (Entity $e, string $mode, string $extra = 'NULL') => DB::statement(
             "INSERT INTO geometry_periods (
                 geometry_period_id, entity_id, period_type, start_year, end_year,
-                territory_geom, provenance_mode, created_by, created_at, updated_at
+                territory_geom, provenance_mode, source_event_id, created_by, created_at, updated_at
             ) VALUES (
                 gen_random_uuid(), ?, 'territory', 900, 1100,
                 ST_SetSRID(ST_GeomFromText('POLYGON((10 40, 11 40, 11 41, 10 41, 10 40))'), 4326),
-                'manual', 'test', NOW(), NOW()
+                ?, {$extra}, 'test', NOW(), NOW()
             )",
-            [$realm->entity_id],
+            [$e->entity_id, $mode],
         );
+        $realm = Entity::factory()->verified()->atLocation('Quorvath')->create(['name' => 'Realm of Quorvath']);
+        $period($realm, 'ohm_import');
+        // A place borrowed from a related entity is not the entity's own point.
+        $guest = Entity::factory()->verified()->atLocation('Quorvath')->create(['name' => 'Quorvath Visitor']);
+        $period($guest, 'derived', "'{$realm->entity_id}'");
 
         $this->assertSame(['Realm of Quorvath'], array_keys($this->names('search=quorvath')));
+        $this->assertSame(1, DB::table('entity_locations')->where('entity_id', $realm->entity_id)
+            ->where('is_primary', true)->whereNotNull('geom')->count());
+        $this->assertSame(0, DB::table('entity_locations')->where('entity_id', $guest->entity_id)->whereNotNull('geom')->count());
     }
 
     public function test_it_needs_exactly_one_of_an_entity_or_a_search(): void
