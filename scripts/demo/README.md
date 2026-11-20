@@ -26,4 +26,6 @@ and 37 map stories in `demo-data-v1`.
    per table listed above (`'ref_*'` for the reference tables), piped through `gzip -9`.
 4. Test it: `DEMO_DB=<a freshly migrated database> bash scripts/demo/load.sh --yes <file>`.
 5. Attach the file and its `sha256sum` output (`<file>.sha256`) to a new release tag, and change
-   the default `VERSION` in `load.sh`.
+   the default `VERSION` in `load.sh`. The loader takes either the whole file or parts made with
+   `split -b 9500k -d <file> <file>.part-` (`demo-data-v1` is in six parts, because it was uploaded
+   through a tool with a 10 MB limit per file).

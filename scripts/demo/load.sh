@@ -39,8 +39,17 @@ if [ -z "$FILE" ]; then
   mkdir -p output/demo
   FILE="output/demo/$VERSION.sql.gz"
   if [ ! -s "$FILE" ]; then
+    # The release holds the file in parts (part-00, part-01, ...); they are joined here.
     echo "Downloading $URL"
-    curl -fL --retry 3 -o "$FILE.part" "$URL"
+    : > "$FILE.part"
+    i=0
+    # A part that is not there (404) ends the list.
+    while curl -fsL --retry 3 -o "$FILE.chunk" "$(printf '%s.part-%02d' "$URL" "$i")"; do
+      cat "$FILE.chunk" >> "$FILE.part"
+      i=$((i + 1))
+    done
+    rm -f "$FILE.chunk"
+    [ "$i" -gt 0 ] || curl -fL --retry 3 -o "$FILE.part" "$URL"
     mv "$FILE.part" "$FILE"
   fi
   # The release carries the file's checksum; a missing one is not an error.
