@@ -174,6 +174,9 @@ flowchart TD
   who signs in through the HTML form is redirected to the public site.
 - **Sanctum is cookie-only.** The SPA calls `GET /sanctum/csrf-cookie`, then sends credentials with
   every request; CORS allows the frontend origin. No API tokens are issued.
+- **Preflights.** The SPA sends the CSRF token header with writes only, so its reads reach the API
+  as one request each. A write is preceded by an OPTIONS preflight, which a browser may remember
+  for two hours (`config/cors.php`, `max_age`).
 - **Roles** come from spatie/laravel-permission (`database/seeders/RoleSeeder.php`,
   `PermissionSeeder.php`). Assign one with `php artisan user:role {email} {role}`.
 

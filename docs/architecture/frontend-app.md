@@ -365,7 +365,7 @@ published pages stay on the site; any other relative link goes to the file on Gi
 |---|---|
 | **Offline and caching (PWA)** | `vite-plugin-pwa`, auto-update. Precaches the app shell (not the docs). Runtime caches: OHM tiles and styles (cache-first, 30 days), our vector tiles (stale-while-revalidate, 1 day), `GET /api/v1/*` except `/me` and `/user` (stale-while-revalidate, 7 days). Manifest `start_url` is `/app` |
 | **Themes** | Light and dark (`.dark` on `<html>`, set before first paint; follows the OS until toggled). MapLibre, Mermaid and the timeline are re-themed in code. The OHM basemaps stay light; dark mode dims the canvas. On top, the [era theme](#era-themes) of the time and place on the map, in both modes |
-| **Auth** | Sanctum cookie session on the API domain. axios sends credentials and fetches the CSRF cookie before each write. `GET /me` returning 401 means "guest". Two-factor sign-in is supported |
+| **Auth** | Sanctum cookie session on the API domain. axios sends credentials and fetches the CSRF cookie before each write. The token header goes on writes only (`sendsXsrfToken` in `lib/api/client.ts`): a custom header on a read would cost an extra permission request (a CORS preflight) before every API call, for visitors and for crawlers that render the pages. `GET /me` returning 401 means "guest". Two-factor sign-in is supported |
 | **Environment** | `VITE_API_URL` (required for builds), `VITE_MAP_TILES_URL` (turns on tile mode), `VITE_ADMIN_ORIGINS` (who may drive the preview iframe) |
 | **Analytics** | None: no analytics or telemetry script is loaded |
 

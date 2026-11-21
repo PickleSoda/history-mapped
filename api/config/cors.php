@@ -28,7 +28,11 @@ return [
 
     'exposed_headers' => [],
 
-    'max_age' => 0,
+    // How long a browser may remember the answer to a preflight (seconds).
+    // At 0 it asked again before every single write. Two hours is the most
+    // Chrome keeps one; the SPA's reads need no preflight at all (they carry
+    // no custom header, see web/src/lib/api/client.ts).
+    'max_age' => 7200,
 
     'supports_credentials' => true,
 
