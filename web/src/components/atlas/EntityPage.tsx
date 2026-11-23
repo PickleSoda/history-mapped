@@ -5,7 +5,7 @@ import { SaveControls } from '@/components/account/SaveControls';
 import { SuggestEditButton } from '@/components/account/SuggestEdit';
 import { EntityImage, MediaCreditLine } from '@/components/atlas/EntityImage';
 import { TypeBadge } from '@/components/atlas/GroupBadge';
-import { usePageNav } from '@/components/atlas/link-mode';
+import { PageLink, usePageNav } from '@/components/atlas/link-mode';
 import {
   ImpactMeter,
   PageFrame,
@@ -22,7 +22,7 @@ import {
   RelationshipTimeline,
 } from '@/components/atlas/RelationshipTimeline';
 import { paragraphs, storyKindLabel } from '@/components/atlas/StoryCard';
-import { TagPills } from '@/components/atlas/TagPills';
+import { PageTagPills } from '@/components/atlas/TagPills';
 import { RelationGraph } from '@/components/graph';
 import { TalkButton } from '@/components/talk/TalkButton';
 import {
@@ -175,24 +175,24 @@ function Hero({ entity }: { entity: EntityDetail }) {
       <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-foreground/80">
         <DatesLine entity={entity} />
         {startYear != null && (
-          <button
-            type="button"
-            onClick={() => showOnMap(entity.id, { year: startYear })}
+          <PageLink
+            intent={{ kind: 'map', entityId: entity.id, year: startYear }}
+            onOpen={() => showOnMap(entity.id, { year: startYear })}
             className="text-[12px] text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >
             View the map in {formatYear(startYear)}
-          </button>
+          </PageLink>
         )}
         {entity.geom != null ? (
-          <button
-            type="button"
-            onClick={() => showOnMap(entity.id, { geom: entity.geom, yearHint: startYear })}
+          <PageLink
+            intent={{ kind: 'map', entityId: entity.id, year: startYear }}
+            onOpen={() => showOnMap(entity.id, { geom: entity.geom, yearHint: startYear })}
             className="inline-flex items-center gap-1.5 underline-offset-4 hover:underline"
             title="Show on the map"
           >
             <MapPin size={14} style={{ color: g.color }} />
             {entity.location_name ?? 'Show on map'}
-          </button>
+          </PageLink>
         ) : (
           entity.location_name && (
             <span className="inline-flex items-center gap-1.5">
@@ -359,9 +359,9 @@ function StorySteps({ slug }: { slug: string }) {
     <ol className="relative space-y-1 border-l pl-5">
       {doc.steps.map((step, i) => (
         <li key={step.id}>
-          <button
-            type="button"
-            onClick={() => openStory(slug, i)}
+          <PageLink
+            intent={{ kind: 'story', slug, step: i }}
+            onOpen={() => openStory(slug, i)}
             className="group -ml-1 w-full rounded-lg px-2 py-2 text-left hover:bg-muted/60"
           >
             <span className="absolute -left-[5px] mt-1.5 size-2.5 rounded-full border-2 border-background bg-amber-700" />
@@ -372,7 +372,7 @@ function StorySteps({ slug }: { slug: string }) {
             <span className="mt-0.5 line-clamp-3 block text-[13px] leading-relaxed text-foreground/75">
               {step.narrative}
             </span>
-          </button>
+          </PageLink>
         </li>
       ))}
     </ol>
@@ -390,13 +390,13 @@ function BattleMaps({ entity }: { entity: EntityDetail }) {
           title={s.kind === 'campaign' ? 'How the campaign unfolded' : 'How the battle unfolded'}
           count={s.step_count ?? undefined}
           aside={
-            <button
-              type="button"
-              onClick={() => openStory(s.slug)}
+            <PageLink
+              intent={{ kind: 'story', slug: s.slug }}
+              onOpen={() => openStory(s.slug)}
               className="inline-flex items-center gap-1.5 rounded-lg bg-amber-700 px-3 py-1.5 text-[12px] font-semibold text-white shadow-sm hover:bg-amber-800"
             >
               <Play size={13} /> Play the {storyKindLabel(s.kind).toLowerCase()}
-            </button>
+            </PageLink>
           }
         >
           <StorySteps slug={s.slug} />
@@ -480,7 +480,7 @@ function AttributesAndTags({ entity }: { entity: EntityDetail }) {
           ))}
         </dl>
       )}
-      <TagPills slugs={entity.tags} className={cn(rows.length > 0 && 'mt-4')} />
+      <PageTagPills slugs={entity.tags} className={cn(rows.length > 0 && 'mt-4')} />
     </Section>
   );
 }
@@ -493,16 +493,16 @@ function Chronicles({ id }: { id: string }) {
     <Section title="In chronicles" count={data.data.length}>
       <div className="flex flex-wrap gap-2">
         {data.data.map((c) => (
-          <button
+          <PageLink
             key={c.chronicle_id}
-            type="button"
-            onClick={() => openChronicle(c.slug)}
+            intent={{ kind: 'chronicle', slug: c.slug }}
+            onOpen={() => openChronicle(c.slug)}
             className="inline-flex items-center gap-1.5 rounded-full border bg-card px-3 py-1.5 text-[12px] shadow-xs transition-colors hover:bg-muted"
             title="Open this chronicle"
           >
             <ScrollText size={13} className="text-muted-foreground" />
             <span className="font-heading">{c.title}</span>
-          </button>
+          </PageLink>
         ))}
       </div>
     </Section>
@@ -556,13 +556,13 @@ function TimelineEntries({ id }: { id: string }) {
                 )}
               </div>
               {e.related_entity_id ? (
-                <button
-                  type="button"
-                  onClick={() => openEntity(e.related_entity_id as string)}
+                <PageLink
+                  intent={{ kind: 'entity', id: e.related_entity_id }}
+                  onOpen={() => openEntity(e.related_entity_id as string)}
                   className="mt-0.5 text-left text-[13px] font-medium underline-offset-4 hover:underline"
                 >
                   {e.title ?? e.related_entity_name}
-                </button>
+                </PageLink>
               ) : (
                 e.title && <p className="mt-0.5 text-[13px] font-medium">{e.title}</p>
               )}

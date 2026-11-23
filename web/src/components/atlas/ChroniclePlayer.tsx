@@ -1,8 +1,10 @@
 import { ChevronLeft, Layers, MoveRight, Route } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { ExpandButton } from '@/components/atlas/ExpandButton';
 import { preloadChroniclePage } from '@/components/atlas/FullPage';
 import { GroupDot } from '@/components/atlas/GroupBadge';
+import { useLinkMode } from '@/components/atlas/link-mode';
 import { NavBreadcrumb } from '@/components/atlas/NavBreadcrumb';
 import {
   useChronicle,
@@ -18,6 +20,7 @@ import { useActiveStory } from '@/hooks/useMapStory';
 import { placesIndex, stepScene } from '@/lib/chronicle-map/scene';
 import { formatYear } from '@/lib/format';
 import { geometriesBounds } from '@/lib/map-focus';
+import { siteHref } from '@/lib/page-nav';
 import type { ChronicleEntry } from '@/lib/schemas/chronicle';
 import type { Relationship } from '@/lib/schemas/entity';
 import { cn } from '@/lib/utils';
@@ -103,6 +106,49 @@ export function WhatChanged({ rel, onOpen }: { rel: Relationship; onOpen?: (id: 
         <p className="mt-2 text-[12px] leading-relaxed text-foreground/80">
           {rel.description}
         </p>
+      )}
+    </div>
+  );
+}
+
+/**
+ * "What changed" on the chronicle page, in either link mode. On the site the
+ * two entities are real links to their pages, which crawlers follow; in the
+ * atlas this is `WhatChanged`, opening them through `onOpen`. The site markup
+ * mirrors `WhatChanged`: keep the two in step.
+ */
+export function PageWhatChanged({ rel, onOpen }: { rel: Relationship; onOpen: (id: string) => void }) {
+  return useLinkMode() === 'site' ? <SiteWhatChanged rel={rel} /> : <WhatChanged rel={rel} onOpen={onOpen} />;
+}
+
+function SiteWhatChanged({ rel }: { rel: Relationship }) {
+  const src = rel.source_entity;
+  const tgt = rel.target_entity;
+  if (!src && !tgt) return null;
+  const side = (e: NonNullable<Relationship['source_entity']>) => (
+    <Link
+      to={siteHref({ kind: 'entity', id: e.id })}
+      className="inline-flex min-w-0 items-center gap-1.5 hover:underline"
+    >
+      <GroupDot group={e.entity_group} />
+      <span className="truncate">{e.name}</span>
+    </Link>
+  );
+  return (
+    <div className="mt-4 rounded-lg border bg-muted/40 p-3">
+      <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+        What changed
+      </h4>
+      <div className="flex items-center gap-2 text-[13px]">
+        {src && side(src)}
+        <span className="flex flex-none items-center gap-1 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
+          {rel.relationship_type && <span>{rel.relationship_type.replace(/_/g, ' ')}</span>}
+          <MoveRight size={12} />
+        </span>
+        {tgt && side(tgt)}
+      </div>
+      {rel.description && (
+        <p className="mt-2 text-[12px] leading-relaxed text-foreground/80">{rel.description}</p>
       )}
     </div>
   );

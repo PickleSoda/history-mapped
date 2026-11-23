@@ -308,6 +308,20 @@ depends on the **link mode** (`components/atlas/link-mode.tsx`, policy in `lib/p
 | Show on the map | set the year, collapse, frame it | go to `/app?sel=…&t=<year>` |
 | A tag pill | filter the Chronicles tab | go to `/browse/:facet/:tag` |
 
+On the site each of these controls is a real link (`<a href>` with the URL above), so crawlers
+follow it and it opens in a new tab like any other link; a plain click is still client-side
+navigation. In the atlas they stay buttons that run the hooks. The pieces:
+
+| Piece | Where | Site | Atlas |
+|---|---|---|---|
+| `PageLink` | `components/atlas/link-mode.tsx` | router `<Link>` to `siteHref(intent)` | the button, `onOpen` runs the hook |
+| `PageTagPills` | `components/atlas/TagPills.tsx` | pills link to their browse pages | `TagPills` |
+| `PageWhatChanged` | `components/atlas/ChroniclePlayer.tsx` | both entities link to their pages | `WhatChanged` |
+
+What stays a button on the site: the relation graph's Open (it appears only after a click on the
+canvas, which crawlers never make) and the actions that do not leave the page (save, suggest an
+edit, graph depth and filters, the step scrubber). Tests: `components/atlas/link-mode.test.ts`.
+
 Site pages set the document title and description through `useDocumentMeta`. Links into the atlas
 are built in one place: `atlasHref()` in `lib/site-links.ts`.
 
@@ -344,6 +358,7 @@ How it fits together:
 | Same HTML for everyone | Visitors get the page text too, for the moment before the web app starts. `createRoot().render()` replaces whatever is in `#root`, so nothing is hydrated |
 | Never required | If the app answers 5xx or cannot be reached, Caddy serves the plain `index.html`. Without the shell file the app answers 503 for the same reason. Sitemap errors are passed on as errors |
 | Returning visitors | The service worker answers navigations from its cached `index.html`, so they see the web app's page directly. `robots.txt`, `llms.txt` and the sitemap paths are excluded from that fallback (`vite.config.ts`) |
+| Links after rendering | Crawlers that run JavaScript follow only `<a href>`. Every control on the site pages (landing, browse, docs, Discover cards, entity and chronicle pages) that opens another page is one; see [Site pages and link mode](#site-pages-and-link-mode) |
 | Load | A typical entity page costs about one API call (30 ms on a developer machine; a hub such as a world war about 150 ms). `SITE_RATE_LIMIT` (120 a minute per address) paces crawlers; a visitor loads one such page per visit |
 | Addresses | Canonical and sitemap URLs use `FRONTEND_URL`. `robots.txt` and `llms.txt` are static and name the production host |
 | What stays open on the API hostname | A crawler that runs JavaScript (Googlebot) loads `/api/v1/` and `/tiles/` while it renders a page, and `llms.txt` sends tools to `/api/v1/` and `/mcp`. A new public path there needs an `Allow` line in `api/public/robots.txt`; list `Allow` lines before `Disallow: /`, because some readers of the file stop at the first rule that matches |

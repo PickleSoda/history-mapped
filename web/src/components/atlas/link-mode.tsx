@@ -10,7 +10,7 @@
  */
 import { createContext, useCallback, useContext, useMemo } from 'react';
 import type { ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   useChronicleNav,
   useFullPage,
@@ -23,6 +23,7 @@ import {
 import type { FullPageKind } from '@/lib/full-page';
 import { siteHref } from '@/lib/page-nav';
 import type { LinkMode, PageNavIntent } from '@/lib/page-nav';
+import { cn } from '@/lib/utils';
 
 export type { LinkMode } from '@/lib/page-nav';
 
@@ -36,6 +37,49 @@ export function LinkModeProvider({ mode, children }: { mode: LinkMode; children:
 /** The enclosing link mode (`atlas` outside any provider). */
 export function useLinkMode(): LinkMode {
   return useContext(LinkModeContext);
+}
+
+/**
+ * A control on a page that opens something else. On the site it is a real
+ * link to `siteHref(intent)`: crawlers follow `<a href>`, never click
+ * handlers, and a link opens in a new tab like any other (a plain click is
+ * still client-side navigation). In the atlas it is the button it always
+ * was, and a click runs `onOpen`, the atlas action (select, enter, play).
+ *
+ * Reads only the link mode, so it is cheap in per-row components.
+ */
+export function PageLink({
+  intent,
+  onOpen,
+  className,
+  title,
+  'aria-label': ariaLabel,
+  children,
+}: {
+  /** Where the site's link goes. */
+  intent: PageNavIntent;
+  /** What a click does in the atlas. */
+  onOpen: () => void;
+  className?: string;
+  title?: string;
+  'aria-label'?: string;
+  children: ReactNode;
+}) {
+  const mode = useLinkMode();
+  if (mode === 'site') {
+    return (
+      // Laid out like the button it replaces (a button is inline-block); a
+      // display class in `className` wins.
+      <Link to={siteHref(intent)} className={cn('inline-block', className)} title={title} aria-label={ariaLabel}>
+        {children}
+      </Link>
+    );
+  }
+  return (
+    <button type="button" onClick={onOpen} className={className} title={title} aria-label={ariaLabel}>
+      {children}
+    </button>
+  );
 }
 
 /** Where "show on map" should land. */

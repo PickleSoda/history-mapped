@@ -10,7 +10,7 @@ import { memo, useCallback, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { SaveControls } from '@/components/account/SaveControls';
 import { SuggestEditButton } from '@/components/account/SuggestEdit';
-import { WhatChanged } from '@/components/atlas/ChroniclePlayer';
+import { PageWhatChanged } from '@/components/atlas/ChroniclePlayer';
 import { usePageNav } from '@/components/atlas/link-mode';
 import {
   ImpactMeter,
@@ -24,7 +24,7 @@ import {
   useScrollRoot,
 } from '@/components/atlas/page-kit';
 import type { PageVariant } from '@/components/atlas/page-kit';
-import { TagPills } from '@/components/atlas/TagPills';
+import { PageTagPills } from '@/components/atlas/TagPills';
 import { RelationGraph } from '@/components/graph';
 import {
   useChronicle,
@@ -95,7 +95,7 @@ function Hero({ chronicle, graph }: { chronicle: Chronicle; graph: ChronicleGrap
         {years && <span className="text-muted-foreground">{years}</span>}
         <span className="text-muted-foreground">{chronicle.entries.length} steps</span>
       </p>
-      <TagPills slugs={chronicle.tags} className="mt-3" />
+      <PageTagPills slugs={chronicle.tags} className="mt-3" />
 
       <StatGrid>
         <Stat label="Began">{chronicle.start_year != null ? formatYear(chronicle.start_year) : '—'}</Stat>
@@ -445,7 +445,7 @@ const StepItem = memo(function StepItem({
             />
           </p>
         )}
-        {entry.primary_relationship && <WhatChanged rel={entry.primary_relationship} onOpen={onOpen} />}
+        {entry.primary_relationship && <PageWhatChanged rel={entry.primary_relationship} onOpen={onOpen} />}
         {graph && (
           <button
             type="button"
