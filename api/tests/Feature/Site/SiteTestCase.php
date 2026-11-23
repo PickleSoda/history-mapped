@@ -56,6 +56,9 @@ abstract class SiteTestCase extends TestCase
                   content="The default description of the shell."
                 />
                 <meta property="og:title" content="History Mapped" />
+                <meta property="og:image" content="https://atlas.test/og-image.jpg" />
+                <meta property="og:image:width" content="1200" />
+                <meta name="twitter:card" content="summary_large_image" />
                 <script type="module" crossorigin src="/assets/index-{$release}.js"></script>
                 <link rel="stylesheet" crossorigin href="/assets/index-{$release}.css">
               </head>

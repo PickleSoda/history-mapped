@@ -13,8 +13,8 @@ afterEach(() => {
 describe('documentTitle', () => {
   it('suffixes the site name', () => {
     expect(documentTitle('Battle of Cannae')).toBe('Battle of Cannae · History Mapped');
-    expect(documentTitle('  ')).toBe('History Mapped');
-    expect(documentTitle(null)).toBe('History Mapped');
+    expect(documentTitle('  ')).toBe('History Mapped: interactive atlas of world history');
+    expect(documentTitle(null)).toBe('History Mapped: interactive atlas of world history');
   });
 });
 

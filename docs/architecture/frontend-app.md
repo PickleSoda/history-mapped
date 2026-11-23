@@ -329,11 +329,11 @@ flowchart TB
 
 | Address | What is sent | Where |
 |---|---|---|
-| `/entities/:id`, `/chronicles/:slug` | The shell with a title, description, canonical link, Open Graph tags, `schema.org` JSON and, inside `#root`, the page as text: summary, significance, description, up to 40 connections and the chronicles for an entity; the dated steps and their entities for a chronicle. A missing page is the same shell with status 404 and `noindex` | `api/routes/site.php`, `App\Services\Site\SitePages`, views in `api/resources/views/site/` |
+| `/entities/:id`, `/chronicles/:slug` | The shell with a title, description, canonical link, Open Graph tags (the entity's picture, or the site's card when it has none), `schema.org` JSON and, inside `#root`, the page as text: summary, significance, description, up to 40 connections and the chronicles for an entity; the dated steps and their entities for a chronicle. A missing page is the same shell with status 404 and `noindex` | `api/routes/site.php`, `App\Services\Site\SitePages`, views in `api/resources/views/site/` |
 | `/sitemap.xml`, `/sitemaps/*.xml` | An index, the fixed pages and curated sets, the chronicles, and the entities in 256 files by the first two hex digits of their id (about 2,500 each). Entities without a summary are left out | `App\Http\Site\SitemapController` |
 | `/robots.txt` | Allows everything except the sign-in and account pages, and names the sitemap | `web/public/robots.txt` |
 | `/llms.txt` | A short guide for language models: what the site is, the page addresses, the JSON API and the MCP server | `web/public/llms.txt` |
-| every other page | The shell with a default title and description, and a `<noscript>` note. Browse, docs and the atlas still need JavaScript | `web/index.html` |
+| every other page | The shell with the home title ("History Mapped: interactive atlas of world history"), a default description, the site's link-preview card (`web/public/og-image.jpg`, 1200×630, a large-image card on X) and a `<noscript>` note. Browse, docs and the atlas still need JavaScript | `web/index.html` |
 | the API hostname | Its own `robots.txt` lets crawlers into `/api/v1/`, `/mcp`, `/tiles/` and `/.well-known/` and nothing else, so the sign-in page, the admin and the second copy of these pages at `/site-pages/…` are not crawled. Every answer carries `X-Robots-Tag: noindex`, which keeps JSON and tiles out of search results | `api/public/robots.txt`, `docker/Caddyfile` |
 
 How it fits together:

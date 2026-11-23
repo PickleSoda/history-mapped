@@ -19,6 +19,9 @@ class SiteShell
 {
     public const SITE_NAME = 'History Mapped';
 
+    /** The site's link-preview card, served by the web app (web/public/og-image.jpg). */
+    public const DEFAULT_IMAGE = '/og-image.jpg';
+
     private const ROOT = '<div id="root"></div>';
 
     /**
@@ -72,6 +75,7 @@ class SiteShell
             'title' => $page->title === '' ? self::SITE_NAME : $page->title.' · '.self::SITE_NAME,
             'url' => self::url($page->path),
             'siteName' => self::SITE_NAME,
+            'defaultImage' => self::url(self::DEFAULT_IMAGE),
             'jsonLd' => $page->jsonLd === null ? null : json_encode(
                 $page->jsonLd,
                 JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_THROW_ON_ERROR,

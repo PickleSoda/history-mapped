@@ -11,10 +11,9 @@
     <meta property="og:type" content="article">
     <meta property="og:title" content="{{ $page->title }}">
     <meta property="og:description" content="{{ $page->description }}">
-@if ($page->image !== null)
-    <meta property="og:image" content="{{ $page->image }}">
-@endif
-    <meta name="twitter:card" content="summary">
+{{-- A page without a picture of its own shows the site's card (web/public/og-image.jpg). --}}
+    <meta property="og:image" content="{{ $page->image ?? $defaultImage }}">
+    <meta name="twitter:card" content="summary_large_image">
 @if ($jsonLd !== null)
     <script type="application/ld+json">{!! $jsonLd !!}</script>
 @endif

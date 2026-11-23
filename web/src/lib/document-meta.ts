@@ -7,10 +7,14 @@ import { useEffect } from 'react';
 
 export const SITE_NAME = 'History Mapped';
 
-/** "<title> · History Mapped", or the bare site name. */
+/** The home page's title (and `index.html`'s): the name is shared with other
+ *  history sites, so the home title says what this one is. */
+export const HOME_TITLE = `${SITE_NAME}: interactive atlas of world history`;
+
+/** "<title> · History Mapped", or the home title. */
 export function documentTitle(title?: string | null): string {
   const t = title?.trim();
-  return t ? `${t} · ${SITE_NAME}` : SITE_NAME;
+  return t ? `${t} · ${SITE_NAME}` : HOME_TITLE;
 }
 
 /** A description trimmed to one search-snippet's length, on a word boundary. */

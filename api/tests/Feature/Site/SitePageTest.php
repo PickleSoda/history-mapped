@@ -54,6 +54,10 @@ class SitePageTest extends SiteTestCase
         $this->assertStringContainsString('<link rel="canonical" href="https://atlas.test/entities/'.$hannibal->entity_id.'">', $html);
         $this->assertSame(1, substr_count($html, 'property="og:title"'));
         $this->assertStringContainsString('<meta property="og:title" content="Hannibal">', $html);
+        // No picture of his own: the site's card, once (the shell's image tags are replaced).
+        $this->assertSame(1, substr_count($html, 'property="og:image'));
+        $this->assertStringContainsString('<meta property="og:image" content="https://atlas.test/og-image.jpg">', $html);
+        $this->assertSame(1, substr_count($html, 'name="twitter:card"'));
         $this->assertStringNotContainsString('noindex', $html);
 
         $ld = $this->jsonLd($html);
