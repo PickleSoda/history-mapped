@@ -30,6 +30,10 @@ use Illuminate\Support\Facades\DB;
  * geo-ref (a point left behind by a cleared QID is not trusted). A PLACE source only ever takes a PLACE
  * target, never a polity centroid; `$preciseOnly` applies that to events too.
  * created_by is NOT one of the markers entity:backfill deletes.
+ *
+ * A copy follows its target: stale() and refresh() move it when the target's
+ * point changes and remove it when the target loses it (the scheduler runs
+ * `geometry:derive-located-at --refresh --apply` hourly).
  */
 class DeriveLocatedAtGeometryAction
 {
@@ -171,6 +175,99 @@ class DeriveLocatedAtGeometryAction
         });
 
         return $inserted;
+    }
+
+    /**
+     * The copies already written that no longer match their target. A copy is
+     * taken once, and a place's point is often corrected later: the 2026-11-01
+     * geo backfill moved Cambrai from South Australia to France and Oviedo from
+     * Florida to Asturias, while the battles fought there kept the old copies
+     * (66 copies on a namesake's point, found 2026-11-22).
+     *
+     * Each copy is compared with the point plan() would choose today, under the
+     * same rules (a PLACE or polity target that keeps a QID or an active geo-ref;
+     * its primary point, else its own period point nearest in time):
+     *   - `move`:   that point is more than a metre away; the copy takes it;
+     *   - `remove`: there is no such point any more (the target lost its QID, or
+     *     its point); plan() would not write this copy now, so it goes.
+     *
+     * @return list<object> geometry_period_id, entity_id, name, target_name,
+     *                      action, geojson (the new point; null for `remove`), km
+     */
+    public function stale(?string $entityId = null): array
+    {
+        $entityFilter = $entityId !== null ? 'AND gp.entity_id = ?' : '';
+
+        $sql = <<<SQL
+            SELECT gp.geometry_period_id, gp.entity_id, e.name, t.name AS target_name,
+                   CASE WHEN pt.geom IS NULL THEN 'remove' ELSE 'move' END AS action,
+                   ST_AsGeoJSON(pt.geom) AS geojson,
+                   ROUND((ST_DistanceSphere(gp.geom, pt.geom) / 1000)::numeric, 1) AS km
+            FROM geometry_periods gp
+            JOIN entities e ON e.entity_id = gp.entity_id
+            JOIN relationships r ON r.relationship_id = gp.relationship_id
+            JOIN entities t ON t.entity_id = r.target_entity_id
+            LEFT JOIN LATERAL (
+                SELECT p.geom FROM (
+                    SELECT l.geom, 0 AS rank, 0 AS dist
+                    FROM entity_locations l
+                    WHERE l.entity_id = t.entity_id AND l.is_primary AND GeometryType(l.geom) = 'POINT'
+                    UNION ALL
+                    SELECT g.geom, 1, abs(g.start_year - gp.start_year)
+                    FROM geometry_periods g
+                    WHERE g.entity_id = t.entity_id AND GeometryType(g.geom) = 'POINT'
+                ) p
+                ORDER BY p.rank, p.dist
+                LIMIT 1
+            ) pt ON (t.entity_group::text = 'PLACE' OR t.entity_type::text = 'political_entity')
+                AND (e.entity_group::text <> 'PLACE' OR t.entity_group::text = 'PLACE')
+                AND (COALESCE(t.wikidata_id, '') <> ''
+                     OR EXISTS (SELECT 1 FROM entity_geo_refs g WHERE g.entity_id = t.entity_id AND g.is_active))
+            WHERE gp.provenance_mode = 'derived' AND gp.created_by = ? {$entityFilter}
+              AND (pt.geom IS NULL OR ST_DistanceSphere(gp.geom, pt.geom) > 1)
+            ORDER BY e.name, gp.geometry_period_id
+            SQL;
+
+        return DB::select($sql, [self::CREATED_BY, ...($entityId !== null ? [$entityId] : [])]);
+    }
+
+    /**
+     * Bring the stale copies in line: move each to its target's point, or
+     * delete it. Through the model, so each entity's timeline (which copies the
+     * period's point) is rebuilt once. Returns the counts.
+     *
+     * @param  list<object>  $stale  rows from stale()
+     * @return array{moved: int, removed: int}
+     */
+    public function refresh(array $stale): array
+    {
+        $counts = ['moved' => 0, 'removed' => 0];
+
+        TimelineRebuild::withoutRebuilds(function () use ($stale, &$counts): void {
+            foreach ($stale as $row) {
+                $period = GeometryPeriod::query()
+                    ->where('geometry_period_id', $row->geometry_period_id)
+                    ->where('created_by', self::CREATED_BY)
+                    ->first();
+
+                if ($period === null) {
+                    continue;
+                }
+
+                if ($row->geojson === null) {
+                    $period->delete();
+                    $counts['removed']++;
+
+                    continue;
+                }
+
+                $period->geom = json_decode($row->geojson, true);
+                $period->save();
+                $counts['moved']++;
+            }
+        });
+
+        return $counts;
     }
 
     /**

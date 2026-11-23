@@ -160,6 +160,56 @@ class DeriveLocatedAtGeometryCommandTest extends TestCase
         }
     }
 
+    public function test_refresh_moves_a_copy_after_its_place_was_corrected(): void
+    {
+        $battle = $this->entity(EntityType::EventBattle, 1917);
+        $town = $this->entity(EntityType::City);
+        $this->point($town, 139.283, -34.65); // a namesake in South Australia
+        $this->locatedAt($battle, $town);
+        $this->artisan('geometry:derive-located-at --apply')->assertExitCode(0);
+
+        DB::table('entity_locations')->where('entity_id', $town->entity_id)
+            ->update(['geom' => DB::raw('ST_SetSRID(ST_MakePoint(3.2347, 50.1758), 4326)')]);
+
+        $this->artisan('geometry:derive-located-at --refresh --sample=5')
+            ->expectsOutputToContain('[DRY-RUN] located_at copies out of date: 1 to move, 0 to remove')
+            ->expectsOutputToContain("move {$battle->name} -> {$town->name}")
+            ->assertExitCode(0);
+        $this->assertSame([139.283, -34.65], $this->periodCoordinates($battle));
+
+        $this->artisan('geometry:derive-located-at --refresh --apply')
+            ->expectsOutputToContain('Moved 1, removed 0 geometry period(s).')
+            ->assertExitCode(0);
+        $this->assertSame([3.2347, 50.1758], $this->periodCoordinates($battle));
+
+        $this->artisan('geometry:derive-located-at --refresh')
+            ->expectsOutputToContain('0 to move, 0 to remove')
+            ->assertExitCode(0);
+    }
+
+    public function test_refresh_removes_a_copy_whose_place_lost_its_identity(): void
+    {
+        $raid = $this->entity(EntityType::EventBattle, 794);
+        $town = $this->entity(EntityType::City);
+        $this->point($town, -81.196, 28.66);
+        $this->locatedAt($raid, $town);
+        $kept = $this->entity(EntityType::EventBattle, 800);
+        $other = $this->entity(EntityType::City);
+        $this->point($other, -5.85, 43.36);
+        $this->locatedAt($kept, $other);
+        $this->artisan('geometry:derive-located-at --apply')->assertExitCode(0);
+
+        // A repair cleared the town's QID: its point is a residue, not trusted.
+        $town->forceFill(['wikidata_id' => null])->save();
+
+        $this->artisan('geometry:derive-located-at --refresh --apply')
+            ->expectsOutputToContain('0 to move, 1 to remove')
+            ->assertExitCode(0);
+
+        $this->assertDatabaseMissing('geometry_periods', ['entity_id' => $raid->entity_id]);
+        $this->assertSame([-5.85, 43.36], $this->periodCoordinates($kept));
+    }
+
     public function test_polity_target_is_low_confidence_and_excluded_by_precise_only(): void
     {
         $reform = $this->entity(EntityType::EventLegalReform, 1873);

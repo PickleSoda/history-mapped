@@ -18,6 +18,11 @@ Schedule::command('entity:fetch-images --limit=2000')->dailyAt('03:30')->without
 // the content changed since the last run (tiles.change_seq moved).
 Schedule::command('tiles:refresh')->everyFiveMinutes()->withoutOverlapping();
 
+// An event placed at its town's point keeps a copy of that point. When the
+// town's point is corrected (a repair pass, an admin edit, an approved
+// suggestion), the copy follows within the hour; one query when nothing moved.
+Schedule::command('geometry:derive-located-at --refresh --apply')->hourlyAt(40)->withoutOverlapping();
+
 // "On this day" reads a small table of the dates that have a real day. The
 // rebuild reads every person's attributes once (tens of seconds on the
 // droplet), so it runs weekly, at a quiet hour. A first deploy or a content

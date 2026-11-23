@@ -15,12 +15,17 @@ class DeriveLocatedAtGeometryCommand extends Command
         {--group=* : Entity group(s) to place: EVENT, PLACE (default both)}
         {--precise-only : Only borrow a PLACE target\'s point, never a polity\'s}
         {--entity-id= : Limit to one entity id}
+        {--refresh : Instead of placing new entities, bring the copies already written in line with their target\'s point today (move or remove)}
         {--sample=0 : Print up to N planned rows}';
 
-    protected $description = 'Additively place unmapped events/places at the point of their located_at target (dry run unless --apply)';
+    protected $description = 'Additively place unmapped events/places at the point of their located_at target, or refresh those copies (dry run unless --apply)';
 
     public function handle(DeriveLocatedAtGeometryAction $derive): int
     {
+        if ($this->option('refresh')) {
+            return $this->refresh($derive);
+        }
+
         $groups = [];
         $requested = (array) $this->option('group');
         foreach ($requested !== [] ? $requested : ['EVENT', 'PLACE'] as $value) {
@@ -73,6 +78,33 @@ class DeriveLocatedAtGeometryCommand extends Command
 
         $inserted = $derive->apply($candidates);
         $this->info("Inserted {$inserted} geometry period(s) (created_by=".DeriveLocatedAtGeometryAction::CREATED_BY.').');
+
+        return self::SUCCESS;
+    }
+
+    private function refresh(DeriveLocatedAtGeometryAction $derive): int
+    {
+        $entityId = $this->option('entity-id');
+        $stale = $derive->stale(is_string($entityId) && $entityId !== '' ? $entityId : null);
+        $apply = (bool) $this->option('apply');
+
+        $moves = count(array_filter($stale, fn (object $row): bool => $row->action === 'move'));
+        $this->info(sprintf('%s located_at copies out of date: %d to move, %d to remove',
+            $apply ? '[APPLY]' : '[DRY-RUN]', $moves, count($stale) - $moves));
+
+        foreach (array_slice($stale, 0, max(0, (int) $this->option('sample'))) as $row) {
+            $this->line(sprintf('  %s %s -> %s%s', $row->action, $row->name, $row->target_name,
+                $row->km !== null ? " ({$row->km} km)" : ''));
+        }
+
+        if (! $apply) {
+            $this->comment('Dry run: nothing written. Re-run with --apply to write.');
+
+            return self::SUCCESS;
+        }
+
+        $counts = $derive->refresh($stale);
+        $this->info("Moved {$counts['moved']}, removed {$counts['removed']} geometry period(s).");
 
         return self::SUCCESS;
     }
