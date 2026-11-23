@@ -4,8 +4,8 @@ Chronicles and entities share one tag vocabulary. A tag belongs to a **facet**,
 and a row can carry many tags per facet, so "prehistoric Anatolia" is just
 `prehistory` + `anatolia`.
 
-> **Audience:** developers, editors, product · **Read time:** 6 minutes · **Last reviewed:** 2026-11-14 ·
-> **Code:** `api/app/Actions/Tag/*`, `api/database/data/tags/`, `web/src/lib/tags.ts`
+> **Audience:** developers, editors, product · **Read time:** 7 minutes · **Last reviewed:** 2026-11-22 ·
+> **Code:** `api/app/Actions/Tag/*`, `api/app/Support/Tags/RegionFootprint.php`, `api/database/data/tags/`, `web/src/lib/tags.ts`
 
 ```mermaid
 flowchart LR
@@ -64,7 +64,11 @@ Set-based SQL, about 4s for 37k entities.
   3. Sub-eras (Neolithic, Bronze/Iron Age) from its chronicles, only if its
      dates fall in the sub-era's window. Those periods differ by region, so they
      are never derived from dates alone.
-  4. Region from its chronicles, skipping `thematic` ones.
+  4. Region from its chronicles, skipping `thematic` ones. A battle, city,
+     monument, institution or mine that has a place on the map keeps a
+     chronicle's region only if one of its places lies in that region's
+     footprint (below). The First Battle of Ypres, in a World War I chronicle
+     tagged Europe, Asia and the Middle East, keeps Europe only.
   5. Theme from entity type (battle → War & Conflict, religious text → Religion…),
      and from the Wikidata class the bulk import keeps in `attributes._p31`:
      massacres, pogroms, genocides and war crimes are typed `event_battle` (the
@@ -75,7 +79,30 @@ Set-based SQL, about 4s for 37k entities.
   at least half as many of the entity's chronicles carry it as carry its most
   common tag in the same facet. Hub entities such as Rome or Julius Caesar, which
   appear in dozens of chronicles, keep their dominant regions instead of
-  collecting every one.
+  collecting every one. The footprint check in step 4 comes first, so a region
+  the entity is nowhere near does not count in the weighing.
+
+### Region footprints
+
+`RegionFootprint` gives each region tag a few boxes in degrees, drawn at about
+the region's real edges and widened by 0.5° (about 50 km) on every side.
+
+| Rule | Detail |
+|------|--------|
+| A parent covers its children | A region's footprint is its own boxes plus those of every region inside it: Asia is Siberia plus the Middle East, Central Asia, East Asia and the rest; Europe and Africa have no boxes of their own. |
+| Overlaps are fine | Boxes overlap at borders (Istanbul is in the Balkans, Greece and Anatolia). An overlap only means a tag is kept. |
+| Cross-regional tags | Global has no footprint (step 4 never hands it to entities anyway). Mediterranean, Silk Roads, Indian Ocean, Atlantic and Polar have generous boxes of their own. |
+| Which entities | Battles, cities, monuments and buildings, educational institutions and mines. A person's point is a birthplace and a treaty's is where it was signed; wars, polities, movements and natural disasters spread far beyond one point. These keep every chronicle region, as do entities with no place. |
+| What counts as a place | Every point and shape in `entity_locations` and `geometry_periods`, including periods copied from a related place. One place inside is enough. |
+| Never touched | `manual` and `curated` entity tags. |
+
+A wrong map point (a namesake geocoded on the wrong continent) makes the check
+drop a correct region. Fixing the point and rerunning `tags:sync` brings it back.
+
+When editing the boxes, `tests/Feature/Tags/RegionFootprintTest.php` checks
+well-known places against their regions. On the local database (2026-11-22) the
+check dropped 5,889 of 93,047 derived region rows, on 2,818 of the 28,992
+entities with a derived region.
 
 ## Commands
 

@@ -54,6 +54,29 @@ class TagDerivationTest extends TestCase
         $entry->secondaryEntities()->attach($entity->entity_id, ['role' => 'participant', 'sequence_in_entry' => 0]);
     }
 
+    /** Give the entity a primary map point. */
+    private function place(Entity $entity, float $lng, float $lat): void
+    {
+        DB::table('entity_locations')->where('entity_id', $entity->entity_id)->delete();
+        DB::statement(
+            "INSERT INTO entity_locations (location_id, entity_id, geom, location_method, location_confidence, is_primary, created_at, updated_at)
+             VALUES (gen_random_uuid(), ?, ST_SetSRID(ST_MakePoint(?, ?), 4326), 'human_assigned'::location_resolution_method, 'high'::confidence_level, true, NOW(), NOW())",
+            [$entity->entity_id, $lng, $lat],
+        );
+    }
+
+    /** @return list<string> the entity's region tags */
+    private function regionsOf(Entity $entity): array
+    {
+        return DB::table('entity_tags')
+            ->join('tags', 'tags.slug', '=', 'entity_tags.tag')
+            ->where('entity_tags.entity_id', $entity->entity_id)
+            ->where('tags.facet', TagFacet::Region->value)
+            ->orderBy('entity_tags.tag')
+            ->pluck('entity_tags.tag')
+            ->all();
+    }
+
     private function chronicleTagged(array $tags, ?int $start = null, ?int $end = null): Chronicle
     {
         $chronicle = Chronicle::factory()->create(['start_year' => $start, 'end_year' => $end]);
@@ -156,6 +179,98 @@ class TagDerivationTest extends TestCase
 
         // europe/italy: 3 of 4 chronicles; africa/egypt: 1 of 4 (< half the top count).
         $this->assertSame(['classical', 'europe', 'italy'], $this->tagsOf($hub));
+    }
+
+    public function test_a_placed_battle_keeps_only_the_chronicle_regions_its_point_is_in(): void
+    {
+        $worldWarOne = $this->chronicleTagged(['europe', 'middle-east', 'conflict']);
+        $ypres = Entity::factory()->ofType(EntityType::EventBattle)->create(['name' => 'First Battle of Ypres']);
+        $this->place($ypres, 2.89, 50.85);
+        $gallipoli = Entity::factory()->ofType(EntityType::EventBattle)->create(['name' => 'Gallipoli campaign']);
+        $this->place($gallipoli, 26.4, 40.2);
+        $this->putInChronicle($ypres, $worldWarOne);
+        $this->putInChronicle($gallipoli, $worldWarOne);
+
+        app(DeriveTagsAction::class)();
+
+        $this->assertSame(['europe'], $this->regionsOf($ypres));
+        // Anatolia's footprint reaches the Dardanelles, so the Middle East (and Asia) stay.
+        $this->assertSame(['asia', 'europe', 'middle-east'], $this->regionsOf($gallipoli));
+    }
+
+    public function test_entities_without_a_point_or_of_a_spread_out_type_keep_every_chronicle_region(): void
+    {
+        $chronicle = $this->chronicleTagged(['europe', 'middle-east', 'conflict']);
+        $unplaced = Entity::factory()->ofType(EntityType::EventBattle)->create();
+        $person = Entity::factory()->ofType(EntityType::Person)->create(); // a point is a birthplace
+        $this->place($person, 2.89, 50.85);
+        $war = Entity::factory()->ofType(EntityType::EventWar)->create();
+        $this->place($war, 2.89, 50.85);
+        foreach ([$unplaced, $person, $war] as $entity) {
+            $this->putInChronicle($entity, $chronicle);
+        }
+
+        app(DeriveTagsAction::class)();
+
+        foreach ([$unplaced, $person, $war] as $entity) {
+            $this->assertSame(['asia', 'europe', 'middle-east'], $this->regionsOf($entity));
+        }
+    }
+
+    public function test_a_shape_or_a_second_location_counts_as_a_place(): void
+    {
+        $chronicle = $this->chronicleTagged(['egypt', 'levant', 'regional']);
+        $city = Entity::factory()->ofType(EntityType::City)->create();
+        DB::statement(
+            "INSERT INTO geometry_periods (entity_id, period_type, start_year, territory_geom, provenance_mode)
+             VALUES (?, 'territory', -1500, ST_SetSRID(ST_MakeEnvelope(35.1, 32.5, 35.3, 32.7), 4326), 'manual')",
+            [$city->entity_id],
+        );
+        $fort = Entity::factory()->ofType(EntityType::InfrastructureMonument)->create();
+        $this->place($fort, 31.2, 30.0); // Cairo
+        DB::statement(
+            'INSERT INTO entity_locations (location_id, entity_id, geom, is_primary, created_at, updated_at)
+             VALUES (gen_random_uuid(), ?, ST_SetSRID(ST_MakePoint(35.2, 31.8), 4326), false, NOW(), NOW())',
+            [$fort->entity_id],
+        );
+        $this->putInChronicle($city, $chronicle);
+        $this->putInChronicle($fort, $chronicle);
+
+        app(DeriveTagsAction::class)();
+
+        $this->assertSame(['asia', 'levant', 'middle-east'], $this->regionsOf($city));
+        $this->assertSame(['africa', 'asia', 'egypt', 'levant', 'middle-east'], $this->regionsOf($fort));
+    }
+
+    public function test_a_region_far_from_the_point_does_not_count_in_the_weighing(): void
+    {
+        $rome = Entity::factory()->ofType(EntityType::City)->create();
+        $this->place($rome, 12.48, 41.89);
+        foreach (range(1, 5) as $i) {
+            $this->putInChronicle($rome, $this->chronicleTagged(['egypt', 'regional']));
+        }
+        foreach (range(1, 2) as $i) {
+            $this->putInChronicle($rome, $this->chronicleTagged(['italy', 'regional']));
+        }
+
+        app(DeriveTagsAction::class)();
+
+        // Unchecked, Egypt (5 of 7 chronicles) would outweigh Italy (2 of 7).
+        $this->assertSame(['europe', 'italy'], $this->regionsOf($rome));
+    }
+
+    public function test_manual_region_tags_are_kept_whatever_the_point(): void
+    {
+        $battle = Entity::factory()->ofType(EntityType::EventBattle)->create();
+        $this->place($battle, 2.89, 50.85);
+        app(SyncTagsAction::class)($battle, ['japan'], TagSource::Manual);
+        $this->putInChronicle($battle, $this->chronicleTagged(['china', 'regional']));
+
+        app(DeriveTagsAction::class)();
+
+        // China is dropped; the manual Japan (and its ancestors) are not.
+        $this->assertSame(['asia', 'east-asia', 'japan'], $this->tagsOf($battle, TagSource::Manual));
+        $this->assertSame(['asia', 'east-asia', 'japan'], $this->regionsOf($battle));
     }
 
     public function test_sub_eras_are_inherited_only_inside_their_window_and_bring_their_parent(): void

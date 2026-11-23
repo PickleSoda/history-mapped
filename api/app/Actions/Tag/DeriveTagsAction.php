@@ -6,6 +6,7 @@ namespace App\Actions\Tag;
 
 use App\Enums\EntityType;
 use App\Enums\TagSource;
+use App\Support\Tags\RegionFootprint;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -19,7 +20,10 @@ use Illuminate\Support\Facades\DB;
  *   2. era from its chronicles, when it has no dates of its own;
  *   3. sub-eras (Neolithic, Bronze/Iron Age) from its chronicles, when the
  *      entity's dates fall in the sub-era's window (or it has no dates);
- *   4. region from its chronicles, skipping thematic (cross-regional) ones;
+ *   4. region from its chronicles, skipping thematic (cross-regional) ones,
+ *      and, for a battle, city, building or other point-like entity with a
+ *      place on the map, only regions whose footprint holds that place
+ *      (RegionFootprint);
  *   5. theme from entity type, and from the Wikidata class the bulk import
  *      stored in attributes._p31 (a massacre is typed event_battle, the
  *      closest of the 30 types, and tagged Massacres & Atrocities);
@@ -181,8 +185,10 @@ class DeriveTagsAction
                 OR EXISTS (SELECT 1 FROM spans WHERE spans.entity_id = r.entity_id AND %s)', sprintf(self::OVERLAPS, 'spans')),
         );
 
-        // 4. Region, from chronicles about places rather than themes.
-        $count += $this->inheritFromChronicles("t.facet = 'region' AND t.slug <> 'global'", skipThematic: true);
+        // 4. Region, from chronicles about places rather than themes, and only
+        //    where it agrees with the entity's own place: the First Battle of
+        //    Ypres keeps Europe but not the Asia of its World War I chronicle.
+        $count += $this->inheritFromChronicles("t.facet = 'region' AND t.slug <> 'global'", skipThematic: true, nearPlace: true);
 
         // 5. Theme from entity type.
         $pairs = [];
@@ -268,16 +274,27 @@ class DeriveTagsAction
      * Julius Caesar) keep only their dominant tags: a tag is kept when at
      * least half as many of the entity's chronicles carry it as carry its most
      * common tag in the same facet. An entity in one chronicle gets all of it.
+     *
+     * `$nearPlace` drops a chronicle's tag before the weighing when the entity
+     * is point-like, has a place, and no place lies in the tag's footprint.
      */
-    private function inheritFromChronicles(string $tagSql, bool $skipThematic, string $where = 'true'): int
+    private function inheritFromChronicles(string $tagSql, bool $skipThematic, string $where = 'true', bool $nearPlace = false): int
     {
-        $thematic = $skipThematic
-            ? "WHERE NOT EXISTS (SELECT 1 FROM chronicle_tags th WHERE th.chronicle_id = m.chronicle_id AND th.tag = 'thematic')"
-            : '';
+        $filters = [];
+        if ($skipThematic) {
+            $filters[] = "NOT EXISTS (SELECT 1 FROM chronicle_tags th WHERE th.chronicle_id = m.chronicle_id AND th.tag = 'thematic')";
+        }
+        if ($nearPlace) {
+            $filters[] = '(NOT EXISTS (SELECT 1 FROM places p WHERE p.entity_id = m.entity_id)
+                OR NOT EXISTS (SELECT 1 FROM footprints f WHERE f.tag = ct.tag)
+                OR EXISTS (SELECT 1 FROM fits x WHERE x.entity_id = m.entity_id AND x.tag = ct.tag))';
+        }
+        $filter = $filters === [] ? '' : 'WHERE '.implode(' AND ', $filters);
 
         return DB::affectingStatement(sprintf(<<<'SQL'
             WITH members AS (%s),
             spans AS (%s),
+            %s
             counts AS (
                 SELECT m.entity_id, ct.tag, t.facet, count(*) AS n
                 FROM members m
@@ -295,6 +312,38 @@ class DeriveTagsAction
             JOIN tags t ON t.slug = r.tag
             WHERE r.n * 2 >= r.top AND (%s)
             ON CONFLICT DO NOTHING
-        SQL, self::MEMBERS_SQL, $this->spansSql(), $tagSql, $thematic, $where));
+        SQL, self::MEMBERS_SQL, $this->spansSql(), $nearPlace ? $this->placesSql() : '', $tagSql, $filter, $where));
+    }
+
+    /**
+     * The CTEs behind `$nearPlace`, each followed by a comma:
+     *   footprints (tag, box): RegionFootprint::sql();
+     *   places (entity_id, geom): every point and shape of the point-like
+     *     chronicle members, geometry periods copied from a related place
+     *     included;
+     *   fits (entity_id, tag): a place inside a region's footprint.
+     */
+    private function placesSql(): string
+    {
+        return sprintf(<<<'SQL'
+            footprints AS (%s),
+            places AS (
+                SELECT p.entity_id, p.geom
+                FROM (
+                    SELECT entity_id, geom FROM entity_locations
+                    UNION ALL SELECT entity_id, territory_geom FROM entity_locations
+                    UNION ALL SELECT entity_id, geom FROM geometry_periods
+                    UNION ALL SELECT entity_id, territory_geom FROM geometry_periods
+                ) p
+                JOIN entities e ON e.entity_id = p.entity_id
+                WHERE p.geom IS NOT NULL
+                  AND e.entity_type::text IN (%s)
+                  AND p.entity_id IN (SELECT entity_id FROM members)
+            ),
+            fits AS (
+                SELECT DISTINCT p.entity_id, f.tag
+                FROM places p JOIN footprints f ON ST_Intersects(p.geom, f.box)
+            ),
+        SQL, RegionFootprint::sql(), RegionFootprint::pointTypesSql());
     }
 }
